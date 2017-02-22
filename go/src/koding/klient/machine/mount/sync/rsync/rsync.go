@@ -65,7 +65,7 @@ func (e *Event) makeArgs(ip string, c *index.Change) []string {
 
 	var rsyncAgent []string
 	if e.parent.privKey != "" {
-		rsyncAgent = append(rsyncAgent, "-e", "ssh -i "+e.parent.privKey+" -oStrictHostKeyChecking=n")
+		rsyncAgent = append(rsyncAgent, "-e", "ssh -i "+e.parent.privKey+" -oStrictHostKeyChecking=no")
 	}
 
 	return append(rsyncAgent, "--delete", "-zav", src, dst)

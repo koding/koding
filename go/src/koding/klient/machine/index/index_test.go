@@ -34,21 +34,18 @@ func TestIndex(t *testing.T) {
 		"add file": {
 			Op: indextest.WriteFile("d/test.bin", 40*1024),
 			Changes: index.ChangeSlice{
-				index.NewChange("d", index.ChangeMetaUpdate),
 				index.NewChange("d/test.bin", index.ChangeMetaAdd),
 			},
 		},
 		"add dir": {
 			Op: indextest.AddDir("e"),
 			Changes: index.ChangeSlice{
-				index.NewChange("", index.ChangeMetaUpdate),
 				index.NewChange("e", index.ChangeMetaAdd),
 			},
 		},
 		"remove file": {
 			Op: indextest.RmAllFile("c/cb.bin"),
 			Changes: index.ChangeSlice{
-				index.NewChange("c", index.ChangeMetaUpdate),
 				index.NewChange("c/cb.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
 			},
 		},
@@ -64,9 +61,7 @@ func TestIndex(t *testing.T) {
 		"rename file": {
 			Op: indextest.MvFile("b.bin", "c/cc.bin"),
 			Changes: index.ChangeSlice{
-				index.NewChange("", index.ChangeMetaUpdate),
 				index.NewChange("b.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
-				index.NewChange("c", index.ChangeMetaUpdate),
 				index.NewChange("c/cc.bin", index.ChangeMetaAdd),
 			},
 		},

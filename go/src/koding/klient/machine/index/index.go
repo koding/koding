@@ -241,10 +241,17 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return
 		}
 
+		mode := entry.Mode()
 		// File exists in both remote and local.
 		if entry.MTime() == info.ModTime().UnixNano() && entry.CTime() == ctime(info) &&
-			entry.Size() == info.Size() && entry.Mode() == info.Mode() {
+			entry.Size() == info.Size() && mode == info.Mode() {
 			// Files are identical.
+			return
+		}
+
+		// Merge will not report directory updates because this means that file
+		// inside directory was added/removed and this file should be reported.
+		if mode.IsDir() {
 			return
 		}
 
