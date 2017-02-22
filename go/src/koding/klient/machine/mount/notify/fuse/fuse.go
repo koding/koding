@@ -78,7 +78,7 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 		return fuse.ENOENT
 	}
 
-	f, err := fs.openFile(ctx, path)
+	f, err := fs.openFile(ctx, path, nd.Entry.Mode())
 	if err != nil {
 		return err
 	}

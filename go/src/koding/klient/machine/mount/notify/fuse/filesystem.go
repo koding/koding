@@ -429,7 +429,7 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 		return 0, 0, err
 	}
 
-	if f, err = os.OpenFile(absPath, os.O_RDWR, 0644); err != nil {
+	if f, err = os.OpenFile(absPath, os.O_RDWR, mode); err != nil {
 		return 0, 0, err
 	}
 
@@ -501,7 +501,7 @@ func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File, nd *index.Node)
 }
 
 func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) (*os.File, fuseops.HandleID, error) {
-	f, err := fs.openFile(ctx, path)
+	f, err := fs.openFile(ctx, path, nd.Entry.Mode())
 	if err != nil {
 		return nil, 0, err
 	}
@@ -515,18 +515,21 @@ func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) 
 	return f, id, nil
 }
 
-func (fs *Filesystem) openFile(ctx stdcontext.Context, path string) (*os.File, error) {
-	flag := os.O_RDWR
+func (fs *Filesystem) openFile(ctx stdcontext.Context, path string, mode os.FileMode) (*os.File, error) {
 	path = fs.path(path)
 
-	f, err := os.OpenFile(path, flag, 0644)
+	f, err := os.OpenFile(path, os.O_RDWR, mode)
 	if os.IsNotExist(err) {
 		err = fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaRemote)
 		if err != nil {
 			return nil, err
 		}
 
-		f, err = os.OpenFile(path, flag, 0644)
+		f, err = os.OpenFile(path, os.O_RDWR, mode)
+	}
+
+	if os.IsPermission(err) {
+		f, err = os.OpenFile(path, os.O_RDONLY, mode)
 	}
 
 	return f, err

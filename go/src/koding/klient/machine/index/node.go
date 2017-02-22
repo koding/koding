@@ -351,14 +351,17 @@ func (nd *Node) undelete() {
 }
 
 func (nd *Node) shallowCopy() *Node {
-	if len(nd.Sub) != 0 {
+	if nd.Sub != nil {
 		sub := make(map[string]*Node, len(nd.Sub))
 
 		for k, v := range nd.Sub {
 			sub[k] = v
 		}
 
-		nd.Sub = sub
+		return &Node{
+			Sub:   sub,
+			Entry: nd.Entry,
+		}
 	}
 
 	return nd
