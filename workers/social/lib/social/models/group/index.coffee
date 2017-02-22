@@ -1610,6 +1610,17 @@ module.exports = class JGroup extends Module
     queue = [
 
       (next) ->
+        return next()  unless client
+
+        url = '/api/social/payment/subscription/delete'
+        { deleteReq } = require '../socialapi/requests'
+        { sessionToken } = client
+
+        deleteReq url, { sessionToken }, (err, body) ->
+          err = null  if err?.description is 'not found'
+          kallback 'Subscription', next, err?.error
+
+      (next) ->
         JApiToken = require '../apitoken'
         JApiToken.remove { group: slug }, (err) ->
           kallback 'JApiToken', next, err
@@ -1643,19 +1654,6 @@ module.exports = class JGroup extends Module
 
       (next) =>
         Relationship.remove { sourceId : @getId() }, next
-
-      (next) ->
-        return next()  unless client
-
-        url = '/api/social/payment/subscription/delete'
-        { deleteReq } = require '../socialapi/requests'
-        { sessionToken } = client
-
-        deleteReq url, { sessionToken }, (err, body) ->
-          if err?.description is 'not admin of the group'
-            console.log "[GROUP_DESTROY_FAILED] for #{slug} please notify Admins"
-          err = null  if err?.description is 'not found'
-          kallback 'Subscription', next, err?.error
 
       (next) =>
         @remove (err) -> kallback 'JGroup', next, err

@@ -64,7 +64,7 @@ module.exports = class StackEditorAppController extends AppController
         showErrorNotification err
         return callback err
 
-      @stackEditor.setTemplateData template, reset
+      @stackEditor.setData template, reset
       callback null
 
     markAsLoaded templateId
@@ -101,10 +101,12 @@ module.exports = class StackEditorAppController extends AppController
 
     debug 'initializeStack called for', templateId
 
-    { controllers: { logs, credentials, variables } } = @stackEditor
+    { controllers: { editor, logs, credentials, variables } } = @stackEditor
     currentTemplate = @stackEditor.getData()
 
     logs.add 'updating stack template...'
+
+    @stackEditor.setBusy yes
 
     queue = [
 
@@ -115,9 +117,9 @@ module.exports = class StackEditorAppController extends AppController
         else
           next()
 
-      (next) =>
+      (next) ->
         logs.add 'checking template...'
-        @stackEditor.check next
+        editor.check next
 
       (next) ->
         logs.add 'checking credentials...'
@@ -131,13 +133,15 @@ module.exports = class StackEditorAppController extends AppController
         logs.add 'saving credentials...'
         credentials.save next
 
-      (next) =>
+      (next) ->
         logs.add 'saving template...'
-        @stackEditor.save next
+        editor.save next
 
     ]
 
-    async.series queue, (err, result) ->
+    async.series queue, (err, result) =>
+
+      @stackEditor.setBusy no
 
       debug 'initializeStack result', err, result
 

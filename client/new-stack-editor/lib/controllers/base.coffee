@@ -5,13 +5,12 @@ module.exports = class BaseController extends kd.Object
 
   constructor: (options = {}, data) ->
 
+    options.shared ?= {}
+
     super options, data
 
-    if editor = @getOption 'editor'
-      @editor = editor
-
-    if logs = @getOption 'logs'
-      @logs = logs
+    for shared, obj of @getOption 'shared'
+      @[shared] = obj
 
 
   save: (callback) ->

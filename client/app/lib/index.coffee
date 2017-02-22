@@ -33,6 +33,8 @@ bootup = ->
   remote = require('./remote')
   # it is very important that you invoke this method before anything else does, so f important.
 
+  console.log 'Application loaded with browser info:', require 'bowser'
+
   globals.os = os # linux, mac or windows
   globals.keymapType = do ->
     if globals.os is 'mac' then globals.os else 'win'
