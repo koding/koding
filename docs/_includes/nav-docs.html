@@ -9,7 +9,7 @@
     {% for section in site.data.nav-docs %}
     <ul>
       <li>
-        <a href='#'>{{ section.title}}</a>
+        <a href='#' class="docs__section__topic">{{ section.title}}</a>
         <ul>
           {% for item in section.items %}
           {% assign url = "/docs/" | append: item.id %}
