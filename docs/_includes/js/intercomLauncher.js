@@ -1,12 +1,14 @@
 var ready = function($) {
 
   var isSupported = false;
-  var language = navigator.language || navigator.userLanguage
-  languages   = [
+  var language = navigator.language || navigator.userLanguage;
+  var languages = [
     'ca', 'da', 'de', 'en', 'eu', 'fi',
     'fr', 'gd', 'he', 'id', 'is', 'it',
     'ja', 'ji', 'ko', 'nl', 'no', 'sv'
-  ]
+  ];
+
+  var supported = null;
 
   for (i = 0, len = languages.length; i < len; i++) {
     supported = languages[i];
