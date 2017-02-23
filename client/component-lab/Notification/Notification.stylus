@@ -1,13 +1,29 @@
 @import '~lab/Colors/Colors.stylus'
 
-$notifications-z-index          = 20000
+$notifications-z-index      = 20000
 
 .kd_notification_list
-  position                      fixed
-  top                           30px
-  right                         30px
-  width                         370px
-  z-index                       $notifications-z-index
+  position                  fixed
+  top                       40px
+  right                     10px
+  width                     370px
+  z-index                   $notifications-z-index
+  max-height                calc(100% - 30px)
+  overflow                  hidden
+  overflow-y                auto
+  padding-right             20px
+
+.kd_notification_list::-webkit-scrollbar
+  -webkit-appearance        none
+
+.kd_notification_list::-webkit-scrollbar:vertical
+    width                   7px
+
+.kd_notification_list::-webkit-scrollbar-thumb
+    border-radius           8px
+    border                  2px solid transparent
+    background-color        rgba(43,51,61,0.75)
+
 
 .kd_notification
   position                      relative
