@@ -378,6 +378,7 @@ type DiskInfo struct {
 	BlocksTotal uint64 `json:"blocksTotal"`
 	BlocksFree  uint64 `json:"blocksFree"`
 	BlocksUsed  uint64 `json:"blocksUsed"`
+	IOSize      int32  `json:"ioSize"`
 }
 
 // GetDiskInfo returns DiskInfo about the mount at the specified path.

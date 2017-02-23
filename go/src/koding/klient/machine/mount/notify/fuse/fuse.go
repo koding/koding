@@ -30,6 +30,7 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 	op.BlockSize = fs.Disk.BlockSize
 	op.BlocksFree = fs.Disk.BlocksFree
 	op.BlocksAvailable = fs.Disk.BlocksTotal - fs.Disk.BlocksUsed
+	op.IoSize = uint32(fs.Disk.IOSize)
 
 	return nil
 }
@@ -78,27 +79,29 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 		return fuse.ENOENT
 	}
 
-	f, err := fs.openFile(ctx, path)
+	f, err := fs.openFile(ctx, path, nd.Entry.Mode())
 	if err != nil {
 		return err
 	}
 
 	op.Attributes = fs.attr(nd.Entry)
 
-	if op.Size != nil {
+	if op.Size != nil && *op.Size != 0 {
 		if err := f.Truncate(int64(*op.Size)); err != nil {
 			return nonil(err, f.Close())
 		}
 
 		op.Attributes.Size = *op.Size
+		nd.Entry.SetSize(int64(*op.Size))
 	}
 
-	if op.Mode != nil {
+	if op.Mode != nil && *op.Mode != 0 {
 		if err := f.Chmod(*op.Mode); err != nil {
 			return nonil(err, f.Close())
 		}
 
 		op.Attributes.Mode = *op.Mode
+		nd.Entry.SetMode(*op.Mode)
 	}
 
 	if err := f.Close(); err != nil {
@@ -112,9 +115,10 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 
 		if op.Mtime != nil {
 			op.Attributes.Mtime = *op.Mtime
+			nd.Entry.SetMTime(op.Mtime.UnixNano())
 		}
 
-		if err := os.Chtimes(path, op.Attributes.Atime, op.Attributes.Mtime); err != nil {
+		if err := os.Chtimes(f.Name(), op.Attributes.Atime, op.Attributes.Mtime); err != nil {
 			return err
 		}
 	}
@@ -198,11 +202,11 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 	}
 
 	oldNd, ok := oldDir.Sub[op.OldName]
-	if !ok {
+	if !ok || oldNd.Deleted() {
 		return fuse.ENOENT
 	}
 
-	if _, ok := newDir.Sub[op.NewName]; ok {
+	if newNd, ok := newDir.Sub[op.NewName]; ok && newNd.IsDir() {
 		return fuse.EEXIST
 	}
 
@@ -213,14 +217,10 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		return err
 	}
 
-	entry := index.NewEntry(0, oldDir.Entry.Mode())
-
-	id := fuseops.InodeID(oldNd.Entry.Inode())
+	entry := oldNd.Entry.Copy()
 
 	fs.mu.Lock()
-	delete(fs.inodes, id)
-	id = fs.add(newPath)
-	entry.SetInode(uint64(id))
+	fs.inodes[fuseops.InodeID(entry.Inode())] = newPath
 	fs.mu.Unlock()
 
 	fs.Index.PromiseDel(oldPath, oldNd)
@@ -325,8 +325,10 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 		}
 	}
 
-	if int(op.Offset) >= len(files) {
+	if n := int(op.Offset); n > len(files) {
 		return fuse.EIO
+	} else if n == len(files) {
+		return nil
 	}
 
 	sort.Strings(files)
