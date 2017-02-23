@@ -180,6 +180,11 @@ func copyFile(src, dst string) error {
 	}
 	defer fsrc.Close()
 
+	fi, err := fsrc.Stat()
+	if err != nil {
+		return err
+	}
+
 	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
 		return err
 	}
@@ -189,15 +194,17 @@ func copyFile(src, dst string) error {
 		return fe(dst, err)
 	}
 
-	if _, err = io.Copy(tmp, fsrc); err != nil {
-		return nonil(fe(tmp.Name(), err), tmp.Close(), os.Remove(tmp.Name()))
+	_, err = io.Copy(tmp, fsrc)
+
+	if err = nonil(err, tmp.Chmod(fi.Mode()), tmp.Close()); err != nil {
+		return nonil(fe(tmp.Name(), err), os.Remove(tmp.Name()))
 	}
 
 	if err = os.Rename(tmp.Name(), dst); err != nil {
-		return nonil(fe(dst, err), tmp.Close(), os.Remove(tmp.Name()))
+		return nonil(fe(dst, err), os.Remove(tmp.Name()))
 	}
 
-	return nil
+	return os.Chtimes(dst, fi.ModTime(), fi.ModTime())
 }
 
 func copyFilesRecursively(src, dst string) error {

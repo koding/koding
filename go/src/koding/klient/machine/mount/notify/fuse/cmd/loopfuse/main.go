@@ -41,12 +41,6 @@ func die(v ...interface{}) {
 	os.Exit(1)
 }
 
-func logf(format string, args ...interface{}) {
-	if *verbose {
-		log.Printf(format, args...)
-	}
-}
-
 func main() {
 	flag.Parse()
 
@@ -79,8 +73,8 @@ func main() {
 		}
 	}
 
-	logf("using cache directory: %s", *tmp)
-	logf("building index for: %q", src)
+	log.Printf("using cache directory: %s", *tmp)
+	log.Printf("building index for: %s", src)
 
 	bc, err := fusetest.NewBindCache(src, *tmp)
 	if err != nil {
@@ -90,12 +84,14 @@ func main() {
 	opts := &fuse.Opts{
 		Cache:    bc,
 		CacheDir: *tmp,
-		Remote:   bc.Index(),
+		Index:    bc.Index(),
 		Mount:    filepath.Base(dst),
 		MountDir: dst,
 		Debug:    *verbose,
 		Disk:     block(dst),
 	}
+
+	log.Printf("mounting filesystem: %s", dst)
 
 	fs, err := fuse.NewFilesystem(opts)
 	if err != nil {
@@ -113,6 +109,8 @@ func main() {
 	}()
 
 	runtime.KeepAlive(fs)
+
+	log.Printf("all done")
 
 	select {}
 }
