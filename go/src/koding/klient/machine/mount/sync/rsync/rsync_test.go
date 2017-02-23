@@ -98,7 +98,6 @@ func TestRsyncArgs(t *testing.T) {
 }
 
 func TestRsyncExec(t *testing.T) {
-	t.Skip("TODO")
 	if !testHasRsync {
 		t.Skip("rsync executable not found, skipping")
 	}
@@ -114,71 +113,70 @@ func TestRsyncExec(t *testing.T) {
 		"chmod file":    indextest.ChmodFile("b/ba/baa.txt", 0600),
 	}
 
-	cm := []index.ChangeMeta{
-		index.ChangeMetaLocal,
-		index.ChangeMetaRemote,
-	}
+	for name, test := range tests {
+		test := test // Capture range variable.
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	for _, dir := range cm {
-		for name, test := range tests {
-			name = strings.Replace(dir.String(), "-", "", -1) + "_" + name
-			dir, test := dir, test // Capture range variables.
-			t.Run(name, func(t *testing.T) {
-				t.Parallel()
+			// Generate two identical file trees.
+			remotePath, cachePath, clean, err := indextest.GenerateMirrorTrees(filetree)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+			defer clean()
 
-				// Generate two identical file trees.
-				rootA, rootB, clean, err := indextest.GenerateMirrorTrees(filetree)
-				if err != nil {
-					t.Fatalf("want err = nil; got %v", err)
-				}
-				defer clean()
+			idx, err := index.NewIndexFiles(remotePath)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
 
-				idx, err := index.NewIndexFiles(rootA)
-				if err != nil {
-					t.Fatalf("want err = nil; got %v", err)
-				}
+			if err := test(cachePath); err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
 
-				// Make change on first file tree.
-				if err := test(rootA); err != nil {
-					t.Fatalf("want err = nil; got %v", err)
-				}
+			// Synchronize underlying file-system.
+			indextest.Sync()
 
-				// Synchronize underlying file-system.
-				indextest.Sync()
+			fmt.Println("cache------", cachePath)
+			idx, _ = index.NewIndexFiles(cachePath)
+			fmt.Println(idx.DebugString())
 
-				opts := &msync.BuildOpts{
-					Mount:    mount.Mount{RemotePath: rootA},
-					CacheDir: rootB,
-					AddrFunc: func(string) (_ machine.Addr, _ error) { return },
-					IndexSyncFunc: func(c *index.Change) {
-						fmt.Println(idx.DebugString())
-						fmt.Println(c.Path())
-						idx.Sync(rootA, c)
-					},
-				}
+			opts := &msync.BuildOpts{
+				Mount:    mount.Mount{RemotePath: remotePath},
+				CacheDir: cachePath,
+				AddrFunc: func(string) (_ machine.Addr, _ error) { return },
+				IndexSyncFunc: func(c *index.Change) {
+					idx.Sync(cachePath, c)
+				},
+			}
 
-				s := rsync.NewRsync(opts)
-				ctx, cancel, err := synctest.SyncLocal(s, rootA, rootB, dir)
-				if err != nil {
-					t.Fatalf("want err = nil; got %v", err)
-				}
-				defer cancel()
+			s := rsync.NewRsync(opts)
+			ctx, cancel, err := synctest.SyncLocal(s, remotePath, cachePath, 0)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+			defer cancel()
 
-				if err := mounttest.WaitForContextClose(ctx, time.Second); err != nil {
-					t.Fatalf("want err = nil; got %v", err)
-				}
+			if err := mounttest.WaitForContextClose(ctx, time.Second); err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
 
-				// Syncer should make two trees identical as they were.
-				cs, err := indextest.Compare(rootA, rootB)
-				if err != nil {
-					t.Fatalf("want err = nil; got %v", err)
-				}
+			idx, _ = index.NewIndexFiles(cachePath)
+			fmt.Println(idx.DebugString())
 
-				if l := len(cs); l != 0 {
-					t.Fatalf("want changes length = 0; got %d: %v", l, cs)
-				}
-			})
-		}
+			idx, _ = index.NewIndexFiles(remotePath)
+			fmt.Println(idx.DebugString())
+
+			// Syncer should make two trees identical as they were.
+			cs, err := indextest.Compare(remotePath, cachePath)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+
+			if l := len(cs); l != 0 {
+				t.Fatalf("want changes length = 0; got %d: %v", l, cs)
+			}
+		})
 	}
 }
 

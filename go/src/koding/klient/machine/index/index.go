@@ -243,15 +243,15 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 
 		mode := entry.Mode()
 		// File exists in both remote and local.
-		if entry.MTime() == info.ModTime().UnixNano() && entry.CTime() == ctime(info) &&
-			entry.Size() == info.Size() && mode == info.Mode() {
-			// Files are identical.
+		if entry.MTime() == info.ModTime().UnixNano() && entry.Size() == info.Size() && mode == info.Mode() {
+			// Files are identical. Allow different ctimes.
 			return
 		}
 
 		// Merge will not report directory updates because this means that file
 		// inside directory was added/removed and this file should be reported.
-		if mode.IsDir() {
+		// Howewer we want to detect permission changes on all files.
+		if mode.IsDir() && mode == info.Mode() {
 			return
 		}
 
@@ -299,6 +299,8 @@ skipBranch:
 		return nil
 	}
 
+	// Put sortest paths to the end.
+	sort.Sort(sort.Reverse(cs))
 	return cs
 }
 

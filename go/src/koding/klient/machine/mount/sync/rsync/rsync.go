@@ -59,7 +59,8 @@ func (e *Event) makeArgs(ip string, c *index.Change) []string {
 		dst  = remote + filepath.Join(e.parent.remote, c.Path())
 		meta = c.Meta()
 	)
-	if meta&index.ChangeMetaRemote != 0 {
+
+	if meta&index.ChangeMetaLocal == 0 && meta&index.ChangeMetaRemote != 0 {
 		src, dst = dst, src // Swap sync directions.
 	}
 
@@ -68,7 +69,13 @@ func (e *Event) makeArgs(ip string, c *index.Change) []string {
 		rsyncAgent = append(rsyncAgent, "-e", "ssh -i "+e.parent.privKey+" -oStrictHostKeyChecking=no")
 	}
 
-	return append(rsyncAgent, "--delete", "-zav", src, dst)
+	if meta&index.ChangeMetaRemove != 0 {
+		rsyncAgent = append(rsyncAgent, "--delete")
+	}
+
+	rsyncAgent = append(rsyncAgent, "--include='/"+filepath.Base(src)+"'", "--exclude='*'")
+
+	return append(rsyncAgent, "-zlptgoDvd", filepath.Dir(src)+"/", filepath.Dir(dst)+"/")
 }
 
 // String implements fmt.Stringer interface. It pretty prints internal event.
