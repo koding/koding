@@ -1581,7 +1581,7 @@ module.exports = class JGroup extends Module
         return callback new KodingError err  if err
 
         @destroy client, (err) ->
-          console.log '[GROUP_DESTROY_FAILED] Ignoring errors:', err
+          console.log '[GROUP_DESTROY_FAILED] Ignoring errors:', err  if err
           callback null
 
 

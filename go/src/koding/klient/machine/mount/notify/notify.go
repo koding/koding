@@ -13,8 +13,7 @@ import (
 type DiskInfo func() (fs.DiskInfo, error)
 
 // BuildOpts represents the context that can be used by external notifiers to
-// build their own type. Built notifier should only read from provided indexes
-// and, if changes occur, commit observed changes using Cache interface.
+// build their own type.
 type BuildOpts struct {
 	MountID mount.ID    // identifier of synced mount.
 	Mount   mount.Mount // single mount with absolute paths.
@@ -24,8 +23,7 @@ type BuildOpts struct {
 
 	DiskInfo DiskInfo // remote directory volume info.
 
-	RemoteIdx *index.Index // known state of remote index.
-	LocalIdx  *index.Index // known state of local index.
+	Index *index.Index // known state of managed index.
 }
 
 // Builder represents a factory method which external notifiers must implement

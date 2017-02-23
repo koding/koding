@@ -46,6 +46,7 @@ func TestIndex(t *testing.T) {
 		"add dir": {
 			Op: addDir("e"),
 			Changes: index.ChangeSlice{
+				index.NewChange("", index.ChangeMetaUpdate),
 				index.NewChange("e", index.ChangeMetaAdd),
 			},
 		},
@@ -53,22 +54,23 @@ func TestIndex(t *testing.T) {
 			Op: rmAllFile("c/cb.bin"),
 			Changes: index.ChangeSlice{
 				index.NewChange("c", index.ChangeMetaUpdate),
-				index.NewChange("c/cb.bin", index.ChangeMetaRemove),
+				index.NewChange("c/cb.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
 			},
 		},
 		"remove dir": {
 			Op: rmAllFile("c"),
 			Changes: index.ChangeSlice{
-				index.NewChange("c", index.ChangeMetaRemove),
-				index.NewChange("c/ca.txt", index.ChangeMetaRemove),
-				index.NewChange("c/cb.bin", index.ChangeMetaRemove),
+				index.NewChange("c", index.ChangeMetaRemote|index.ChangeMetaAdd),
+				index.NewChange("c/ca.txt", index.ChangeMetaRemote|index.ChangeMetaAdd),
+				index.NewChange("c/cb.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
 			},
 			Branch: "c/",
 		},
 		"rename file": {
 			Op: mvFile("b.bin", "c/cc.bin"),
 			Changes: index.ChangeSlice{
-				index.NewChange("b.bin", index.ChangeMetaRemove),
+				index.NewChange("", index.ChangeMetaUpdate),
+				index.NewChange("b.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
 				index.NewChange("c", index.ChangeMetaUpdate),
 				index.NewChange("c/cc.bin", index.ChangeMetaAdd),
 			},
@@ -111,7 +113,7 @@ func TestIndex(t *testing.T) {
 			// Synchronize underlying file-system.
 			Sync()
 
-			cs := idx.CompareBranch(test.Branch, root)
+			cs := idx.MergeBranch(root, test.Branch)
 			sort.Sort(cs)
 			if len(cs) != len(test.Changes) {
 				t.Fatalf("want index.Changes count = %d; got %d", len(test.Changes), len(cs))
@@ -122,14 +124,16 @@ func TestIndex(t *testing.T) {
 				if cs[i].Path() != tc.Path() {
 					t.Errorf("want index.Change path = %q; got %q", tc.Path(), cs[i].Path())
 				}
-				if cs[i].Meta() != tc.Meta() {
-					t.Errorf("want index.Change meta = %bb; got %bb", tc.Meta, cs[i].Meta)
+				if cm, tm := cs[i].Meta(), tc.Meta(); cm != tm {
+					t.Errorf("want index.Change meta = %s; got %v", tm.String(), cm.String())
 				}
 			}
 
-			idx.Apply(root, cs)
-			if cs = idx.CompareBranch(test.Branch, root); len(cs) != 0 {
-				t.Errorf("want no index.Changes after apply; got %#v", cs)
+			for _, c := range cs {
+				idx.Sync(root, c)
+			}
+			if cs = idx.MergeBranch(root, test.Branch); len(cs) != 0 {
+				t.Errorf("want no index.Changes after sync; got %v", cs)
 			}
 		})
 	}
@@ -142,11 +146,11 @@ func TestIndexCount(t *testing.T) {
 	}{
 		"all items": {
 			MaxSize:  -1,
-			Expected: 11,
+			Expected: 12,
 		},
 		"less than 100kiB": {
 			MaxSize:  100 * 1024,
-			Expected: 9,
+			Expected: 10,
 		},
 		"zero": {
 			MaxSize:  0,
@@ -199,8 +203,8 @@ func TestIndexJSON(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if cs := idx.Compare(root); len(cs) != 0 {
-		t.Errorf("want no changes after apply; got %#v", cs)
+	if cs := idx.Merge(root); len(cs) != 0 {
+		t.Errorf("want no changes after apply; got %v", cs)
 	}
 }
 

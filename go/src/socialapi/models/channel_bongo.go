@@ -91,6 +91,16 @@ func (c *Channel) Delete() error {
 	return bongo.B.Delete(c)
 }
 
+func (c *Channel) DeleteWithParticipantsForce() error {
+	// firstly, delete the channel participants
+	if err := c.DeleteChannelParticipants(); err != nil {
+		return err
+	}
+
+	// then delete the channels itself
+	return c.DeleteHard()
+}
+
 func (c *Channel) DeleteHard() error {
 	return bongo.B.DB.Model(c).Table(c.BongoName()).Unscoped().Delete(c).Error
 }

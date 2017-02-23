@@ -63,7 +63,7 @@ function run_backend(){
 if [[ -z "$*" ]]; then
   git fetch origin
   git checkout -fq $TEST_SHA
-  ver=${TEST_SHA:0:8}
+  ver=$(git rev-parse --short HEAD)
   echo $ver > VERSION
   npm install --unsafe-perm
   git clone https://$TEST_GITHUB_TOKEN:x-oauth-basic@github.com/koding/vault.git

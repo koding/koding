@@ -55,7 +55,7 @@ func TestCachedIndexCreate(t *testing.T) {
 	}
 }
 
-func TestCahcedIndexUpdated(t *testing.T) {
+func TestCachedIndexUpdated(t *testing.T) {
 	tempDir, cleanTempDir, err := makeTempDir()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
