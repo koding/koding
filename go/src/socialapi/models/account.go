@@ -70,12 +70,6 @@ func (a *Account) FetchOrCreate() error {
 	}
 
 	err := a.One(bongo.NewQS(selector))
-	// if we dont get any error
-	// it means we found the record in our db
-	if err == nil {
-		return nil
-	}
-
 	// first check if the err is not found err
 	if err != bongo.RecordNotFound {
 		return err
@@ -87,16 +81,12 @@ func (a *Account) FetchOrCreate() error {
 
 	// if we got here it means we have an obsolete account in the db, remove it.
 	if err := a.ByNick(a.Nick); err != bongo.RecordNotFound {
-		if err := a.Delete(); err != nil {
+		if err := a.DeleteIfNotInMongo(); err != nil {
 			return err
 		}
 	}
 
-	if err := a.Create(); err != nil {
-		return err
-	}
-
-	return nil
+	return a.Create()
 }
 
 func (a *Account) FetchChannels(q *request.Query) ([]Channel, error) {
