@@ -23,8 +23,7 @@ bongo_schema:
 	$(RUN) exec $(SCRIPTS)/generate-bongo-schema --file $(MKFILE_DIR).schema.json
 
 node_modules:
-	$(SCRIPTS)/check-node_modules.sh $(CLIENT) || $(SCRIPTS)/install-npm.sh
-	$(SCRIPTS)/check-node_modules.sh landing   || $(SCRIPTS)/install-npm.sh -d landing
+	$(SCRIPTS)/check-node_modules.sh $(CLIENT) || npm install
 
 landing:
 	$(MAKE) -C landing
