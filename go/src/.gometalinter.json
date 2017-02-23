@@ -10,7 +10,6 @@
     "deadcode",
     "ineffassign",
     "structcheck",
-    "gosimple",
     "misspell",
     "unconvert"
   ]
