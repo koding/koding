@@ -56,6 +56,12 @@ stages:
         command: $(npm bin)/coffeelint --quiet .
 
       - type: shell
+        name: credentials
+        command: |
+          export BRANCH=$CIRCLE_BRANCH
+          scripts/copy-deployment-credentials.sh
+
+      - type: shell
         name: configure
         command: ./configure --host localhost:8090 --hostname localhost
 
