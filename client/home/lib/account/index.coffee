@@ -2,12 +2,12 @@ kd = require 'kd'
 headerize = require '../commons/headerize'
 sectionize = require '../commons/sectionize'
 hasIntegration = require 'app/util/hasIntegration'
-
 HomeAccountEditProfile = require './homeaccounteditprofile'
 HomeAccountChangePassword = require './homeaccountchangepassword'
 HomeAccountSecurityView = require './homeaccountsecurityview'
 HomeAccountIntegrationsView = require './homeaccountintegrationsview'
 HomeAccountSessionsView = require './homeaccountsessionsview'
+TeamFlux = require 'app/flux/teams'
 
 
 module.exports = class HomeAccount extends kd.CustomScrollView
@@ -38,6 +38,11 @@ module.exports = class HomeAccount extends kd.CustomScrollView
 
     @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
+
+    @wrapper.addSubView new kd.CustomHTMLView
+      cssClass : 'delete-account'
+      partial : 'DELETE ACCOUNT'
+      click : -> TeamFlux.actions.deleteAccount()
 
 
   checkIntegrations: ->

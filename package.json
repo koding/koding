@@ -123,6 +123,7 @@
     "git-rev-sync": "1.8.0",
     "mocha": "2.2.4",
     "mongodb-migrate": "2.0.1",
+    "sync-request": "4.0.1",
     "which": "1.2.12"
   },
   "optionalDependencies": {}

@@ -18,6 +18,10 @@ KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
 showError = require 'app/util/showError'
 DeleteTeamOverlay = require 'app/components/deleteteamoverlay'
+DeleteAccountOverlay = require 'app/components/deleteaccountoverlay'
+fetchMyRelativeGroups = require 'app/util/fetchMyRelativeGroups'
+DeleteAccountModal = require 'home/account/deleteaccount/deleteaccountmodal'
+verifyPassword = require 'app/util/verifyPassword'
 
 loadTeam = ->
 
@@ -276,53 +280,75 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
-leaveTeam = (partial) ->
+leaveTeam = (modalContent) ->
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+    new VerifyPasswordModal 'Confirm', modalContent, (password) ->
+      verifyPassword password, (err) ->
+        return reject err  if err
 
-      whoami().fetchEmail (err, email) ->
-        options = { password: currentPassword, email }
-        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+        { groupsController, reactor } = kd.singletons
+        team = groupsController.getCurrentGroup()
 
-          return reject err.message  if err
-          return reject 'Current password cannot be confirmed'  unless confirmed
+        team.leave { password }, (err) ->
+          if err
+            return new kd.NotificationView { title : err.message }
 
-          resolve confirmed
-
-          { groupsController, reactor } = kd.singletons
-          team = groupsController.getCurrentGroup()
-
-          team.leave { password: currentPassword }, (err) ->
-            if err
-              return new kd.NotificationView { title : err.message }
-
-            Tracker.track Tracker.USER_LEFT_TEAM
-            kookies.expire 'clientId'
-            global.location.replace '/'
+          Tracker.track Tracker.USER_LEFT_TEAM
+          kookies.expire 'clientId'
+          global.location.replace '/'
 
 
-deleteTeam = (partial) ->
+deleteTeam = (modalContent) ->
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+    new VerifyPasswordModal 'Confirm', modalContent, (password) ->
+      verifyPassword password, (err) ->
 
-      whoami().fetchEmail (err, email) ->
-        options = { password: currentPassword, email }
-        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+        return reject err  if err
 
-          return reject err.message  if err
-          return reject 'Current password cannot be confirmed'  unless confirmed
+        new DeleteTeamOverlay()
 
-          # show delete team overlay
-          new DeleteTeamOverlay()
+        { groupsController, reactor } = kd.singletons
+        team = groupsController.getCurrentGroup()
 
-          { groupsController, reactor } = kd.singletons
-          team = groupsController.getCurrentGroup()
+        team.destroy password, (err) ->
+          reject err  if err
+          resolve()
 
-          team.destroy currentPassword, (err) ->
-            reject err  if err
-            resolve()
+
+deleteAccount = ->
+
+  fetchMyRelativeGroups (err, groups) ->
+
+    return  if showError err
+
+    return new DeleteAccountModal {}, groups  if groups.length
+
+    deleteAccountVerifyModal()
+
+
+deleteAccountVerifyModal = ->
+
+  modalContent = '''
+    <p>
+      <strong>CAUTION! </strong>You are about to delete your account.
+      This operation will also delete this current team.
+    </p> <br>
+    <p>Please enter your <strong>current password</strong> into the field below to continue: </p>
+  '''
+
+  new VerifyPasswordModal 'Confirm', modalContent, (password) ->
+    verifyPassword password, (err) ->
+
+      return if showError err
+
+      new DeleteAccountOverlay()
+
+      whoami().destroy password, (err) ->
+        if err
+          showError err
+          window.location = '/IDE'
 
 
 
@@ -391,6 +417,8 @@ module.exports = {
   loadTeam
   leaveTeam
   deleteTeam
+  deleteAccount
+  deleteAccountVerifyModal
   updateTeam
   updateInvitationInputValue
   fetchMembers
