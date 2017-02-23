@@ -369,8 +369,9 @@ func DeleteDiffedDBAccounts() error {
 
 			if err := acc.DeleteIfNotInMongo(); err != nil {
 				errs = multierror.Append(errs, err)
+			} else {
+				counter++
 			}
-			counter++
 		}
 
 		// we increase offset number
