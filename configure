@@ -4,7 +4,6 @@ log = console.log
 fs = require 'fs'
 os = require 'os'
 path = require 'path'
-request = require 'request'
 { extend, defaults, clone } = require 'underscore'
 
 defaultEnv = argv.config or process.env.DEFAULTENV or 'default'
@@ -162,9 +161,6 @@ else if os.type() is "Darwin"
   options.hostname = "dev.koding.com"
   updateVault()
 else
-  log "lemme find your IP"
-  request "https://p.koding.com/-/ip", (err, res, body) ->
-    ip = body
-    options.hostname = ip
-    log "my ip is #{ip}"
-    updateVault()
+  { body } = require('sync-request') 'GET', 'https://p.koding.com/-/ip'
+  options.hostname = body.toString()
+  updateVault()

@@ -56,8 +56,14 @@ stages:
         command: $(npm bin)/coffeelint --quiet .
 
       - type: shell
+        name: credentials
+        command: |
+          export BRANCH=$CIRCLE_BRANCH
+          scripts/copy-deployment-credentials.sh
+
+      - type: shell
         name: configure
-        command: ./configure --host localhost:8090 --hostname localhost
+        command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com
 
       - type: shell
         name: check remote API consistency
@@ -146,14 +152,18 @@ stages:
         command: ./run migrations up
 
       - type: shell
-        name: set up dnsmasq
-        command: |
-          service dnsmasq start
-          echo nameserver 127.0.0.1 > /etc/resolv.conf
-
-      - type: shell
         name: run
         command: |
           ./run exec supervisord -c supervisord.conf
           nginx -c $(pwd)/nginx.conf
           ./run health-check 30 600
+
+      - type: shell
+        name: test social API
+        environment:
+          EXTRAS: -convey-story=true
+        command: ./run exec make -C go/src/socialapi testapi
+
+      - type: shell
+        name: test social worker
+        command: ./run exec scripts/node-testing/mocha-runner workers/social/lib/social

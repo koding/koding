@@ -66,6 +66,26 @@ generateDummyClient = (context, callback) ->
     callback null, client
 
 
+createCustomClient = (groupName, account, callback) ->
+
+  sessionOptions =
+    username  : account.getAt 'profile.nickname'
+    groupName : groupName
+
+  JSession.createNewSession sessionOptions, (err, session) ->
+
+    return callback err  if err
+
+    adminClient =
+      sessionToken : session.clientId
+      context      : { group: groupName }
+      clientIP     : '127.0.0.1'
+      connection   :
+        delegate   : account
+
+    return callback null, adminClient
+
+
 withDummyClient = (context, callback) ->
 
   [context, callback] = [callback, context]  unless callback
@@ -270,6 +290,7 @@ module.exports = {
   generateUserInfo
   withConvertedUser
   expectAccessDenied
+  createCustomClient
   generateDummyClient
   generateCredentials
   generateRandomEmail

@@ -5,6 +5,21 @@ SESSION_DATA_CORRUPTED = new KodingError 'Session data corrupted.'
 
 module.exports =
 
+  checkUserPassword: (account, password, callback) ->
+
+    return callback 'Account not found'  unless account
+
+    return callback 'Please provide password'  unless password
+
+    account.fetchUser (err, user) ->
+      return callback "Couldn't verify user"  if err
+
+      unless user.checkPassword password
+        return callback "Your password didn't match with our records"
+      else
+        callback()
+
+
   parseClient: (client) ->
 
     if not client or not client.context or not client.connection
