@@ -5,6 +5,7 @@ async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
 backoff = require 'backoff'
+{ checkUserPassword } = require '../utils'
 
 module.exports = class JGroup extends Module
 
@@ -200,7 +201,7 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         ]
         transferOwnership:
-          (signature String, Function)
+          (signature Object, Function)
         destroy:
           (signature String, Function)
         addSubscription:
@@ -1466,43 +1467,105 @@ module.exports = class JGroup extends Module
           @addMember account, {}, callback  unless removeUserFromTeam
 
 
-  transferOwnership: permit
+  transferOwnership$: permit
     advanced: [
       { permission: 'grant permissions' }
       { permission: 'grant permissions', superadmin: yes }
     ]
-    success: (client, accountId, callback) ->
-      JAccount = require '../account'
+    success: (client, options, callback) ->
 
       { delegate } = client.connection
-      if delegate.getId().equals accountId
+      { accountId, currentPassword, slug } = options
+
+      clientAccountId = delegate.getId()
+
+      return callback new KodingError 'User is not selected!'  unless accountId
+
+      checkUserPassword delegate, currentPassword, (err) =>
+
+        return callback new KodingError err  if err
+
+        @transferOwnership { clientAccountId, accountId, slug }, callback
+
+
+  transferOwnership: (options, callback) ->
+
+    { clientAccountId, accountId, slug } = options
+
+    return callback new KodingError 'Account is not provided'  unless accountId
+
+    @fetchOwner (err, oldOwner) =>
+
+      return callback err if err
+
+      if clientAccountId and not oldOwner.getId().equals clientAccountId
+        return callback new KodingError 'You must be the owner to perform this action!'
+
+      if oldOwner.getId().equals accountId
         return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
 
-      Relationship.one {
-        targetId: delegate.getId(),
-        sourceId: @getId(),
-        as      : 'owner'
-      }, (err, owner) =>
-        return callback err if err
-        return callback new KodingError 'You must be the owner to perform this action!' unless owner
+      JAccount = require '../account'
+      JAccount.one { _id: accountId }, (err, newOwnerAccount) =>
 
-        JAccount.one { _id:accountId }, (err, account) =>
+        return callback err if err
+
+        @fetchRolesByAccount newOwnerAccount, (err, newOwnersRoles) =>
+
           return callback err if err
 
-          @fetchRolesByAccount account, (err, newOwnersRoles) =>
-            return callback err if err
+          if 'blockedAccount' in newOwnersRoles
+            return callback new KodingError 'You cannot transfer ownership to blocked account'
 
-            kallback = (err) ->
-              callback err
+          kallback = (err) ->
+            callback err
 
-            # give rights to new owner
-            queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
-              @addMember account, role, fin
+          # give rights to new owner
+          queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
+            @addMember newOwnerAccount, role, fin
 
-            async.parallel queue, (err) ->
-              return kallback err  if err
-              # transfer ownership
-              owner.update { $set: { targetId: account.getId() } }, kallback
+          async.parallel queue, (err) =>
+            return kallback err  if err
+
+            slug ?= 'koding'
+
+            async.series [
+
+              (next) =>
+                # update relationship for old owner as an admin
+                 Relationship.one {
+                  targetId: oldOwner.getId(),
+                  sourceId: @getId(),
+                  as      : 'owner'
+                }, (err, ownerRelation) ->
+                  ownerRelation.update { $set: { as: 'admin' } }
+                  next()
+
+              (next) =>
+                # add new relationship to new owner
+                (new Relationship
+                  targetName  : 'JAccount'
+                  targetId    : newOwnerAccount.getId()
+                  sourceName  : 'JGroup'
+                  sourceId    : @getId()
+                  as          : 'owner'
+                ).save next
+
+              (next) ->
+                # notify the team for new owner
+                contents =
+                  role: 'owner'
+                  id: newOwnerAccount.getId()
+                  group: slug
+                  adminNick: oldOwner.profile.nickname
+
+                JGroup.one { slug }, (err, group) ->
+                  if group
+                    group.sendNotification 'MembershipRoleChanged', contents
+
+                  next()
+
+            ], kallback
+
 
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback) ->
     unless callback
@@ -1553,20 +1616,6 @@ module.exports = class JGroup extends Module
       else oldAddOwner.call this, target, options, callback
 
 
-  checkUserPassword: (account, password, callback) ->
-
-    unless account or password
-      return callback "Couldn't verify user"
-
-    account.fetchUser (err, user) ->
-      return callback "Couldn't verify user"  if err
-
-      unless user.checkPassword password
-        return callback "Your password didn't match with our records"
-      else
-        callback()
-
-
   destroy$   : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.own }
@@ -1576,7 +1625,7 @@ module.exports = class JGroup extends Module
 
       account = client?.connection?.delegate
 
-      @checkUserPassword account, password, (err) =>
+      checkUserPassword account, password, (err) =>
 
         return callback new KodingError err  if err
 

@@ -5,7 +5,10 @@ KodingError = require '../error'
 ApiError    = require './socialapi/error'
 Tracker     = require './tracker'
 KONFIG      = require 'koding-config-manager'
+backoff     = require 'backoff'
 { dummyAdmins } = KONFIG
+{ checkUserPassword } = require './utils'
+
 
 module.exports = class JAccount extends jraphical.Module
 
@@ -128,8 +131,10 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
-        fetchRelativeGroups:
+        fetchRelativeGroups: [
           (signature Function)
+          (signature Object, Function)
+        ]
         expireSubscription:
           (signature Function)
         fetchOtaToken:
@@ -140,6 +145,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         pushNotification:
           (signature Object, Function)
+        destroy:
+          (signature String, Function)
 
 
     schema                  :
@@ -300,20 +307,39 @@ module.exports = class JAccount extends jraphical.Module
     async.waterfall queue, callback
 
 
-  fetchRelativeGroups$: secure (client, callback) ->
+  fetchRelativeGroups$: secure (client, options = {}, callback) ->
+
     delegate = client?.connection?.delegate
-    return callback new Error 'malformed request' unless delegate
-    delegate.fetchRelativeGroups callback
+    currentGroup = client?.context?.group
+
+    return callback new Error 'malformed request' unless delegate or currentGroup
+
+    [ callback, options ] = [ options, callback ]  unless callback
+    options ?= {}
+
+    delegate.fetchRelativeGroups { roles: options.roles }, (err, groups) ->
+
+      return callback err  if err
+
+      rejectedSlugs = [ 'koding', currentGroup ]
+
+      groups = _.reject groups, (group) -> group.slug in rejectedSlugs
+      groups = _.sortBy groups, 'slug'
+
+      callback null, groups
 
 
-  fetchRelativeGroups: (callback) ->
+  fetchRelativeGroups: (options, callback) ->
+
+    [ callback, options ] = [ options, callback ]  unless callback
+    options ?= {}
 
     queue =
       participated: (next) =>
-        @fetchAllParticipatedGroups {}, (err, groups) =>
+        @fetchAllParticipatedGroups options, (err, groups) =>
           return next err  if err
           JUser = require './user'
-          username = @profile.nickname
+          username = @getAt 'profile.nickname'
           for group in groups
             group.jwtToken = JUser.createJWT { username, groupName : group.slug }
           next null, groups
@@ -1239,3 +1265,141 @@ module.exports = class JAccount extends jraphical.Module
     options  = { limit, skip, sort }
     JSession = require './session'
     JSession.some selector, options, callback
+
+
+  destroy$: secure (client, password, callback) ->
+
+    { delegate } = client.connection
+    { profile: { nickname } } = delegate
+
+    if nickname isnt @getAt 'profile.nickname'
+      return callback new KodingError \
+        'You are trying to delete the account that does not belong to you'
+
+    checkUserPassword delegate, password, (err) =>
+
+      return callback new KodingError err  if err
+
+      @destroy client, callback
+
+
+  destroy: (client, callback) ->
+
+    @fetchRelativeGroups { roles: ['owner'] }, (err, groups) =>
+
+      # filter out the koding team
+      groups = groups.filter (group) -> group.slug isnt 'koding'
+
+      if groups.length > 1
+        return callback new KodingError 'You cannot delete your account when you have ownership in other team', groups
+
+      kallback = (label, next, err) ->
+
+        errors.push { label, err }  if err
+        next()
+
+      [ group ] = groups
+
+      errors = []
+
+      username = @getAt 'profile.nickname'
+      accountId = @getId()
+
+      # delete resources of the account, team and account itself
+      queue = [
+        (next) =>
+          # delete user's resources (stack templates, stacks, machines)
+          ComputeProvider = require './computeproviders/computeprovider'
+          ComputeProvider.destroyAccountResources this, next
+
+        (next) ->
+          # deny from all machines that are shared with the account
+          JMachine = require './computeproviders/machine'
+          selector = { 'users.username' : username }
+          JMachine.some selector, {}, (err, machines) ->
+
+            return next()  unless machines
+
+            deleteMachines = machines.map (machine) -> (fin) ->
+              machine.deny client, fin
+
+            async.parallel deleteMachines, ->
+              kallback 'JMachine', next, err
+
+        (next) ->
+          # delete the credentials that are associated with the account
+          JCredential = require './computeproviders/credential'
+          JCredential.some$ client, { originId: accountId }, {}, (err, credentials) ->
+
+            return next()  unless credentials
+
+            deleteCredentials = credentials.map (credential) -> (fin) ->
+              credential.delete client, fin
+
+            async.parallel deleteCredentials, ->
+              kallback 'JCredential', next, err
+
+        (next) ->
+          group.destroy client, (err) ->
+            kallback 'GroupDestroy', next, err
+
+        (next) ->
+          # delete apitokens
+          JApiToken = require './apitoken'
+          JApiToken.remove { originId: accountId }, ->
+            kallback 'JApiToken', next, err
+
+
+        (next) ->
+          # delete invitations
+          JInvitation = require './invitation'
+          JInvitation.remove { inviterId: accountId }, (err) ->
+            kallback 'JInvitation', next, err
+
+        (next) ->
+          JUser = require './user'
+          JUser.unregister client, username, (err) ->
+            kallback 'JUser', next, err
+
+        (next) =>
+          @remove (err) -> kallback 'JAccount', next, err
+
+        (next) ->
+          JSession = require './session'
+          JSession.remove { username }, (err) ->
+            kallback 'JSession', next, err
+
+      ]
+
+      call  = null
+
+      deleteAccount = (cb) ->
+
+        async.series queue, ->
+
+          # execute the callback on the first try
+          # even there is an error or not
+          if call.getNumRetries() is 0
+            callback null
+
+          return  if not errors.length
+
+          cb errors
+          errors = []
+
+      call = backoff.call deleteAccount, ->
+
+      call.retryIf (errors) ->
+
+        errors.forEach (error) ->
+          console.log "[ACCOUNT_DESTROY_FAILED]: Attempt: #{call.getNumRetries()}
+          for #{username} in #{error.label} with error #{error.err}"
+
+        errors.length
+
+      call.setStrategy new backoff.ExponentialStrategy
+        initialDelay: 1000
+        maxDelay    : 10000
+
+      call.failAfter 2
+      call.start()

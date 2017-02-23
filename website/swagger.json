@@ -3016,6 +3016,40 @@
         }
       }
     },
+    "/remote.api/JAccount.destroy/{id}": {
+      "post": {
+        "tags": [
+          "JAccount"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "Method JAccount.destroy",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JApiToken.create": {
       "post": {
         "tags": [
@@ -7177,7 +7211,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "",
+        "description": "Method JGroup.transferOwnership",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"

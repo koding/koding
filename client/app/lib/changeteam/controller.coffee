@@ -16,16 +16,6 @@ module.exports = class ChangeTeamController extends KodingListController
       whoami().fetchRelativeGroups (err, groups) ->
         return  if showError err
 
-        { groupsController } = kd.singletons
-        currentGroup = _.find groups, (group) ->
-          group.slug is groupsController.getCurrentGroup().slug
-
-        rejectedSlugs = [ 'koding', currentGroup.slug ]
-        groups = _.reject groups, (group) -> group.slug in rejectedSlugs
-        groups = _.sortBy groups, 'slug'
-
-        groups.unshift currentGroup
-
         callback null, groups
 
     options.noItemFoundWidget = new kd.CustomHTMLView
