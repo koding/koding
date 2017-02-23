@@ -642,21 +642,7 @@ func makeCreds(init bool, c ...*stack.Credential) map[string]interface{} {
 	creds := make(map[string]interface{}, len(c))
 
 	if init {
-		// Using func-scope to defer unlocking in case user-provided
-		// function panics.
-		func() {
-			providersMu.Lock()
-			defer providersMu.Unlock()
-
-			for _, c := range c {
-				if c.Credential == nil {
-					c.Credential = schema(c.Provider).newCredential()
-				}
-				if c.Bootstrap == nil {
-					c.Bootstrap = schema(c.Provider).newBootstrap()
-				}
-			}
-		}()
+		initCreds(c...)
 	}
 
 	for _, c := range c {
@@ -668,4 +654,18 @@ func makeCreds(init bool, c ...*stack.Credential) map[string]interface{} {
 	}
 
 	return creds
+}
+
+func initCreds(c ...*stack.Credential) {
+	providersMu.Lock()
+	defer providersMu.Unlock()
+
+	for _, c := range c {
+		if c.Credential == nil {
+			c.Credential = schema(c.Provider).newCredential()
+		}
+		if c.Bootstrap == nil {
+			c.Bootstrap = schema(c.Provider).newBootstrap()
+		}
+	}
 }

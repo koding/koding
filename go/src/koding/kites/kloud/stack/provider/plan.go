@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"koding/db/models"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
@@ -40,8 +41,24 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 
 	credIDs := FlattenValues(bs.Builder.StackTemplate.Credentials)
 
-	if err := bs.Builder.BuildCredentials(bs.Req.Method, bs.Req.Username, arg.GroupName, credIDs); err != nil {
+	var cred *stack.Credential
+	err := bs.Builder.BuildCredentials(bs.Req.Method, bs.Req.Username, arg.GroupName, credIDs)
+	switch {
+	case models.IsNotFound(err, "jCredential"):
+		cred = &stack.Credential{
+			Provider: bs.Provider.Name,
+		}
+
+		// If no credentials were sent with the request, use a blank one
+		// when extending the template.
+		initCreds(cred)
+	case err != nil:
 		return nil, err
+	default:
+		cred, err = bs.Builder.CredentialByProvider(bs.Provider.Name)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := bs.Builder.Authorize(bs.Req.Username); err != nil {
@@ -55,11 +72,6 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	bs.Log.Debug("Stack template before plan: %s", contentID, util.LazyJSON(bs.Builder.StackTemplate.Template.Content))
 
 	if err := bs.Builder.BuildTemplate(bs.Builder.StackTemplate.Template.Content, contentID); err != nil {
-		return nil, err
-	}
-
-	cred, err := bs.Builder.CredentialByProvider(bs.Provider.Name)
-	if err != nil {
 		return nil, err
 	}
 

@@ -13,6 +13,10 @@ const (
 )
 
 func GetCredentialsFromIdentifiers(identifier ...string) ([]*models.Credential, error) {
+	if len(identifier) == 0 {
+		return nil, mgo.ErrNotFound
+	}
+
 	var credentials []*models.Credential
 	if err := Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"identifier": bson.M{"$in": identifier}}).All(&credentials)
