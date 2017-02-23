@@ -103,7 +103,7 @@ if [ "$1" == "kites" ]; then
 
 elif [ "$1" == "socialapi" ]; then
 	shift
-	export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
+	export RUN_FLAGS=${RUN_FLAGS:-"-c=$KONFIG_SOCIALAPI_CONFIGFILEPATH"}
 
 	runAll $@
 else
