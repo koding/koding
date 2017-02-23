@@ -123,7 +123,7 @@ participantHandler = (funcName, data, callback = ->) ->
           SocialChannel[funcName] client, options, (err, participants) ->
             if err
               console.error "couldnt #{funcName} user into group socialapi chan", err, options
-              return new Error "couldnt #{funcName} user into group socialapi chan"
+              return callback new Error "couldnt #{funcName} user into group socialapi chan"
 
             # only add koding's members to announcement channel
             return callback null if group.slug isnt 'koding'
