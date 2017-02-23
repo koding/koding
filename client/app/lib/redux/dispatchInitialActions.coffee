@@ -1,5 +1,6 @@
 globals = require 'globals'
 isAdmin = require 'app/util/isAdmin'
+hasCreditCard = require 'app/util/hasCreditCard'
 
 { LOAD: BONGO_LOAD } = bongo = require 'app/redux/modules/bongo'
 { Plan, Status } = require 'app/redux/modules/payment/constants'
@@ -41,7 +42,7 @@ ensureCreditCard = ({ dispatch }) ->
 
   { payment } = globals.currentGroup
 
-  if payment.customer.hasCard
+  if hasCreditCard(payment)
   then Promise.resolve()
   else Promise.reject Status.NEEDS_UPGRADE
 

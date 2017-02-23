@@ -135,12 +135,18 @@ func TestAnteroomPopChange(t *testing.T) {
 		t.Fatalf("want invalid valid event; got valid")
 	}
 
+	select {
+	case <-a.Events(): // pop pending event.
+	case <-time.After(time.Second):
+		t.Fatalf("timed out after %s", time.Second)
+	}
+
 	items, queued := a.Status()
 	if items != 1 {
 		t.Errorf("want 1 items; got %d", items)
 	}
-	if queued != 1 {
-		t.Errorf("want 1 queued event; got %d", queued)
+	if queued != 0 {
+		t.Errorf("want 0 queued event; got %d", queued)
 	}
 }
 

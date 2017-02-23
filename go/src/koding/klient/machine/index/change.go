@@ -118,7 +118,7 @@ func (cm *ChangeMeta) String() string {
 
 	var buf [8]byte // Meta is uint64 but we don't need more than 8.
 	for c, i := range cmMapping {
-		w := getPowerof2(uint64(i))
+		w := getPowerOf2(uint64(i))
 		if cpy&uint64(i) != 0 {
 			buf[w] = c
 		} else {
@@ -129,7 +129,7 @@ func (cm *ChangeMeta) String() string {
 	return string(buf[:len(cmMapping)])
 }
 
-func getPowerof2(i uint64) (count int) {
+func getPowerOf2(i uint64) (count int) {
 	for ; i > 1; count++ {
 		i = i >> 1
 	}
