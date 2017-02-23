@@ -350,8 +350,12 @@ func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, boo
 	return f, nd, true
 }
 
+func (fs *Filesystem) commit(path string, meta index.ChangeMeta) stdcontext.Context {
+	return fs.Cache.Commit(index.NewChange(path, meta))
+}
+
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {
-	c := fs.Cache.Commit(index.NewChange(path, meta))
+	c := fs.commit(path, meta)
 
 	select {
 	case <-c.Done():
@@ -483,7 +487,9 @@ func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, path string) er
 		return nil
 	}
 
-	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+
+	return nil
 }
 
 func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File, nd *index.Node) error {
@@ -491,7 +497,9 @@ func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File, nd *index.Node)
 
 	_ = updateSize(f, nd)
 
-	return nonil(err, fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate))
+	fs.commit(f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+
+	return err
 }
 
 func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) (*os.File, fuseops.HandleID, error) {

@@ -123,7 +123,9 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 		}
 	}
 
-	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaUpdate)
+
+	return nil
 }
 
 // MkDir creates new directory inside specified parent directory. It returns
@@ -152,7 +154,9 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 
 	op.Entry.Attributes = fs.newAttr(op.Mode)
 
-	return fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaLocal)
+	fs.commit(path, index.ChangeMetaAdd|index.ChangeMetaLocal)
+
+	return nil
 }
 
 // CreateFile creates an empty file with specified name and mode. It returns an
@@ -179,7 +183,9 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 
 	op.Entry.Attributes = fs.newAttr(op.Mode)
 
-	return fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaLocal)
+	fs.commit(path, index.ChangeMetaAdd|index.ChangeMetaLocal)
+
+	return nil
 }
 
 // Rename changes a file or directory from old name and parent to new name and
@@ -226,10 +232,10 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 	fs.Index.PromiseDel(oldPath, oldNd)
 	fs.Index.PromiseAdd(newPath, entry)
 
-	return nonil(
-		fs.yield(ctx, oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove),
-		fs.yield(ctx, newPath, index.ChangeMetaLocal|index.ChangeMetaAdd),
-	)
+	fs.commit(oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove)
+	fs.commit(newPath, index.ChangeMetaLocal|index.ChangeMetaAdd)
+
+	return nil
 }
 
 // RmDir deletes a directory from remote and list of live nodes.
@@ -258,7 +264,9 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 		return err
 	}
 
-	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+
+	return nil
 }
 
 // Unlink removes entry from specified parent directory.
@@ -415,7 +423,9 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 
 	updateSize(f, nd)
 
-	return fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	fs.commit(f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+
+	return nil
 }
 
 // SyncFile sends file contents from local to remote.
