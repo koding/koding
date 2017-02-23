@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"koding/kites/config"
@@ -34,25 +33,6 @@ var Builder notify.Builder = builder{}
 
 type builder struct{}
 
-func block(path string) *fs.DiskInfo {
-	stfs := syscall.Statfs_t{}
-
-	if err := syscall.Statfs(path, &stfs); err != nil {
-		return nil
-	}
-
-	di := &fs.DiskInfo{
-		BlockSize:   uint32(stfs.Bsize),
-		BlocksTotal: stfs.Blocks,
-		BlocksFree:  stfs.Bfree,
-		IOSize:      stfs.Iosize,
-	}
-
-	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
-
-	return di
-}
-
 // Build implements the notify.Builder interface.
 func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 	o := &Opts{
@@ -68,7 +48,9 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 
 	// TODO(ppknap) get disk info from client.
 	if o.Disk == nil {
-		o.Disk = block(opts.CacheDir)
+		if di, err := fs.Statfs(opts.CacheDir); err == nil {
+			o.Disk = di
+		}
 	}
 
 	if err := o.Valid(); err != nil {
