@@ -75,7 +75,7 @@ func (e *Event) makeArgs(ip string, c *index.Change) []string {
 
 	rsyncAgent = append(rsyncAgent, "--include='/"+filepath.Base(src)+"'", "--exclude='*'")
 
-	return append(rsyncAgent, "-zlptgoDvd", filepath.Dir(src)+"/", filepath.Dir(dst)+"/")
+	return append(rsyncAgent, "-zlptgoDd", filepath.Dir(src)+"/", filepath.Dir(dst)+"/")
 }
 
 // String implements fmt.Stringer interface. It pretty prints internal event.

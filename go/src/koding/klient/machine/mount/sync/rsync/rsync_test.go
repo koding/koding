@@ -49,14 +49,33 @@ func dumpArgs(w io.Writer) func(_ context.Context, args ...string) *exec.Cmd {
 }
 
 func TestRsyncArgs(t *testing.T) {
-	t.Skip()
 	tests := map[string]struct {
 		Meta     index.ChangeMeta
 		Expected []string
 	}{
 		"file added locally": {
 			Meta:     index.ChangeMetaAdd | index.ChangeMetaLocal,
-			Expected: []string{"a", "b", "c"},
+			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", "user@127.0.0.1:/r/a/"},
+		},
+		"file updated locally": {
+			Meta:     index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", "user@127.0.0.1:/r/a/"},
+		},
+		"file removed locally": {
+			Meta:     index.ChangeMetaRemove | index.ChangeMetaLocal,
+			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--delete", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", "user@127.0.0.1:/r/a/"},
+		},
+		"file added remotely": {
+			Meta:     index.ChangeMetaAdd | index.ChangeMetaRemote,
+			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "user@127.0.0.1:/r/a/", "/c/a/"},
+		},
+		"file updated remotely": {
+			Meta:     index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "user@127.0.0.1:/r/a/", "/c/a/"},
+		},
+		"file removed remotely": {
+			Meta:     index.ChangeMetaRemove | index.ChangeMetaRemote,
+			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--delete", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "user@127.0.0.1:/r/a/", "/c/a/"},
 		},
 	}
 
@@ -137,10 +156,6 @@ func TestRsyncExec(t *testing.T) {
 			// Synchronize underlying file-system.
 			indextest.Sync()
 
-			fmt.Println("cache------", cachePath)
-			idx, _ = index.NewIndexFiles(cachePath)
-			fmt.Println(idx.DebugString())
-
 			opts := &msync.BuildOpts{
 				Mount:    mount.Mount{RemotePath: remotePath},
 				CacheDir: cachePath,
@@ -160,12 +175,6 @@ func TestRsyncExec(t *testing.T) {
 			if err := mounttest.WaitForContextClose(ctx, time.Second); err != nil {
 				t.Fatalf("want err = nil; got %v", err)
 			}
-
-			idx, _ = index.NewIndexFiles(cachePath)
-			fmt.Println(idx.DebugString())
-
-			idx, _ = index.NewIndexFiles(remotePath)
-			fmt.Println(idx.DebugString())
 
 			// Syncer should make two trees identical as they were.
 			cs, err := indextest.Compare(remotePath, cachePath)
