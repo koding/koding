@@ -76,7 +76,6 @@ userData =
     - #{git_clone_vault argv['branch']} || #{git_clone_vault()}
     - git submodule update --recursive
     - /opt/koding/scripts/test-instance/init
-    - echo $(git rev-parse HEAD) > REVISION
   """
 
 params =
