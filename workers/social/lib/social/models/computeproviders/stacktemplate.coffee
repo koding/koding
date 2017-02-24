@@ -556,9 +556,11 @@ module.exports = class JStackTemplate extends Module
 
         (next) =>
 
-          next unless @getAt 'config.verified'
-          then new KodingError 'Stack is not verified yet'
-          else null
+          unless @getAt 'config.verified'
+            if options.verify
+            then @verify client, next
+            else next new KodingError 'Stack is not verified yet'
+          else next null
 
         (next) =>
 
