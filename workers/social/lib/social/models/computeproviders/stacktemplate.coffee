@@ -368,6 +368,18 @@ module.exports = class JStackTemplate extends Module
       else callback null, provider.template
 
 
+  getNotifyOptions: (client) ->
+
+    { group } = client.context
+    { connection: { delegate } } = client
+
+    return {
+      account : delegate
+      group   : group
+      target  : if @getAt('accessLevel') is 'group' then 'group' else 'account'
+    }
+
+
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -465,14 +477,8 @@ module.exports = class JStackTemplate extends Module
         return callback err  if err
 
         customCredentials = @getAt('credentials.custom') ? []
-        { context: { group }, connection: { delegate: account } } = client
 
-        notifyOptions =
-          account: account
-          group: group
-          target: if @getAt('accessLevel') is 'group' then 'group' else 'account'
-
-        @removeAndNotify notifyOptions, (err) ->
+        @removeAndNotify (@getNotifyOptions client), (err) ->
           return callback err  if err
 
           # delete custom credentials if exists ~ GG
@@ -591,8 +597,8 @@ module.exports = class JStackTemplate extends Module
 
     success: revive
 
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
+      shouldReviveClient    : yes
+      shouldReviveProvider  : no
       shouldFetchGroupLimit : yes
 
     , (client, data, callback) ->
@@ -602,13 +608,8 @@ module.exports = class JStackTemplate extends Module
       originId     = delegate.getId()
       options      = { originId, group }
 
-      notifyOptions =
-        account : delegate
-        group   : group.slug
-        target  : if @accessLevel is 'group' then 'group' else 'account'
-
       updateAndNotify = (query) =>
-        @updateAndNotify notifyOptions, query, (err, results) =>
+        @updateAndNotify (@getNotifyOptions client), query, (err, results) =>
           callback err, this
 
       # Create a clone of provided data to work on it around
