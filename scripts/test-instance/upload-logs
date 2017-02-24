@@ -6,8 +6,8 @@ if [ -z "$prefix" ]; then
 	exit 1
 fi
 
-declare access_key=$2
-declare secret_key=$3
+declare access_key=$KONFIG_TEST_CREDENTIALS_AWS_ACCESSKEYID
+declare secret_key=$KONFIG_TEST_CREDENTIALS_AWS_SECRETACCESSKEY
 
 declare instance_id=$(ec2metadata | grep instance-id | awk '{print $2}')
 declare bucket="kodingdev-test-instance-logs"
