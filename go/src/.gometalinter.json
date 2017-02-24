@@ -3,6 +3,8 @@
   "Fast": true,
   "EnableGC": true,
   "Deadline": "60s",
+  "Tests": true,
+  "Vendor": true,
   "DisableAll": true,
   "Enable": [
     "deadcode",
