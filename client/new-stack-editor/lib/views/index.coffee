@@ -16,6 +16,7 @@ Statusbar = require './statusbar'
 SideView = require './sideview'
 
 LogsController = require '../controllers/logs'
+StackController = require '../controllers/stack'
 EditorController = require '../controllers/editor'
 VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
@@ -102,6 +103,8 @@ module.exports = class StackEditor extends kd.View
       shared   :
         logs   : @controllers.logs
 
+    @controllers.stack = new StackController
+
     @sideView       = new SideView
       title         : yes
       views         :
@@ -164,9 +167,8 @@ module.exports = class StackEditor extends kd.View
 
     @toolbar.setData data
 
-    @controllers.editor.setData data
-    @controllers.variables.setData data
-    @controllers.credentials.setData data
+    for controller in ['editor', 'variables', 'credentials', 'stack']
+      @controllers[controller].setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
