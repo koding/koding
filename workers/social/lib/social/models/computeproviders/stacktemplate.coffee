@@ -804,7 +804,9 @@ module.exports = class JStackTemplate extends Module
     Kloud.checkTemplate client, { stackTemplateId, provider }, (err, res) =>
       return callback err  if err
       return noMachines()  if not res or not res.machines?.length
-      return noMachines()  unless (machines = parsePlanResponse res).length
+
+      machines = parsePlanResponse res
+      return noMachines()  unless machines.length
 
       query = { $set: { machines, 'config.verified': true } }
       @updateAndNotify (@getNotifyOptions client), query, (err) =>
