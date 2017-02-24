@@ -232,8 +232,6 @@ module.exports = class JGroup extends Module
       # channelId for mapping social API
       # to internal usage
       socialApiChannelId             : String
-      # channel id for default of a non-koding group
-      socialApiDefaultChannelId : String
       avatar        : String
       slug          :
         type        : String
@@ -1812,26 +1810,15 @@ module.exports = class JGroup extends Module
         @createGroupChannel client, options, (err, groupChannelId) =>
           return callback err  if err?
 
-          @createDefaultChannel client, options, (err, defaultChannelId) ->
-            return callback err if err?
-
-            return callback null, {
-              socialApiChannelId: groupChannelId
-              socialApiDefaultChannelId: defaultChannelId
-            }
+          return callback null, {
+            socialApiChannelId: groupChannelId
+          }
 
 
   createGroupChannel:(client, options, callback) ->
     options.name = 'public'
     options.varName = 'socialApiChannelId'
     options.typeConstant = 'group'
-
-    return @createSocialAPIChannel client, options, callback
-
-  createDefaultChannel:(client, options, callback) ->
-    options.name = @slug
-    options.varName = 'socialApiDefaultChannelId'
-    options.typeConstant = 'topic'
 
     return @createSocialAPIChannel client, options, callback
 

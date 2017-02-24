@@ -30,7 +30,7 @@ module.exports = (client, currentGroup, callback) ->
     (next) ->
       return next()  unless currentGroup
 
-      if currentGroup.socialApiChannelId and currentGroup.socialApiDefaultChannelId
+      if currentGroup.socialApiChannelId
         return next()
 
       console.log "#{currentGroup.slug} does not have socialapi data"
@@ -58,6 +58,7 @@ module.exports = (client, currentGroup, callback) ->
           async.parallel mq, -> next()
 
           console.log "Created socialapi channels for #{currentGroup.slug}"
+
     (next) ->
       # if team does not have "defaultChannels" add it back
       return next()  unless currentGroup
@@ -72,7 +73,6 @@ module.exports = (client, currentGroup, callback) ->
 
         channels = []
         channels.push group.socialApiChannelId if group.socialApiChannelId
-        channels.push group.socialApiDefaultChannelId if group.socialApiDefaultChannelId
 
         group.update { $set: { 'defaultChannels': channels } }, (err) ->
           if err
