@@ -45,8 +45,8 @@ module.exports = class Banner extends JView
           @messageButton.setCallback action
         else if actionEvent = action.event
           @messageButton.setCallback =>
-            @emit Events.Banner.Closed
-            @emit Events.ToolbarAction, actionEvent, (action.args ? [])...
+            @emit Events.Banner.Close
+            @emit Events.Action, actionEvent, (action.args ? [])...
         @messageButton.show()
       else
         @messageButton.hide()
@@ -58,7 +58,7 @@ module.exports = class Banner extends JView
 
 
   close: ->
-    @emit Events.Banner.Closed
+    @emit Events.Banner.Close
 
 
   pistachio: ->
