@@ -13,10 +13,10 @@ cat $instance_data_file | awk '{print $2}' \
 		-I HOST \
 		$KONFIG_PROJECTROOT/scripts/test-instance/ssh HOST \
 		"sudo /opt/koding/run exec \
-			/opt/koding/scripts/test-instance/s3cmd-upload-logs $WERCKER_BUILD_ID"
+			/opt/koding/scripts/test-instance/s3cmd-upload-logs $2"
 
 cat - <<EOF
-You can view logs at s3://kodingdev-test-instance-logs/$WERCKER_BUILD_ID/
+You can view logs at s3://kodingdev-test-instance-logs/$2/
 EOF
 
 exit 0
