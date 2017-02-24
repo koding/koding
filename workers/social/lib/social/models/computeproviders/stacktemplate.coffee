@@ -18,6 +18,7 @@ module.exports = class JStackTemplate extends Module
 
   {
     revive
+    PROVIDERS
     flattenPayload
     checkTemplateUsage
   } = require './computeutils'
@@ -81,6 +82,8 @@ module.exports = class JStackTemplate extends Module
         build         :
           (signature Object, Function)
         clone         :
+          (signature Function)
+        verify        :
           (signature Function)
         generateStack :
           (signature Object, Function)
@@ -192,6 +195,15 @@ module.exports = class JStackTemplate extends Module
     config.requiredProviders = providersParser template, supportedProviders
 
     return config
+
+
+  parsePlanResponse = (res) ->
+
+    supportedProviders = Object.keys (require './computeprovider').providers
+    parseTerraformOutput = clientRequire \
+      'app/lib/util/stacks/parseterraformoutput'
+
+    return (parseTerraformOutput res, supportedProviders) ? []
 
 
   generateSlugFromTitle = ({ originId, group, title, index }, callback) ->
@@ -368,6 +380,18 @@ module.exports = class JStackTemplate extends Module
       else callback null, provider.template
 
 
+  getNotifyOptions: (client) ->
+
+    { group } = client.context
+    { connection: { delegate } } = client
+
+    return {
+      account : delegate
+      group   : group
+      target  : if @getAt('accessLevel') is 'group' then 'group' else 'account'
+    }
+
+
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -465,14 +489,8 @@ module.exports = class JStackTemplate extends Module
         return callback err  if err
 
         customCredentials = @getAt('credentials.custom') ? []
-        { context: { group }, connection: { delegate: account } } = client
 
-        notifyOptions =
-          account: account
-          group: group
-          target: if @getAt('accessLevel') is 'group' then 'group' else 'account'
-
-        @removeAndNotify notifyOptions, (err) ->
+        @removeAndNotify (@getNotifyOptions client), (err) ->
           return callback err  if err
 
           # delete custom credentials if exists ~ GG
@@ -538,9 +556,11 @@ module.exports = class JStackTemplate extends Module
 
         (next) =>
 
-          next unless @getAt 'config.verified'
-          then new KodingError 'Stack is not verified yet'
-          else null
+          unless @getAt 'config.verified'
+            if options.verify
+            then @verify client, next
+            else next new KodingError 'Stack is not verified yet'
+          else next null
 
         (next) =>
 
@@ -591,8 +611,8 @@ module.exports = class JStackTemplate extends Module
 
     success: revive
 
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
+      shouldReviveClient    : yes
+      shouldReviveProvider  : no
       shouldFetchGroupLimit : yes
 
     , (client, data, callback) ->
@@ -602,13 +622,8 @@ module.exports = class JStackTemplate extends Module
       originId     = delegate.getId()
       options      = { originId, group }
 
-      notifyOptions =
-        account : delegate
-        group   : group.slug
-        target  : if @accessLevel is 'group' then 'group' else 'account'
-
       updateAndNotify = (query) =>
-        @updateAndNotify notifyOptions, query, (err, results) =>
+        @updateAndNotify (@getNotifyOptions client), query, (err, results) =>
           callback err, this
 
       # Create a clone of provided data to work on it around
@@ -760,6 +775,43 @@ module.exports = class JStackTemplate extends Module
 
         Kloud = require './kloud'
         Kloud.buildStack client, { stackId, provider, variables }, callback
+
+
+  verify$: permit
+
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: (client, callback) ->
+      @verify client, callback
+
+
+  verify: (client, callback) ->
+
+    stackTemplateId = @getAt '_id'
+    provider = (@getAt 'config.requiredProviders')[0]
+
+    unless provider or not PROVIDERS[provider]
+      return callback new KodingError 'Provider is not supported'
+
+    noMachines = ->
+      callback new KodingError \
+        'Nothing to verify, template has no machines'
+
+    Kloud = require './kloud'
+    Kloud.checkTemplate client, { stackTemplateId, provider }, (err, res) =>
+      return callback err  if err
+      return noMachines()  if not res or not res.machines?.length
+
+      machines = parsePlanResponse res
+      return noMachines()  unless machines.length
+
+      query = { $set: { machines, 'config.verified': true } }
+      @updateAndNotify (@getNotifyOptions client), query, (err) =>
+        return callback err  if err
+        callback null, this
 
 
   forceStacksToReinit: permit 'force stacks to reinit',

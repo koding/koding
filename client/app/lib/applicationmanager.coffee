@@ -249,7 +249,7 @@ class ApplicationManager extends KDObject
   quitByName: (name, callback = kd.noop) ->
 
     appController = @appControllers[name]
-    return  unless appController
+    return callback null  unless appController
 
     instances = appController.instances
     queue     = instances.map (instance) =>
