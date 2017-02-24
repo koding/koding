@@ -31,9 +31,6 @@ func init() {
 			id:        cache.NewLRU(cacheSize),
 			groupName: cache.NewLRU(cacheSize),
 		},
-		Message: &MessageCache{
-			id: cache.NewLRU(cacheSize),
-		},
 		Participant: &ParticipantCache{
 			id: cache.NewLRU(cacheSize),
 		},
@@ -44,7 +41,6 @@ type StaticCache struct {
 	Account     *AccountCache
 	Session     *SessionCache
 	Channel     *ChannelCache
-	Message     *MessageCache
 	Participant *ParticipantCache
 }
 
@@ -177,11 +173,7 @@ func (s *SessionCache) ById(id string) (*mongomodels.Session, error) {
 }
 
 func (s *SessionCache) SetToCache(ses *mongomodels.Session) error {
-	if err := s.session.Set(ses.ClientId, ses); err != nil {
-		return err
-	}
-
-	return nil
+	return s.session.Set(ses.ClientId, ses)
 }
 
 //////////////// Channel Cache ////////////////////
@@ -257,44 +249,6 @@ func (c *ChannelCache) SetToCache(ch *Channel) error {
 	return nil
 }
 
-//////////////// Message Cache ////////////////////
-type MessageCache struct {
-	id cache.Cache
-}
-
-func (m *MessageCache) ById(id int64) (*ChannelMessage, error) {
-	data, err := m.id.Get(strconv.FormatInt(id, 10))
-	if err != nil && err != cache.ErrNotFound {
-		return nil, err
-	}
-
-	if err == nil {
-		acc, ok := data.(*ChannelMessage)
-		if ok {
-			return acc, nil
-		}
-	}
-
-	message := NewChannelMessage()
-	if err := message.ById(id); err != nil {
-		return nil, err
-	}
-
-	if err := m.SetToCache(message); err != nil {
-		return nil, err
-	}
-
-	return message, nil
-}
-
-func (m *MessageCache) SetToCache(cm *ChannelMessage) error {
-	if err := m.id.Set(strconv.FormatInt(cm.Id, 10), cm); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 //////////////// Participant Cache ////////////////////
 
 // ParticipantCache will be used for caching channel-account participation data
@@ -319,35 +273,6 @@ func (m *ParticipantCache) ByChannelIdAndAccountId(channelId, accountId int64) (
 func (m *ParticipantCache) SetToCache(channelId, accountId int64) error {
 	id := fmt.Sprintf("%d-%d", channelId, accountId)
 	return m.id.Set(id, struct{}{})
-}
-
-func BuildChannelMessageContainer(id int64, query *request.Query) (*ChannelMessageContainer, error) {
-	cm := NewChannelMessage()
-	cm.Id = id
-	if err := cm.ById(cm.Id); err != nil {
-		return nil, err
-	}
-
-	cmc := NewChannelMessageContainer()
-	cmc.PopulateWith(cm).SetGenerics(query)
-	if cmc.Err != nil {
-		return nil, cmc.Err
-	}
-
-	return cmc, nil
-}
-
-func CacheForChannelMessage(id int64) (string, error) {
-	query := request.NewQuery().SetDefaults()
-	// no need to add IsInteracted data into cache
-	query.AddIsInteracted = false
-	cmc, _ := BuildChannelMessageContainer(id, query)
-	d, err := json.Marshal(cmc)
-	if err != nil {
-		return "", err
-	}
-
-	return string(d), err
 }
 
 func BuildChannelContainer(id int64, query *request.Query) (*ChannelContainer, error) {

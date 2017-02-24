@@ -1,8 +1,6 @@
 package models
 
 import (
-	"koding/db/mongodb/modelhelper"
-	"socialapi/config"
 	"socialapi/request"
 	"socialapi/workers/common/tests"
 	"testing"
@@ -109,44 +107,6 @@ func TestChannelNewPrivateChannel(t *testing.T) {
 	})
 }
 
-func TestChannelNewPrivateMessageChannel(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		// read config once
-		config.MustRead(r.Conf.Path)
-
-		var creatorId int64 = 123
-		groupName := "testGroup"
-		c := NewPrivateMessageChannel(creatorId, groupName)
-
-		Convey("given a NewPrivateMessageChannel", t, func() {
-			Convey("it should have group name", func() {
-				So(c.GroupName, ShouldEqual, groupName)
-			})
-
-			Convey("it should have creator id", func() {
-				So(c.CreatorId, ShouldEqual, creatorId)
-			})
-
-			Convey("it should have a name", func() {
-				So(c.Name, ShouldNotBeBlank)
-			})
-
-			Convey("it should have type constant", func() {
-				So(c.TypeConstant, ShouldEqual, Channel_TYPE_PRIVATE_MESSAGE)
-			})
-
-			Convey("it should have privacy constant", func() {
-				So(c.PrivacyConstant, ShouldEqual, Channel_PRIVACY_PRIVATE)
-			})
-
-			Convey("it should have purpose", func() {
-				So(c.Purpose, ShouldBeBlank)
-			})
-		})
-	})
-}
-
 // func createAccount()
 func TestChannelCreate(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
@@ -225,28 +185,6 @@ func TestChannelCreate(t *testing.T) {
 				So(c.Create(), ShouldBeNil)
 				So(firstChannel, ShouldEqual, c.Id)
 			})
-
-			Convey("calling followers channel create twice should not return error", func() {
-				c := NewChannel()
-				c.TypeConstant = Channel_TYPE_FOLLOWERS
-				account := CreateAccountWithTest()
-				c.CreatorId = account.Id
-				So(c.Create(), ShouldBeNil)
-				c.Id = 0
-				So(c.Create(), ShouldBeNil)
-			})
-
-			Convey("calling followers channel create twice should return same channel", func() {
-				c := NewChannel()
-				c.TypeConstant = Channel_TYPE_FOLLOWERS
-				account := CreateAccountWithTest()
-				c.CreatorId = account.Id
-				So(c.Create(), ShouldBeNil)
-				firstChannel := c.Id
-				c.Id = 0
-				So(c.Create(), ShouldBeNil)
-				So(firstChannel, ShouldEqual, c.Id)
-			})
 		})
 	})
 }
@@ -289,53 +227,9 @@ func TestChannelCanOpen(t *testing.T) {
 				So(canOpen, ShouldBeTrue)
 			})
 
-			Convey("uninitialized account can open koding's announcement channel", func() {
-				c := NewChannel()
-				c.Id = 123
-				c.CreatorId = 312
-				c.TypeConstant = Channel_TYPE_ANNOUNCEMENT
-				canOpen, err := c.CanOpen(0)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeTrue)
-			})
-
 			Convey("participants can open group channel", func() {
 				acc := CreateAccountWithTest()
 				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_GROUP)
-
-				AddParticipantsWithTest(c.Id, acc.Id)
-
-				canOpen, err := c.CanOpen(acc.Id)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeTrue)
-			})
-
-			Convey("participants can open topic channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_TOPIC)
-
-				AddParticipantsWithTest(c.Id, acc.Id)
-
-				canOpen, err := c.CanOpen(acc.Id)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeTrue)
-			})
-
-			// pinned activity channel can only be opened by the creator
-			Convey("participants can open pinned activity channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_PINNED_ACTIVITY)
-
-				AddParticipantsWithTest(c.Id, acc.Id)
-
-				canOpen, err := c.CanOpen(acc.Id)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeTrue)
-			})
-
-			Convey("participants can open private message channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_PRIVATE_MESSAGE)
 
 				AddParticipantsWithTest(c.Id, acc.Id)
 
@@ -349,7 +243,7 @@ func TestChannelCanOpen(t *testing.T) {
 			//
 			Convey("everyone can open koding group channel", func() {
 				acc := CreateAccountWithTest()
-				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_TOPIC, Channel_KODING_NAME)
+				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_DEFAULT, Channel_KODING_NAME)
 
 				// even if it is not a member of koding, because of guests
 				// AddParticipantsWithTest(c.Id, acc.Id)
@@ -357,37 +251,6 @@ func TestChannelCanOpen(t *testing.T) {
 				canOpen, err := c.CanOpen(acc.Id)
 				So(err, ShouldBeNil)
 				So(canOpen, ShouldBeTrue)
-			})
-
-			Convey("everyone can open koding's topic channel", func() {
-				acc := CreateAccountWithTest()
-
-				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_TOPIC, Channel_KODING_NAME)
-
-				acc2 := CreateAccountWithTest()
-				canOpen, err := c.CanOpen(acc2.Id)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeTrue)
-			})
-
-			Convey("non - participants can not open pinned activity channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_PINNED_ACTIVITY)
-
-				account := CreateAccountWithTest()
-				canOpen, err := c.CanOpen(account.Id)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeFalse)
-			})
-
-			Convey("non-participants can not open private message channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_PRIVATE_MESSAGE)
-
-				account := CreateAccountWithTest()
-				canOpen, err := c.CanOpen(account.Id)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeFalse)
 			})
 		})
 	})
@@ -408,17 +271,6 @@ func TestChannelCanOpenNonKoding(t *testing.T) {
 				So(canOpen, ShouldBeFalse)
 			})
 
-			Convey("uninitialized account can not open other group's announcement channel", func() {
-				c := NewChannel()
-				c.Id = 123
-				c.CreatorId = 312
-				c.TypeConstant = Channel_TYPE_ANNOUNCEMENT
-				c.GroupName = RandomGroupName()
-
-				canOpen, _ := c.CanOpen(0)
-				So(canOpen, ShouldBeFalse)
-			})
-
 			Convey("non participants can not open other group's group channel", func() {
 				// create a new account
 				owner := CreateAccountWithTest()
@@ -428,22 +280,6 @@ func TestChannelCanOpenNonKoding(t *testing.T) {
 				c := NewChannel()
 				c.CreatorId = owner.Id
 				c.TypeConstant = Channel_TYPE_GROUP
-				c.GroupName = RandomGroupName()
-				So(c.Create(), ShouldBeNil)
-
-				canOpen, _ := c.CanOpen(account.Id)
-				So(canOpen, ShouldBeFalse)
-			})
-
-			Convey("non participants can not open other group's topic channel", func() {
-				// create a new account
-				owner := CreateAccountWithTest()
-				account := CreateAccountWithTest()
-
-				// create group channel
-				c := NewChannel()
-				c.CreatorId = owner.Id
-				c.TypeConstant = Channel_TYPE_TOPIC
 				c.GroupName = RandomGroupName()
 				So(c.Create(), ShouldBeNil)
 
@@ -496,28 +332,6 @@ func TestChannelAddParticipant(t *testing.T) {
 				So(cp, ShouldBeNil)
 			})
 
-			Convey("we can add creator to the pinned channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_PINNED_ACTIVITY)
-
-				cp, err := c.AddParticipant(c.CreatorId)
-				So(err, ShouldBeNil)
-				So(cp, ShouldNotBeNil)
-				So(cp.AccountId, ShouldEqual, c.CreatorId)
-				So(cp.ChannelId, ShouldEqual, c.Id)
-			})
-
-			Convey("we can not add others to the pinned channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_PINNED_ACTIVITY)
-
-				account := CreateAccountWithTest()
-				cp, err := c.AddParticipant(account.Id)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrCannotAddNewParticipantToPinnedChannel)
-				So(cp, ShouldBeNil)
-			})
-
 			Convey("we can not add same user twice to channel", func() {
 				acc := CreateAccountWithTest()
 				c := CreateChannelWithTest(acc.Id)
@@ -548,18 +362,6 @@ func TestChannelAddParticipant(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(cp, ShouldNotBeNil)
 				So(cp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_ACTIVE)
-			})
-			Convey("we should not be able to add participants into linked channel", func() {
-				account := CreateAccountWithTest()
-				c := CreateTypedPublicChannelWithTest(
-					account.Id,
-					Channel_TYPE_LINKED_TOPIC,
-				)
-
-				cp, err := c.AddParticipant(account.Id)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrChannelIsLinked)
-				So(cp, ShouldBeNil)
 			})
 		})
 	})
@@ -608,196 +410,6 @@ func TestChannelRemoveParticipant(t *testing.T) {
 	})
 }
 
-func TestChannelAddMessage(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		Convey("while adding a message to a channel", t, func() {
-
-			Convey("it should have channel id", func() {
-				c := NewChannel()
-				cm := NewChannelMessage()
-				cm.Id = 123
-				_, err := c.AddMessage(cm)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrChannelIdIsNotSet)
-			})
-
-			Convey("it should have message id", func() {
-				c := NewChannel()
-				c.Id = 123
-				_, err := c.AddMessage(NewChannelMessage())
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrMessageIdIsNotSet)
-			})
-
-			Convey("it should return error if message id is not set", func() {
-				// fake channel
-				c := NewChannel()
-				c.Id = 123
-
-				// try to add message
-				ch, err := c.AddMessage(NewChannelMessage())
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrMessageIdIsNotSet)
-				So(ch, ShouldBeNil)
-			})
-
-			Convey("adding message to a channel should be successful", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				cm := CreateMessageWithTest()
-				cm.Body = "five5"
-				So(cm.Create(), ShouldBeNil)
-				ch, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-				So(ch, ShouldNotBeEmpty)
-			})
-
-			Convey("it should return error if message is already in the channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)
-
-				ch, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-				So(ch, ShouldNotBeEmpty)
-
-				// try to add the same message again
-				ch, err = c.AddMessage(cm)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrMessageAlreadyInTheChannel)
-				So(ch, ShouldBeNil)
-			})
-
-			Convey("it should return clientRequestId in response when message is created with clientRequestId", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				cm := CreateMessageWithTest()
-				cm.ClientRequestId = "ctf-123456"
-				So(cm.Create(), ShouldBeNil)
-
-				ch, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-				So(ch, ShouldNotBeEmpty)
-				So(ch.ClientRequestId, ShouldEqual, "ctf-123456")
-			})
-		})
-	})
-}
-
-func TestChannelRemoveMessage(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		Convey("while removing a message from the channel", t, func() {
-
-			Convey("it should have channel id", func() {
-				c := NewChannel()
-				_, err := c.RemoveMessage(123)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrChannelIdIsNotSet)
-			})
-
-			Convey("it should have message id", func() {
-				c := NewChannel()
-				c.Id = 123
-				_, err := c.RemoveMessage(0)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrMessageIdIsNotSet)
-			})
-
-			Convey("removing message from the channel should ne successful", func() {
-				acc := CreateAccountWithTest()
-
-				c := CreateChannelWithTest(acc.Id)
-				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)
-
-				_, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-
-				ch, err := c.RemoveMessage(cm.Id)
-				So(err, ShouldBeNil)
-				So(ch, ShouldNotBeEmpty)
-			})
-
-			Convey("it should return error if message is already removed from the channel", func() {
-				acc := CreateAccountWithTest()
-
-				c := CreateChannelWithTest(acc.Id)
-				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)
-
-				_, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-
-				ch, err := c.RemoveMessage(cm.Id)
-				So(err, ShouldBeNil)
-				So(ch, ShouldNotBeEmpty)
-
-				// try to remove the same message again
-				ch, err = c.RemoveMessage(cm.Id)
-				So(err, ShouldNotBeNil)
-				So(ch, ShouldBeNil)
-			})
-		})
-	})
-}
-
-func TestChannelFetchMessageList(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		Convey("while fetching channel message list", t, func() {
-			Convey("it should have channel id", func() {
-				c := NewChannel()
-				_, err := c.FetchMessageList(123)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrChannelIdIsNotSet)
-			})
-
-			Convey("it should have message id", func() {
-				c := NewChannel()
-				c.Id = 123
-				_, err := c.FetchMessageList(0)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrMessageIdIsNotSet)
-			})
-
-			Convey("non-existing message list should give error", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				// 1 is an arbitrary number
-				_, err := c.FetchMessageList(1)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
-
-			Convey("existing message list should not give error", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				// create message
-				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)
-
-				// add message to the channel
-				cml, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-				So(cml, ShouldNotBeNil)
-
-				// try to fetch persisted message
-				cml2, err := c.FetchMessageList(cm.Id)
-				So(err, ShouldBeNil)
-				So(cml2, ShouldNotBeNil)
-				So(cml2.MessageId, ShouldEqual, cm.Id)
-			})
-		})
-	})
-}
-
 func TestChannelFetchChannelIdByNameAndGroupName(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 
@@ -839,104 +451,6 @@ func TestChannelFetchChannelIdByNameAndGroupName(t *testing.T) {
 				So(fcid, ShouldNotBeNil)
 				// Id of the FetchChannelIdByNameAndGroupName shoul equal to id which our created channel
 				So(fcid, ShouldEqual, c.Id)
-			})
-		})
-	})
-}
-
-func TestChannelFetchLastMessage(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		Convey("while fetching last message", t, func() {
-
-			Convey("it should have channel id", func() {
-				c := NewChannel()
-				_, err := c.FetchLastMessage()
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrChannelIdIsNotSet)
-			})
-
-			Convey("existing just one message in the channel should not give error", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				// create message
-				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)
-
-				// add message to the channel
-				cml, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-				So(cml, ShouldNotBeNil)
-
-				// try to fetch persisted message
-				flm, err := c.FetchLastMessage()
-				So(err, ShouldBeNil)
-				So(flm, ShouldNotBeNil)
-				So(flm.Body, ShouldEqual, cm.Body)
-			})
-
-			Convey("existing two message in the channel should give last message", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				// create message
-				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)
-
-				// add first message  to the channel
-				cml, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-				So(cml, ShouldNotBeNil)
-
-				// create second message
-				cm2 := CreateMessageWithTest()
-				cm2.Body = "lastMessage"
-				So(cm2.Create(), ShouldBeNil)
-
-				// add second message to the same channel
-				cml2, err := c.AddMessage(cm2)
-				So(err, ShouldBeNil)
-				So(cml2, ShouldNotBeNil)
-
-				// try to fetch last message
-				flm, err := c.FetchLastMessage()
-				So(err, ShouldBeNil)
-				So(flm, ShouldNotBeNil)
-				So(flm.Body, ShouldEqual, cm2.Body)
-			})
-
-			Convey("non-existing message in channel should be nil", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				flm, err := c.FetchLastMessage()
-				So(err, ShouldBeNil)
-				So(flm, ShouldBeNil)
-			})
-
-			Convey("empty message id should be nil", func() {
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				// create message
-				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)
-
-				// add message  to channel
-				cml, err := c.AddMessage(cm)
-				So(err, ShouldBeNil)
-				So(cml, ShouldNotBeNil)
-
-				// after adding message, remove same massage
-				// and message id in the channel should be nil
-				ch, err := c.RemoveMessage(cm.Id)
-				So(err, ShouldBeNil)
-				So(ch, ShouldNotBeEmpty)
-
-				flm, err := c.FetchLastMessage()
-				So(err, ShouldBeNil)
-				So(flm, ShouldBeNil)
 			})
 		})
 	})
@@ -1067,58 +581,13 @@ func TestChannelgetAccountId(t *testing.T) {
 	})
 }
 
-func setupDeleteTest() (*Channel, *ChannelMessage, *ChannelMessage, *ChannelMessageList, *ChannelMessageList) {
-	acc := CreateAccountWithTest()
-	c := CreateChannelWithTest(acc.Id)
-
-	// create some messages
-	cm0 := CreateMessage(c.Id, acc.Id, ChannelMessage_TYPE_POST)
-	cm1 := CreateMessage(c.Id, acc.Id, ChannelMessage_TYPE_POST)
-
-	cml0, err := c.EnsureMessage(cm0, true)
-	So(err, ShouldBeNil)
-
-	cml1, err := c.EnsureMessage(cm1, true)
-	So(err, ShouldBeNil)
-
-	return c, cm0, cm1, cml0, cml1
-}
-
 func TestChannelDelete(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 
 		Convey("when deleting a channel", t, func() {
-			Convey("it should delete all messages of the channel", func() {
-				c, cm0, cm1, _, _ := setupDeleteTest()
-
-				// delete the channel
-				So(c.Delete(), ShouldBeNil)
-
-				// verify that the channel messages are deleted:
-				err := NewChannelMessage().ById(cm0.Id)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-
-				err = NewChannelMessage().ById(cm1.Id)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-
-			})
-			Convey("it should delete any associated ChannelMessageList records", func() {
-				c, _, _, cml0, cml1 := setupDeleteTest()
-
-				// delete the channel
-				So(c.Delete(), ShouldBeNil)
-
-				// verify that the channel message lists are deleted:
-				err := NewChannelMessageList().ById(cml0.Id)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-
-				err = NewChannelMessageList().ById(cml1.Id)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
-
 			Convey("it should delete any participants", func() {
-				c, _, _, _, _ := setupDeleteTest()
-
+				acc := CreateAccountWithTest()
+				c := CreateChannelWithTest(acc.Id)
 				// delete the channel
 				So(c.Delete(), ShouldBeNil)
 
@@ -1128,34 +597,13 @@ func TestChannelDelete(t *testing.T) {
 			})
 
 			Convey("it should delete the channel itself", func() {
-				c, _, _, _, _ := setupDeleteTest()
+				acc := CreateAccountWithTest()
+				c := CreateChannelWithTest(acc.Id)
 
 				So(c.Delete(), ShouldBeNil)
 
 				err := NewChannel().ById(c.Id)
 				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
-			Convey("it should not delete messages that are cross-indexed", func() {
-				c0, cm0, cm1, _, _ := setupDeleteTest()
-
-				acc := CreateAccountWithTest()
-				c1 := CreateChannelWithTest(acc.Id)
-
-				// only add the second message to the second channel:
-				cml0, err := c1.AddMessage(cm1)
-				So(err, ShouldBeNil)
-				So(cml0, ShouldNotBeNil)
-
-				// delete the first channel:
-				So(c0.Delete(), ShouldBeNil)
-
-				// verify that the first message is deleted:
-				err = NewChannelMessage().ById(cm0.Id)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-
-				// verify that the second message is not deleted:
-				err = NewChannelMessage().ById(cm1.Id)
-				So(err, ShouldBeNil)
 			})
 		})
 	})
@@ -1180,175 +628,6 @@ func TestFetchGroupChannel(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(pc.GroupName, ShouldEqual, c.GroupName)
 				So(pc.TypeConstant, ShouldEqual, Channel_TYPE_GROUP)
-			})
-		})
-	})
-}
-
-func TestChannelByParticipants(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		appConfig := config.MustRead(r.Conf.Path)
-		modelhelper.Initialize(appConfig.Mongo)
-		defer modelhelper.Close()
-
-		Convey("while fetching channels by their participants", t, func() {
-			_, _, groupName := CreateRandomGroupDataWithChecks()
-
-			Convey("group name should be set in query", func() {
-				q := request.NewQuery()
-				q.GroupName = ""
-
-				c := NewChannel()
-				_, err := c.ByParticipants([]int64{}, q)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrGroupNameIsNotSet)
-			})
-
-			Convey("at least one participant should be passed", func() {
-				q := request.NewQuery()
-				q.GroupName = groupName
-
-				c := NewChannel()
-				_, err := c.ByParticipants([]int64{}, q)
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrChannelParticipantIsNotSet)
-			})
-
-			acc1 := CreateAccountWithTest()
-			acc2 := CreateAccountWithTest()
-			acc3 := CreateAccountWithTest()
-
-			tc1 := CreateTypedGroupedChannelWithTest(
-				acc1.Id,
-				Channel_TYPE_TOPIC,
-				groupName,
-			)
-			AddParticipantsWithTest(tc1.Id, acc1.Id, acc2.Id, acc3.Id)
-
-			tc2 := CreateTypedGroupedChannelWithTest(
-				acc1.Id,
-				Channel_TYPE_TOPIC,
-				groupName,
-			)
-			AddParticipantsWithTest(tc2.Id, acc1.Id, acc2.Id, acc3.Id)
-
-			Convey("ordering should be working by channel created_at", func() {
-				q := request.NewQuery()
-				q.GroupName = groupName
-				q.Type = Channel_TYPE_TOPIC
-
-				c := NewChannel()
-				channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 2)
-				So(channels[0].Id, ShouldEqual, tc1.Id)
-				So(channels[1].Id, ShouldEqual, tc2.Id)
-			})
-
-			Convey("skip options should be working", func() {
-				q := request.NewQuery()
-				q.GroupName = groupName
-				q.Type = Channel_TYPE_TOPIC
-				q.Skip = 1
-
-				c := NewChannel()
-				channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 1)
-				So(channels[0].Id, ShouldEqual, tc2.Id)
-			})
-
-			Convey("limit options should be working", func() {
-				q := request.NewQuery()
-				q.GroupName = groupName
-				q.Type = Channel_TYPE_TOPIC
-				q.Limit = 1
-
-				c := NewChannel()
-				channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 1)
-				So(channels[0].Id, ShouldEqual, tc1.Id)
-			})
-
-			Convey("type option should be working", func() {
-				pc1 := CreateTypedGroupedChannelWithTest(
-					acc1.Id,
-					Channel_TYPE_PRIVATE_MESSAGE,
-					groupName,
-				)
-				AddParticipantsWithTest(pc1.Id, acc1.Id, acc2.Id, acc3.Id)
-
-				q := request.NewQuery()
-				q.GroupName = groupName
-				q.Type = Channel_TYPE_PRIVATE_MESSAGE
-
-				c := NewChannel()
-				channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 1)
-				So(channels[0].Id, ShouldEqual, pc1.Id)
-			})
-
-			Convey("all channels should be active", func() {
-				// delete the second channel
-				So(tc2.Delete(), ShouldBeNil)
-
-				q := request.NewQuery()
-				q.GroupName = groupName
-				q.Type = Channel_TYPE_TOPIC
-
-				c := NewChannel()
-				channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 1)
-				So(channels[0].Id, ShouldEqual, tc1.Id)
-			})
-
-			Convey("all members should be active", func() {
-				// delete the second participant from second channel
-				So(tc2.RemoveParticipant(acc2.Id), ShouldBeNil)
-
-				q := request.NewQuery()
-				q.GroupName = groupName
-				q.Type = Channel_TYPE_TOPIC
-
-				c := NewChannel()
-				channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 1)
-				So(channels[0].Id, ShouldEqual, tc1.Id)
-			})
-
-			Convey("if the members are also in other groups", func() {
-				Convey("group context should be working", func() {
-					_, _, groupName := CreateRandomGroupDataWithChecks()
-
-					tc1 := CreateTypedGroupedChannelWithTest(
-						acc1.Id,
-						Channel_TYPE_TOPIC,
-						groupName,
-					)
-					AddParticipantsWithTest(tc1.Id, acc1.Id, acc2.Id, acc3.Id)
-
-					tc2 := CreateTypedGroupedChannelWithTest(
-						acc1.Id,
-						Channel_TYPE_TOPIC,
-						groupName,
-					)
-					AddParticipantsWithTest(tc2.Id, acc1.Id, acc2.Id, acc3.Id)
-
-					q := request.NewQuery()
-					q.GroupName = groupName
-					q.Type = Channel_TYPE_TOPIC
-
-					c := NewChannel()
-					channels, err := c.ByParticipants([]int64{acc1.Id, acc2.Id, acc3.Id}, q)
-					So(err, ShouldBeNil)
-					So(len(channels), ShouldEqual, 2)
-					So(channels[0].GroupName, ShouldEqual, groupName)
-				})
 			})
 		})
 	})

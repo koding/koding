@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/request"
 	"strings"
@@ -109,55 +108,6 @@ func (a *Account) FetchChannels(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
-// TO-DO
-// Control functions and remove ?
-func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
-	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
-	if err == nil {
-		return c.AddParticipant(targetId)
-	}
-
-	if err == bongo.RecordNotFound {
-		c, err := a.CreateFollowingFeedChannel()
-		if err != nil {
-			return nil, err
-		}
-		return c.AddParticipant(targetId)
-	}
-
-	return nil, err
-}
-
-// TO-DO
-// Control functions and remove ?
-func (a *Account) Unfollow(targetId int64) (*Account, error) {
-	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
-	if err != nil {
-		return nil, err
-	}
-
-	return a, c.RemoveParticipant(targetId)
-}
-
-func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
-	followerIds := make([]int64, 0)
-	if a.Id == 0 {
-		return nil, ErrAccountIdIsNotSet
-	}
-
-	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
-	if err != nil {
-		return followerIds, err
-	}
-
-	participants, err := c.FetchParticipantIds(q)
-	if err != nil {
-		return followerIds, err
-	}
-
-	return participants, nil
-}
-
 // FetchChannel fetchs the channel of the account
 //
 // Channel_TYPE_GROUP as parameter returns error , in the tests!!!!
@@ -205,48 +155,6 @@ func (a *Account) ByOldId(oldId string) error {
 	}
 
 	return a.One(bongo.NewQS(selector))
-}
-
-// Tests are done.
-func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
-	if a.Id == 0 {
-		return nil, ErrAccountIdIsNotSet
-	}
-
-	c := NewChannel()
-	c.CreatorId = a.Id
-	c.Name = fmt.Sprintf("%d-FollowingFeedChannel", a.Id)
-	c.GroupName = Channel_KODING_NAME
-	c.Purpose = "Following Feed for Me"
-	c.TypeConstant = Channel_TYPE_FOLLOWERS
-	if err := c.Create(); err != nil {
-		return nil, err
-	}
-
-	return c, nil
-}
-
-func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
-	followerIds, err := a.FetchFollowerIds(q)
-	if err != nil {
-		return nil, err
-	}
-
-	cp := NewChannelParticipant()
-	var channelIds []int64
-	res := bongo.B.DB.
-		Table(cp.BongoName()).
-		Where(
-			"creator_id IN (?) and type_constant = ?",
-			followerIds,
-			Channel_TYPE_FOLLOWINGFEED,
-		).Find(&channelIds)
-
-	if err := bongo.CheckErr(res); err != nil {
-		return nil, err
-	}
-
-	return channelIds, nil
 }
 
 // FetchAccountById gives all information about account by id of account

@@ -67,25 +67,6 @@ func (c *Controller) isPushMessageValid(pm *models.PushMessage) bool {
 	return true
 }
 
-// UpdateMessage sends message update events
-func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
-	if um.Token == "" {
-		c.logger.Error("Token is not set")
-		return nil
-	}
-
-	um.EventId = createEventId()
-
-	go func() {
-		err := c.Broker.UpdateInstance(um)
-		if err != nil {
-			c.logger.Error("Could not push update instance message with id %d to broker: %s", um.Message.Id, err)
-		}
-	}()
-
-	return c.Pubnub.UpdateInstance(um)
-}
-
 // NotifyUser sends user notifications to related channel
 func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	if nm.Account.Nick == "" {

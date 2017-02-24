@@ -19,39 +19,6 @@ func AddHandlers(m *mux.Mux) {
 	// caching enabled
 	m.AddHandler(
 		handler.Request{
-			Handler:  List,
-			Name:     "channel-list",
-			Type:     handler.GetRequest,
-			Endpoint: "/channel",
-		},
-	)
-
-	// exempt contents are filtered
-	// caching enabled
-	m.AddHandler(
-		handler.Request{
-			Handler:  Search,
-			Name:     "channel-search",
-			Type:     handler.GetRequest,
-			Endpoint: "/channel/search",
-		},
-	)
-
-	// exempt contents are filtered
-	// caching enabled
-	m.AddHandler(
-		handler.Request{
-			Handler:  ByName,
-			Name:     "channel-get-byname",
-			Type:     handler.GetRequest,
-			Endpoint: "/channel/name/{name}",
-		},
-	)
-
-	// exempt contents are filtered
-	// caching enabled
-	m.AddHandler(
-		handler.Request{
 			Handler:  Get,
 			Name:     "channel-get",
 			Type:     handler.GetRequest,
@@ -83,15 +50,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/update",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  ByParticipants,
-			Name:     "channel-by-participants",
-			Type:     handler.GetRequest,
-			Endpoint: "/channel/by/participants",
 		},
 	)
 }

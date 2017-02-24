@@ -39,13 +39,8 @@ func main() {
 	}
 
 	r.SetContext(handler)
-	r.Register(models.Channel{}).OnCreate().Handle((*algoliaconnector.Controller).ChannelCreated)
-	r.Register(models.Channel{}).OnUpdate().Handle((*algoliaconnector.Controller).ChannelUpdated)
 	r.Register(models.Account{}).OnCreate().Handle((*algoliaconnector.Controller).AccountCreated)
 	r.Register(models.Account{}).OnUpdate().Handle((*algoliaconnector.Controller).AccountUpdated)
-	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*algoliaconnector.Controller).MessageListSaved)
-	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*algoliaconnector.Controller).MessageListDeleted)
-	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*algoliaconnector.Controller).MessageUpdated)
 
 	// participant related events
 	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*algoliaconnector.Controller).ParticipantCreated)

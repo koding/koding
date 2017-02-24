@@ -12,46 +12,6 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func GetHistory(channelId int64, q *request.Query, token string) (*models.HistoryResponse, error) {
-	v, err := query.Values(q)
-	if err != nil {
-		return nil, err
-	}
-
-	url := fmt.Sprintf("/channel/%d/history?%s", channelId, v.Encode())
-	res, err := sendRequestWithAuth("GET", url, nil, token)
-	if err != nil {
-		return nil, err
-	}
-
-	var history models.HistoryResponse
-	err = json.Unmarshal(res, &history)
-	if err != nil {
-		return nil, err
-	}
-
-	return &history, nil
-}
-
-func CountHistory(channelId int64) (*models.CountResponse, error) {
-	c := models.NewChannelMessageList()
-	c.ChannelId = channelId
-
-	url := fmt.Sprintf("/channel/%d/history/count", channelId)
-	res, err := marshallAndSendRequest("GET", url, c)
-	if err != nil {
-		return nil, err
-	}
-
-	var count models.CountResponse
-	err = json.Unmarshal(res, &count)
-	if err != nil {
-		return nil, err
-	}
-
-	return &count, nil
-}
-
 func FetchChannelsByQuery(accountId int64, q *request.Query, token string) ([]*models.Channel, error) {
 	v, err := query.Values(q)
 	if err != nil {
@@ -132,10 +92,7 @@ func DeleteChannel(creatorId, channelId int64) error {
 
 	url := fmt.Sprintf("/channel/%d/delete", channelId)
 	_, err := sendModel("POST", url, c)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant, token string) (*models.Channel, error) {

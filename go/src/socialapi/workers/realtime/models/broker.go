@@ -2,8 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
-	"strings"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -53,52 +51,6 @@ func (b *Broker) UpdateChannel(pm *PushMessage) error {
 	}
 
 	return nil
-}
-
-func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) error {
-	channel, err := b.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
-	// TODO this line (and all the class) will be all deleted while removing broker
-	if strings.Contains(um.EventName, "updateInstance") {
-		um.EventName = "updateInstance"
-	}
-
-	routingKey := "oid." + um.Token + ".event." + um.EventName
-	updateMessage, err := json.Marshal(um.Body)
-	if err != nil {
-		return err
-	}
-
-	updateArr := make([]string, 1)
-	if um.EventName == "updateInstance" {
-		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
-	} else {
-		updateArr[0] = string(updateMessage)
-	}
-
-	msg, err := json.Marshal(updateArr)
-	if err != nil {
-		return err
-	}
-
-	b.log.Debug(
-		"Sending Instance Event Id:%s Message:%s EventName:%s",
-		um.Token,
-		updateMessage,
-		um.EventName,
-	)
-
-	return channel.Publish(
-		"updateInstances", // exchange name
-		routingKey,        // routing key
-		false,             // mandatory
-		false,             // immediate
-		amqp.Publishing{Body: msg}, // message
-	)
 }
 
 func (b *Broker) NotifyUser(nm *NotificationMessage) error {

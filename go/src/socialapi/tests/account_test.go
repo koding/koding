@@ -60,7 +60,7 @@ func TestAccountCreation(t *testing.T) {
 func TestCheckOwnership(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("accounts can own things", t, func() {
-			account, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
+			account, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			tests.ResultedWithNoErrorCheck(ses, err)
@@ -68,22 +68,7 @@ func TestCheckOwnership(t *testing.T) {
 			tedsAccount, err := models.CreateAccountInBothDbsWithNick("ted")
 			tests.ResultedWithNoErrorCheck(tedsAccount, err)
 
-			bobsPost, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-			tests.ResultedWithNoErrorCheck(bobsPost, err)
-
-			Convey("it should say when an account owns a post", func() {
-				isOwner, err := rest.CheckPostOwnership(account, bobsPost)
-				So(err, ShouldBeNil)
-				So(isOwner, ShouldBeTrue)
-			})
-
-			Convey("it should say when an account doesn't own a post", func() {
-				isOwner, err := rest.CheckPostOwnership(tedsAccount, bobsPost)
-				So(err, ShouldBeNil)
-				So(isOwner, ShouldBeFalse)
-			})
-
-			bobsChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC, ses.ClientId)
+			bobsChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_DEFAULT, ses.ClientId)
 			So(err, ShouldBeNil)
 
 			Convey("it should say when an account owns a channel", func() {
@@ -101,73 +86,6 @@ func TestCheckOwnership(t *testing.T) {
 	})
 }
 
-func TestAccountFetchProfile(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-		Convey("while fetching account activities in profile page", t, func() {
-			account, _, groupName := models.CreateRandomGroupDataWithChecks()
-
-			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
-			So(err, ShouldBeNil)
-			So(ses, ShouldNotBeNil)
-
-			// create channel
-			channel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
-			So(err, ShouldBeNil)
-			So(channel, ShouldNotBeNil)
-
-			// create message
-			post, err := rest.CreatePost(channel.Id, ses.ClientId)
-			So(err, ShouldBeNil)
-			So(post, ShouldNotBeNil)
-
-			Convey("it should list latest posts when there is no time interval in query", func() {
-				cmc, err := rest.FetchAccountActivities(account.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(len(cmc), ShouldEqual, 1)
-				So(cmc[0].Message.Body, ShouldEqual, post.Body)
-			})
-		})
-	})
-}
-
-func TestAccountProfilePostCount(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-		Convey("While fetching account activity count in profile page", t, func() {
-			account, _, groupName := models.CreateRandomGroupDataWithChecks()
-
-			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
-			So(err, ShouldBeNil)
-			So(ses, ShouldNotBeNil)
-
-			// create channel
-			channel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP, ses.ClientId)
-			So(err, ShouldBeNil)
-			So(channel, ShouldNotBeNil)
-
-			// create message
-			post, err := rest.CreatePost(channel.Id, ses.ClientId)
-			So(err, ShouldBeNil)
-			So(post, ShouldNotBeNil)
-
-			Convey("it should fetch all post count when they are not troll", func() {
-				cr, err := rest.FetchAccountActivityCount(account.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(cr, ShouldNotBeNil)
-				So(cr.TotalCount, ShouldEqual, 1)
-
-				post, err := rest.CreatePost(channel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				cr, err = rest.FetchAccountActivityCount(account.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(cr, ShouldNotBeNil)
-				So(cr.TotalCount, ShouldEqual, 2)
-			})
-		})
-	})
-}
-
 func TestAccountGroupChannels(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("While fetching account activity count in profile page", t, func() {
@@ -177,7 +95,7 @@ func TestAccountGroupChannels(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
-			channel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_TOPIC, ses.ClientId)
+			channel, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_DEFAULT, ses.ClientId)
 			So(err, ShouldBeNil)
 			So(channel, ShouldNotBeNil)
 

@@ -342,56 +342,6 @@ func TestChannelParticipantFetchActiveParticipant(t *testing.T) {
 	})
 }
 
-func TestChannelParticipantMarkIfExempt(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-		Convey("While marking if participant is exempt", t, func() {
-			Convey("it should be nil if participant is already exempt", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				acc.IsTroll = true
-				So(acc.Update(), ShouldBeNil)
-
-				c := CreateChannelWithTest(acc.Id)
-				c.CreatorId = acc.Id
-				So(c.Create(), ShouldBeNil)
-
-				msg := CreateMessageWithTest()
-				msg.AccountId = acc.Id
-				So(msg.Create(), ShouldBeNil)
-
-				_, errs := c.AddMessage(msg)
-				So(errs, ShouldBeNil)
-
-				cp := NewChannelParticipant()
-				cp.ChannelId = c.Id
-				cp.AccountId = acc.Id
-
-				_, erro := c.AddParticipant(acc.Id)
-				So(erro, ShouldBeNil)
-
-				err := cp.MarkIfExempt()
-				So(err, ShouldBeNil)
-			})
-
-			Convey("it should have error if account is not set", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				acc.IsTroll = false
-				So(acc.Update(), ShouldBeNil)
-
-				c := CreateChannelWithTest(acc.Id)
-
-				cp := NewChannelParticipant()
-				cp.ChannelId = c.Id
-
-				err := cp.MarkIfExempt()
-				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
-			})
-		})
-	})
-}
-
 func TestChannelFetchAllParticipatedChannelIds(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("fetching all channels of an account should succeed", t, func() {
@@ -428,12 +378,12 @@ func TestChannelFetchAllParticipatedChannelIdsInGroup(t *testing.T) {
 			groupName1 := RandomGroupName()
 			groupName2 := RandomGroupName()
 			for i := 0; i < 5; i++ {
-				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_TOPIC, groupName1)
+				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_DEFAULT, groupName1)
 				AddParticipantsWithTest(c.Id, acc.Id)
 			}
 
 			for i := 0; i < 5; i++ {
-				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_TOPIC, groupName2)
+				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_DEFAULT, groupName2)
 				AddParticipantsWithTest(c.Id, acc.Id)
 			}
 

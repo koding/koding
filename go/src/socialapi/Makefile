@@ -86,13 +86,6 @@ testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
 	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/emailsender
 
-testmail:
-	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/models
-
-	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/tests
-
 # testpayments includes -race & -v flags
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
@@ -110,7 +103,7 @@ testrealtime:
 	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/models
 
 
-testapi: testcollaboration testmailsender testmail testmodels \
+testapi: testcollaboration testmailsender testmodels \
 	testteam testintegration testrealtime testpresence \
 	testpayment
 

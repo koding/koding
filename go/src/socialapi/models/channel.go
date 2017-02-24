@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"strings"
@@ -58,19 +59,10 @@ type Channel struct {
 
 // to-do check for allowed channels
 const (
-	ChannelLinkedPrefix = "linked"
 	// TYPES
-	Channel_TYPE_GROUP           = "group"
-	Channel_TYPE_ANNOUNCEMENT    = "announcement"
-	Channel_TYPE_TOPIC           = "topic"
-	Channel_TYPE_LINKED_TOPIC    = ChannelLinkedPrefix + Channel_TYPE_TOPIC
-	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
-	Channel_TYPE_FOLLOWERS       = "followers"
-	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
-	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
-	Channel_TYPE_COLLABORATION   = "collaboration"
-	Channel_TYPE_BOT             = "bot"
-	Channel_TYPE_DEFAULT         = "default"
+	Channel_TYPE_GROUP         = "group"
+	Channel_TYPE_COLLABORATION = "collaboration"
+	Channel_TYPE_DEFAULT       = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
 	Channel_PRIVACY_PRIVATE = "private"
@@ -89,15 +81,6 @@ func NewChannel() *Channel {
 		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
 	}
-}
-
-// NewPrivateMessageChannel takes the creator id and group name of the channel as arguments
-// sets required content of the channel
-// and sets constants as 'private'
-//
-// Tests are done
-func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
-	return NewPrivateChannel(creatorId, groupName, Channel_TYPE_PRIVATE_MESSAGE)
 }
 
 // NewCollaborationChannel takes the creator id and group name of the channel as arguments
@@ -135,12 +118,12 @@ func (c *Channel) Create() error {
 	}
 
 	// golang returns -1 if item not in the string
-	if strings.Index(c.Name, " ") > -1 {
+	if strings.Contains(c.Name, " ") {
 		return fmt.Errorf("Channel name %q has empty space in it", c.Name)
 	}
 
 	// if channel type is not group or following try to create it
-	if c.TypeConstant != Channel_TYPE_GROUP && c.TypeConstant != Channel_TYPE_FOLLOWERS {
+	if c.TypeConstant != Channel_TYPE_GROUP {
 		return idempotentCreate(c)
 	}
 
@@ -156,11 +139,6 @@ func (c *Channel) Create() error {
 	case Channel_TYPE_DEFAULT:
 		selector = map[string]interface{}{
 			"group_name":    c.GroupName,
-			"type_constant": c.TypeConstant,
-		}
-	case Channel_TYPE_FOLLOWERS:
-		selector = map[string]interface{}{
-			"creator_id":    c.CreatorId,
 			"type_constant": c.TypeConstant,
 		}
 	}
@@ -204,19 +182,6 @@ func idempotentCreate(c *Channel) error {
 	return err
 }
 
-func (c *Channel) CreateRaw() error {
-	insertSql := "INSERT INTO " +
-		c.BongoName() +
-		` ("name","creator_id","group_name","purpose","type_constant",` +
-		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
-		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
-		"RETURNING ID"
-
-	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Name, c.CreatorId,
-		c.GroupName, c.Purpose, c.TypeConstant, c.PrivacyConstant,
-		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
-}
-
 // AddParticipant adds a user(participant) to the channel
 // if account is already in the channel,
 // it won't add again user to channel as participant
@@ -229,18 +194,6 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 
 	if c.CreatorId == 0 {
 		return nil, ErrCreatorIdIsNotSet
-	}
-
-	// only the creator can be added as participant to the channel
-	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
-		if c.CreatorId != participantId {
-			return nil, ErrCannotAddNewParticipantToPinnedChannel
-		}
-	}
-
-	// do not add users to the linked channels
-	if c.TypeConstant == Channel_TYPE_LINKED_TOPIC {
-		return nil, ErrChannelIsLinked
 	}
 
 	cp := NewChannelParticipant()
@@ -432,135 +385,6 @@ func (c *Channel) DeleteChannelParticipants() error {
 	return errs.ErrorOrNil()
 }
 
-// AddMessage adds given message to the channel, if the message is already in the
-// channel, it doesn't add again, this method is idempotent
-// you can call many times, but message will be in the channel list once
-//
-// has full test suit
-func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, ErrChannelIdIsNotSet
-	}
-
-	if cm.Id == 0 {
-		return nil, ErrMessageIdIsNotSet
-	}
-
-	cml, err := c.FetchMessageList(cm.Id)
-	if err == nil {
-		return nil, ErrMessageAlreadyInTheChannel
-	}
-
-	// silence record not found err
-	if err != bongo.RecordNotFound {
-		return nil, err
-	}
-
-	cml.ChannelId = c.Id
-	cml.MessageId = cm.Id
-	cml.ClientRequestId = cm.ClientRequestId
-
-	if err := cml.Create(); err != nil {
-		if IsUniqueConstraintError(err) {
-			return nil, ErrMessageAlreadyInTheChannel
-		}
-
-		return nil, err
-	}
-
-	return cml, nil
-}
-
-func (c *Channel) EnsureMessage(cm *ChannelMessage, force bool) (*ChannelMessageList, error) {
-	cml := NewChannelMessageList()
-	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, cm.Id).First(cml).Error
-
-	if err == bongo.RecordNotFound {
-		cml, err := c.AddMessage(cm)
-		if err == ErrMessageAlreadyInTheChannel {
-			return c.FetchMessageList(cm.Id)
-		}
-
-		return cml, err
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	if !force {
-		return cml, nil
-	}
-
-	if cml.DeletedAt != ZeroDate() {
-		cml.DeletedAt = ZeroDate()
-	}
-
-	err = bongo.B.DB.Unscoped().Model(cml).Save(cml).Error
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = c.AddMessage(cm)
-	if err == ErrMessageAlreadyInTheChannel {
-		return cml, nil
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return cml, nil
-}
-
-// RemoveMessage removes the message from the channel
-// if message is already removed from the channel, it will not remove again  when we try to remove it
-//
-// Tests are done.
-//
-// TODO do not return channelmessagelist from delete function !!
-func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, ErrChannelIdIsNotSet
-	}
-
-	if messageId == 0 {
-		return nil, ErrMessageIdIsNotSet
-	}
-
-	cml, err := c.FetchMessageList(messageId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := cml.Delete(); err != nil {
-		return nil, err
-	}
-
-	return cml, nil
-}
-
-// FetchMessageList fetchs the messages in the channel
-//
-// has full test suit
-func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error) {
-	if c.Id == 0 {
-		return nil, ErrChannelIdIsNotSet
-	}
-
-	if messageId == 0 {
-		return nil, ErrMessageIdIsNotSet
-	}
-
-	cml := NewChannelMessageList()
-	selector := map[string]interface{}{
-		"channel_id": c.Id,
-		"message_id": messageId,
-	}
-
-	return cml, cml.One(bongo.NewQS(selector))
-}
-
 // FetchChannelIdByNameAndGroupName fetchs the first ID of the channel via channel name & group name
 //
 // Tests are done..
@@ -597,45 +421,6 @@ func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int6
 	return ids[0], nil
 }
 
-func (c *Channel) Search(q *request.Query) ([]Channel, error) {
-	if q.GroupName == "" {
-		return nil, ErrGroupNameIsNotSet
-	}
-
-	if q.Type == "" {
-		q.Type = Channel_TYPE_TOPIC
-	}
-
-	var channels []Channel
-
-	bongoQuery := &bongo.Query{
-		Selector: map[string]interface{}{
-			"group_name":    q.GroupName,
-			"type_constant": q.Type,
-		},
-		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
-	}
-
-	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
-
-	query := bongo.B.BuildQuery(c, bongoQuery)
-
-	// use 'ilike' for case-insensitive search
-	query = query.Where("name ilike ?", "%"+q.Name+"%")
-
-	if err := bongo.CheckErr(
-		query.Find(&channels),
-	); err != nil {
-		return nil, err
-	}
-
-	if channels == nil {
-		return make([]Channel, 0), nil
-	}
-
-	return channels, nil
-}
-
 // ByName fetches the channel by name, type_constant and group_name, it doesnt
 // have the best name, but evolved to this situation :/
 func (c *Channel) ByName(q *request.Query) (Channel, error) {
@@ -646,7 +431,7 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	}
 
 	if q.Type == "" {
-		q.Type = Channel_TYPE_TOPIC
+		return channel, errors.New("type_constant is required.")
 	}
 
 	query := &bongo.Query{
@@ -666,54 +451,6 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	}
 
 	return *c, nil
-}
-
-// ByParticipants fetches the channels by their respective participants
-func (c *Channel) ByParticipants(participants []int64, q *request.Query) ([]Channel, error) {
-	if q.GroupName == "" {
-		return nil, ErrGroupNameIsNotSet
-	}
-
-	if len(participants) == 0 {
-		return nil, ErrChannelParticipantIsNotSet
-	}
-
-	if q.Type == "" {
-		q.Type = Channel_TYPE_PRIVATE_MESSAGE
-	}
-
-	var channelIds []int64
-
-	cp := NewChannelParticipant()
-
-	err := bongo.B.DB.
-		Model(cp).
-		Table(cp.BongoName()).
-		Joins(
-			`left join api.channel on
-		 api.channel_participant.channel_id = api.channel.id`).
-		Where(
-			`api.channel_participant.account_id IN ( ? ) and
-		 api.channel_participant.status_constant = ? and
-		 api.channel.group_name = ? and
-		 api.channel.deleted_at < '0001-01-02 00:00:00+00' and
-		 api.channel.type_constant = ?`,
-			participants,
-			ChannelParticipant_STATUS_ACTIVE,
-			q.GroupName,
-			q.Type,
-		).
-		Group("channel_participant.channel_id, channel.created_at").
-		Having("COUNT (channel_participant.channel_id) = ?", len(participants)).
-		Order("channel.created_at").
-		Limit(q.Limit).
-		Offset(q.Skip).
-		Pluck("api.channel_participant.channel_id", &channelIds).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return c.FetchByIds(channelIds)
 }
 
 func (c *Channel) List(q *request.Query) ([]Channel, error) {
@@ -772,110 +509,6 @@ func (c *Channel) FetchAllChannelsOfGroup() ([]Channel, error) {
 	return channels, nil
 }
 
-// FetchLastMessage fetch the last message of the channel from DB
-// sorts the messages, then fetch the message which added last
-//
-// Tests are done.
-func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
-	if c.Id == 0 {
-		return nil, ErrChannelIdIsNotSet
-	}
-
-	messageId, err := c.FetchLastMessageId()
-	if err != nil && err != bongo.RecordNotFound {
-		return nil, err
-	}
-
-	if err == bongo.RecordNotFound {
-		return nil, nil
-	}
-
-	cm := NewChannelMessage()
-	if err := cm.ById(messageId); err != nil {
-		return nil, err
-	}
-
-	return cm.PopulatePayload()
-}
-
-func (c *Channel) FetchLastMessageId() (int64, error) {
-	if c.Id == 0 {
-		return 0, ErrChannelIdIsNotSet
-	}
-
-	cml := NewChannelMessageList()
-	query := &bongo.Query{
-		Selector: map[string]interface{}{
-			"channel_id": c.Id,
-		},
-		Sort: map[string]string{
-			"added_at": "DESC",
-		},
-		Pagination: *bongo.NewPagination(1, 0),
-		Pluck:      "message_id",
-	}
-
-	var messageIds []int64
-	err := cml.Some(&messageIds, query)
-	if err != nil {
-		return 0, err
-	}
-
-	if messageIds == nil || len(messageIds) == 0 {
-		return 0, bongo.RecordNotFound
-	}
-
-	return messageIds[0], nil
-}
-
-// FetchPinnedActivityChannel fetch the channel within required fields
-func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) error {
-	query := &bongo.Query{
-		Selector: map[string]interface{}{
-			"creator_id":    accountId,
-			"group_name":    groupName,
-			"type_constant": Channel_TYPE_PINNED_ACTIVITY,
-		},
-	}
-
-	return c.One(query)
-}
-
-func EnsurePinnedActivityChannel(accountId int64, groupName string) (*Channel, error) {
-	c := NewChannel()
-	err := c.FetchPinnedActivityChannel(accountId, groupName)
-
-	// if we find the channel
-	// return early
-	if err == nil {
-		return c, nil
-	}
-
-	// silence not found error
-	if err != bongo.RecordNotFound {
-		return nil, err
-	}
-
-	c.Name = RandomName()
-	c.CreatorId = accountId
-	c.GroupName = groupName
-	c.TypeConstant = Channel_TYPE_PINNED_ACTIVITY
-	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
-	if err := c.Create(); err != nil {
-		return nil, err
-	}
-
-	// after creating pinned channel
-	// add user a participant
-	// todo add test for this case
-	_, err = c.AddParticipant(accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	return c, nil
-}
-
 // CanOpen checks permissions for channels
 // group channels can be opened by everyone
 // But private message channel just CanOpened by participant
@@ -888,15 +521,6 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 
 	if c.CreatorId == 0 {
 		return false, ErrCreatorIdIsNotSet
-	}
-
-	// see only your pinned posts
-	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
-		if c.CreatorId == accountId {
-			return true, nil
-		}
-
-		return false, nil
 	}
 
 	// check if user is a participant
@@ -945,35 +569,7 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 // know what you are doing
 func (c *Channel) IsPubliclyAccessibleInGroup() bool {
 	// anyone can read group activity
-	if c.TypeConstant == Channel_TYPE_GROUP {
-		return true
-	}
-
-	// anyone can read announcement activity
-	if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
-		return true
-	}
-
-	// anyone can read topic feed
-	// this is here for non-participated topic channels
-	if c.TypeConstant == Channel_TYPE_TOPIC {
-		return true
-	}
-
-	return false
-}
-
-func (c *Channel) MarkIfExempt() error {
-	isExempt, err := c.isExempt()
-	if err != nil {
-		return err
-	}
-
-	if isExempt {
-		c.MetaBits.Mark(Troll)
-	}
-
-	return nil
+	return c.TypeConstant == Channel_TYPE_GROUP
 }
 
 func (c *Channel) isExempt() (bool, error) {
@@ -1067,97 +663,6 @@ func (c *Channel) FetchGroupChannel(groupName string) error {
 	}
 
 	return err
-}
-
-func isMessageCrossIndexed(messageId int64) (error, bool) {
-	count, err := NewChannelMessageList().CountWithQuery(&bongo.Query{
-		Selector: map[string]interface{}{
-			"message_id": messageId,
-		},
-	})
-	if err != nil {
-		return err, false
-	}
-	return nil, count > 0
-}
-
-func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
-	messageIds := make([]int64, 0)
-
-	for messageId := range messageMap {
-		messageIds = append(messageIds, messageId)
-	}
-
-	messages, err := NewChannelMessage().FetchByIds(messageIds)
-	if err != nil {
-		return err
-	}
-
-	for _, message := range messages {
-		err, isCrossIndexed := isMessageCrossIndexed(message.Id)
-		if err != nil {
-			return err
-		}
-
-		if isCrossIndexed {
-			continue
-		}
-
-		if err = NewMessageReply().DeleteByOrQuery(message.Id); err != nil {
-			return err
-		}
-
-		if err = message.Delete(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func getListingBatch(channelId int64, c int) ([]ChannelMessageList, error) {
-	var listings []ChannelMessageList
-	q := &bongo.Query{
-		Selector: map[string]interface{}{"channel_id": channelId},
-		Pagination: bongo.Pagination{
-			Skip:  100 * c,
-			Limit: 100,
-		}}
-	if err := NewChannelMessageList().Some(&listings, q); err != nil {
-		return nil, err
-	}
-	return listings, nil
-}
-
-// deleteChannelLists deletes all channel lists with given channel id
-// and returns dangling channel message id map
-func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
-	messageMap := make(map[int64]struct{})
-	for i := 0; ; i++ {
-		listings, err := getListingBatch(c.Id, i)
-		if err != nil {
-			return messageMap, err
-		}
-
-		for _, listing := range listings {
-			messageMap[listing.MessageId] = struct{}{}
-			if err := listing.Delete(); err != nil {
-				return messageMap, err
-			}
-		}
-		if len(listings) < 100 {
-			return messageMap, nil
-		}
-	}
-}
-
-func (c *Channel) ShowUnreadCount() bool {
-	return c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY ||
-		c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE ||
-		c.TypeConstant == Channel_TYPE_COLLABORATION ||
-		c.TypeConstant == Channel_TYPE_ANNOUNCEMENT ||
-		c.TypeConstant == Channel_TYPE_TOPIC ||
-		c.TypeConstant == Channel_TYPE_BOT
 }
 
 // IsGroup checks if the channel type is a group channel

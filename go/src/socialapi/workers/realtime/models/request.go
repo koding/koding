@@ -15,12 +15,6 @@ type PushMessage struct {
 	Message
 }
 
-type UpdateInstanceMessage struct {
-	Token        string `json:"token"`
-	ChannelToken string `json:"channelToken"`
-	Message
-}
-
 type NotificationMessage struct {
 	Account   *socialapimodels.Account `json:"account"`
 	Body      NotificationContent      `json:"body"`

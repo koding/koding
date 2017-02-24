@@ -147,10 +147,7 @@ func (c *Controller) HandleCreator(channel *models.Channel) error {
 	// update the company info of user if company exist in mongo
 	selector := bson.M{"username": user.Name}
 	update := bson.M{"companyId": company.Id}
-	if err := modelhelper.UpdateUser(selector, update); err != nil {
-		return err
-	}
-	return nil
+	return modelhelper.UpdateUser(selector, update)
 }
 
 func checkValuesForCompany(company *clearbit.Company) error {

@@ -90,10 +90,6 @@ func addMultiFunc(query *request.Query, participants []*models.ChannelParticipan
 		return nil, nil, err
 	}
 
-	if ch.TypeConstant == models.Channel_TYPE_BOT {
-		return nil, nil, errors.New("can not add participants for bot channel")
-	}
-
 	for i := range participants {
 		participant := models.NewChannelParticipant()
 		participant.ChannelId = query.Id
@@ -119,11 +115,6 @@ func addMultiFunc(query *request.Query, participants []*models.ChannelParticipan
 		}
 
 		participants[i] = participant
-
-		if err := addJoinActivity(query.Id, participant, query.AccountId); err != nil {
-			return nil, nil, err
-		}
-
 	}
 
 	return ch, participants, nil
@@ -166,9 +157,6 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
-	if ch.TypeConstant == models.Channel_TYPE_BOT {
-		return response.NewBadRequest(errors.New("can not remove participants for bot channel"))
-	}
 
 	isAdmin, err := modelhelper.IsAdmin(context.Client.Account.Nick, context.GroupName)
 	if err != nil {
@@ -190,19 +178,7 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		if err := participants[i].Delete(); err != nil {
 			return response.NewBadRequest(err)
 		}
-
-		if err := addLeaveActivity(query.Id, query.AccountId, participants[i]); err != nil {
-			return response.NewBadRequest(err)
-		}
 	}
-
-	// this could be moved into another worker, but i did not want to create a new worker that will be used
-	// for just a few times
-	go func() {
-		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
-			runner.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
-		}
-	}()
 
 	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, participants)
 
@@ -245,14 +221,6 @@ func BlockMulti(u *url.URL, h http.Header, participants []*models.ChannelPartici
 			return response.NewBadRequest(err)
 		}
 	}
-
-	// this could be moved into another worker, but i did not want to create a new worker that will be used
-	// for just a few times
-	go func() {
-		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
-			runner.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
-		}
-	}()
 
 	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, participants)
 
@@ -337,11 +305,6 @@ func AcceptInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
-
-	if err := addJoinActivity(query.Id, cp, 0); err != nil {
-		return response.NewBadRequest(err)
-	}
-
 	ch := models.NewChannel()
 	if err := ch.ById(query.Id); err != nil {
 		return response.NewBadRequest(err)
@@ -361,10 +324,6 @@ func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 		return response.NewBadRequest(err)
 	}
 
-	if err := addLeaveActivity(query.Id, ctx.Client.Account.Id, cp); err != nil {
-		return response.NewBadRequest(err)
-	}
-
 	ch := models.NewChannel()
 
 	if err := ch.ById(query.Id); err != nil {
@@ -374,34 +333,6 @@ func RejectInvite(u *url.URL, h http.Header, participant *models.ChannelParticip
 	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, []*models.ChannelParticipant{cp})
 
 	return response.NewDefaultOK()
-}
-
-// DeletePrivateChannelMessages deletes all channel messages from a private message channel
-// when there are no more participants
-func DeleteDesertedChannelMessages(channelId int64) error {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return err
-	}
-
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
-		return nil
-	}
-
-	cp := models.NewChannelParticipant()
-	cp.ChannelId = c.Id
-	count, err := cp.FetchParticipantCount()
-	if err != nil {
-		return err
-	}
-
-	if count != 0 {
-		return nil
-	}
-
-	// no need to keep the channel any more
-	return c.Delete()
 }
 
 func updateStatus(participant *models.ChannelParticipant, query *request.Query, ctx *models.Context) (*models.ChannelParticipant, error) {
@@ -462,28 +393,10 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	// 	return errors.New("can not add/remove participants for group channel")
 	// }
 
-	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {
-		return errors.New("can not add/remove participants for pinned activity channel")
-	}
-
-	if c.TypeConstant == models.Channel_TYPE_TOPIC {
-		if len(participants) != 1 {
-			return errors.New("you can not add only one participant into topic channel")
-		}
-
-		// with the new UI structure, now other users can add others into topic channels
-		//
-		// if participants[0].AccountId != requesterId {
-		// 	return errors.New("you can not add others into topic channel")
-		// }
-	}
-
 	// return early for non private message channels
 	// no need to continue from here for other channels
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
-		c.TypeConstant != models.Channel_TYPE_GROUP &&
-		c.TypeConstant != models.Channel_TYPE_BOT {
+	if c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
+		c.TypeConstant != models.Channel_TYPE_GROUP {
 		return nil
 	}
 
@@ -502,48 +415,6 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	return nil
 }
 
-func addJoinActivity(channelId int64, participant *models.ChannelParticipant, addedBy int64) error {
-
-	c, err := fetchChannelWithValidation(channelId)
-	if err != nil {
-		if err == ErrSkipActivity {
-			return nil
-		}
-
-		return err
-	}
-
-	pmr := &models.ChannelRequest{AccountId: participant.AccountId}
-	if participant.StatusConstant == models.ChannelParticipant_STATUS_REQUEST_PENDING {
-		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_INVITE)
-		addedBy = 0
-	} else {
-		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_JOIN)
-	}
-
-	return pmr.AddJoinActivity(c, addedBy)
-}
-
-func addLeaveActivity(channelId, accountId int64, participant *models.ChannelParticipant) error {
-	c, err := fetchChannelWithValidation(channelId)
-	if err != nil {
-		if err == ErrSkipActivity {
-			return nil
-		}
-
-		return err
-	}
-
-	pmr := &models.ChannelRequest{AccountId: participant.AccountId}
-	if accountId == participant.AccountId {
-		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_LEAVE)
-	} else {
-		pmr.SetSystemMessageType(models.ChannelRequestMessage_TYPE_KICK)
-	}
-
-	return pmr.AddLeaveActivity(c)
-}
-
 // this function is tested via integration tests
 func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	c := models.NewChannel()
@@ -552,9 +423,7 @@ func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	}
 
 	// add activity information for private message channel
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-
-		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
+	if c.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil, ErrSkipActivity
 	}
 

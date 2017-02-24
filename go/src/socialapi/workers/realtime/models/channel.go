@@ -74,22 +74,3 @@ func (nc *NotificationChannel) PrepareName() string {
 func (nc *NotificationChannel) GrantAccess(p *PubNub, a *Authenticate) error {
 	return p.GrantAccess(a, nc)
 }
-
-////////// MessageUpdateChannel //////////
-
-type MessageUpdateChannel struct {
-	UpdateInstanceMessage
-}
-
-func NewMessageUpdateChannel(ui UpdateInstanceMessage) *MessageUpdateChannel {
-	return &MessageUpdateChannel{ui}
-}
-
-func (mc *MessageUpdateChannel) PrepareName() string {
-	// Send message instance events to parent channel itself.
-	return fmt.Sprintf("channel-%s", mc.ChannelToken)
-}
-
-func (mc *MessageUpdateChannel) GrantAccess(p *PubNub, a *Authenticate) error {
-	return p.GrantPublicAccess(mc)
-}

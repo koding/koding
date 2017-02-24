@@ -5,11 +5,8 @@ import (
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
-	"strings"
 	"testing"
-	"time"
 
-	"github.com/koding/bongo"
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -198,34 +195,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 					})
 				})
 
-				// TODO Until we find a better way for handling async stuff, this test is skipped. Instead of sleep, we should use some
-				// timeouts for testing these kind of stuff.
-				SkipConvey("All private messages must be deleted when all participant users leave the channel", func() {
-					account := models.NewAccount()
-					err = account.ByNick("devrim")
-					So(err, ShouldBeNil)
-
-					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ses.ClientId, account.Id)
-					So(err, ShouldBeNil)
-
-					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerSes.ClientId, ownerAccount.Id)
-					So(err, ShouldBeNil)
-
-					time.Sleep(1 * time.Second)
-
-					testChannel := models.NewChannel()
-					err := testChannel.ById(channelContainer.Channel.Id)
-					So(err, ShouldEqual, bongo.RecordNotFound)
-
-					testChannelList := models.NewChannelMessageList()
-					err = bongo.B.Unscoped().Where("channel_id = ?", channelContainer.Channel.Id).Find(testChannelList).Error
-					So(err, ShouldEqual, bongo.RecordNotFound)
-
-					testMessage := models.NewChannelMessage()
-					err = bongo.B.Unscoped().Where("initial_channel_id = ?", channelContainer.Channel.Id).Find(testMessage).Error
-					So(err, ShouldEqual, bongo.RecordNotFound)
-				})
-				Convey("Users should not be able to add/remove users to/from bot channels", func() {
+				Convey("Users should be able to add/remove users to/from collab channels", func() {
 					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 					participant := models.NewAccount()
@@ -237,28 +207,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 					ses, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
 					So(err, ShouldBeNil)
 
-					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_BOT, ses.ClientId)
-					So(err, ShouldBeNil)
-					So(ch, ShouldNotBeNil)
-
-					// account is -> ownerAccount.Id
-					_, err = rest.AddChannelParticipant(ch.Id, ses.ClientId, participant.Id)
-					So(strings.Contains(err.Error(), "can not add participants for bot channel"), ShouldBeTrue)
-				})
-
-				Convey("Users should be able to add/remove users to/from topic channels", func() {
-					ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
-
-					participant := models.NewAccount()
-					participant.OldId = AccountOldId.Hex()
-					participant, err = rest.CreateAccount(participant)
-					So(err, ShouldBeNil)
-					So(participant, ShouldNotBeNil)
-
-					ses, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
-					So(err, ShouldBeNil)
-
-					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_TOPIC, ses.ClientId)
+					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_COLLABORATION, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(ch, ShouldNotBeNil)
 

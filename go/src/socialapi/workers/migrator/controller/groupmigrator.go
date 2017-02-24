@@ -72,19 +72,6 @@ func (mwc *Controller) migrateAllGroups() {
 	mwc.log.Notice("Group migration completed for %d groups with %d errors", successCount, errCount)
 }
 
-func (mwc *Controller) createChangelogChannel() {
-	c := models.NewChannel()
-	c.Name = "changelog"
-	c.GroupName = models.Channel_KODING_NAME
-	c.TypeConstant = models.Channel_TYPE_ANNOUNCEMENT
-	c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
-	c.CreatorId = 1
-	err := c.Create()
-	if err != nil {
-		mwc.log.Error("Could not create changelog channel: %s", err)
-	}
-}
-
 func (mwc *Controller) createPublicChannel() *models.Channel {
 	c := models.NewChannel()
 	c.Name = "public"

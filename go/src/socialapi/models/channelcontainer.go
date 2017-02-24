@@ -3,19 +3,16 @@ package models
 import (
 	"socialapi/request"
 	"sync"
-
-	"github.com/koding/bongo"
 )
 
 type ChannelContainer struct {
-	Channel             *Channel                 `json:"channel"`
-	IsParticipant       bool                     `json:"isParticipant"`
-	ParticipantCount    int                      `json:"participantCount"`
-	ParticipantsPreview []string                 `json:"participantsPreview"`
-	LastMessage         *ChannelMessageContainer `json:"lastMessage"`
-	AccountOldId        string                   `json:"accountOldId"`
-	UnreadCount         int                      `json:"unreadCount"`
-	Err                 error                    `json:"-"`
+	Channel             *Channel `json:"channel"`
+	IsParticipant       bool     `json:"isParticipant"`
+	ParticipantCount    int      `json:"participantCount"`
+	ParticipantsPreview []string `json:"participantsPreview"`
+	AccountOldId        string   `json:"accountOldId"`
+	UnreadCount         int      `json:"unreadCount"`
+	Err                 error    `json:"-"`
 }
 
 // Inits channel
@@ -56,7 +53,6 @@ func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
 	cr.AddParticipantCount().
 		AddParticipantsPreview().
 		AddIsParticipant(accountId).
-		AddLastMessage(accountId).
 		AddAccountOldId()
 
 	return cr.Err
@@ -171,31 +167,6 @@ func (cr *ChannelContainer) AddIsParticipant(accountId int64) *ChannelContainer 
 	})
 }
 
-func (cr *ChannelContainer) AddLastMessage(accountId int64) *ChannelContainer {
-	return withChecks(cr, func(cc *ChannelContainer) error {
-		// add last message of the channel
-		lastMessageId, err := cc.Channel.FetchLastMessageId()
-		if err != nil && err != bongo.RecordNotFound {
-			return err
-		}
-
-		if err == bongo.RecordNotFound {
-			return nil
-		}
-
-		cm := NewChannelMessage()
-		cm.Id = lastMessageId
-		cmc, err := cm.BuildMessage(&request.Query{AccountId: accountId})
-		if err != nil {
-			return err
-		}
-
-		cc.LastMessage = cmc
-
-		return nil
-	})
-}
-
 func getChannelParticipant(channelId, accountId int64) (*ChannelParticipant, error) {
 	// fetch participant data from db
 	cp := NewChannelParticipant()
@@ -206,62 +177,6 @@ func getChannelParticipant(channelId, accountId int64) (*ChannelParticipant, err
 	}
 
 	return cp, nil
-}
-
-func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
-	return withChecks(cr, func(cc *ChannelContainer) error {
-
-		// if the user is not a participant of the channel, do not add unread
-		// count
-		if !cc.IsParticipant {
-			return nil
-		}
-
-		if !cr.Channel.ShowUnreadCount() {
-			// do not calculate for other channels
-			return nil
-		}
-
-		if cc.LastMessage == nil || cc.LastMessage.Message == nil || cc.LastMessage.Message.Id == 0 {
-			return nil
-		}
-
-		cp, err := getChannelParticipant(cc.Channel.Id, accountId)
-		if err != nil {
-			return err
-		}
-
-		if cc.Channel.TypeConstant != Channel_TYPE_PINNED_ACTIVITY {
-			count, err := NewChannelMessageList().UnreadCount(cp)
-			if err != nil {
-				return err
-			}
-
-			cc.UnreadCount = count
-			return nil
-		}
-
-		cml, err := cc.Channel.FetchMessageList(cc.LastMessage.Message.Id)
-		if err != nil {
-			return err
-		}
-
-		isRecieverTroll := cp.MetaBits.Is(Troll)
-		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, isRecieverTroll)
-		// count, err := NewMessageReply().UnreadCount(
-		// 	cc.LastMessage.Message.Id,
-		// 	cp.LastSeenAt,
-		// 	isRecieverTroll,
-		// )
-		// }
-
-		if err != nil {
-			return err
-		}
-
-		cc.UnreadCount = count
-		return nil
-	})
 }
 
 type ChannelContainers []ChannelContainer
@@ -328,22 +243,6 @@ func (c *ChannelContainers) Fetch(channelList []Channel, query *request.Query) e
 func (c *ChannelContainers) AddIsParticipant(accountId int64) *ChannelContainers {
 	for i, container := range *c {
 		(*c)[i] = *container.AddIsParticipant(accountId)
-	}
-
-	return c
-}
-
-func (c *ChannelContainers) AddUnreadCount(accountId int64) *ChannelContainers {
-	for i, container := range *c {
-		(*c)[i] = *container.AddUnreadCount(accountId)
-	}
-
-	return c
-}
-
-func (c *ChannelContainers) AddLastMessage(accountId int64) *ChannelContainers {
-	for i, container := range *c {
-		(*c)[i] = *container.AddLastMessage(accountId)
 	}
 
 	return c

@@ -153,23 +153,13 @@ func (c *ChannelParticipant) fetchParticipant(selector map[string]interface{}) e
 	return c.One(bongo.NewQS(selector))
 }
 
-// Tests are done in channelmessagelist.
-func (c *ChannelParticipant) FetchUnreadCount() (int, error) {
-	cml := NewChannelMessageList()
-	return cml.UnreadCount(c)
-}
-
 func (c *ChannelParticipant) Delete() error {
 	if err := c.FetchParticipant(); err != nil {
 		return err
 	}
 
 	c.StatusConstant = ChannelParticipant_STATUS_LEFT
-	if err := c.Update(); err != nil {
-		return err
-	}
-
-	return nil
+	return c.Update()
 }
 
 // Block changes the status of the participant to blocked
@@ -179,11 +169,7 @@ func (c *ChannelParticipant) Block() error {
 	}
 
 	c.StatusConstant = ChannelParticipant_STATUS_BLOCKED
-	if err := c.Update(); err != nil {
-		return err
-	}
-
-	return nil
+	return c.Update()
 }
 
 // Unblock changes the status of the participant to left
@@ -406,9 +392,7 @@ func (c *ChannelParticipant) FetchParticipatedTypedChannelIds(a *Account, q *req
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
-			for _, item := range channelIds {
-				defaultChannels = append(defaultChannels, item)
-			}
+			defaultChannels = append(defaultChannels, channelIds...)
 			return defaultChannels, nil
 		}
 	}
@@ -430,7 +414,7 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 		Where(
 			"group_name = ? AND type_constant IN (?)",
 			q.GroupName,
-			[]string{Channel_TYPE_GROUP, Channel_TYPE_ANNOUNCEMENT},
+			[]string{Channel_TYPE_GROUP},
 		).
 		// Order("type_constant ASC"). // order by increases query plan by x12K
 		// no need to traverse all database, limit with a known count
@@ -449,21 +433,9 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 
 	// order channels in memory instead of ordering them in db
 	channelIds := make([]int64, len(channels))
-	switch len(channels) {
-	case 1:
+	if len(channels) == 1 {
 		// we can have one result if group doesnt have announcement channel
 		channelIds[0] = channels[0].Id
-	case 2:
-		for _, channel := range channels {
-			if channel.TypeConstant == Channel_TYPE_GROUP {
-				channelIds[0] = channel.Id
-			}
-			if channel.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
-				channelIds[1] = channel.Id
-			}
-		}
-	default:
-		return nil, nil
 	}
 
 	return channelIds, nil

@@ -3,9 +3,6 @@ package algoliaconnector
 import (
 	"errors"
 	"fmt"
-	"socialapi/models"
-	"socialapi/request"
-	"strconv"
 	"sync"
 	"time"
 
@@ -15,8 +12,6 @@ import (
 )
 
 const (
-	IndexMessages = "messages"
-	IndexTopics   = "topics"
 	IndexAccounts = "accounts"
 
 	UnretrievableAttributes = "unretrievableAttributes"
@@ -50,33 +45,11 @@ type Controller struct {
 }
 
 func New(log logging.Logger, client algoliasearch.Client, indexSuffix string) *Controller {
-	// TODO later on listen channel_participant_added event and remove this koding channel fetch
-	c := models.NewChannel()
-	q := request.NewQuery()
-	q.GroupName = "koding"
-	q.Name = "public"
-	q.Type = models.Channel_TYPE_GROUP
-
-	channel, err := c.ByName(q)
-	if err != nil {
-		log.Error("Could not fetch koding channel: %s:", err)
-	}
-	var channelId string
-	if channel.Id != 0 {
-		channelId = strconv.FormatInt(channel.Id, 10)
-	}
 
 	controller := &Controller{
 		log:    log,
 		client: client,
 		indexes: &IndexSet{
-			IndexTopics: &IndexSetItem{
-				Index: client.InitIndex(IndexTopics + indexSuffix),
-				Settings: &Settings{
-					// empty slice means all properties will be searchable
-					AttributesToIndex: []string{},
-				},
-			},
 			IndexAccounts: &IndexSetItem{
 				Index: client.InitIndex(IndexAccounts + indexSuffix),
 				Settings: &Settings{
@@ -90,14 +63,7 @@ func New(log logging.Logger, client algoliasearch.Client, indexSuffix string) *C
 					UnretrievableAttributes: []string{"email"},
 				},
 			},
-			IndexMessages: &IndexSetItem{
-				Index: client.InitIndex(IndexMessages + indexSuffix),
-				Settings: &Settings{
-					AttributesToIndex: []string{},
-				},
-			},
 		},
-		kodingChannelId: channelId,
 	}
 
 	return controller

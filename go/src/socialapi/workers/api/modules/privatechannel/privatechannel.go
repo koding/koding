@@ -107,20 +107,11 @@ func buildContainer(channelList []models.Channel, q *request.Query) (*models.Cha
 	}
 
 	cc.AddIsParticipant(q.AccountId)
-
-	// TODO this should be in the channel cache by default
-	cc.AddLastMessage(q.AccountId)
-	cc.AddUnreadCount(q.AccountId)
-
 	return cc, cc.Err()
 }
 
 func getUserChannelsQuery(q *request.Query) *gorm.DB {
 	c := models.NewChannel()
-
-	if q.Type == "" {
-		q.Type = models.Channel_TYPE_PRIVATE_MESSAGE
-	}
 
 	return bongo.B.DB.
 		Model(c).

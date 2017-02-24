@@ -35,14 +35,12 @@ func (c *Channel) BeforeCreate() error {
 	c.UpdatedAt = time.Now().UTC()
 	c.DeletedAt = ZeroDate()
 	c.Token = NewToken(c.CreatedAt).String()
-
-	return c.MarkIfExempt()
+	return nil
 }
 
 func (c *Channel) BeforeUpdate() error {
 	c.UpdatedAt = time.Now()
-
-	return c.MarkIfExempt()
+	return nil
 }
 
 func (c *Channel) Update() error {
@@ -54,24 +52,6 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Delete() error {
-	// first delete channel list relations
-	messageMap, err := c.deleteChannelLists()
-	if err != nil {
-		fmt.Printf("channel delete error: %s \n", err)
-
-		// in case of an error delete the messages up to that point
-		if err := c.deleteChannelMessages(messageMap); err != nil {
-			fmt.Printf("channel message delete error: %s \n", err)
-		}
-
-		return err
-	}
-
-	// and delete messages
-	if err := c.deleteChannelMessages(messageMap); err != nil {
-		return err
-	}
-
 	participants, err := c.FetchParticipantIds(&request.Query{})
 	if err != nil {
 		return err
