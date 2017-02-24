@@ -1,19 +1,19 @@
 #!/bin/bash
 
-INSTANCE_DATA_FILE=$1
+declare instance_data_file=$1
 
-SCRIPTS=$(dirname $0)/..
-REPOSITORY_PATH=/opt/koding
+declare scripts=$(dirname $0)/..
+declare repository_path=/opt/koding
 
 if [ "$WERCKER_RESULT" = "passed" ]; then
 	exit 0
 fi
 
-cat $INSTANCE_DATA_FILE | awk '{print $2}' \
+cat $instance_data_file | awk '{print $2}' \
 	| xargs -n 1 \
 		-I HOST \
-		$SCRIPTS/test-instance/ssh HOST \
-			"sudo $REPOSITORY_PATH/scripts/test-instance/upload-logs \
+		$scripts/test-instance/ssh HOST \
+		"sudo $repository_path/scripts/test-instance/upload-logs \
 			$WERCKER_BUILD_ID \
 			$KONFIG_TEST_CREDENTIALS_AWS_ACCESSKEYID \
 			$KONFIG_TEST_CREDENTIALS_AWS_SECRETACCESSKEY"

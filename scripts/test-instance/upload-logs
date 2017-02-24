@@ -1,22 +1,22 @@
 #!/bin/bash
 
-REPOSITORY_PATH=/opt/koding
-LOG_PATH=$REPOSITORY_PATH/.logs
-INSTANCE_ID=$(ec2metadata | grep instance-id | awk '{print $2}')
+declare repository_path=/opt/koding
+declare log_path=$repository_path/.logs
+declare instance_id=$(ec2metadata | grep instance-id | awk '{print $2}')
 
-ACCESS_KEY=$2
-SECRET_KEY=$3
+declare access_key=$2
+declare secret_key=$3
 
-BUCKET="kodingdev-test-instance-logs"
-PREFIX=$1
-DESTINATION="s3://$BUCKET/$PREFIX/$INSTANCE_ID"
+declare bucket="kodingdev-test-instance-logs"
+declare prefix=$1
+declare destination="s3://$bucket/$prefix/$instance_id"
 
-if [ -z "$PREFIX" ]; then
+if [ -z "$prefix" ]; then
 	echo 'error: prefix parameter is not given'
 	exit 1
 fi
 
-S3CMD_OPTIONS="--human-readable-sizes --follow-symlinks --quiet"
+declare s3cmd_options="--human-readable-sizes --follow-symlinks --quiet"
 
-s3cmd --access_key=$ACCESS_KEY --secret_key=$SECRET_KEY put $S3CMD_OPTIONS --recursive $LOG_PATH/ $DESTINATION/
-s3cmd --access_key=$ACCESS_KEY --secret_key=$SECRET_KEY put $S3CMD_OPTIONS /var/log/cloud-init-output.log $DESTINATION/
+s3cmd --access_key=$access_key --secret_key=$secret_key put $s3cmd_options --recursive $log_path/ $destination/
+s3cmd --access_key=$access_key --secret_key=$secret_key put $s3cmd_options /var/log/cloud-init-output.log $destination/
