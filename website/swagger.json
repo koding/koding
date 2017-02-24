@@ -3873,6 +3873,40 @@
         }
       }
     },
+    "/remote.api/JCredential.bootstrap/{id}": {
+      "post": {
+        "tags": [
+          "JCredential"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JCredential.isBootstrapped/{id}": {
       "post": {
         "tags": [
