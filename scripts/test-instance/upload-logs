@@ -1,7 +1,5 @@
 #!/bin/bash
 
-declare repository_path=/opt/koding
-declare log_path=$repository_path/.logs
 declare instance_id=$(ec2metadata | grep instance-id | awk '{print $2}')
 
 declare access_key=$2
@@ -18,5 +16,5 @@ fi
 
 declare s3cmd_options="--human-readable-sizes --follow-symlinks --quiet"
 
-s3cmd --access_key=$access_key --secret_key=$secret_key put $s3cmd_options --recursive $log_path/ $destination/
+s3cmd --access_key=$access_key --secret_key=$secret_key put $s3cmd_options --recursive $KONFIG_PROJECTROOT/.logs $destination/
 s3cmd --access_key=$access_key --secret_key=$secret_key put $s3cmd_options /var/log/cloud-init-output.log $destination/
