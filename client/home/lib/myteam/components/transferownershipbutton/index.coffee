@@ -76,6 +76,9 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
         <strong>CAUTION! </strong>You are going to transfer the ownership
         of your team with <strong>#{username}</strong>
       </p> <br>
+      <p>You will become an admin of this team.</p>
+      <p>If this team is using your credit card information for subscription, Please make sure
+      you cancel the subscription before you delete your account.
       <p>Please enter <strong>current password</strong> into the field below to continue: </p>
     "
 

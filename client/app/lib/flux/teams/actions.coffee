@@ -333,8 +333,9 @@ deleteAccountVerifyModal = ->
   modalContent = '''
     <p>
       <strong>CAUTION! </strong>You are about to delete your account.
-      This operation will also delete this current team.
-    </p> <br>
+      This operation will also delete this current team. If you don't like to <strong>delete </strong>
+      this team please transfer the ownership before proceed this action from My Team section.
+    </p>
     <p>Please enter your <strong>current password</strong> into the field below to continue: </p>
   '''
 
