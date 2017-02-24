@@ -18,6 +18,7 @@ module.exports = class JStackTemplate extends Module
 
   {
     revive
+    PROVIDERS
     flattenPayload
     checkTemplateUsage
   } = require './computeutils'
@@ -81,6 +82,8 @@ module.exports = class JStackTemplate extends Module
         build         :
           (signature Object, Function)
         clone         :
+          (signature Function)
+        verify        :
           (signature Function)
         generateStack :
           (signature Object, Function)
@@ -192,6 +195,15 @@ module.exports = class JStackTemplate extends Module
     config.requiredProviders = providersParser template, supportedProviders
 
     return config
+
+
+  parsePlanResponse = (res) ->
+
+    supportedProviders = Object.keys (require './computeprovider').providers
+    parseTerraformOutput = clientRequire \
+      'app/lib/util/stacks/parseterraformoutput'
+
+    return (parseTerraformOutput res, supportedProviders) ? []
 
 
   generateSlugFromTitle = ({ originId, group, title, index }, callback) ->
@@ -761,6 +773,41 @@ module.exports = class JStackTemplate extends Module
 
         Kloud = require './kloud'
         Kloud.buildStack client, { stackId, provider, variables }, callback
+
+
+  verify$: permit
+
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: (client, callback) ->
+      @verify client, callback
+
+
+  verify: (client, callback) ->
+
+    stackTemplateId = @getAt '_id'
+    provider = (@getAt 'config.requiredProviders')[0]
+
+    unless provider or not PROVIDERS[provider]
+      return callback new KodingError 'Provider is not supported'
+
+    noMachines = ->
+      callback new KodingError \
+        'Nothing to verify, template has no machines'
+
+    Kloud = require './kloud'
+    Kloud.checkTemplate client, { stackTemplateId, provider }, (err, res) =>
+      return callback err  if err
+      return noMachines()  if not res or not res.machines?.length
+      return noMachines()  unless (machines = parsePlanResponse res).length
+
+      query = { $set: { machines, 'config.verified': true } }
+      @updateAndNotify (@getNotifyOptions client), query, (err) =>
+        return callback err  if err
+        callback null, this
 
 
   forceStacksToReinit: permit 'force stacks to reinit',

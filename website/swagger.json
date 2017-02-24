@@ -5418,6 +5418,40 @@
         }
       }
     },
+    "/remote.api/JStackTemplate.verify/{id}": {
+      "post": {
+        "tags": [
+          "JStackTemplate"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "Method JStackTemplate.verify",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JStackTemplate.generateStack/{id}": {
       "post": {
         "tags": [
