@@ -2,13 +2,10 @@ package index
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync/atomic"
 	"time"
-
-	"fmt"
-
-	"github.com/djherbis/times"
 )
 
 // EntryPromise describes the promised state of index entry.
@@ -278,13 +275,4 @@ func (e *Entry) MarshalJSON() ([]byte, error) {
 // data into private entry fields.
 func (e *Entry) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &e.real)
-}
-
-// ctime gets file's change time in UNIX Nano format.
-func ctime(fi os.FileInfo) int64 {
-	if tspec := times.Get(fi); tspec.HasChangeTime() {
-		return tspec.ChangeTime().UnixNano()
-	}
-
-	return 0
 }

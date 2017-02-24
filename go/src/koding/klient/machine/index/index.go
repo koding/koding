@@ -12,6 +12,8 @@ import (
 	"sort"
 	"sync"
 	"text/tabwriter"
+
+	"github.com/djherbis/times"
 )
 
 // Version stores current version of index.
@@ -241,9 +243,11 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return
 		}
 
-		mode := entry.Mode()
-		// File exists in both remote and local.
-		if entry.MTime() == info.ModTime().UnixNano() && entry.Size() == info.Size() && mode == info.Mode() {
+		mode, mtime := entry.Mode(), entry.MTime()
+		// File exists in both remote and local. We compare entry mtime with
+		// file mtime and atime. Sometimes synced files may have their mtimes
+		// set to source atime. That's why this is necessary.
+		if (mtime == info.ModTime().UnixNano() || mtime == atime(info)) && entry.Size() == info.Size() && mode == info.Mode() {
 			// Files are identical. Allow different ctimes.
 			return
 		}
@@ -431,4 +435,18 @@ func (idx *Index) DebugString() string {
 	tw.Flush()
 
 	return buf.String()
+}
+
+// ctime gets file's change time in UNIX Nano format.
+func ctime(fi os.FileInfo) int64 {
+	if tspec := times.Get(fi); tspec.HasChangeTime() {
+		return tspec.ChangeTime().UnixNano()
+	}
+
+	return 0
+}
+
+// atime gets file's access time in UNIX Nano format.
+func atime(fi os.FileInfo) int64 {
+	return times.Get(fi).AccessTime().UnixNano()
 }
