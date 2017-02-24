@@ -232,8 +232,6 @@ module.exports = class JGroup extends Module
       # channelId for mapping social API
       # to internal usage
       socialApiChannelId             : String
-      # channel id for announcements of a group
-      socialApiAnnouncementChannelId : String
       # channel id for default of a non-koding group
       socialApiDefaultChannelId : String
       avatar        : String
@@ -1814,40 +1812,19 @@ module.exports = class JGroup extends Module
         @createGroupChannel client, options, (err, groupChannelId) =>
           return callback err  if err?
 
-          # announcement channel will only be created for koding channel
-          if @slug is 'koding'
+          @createDefaultChannel client, options, (err, defaultChannelId) ->
+            return callback err if err?
 
-            @createAnnouncementChannel client, options, (err, announcementChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                # channel id for #public - used as group channel
-                socialApiChannelId             : groupChannelId,
-                # channel id for #koding - used for announcements
-                socialApiAnnouncementChannelId : announcementChannelId
-              }
-
-          else
-            @createDefaultChannel client, options, (err, defaultChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                socialApiChannelId: groupChannelId
-                socialApiDefaultChannelId: defaultChannelId
-              }
+            return callback null, {
+              socialApiChannelId: groupChannelId
+              socialApiDefaultChannelId: defaultChannelId
+            }
 
 
   createGroupChannel:(client, options, callback) ->
     options.name = 'public'
     options.varName = 'socialApiChannelId'
     options.typeConstant = 'group'
-
-    return @createSocialAPIChannel client, options, callback
-
-  createAnnouncementChannel:(client, options, callback) ->
-    options.name = 'changelog'
-    options.varName = 'socialApiAnnouncementChannelId'
-    options.typeConstant = 'announcement'
 
     return @createSocialAPIChannel client, options, callback
 
