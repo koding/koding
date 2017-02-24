@@ -11,8 +11,19 @@ declare secret_key=$3
 
 declare instance_id=$(ec2metadata | grep instance-id | awk '{print $2}')
 declare bucket="kodingdev-test-instance-logs"
-declare destination="s3://$bucket/$prefix/$instance_id"
-declare s3cmd_options="--human-readable-sizes --follow-symlinks --quiet"
+declare destination="s3://$bucket/$prefix/$instance_id/"
 
-s3cmd --access_key=$access_key --secret_key=$secret_key put $s3cmd_options --recursive $KONFIG_PROJECTROOT/.logs $destination/
-s3cmd --access_key=$access_key --secret_key=$secret_key put $s3cmd_options /var/log/cloud-init-output.log $destination/
+function upload() {
+	declare source=$1
+
+	if [ -d "$source" ]; then
+		source="--recursive $source"
+	fi
+
+	s3cmd --access_key=$access_key --secret_key=$secret_key \
+		put --human-readable-sizes --follow-symlinks --quiet \
+		$source $destination
+}
+
+upload $KONFIG_PROJECTROOT/.logs
+upload /var/log/cloud-init-output.log
