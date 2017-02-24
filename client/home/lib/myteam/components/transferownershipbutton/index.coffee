@@ -3,6 +3,7 @@ kd = require 'kd'
 showError = require 'app/util/showError'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 verifyPassword = require 'app/util/verifyPassword'
+whoami = require 'app/util/whoami'
 require('./styl/transferownershipbutton.styl')
 
 
@@ -14,7 +15,7 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
 
     super options, data
 
-    group = @getData
+    group = @getData()
 
     selectOptions = null
 
