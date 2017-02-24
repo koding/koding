@@ -1807,7 +1807,7 @@ module.exports = class JGroup extends Module
           creatorId       : socialApiId
           privacyConstant : privacy
 
-        @createGroupChannel client, options, (err, groupChannelId) =>
+        @createGroupChannel client, options, (err, groupChannelId) ->
           return callback err  if err?
 
           return callback null, {
