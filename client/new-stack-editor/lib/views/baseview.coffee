@@ -29,7 +29,6 @@ module.exports = class BaseView extends kd.View
       cssClass: 'controls'
 
     if @getOption 'closable'
-
       @controls.addSubView new kd.ButtonView
         cssClass: 'close'
         callback: =>
@@ -82,8 +81,11 @@ module.exports = class BaseView extends kd.View
 
 
   resize: (percentage) ->
-
     @emit FlexSplit.EVENT_RESIZE, percentage
+
+
+  isClosed: ->
+    @getOption('closable') and @getHeight() is 0
 
 
   _createLoaderView: ->

@@ -58,6 +58,7 @@ module.exports = class StackEditor extends kd.View
       cssClass: 'logs'
       title: 'Logs'
       filename: 'logs.sh'
+      theme: 'clouds_midnight'
       showgutter: no
       readonly: yes
       closable: yes
@@ -136,6 +137,9 @@ module.exports = class StackEditor extends kd.View
 
     switch event
       when Events.Menu.Logs
+        @logs.unsetClass 'shake'
+        unless @logs.isClosed()
+          kd.utils.defer => @logs.setClass 'shake'
         @logs.resize { percentage: 40, store: yes }
       when Events.Menu.Credentials
         @sideView.show 'credentials'
