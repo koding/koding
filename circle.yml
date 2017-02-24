@@ -165,5 +165,9 @@ stages:
         command: ./run exec make -C go/src/socialapi testapi
 
       - type: shell
+        name: test web server
+        command: ./run exec scripts/node-testing/mocha-runner servers/lib/server
+
+      - type: shell
         name: test social worker
         command: ./run exec scripts/node-testing/mocha-runner workers/social/lib/social

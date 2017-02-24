@@ -195,10 +195,6 @@ $stack-border-width         = 2px
       margin-right          12px
       fl()
 
-  .logs
-    .title
-      color                 $stack-fg-color-yellow !important
-
 
   .flex-view
 
@@ -320,7 +316,27 @@ $stack-border-width         = 2px
         display             none
 
 
+  .flex-view.logs
+
+    background              #29292E !important
+
+    &.shake
+      vendor                animation, shake 0.5s linear
+
+    .title
+      color                 $stack-fg-color-yellow !important
+      background            #29292E !important
+
+    .editor-main
+      .ace_editor
+        background          #29292E !important
+
+
   .editor-view
+
+    &.focus
+      .title
+        color               #FFF
 
     .wrapper
       &.expanding

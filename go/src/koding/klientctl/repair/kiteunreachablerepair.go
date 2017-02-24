@@ -69,7 +69,6 @@ func (r *KiteUnreachableRepair) Status() (bool, error) {
 		kErr, ok := err.(*kite.Error)
 		if !ok || kErr.Type != kiteerrortypes.MachineUnreachable {
 			r.Log.Warning("Encountered error not in scope of this repair. err:%s", err)
-			ok = true
 			break
 		}
 

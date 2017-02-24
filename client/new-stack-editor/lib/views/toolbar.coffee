@@ -36,22 +36,25 @@ module.exports = class Toolbar extends JView
       click    : @bound 'handleMenu'
 
     @banner = new Banner
-    @banner.on Events.Banner.Closed, @lazyBound 'unsetClass', 'has-message'
-    @forwardEvent @banner, Events.ToolbarAction
+    @banner.on Events.Banner.Close, =>
+      @unsetClass 'has-message'
+      kd.utils.wait 500, @banner.bound 'hide'
+    @forwardEvent @banner, Events.Action
 
 
   setBanner: (data) ->
 
     debug 'handling banner message', data.message, data.action
 
-    @setClass 'has-message'
     @banner.setData data
+    @banner.show()
+    @setClass 'has-message'
 
 
   click: (event) ->
 
     if event.target.classList.contains 'credential'
-      @emit Events.ToolbarAction, Events.ToggleSideView, 'credentials'
+      @emit Events.Action, Events.ToggleSideView, 'credentials'
       kd.utils.stopDOMEvent event
 
 
@@ -101,7 +104,7 @@ module.exports = class Toolbar extends JView
 
     menu.on 'ContextMenuItemReceivedClick', (menuItem) =>
       debug 'menu item clicked', menuItem
-      @emit Events.MenuAction, menuItem.getData().action
+      @emit Events.Action, menuItem.getData().action
       kd.utils.defer menu.bound 'destroy'
 
 

@@ -15,13 +15,13 @@ module.exports = do ->
     'ProviderSelected'
     'LazyLoadFinished'
     'LazyLoadStarted'
-    'ToolbarAction'
     'ToggleSideView'
     'ShowSideView'
+    'HideWarning'
     'WarnUser'
     'GotFocus'
+    'Action'
     'Log'
-    'MenuAction'
     'Menu.Test'
     'Menu.Initialize'
     'Menu.MakeTeamDefault'
@@ -31,7 +31,7 @@ module.exports = do ->
     'Menu.Logs'
     'Menu.Delete'
     'Banner.ActionClicked'
-    'Banner.Closed'
+    'Banner.Close'
   ]
 
   obj = {}

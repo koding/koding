@@ -3,6 +3,7 @@ kd = require 'kd'
 showError = require 'app/util/showError'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 verifyPassword = require 'app/util/verifyPassword'
+whoami = require 'app/util/whoami'
 require('./styl/transferownershipbutton.styl')
 
 
@@ -14,7 +15,7 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
 
     super options, data
 
-    group = @getData
+    group = @getData()
 
     selectOptions = null
 
@@ -76,6 +77,9 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
         <strong>CAUTION! </strong>You are going to transfer the ownership
         of your team with <strong>#{username}</strong>
       </p> <br>
+      <p>You will become an admin of this team.</p>
+      <p>If this team is using your credit card information for subscription, Please make sure
+      you cancel the subscription before you delete your account.
       <p>Please enter <strong>current password</strong> into the field below to continue: </p>
     "
 
