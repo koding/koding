@@ -165,7 +165,7 @@ module.exports = class JApiToken extends jraphical.Module
           clientId  : token
           username  : account.getAt 'profile.nickname'
           groupName : group.getAt 'slug'
-          data      : { apiSession: yes }
+          sessionData : { apiSession: yes }
 
         JSession.fetchSessionByData { clientId: token }, sessionData, (err, sessionObj) ->
           return next err  if err
