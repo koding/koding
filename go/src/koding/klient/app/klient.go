@@ -46,6 +46,7 @@ import (
 	"koding/klient/usage"
 	"koding/klient/vagrant"
 	"koding/klientctl/daemon"
+	"koding/logrotate"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
@@ -729,7 +730,7 @@ func (k *Klient) Run() {
 
 		for _, file := range uploader.LogFiles {
 			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
-			if err != nil && !os.IsNotExist(err) {
+			if err != nil && !os.IsNotExist(err) && !logrotate.IsNop(err) {
 				k.log.Warning("failed to upload %q: %s", file, err)
 			}
 		}
