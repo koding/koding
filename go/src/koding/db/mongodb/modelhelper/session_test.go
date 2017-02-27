@@ -34,11 +34,11 @@ func TestSessionUpdateData(t *testing.T) {
 	key := "chargeID"
 	value := "chargeVal"
 
-	data := map[string]interface{}{
+	customData := map[string]interface{}{
 		key: value,
 	}
 
-	if err := modelhelper.UpdateSessionData(ses.ClientId, data); err != nil {
+	if err := modelhelper.UpdateSessionData(ses.ClientId, customData); err != nil {
 		t.Error(err)
 	}
 
