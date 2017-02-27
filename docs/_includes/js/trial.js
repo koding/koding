@@ -1,8 +1,6 @@
 (function() {
 
-  var modalOptions = {}, player,
-      contact      = document.querySelectorAll('.contact'),
-      Intercom     = Intercom || false;
+  var modalOptions = {}, player;
 
   modalOptions.onLoaded = function(clickEvent) {
 
@@ -27,15 +25,5 @@
   }
 
   var modal = LANDING_UTILS.modal(modalOptions);
-
-  [].forEach.call(contact, function(el) {
-    el.addEventListener('click', function(evt) {
-      evt.preventDefault();
-
-      if (Intercom) {
-        Intercom('show')
-      }
-    });
-  });
 
 })();
