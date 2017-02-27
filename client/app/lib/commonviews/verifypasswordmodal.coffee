@@ -9,8 +9,8 @@ module.exports = class VerifyPasswordModal extends ContentModal
 
   constructor: (buttonTitle = 'Submit', partial = '', callback) ->
 
-    cssClass = 'content-modal'
-    cssClass = 'content-modal with-partial'  if partial
+    cssClass = 'content-modal verify-password'
+    cssClass = "#{cssClass} with-partial"  if partial
 
 
     options =
