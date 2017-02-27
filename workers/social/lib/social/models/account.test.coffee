@@ -452,6 +452,26 @@ runTests = -> describe 'workers.social.user.account', ->
               expect(err).to.not.exist
               expect(name).to.not.exist
               next()
+
+          (next) ->
+            JUser.one { username }, (err, user) ->
+              expect(err).to.not.exist
+              expect(user).to.not.exist
+              next()
+
+          (next) ->
+            JInvitation.one { inviterId: account.getId() }, (err, invitation) ->
+              expect(err).to.not.exist
+              expect(invitation).to.not.exist
+              next()
+
+          (next) ->
+            JSession = require './session'
+            JSession.one { username }, (err, session) ->
+              expect(err).to.not.exist
+              expect(session).to.not.exist
+              next()
+
         ]
 
         async.series queue, done
