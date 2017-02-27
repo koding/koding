@@ -10,7 +10,7 @@ module.exports = ConfirmModal = (props) ->
   { title, message, isOpen, onCancel
     onConfirm, cancelTitle, confirmTitle } = props
 
-  <Modal width="medium" height="short" showAlien={yes} isOpen={isOpen}>
+  <Modal width="medium" height="short" showAlien={yes} isOpen={isOpen} contentLabel=''>
     <Modal.Header title={title} />
     <Modal.Content>
       <p><Label size="medium" type="info">{message}</Label></p>
