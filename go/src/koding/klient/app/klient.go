@@ -36,8 +36,13 @@ import (
 	mclient "koding/klient/machine/client"
 	"koding/klient/machine/index"
 	"koding/klient/machine/machinegroup"
+<<<<<<< HEAD
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/sync/discard"
+=======
+	"koding/klient/machine/mount/notify/silent"
+	"koding/klient/machine/mount/sync/rsync"
+>>>>>>> klient/machine: move SSH key logic to separate function
 	kos "koding/klient/os"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -323,7 +328,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
 		Builder:         mclient.NewKiteBuilder(k),
 		NotifyBuilder:   fuse.Builder,
-		SyncBuilder:     discard.Builder{},
+		SyncBuilder:     rsync.Builder{},
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
 		WorkDir:         cfg.KodingCacheHome(),

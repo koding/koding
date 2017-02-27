@@ -88,12 +88,12 @@ func (e *Event) String() string {
 type Rsync struct {
 	Cmd func(ctx context.Context, args ...string) *exec.Cmd // Comand factory.
 
-	remote    string                 // remote directory root.
-	local     string                 // local directory root.
-	privKey   string                 // ssh private key path.
-	user      string                 // remote username.
-	dynAddr   client.DynamicAddrFunc // address of connected machine.
-	indexSync msync.IndexSyncFunc    // callback used to update index.
+	remote      string                 // remote directory root.
+	local       string                 // local directory root.
+	privKeyPath string                 // ssh private key path.
+	user        string                 // remote username.
+	dynAddr     client.DynamicAddrFunc // address of connected machine.
+	indexSync   msync.IndexSyncFunc    // callback used to update index.
 
 	once  sync.Once
 	stopC chan struct{} // channel used to close any opened exec streams.
@@ -109,13 +109,13 @@ func NewRsync(opts *msync.BuildOpts) *Rsync {
 			return cmd
 		},
 
-		remote:    opts.Mount.RemotePath,
-		local:     opts.CacheDir,
-		privKey:   opts.PrivateKeyPath,
-		user:      opts.Username,
-		dynAddr:   opts.AddrFunc,
-		indexSync: opts.IndexSyncFunc,
-		stopC:     make(chan struct{}),
+		remote:      opts.Mount.RemotePath,
+		local:       opts.CacheDir,
+		privKeyPath: opts.PrivKeyPath,
+		user:        opts.Username,
+		dynAddr:     opts.AddrFunc,
+		indexSync:   opts.IndexSyncFunc,
+		stopC:       make(chan struct{}),
 	}
 }
 

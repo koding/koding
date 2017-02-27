@@ -92,12 +92,12 @@ func TestRsyncArgs(t *testing.T) {
 			}
 
 			opts := &msync.BuildOpts{
-				Mount:          mount.Mount{RemotePath: "/r"},
-				CacheDir:       "/c",
-				PrivateKeyPath: "/home/pk",
-				Username:       "user",
-				AddrFunc:       dynAddr,
-				IndexSyncFunc:  func(*index.Change) {},
+				Mount:         mount.Mount{RemotePath: "/r"},
+				CacheDir:      "/c",
+				PrivKeyPath:   "/home/pk",
+				Username:      "user",
+				AddrFunc:      dynAddr,
+				IndexSyncFunc: func(*index.Change) {},
 			}
 
 			s := rsync.NewRsync(opts)

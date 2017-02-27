@@ -52,34 +52,16 @@ func SSH(options *SSHOptions) error {
 		return err
 	}
 
-	// Get local public key in case we need to copy it to remote machine.
-	path, err := ssh.GetKeyPath(nil)
+	pubKey, pubPath, privPath, err := sshGetKeyPath()
 	if err != nil {
 		return err
-	}
-
-	pubPath, privPath, err := ssh.KeyPaths(path)
-	if err != nil {
-		return err
-	}
-
-	pubkey, err := ssh.PublicKey(pubPath)
-	if err != nil && err != ssh.ErrPublicKeyNotFound {
-		return err
-	}
-
-	// Generate new key pair if it does not exist.
-	if err == ssh.ErrPublicKeyNotFound {
-		if pubkey, _, err = ssh.GenerateSaved(pubPath, privPath); err != nil {
-			return err
-		}
 	}
 
 	// Add created key to authorized hosts on remote machine.
 	sshReq := machinegroup.SSHRequest{
 		ID:        idRes.ID,
 		Username:  options.Username,
-		PublicKey: pubkey,
+		PublicKey: pubKey,
 	}
 	sshRaw, err := k.Tell("machine.ssh", sshReq)
 	if err != nil {
@@ -110,4 +92,32 @@ func SSH(options *SSHOptions) error {
 	cmd := exec.Command("ssh", args...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	return cmd.Run()
+}
+
+// sshGetKeyPath gets local public key in case we need to copy it to remote
+// machine. It also returns paths to public and private keys.
+func sshGetKeyPath() (pubKey, pubPath, privPath string, err error) {
+	path, err := ssh.GetKeyPath(nil)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	pubPath, privPath, err = ssh.KeyPaths(path)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	pubKey, err = ssh.PublicKey(pubPath)
+	if err != nil && err != ssh.ErrPublicKeyNotFound {
+		return "", "", "", err
+	}
+
+	// Generate new key pair if it does not exist.
+	if err == ssh.ErrPublicKeyNotFound {
+		if pubKey, _, err = ssh.GenerateSaved(pubPath, privPath); err != nil {
+			return "", "", "", err
+		}
+	}
+
+	return pubKey, pubPath, privPath, nil
 }
