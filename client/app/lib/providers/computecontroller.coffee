@@ -159,10 +159,6 @@ module.exports = class ComputeController extends KDController
     if provider is 'managed'
       return NotSupported
 
-    if method?
-      switch method
-        when 'reinit'
-          return NotSupported
 
   errorHandler: (call, task, machine) ->
 
@@ -524,62 +520,6 @@ module.exports = class ComputeController extends KDController
       destroy machine
 
 
-  reinit: (machine, snapshotId) ->
-
-    return  if methodNotSupportedBy machine, 'reinit'
-
-    startReinit = =>
-
-      machine.getBaseKite( no ).disconnect()
-
-      call = @getKloud().reinit { machineId: machine._id, snapshotId }
-
-      .then (res) =>
-
-        @_force = no
-
-        kd.log 'reinit res:', res
-        @emit 'MachineBeingDestroyed', machine
-        @_clearTrialCounts machine
-        @eventListener.addListener 'reinit', machine._id
-
-      .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-      .catch (err) =>
-
-        (@errorHandler call, 'reinit', machine) err
-
-    # A shorthand for ComputeController_UI Askfor
-    askFor = (action, callback = kd.noop) =>
-      @ui.askFor action, { machine, force: @_force }, (status) ->
-        return  unless status.confirmed
-        callback status
-
-    { JSnapshot }     = remote.api
-    jMachine          = machine.data
-    machineSnapshotId = jMachine?.meta?.snapshotId
-
-    # If a machineSnapshotId exists, we need to validate that the
-    # actual *snapshot* belonging to that Id still exists.
-    # If the caller supplied a snapshotId, we don't need to bother
-    # validating it.
-    validateMachineSnapshot = machineSnapshotId and not snapshotId
-
-    # If we don't need to validate the Machine Snapshot,
-    # askFor a normal reinit
-    unless validateMachineSnapshot
-      return askFor 'reinit', startReinit
-
-    # We need to validate that the machineSnapshotId still exists
-    JSnapshot.one machineSnapshotId, (err, snapshot) ->
-      kd.error err  if err
-
-      # If the snapshot exists in mongo, askFor a normal reinit
-      # otherwise, make sure they understand that they are
-      # reinitializing to a base image.
-      if snapshot
-      then askFor 'reinit', startReinit
-      else askFor 'reinitNoSnapshot', startReinit
 
 
   resize: (machine, resizeTo = 10) ->

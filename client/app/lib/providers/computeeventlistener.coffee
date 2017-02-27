@@ -96,9 +96,6 @@ module.exports = class ComputeEventListener extends kd.Object
     build          :
       public       : 'MachineBuilt'
       private      : Running
-    reinit         :
-      public       : 'MachineBuilt'
-      private      : Running
     resize         :
       public       : 'MachineResized'
       private      : Running
@@ -209,12 +206,7 @@ module.exports = class ComputeEventListener extends kd.Object
     stateEvent = StateEventMap[machine.status.state]
 
     if stateEvent
-
       @addListener stateEvent, machine._id
-
-      if stateEvent is 'build' and followOthers
-        @addListener 'reinit', machine._id
-
       return yes
 
     return no

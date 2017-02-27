@@ -294,14 +294,6 @@ module.exports = class ComputeControllerUI
             No need to worry, your files, workspaces and your data therein will be safe.
           '
           button  : 'Proceed'
-        reinit    :
-          title   : 'Reinitialize VM'
-          message : '
-            If you choose to proceed, this VM will be reset to its default state.
-            That means you will lose all of its data i.e. your files, workspaces, collaboration
-            sessions. Your VM settings however, (VM aliases, sub-domains etc.) will not be lost.
-          '
-          button  : 'Proceed'
         reinitStack :
           title   : 'YOUR DATA WILL BE LOST!'
           message : '

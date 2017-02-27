@@ -4087,36 +4087,6 @@
         }
       }
     },
-    "/remote.api/Kloud.reinit": {
-      "post": {
-        "tags": [
-          "Kloud"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
     "/remote.api/Kloud.restart": {
       "post": {
         "tags": [
