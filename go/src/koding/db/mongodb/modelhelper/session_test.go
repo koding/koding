@@ -22,7 +22,7 @@ func TestSessionUpdateData(t *testing.T) {
 	}
 
 	nonExistingKey := "nonExistingKey"
-	val, err := ses.Data.GetString(nonExistingKey)
+	val, err := ses.SessionData.GetString(nonExistingKey)
 	if err != models.ErrDataKeyNotExists {
 		t.Error("expected ErrDataKeyNotExists, got", err)
 	}
@@ -34,11 +34,11 @@ func TestSessionUpdateData(t *testing.T) {
 	key := "chargeID"
 	value := "chargeVal"
 
-	data := map[string]interface{}{
+	customData := map[string]interface{}{
 		key: value,
 	}
 
-	if err := modelhelper.UpdateSessionData(ses.ClientId, data); err != nil {
+	if err := modelhelper.UpdateSessionData(ses.ClientId, customData); err != nil {
 		t.Error(err)
 	}
 
@@ -47,7 +47,7 @@ func TestSessionUpdateData(t *testing.T) {
 		t.Error(err)
 	}
 
-	val, err = ses.Data.GetString(key)
+	val, err = ses.SessionData.GetString(key)
 	if err != nil {
 		t.Error("expected nil, got", err)
 	}
