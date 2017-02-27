@@ -8,7 +8,7 @@ sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
 module.exports = class ComputeEventListener extends kd.Object
 
-  { Stopped, Running, Terminated, Snapshotting } = Machine.State
+  { Stopped, Running, Terminated } = Machine.State
 
   constructor: (options = {}) ->
 
@@ -105,9 +105,6 @@ module.exports = class ComputeEventListener extends kd.Object
     destroy        :
       public       : 'MachineDestroyed'
       private      : Terminated
-    createSnapshot :
-      public       : 'MachineSnapshotted'
-      private      : Snapshotting
     apply          :
       public       : 'MachineBuilt'
       private      : Running

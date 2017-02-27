@@ -350,18 +350,6 @@ module.exports = class ComputeControllerUI
             <p>Do you want to continue?</p>
           "
           button  : 'Proceed'
-        reinitNoSnapshot :
-          title   : 'Cannot proceed with reinitialization!'
-          message : '
-            <p>The snapshot on which this VM was originally based has been
-            deleted, so the system cannot reinitialize this VM.</p>
-
-            <p>Instead, would you like to reinit using a standard VM image?
-            Note: reinitializing will erase all files and folders on the VM
-            right now but your VM settings (VM aliases, sub-domains etc.)
-            will not be lost.</p>
-          '
-          button  : 'Proceed'
         destroy   :
           title   : 'Remove VM'
           message : '

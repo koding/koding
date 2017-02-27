@@ -163,10 +163,6 @@ module.exports = class ComputeController extends KDController
       switch method
         when 'reinit'
           return NotSupported
-        when 'createSnapshot'
-          return NotSupported
-
-
 
   errorHandler: (call, task, machine) ->
 
@@ -853,44 +849,6 @@ module.exports = class ComputeController extends KDController
 
     for machine in stack.machines
       @stop machine  if machine.isRunning()
-
-
-  # Snapshots
-  #
-
-  ###*
-   * Create a snapshot for the given machine. For progress updates,
-   * subscribe to computeController's `"createSnapshot-#{machine._id}"`
-   * event.
-   *
-   * @param {Machine} machine - The Machine to create a snapshot from
-   * @param {String} label - The label (name) of the snapshot
-   * @return {Promise}
-   * @emits ComputeController~createSnapshot-machineId
-  ###
-  createSnapshot: (machine, label) ->
-
-    return  if methodNotSupportedBy machine, 'createSnapshot'
-
-    @eventListener.triggerState machine,
-      status      : Machine.State.Snapshotting
-      percentage  : 0
-
-    # Do we plan to stop machine before snapshot starts? ~ GG
-    # machine.getBaseKite( createIfNotExists = no ).disconnect()
-
-    call = @getKloud().createSnapshot { machineId: machine._id, label }
-
-      .then (res) =>
-
-        kd.log 'createSnapshot res:', res
-        @eventListener.addListener 'createSnapshot', machine._id
-
-      .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-      .catch (err) =>
-
-        (@errorHandler call, 'createSnapshot', machine) err
 
 
   # Domain management

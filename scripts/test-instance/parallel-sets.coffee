@@ -84,10 +84,6 @@ module.exports = [
   # ]
 
   # [
-  #   { name: 'environments snapshot' }
-  # ]
-
-  # [
   #   { name: 'environments paidaccount' }
   #   # { name: 'environments vm-advanced' }
   # ]

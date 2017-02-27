@@ -55,10 +55,6 @@
       "name": "JProvisioner"
     },
     {
-      "description": "Model JSnapshot",
-      "name": "JSnapshot"
-    },
-    {
       "description": "Model JStackTemplate",
       "name": "JStackTemplate"
     },
@@ -577,36 +573,6 @@
         },
         "meta": {
           "type": "object"
-        }
-      }
-    },
-    "JSnapshot": {
-      "type": "object",
-      "properties": {
-        "_id": {
-          "type": "string"
-        },
-        "originId": {
-          "type": "string"
-        },
-        "machineId": {
-          "type": "string"
-        },
-        "snapshotId": {
-          "type": "string"
-        },
-        "region": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date"
-        },
-        "storageSize": {
-          "type": "string"
-        },
-        "label": {
-          "type": "string"
         }
       }
     },
@@ -4965,100 +4931,6 @@
               "allOf": [
                 {
                   "$ref": "#/definitions/JProvisioner"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JSnapshot.one": {
-      "post": {
-        "tags": [
-          "JSnapshot"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JSnapshot.some": {
-      "post": {
-        "tags": [
-          "JSnapshot"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JSnapshot.rename/{id}": {
-      "post": {
-        "tags": [
-          "JSnapshot"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JSnapshot"
                 },
                 {
                   "$ref": "#/definitions/DefaultResponse"
