@@ -3489,32 +3489,6 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.fetchSoloMachines": {
-      "post": {
-        "tags": [
-          "ComputeProvider"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
     "/remote.api/JCredential.one": {
       "post": {
         "tags": [
