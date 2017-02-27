@@ -121,6 +121,7 @@ module.exports = class GitHubContainer extends React.Component
         newState.isSaving = no
 
         unless err
+          getGroup().config ?= {}
           getGroup().config.github = { enabled: yes }
           kd.singletons.mainController.emit 'IntegrationsUpdated'
 
