@@ -7,14 +7,18 @@ globals = require 'globals'
 styles = require './SwitchTeam.stylus'
 
 
-SwitchTeam = ({ groups }) ->
+SwitchTeam = ({ groups, owner }) ->
+
+  optionCopy = "
+    Other options: You can switch to one of the other teams,
+    #{if owner then 'delete' else 'leave'} this team or delete your account
+  "
 
   <div className={styles.switchteam}>
     <Row>
       <div className={styles.optiontext}>
         <Label>
-          Other options: You can switch to one of the other teams, delete this
-          team or delete your account
+          {optionCopy}
         </Label>
       </div>
     </Row>

@@ -9,17 +9,17 @@ styles = require './TrialEndedOptions.stylus'
 module.exports = TrialEndedOptions = ({groups, owner}) ->
 
   <div>
-    {renderSwitchTeam groups}
+    {renderSwitchTeam groups, owner}
     {renderMainAction owner}
     {renderSecondaryAction()}
   </div>
 
 
-renderSwitchTeam = (groups) ->
+renderSwitchTeam = (groups, owner) ->
 
   return  unless groups.length
 
-  <SwitchTeam groups={groups} />
+  <SwitchTeam groups={groups} owner={owner} />
 
 
 renderMainAction = (owner) ->
