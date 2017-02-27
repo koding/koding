@@ -200,6 +200,5 @@ module.exports = class Machine extends KDObject
   isManaged   : -> @provider is 'managed'
   isRunning   : -> @status?.state is Machine.State.Running
   isStopped   : -> @status?.state is Machine.State.Stopped
-  isBuilt     : -> @status?.state isnt Machine.State.NotInitialized
   isUsable    : -> @isRunning() or @isStopped()
   getOldOwner : -> @jMachine.meta.oldOwner
