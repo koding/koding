@@ -95,7 +95,7 @@ module.exports = class ComputeController extends KDController
           @on 'RenderMachines', @bound 'checkMachinePermissions'
           @checkMachinePermissions()
 
-        @info machine for machine in @machines
+        @askMachineInfos()
 
 
   bindGroupStatusEvents: ->
@@ -121,6 +121,10 @@ module.exports = class ComputeController extends KDController
       username     : globals.config.kites.kontrol.username
 
 
+  askMachineInfos: ->
+    @info machine  for machine in @machines when machine.isBuilt()
+
+
   reset: (render = no, callback = -> ) ->
 
     @stacks       = []
@@ -134,7 +138,7 @@ module.exports = class ComputeController extends KDController
       environmentDataProvider = require 'app/userenvironmentdataprovider'
       environmentDataProvider.fetch =>
         @fetchStacks =>
-          @info machine for machine in @machines
+          @askMachineInfos()
           @emit 'RenderMachines', @machines
           @emit 'RenderStacks',   @stacks
           callback null
