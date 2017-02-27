@@ -1,8 +1,8 @@
 React = require 'react'
 Dialog = require 'lab/Dialog'
-TrialEndedOptions = require 'lab/TrialEndedOptions'
 
-module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick, switchGroups, owner }) ->
+
+module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick, secondaryContent }) ->
 
   message = "
     We hope you have enjoyed using Koding. Please enter a credit card to
@@ -19,5 +19,5 @@ module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick, switchGroups, 
     height='height_auto'
     buttonTitle='REACTIVATE YOUR SUBSCRIPTION'
     onButtonClick={onButtonClick}
-    secondaryContent={TrialEndedOptions { groups: switchGroups, owner} }
+    secondaryContent={secondaryContent}
   />

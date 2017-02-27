@@ -1,17 +1,15 @@
 { PropTypes } = React = require 'react'
 { Row, Col } = require 'react-flexbox-grid'
 
-Box = require 'lab/Box'
+SwitchTeamSingleGroupItem = require 'lab/SwitchTeamSingleGroupItem'
 Label = require 'lab/Text/Label'
-globals = require 'globals'
 styles = require './SwitchTeam.stylus'
 
-
-SwitchTeam = ({ groups, owner }) ->
+SwitchTeam = ({ groups, isOwner }) ->
 
   optionCopy = "
     Other options: You can switch to one of the other teams,
-    #{if owner then 'delete' else 'leave'} this team or delete your account
+    #{if isOwner then 'delete' else 'leave'} this team or delete your account
   "
 
   <div className={styles.switchteam}>
@@ -22,62 +20,10 @@ SwitchTeam = ({ groups, owner }) ->
         </Label>
       </div>
     </Row>
-
     <div className={styles.groups}>
-      {
-        groups.map (group) -> SingleGroupItem group
-      }
+      { groups.map (group) -> <SwitchTeamSingleGroupItem key={group.slug} group={group} /> }
     </div>
-
   </div>
-
-
-SingleGroupItem = (group) ->
-
-  <div key={group.slug} className={styles.singlegroupinfo}>
-    <Row>
-      <Col md={2}>{GroupLogo group.customize?.logo}</Col>
-      <Col md={7}>{GroupName group.slug}</Col>
-      <Col md={3}>{ButtonAction group}</Col>
-    </Row>
-  </div>
-
-
-GroupLogo = (logo) ->
-
-  <div className={styles.teamlogo}>
-  {
-    if logo
-      <img src={logo} />
-    else
-      <div className={styles.defaultTeamLogo} />
-  }
-  </div>
-
-
-GroupName = (slug) ->
-
-  <div className={styles.groupname}>
-    <Label>
-      {slug}
-    </Label>
-  </div>
-
-
-ButtonAction = ({ slug, invitationCode, jwtToken }) ->
-
-  hostname = globals.config.domains.main
-  domain   = if slug is 'koding' then hostname else "#{slug}.#{hostname}"
-
-  actionTitle    = if invitationCode then 'Join' else 'Switch'
-  actionLink     = if invitationCode
-  then "//#{domain}/Invitation/#{encodeURIComponent invitationCode}"
-  else "//#{domain}/-/loginwithtoken?token=#{jwtToken}"
-
-  actionCssClass = "GenericButton #{styles.action}"
-  actionCssClass += " #{styles.join}"  if invitationCode
-
-  <a className={actionCssClass} href={actionLink} target="_self" > {actionTitle} </a>
 
 
 SwitchTeam.propTypes =
