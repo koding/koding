@@ -362,10 +362,6 @@ module.exports = class ComputeController extends KDController
     remote.api.ComputeProvider.fetchAvailable options, callback
 
 
-  fetchUsage: (options, callback) ->
-    remote.api.ComputeProvider.fetchUsage options, callback
-
-
   fetchRewards: (options, callback) ->
 
     { unit } = options
@@ -518,46 +514,6 @@ module.exports = class ComputeController extends KDController
     @ui.askFor 'destroy', { machine, force }, (status) ->
       return  unless status.confirmed
       destroy machine
-
-
-
-
-  resize: (machine, resizeTo = 10) ->
-
-    return  if methodNotSupportedBy machine, 'resize'
-
-    @ui.askFor 'resize', {
-      machine, force: @_force, resizeTo
-    }, (status) =>
-
-      return  unless status.confirmed
-
-      @update machine, { resize: resizeTo }, (err) =>
-
-        if err and err.name isnt 'SameValueForResize'
-          return  showError err
-
-        @eventListener.triggerState machine,
-          status      : Machine.State.Pending
-          percentage  : 0
-
-        machine.getBaseKite( no ).disconnect()
-
-        call = @getKloud().resize { machineId: machine._id }
-
-        .then (res) =>
-
-          @_force = no
-
-          kd.log 'resize res:', res
-          @_clearTrialCounts machine
-          @eventListener.addListener 'resize', machine._id
-
-        .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-        .catch (err) =>
-
-          (@errorHandler call, 'resize', machine) err
 
 
   build: (machine) ->

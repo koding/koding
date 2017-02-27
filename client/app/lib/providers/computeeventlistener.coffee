@@ -96,9 +96,6 @@ module.exports = class ComputeEventListener extends kd.Object
     build          :
       public       : 'MachineBuilt'
       private      : Running
-    resize         :
-      public       : 'MachineResized'
-      private      : Running
     destroy        :
       public       : 'MachineDestroyed'
       private      : Terminated
@@ -201,7 +198,6 @@ module.exports = class ComputeEventListener extends kd.Object
       Starting    : 'start'
       Rebooting   : 'restart'
       Terminating : 'destroy'
-      Pending     : 'resize'
 
     stateEvent = StateEventMap[machine.status.state]
 

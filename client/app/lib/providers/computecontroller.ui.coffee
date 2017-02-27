@@ -268,32 +268,16 @@ module.exports = class ComputeControllerUI
 
   @askFor: (action, options, callback) ->
 
-    { force, machine, resizeTo, dontAskAgain } = options
+    { force, machine, dontAskAgain } = options
 
     machine               ?= {}
     { provider, jMachine } = machine
     machineName            = machine.getName?() ? 'a machine'
 
-    if resizeTo?
-      resizeFrom = machine.jMachine.meta?.storage_size or 3
-
-      # If same value requested for resize we will ask this operation
-      # to kloud, if somehow resize fails this help us to recover last state ~GG
-      resizeDetails = if resizeTo is resizeFrom then "to #{resizeTo}GB" \
-                      else "from #{resizeFrom}GB to #{resizeTo}GB"
-
     return callback()  if force
 
     tasks         =
       default     :
-        resize    :
-          title   : 'Resize VM'
-          message : '
-            If you choose to proceed, this VM will be resized #{resizeDetails}.
-            During the resize process, you will not be able to use your VM.
-            No need to worry, your files, workspaces and your data therein will be safe.
-          '
-          button  : 'Proceed'
         reinitStack :
           title   : 'YOUR DATA WILL BE LOST!'
           message : '
