@@ -1,0 +1,13 @@
+.mainaction
+  margin-top                20px
+  button
+    background-color        #FFF
+    color                   #76abef
+    &:hover
+      background-color      #FFF
+
+.secondaryaction
+  padding-top               20px
+  padding-bottom            0px
+  button
+    padding                 0px
