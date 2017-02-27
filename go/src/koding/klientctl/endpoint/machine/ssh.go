@@ -52,7 +52,7 @@ func SSH(options *SSHOptions) error {
 		return err
 	}
 
-	pubKey, pubPath, privPath, err := sshGetKeyPath()
+	pubKey, _, privPath, err := sshGetKeyPath()
 	if err != nil {
 		return err
 	}

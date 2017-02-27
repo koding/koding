@@ -202,14 +202,14 @@ func TestMachineGroupMount(t *testing.T) {
 }
 
 // testOptions returns default Group options used for testing purposes.
-func testOptions(wd string, b client.Builder) *GroupOpts {
+func testOptions(wd string, b client.Builder) *Options {
 	return testOptionsStorage(wd, b, nil)
 }
 
 // testOptionsStorage returns default Group options used for testing purposes.
 // This function allows to specify custom storage.
-func testOptionsStorage(wd string, b client.Builder, st storage.ValueInterface) *GroupOpts {
-	return &GroupOpts{
+func testOptionsStorage(wd string, b client.Builder, st storage.ValueInterface) *Options {
+	return &Options{
 		Storage:         st,
 		Builder:         b,
 		NotifyBuilder:   silent.Builder{},

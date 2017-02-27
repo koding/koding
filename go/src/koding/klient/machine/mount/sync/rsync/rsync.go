@@ -65,8 +65,8 @@ func (e *Event) makeArgs(ip string, c *index.Change) []string {
 	}
 
 	var rsyncAgent []string
-	if e.parent.privKey != "" {
-		rsyncAgent = append(rsyncAgent, "-e", "ssh -i "+e.parent.privKey+" -oStrictHostKeyChecking=no")
+	if e.parent.privKeyPath != "" {
+		rsyncAgent = append(rsyncAgent, "-e", "ssh -i "+e.parent.privKeyPath+" -oStrictHostKeyChecking=no")
 	}
 
 	if meta&index.ChangeMetaRemove != 0 {

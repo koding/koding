@@ -22,8 +22,8 @@ import (
 // "normal" debug mode.
 var debugAll = os.Getenv("KD_DEBUG_MOUNT") != ""
 
-// SyncsOpts are the options used to configure Syncs object.
-type SyncsOpts struct {
+// Options are the options used to configure Syncs object.
+type Options struct {
 	// WorkDir is a working directory that will be used by Syncs object. The
 	// directory structure for multiple mounts will look like:
 	//
@@ -37,41 +37,26 @@ type SyncsOpts struct {
 	//
 	WorkDir string
 
-	// NotifyBuilder defines a factory used to build FS notification objects.
-	NotifyBuilder notify.Builder
-
-	// SyncBuilder defines a factory used to build file synchronization objects.
-	SyncBuilder msync.Builder
-
 	// Log is used for logging. If nil, default logger will be created.
 	Log logging.Logger
 }
 
 // Valid checks if provided options are correct.
-func (opts *SyncsOpts) Valid() error {
+func (opts *Options) Valid() error {
 	if opts == nil {
 		return errors.New("mount syncs options are nil")
 	}
 	if opts.WorkDir == "" {
 		return errors.New("working directory is not set")
 	}
-	if opts.NotifyBuilder == nil {
-		return errors.New("file system notification builder is nil")
-	}
-	if opts.SyncBuilder == nil {
-		return errors.New("synchronization builder is nil")
-	}
 
 	return nil
 }
 
 // Syncs is a set of mount syncs with single file synchronization pool. Each
-// sync is binded to unique mount ID.
+// sync is bound to unique mount ID.
 type Syncs struct {
-	wd string
-
-	nb  notify.Builder
-	sb  msync.Builder
+	wd  string
 	log logging.Logger
 
 	once   sync.Once
@@ -85,7 +70,7 @@ type Syncs struct {
 }
 
 // New creates a new Syncs instance from the given options.
-func New(opts SyncsOpts) (*Syncs, error) {
+func New(opts Options) (*Syncs, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
@@ -96,8 +81,6 @@ func New(opts SyncsOpts) (*Syncs, error) {
 
 	s := &Syncs{
 		wd:  opts.WorkDir,
-		nb:  opts.NotifyBuilder,
-		sb:  opts.SyncBuilder,
 		log: opts.Log,
 
 		exC:   make(chan msync.Execer),
@@ -141,8 +124,27 @@ func (s *Syncs) worker() {
 
 // Add starts synchronization between remote and local directories. It creates
 // all necessary cache files if they are not present.
-func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
-	dynAddr client.DynamicAddrFunc, dynClient client.DynamicClientFunc) error {
+func (s *Syncs) Add(
+	mountID mount.ID,
+	m mount.Mount,
+	nb notify.Builder,
+	sb msync.Builder,
+	dynAddr client.DynamicAddrFunc,
+	dynClient client.DynamicClientFunc,
+) error {
+	if nb == nil {
+		return errors.New("notification builder cannot be nil")
+	}
+	if sb == nil {
+		return errors.New("synchronization builder cannot be nil")
+	}
+	if dynAddr == nil {
+		return errors.New("dynamic address function cannot be nil")
+	}
+	if dynClient == nil {
+		return errors.New("dynamic client function cannot be nil")
+	}
+
 	s.mu.RLock()
 	if s.closed {
 		s.mu.RUnlock()
@@ -159,8 +161,8 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
 		AddrFunc:      dynAddr,
 		ClientFunc:    dynClient,
 		WorkDir:       filepath.Join(s.wd, "mount-"+string(mountID)),
-		NotifyBuilder: s.nb,
-		SyncBuilder:   s.sb,
+		NotifyBuilder: nb,
+		SyncBuilder:   sb,
 		Log:           s.log.New(string(mountID)),
 	})
 	if err != nil {

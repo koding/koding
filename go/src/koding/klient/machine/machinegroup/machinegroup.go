@@ -23,8 +23,8 @@ import (
 	"github.com/koding/logging"
 )
 
-// GroupOpts are the options used to configure machine group.
-type GroupOpts struct {
+// Options are the options used to configure machine group.
+type Options struct {
 	// Discover is used to resolve address if klient connection is tunneled. If
 	// nil, default discover client will be used.
 	Discover *discover.Client
@@ -58,7 +58,7 @@ type GroupOpts struct {
 }
 
 // Valid checks if provided options are correct.
-func (opts *GroupOpts) Valid() error {
+func (opts *Options) Valid() error {
 	if opts == nil {
 		return errors.New("nil group options provided")
 	}
@@ -84,8 +84,10 @@ func (opts *GroupOpts) Valid() error {
 	return nil
 }
 
-// Machines allows to manage one or more machines.
+// Group allows to manage one or more machines.
 type Group struct {
+	nb  notify.Builder
+	sb  msync.Builder
 	log logging.Logger
 
 	client  *clients.Clients
@@ -98,12 +100,16 @@ type Group struct {
 }
 
 // New creates a new Group object.
-func New(opts *GroupOpts) (*Group, error) {
+func New(opts *Options) (*Group, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
 
-	g := &Group{}
+	// Initialize group with builders.
+	g := &Group{
+		nb: opts.NotifyBuilder,
+		sb: opts.SyncBuilder,
+	}
 
 	// Add logger to group.
 	if opts.Log != nil {
@@ -133,11 +139,9 @@ func New(opts *GroupOpts) (*Group, error) {
 	}
 
 	// Create syncs object for synced mounts.
-	syncsOpts := syncs.SyncsOpts{
-		WorkDir:       opts.WorkDir,
-		NotifyBuilder: opts.NotifyBuilder,
-		SyncBuilder:   opts.SyncBuilder,
-		Log:           g.log,
+	syncsOpts := syncs.Options{
+		WorkDir: opts.WorkDir,
+		Log:     g.log,
 	}
 	g.sync, err = syncs.New(syncsOpts)
 	if err != nil {
@@ -245,7 +249,9 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 			id, mountID, m := id, mountID, m // Capture range variable.
 			go func() {
 				defer wg.Done()
-				if err := g.sync.Add(mountID, m, g.dynamicAddr(id), g.dynamicClient(mountID)); err != nil {
+
+				dynAddr, dynClient := g.dynamicAddr(id), g.dynamicClient(mountID)
+				if err := g.sync.Add(mountID, m, g.nb, g.sb, dynAddr, dynClient); err != nil {
 					atomic.AddInt64(&errN, 1)
 					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
 				}

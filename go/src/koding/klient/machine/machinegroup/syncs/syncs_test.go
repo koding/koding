@@ -24,26 +24,18 @@ func TestSyncsAdd(t *testing.T) {
 
 	// Create new supervisor.
 	mountID := mount.MakeID()
-	s, err := syncs.New(syncs.SyncsOpts{
-		WorkDir:       wd,
-		NotifyBuilder: silent.Builder{},
-		SyncBuilder:   discard.Builder{},
-	})
+	s, err := syncs.New(syncs.Options{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer s.Close()
 
-	dynAddr := func(string) (machine.Addr, error) {
-		return machine.Addr{}, nil
-	}
-	dynClient := func() (client.Client, error) {
-		return clienttest.NewClient(), nil
-	}
-	if err := s.Add(mountID, m, dynAddr, dynClient); err != nil {
+	dynAddr, dynClient := dynFunctions()
+	nb, sb := silent.Builder{}, discard.Builder{}
+	if err := s.Add(mountID, m, nb, sb, dynAddr, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := s.Add(mountID, m, dynAddr, dynClient); err == nil {
+	if err := s.Add(mountID, m, nb, sb, dynAddr, dynClient); err == nil {
 		t.Error("want err != nil; got nil")
 	}
 
@@ -63,24 +55,15 @@ func TestSyncsDrop(t *testing.T) {
 
 	// Create new sync.
 	mountID := mount.MakeID()
-	s, err := syncs.New(syncs.SyncsOpts{
-		WorkDir:       wd,
-		NotifyBuilder: silent.Builder{},
-		SyncBuilder:   discard.Builder{},
-	})
+	s, err := syncs.New(syncs.Options{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer s.Close()
 
-	dynAddr := func(string) (machine.Addr, error) {
-		return machine.Addr{}, nil
-	}
-	dynClient := func() (client.Client, error) {
-		return clienttest.NewClient(), nil
-	}
-
-	if err := s.Add(mountID, m, dynAddr, dynClient); err != nil {
+	dynAddr, dynClient := dynFunctions()
+	nb, sb := silent.Builder{}, discard.Builder{}
+	if err := s.Add(mountID, m, nb, sb, dynAddr, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -98,4 +81,15 @@ func TestSyncsDrop(t *testing.T) {
 	if _, err := os.Stat(mountWD); !os.IsNotExist(err) {
 		t.Errorf("want err = os.ErrNotExist; got %v", err)
 	}
+}
+
+func dynFunctions() (dynAddr client.DynamicAddrFunc, dynClient client.DynamicClientFunc) {
+	dynAddr = func(string) (machine.Addr, error) {
+		return machine.Addr{}, nil
+	}
+	dynClient = func() (client.Client, error) {
+		return clienttest.NewClient(), nil
+	}
+
+	return
 }

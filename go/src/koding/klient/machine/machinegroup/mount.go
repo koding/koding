@@ -132,7 +132,8 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 	}()
 
 	// Start mount syncer.
-	if err = g.sync.Add(mountID, req.Mount, g.dynamicAddr(req.ID), g.dynamicClient(mountID)); err != nil {
+	dynAddr, dynClient := g.dynamicAddr(req.ID), g.dynamicClient(mountID)
+	if err = g.sync.Add(mountID, req.Mount, g.nb, g.sb, dynAddr, dynClient); err != nil {
 		g.log.Error("Synchronization of %s mount failed: %s", mountID, err)
 		return nil, err
 	}

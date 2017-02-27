@@ -324,7 +324,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		// EventSub: mountEvents,
 	}
 
-	machinesOpts := &machinegroup.GroupOpts{
+	machinesOpts := &machinegroup.Options{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
 		Builder:         mclient.NewKiteBuilder(k),
 		NotifyBuilder:   fuse.Builder,
