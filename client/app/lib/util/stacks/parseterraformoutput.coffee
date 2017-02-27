@@ -1,6 +1,4 @@
-globals = require 'globals'
-
-module.exports = parseTerraformOutput = (response) ->
+module.exports = parseTerraformOutput = (response, supportedProviders) ->
 
   # An example of a valid stack template
   # ------------------------------------
@@ -19,6 +17,10 @@ module.exports = parseTerraformOutput = (response) ->
   #   }
   # ],
 
+  unless supportedProviders
+    globals = require 'globals'
+    supportedProviders = globals.config.providers
+
   out = { machines: [] }
 
   { machines } = response
@@ -29,7 +31,7 @@ module.exports = parseTerraformOutput = (response) ->
 
     machineBaseData = { label, provider }
 
-    provider = globals.config.providers[provider]
+    provider = supportedProviders[provider] ? {}
 
     if attrMap = provider.attributeMapping
       (Object.keys attrMap).forEach (attribute) ->
@@ -37,7 +39,5 @@ module.exports = parseTerraformOutput = (response) ->
           machineBaseData[attribute] = attr
 
     out.machines.push machineBaseData
-
-  console.info '[parseTerraformOutput]', out.machines
 
   return out.machines

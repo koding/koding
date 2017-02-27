@@ -2,6 +2,7 @@ debug = (require 'debug') 'nse:controller:logs'
 
 kd = require 'kd'
 
+Events         = require '../events'
 BaseController = require './base'
 dateFormat     = require 'dateformat'
 objectToString = require 'app/util/objectToString'
@@ -73,5 +74,16 @@ module.exports = class LogsController extends BaseController
   handleError: (err, prefix = 'An error occurred:') ->
 
     return no  unless err
-    # outputParser.showUserFriendlyError err.message
+
+    @emit Events.WarnUser, {
+      message : 'An error ocurred please check logs.'
+      action  :
+        title : 'Show Logs'
+        event : Events.Menu.Logs
+      autohide: if @editor.isClosed() then no else 1500
+    }
+
+    if err.name is 'Internal'
+      @emit Events.WarnUser, err
+
     return @add prefix, err.message or err

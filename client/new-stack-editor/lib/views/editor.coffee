@@ -67,7 +67,7 @@ module.exports = class Editor extends BaseView
 
     super
 
-    { filename, showgutter, readonly } = @getOptions()
+    { filename, showgutter, readonly, theme = 'base16' } = @getOptions()
 
     file = FSHelper.createFileInstance { path: "localfile:/#{filename}" }
 
@@ -83,7 +83,7 @@ module.exports = class Editor extends BaseView
 
       @setReadOnly readonly
 
-      ace.setTheme 'base16', no
+      ace.setTheme theme, no
       ace.setTabSize 2, no
       ace.setShowPrintMargin no, no
       ace.setShowGutter showgutter, no
@@ -97,6 +97,9 @@ module.exports = class Editor extends BaseView
 
       ace.off 'ace.requests.save'
       ace.off 'ace.requests.saveAs'
+
+      ace.editor.on 'focus', @lazyBound 'setClass',   'focus'
+      ace.editor.on 'blur',  @lazyBound 'unsetClass', 'focus'
 
       if @getOption 'statusbar'
         ace.editor.on 'focus', @bound '_updateStatusBar'

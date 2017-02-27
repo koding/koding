@@ -13,7 +13,7 @@ module.exports = class DeleteAccountModal extends ContentModal
   constructor: (options, groups) ->
 
     options = _.assign {}, options,
-      title : 'Account Managnment!'
+      title : 'Account Management!'
       overlay : yes
       width : 700
       cssClass : 'content-modal delete-account-modal'
@@ -26,11 +26,11 @@ module.exports = class DeleteAccountModal extends ContentModal
         <p>
           <strong>CAUTION!</strong>
           You can not delete your account if you are owner of any team. You must
-          tranfer the ownership or delete the team.
+          transfer the ownership or delete the team.
           These are the teams that you are owner of.
         </p>
         <p>
-          Transfering ownership makes you an admin of that team.
+          Transferring ownership makes you an admin of that team.
           You must login and save your keys before you delete your account.
         </p>
         <p>
@@ -47,9 +47,9 @@ module.exports = class DeleteAccountModal extends ContentModal
       cssClass: 'modal-footer'
 
     footer.addSubView deleteAccount = new kd.ButtonView
-      title          : 'Delete Team And Account'
-      cssClass       : 'GenericButton delete-account-button'
-      callback       : ->
+      title    : 'Delete My Account'
+      cssClass : 'GenericButton delete-account-button'
+      callback : ->
         fetchMyRelativeGroups (err, groups) ->
 
           return if showError err

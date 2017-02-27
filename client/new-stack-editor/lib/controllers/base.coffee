@@ -1,3 +1,4 @@
+debug = (require 'debug') 'nse:controller:base'
 kd = require 'kd'
 
 
@@ -11,6 +12,12 @@ module.exports = class BaseController extends kd.Object
 
     for shared, obj of @getOption 'shared'
       @[shared] = obj
+
+
+  setData: (data) ->
+
+    debug 'setData called with', data
+    super data
 
 
   save: (callback) ->

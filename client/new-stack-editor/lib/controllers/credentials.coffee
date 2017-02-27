@@ -50,14 +50,14 @@ module.exports = class CredentialsController extends BaseController
     if @isSelectionChanged() and _.size selectedCredentials
       @save selectedCredentials, callback
     else if templateCredentials.length is 0
-      @emit Events.WarnUser, {
+      callback {
+        name    : 'Internal'
         message : 'Credentials missing, you need to provide a credential first.'
         action  :
           title : 'Select'
           event : Events.ShowSideView
           args  : [ 'credentials' ]
       }
-      callback 'Missing Credentials'
     else
       callback null
 

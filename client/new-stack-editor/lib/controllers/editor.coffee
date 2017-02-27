@@ -1,4 +1,4 @@
-debug = (require 'debug') 'nse:controller:template'
+debug = (require 'debug') 'nse:controller:editor'
 
 kd = require 'kd'
 Events = require '../events'
