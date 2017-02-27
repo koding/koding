@@ -48,6 +48,9 @@ $modal-z-index              = 20000
   height                    470px
 .tall
   height                    540px
+.height_auto
+  height                    auto
+
 
 .overlay
   position                  fixed
