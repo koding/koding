@@ -3,12 +3,12 @@ React = require 'react'
 ReactView = require 'app/react/reactview'
 getGroupStatus = require 'app/util/getGroupStatus'
 { Status } = require 'app/redux/modules/payment/constants'
-globals = require 'globals'
 whoami = require 'app/util/whoami'
-
+TeamFlux = require 'app/flux/teams'
+showError = require 'app/util/showError'
 TrialEndedMemberModal = require 'lab/TrialEndedMemberModal'
 TrialEndedNotifySuccessModal = require 'lab/TrialEndedNotifySuccessModal'
-
+TrialEndedOptions = require 'lab/TrialEndedOptions'
 SuspendedMemberModal = require 'lab/SuspendedMemberModal'
 SuspendedNotifySuccessModal = require 'lab/SuspendedNotifySuccessModal'
 
@@ -46,8 +46,13 @@ module.exports = class DisabledMemberModal extends ReactView
         <TrialEndedMemberModal
           isOpen={yes}
           onButtonClick={onClick}
-          switchGroups={groups}
-          owner={'owner' in globals.userRoles} />
+          secondaryContent={
+            <TrialEndedOptions
+              groups={groups}
+              mainActionTitle='LEAVE THIS TEAM'
+              mainActionClick={leaveTeamOnClick}
+              secondaryActionClick={deleteAccount} />}
+        />
 
       when Status.PAST_DUE, Status.CANCELED
         onClick = =>
@@ -72,3 +77,13 @@ module.exports = class DisabledMemberModal extends ReactView
 
       else
         <span />
+
+
+leaveTeamOnClick = ->
+
+  TeamFlux.actions.leaveTeam().catch (err) ->
+    showError err
+
+
+deleteAccount = -> TeamFlux.actions.deleteAccount()
+
