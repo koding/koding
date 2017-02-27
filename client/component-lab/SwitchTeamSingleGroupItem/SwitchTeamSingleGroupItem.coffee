@@ -11,14 +11,14 @@ SwitchTeamSingleGroupItem = ({ group }) ->
 
   <div className={styles.singlegroupinfo}>
     <Row>
-      <Col md={2}>{GroupLogo group.customize?.logo}</Col>
-      <Col md={7}>{GroupName group.slug}</Col>
-      <Col md={3}>{ButtonAction group}</Col>
+      <Col md={2}><GroupLogo logo={group.customize?.logo} /></Col>
+      <Col md={7}><GroupName slug={group.slug} /></Col>
+      <Col md={3}><ButtonAction group={group} /></Col>
     </Row>
   </div>
 
 
-GroupLogo = (logo) ->
+GroupLogo = ({ logo }) ->
 
   <div className={styles.teamlogo}>
   {
@@ -30,7 +30,7 @@ GroupLogo = (logo) ->
   </div>
 
 
-GroupName = (slug) ->
+GroupName = ({ slug }) ->
 
   <div className={styles.groupname}>
     <Label>
@@ -39,7 +39,9 @@ GroupName = (slug) ->
   </div>
 
 
-ButtonAction = ({ slug, invitationCode, jwtToken }) ->
+ButtonAction = ({ group }) ->
+
+  { slug, invitationCode, jwtToken } = group
 
   hostname = globals.config.domains.main
   domain   = if slug is 'koding' then hostname else "#{slug}.#{hostname}"
