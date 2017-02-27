@@ -1037,7 +1037,7 @@ module.exports = class ComputeController extends KDController
     provided = stack.credentials
     missings = []
 
-    for provider in requiredProviders when provider isnt 'koding'
+    for provider in requiredProviders
       missings.push provider  unless provided[provider]?
 
     if 'userInput' in missings
@@ -1290,16 +1290,6 @@ module.exports = class ComputeController extends KDController
     return  if not stack or not stack.config
 
     delete stack.config.adminMessage
-
-
-  fetchSoloMachines: (callback) ->
-
-    return callback null, @_soloMachines  if @_soloMachines
-
-    remote.api.ComputeProvider.fetchSoloMachines (err, res) =>
-      @_soloMachines = res?.machines ? []
-      kd.warn err  if err
-      callback null, @_soloMachines
 
 
   deleteStackTemplate: (template) ->

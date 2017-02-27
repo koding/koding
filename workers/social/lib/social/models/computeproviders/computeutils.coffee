@@ -3,7 +3,6 @@ KodingError    = require '../../error'
 
 PROVIDERS      =
   aws          : require './aws'
-  koding       : require './koding'    # TODO: stacks not supported, remove this ~ GG
   softlayer    : require './softlayer'
   rackspace    : require './rackspace' # TODO: stacks not supported, remove or update this ~ GG
   digitalocean : require './digitalocean'
@@ -19,7 +18,7 @@ PLANS          = require './plans'
 # the default value to add, if no storage is defined.
 DEFAULT_STORAGE_USAGE = 3
 
-PROVIDERS_WITHOUT_CREDS = ['koding', 'managed', 'softlayer']
+PROVIDERS_WITHOUT_CREDS = ['managed']
 
 reviveProvisioners = (client, provisioners, callback, revive = no) ->
 
