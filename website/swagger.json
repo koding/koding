@@ -3407,36 +3407,6 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.fetchUsage": {
-      "post": {
-        "tags": [
-          "ComputeProvider"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
     "/remote.api/ComputeProvider.fetchProviders": {
       "post": {
         "tags": [
