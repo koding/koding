@@ -43,7 +43,7 @@ function check_revision() {
 	HOST=$(echo $INSTANCE | awk ' {print $2}')
 	REMOTE_REVISION=$($SCRIPTS/test-instance/ssh $HOST 'GIT_DIR=/opt/koding/.git git rev-parse HEAD')
 
-	if [ "$REMOTE_REVISION" != "$REVISION" ]; then
+	if [ "$REMOTE_REVISION" != $(git rev-parse HEAD) ]; then
 		echo "failed: $INSTANCE revision does not match"
 		return 1
 	fi
