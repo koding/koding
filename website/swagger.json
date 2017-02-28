@@ -1393,7 +1393,7 @@
         "impersonating": {
           "type": "boolean"
         },
-        "data": {
+        "sessionData": {
           "type": "object"
         }
       }

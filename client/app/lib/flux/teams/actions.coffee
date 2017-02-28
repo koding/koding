@@ -280,7 +280,14 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
-leaveTeam = (modalContent) ->
+leaveTeam = ->
+  modalContent = '
+  <p>
+    <strong>CAUTION! </strong>You are going to leave your team and you will not be able to login again.
+    This action <strong>CANNOT</strong> be undone.
+  </p> <br>
+  <p>Please enter your <strong>current password</strong> into the field below to continue: </p>
+  '
 
   new Promise (resolve, reject) ->
     new VerifyPasswordModal 'Confirm', modalContent, (password) ->
@@ -299,7 +306,16 @@ leaveTeam = (modalContent) ->
           global.location.replace '/'
 
 
-deleteTeam = (modalContent) ->
+deleteTeam = ->
+
+  modalContent = '
+  <p>
+    <strong>CAUTION! </strong>You are going to delete your team. You and your
+    team members will not be able to access this team again.
+    This action <strong>CANNOT</strong> be undone.
+  </p> <br>
+  <p>Please enter your <strong>current password</strong> into the field below to continue: </p>'
+
 
   new Promise (resolve, reject) ->
     new VerifyPasswordModal 'Confirm', modalContent, (password) ->

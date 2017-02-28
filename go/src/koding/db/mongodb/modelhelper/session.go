@@ -128,13 +128,13 @@ func UpdateSessionIP(token string, ip string) error {
 
 // UpdateSessionData updates the transitive data in given session. Overrides the
 // current data if any.
-func UpdateSessionData(clientID string, data map[string]interface{}) error {
+func UpdateSessionData(clientID string, sessionData map[string]interface{}) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(
 			bson.M{"clientId": clientID},
 			bson.M{
 				"$set": bson.M{
-					"data": data,
+					"sessionData": sessionData,
 				},
 			},
 		)
