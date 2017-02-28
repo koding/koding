@@ -1,16 +1,15 @@
 kd = require 'kd'
-KDNotificationView = kd.NotificationView
-module.exports = (message, options = {}) ->
-  return  if not message or message is ''
 
-  # TODO these css/type parameters will be changed according to error type
-  type = 'growl'
+###
+  Basic Usage showNotification { content: 'Notification Content' }
+  The paramater notification object must have at least content attribute
+  AddNotification func use default params for not provided attributes
+  For ex, { type: 'default', dismissible: no, duration: 2000 }
+###
 
-  options.duration or= 3500
-  options.title      = message
-  # options.css      or= css
-  options.type     or= type
+module.exports = (notification = {}) ->
 
-  options.fn message  if options.fn and typeof options.fn? is 'function'
+  return  unless notification.content
 
-  new KDNotificationView options
+  { addNotification } = kd.singletons.notificationViewController
+  addNotification notification
