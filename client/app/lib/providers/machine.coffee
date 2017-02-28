@@ -29,8 +29,6 @@ module.exports = class Machine extends KDObject
     'Terminating'     # Machine is being destroyed...
     'Terminated'      # Machine is destroyed, does not exist anymore
     'Updating'        # Machine is being updated by provisioner
-    'Pending'         # Machine is being resized by provisioner
-    'Snapshotting'    # Machine is snapshotting
     'Unknown'         # Machine is in an unknown state
                       # needs to be resolved manually
   }
@@ -179,7 +177,7 @@ module.exports = class Machine extends KDObject
   getOwner: ->
 
     switch @provider
-      when 'koding', 'managed'
+      when 'managed'
         return @data.credential
       else # Use users array for other types of providers ~ GG
         for user in @jMachine.users when user.owner

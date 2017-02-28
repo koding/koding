@@ -268,40 +268,16 @@ module.exports = class ComputeControllerUI
 
   @askFor: (action, options, callback) ->
 
-    { force, machine, resizeTo, dontAskAgain } = options
+    { force, machine, dontAskAgain } = options
 
     machine               ?= {}
     { provider, jMachine } = machine
     machineName            = machine.getName?() ? 'a machine'
 
-    if resizeTo?
-      resizeFrom = machine.jMachine.meta?.storage_size or 3
-
-      # If same value requested for resize we will ask this operation
-      # to kloud, if somehow resize fails this help us to recover last state ~GG
-      resizeDetails = if resizeTo is resizeFrom then "to #{resizeTo}GB" \
-                      else "from #{resizeFrom}GB to #{resizeTo}GB"
-
     return callback()  if force
 
     tasks         =
       default     :
-        resize    :
-          title   : 'Resize VM'
-          message : '
-            If you choose to proceed, this VM will be resized #{resizeDetails}.
-            During the resize process, you will not be able to use your VM.
-            No need to worry, your files, workspaces and your data therein will be safe.
-          '
-          button  : 'Proceed'
-        reinit    :
-          title   : 'Reinitialize VM'
-          message : '
-            If you choose to proceed, this VM will be reset to its default state.
-            That means you will lose all of its data i.e. your files, workspaces, collaboration
-            sessions. Your VM settings however, (VM aliases, sub-domains etc.) will not be lost.
-          '
-          button  : 'Proceed'
         reinitStack :
           title   : 'YOUR DATA WILL BE LOST!'
           message : '
@@ -349,18 +325,6 @@ module.exports = class ComputeControllerUI
 
             <p>Do you want to continue?</p>
           "
-          button  : 'Proceed'
-        reinitNoSnapshot :
-          title   : 'Cannot proceed with reinitialization!'
-          message : '
-            <p>The snapshot on which this VM was originally based has been
-            deleted, so the system cannot reinitialize this VM.</p>
-
-            <p>Instead, would you like to reinit using a standard VM image?
-            Note: reinitializing will erase all files and folders on the VM
-            right now but your VM settings (VM aliases, sub-domains etc.)
-            will not be lost.</p>
-          '
           button  : 'Proceed'
         destroy   :
           title   : 'Remove VM'

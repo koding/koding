@@ -14,7 +14,6 @@
 JUser       = require '../../../models/user'
 JGroup      = require '../../../models/group'
 JAccount    = require '../../../models/account'
-JSession    = require '../../../models/session'
 JInvitation = require '../../../models/invitation'
 
 
