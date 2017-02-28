@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit
+
 declare instance_data_file=$1
 
 declare scripts=$(dirname $0)/..

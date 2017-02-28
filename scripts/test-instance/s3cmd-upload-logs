@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit
+
 declare prefix=$1
 if [ -z "$prefix" ]; then
 	echo 'error: prefix parameter is not given'
