@@ -5,6 +5,10 @@
 </script>
 <script type="text/javascript" src="{{ site.url }}/js/lodash.set.js"></script>
 <aside>
+  <div class="docs__search">
+    <input placeholder="Search..." />
+    <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
+  </div>
   <nav>
     {% for section in site.data.nav-docs %}
     <ul>
@@ -24,3 +28,47 @@
 </aside>
 
 <script type="text/javascript" src="{{ site.url }}/js/nav-terraform.js"></script>
+<script>
+
+  var navDocs = {{ site.data.nav-docs | jsonify }}
+  var results = null;
+
+  var docsSearchEl = $('.docs__search');
+  docsSearchEl.find('input')
+    .blur(function() {
+      if (results) results.remove();
+    }).keyup(function() {
+    var value = $.trim($(this).val());
+
+    if (results) results.remove();
+    docsSearchEl.append('<div class="docs__index__results"></div>');
+
+
+    results = docsSearchEl.find('.docs__index__results');
+
+    navDocs.forEach(function(doc) {
+
+      var items = doc.items.filter(function(obj){
+          return obj.title.toLowerCase().indexOf(value) != -1;
+      })
+
+      if (items.length) {
+
+        results.append('<div class="docs__index__results__header">'+doc.title+'</div>');
+
+        items.map(function(obj) {
+            return "<div class='docs__index__results__row'><div class='results__row__title'>" + obj.title +"</div><div class='results__row__description'>The detail copy will be here.</div></div>";
+        }).forEach(function(obj) {
+          results.append(obj);
+        })
+      }
+      //$('.docs_index__search__results').append()
+    });
+  })
+
+  $('.navMenuSections').on('mouseover', 'a', function() {
+    $('.navMenuSectionsSub ul').removeClass('active');
+    $('.navMenuSectionsSub').find('#navmenu-' + $(this).attr('id')).addClass('active');
+  });
+
+</script>

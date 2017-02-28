@@ -12,14 +12,17 @@ main {
   max-width: 1176px;
   min-height: calc(100vh - 358px - 70px);
   box-sizing: border-box;
-  margin: 0 auto;
+  margin: 20px auto 0;
   background-color: #FFFFFF;
+  border-radius: 3px;
+  overflow: hidden;
 
   > aside {
     width: 298px;
     background-color: #FAFBFD;
-    padding: 32px 0;
+    padding: 32px 30px;
     border-right: 1px solid #EAEDEF;
+    box-sizing: border-box;
 
     > ul > li > a {
       font-size: 18px;
@@ -61,6 +64,15 @@ main {
       padding: 12px 0;
     }
 
+    .docs__search input {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .docs__index__results {
+      left: 0;
+    }
+
   }
 
   > section {
@@ -73,7 +85,7 @@ main {
   }
 
   ul {
-    padding: 12px 0 0 30px;
+    padding: 12px 0 0 0;
   }
 
   li ul {
@@ -125,34 +137,108 @@ main {
   }
 }
 
-@media screen and (min-width: 700px) {
-  main>aside {
-    order: 1;
-  }
+.docs__search {
+  position: relative;
+}
 
-  main>section {
-    order: 2;
+.docs__search input {
+  border-radius: 3px;
+  border: 1px solid #DCDCDC;
+  font-family: proxima-nova;
+  padding: 10px 18px;
+  font-size: 15px;
+  color: #989898;
+  box-sizing: border-box;
+  transition: width 1s;
+}
+
+.docs__search input.expanded {
+  width: 775px;
+}
+
+.docs__search a.icon-magnify-link {
+  height: 30px;
+  width: 30px;
+  display: block;
+  position: absolute;
+  top: 5px;
+  right: 3px;
+  overflow: hidden;
+}
+
+.docs__search a.icon-magnify-link svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.docs__index__results {
+  position: absolute;
+  top: 39px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  width: 773px;
+}
+
+.docs__index__results__header {
+  background-color: #F8FBFF;
+  color: #989898;
+  font-size: 14px;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 14px 10px 10px;
+}
+
+.docs__index__results__row {
+  padding: 14px 10px 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.docs__index__results__row .results__row__title {
+  color: #515151;
+  font-size: 16px;
+}
+
+.docs__index__results__row .results__row__description {
+  color: #A8A8A8;
+  font-size: 12px;
+}
+
+@media screen and (max-width: 1250px) {
+  main {
+    margin-left: 67px;
+    margin-right: 65px;
   }
 }
 
-@media screen and (max-width: 699px) {
-  main>aside {
-    width: 290px;
-
-    ul {
-      text-align: center;
-
-      li ul {
-        padding-left: 0
-      }
-    }
+@media screen and (max-width: 900px) {
+  main > aside{
+    display: none;
   }
 
-  main>aside, main>section {
-    flex: 1 100%;
-  }
-
-  iframe {
+  section.markdown-body {
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  main {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 11px;
+  }
+}
+
+@media screen and (max-width: 660px) {
+  main>section {
+    padding-left: 26px;
+    padding-right: 26px;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  main {
+    margin-top: 0
   }
 }

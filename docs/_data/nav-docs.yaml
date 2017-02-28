@@ -1,8 +1,10 @@
 - title: Videos
+  id: videos
   items:
   - id: product-walkthrough
     title: Product walkthrough
 - title: Getting started
+  id: getting-started
   items:
   - id: koding-for-teams
     title: What is Koding for Teams?
@@ -25,6 +27,7 @@
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
 - title: Getting more from Koding
+  id: getting-more
   items:
   - id: kd
     title: KD

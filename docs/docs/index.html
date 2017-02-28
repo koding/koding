@@ -8,7 +8,8 @@ redirect_from:
 ---
 
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+{% include header.html with_signup_form='true' has_sticky_navigation='true'
+cssClass='light' %}
 
 <style type="text/css">{% include css/docs-home.css %}</style>
 <script type="text/javascript">
@@ -74,8 +75,10 @@ redirect_from:
     <div class="docs__index__body__content">
       <div class="docs__index__body__header clearfix">
         <div class="docs__index__body__title">All Topics</div>
-        <input placeholder="Search any keyword or topic..." />
-        <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
+        <div class="docs__search">
+          <input placeholder="Search any keyword or topic..." />
+          <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
+        </div>
       </div>
       <div class="docs__index__body__sections">
         {% for section in site.data.nav-docs %}
@@ -133,7 +136,7 @@ redirect_from:
         results.append('<div class="docs__index__results__header">'+doc.title+'</div>');
 
         items.map(function(obj) {
-            return "<div class='docs__index__results__row'><div class='results__row__title'>" + obj.title +"</div><div class='results__row__description'>The detail copy will be here.</div></div>";
+            return "<div class='docs__index__results__row'><a href='/docs/" + obj.id + "' class='results__row__title'>" + obj.title +"</a><div class='results__row__description'>The detail copy will be here.</div></div>";
         }).forEach(function(obj) {
           results.append(obj);
         })
