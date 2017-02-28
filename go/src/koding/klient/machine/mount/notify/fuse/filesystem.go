@@ -91,6 +91,9 @@ func (o *Opts) Valid() error {
 	if !strings.HasSuffix(o.CacheDir, sep) {
 		o.CacheDir = o.CacheDir + sep
 	}
+	if !strings.HasSuffix(o.MountDir, sep) {
+		o.MountDir = o.MountDir + sep
+	}
 	return nil
 }
 
@@ -99,11 +102,6 @@ func (opts *Opts) user() *config.User {
 		return opts.User
 	}
 	return config.CurrentUser
-}
-
-type dir struct {
-	files  []string
-	offset int
 }
 
 // Filesystem implements fuseutil.FileSystem.
@@ -250,23 +248,23 @@ func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fu
 
 func (fs *Filesystem) get(id fuseops.InodeID) (*index.Node, string, bool) {
 	fs.mu.RLock()
-	path, ok := fs.inodes[id]
+	rel, ok := fs.inodes[id]
 	fs.mu.RUnlock()
 
 	if !ok {
 		return nil, "", false
 	}
 
-	nd, ok := fs.Index.Lookup(path)
+	nd, ok := fs.Index.Lookup(rel)
 	if !ok {
 		return nil, "", false
 	}
 
-	return nd, path, true
+	return nd, rel, true
 }
 
 func (fs *Filesystem) getDir(id fuseops.InodeID) (*index.Node, string, error) {
-	nd, path, ok := fs.get(id)
+	nd, rel, ok := fs.get(id)
 	if !ok {
 		return nil, "", fuse.ENOENT
 	}
@@ -275,11 +273,11 @@ func (fs *Filesystem) getDir(id fuseops.InodeID) (*index.Node, string, error) {
 		return nil, "", fuse.EIO
 	}
 
-	return nd, path, nil
+	return nd, rel, nil
 }
 
 func (fs *Filesystem) getFile(id fuseops.InodeID) (*index.Node, string, error) {
-	nd, path, ok := fs.get(id)
+	nd, rel, ok := fs.get(id)
 	if !ok {
 		return nil, "", fuse.ENOENT
 	}
@@ -288,7 +286,7 @@ func (fs *Filesystem) getFile(id fuseops.InodeID) (*index.Node, string, error) {
 		return nil, "", fuse.EIO
 	}
 
-	return nd, path, nil
+	return nd, rel, nil
 }
 
 func (fs *Filesystem) del(id fuseops.InodeID) {
@@ -318,13 +316,7 @@ func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, boo
 		return nil, nil, false
 	}
 
-	path := f.Name()
-
-	if strings.HasPrefix(path, fs.CacheDir) {
-		path = path[len(fs.CacheDir):]
-	}
-
-	nd, ok := fs.Index.Lookup(path)
+	nd, ok := fs.Index.Lookup(fs.rel(f.Name()))
 	if !ok || nd.Deleted() {
 		return nil, nil, false
 	}
@@ -332,8 +324,8 @@ func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, boo
 	return f, nd, true
 }
 
-func (fs *Filesystem) commit(path string, meta index.ChangeMeta) stdcontext.Context {
-	return fs.Cache.Commit(index.NewChange(path, meta))
+func (fs *Filesystem) commit(rel string, meta index.ChangeMeta) stdcontext.Context {
+	return fs.Cache.Commit(index.NewChange(rel, meta))
 }
 
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {
@@ -380,12 +372,16 @@ func (fs *Filesystem) newAttr(mode os.FileMode) fuseops.InodeAttributes {
 	}
 }
 
-func (fs *Filesystem) path(loc string) string {
-	return filepath.Join(fs.CacheDir, loc)
+func (fs *Filesystem) abs(rel string) string {
+	return fs.CacheDir + rel
 }
 
-func (fs *Filesystem) mkdir(path string, mode os.FileMode) (id fuseops.InodeID, err error) {
-	if err = os.MkdirAll(fs.path(path), mode); err != nil {
+func (fs *Filesystem) rel(abs string) string {
+	return strings.TrimPrefix(abs, fs.CacheDir)
+}
+
+func (fs *Filesystem) mkdir(rel string, mode os.FileMode) (id fuseops.InodeID, err error) {
+	if err = os.MkdirAll(fs.abs(rel), mode); err != nil {
 		return 0, err
 	}
 
@@ -393,24 +389,24 @@ func (fs *Filesystem) mkdir(path string, mode os.FileMode) (id fuseops.InodeID, 
 	entry.IncRefCount()
 
 	fs.mu.Lock()
-	id = fs.add(path)
+	id = fs.add(rel)
 	fs.mu.Unlock()
 
 	entry.SetInode(uint64(id))
 
-	fs.Index.PromiseAdd(path, entry)
+	fs.Index.PromiseAdd(rel, entry)
 
 	return id, nil
 }
 
-func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID, h fuseops.HandleID, err error) {
-	absPath := fs.path(path)
+func (fs *Filesystem) mkfile(rel string, mode os.FileMode) (id fuseops.InodeID, h fuseops.HandleID, err error) {
+	abs := fs.abs(rel)
 
-	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
 		return 0, 0, err
 	}
 
-	f, err := os.Create(absPath)
+	f, err := os.Create(abs)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -421,23 +417,23 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 	entry.IncRefCount()
 
 	fs.mu.Lock()
-	id = fs.add(path)
+	id = fs.add(rel)
 	h = fs.addHandle(f)
 	fs.mu.Unlock()
 
 	entry.SetInode(uint64(id))
 
-	fs.Index.PromiseAdd(path, entry)
+	fs.Index.PromiseAdd(rel, entry)
 
 	return id, h, nil
 }
 
-func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) error {
-	absOld := fs.path(oldpath)
-	absNew := fs.path(newpath)
+func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error {
+	absOld := fs.abs(oldrel)
+	absNew := fs.abs(newrel)
 
 	if _, err := os.Stat(absOld); os.IsNotExist(err) {
-		if err = fs.yield(ctx, oldpath, index.ChangeMetaRemote|index.ChangeMetaAdd); err != nil {
+		if err = fs.yield(ctx, oldrel, index.ChangeMetaRemote|index.ChangeMetaAdd); err != nil {
 			return err
 		}
 	}
@@ -446,30 +442,28 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) erro
 		return err
 	}
 
-	return os.Rename(fs.path(oldpath), fs.path(newpath))
+	return os.Rename(absOld, absNew)
 }
 
-func (fs *Filesystem) unlink(ctx stdcontext.Context, nd *index.Node, path string) error {
-	fs.Index.PromiseUnlink(path, nd)
+func (fs *Filesystem) unlink(ctx stdcontext.Context, nd *index.Node, rel string) error {
+	fs.Index.PromiseUnlink(rel, nd)
 
 	if n := nd.Entry.DecRefCount(); n > 0 {
 		return nil
 	}
 
-	return fs.rm(ctx, nd, path)
+	return fs.rm(ctx, nd, rel)
 }
 
-func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, path string) error {
-	fs.Index.PromiseDel(path, nd)
+func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, rel string) error {
+	fs.Index.PromiseDel(rel, nd)
 	nd.Entry.SetInode(0)
 
-	path = fs.path(path)
-
-	if err := os.Remove(path); os.IsNotExist(err) {
+	if err := os.Remove(fs.abs(rel)); os.IsNotExist(err) {
 		return nil
 	}
 
-	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+	fs.commit(rel, index.ChangeMetaLocal|index.ChangeMetaRemove)
 
 	return nil
 }
@@ -479,13 +473,13 @@ func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File, nd *index.Node)
 
 	_ = updateSize(f, nd)
 
-	fs.commit(f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	fs.commit(fs.rel(f.Name()), index.ChangeMetaLocal|index.ChangeMetaUpdate)
 
 	return err
 }
 
-func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) (*os.File, fuseops.HandleID, error) {
-	f, err := fs.openFile(ctx, path, nd.Entry.Mode())
+func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, rel string) (*os.File, fuseops.HandleID, error) {
+	f, err := fs.openFile(ctx, rel, nd.Entry.Mode())
 	if err != nil {
 		return nil, 0, err
 	}
@@ -499,33 +493,33 @@ func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) 
 	return f, id, nil
 }
 
-func (fs *Filesystem) openFile(ctx stdcontext.Context, path string, mode os.FileMode) (*os.File, error) {
-	path = fs.path(path)
+func (fs *Filesystem) openFile(ctx stdcontext.Context, rel string, mode os.FileMode) (*os.File, error) {
+	abs := fs.abs(rel)
 
-	f, err := os.OpenFile(path, os.O_RDWR, mode)
+	f, err := os.OpenFile(abs, os.O_RDWR, mode)
 	if os.IsNotExist(err) {
-		err = fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaRemote)
+		err = fs.yield(ctx, rel, index.ChangeMetaAdd|index.ChangeMetaRemote)
 		if err != nil {
 			return nil, err
 		}
 
-		f, err = os.OpenFile(path, os.O_RDWR, mode)
+		f, err = os.OpenFile(abs, os.O_RDWR, mode)
 	}
 
 	if os.IsPermission(err) {
-		f, err = os.OpenFile(path, os.O_RDONLY, mode)
+		f, err = os.OpenFile(abs, os.O_RDONLY, mode)
 	}
 
 	return f, err
 }
 
 func (fs *Filesystem) openInode(ctx stdcontext.Context, id fuseops.InodeID) (*os.File, fuseops.HandleID, error) {
-	nd, path, err := fs.getFile(id)
+	nd, rel, err := fs.getFile(id)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return fs.open(ctx, nd, path)
+	return fs.open(ctx, nd, rel)
 }
 
 func (fs *Filesystem) openHandle(id fuseops.HandleID) (*os.File, error) {

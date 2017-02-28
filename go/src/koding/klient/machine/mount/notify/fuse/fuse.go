@@ -40,7 +40,7 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
-	dir, path, err := fs.getDir(op.Parent)
+	dir, rel, err := fs.getDir(op.Parent)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (fs *Filesystem) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp
 		return fuse.ENOENT
 	}
 
-	op.Entry.Child = fs.lookupInodeID(path, op.Name, nd.Entry)
+	op.Entry.Child = fs.lookupInodeID(rel, op.Name, nd.Entry)
 	op.Entry.Attributes = fs.attr(nd.Entry)
 
 	return nil
@@ -74,12 +74,12 @@ func (fs *Filesystem) GetInodeAttributes(ctx context.Context, op *fuseops.GetIno
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) error {
-	nd, path, ok := fs.get(op.Inode)
+	nd, rel, ok := fs.get(op.Inode)
 	if !ok {
 		return fuse.ENOENT
 	}
 
-	f, err := fs.openFile(ctx, path, nd.Entry.Mode())
+	f, err := fs.openFile(ctx, rel, nd.Entry.Mode())
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 		}
 	}
 
-	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	fs.commit(rel, index.ChangeMetaLocal|index.ChangeMetaUpdate)
 
 	return nil
 }
@@ -136,7 +136,7 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
-	dir, path, err := fs.getDir(op.Parent)
+	dir, rel, err := fs.getDir(op.Parent)
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 		return fuse.EEXIST
 	}
 
-	path = filepath.Join(path, op.Name)
+	path := filepath.Join(rel, op.Name)
 
 	op.Entry.Child, err = fs.mkdir(path, op.Mode)
 	if err != nil {
@@ -165,7 +165,7 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) error {
-	dir, path, err := fs.getDir(op.Parent)
+	dir, rel, err := fs.getDir(op.Parent)
 	if err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 		return fuse.EEXIST
 	}
 
-	path = filepath.Join(path, op.Name)
+	path := filepath.Join(rel, op.Name)
 
 	op.Entry.Child, op.Handle, err = fs.mkfile(path, op.Mode)
 	if err != nil {
@@ -244,7 +244,7 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
-	dir, path, err := fs.getDir(op.Parent)
+	dir, rel, err := fs.getDir(op.Parent)
 	if err != nil {
 		return err
 	}
@@ -258,7 +258,7 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 		return fuse.EIO
 	}
 
-	path = filepath.Join(path, op.Name)
+	path := filepath.Join(rel, op.Name)
 
 	if err := fs.rm(ctx, nd, path); err != nil {
 		return err
@@ -273,7 +273,7 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
-	dir, path, err := fs.getDir(op.Parent)
+	dir, rel, err := fs.getDir(op.Parent)
 	if err != nil {
 		return err
 	}
@@ -283,18 +283,21 @@ func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 		return fuse.ENOENT
 	}
 
-	return fs.unlink(ctx, nd, filepath.Join(path, op.Name))
+	return fs.unlink(ctx, nd, filepath.Join(rel, op.Name))
 }
 
-// ForgetInode
+// ForgotInode removes a file specified by an inode ID if the file was previously
+// marked for an unlink.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) error {
-	nd, path, ok := fs.get(op.Inode)
+	nd, rel, ok := fs.get(op.Inode)
 	if !ok {
 		return nil // no-op
 	}
 
 	if nd.Entry.HasPromise(index.EntryPromiseUnlink) {
-		return fs.rm(ctx, nd, path)
+		return fs.rm(ctx, nd, rel)
 	}
 
 	return nil
@@ -320,7 +323,7 @@ func (fs *Filesystem) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseD
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
-	dir, path, err := fs.getDir(op.Inode)
+	dir, rel, err := fs.getDir(op.Inode)
 	if err != nil {
 		return err
 	}
@@ -350,7 +353,7 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 
 		dirent = append(dirent, &fuseutil.Dirent{
 			Offset: op.Offset + fuseops.DirOffset(i+1),
-			Inode:  fs.lookupInodeID(path, file, sub.Entry),
+			Inode:  fs.lookupInodeID(rel, file, sub.Entry),
 			Name:   file,
 			Type:   direntType(sub.Entry),
 		})
@@ -423,7 +426,7 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 
 	updateSize(f, nd)
 
-	fs.commit(f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	fs.commit(fs.rel(f.Name()), index.ChangeMetaLocal|index.ChangeMetaUpdate)
 
 	return nil
 }
