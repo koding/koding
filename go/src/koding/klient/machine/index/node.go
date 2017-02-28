@@ -101,17 +101,10 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 
 	if nd, ok := nd.lookup(path, true); ok {
 		newE = nd.Entry
-
-		if entry.Inode() != 0 {
-			newE.SetInode(entry.Inode())
-		}
-		if entry.Mode() != 0 {
-			newE.SetMode(entry.Mode())
-		}
-
+		newE.MergeIn(entry)
 	} else {
 		newE = NewEntry(entry.Size(), entry.Mode())
-		newE.SetInode(entry.Inode())
+		newE.MergeIn(entry)
 	}
 
 	newE.SwapPromise(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
@@ -351,14 +344,17 @@ func (nd *Node) undelete() {
 }
 
 func (nd *Node) shallowCopy() *Node {
-	if len(nd.Sub) != 0 {
+	if nd.Sub != nil {
 		sub := make(map[string]*Node, len(nd.Sub))
 
 		for k, v := range nd.Sub {
 			sub[k] = v
 		}
 
-		nd.Sub = sub
+		return &Node{
+			Sub:   sub,
+			Entry: nd.Entry,
+		}
 	}
 
 	return nd
