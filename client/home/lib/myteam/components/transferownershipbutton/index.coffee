@@ -37,6 +37,8 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
         selection.hide()
         ownershipBtn.show()
         selection.removeSelectOptions()
+        ownershipBtn.updatePartial 'TRANSFER OWNERSHIP'
+        ownershipBtn.unsetClass 'transfer-ready'
 
     @addSubView ownershipBtn = new kd.CustomHTMLView
       partial : 'TRANSFER OWNERSHIP'
@@ -52,20 +54,22 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
             .filter (mem) -> mem._id isnt whoami()._id
             .map (mem) -> { title: mem.profile.nickname,  value: mem._id }
 
-          members.unshift { title: 'Select new owner', value: '' }
 
-          if members.length > 1
+          if members.length
+            members.unshift { title: 'Select new owner', value: '' }
             cancelBtn.show()
             ownershipBtn.hide()
             selection.show()
             selection.setSelectOptions members
             selection.setValue ''
+            ownershipBtn.updatePartial 'TRANSFER'
+            ownershipBtn.setClass 'transfer-ready'
           else
-            cancelBtn.hide()
-            ownershipBtn.destroy()
-            new kd.NotificationView
-              title: "You don't have any other team member, please delete team"
-              duration: 3000
+            cancelBtn.show()
+            members.unshift { title: 'There is no one in team', value: '' }
+            selection.show()
+            selection.setSelectOptions members
+            ownershipBtn.hide()
 
 
   verifyModal: (group, accountId) ->

@@ -1,6 +1,6 @@
 .delete-account-overlay
   background                #000
-  z-index                   10001
+  z-index                   20002
 
 .delete-account-overlay .content
   color                     #FFF
@@ -19,7 +19,7 @@
   top                       87px
   left                      94px
   animation                 spacestationDrift 7s 1 ease
-  animation-fill-mode       forwards 
+  animation-fill-mode       forwards
 
 .delete-account-overlay .disconnected
   position                  absolute
@@ -27,17 +27,17 @@
   left                      248px
   opacity                   1
   animation                 disconnectedDrift 4s 1 ease-in
-  animation-fill-mode       forwards 
+  animation-fill-mode       forwards
 
 @keyframes spacestationDrift
   0%
-    transform               
+    transform
   100%
     transform               translate(-40px, 18px) rotate(-30deg)
 
 @keyframes disconnectedDrift
   0%
-    transform               
+    transform
   100%
     transform               translate(33px, 23px) rotate(28deg) scale(0.3)
     opacity                 0

@@ -1340,6 +1340,7 @@ module.exports = class JAccount extends jraphical.Module
               kallback 'JCredential', next, err
 
         (next) ->
+          return next()  unless group
           group.destroy client, (err) ->
             kallback 'GroupDestroy', next, err
 

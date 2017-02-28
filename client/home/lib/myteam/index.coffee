@@ -16,6 +16,7 @@ isAdmin = require 'app/util/isAdmin'
 showError = require 'app/util/showError'
 globals = require 'globals'
 TransferOwnershipButton = require './components/transferownershipbutton'
+DeleteTeamButton = require './components/deleteteambutton'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
@@ -127,18 +128,5 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
         @wrapper.addSubView actionWrapper = new kd.CustomHTMLView
           cssClass : 'myteam-action-wrapper'
 
-        actionWrapper.addSubView new kd.CustomHTMLView
-          cssClass : 'delete-team'
-          partial : 'DELETE TEAM'
-          click : ->
-            modalContent = '<p>
-                <strong>CAUTION! </strong>You are going to delete your team. You and your
-                team members will not be able to access this team again.
-                This action <strong>CANNOT</strong> be undone.
-              </p> <br>
-              <p>Please enter your <strong>current password</strong> into the field below to continue: </p>'
-
-            TeamFlux.actions.deleteTeam(modalContent).catch (err) ->
-              showError err
-
+        actionWrapper.addSubView new DeleteTeamButton {}
         actionWrapper.addSubView new TransferOwnershipButton {}, team
