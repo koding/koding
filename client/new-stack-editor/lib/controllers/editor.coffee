@@ -30,14 +30,25 @@ module.exports = class EditorController extends BaseController
     }
 
     debug 'saving data', dataToSave
-    updateStackTemplate dataToSave, (err, rest...) =>
+    updateStackTemplate dataToSave, (err, stackTemplate) =>
+      return callback err  if err
 
       @emit Events.WarnUser, {
-        message  : 'Stack template updated successfully!'
-        autohide : 1500
+        message  : 'Stack template updated successfully! Parsing template now...'
+        autohide : 5000
       }
 
-      callback err, rest...
+      # TODO change update function to allow verify after save in BE ~ GG
+
+      stackTemplate.verify (err, stackTemplate) =>
+        return callback err  if err
+
+        @emit Events.WarnUser, {
+          message  : 'Parsing completed successfully!'
+          autohide : 1500
+        }
+
+        callback err, stackTemplate
 
 
   setData: (data) ->
