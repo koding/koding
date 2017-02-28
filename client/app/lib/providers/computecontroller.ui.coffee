@@ -84,7 +84,7 @@ module.exports = class ComputeControllerUI
           doXhrRequest { endPoint, type }, (err, res) =>
 
             @hideLoader()
-            return  if showError err, { KodingError: 'Service not available' }
+            return  if showError err
 
             unless hasStackRequiredField requiredFields, 'ssh_private_key'
               showPrivateKeyWarning res.private

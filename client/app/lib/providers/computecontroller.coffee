@@ -1148,7 +1148,7 @@ module.exports = class ComputeController extends KDController
         .then (shared) ->
           new kd.NotificationView { title: 'Permissions fixed' }
         .catch (err) ->
-          showError err, 'Failed to fix permissions'
+          showError err
 
 
   checkMachinePermissions: ->

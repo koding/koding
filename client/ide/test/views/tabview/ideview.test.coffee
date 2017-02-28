@@ -12,13 +12,13 @@ IDEEditorPane         = require 'ide/workspace/panes/ideeditorpane'
 IDETailerPane         = require 'ide/workspace/panes/idetailerpane'
 IDETerminalPane       = require 'ide/workspace/panes/ideterminalpane'
 IDEDrawingPane        = require 'ide/workspace/panes/idedrawingpane'
-showErrorNotification = require 'app/util/showErrorNotification'
+showError = require 'app/util/showError'
 IDEApplicationTabView = require 'ide/views/tabview/ideapplicationtabview'
 
 ideView                     = null
 handlePaneRemovedSpy        = null
-showErrorNotificationSpy    = null
-revertShowErrorNotification = null
+showErrorSpy    = null
+revertShowError = null
 
 
 initSpies = ->
@@ -27,8 +27,8 @@ initSpies = ->
   expect.spyOn IDEView.prototype, 'trimUntitledFileName'
   handlePaneRemovedSpy = expect.spyOn IDEView.prototype, 'handlePaneRemoved'
 
-  showErrorNotificationSpy    = expect.createSpy()
-  revertShowErrorNotification = IDEView.__set__ 'showErrorNotification', showErrorNotificationSpy
+  showErrorSpy    = expect.createSpy()
+  revertShowError = IDEView.__set__ 'showError', showErrorSpy
 
 
 createFile = (path = 'foo/path') ->
@@ -79,7 +79,7 @@ describe 'IDEView', ->
   afterEach ->
 
     expect.restoreSpies()
-    revertShowErrorNotification()
+    revertShowError()
 
 
   describe 'constructor', ->
@@ -210,13 +210,13 @@ describe 'IDEView', ->
       expect(IDEHelpers.showFileAccessDeniedError).toHaveBeenCalled()
 
 
-    it 'should showErrorNotification if file.fetchPermissions returns error', ->
+    it 'should showError if file.fetchPermissions returns error', ->
 
       err = { message: 'Everything is something happened.' }
       mock.fsFile.fetchPermissions.toReturnError err
       ideView.createEditor createFile()
 
-      expect(showErrorNotificationSpy).toHaveBeenCalledWith err
+      expect(showErrorSpy).toHaveBeenCalledWith err
 
 
   describe '::createEditorAfterFileCheck', ->

@@ -3,7 +3,7 @@ debug = (require 'debug') 'nse'
 kd = require 'kd'
 async = require 'async'
 AppController = require 'app/appcontroller'
-showErrorNotification = require 'app/util/showErrorNotification'
+showError = require 'app/util/showError'
 
 EnvironmentFlux = require 'app/flux/environment'
 
@@ -61,7 +61,7 @@ module.exports = class StackEditorAppController extends AppController
     @fetchStackTemplate templateId, (err, template) =>
 
       if err
-        showErrorNotification err
+        showError err
         return callback err
 
       @stackEditor.setData template, reset
