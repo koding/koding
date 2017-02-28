@@ -168,7 +168,7 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
         name: run test suites
-        code: scripts/wercker/run-command scripts/wercker/run-tests INSTANCE_DATA
+        code: scripts/wercker/run-command scripts/ci/run-tests INSTANCE_DATA
     - script:
         name: testing client finished
         code: |
