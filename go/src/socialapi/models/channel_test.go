@@ -237,21 +237,6 @@ func TestChannelCanOpen(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(canOpen, ShouldBeTrue)
 			})
-
-			//
-			// NON participant tests
-			//
-			Convey("everyone can open koding group channel", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedGroupedChannelWithTest(acc.Id, Channel_TYPE_DEFAULT, Channel_KODING_NAME)
-
-				// even if it is not a member of koding, because of guests
-				// AddParticipantsWithTest(c.Id, acc.Id)
-
-				canOpen, err := c.CanOpen(acc.Id)
-				So(err, ShouldBeNil)
-				So(canOpen, ShouldBeTrue)
-			})
 		})
 	})
 }
