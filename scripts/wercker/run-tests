@@ -84,12 +84,9 @@ runTest = (job, next) ->
   if NIGHTWATCH_OPTIONS
     env['NIGHTWATCH_OPTIONS'] = NIGHTWATCH_OPTIONS
 
-  { CI, WERCKER_BUILD_URL, WERCKER_GIT_BRANCH, WERCKER_STARTED_BY } = process.env
+  { CI } = process.env
 
   env.CI                 = CI
-  env.WERCKER_BUILD_URL  = WERCKER_BUILD_URL
-  env.WERCKER_GIT_BRANCH = WERCKER_GIT_BRANCH
-  env.WERCKER_STARTED_BY  = WERCKER_STARTED_BY
 
   args  = [instance.publicIpAddress, test.name]
   opts  = { env }
