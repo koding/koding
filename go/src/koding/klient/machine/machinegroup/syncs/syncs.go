@@ -124,14 +124,10 @@ func (s *Syncs) worker() {
 
 // Add starts synchronization between remote and local directories. It creates
 // all necessary cache files if they are not present.
-func (s *Syncs) Add(
-	mountID mount.ID,
-	m mount.Mount,
-	nb notify.Builder,
-	sb msync.Builder,
-	dynAddr client.DynamicAddrFunc,
-	dynClient client.DynamicClientFunc,
-) error {
+func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
+	nb notify.Builder, sb msync.Builder,
+	dynAddr client.DynamicAddrFunc, dynClient client.DynamicClientFunc) error {
+
 	if nb == nil {
 		return errors.New("notification builder cannot be nil")
 	}
