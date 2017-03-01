@@ -48,7 +48,7 @@ module.exports = helpers =
       err = { message: 'Missing options to create a new workspace' }
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
-    machine = m for m in computeController.machines when m.uid is machineUId
+    machine = computeController.findMachineFromMachineUId machineUId
     layout  = {}
     data    = { name, machineUId, machineLabel, rootPath, layout }
 
