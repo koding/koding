@@ -30,10 +30,9 @@
   </a>
   {% if include.has_docs_nav %}
     <div class="searchBox">
-      <div class="docs__search">
-        <input placeholder="Search any keyword or topic..." />
-        <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
-      </div>
+
+      {% include docs-search.html %}
+
     </div>
     <div class="navMenu">
       <div class="navMenuSections">

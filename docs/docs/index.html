@@ -38,10 +38,9 @@ cssClass='light' %}
     <div class="docs__index__body__content">
       <div class="docs__index__body__header clearfix">
         <div class="docs__index__body__title">All Topics</div>
-        <div class="docs__search">
-          <input placeholder="Search any keyword or topic..." />
-          <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
-        </div>
+
+        {% include docs-search.html %}
+
       </div>
       <div class="docs__index__body__sections">
         {% for section in site.data.nav-docs %}
@@ -71,7 +70,8 @@ cssClass='light' %}
   var navDocs = {{ site.data.nav-docs | jsonify }}
   var results = null;
 
-  $('.docs__index__body__header input')
+  var docsSearchEl = $('.docs__search');
+  docsSearchEl.find('input')
     .focus(function() {
       $(this).addClass('expanded');
     }).blur(function() {
@@ -81,10 +81,10 @@ cssClass='light' %}
     var value = $.trim($(this).val());
 
     if (results) results.remove();
-    $('.docs__index__body__header').append('<div class="docs__index__results"></div>');
+    docsSearchEl.append('<div class="docs__index__results"></div>');
 
 
-    results = $('.docs__index__body__header').find('.docs__index__results');
+    results = docsSearchEl.find('.docs__index__results');
 
     navDocs.forEach(function(doc) {
 

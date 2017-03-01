@@ -5,10 +5,9 @@
 </script>
 <script type="text/javascript" src="{{ site.url }}/js/lodash.set.js"></script>
 <aside>
-  <div class="docs__search">
-    <input placeholder="Search..." />
-    <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
-  </div>
+
+  {% include docs-search.html %}
+
   <nav>
     {% for section in site.data.nav-docs %}
     <ul>
