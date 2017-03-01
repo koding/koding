@@ -112,17 +112,17 @@ module.exports = class StackEditorView extends kd.View
           <div class="modalformline">
             <p>
               We're improving the stack editor by recreating it from scratch
-              with lots of new features and a new design. It's currently in
-              Alpha stage and not complete yet but you can try it out now.
+              with lots of new features and a fresh, fluid new design. It's
+              currently alpha thus not complete yet but we'd like you to try
+              it and let us know what you think!
             </p>
             <p>
-              Warning: It's recommended to use new stack editor on new stack
-              templates thus there might some fundamental changes on them.
+              Please note: We recommend that you use new stack editor only on
+              new stack templates, there might be some feature inconsistency
+              that we didn't get to, yet.
             </p>
             <p>
-              It may have some missing features that is available in old one
-              but returning back to this version of Stack Editor is also
-              possible at any time.
+              You can switch back to the current version anytime. Enjoy!
             </p>
           </div>
           """
