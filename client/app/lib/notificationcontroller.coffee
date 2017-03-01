@@ -122,6 +122,7 @@ module.exports = class NotificationController extends KDObject
           if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent
             ideInstance.showUserRemovedModal()
 
+      # FIXMERESET ~ GG
       computeController.reset yes
 
     @on 'UsernameChanged', ({ username, oldUsername }) ->

@@ -70,6 +70,7 @@ module.exports = class Machine extends KDObject
       else
         @status = { state: Machine.State.Terminated }
         @queryString = null
+        # FIXMERESET ~ GG
         computeController.reset yes
 
     @jMachine.on? 'update', =>
