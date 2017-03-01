@@ -34,7 +34,7 @@ function terminate_failing_instances() {
 		return 0
 	fi
 
-	$SCRIPTS/wercker/upload-logs $FAILING_INSTANCES_DATA_FILE
+	$SCRIPTS/test-instance/upload-logs $FAILING_INSTANCES_DATA_FILE
 	cat $FAILING_INSTANCES_DATA_FILE | xargs --delimiter '\n' --max-args 1 $SCRIPTS/test-instance/terminate
 }
 
