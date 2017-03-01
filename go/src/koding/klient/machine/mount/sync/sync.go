@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"koding/kites/config"
 	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
@@ -37,12 +36,9 @@ type BuildOpts struct {
 	Mount    mount.Mount // single mount with absolute paths.
 	CacheDir string      // absolute path to locally cached files.
 
-	PrivKeyPath string                 // SSH private key path.
-	SSHAuthSock string                 // SSH_AUTH_SOCK value needed for different users.
-	Username    string                 // remote machine username.
-	AddrFunc    client.DynamicAddrFunc // dynamic getter for machine address.
-
-	IndexSyncFunc IndexSyncFunc // callback used to update index.
+	ClientFunc    client.DynamicClientFunc // factory for dynamic clients.
+	SSHFunc       DynamicSSHFunc           // dynamic getter for machine SSH address.
+	IndexSyncFunc IndexSyncFunc            // callback used to update index.
 }
 
 // Builder represents a factory method which external syncers must implement in
@@ -88,13 +84,13 @@ type Info struct {
 	Syncing int // Number of files being synced.
 }
 
-// SyncOpts are the options used to configure Sync object.
-type SyncOpts struct {
-	// AddrFunc is a factory for client addresses.
-	AddrFunc client.DynamicAddrFunc
-
+// Options are the options used to configure Sync object.
+type Options struct {
 	// ClientFunc is a factory for dynamic clients.
 	ClientFunc client.DynamicClientFunc
+
+	// SSHFunc is a factory for client SSH addresses.
+	SSHFunc DynamicSSHFunc
 
 	// WorkDir is a working directory that will be used by syncs object. The
 	// directory structure for single mount with ID will look like:
@@ -119,15 +115,15 @@ type SyncOpts struct {
 }
 
 // Valid checks if provided options are correct.
-func (opts *SyncOpts) Valid() error {
+func (opts *Options) Valid() error {
 	if opts == nil {
 		return errors.New("mount sync options are nil")
 	}
-	if opts.AddrFunc == nil {
-		return errors.New("nil dynamic client function")
-	}
 	if opts.ClientFunc == nil {
 		return errors.New("nil dynamic client function")
+	}
+	if opts.SSHFunc == nil {
+		return errors.New("nil dynamic SSH address function")
 	}
 	if opts.NotifyBuilder == nil {
 		return errors.New("file system notification builder is nil")
@@ -142,10 +138,10 @@ func (opts *SyncOpts) Valid() error {
 	return nil
 }
 
-// Sync stores and synchronizes single mount. The main goal of its logic
+// Sync stores and synchronizes a single mount. The main goal of its logic
 // is to make stored index and cache directory consistent.
 type Sync struct {
-	opts    SyncOpts
+	opts    Options
 	mountID mount.ID    // identifier of synced mount.
 	m       mount.Mount // single mount with absolute paths.
 	log     logging.Logger
@@ -160,7 +156,7 @@ type Sync struct {
 
 // NewSync creates a new sync instance for a given mount. It ensures basic mount
 // directory structure. This function is blocking.
-func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
+func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
@@ -189,12 +185,6 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 		return nil, err
 	}
 
-	// Get remote machine user name.
-	user, err := client.NewSupervised(s.opts.ClientFunc, 10*time.Second).CurrentUser()
-	if err != nil {
-		return nil, err
-	}
-
 	// Check current state of synchronization and set promises.
 	s.idx.Merge(cacheDir)
 
@@ -218,10 +208,8 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
 		Mount:         m,
 		CacheDir:      cacheDir,
-		PrivKeyPath:   filepath.Join(config.CurrentUser.HomeDir, ".ssh", "kd-ssh-key"),
-		SSHAuthSock:   fmt.Sprintf("/run/user/%d/keyring/ssh", config.CurrentUser.Uid),
-		Username:      user,
-		AddrFunc:      s.opts.AddrFunc,
+		ClientFunc:    s.opts.ClientFunc,
+		SSHFunc:       s.opts.SSHFunc,
 		IndexSyncFunc: s.indexSync(),
 	})
 	if err != nil {

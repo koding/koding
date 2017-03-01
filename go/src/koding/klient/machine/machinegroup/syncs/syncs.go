@@ -126,7 +126,7 @@ func (s *Syncs) worker() {
 // all necessary cache files if they are not present.
 func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
 	nb notify.Builder, sb msync.Builder,
-	dynAddr client.DynamicAddrFunc, dynClient client.DynamicClientFunc) error {
+	dynSSH msync.DynamicSSHFunc, dynClient client.DynamicClientFunc) error {
 
 	if nb == nil {
 		return errors.New("notification builder cannot be nil")
@@ -134,8 +134,8 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
 	if sb == nil {
 		return errors.New("synchronization builder cannot be nil")
 	}
-	if dynAddr == nil {
-		return errors.New("dynamic address function cannot be nil")
+	if dynSSH == nil {
+		return errors.New("dynamic SSH address function cannot be nil")
 	}
 	if dynClient == nil {
 		return errors.New("dynamic client function cannot be nil")
@@ -153,9 +153,9 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
 		return fmt.Errorf("sync for mount with ID %s already exists", mountID)
 	}
 
-	sc, err := msync.NewSync(mountID, m, msync.SyncOpts{
-		AddrFunc:      dynAddr,
+	sc, err := msync.NewSync(mountID, m, msync.Options{
 		ClientFunc:    dynClient,
+		SSHFunc:       dynSSH,
 		WorkDir:       filepath.Join(s.wd, "mount-"+string(mountID)),
 		NotifyBuilder: nb,
 		SyncBuilder:   sb,

@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 	"koding/klient/machine/mount/notify/silent"
+	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/discard"
 )
 
@@ -30,12 +30,12 @@ func TestSyncsAdd(t *testing.T) {
 	}
 	defer s.Close()
 
-	dynAddr, dynClient := dynFunctions()
+	dynSSH, dynClient := dynFunctions()
 	nb, sb := silent.Builder{}, discard.Builder{}
-	if err := s.Add(mountID, m, nb, sb, dynAddr, dynClient); err != nil {
+	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := s.Add(mountID, m, nb, sb, dynAddr, dynClient); err == nil {
+	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err == nil {
 		t.Error("want err != nil; got nil")
 	}
 
@@ -61,9 +61,9 @@ func TestSyncsDrop(t *testing.T) {
 	}
 	defer s.Close()
 
-	dynAddr, dynClient := dynFunctions()
+	dynSSH, dynClient := dynFunctions()
 	nb, sb := silent.Builder{}, discard.Builder{}
-	if err := s.Add(mountID, m, nb, sb, dynAddr, dynClient); err != nil {
+	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -83,13 +83,14 @@ func TestSyncsDrop(t *testing.T) {
 	}
 }
 
-func dynFunctions() (dynAddr client.DynamicAddrFunc, dynClient client.DynamicClientFunc) {
-	dynAddr = func(string) (machine.Addr, error) {
-		return machine.Addr{}, nil
+func dynFunctions() (msync.DynamicSSHFunc, client.DynamicClientFunc) {
+	dynSSH := func() (string, int, error) {
+		return "", 0, nil
 	}
-	dynClient = func() (client.Client, error) {
+
+	dynClient := func() (client.Client, error) {
 		return clienttest.NewClient(), nil
 	}
 
-	return
+	return dynSSH, dynClient
 }

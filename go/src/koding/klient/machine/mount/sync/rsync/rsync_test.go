@@ -7,12 +7,14 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/user"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	"koding/klient/machine"
+	"koding/klient/machine/client"
+	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/indextest"
 	"koding/klient/machine/mount"
@@ -49,58 +51,74 @@ func dumpArgs(w io.Writer) func(_ context.Context, args ...string) *exec.Cmd {
 }
 
 func TestRsyncArgs(t *testing.T) {
+	pkp, err := rsync.UserSSHPrivateKeyPath()
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	u, err := user.Current()
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	var (
+		sshShell   = "ssh -i " + pkp + " -oStrictHostKeyChecking=no"
+		remoteAddr = u.Username + "@127.0.0.1:/r/a/"
+	)
+
 	tests := map[string]struct {
 		Meta     index.ChangeMeta
 		Expected []string
 	}{
 		"file added locally": {
 			Meta:     index.ChangeMetaAdd | index.ChangeMetaLocal,
-			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", "user@127.0.0.1:/r/a/"},
+			Expected: []string{"-e", sshShell, "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", remoteAddr},
 		},
 		"file updated locally": {
 			Meta:     index.ChangeMetaUpdate | index.ChangeMetaLocal,
-			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", "user@127.0.0.1:/r/a/"},
+			Expected: []string{"-e", sshShell, "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", remoteAddr},
 		},
 		"file removed locally": {
 			Meta:     index.ChangeMetaRemove | index.ChangeMetaLocal,
-			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--delete", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", "user@127.0.0.1:/r/a/"},
+			Expected: []string{"-e", sshShell, "--delete", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "/c/a/", remoteAddr},
 		},
 		"file added remotely": {
 			Meta:     index.ChangeMetaAdd | index.ChangeMetaRemote,
-			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "user@127.0.0.1:/r/a/", "/c/a/"},
+			Expected: []string{"-e", sshShell, "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", remoteAddr, "/c/a/"},
 		},
 		"file updated remotely": {
 			Meta:     index.ChangeMetaUpdate | index.ChangeMetaRemote,
-			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "user@127.0.0.1:/r/a/", "/c/a/"},
+			Expected: []string{"-e", sshShell, "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", remoteAddr, "/c/a/"},
 		},
 		"file removed remotely": {
 			Meta:     index.ChangeMetaRemove | index.ChangeMetaRemote,
-			Expected: []string{"-e", "ssh -i /home/pk -oStrictHostKeyChecking=no", "--delete", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", "user@127.0.0.1:/r/a/", "/c/a/"},
+			Expected: []string{"-e", sshShell, "--delete", "--include='/b.txt'", "--exclude='*'", "-zlptgoDd", remoteAddr, "/c/a/"},
 		},
 	}
 
 	for name, test := range tests {
 		test := test // Capture range variable.
 		t.Run(name, func(t *testing.T) {
-			var buf bytes.Buffer
-
-			dynAddr := func(string) (machine.Addr, error) {
-				return machine.Addr{
-					Network: "ip",
-					Value:   "127.0.0.1",
-				}, nil
-			}
-
+			var (
+				buf    bytes.Buffer
+				client = func() (client.Client, error) {
+					return clienttest.NewClient(), nil
+				}
+				ssh = func() (string, int, error) {
+					return "127.0.0.1", 0, nil
+				}
+			)
 			opts := &msync.BuildOpts{
 				Mount:         mount.Mount{RemotePath: "/r"},
 				CacheDir:      "/c",
-				PrivKeyPath:   "/home/pk",
-				Username:      "user",
-				AddrFunc:      dynAddr,
+				ClientFunc:    client,
+				SSHFunc:       ssh,
 				IndexSyncFunc: func(*index.Change) {},
 			}
 
-			s := rsync.NewRsync(opts)
+			s, err := rsync.NewRsync(opts)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
 			s.Cmd = dumpArgs(&buf)
 
 			change := index.NewChange("a/b.txt", test.Meta)
@@ -122,7 +140,7 @@ func TestRsyncExec(t *testing.T) {
 	// instances and is caused by invalid ctimes set by rsync process despite
 	// --times option set. This happens randomly and doesn't not affect mount
 	// logic now.
-	t.Skip("TODO(ppknap): please fix me")
+	//	t.Skip("TODO(ppknap): please fix me")
 
 	if !testHasRsync {
 		t.Skip("rsync executable not found, skipping")
@@ -164,15 +182,20 @@ func TestRsyncExec(t *testing.T) {
 			indextest.Sync()
 
 			opts := &msync.BuildOpts{
-				Mount:    mount.Mount{RemotePath: remotePath},
-				CacheDir: cachePath,
-				AddrFunc: func(string) (_ machine.Addr, _ error) { return },
+				Mount:      mount.Mount{RemotePath: remotePath},
+				CacheDir:   cachePath,
+				ClientFunc: func() (client.Client, error) { return clienttest.NewClient(), nil },
+				SSHFunc:    func() (_ string, _ int, _ error) { return },
 				IndexSyncFunc: func(c *index.Change) {
 					idx.Sync(cachePath, c)
 				},
 			}
 
-			s := rsync.NewRsync(opts)
+			s, err := rsync.NewRsync(opts)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+
 			ctx, cancel, err := synctest.SyncLocal(s, remotePath, cachePath, 0)
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)

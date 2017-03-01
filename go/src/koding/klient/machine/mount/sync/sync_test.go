@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/mount"
@@ -25,7 +24,7 @@ func TestSyncNew(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	sA, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
+	sA, err := msync.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -70,7 +69,7 @@ func TestSyncNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	sB, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
+	sB, err := msync.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -108,7 +107,7 @@ func TestSyncDrop(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	s, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
+	s, err := msync.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -124,13 +123,13 @@ func TestSyncDrop(t *testing.T) {
 	}
 }
 
-func defaultSyncOpts(wd string) msync.SyncOpts {
-	return msync.SyncOpts{
-		AddrFunc: func(string) (machine.Addr, error) {
-			return machine.Addr{}, nil
-		},
+func defaultOptions(wd string) msync.Options {
+	return msync.Options{
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
+		},
+		SSHFunc: func() (host string, port int, err error) {
+			return "host", 0, nil
 		},
 		NotifyBuilder: silent.Builder{},
 		SyncBuilder:   discard.Builder{},
