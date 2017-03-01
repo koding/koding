@@ -18,6 +18,7 @@ import (
 var p = &provider.Provider{
 	Name:         "google",
 	ResourceName: "compute_instance",
+	Userdata:     "user-data",
 	Machine:      newMachine,
 	Stack:        newStack,
 	Schema: &provider.Schema{
