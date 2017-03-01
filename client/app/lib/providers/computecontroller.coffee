@@ -1,3 +1,4 @@
+debug                = (require 'debug') 'cc'
 globals              = require 'globals'
 Promise              = require 'bluebird'
 Encoder              = require 'htmlencode'
@@ -27,6 +28,7 @@ ContentModal         = require 'app/components/contentModal'
 runMiddlewares       = require 'app/util/runMiddlewares'
 SidebarFlux          = require 'app/flux/sidebar'
 whoami               = require 'app/util/whoami'
+ComputeStorage       = require './computestorage'
 
 TestMachineMiddleware = require './middlewares/testmachine'
 
@@ -56,19 +58,12 @@ module.exports = class ComputeController extends KDController
     { mainController, groupsController, router } = kd.singletons
 
     @ui = ComputeController_UI
-
-    do @reset
-
-    remote.once 'ready', =>
-      @disabled = getGroup().isDisabled()
-      do @reset  if @disabled
+    @storage = new ComputeStorage
 
     mainController.ready =>
 
-      @bindGroupStatusEvents()
-
-      @on 'MachineBuilt',             => do @reset
-      @on 'MachineDestroyed',         => do @reset
+      @on 'MachineBuilt',            (machineId) => @storage.push { machineId }
+      @on 'MachineDestroyed',        (machineId) => @storage.pop  { machineId }
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
@@ -79,14 +74,12 @@ module.exports = class ComputeController extends KDController
 
         @eventListener      = new ComputeEventListener
         @managedKiteChecker = new ManagedKiteChecker
-        @stateChecker       = new ComputeStateChecker
-
-        @stateChecker.machines = @machines
+        @stateChecker       = new ComputeStateChecker { @storage }
         @stateChecker.start()
 
         @createDefaultStack()
 
-        @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
+        @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
         @emit 'ready'
 
         @checkGroupStackRevisions()
@@ -97,17 +90,6 @@ module.exports = class ComputeController extends KDController
 
         @checkMachines()
 
-
-  bindGroupStatusEvents: ->
-
-    { groupsController } = kd.singletons
-
-    # /cc @cihangir: not sure if this is the right way to bind the event.
-    groupsController.on 'payment_status_changed', ({ oldStatus, newStatus }) =>
-      before = @disabled
-      @disabled = after = getGroup().isDisabled()
-
-      do @reset  if before isnt after
 
   # ComputeController internal helpers
   #
@@ -122,29 +104,13 @@ module.exports = class ComputeController extends KDController
 
 
   checkMachines: ->
-    @info machine  for machine in @machines when machine.isBuilt()
+    for machine in (@storage.get 'machines') when machine.isBuilt()
+      @info machine
 
 
   reset: (render = no, callback = -> ) ->
 
-    @stacks       = []
-    @machines     = []
-    @machinesById = {}
-    @stacksById   = {}
-    @plans        = null
-    @_trials      = {}
-
-    if render
-      environmentDataProvider = require 'app/userenvironmentdataprovider'
-      environmentDataProvider.fetch =>
-        @fetchStacks =>
-          @checkMachines()
-          @emit 'RenderMachines', @machines
-          @emit 'RenderStacks',   @stacks
-          callback null
-      , yes
-
-    return this
+    throw new Error { message: 'Deprecated!' }
 
 
   _clearTrialCounts: (machine) ->
@@ -228,17 +194,23 @@ module.exports = class ComputeController extends KDController
 
     (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
 
+      debug 'fetchStacks called'
+
       if @disabled
         callback null, []
         return
 
-      if @stacks.length > 0 and not force
-        callback null, @stacks
+      _stacks = @storage.get 'stacks'
+      if _stacks.length > 0 and not force
+        debug 'returning from cache', _stacks
+        callback null, _stacks
         return
 
       return  if (queue.push callback) > 1
 
       remote.api.JComputeStack.some {}, (err, stacks = []) =>
+
+        debug 'stacks from remote', err, stacks
 
         if err?
           cb err  for cb in queue
@@ -247,64 +219,35 @@ module.exports = class ComputeController extends KDController
 
         remote.api.JMachine.some {}, (err, _machines = []) =>
 
+          debug 'machines from remote', err, stacks
+
           if err?
             cb err  for cb in queue
             queue = []
             return
 
-          @machinesById = {}
-
           machines = []
           for machine in _machines
             machines.push machine = new Machine { machine }
-            @machinesById[machine._id] = machine
 
-          @stacksById = {}
           stacks.forEach (stack) =>
             stack.title    = Encoder.htmlDecode stack.title
             stack.machines = stack.machines
-              .filter (machineId) => @machinesById[machineId]
-              .map    (machineId) => @machinesById[machineId]
-            @stacksById[stack._id] = stack
+              .filter (mId) => @storage.query 'machines', '_id', mId
+              .map    (mId) => @storage.query 'machines', '_id', mId
 
           stacks = runMiddlewares.sync this, 'fetchStacks', stacks
 
-          @stacks   = stacks
-          @machines = machines
+          @storage.set 'stacks',   stacks
+          @storage.set 'machines', machines
 
           @checkStackRevisions()
-
-          @stateChecker?.machines = machines
           @stateChecker?.start()
 
-          globals.userMachines = machines
           @emit 'MachineDataUpdated'
 
           cb null, stacks  for cb in queue
           queue = []
-
-
-
-  fetchMachines: do (queue = []) ->
-
-    (callback = kd.noop) -> kd.singletons.mainController.ready =>
-
-      if @machines.length > 0
-        callback null, @machines
-        kd.info 'Machines returned from cache.'
-        return
-
-      return  if (queue.push callback) > 1
-
-      @fetchStacks (err) =>
-
-        if err?
-          cb err  for cb in queue
-          queue = []
-          return
-
-        cb null, @machines  for cb in queue
-        queue = []
 
 
   fetchMachine: (idOrUid, callback = kd.noop) ->
@@ -324,7 +267,8 @@ module.exports = class ComputeController extends KDController
   findStackFromRemoteData: (options) ->
 
     { commitId } = options
-    for stack in @stacks when _commitId = stack.config?.remoteDetails?.commitId
+    _stacks = @storage.get 'stacks'
+    for stack in _stacks when _commitId = stack.config?.remoteDetails?.commitId
       return stack  if ///^#{commitId}///.test _commitId
 
 
@@ -335,22 +279,21 @@ module.exports = class ComputeController extends KDController
 
 
   findMachineFromMachineId: (machineId) ->
-    return @machinesById[machineId]
+    return @storage.query 'machines', '_id', machineId
 
   findMachineFromMachineUId: (machineUId) ->
-    for machine in @machines when machine.uid is machineUId
-      return machine
+    return @storage.query 'machines', 'uid', machineUId
 
   findStackFromStackId: (stackId) ->
-    return @stacksById[stackId]
+    return @storage.query 'stacks', '_id', stacksId
 
   findStackFromMachineId: (machineId) ->
-    for stack in @stacks
+    for stack in @storage.get 'stacks'
       for machine in stack.machines
         return stack  if machine._id is machineId
 
   findStackFromTemplateId: (baseStackId) ->
-    return stack  for stack in @stacks when stack.baseStackId is baseStackId
+    return @storage.query 'stacks', 'baseStackId', baseStackId
 
   findMachineFromQueryString: (queryString) ->
 
@@ -358,7 +301,7 @@ module.exports = class ComputeController extends KDController
 
     kiteIdOnly = "///////#{queryString.split('/').reverse()[0]}"
 
-    for machine in @machines
+    for machine in @storage.get 'machines'
       return machine  if machine.queryString in [queryString, kiteIdOnly]
 
 
@@ -392,7 +335,8 @@ module.exports = class ComputeController extends KDController
 
     kallback = (err, machine) =>
       return callback err  if err?
-      @reset yes, -> callback null, machine
+      @storage.push { machine }
+      callback null, machine
 
     runMiddlewares this, 'create', options, (err, newOptions) ->
       if newOptions.shouldStop
@@ -414,18 +358,19 @@ module.exports = class ComputeController extends KDController
       { results : { machines } } = newStack
       [ machine ] = machines
 
-      @reset yes, =>
-        @reloadIDE machine.obj.slug
-        @checkGroupStacks()
+      @storage.push { stack }
+      @reloadIDE machine.obj.slug
+      @checkGroupStacks()
 
     mainController.ready =>
 
       if template
         template.generateStack {}, handleStackCreate
-      else if force or groupsController.currentGroupHasStack()
-        for stack in @stacks
+      else if force or groupHasStacks = groupsController.currentGroupHasStack()
+        for stack in @storage.get 'stacks'
           return  if stack.config?.groupStack
-        remote.api.ComputeProvider.createGroupStack handleStackCreate
+        if groupHasStacks
+          remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
 
@@ -486,9 +431,9 @@ module.exports = class ComputeController extends KDController
           remote.api.JWorkspace.deleteByUid machine.uid, (err) ->
             console.warn "couldn't delete workspace:", err  if err
 
-          @reset yes, ->
-            ideApp = envDataProvider.getIDEFromUId machine.uid
-            ideApp?.quit()
+          @storage.push { machine }
+          ideApp = envDataProvider.getIDEFromUId machine.uid
+          ideApp?.quit()
 
         return
 
@@ -807,6 +752,7 @@ module.exports = class ComputeController extends KDController
 
       if asStack
         if stack = @findStackFromStackId machineId
+          # FIXMERESET ~ GG
           @reset yes, =>
             stack.machines.forEach (machine) =>
               @triggerReviveFor machine._id
@@ -838,7 +784,7 @@ module.exports = class ComputeController extends KDController
     # TMS-1919: This is already written for multiple stacks, code change
     # might be required if existing flow changes ~ GG
 
-    @stacks.forEach (stack) =>
+    (@storage.get 'stacks').forEach (stack) =>
 
       stack.checkRevision (error, data) =>
 
@@ -883,7 +829,8 @@ module.exports = class ComputeController extends KDController
       reactor.dispatch 'UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
       SidebarFlux.actions.makeVisible 'draft', id
 
-    stacks = @stacks.filter (stack) -> stack.config?.clonedFrom is id
+    stacks = (@storage.get 'stacks').filter (stack) ->
+      stack.config?.clonedFrom is id
 
     stacks.forEach (stack) =>
       config = stack.config ?= {}
@@ -899,7 +846,7 @@ module.exports = class ComputeController extends KDController
     if whoami()._id is stackTemplate.originId
       SidebarFlux.actions.makeVisible 'draft', stackTemplate._id
 
-    stacks = @stacks.filter (stack) ->
+    stacks = (@storage.get 'stacks').filter (stack) ->
       stack.config?.clonedFrom is stackTemplate._id
 
     return  unless stacks.length
@@ -937,7 +884,8 @@ module.exports = class ComputeController extends KDController
       # TMS-1919: This can stay as is, but this time it will create the first
       # avaiable stacktemplate for who has no stacks yet. ~ GG
 
-      groupStacks = @stacks.filter (stack) -> stack.config?.groupStack
+      groupStacks = (@storage.get 'stacks').filter (stack) ->
+        stack.config?.groupStack
 
       @createDefaultStack yes  if groupStacks.length is 0
 
@@ -946,7 +894,7 @@ module.exports = class ComputeController extends KDController
 
   checkGroupStackRevisions: ->
 
-    return  if not @stacks?.length
+    return  if not (@storage.get 'stacks').length
 
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
@@ -960,7 +908,7 @@ module.exports = class ComputeController extends KDController
     # might be required ~ GG
 
     for stackTemplate in stackTemplates
-      for stack in @stacks when stack.baseStackId is stackTemplate
+      for stack in (@storage.get 'stacks') when stack.baseStackId is stackTemplate
         existents++
         break # only count one matched stack ~ GG
 
@@ -1016,7 +964,7 @@ module.exports = class ComputeController extends KDController
     # This is for admins only
     return  unless groupsController.canEditGroup()
 
-    @machines.forEach (machine) =>
+    (@storage.get 'machines').forEach (machine) =>
 
       { oldOwner, permissionUpdated } = machine.jMachine.meta
 
@@ -1024,7 +972,7 @@ module.exports = class ComputeController extends KDController
       return  if not machine.isRunning()
       return  if machine.isManaged()
 
-      @storage.fetchValue 'ignoredMachines', (ignoredMachines) =>
+      @appStorage.fetchValue 'ignoredMachines', (ignoredMachines) =>
         ignoredMachines ?= {}
         return  if ignoredMachines[machine.uid]
 
@@ -1106,7 +1054,7 @@ module.exports = class ComputeController extends KDController
   ###
   getGroupStack: ->
 
-    return null  if not @stacks?.length
+    return null  if not (@storage.get 'stacks').length
 
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
@@ -1115,10 +1063,10 @@ module.exports = class ComputeController extends KDController
     return null  if not stackTemplates?.length
 
     for stackTemplate in stackTemplates
-      for stack in @stacks when stack.baseStackId is stackTemplate
+      for stack in (@storage.get 'stacks') when stack.baseStackId is stackTemplate
         return stack
 
-    for stack in @stacks when stack.config?.groupStack
+    for stack in (@storage.get 'stacks') when stack.config?.groupStack
       return stack
 
     return null
@@ -1213,7 +1161,7 @@ module.exports = class ComputeController extends KDController
 
     if not stack
 
-      if @stacks?.length
+      if (@storage.get 'stacks').length
         new kd.NotificationView
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
@@ -1256,17 +1204,16 @@ module.exports = class ComputeController extends KDController
             callback err
             return showError err
 
-          @reset()
+          @storage.pop { stack }
 
-            .once 'RenderStacks', (stacks = []) ->
-              notification.destroy()
-              Tracker.track Tracker.STACKS_REINIT, {
-                customEvent :
-                  stackId   : stack._id
-                  group     : getGroup().slug
-              }
-              new kd.NotificationView { title : 'Stack reinitialized' }
-              callback()
+          notification.destroy()
+          Tracker.track Tracker.STACKS_REINIT, {
+            customEvent :
+              stackId   : stack._id
+              group     : getGroup().slug
+          }
+          new kd.NotificationView { title : 'Stack reinitialized' }
+          callback()
 
           if template and not groupStack
           then @createDefaultStack no, template
@@ -1281,7 +1228,7 @@ module.exports = class ComputeController extends KDController
   handleStackAdminMessageCreated: (data) ->
 
     { stackIds, message, type } = data.contents
-    for stackId in stackIds when stack = @stacksById[stackId]
+    for stackId in stackIds when stack = @findStackFromStackId stackId
       stack.config ?= {}
       stack.config.adminMessage = { message, type }
 
@@ -1290,7 +1237,7 @@ module.exports = class ComputeController extends KDController
 
   handleStackAdminMessageDeleted: (stackId) ->
 
-    stack = @stacksById[stackId]
+    stack = @findStackFromStackId stackId
     return  if not stack or not stack.config
 
     delete stack.config.adminMessage
@@ -1356,6 +1303,7 @@ module.exports = class ComputeController extends KDController
     ComputeHelpers.infoTest machine
 
 
+  # FIXMERESET ~ GG
   handleChangesOverAPI: (change) -> @reset yes, =>
 
     # TODO implement better next to flows here ~ GG

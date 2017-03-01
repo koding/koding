@@ -14,10 +14,13 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
     kd.singletons.computeController._kloudDebug
 
   getMachineProvider = (machineId) ->
-    kd.singletons.computeController.machinesById[machineId]?.provider
+    cc = kd.singletons.computeController
+    machine = cc.findMachineFromMachineId machineId
+    return machine?.provider
 
   getStackProvider = (stackId) ->
-    return  unless stack = kd.singletons.computeController.stacksById[stackId]
+    stack = kd.singletons.computeController.findStackFromStackId stackId
+    return  unless stack
     for provider in stack.config.requiredProviders
       return provider  if provider in SUPPORTED_PROVIDERS
 

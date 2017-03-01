@@ -167,7 +167,7 @@ module.exports = class ComputeHelpers
     kloud   = cc.getKloud()
     { now } = Date
 
-    machine     ?= cc.machines.first
+    machine     ?= (cc.storage.get 'machines').first
     machineId    = machine._id
     currentState = machine.status.state
 
