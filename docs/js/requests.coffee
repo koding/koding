@@ -2,8 +2,17 @@
 ---
 
 utils = window.KODING_UTILS ?= {}
+utils.KODING_URL = \
+  {% if jekyll.environment == 'production' %}'https://koding.com'{% else %}'http://dev.koding.com:8090'{% endif %}
 
 do ->
+
+  intercomSupport = -> new Promise (resolve, reject) ->
+    $.ajax
+      url: "#{utils.KODING_URL}/-/intercomlauncher"
+      type: 'GET'
+      success: resolve
+      error: reject
 
   getPermission = -> new Promise (resolve, reject) ->
     $.ajax
@@ -21,6 +30,7 @@ do ->
       error: reject
 
   utils.requests = {
+    intercomSupport
     getPermission
     createTeam
   }

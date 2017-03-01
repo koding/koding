@@ -2,7 +2,7 @@ kd                     = require 'kd'
 whoami                 = require 'app/util/whoami'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 fetchIntercomKey       = require 'app/util/fetchIntercomKey'
-supportedLanguages     = require 'app/util/supportedLanguages'
+intercomSupport        = require 'app/util/intercomSupport'
 
 module.exports = setupIntercom = ->
 
@@ -37,9 +37,10 @@ module.exports = setupIntercom = ->
 
       account = whoami()
       account.fetchEmail (err, email) ->
-        window.Intercom 'boot',
-          app_id  : intercomAppId
-          name    : getFullnameFromAccount account
-          email   : email
-          user_id : account._id
-          hide_default_launcher : not supportedLanguages
+        intercomSupport (isSupported) ->
+          window.Intercom 'boot',
+            app_id  : intercomAppId
+            name    : getFullnameFromAccount account
+            email   : email
+            user_id : account._id
+            hide_default_launcher : not isSupported
