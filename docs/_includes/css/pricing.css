@@ -14,6 +14,7 @@ body {
   line-height: 1;
   color: #000;
   background: #fff;
+  padding-top: 46px;
 }
 
 ol, ul {
@@ -344,7 +345,7 @@ a:hover {
   text-align: center;
   min-height: 400px;
   padding: 6rem 2rem 0;
-  margin-top: 70px;
+  margin-top: 22px;
 }
 
 .m-hero--pricing {
@@ -1242,7 +1243,7 @@ a:hover {
 }
 @media (max-width: 991px) {
   .m-hero {
-    margin-top: 47px;
+    margin-top: 0;
   }
 }
 

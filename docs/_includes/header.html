@@ -24,8 +24,6 @@
   </a>
   <a href="#" class="remove-burger">
     <svg width="20px" height="15px" viewBox="330 28 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <!-- Generator: Sketch 40.3 (33839) - http://www.bohemiancoding.com/sketch -->
-        <desc>Created with Sketch.</desc>
         <defs></defs>
         <path d="M340.424621,34.0104076 L334.414214,28 L333,29.4142136 L339.010408,35.4246212 L333,41.4350288 L334.414214,42.8492424 L340.424621,36.8388348 L346.435029,42.8492424 L347.849242,41.4350288 L341.838835,35.4246212 L347.849242,29.4142136 L346.435029,28 L340.424621,34.0104076 Z" id="Combined-Shape" stroke="none" fill="#59A1C1" fill-rule="evenodd"></path>
     </svg>
@@ -68,7 +66,7 @@
   {% endif %}
   {% if include.exclude_main_nav %}
   {% else %}
-  <div class="item-set">
+  <div class="Homepage-HeaderPageTabs">
     <a class="item{% if '/features' == page.url or '/features' contains page.parent %} active{% endif %}" href="{{ site.url }}/features">FEATURES</a>
     <a class="item{% if '/pricing' == page.url or '/pricing' contains page.parent %} active{% endif %}" href="{{ site.url }}/pricing">PRICING</a>
     <a class="item{% if '/about' == page.url or '/about' contains page.parent %} active{% endif %}" href="{{ site.url }}/about">ABOUT</a>
@@ -85,7 +83,7 @@
   {% endif %}
 
   {% if include.with_signup_form %}
-  <div class="user-set">
+  <div class="Homepage-HeaderSignups">
     <a class="item" href="https://koding.com/Teams/Select">LOGIN</a>
     <a class="signup" href="/demo"><span>Request a Demo</span></a>
   </div>

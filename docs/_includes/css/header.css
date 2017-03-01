@@ -29,7 +29,7 @@ body {
 .Homepage-Header .logo svg {
   width: 99px;
   min-width: 99px;
-  margin-top: -8px;
+  margin-top: -1px;
 }
 .Homepage-Header .logo svg * {
   fill: white
@@ -54,16 +54,18 @@ body {
   margin: 10px;
 }
 
-.Homepage-Header .item-set {
+.Homepage-Header .Homepage-HeaderPageTabs {
   display: flex;
   height: 100%;
   flex-grow: 4;
+  background-color: transparent;
 }
 
-.Homepage-Header .user-set {
+.Homepage-Header .Homepage-HeaderSignups {
   display: flex;
   height: 100%;
   flex-grow: 1;
+  background-color: transparent;
 }
 
 .Homepage-Header .item {
@@ -267,13 +269,13 @@ body {
 
   .burgerToggle .Homepage-HeaderWrapper .logo {
     height: 26px;
-    flex: 1 20%;
+    flex: 1 50%;
     justify-content: flex-start;
     padding-left: 20px;
   }
 
   .burgerToggle .Homepage-HeaderWrapper .remove-burger {
-    flex: 1 20%;
+    flex: 1 10%;
     justify-content: flex-end;
     display: flex;
     padding-right: 54px;
@@ -299,40 +301,45 @@ body {
     display: block;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .item-set {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs {
     flex: 3;
     padding-left: 40px;
-    padding-top: 15px;
+    padding-top: 20px;
     padding-bottom: 15px;
-    background-color: #FAFBFD;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .item-set .item {
+  .burgerToggle .light .Homepage-HeaderWrapper .Homepage-HeaderPageTabs,
+  .burgerToggle .light .Homepage-HeaderWrapper .Homepage-HeaderSignups {
+    background-color: #FAFBFD;
+    line-height: 18px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs .item {
     flex: 1 0 25%;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .user-set {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups {
     flex: 2;
     padding-right: 40px;
     justify-content: center;
     padding-top: 15px;
     padding-bottom: 19px;
-    background-color: #FAFBFD;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .user-set .item,
-  .burgerToggle .Homepage-HeaderWrapper .user-set .signup {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .item,
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
     flex: none;
     max-width: none;
     order: 1;
     border: 1px solid #ccc;
-    margin: 5px 6px 0;
+    margin: 9px 6px 0;
     height: auto;
-    padding: 14px 32px 12px;
+    padding: 11px 32px 9px;
     border-radius: 6px;
   }
-  .burgerToggle .Homepage-HeaderWrapper .user-set .signup {
-    padding: 14px 20px 12px;
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
+    padding: 11px 20px;
+    height: 40px;
   }
 
   .burgerToggle .Homepage-HeaderWrapper .searchBox,
@@ -424,8 +431,9 @@ body {
   .burgerToggle .Homepage-HeaderWrapper .searchBox {
     padding-left: 43px;
   }
-  .burgerToggle .Homepage-HeaderWrapper .item-set {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs {
     padding-left: 21px;
+    padding-right: 10px;
   }
   .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a {
     padding-left: 39px;
@@ -459,13 +467,13 @@ body {
     display: none;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .user-set .item, .burgerToggle .Homepage-HeaderWrapper .user-set .signup {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .item, .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
     flex: 1 50%;
     box-sizing: border-box;
     text-align: center;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .item-set {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs {
     flex: 1 100%;
     padding-left: 5px;
     padding-right: 0;
@@ -481,12 +489,12 @@ body {
     margin-right: 17px;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .user-set {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups {
     flex: 1 100%;
     padding: 9px 19px 19px 19px;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .user-set .signup {
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
     display: block;
   }
 }
@@ -602,5 +610,21 @@ body {
   .Homepage-Header .logo svg {
     margin-top: 0;
   }
+}
+
+.overlay {
+  display: none;
+}
+
+body.burgerToggle .overlay {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,.5);
 }
 
