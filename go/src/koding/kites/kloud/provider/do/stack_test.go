@@ -174,6 +174,7 @@ func TestStack_ApplyTemplate(t *testing.T) {
 
 			s := &Stack{
 				BaseStack: &provider.BaseStack{
+					Provider: Provider,
 					Session: &session.Session{
 						Userdata: &userdata.Userdata{
 							KlientURL: "http://127.0.0.1/klient.gz",
@@ -239,7 +240,7 @@ func newDoBaseStack() (*provider.BaseStack, error) {
 	}
 
 	return &provider.BaseStack{
-		Provider: doProvider,
+		Provider: Provider,
 		Req: &kite.Request{
 			Username: "testuser",
 		},
