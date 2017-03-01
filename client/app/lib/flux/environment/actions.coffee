@@ -241,6 +241,7 @@ rejectInvitation = (machine) ->
       else 'SHARED_VM_INVITATION_REJECTED'
 
       kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
+      # FIXMERESET ~ GG
       kd.singletons.computeController.reset callback
 
   ])
@@ -638,6 +639,7 @@ generateStack = (stackTemplateId) ->
         .then ({ stack, template }) ->
           { results : { machines } } = stack
           [ machine ] = machines
+          # FIXMERESET ~ GG
           computeController.reset yes, ->
             computeController.reloadIDE machine.obj.slug
             new kd.NotificationView { title: 'Stack generated successfully' }
@@ -718,6 +720,7 @@ deleteStack = ({ stackTemplateId, stack }) ->
         reactor.dispatch actions.REMOVE_STACK, _stack._id
 
         computeController
+          # FIXMERESET ~ GG
           .reset yes
           .once 'RenderStacks', ->
             loadTeamStackTemplates()  unless teamStackTemplatesStore.size
