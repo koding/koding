@@ -64,8 +64,8 @@ module.exports = class Sidebar extends React.Component
 
       EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
-      EnvironmentFlux.actions.loadTeamStackTemplates()
-      EnvironmentFlux.actions.loadPrivateStackTemplates()
+      # EnvironmentFlux.actions.loadTeamStackTemplates()
+      # EnvironmentFlux.actions.loadPrivateStackTemplates()
 
     # These listeners needs to be listen those events only once ~ GG
     kd.singletons.notificationController
