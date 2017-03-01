@@ -25,50 +25,13 @@ cssClass='light' %}
   </div>
   <div class="docs__index">
     <div class="docs__index__items">
-      <div class="docs__index__item">
-        <div class="docs__index__item__icon">
-          <a href="/docs/product-walkthrough"><svg data-icon-name="icon-product" class="icon"><use xlink:href="#icon-product"></use></svg></a>
-        </div>
-        <div class="docs__index__item__content">
-          <div class="docs__index__item__title">Watch Product</div>
-          <div class="docs__index__item__links">
-            New to cloud computing? Watch the curated videos.
-          </div>
-        </div>
-      </div>
-      <div class="docs__index__item">
-        <div class="docs__index__item__icon">
-          <a href="/docs/creating-an-aws-stack"><svg data-icon-name="icon-train" class="icon"><use xlink:href="#icon-train"></use></svg></a>
-        </div>
-        <div class="docs__index__item__content">
-          <div class="docs__index__item__title">Train Yourself</div>
-          <div class="docs__index__item__links">
-            New to cloud computing? Watch the curated videos.
-          </div>
-        </div>
-      </div>
-      <div class="docs__index__item">
-        <div class="docs__index__item__icon">
-          <a href="/docs/connect-your-own-machine"><svg data-icon-name="icon-blocks" class="icon"><use xlink:href="#icon-blocks"></use></svg></a>
-        </div>
-        <div class="docs__index__item__content">
-          <div class="docs__index__item__title">Koding 101</div>
-          <div class="docs__index__item__links">
-            New to Koding? Start from the basics.
-          </div>
-        </div>
-      </div>
-      <div class="docs__index__item">
-        <div class="docs__index__item__icon">
-          <a href="/docs/how-to-share-your-vm-with-someone"><svg data-icon-name="icon-collaborate" class="icon"><use xlink:href="#icon-collaborate"></use></svg></a>
-        </div>
-        <div class="docs__index__item__content">
-          <div class="docs__index__item__title">Collaborate</div>
-          <div class="docs__index__item__links">
-            Want to work together? Invite your teammates.
-          </div>
-        </div>
-      </div>
+      {% include docs-indexitem.html data="product-walkthrough||product||Watch Product||See what Koding can do for your dev environments!" %}
+
+      {% include docs-indexitem.html data="creating-an-aws-stack||train||Train Yourself||New to cloud computing? Watch the curated videos." %}
+
+      {% include docs-indexitem.html data="connect-your-own-machine||blocks||Koding 101||New to Koding? Start from the basics." %}
+
+      {% include docs-indexitem.html data="how-to-share-your-vm-with-someone||collaborate||Collaborate||Want to work together? Invite your teammates." %}
     </div>
   </div>
   <div class="docs__index__body">
@@ -98,11 +61,9 @@ cssClass='light' %}
       </div>
     </div>
   </div>
-  <div class="docs__index__action">
-    <div class="docs__index__action__copy">Developers love Koding because<br />they can still use the IDEs and services they love.</div>
 
-    <button>GET STARTED</button>
-  </div>
+  {% include docs-getstarted.html %}
+
 </section>
 <script type="text/javascript" src="{{ site.url }}/js/nav-terraform.js"></script>
 <script>

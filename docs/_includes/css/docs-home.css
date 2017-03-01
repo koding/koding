@@ -201,32 +201,6 @@
   width: 50%;
 }
 
-.docs__index__action {
-  background-color: #000000;
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 32px;
-  text-align: center;
-  padding: 71px;
-}
-
-.docs__index__action__copy {
-  margin: 0 auto;
-  width: 710px;
-  line-height: 46px;
-}
-
-.docs__index__action button {
-  background-color: #f2778a;
-  border: 0;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  padding: 12px 69px;
-  margin-top: 24px;
-}
-
 .docs__index__results {
   right: 0;
 }
@@ -293,10 +267,6 @@
 
   .docs__index__item {
     width: 50%;
-  }
-
-  .docs__index__action__copy {
-    width: 100%;
   }
 }
 
