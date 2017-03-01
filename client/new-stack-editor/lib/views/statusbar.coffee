@@ -12,6 +12,12 @@ module.exports = class Statusbar extends JView
 
     super options, data
 
+    @switchButton = new kd.CustomHTMLView
+      partial: 'USE OLD STACK EDITOR'
+      cssClass: 'old-stack-editor'
+      click: ->
+        kd.singletons.mainController.useNewStackEditor no
+
 
   pistachio: ->
-    '{h3{#(title)}} <span>Line {{#(row)}}, Column {{#(column)}}</span>'
+    '{h3{#(title)}} <span>Line {{#(row)}}, Column {{#(column)}}</span> {{> @switchButton}}'
