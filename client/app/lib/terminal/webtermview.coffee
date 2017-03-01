@@ -94,12 +94,6 @@ module.exports = class WebTermView extends KDCustomScrollView
         if event.status is Stopped
           @messagePane.handleError { message: 'ErrNoSession' }
 
-    # Listen for resize events to show an error after a resize has
-    # finished. This provides same UX as a stopped machine (above).
-    computeController.on "resize-#{machineId}", (event) =>
-      if event.percentage is 100
-        @messagePane.handleError { message: 'ErrNoSession' }
-
     @setKeyView()
 
     @addSubView @messagePane = new WebTermMessagePane

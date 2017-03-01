@@ -15,10 +15,10 @@ dataToLoadIDE =
   channelId   : '6075644514008039523'
 
 ROUTE_PARAMS           =
-  machine              : { params: { machineLabel: 'koding-vm-0' } }
+  machine              : { params: { machineLabel: 'aws-vm-0' } }
   noMachine            : { params: { machineLabel: 'not-existing-machine' } }
-  workspace            : { params: { machineLabel: 'koding-vm-0', workspaceSlug: 'my-workspace' } }
-  noWorkspace          : { params: { machineLabel: 'koding-vm-0', workspaceSlug: 'not-existing-workspace' } }
+  workspace            : { params: { machineLabel: 'aws-vm-0', workspaceSlug: 'my-workspace' } }
+  noWorkspace          : { params: { machineLabel: 'aws-vm-0', workspaceSlug: 'not-existing-workspace' } }
   collaboration        : { params: { machineLabel: '6075649037833338981' } }
   noMachineNoWorkspace : { params: { machineLabel: 'not-existing-machine', workspaceSlug: 'not-existing-workspace' } }
 
@@ -56,7 +56,7 @@ describe 'IDE.routes', ->
         createSpyAndAssert routes, 'routeToLatestWorkspace', 'home'
 
 
-    describe 'when machine, eg. /IDE/6075649037833338981 or /IDE/koding-vm-0', ->
+    describe 'when machine, eg. /IDE/6075649037833338981 or /IDE/aws-vm-0', ->
 
       it 'should loadCollaborativeIDE if machine label is all digits which we assume it is a channel id related with a collaboration session', ->
 
@@ -85,7 +85,7 @@ describe 'IDE.routes', ->
         expect(routes.routeToLatestWorkspace).toHaveBeenCalled()
 
 
-    describe 'when workspace, eg. IDE/koding-vm-0/my-workspace', ->
+    describe 'when workspace, eg. IDE/aws-vm-0/my-workspace', ->
 
       it 'should fetchMachine for the given machine id', ->
 
@@ -264,9 +264,9 @@ describe 'IDE.routes', ->
   describe '.routeToMachineWorkspace', ->
 
 
-    it 'should route to /IDE/koding-vm-0/foo-workspace if latestWorkspace found', ->
+    it 'should route to /IDE/aws-vm-0/foo-workspace if latestWorkspace found', ->
 
-      expectedRoute = '/IDE/koding-vm-0/foo-workspace'
+      expectedRoute = '/IDE/aws-vm-0/foo-workspace'
 
       mock.ideRoutes.getLatestWorkspace.toReturnWorkspace()
       expect.spyOn kd.singletons.router, 'handleRoute'
@@ -275,9 +275,9 @@ describe 'IDE.routes', ->
 
       expect(kd.singletons.router.handleRoute).toHaveBeenCalledWith expectedRoute
 
-    it 'should route to /IDE/koding-vm-0/my-workspace if latestWorkspace not found', ->
+    it 'should route to /IDE/aws-vm-0/my-workspace if latestWorkspace not found', ->
 
-      expectedRoute = '/IDE/koding-vm-0/my-workspace'
+      expectedRoute = '/IDE/aws-vm-0/my-workspace'
 
       mock.ideRoutes.getLatestWorkspace.toReturnNull()
       expect.spyOn kd.singletons.router, 'handleRoute'
@@ -322,9 +322,9 @@ describe 'IDE.routes', ->
       expect(dataProvider.fetchMachineByLabel).toHaveBeenCalled()
 
 
-    it 'should route to /IDE/koding-vm-0/foo-workspace after fetching the machine', ->
+    it 'should route to /IDE/aws-vm-0/foo-workspace after fetching the machine', ->
 
-      expectedRoute = '/IDE/koding-vm-0/foo-workspace'
+      expectedRoute = '/IDE/aws-vm-0/foo-workspace'
 
       mock.ideRoutes.getLatestWorkspace.toReturnWorkspace()
       mock.envDataProvider.fetchMachineByLabel.toReturnMachineAndWorkspace()

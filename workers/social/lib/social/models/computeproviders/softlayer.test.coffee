@@ -9,8 +9,6 @@
 { fetchUserPlan }           = require './computeutils'
 { fetchMachinesByUsername } = require \
   '../../../../testhelper/models/computeproviders/machinehelper'
-{ createSnapshot }          = require \
-  '../../../../testhelper/models/computeproviders/snapshothelper'
 
 JMachine     = require './machine'
 Softlayer    = require './softlayer'

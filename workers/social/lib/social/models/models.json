@@ -9,7 +9,6 @@
   "Kloud": "/computeproviders/kloud.coffee",
   "JMachine": "/computeproviders/machine.coffee",
   "JProvisioner": "/computeproviders/provisioner.coffee",
-  "JSnapshot": "/computeproviders/snapshot.coffee",
   "JStackTemplate": "/computeproviders/stacktemplate.coffee",
   "JCounter": "/counter.coffee",
   "JCustomPartials": "/custompartials.coffee",

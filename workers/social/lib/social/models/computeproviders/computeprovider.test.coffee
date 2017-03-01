@@ -177,18 +177,6 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
         , done
 
 
-  describe '::fetchUsage', ->
-
-    it 'should be able to fetch the usage', (done) ->
-
-      withConvertedUserAndCredential ({ client, credential }) ->
-        options = { credential, provider : 'aws' }
-        ComputeProvider.fetchUsage client, options, (err, usage) ->
-          expect(err).to.not.exist
-          expect(usage).to.be.an 'object'
-          done()
-
-
   describe '::updateGroupStackUsage', ->
 
     testGroup = null

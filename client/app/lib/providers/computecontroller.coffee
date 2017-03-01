@@ -95,7 +95,7 @@ module.exports = class ComputeController extends KDController
           @on 'RenderMachines', @bound 'checkMachinePermissions'
           @checkMachinePermissions()
 
-        @info machine for machine in @machines
+        @checkMachines()
 
 
   bindGroupStatusEvents: ->
@@ -121,6 +121,10 @@ module.exports = class ComputeController extends KDController
       username     : globals.config.kites.kontrol.username
 
 
+  checkMachines: ->
+    @info machine  for machine in @machines when machine.isBuilt()
+
+
   reset: (render = no, callback = -> ) ->
 
     @stacks       = []
@@ -134,7 +138,7 @@ module.exports = class ComputeController extends KDController
       environmentDataProvider = require 'app/userenvironmentdataprovider'
       environmentDataProvider.fetch =>
         @fetchStacks =>
-          @info machine for machine in @machines
+          @checkMachines()
           @emit 'RenderMachines', @machines
           @emit 'RenderStacks',   @stacks
           callback null
@@ -158,14 +162,6 @@ module.exports = class ComputeController extends KDController
 
     if provider is 'managed'
       return NotSupported
-
-    if method?
-      switch method
-        when 'reinit'
-          return NotSupported
-        when 'createSnapshot'
-          return NotSupported
-
 
 
   errorHandler: (call, task, machine) ->
@@ -370,10 +366,6 @@ module.exports = class ComputeController extends KDController
     remote.api.ComputeProvider.fetchAvailable options, callback
 
 
-  fetchUsage: (options, callback) ->
-    remote.api.ComputeProvider.fetchUsage options, callback
-
-
   fetchRewards: (options, callback) ->
 
     { unit } = options
@@ -526,102 +518,6 @@ module.exports = class ComputeController extends KDController
     @ui.askFor 'destroy', { machine, force }, (status) ->
       return  unless status.confirmed
       destroy machine
-
-
-  reinit: (machine, snapshotId) ->
-
-    return  if methodNotSupportedBy machine, 'reinit'
-
-    startReinit = =>
-
-      machine.getBaseKite( no ).disconnect()
-
-      call = @getKloud().reinit { machineId: machine._id, snapshotId }
-
-      .then (res) =>
-
-        @_force = no
-
-        kd.log 'reinit res:', res
-        @emit 'MachineBeingDestroyed', machine
-        @_clearTrialCounts machine
-        @eventListener.addListener 'reinit', machine._id
-
-      .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-      .catch (err) =>
-
-        (@errorHandler call, 'reinit', machine) err
-
-    # A shorthand for ComputeController_UI Askfor
-    askFor = (action, callback = kd.noop) =>
-      @ui.askFor action, { machine, force: @_force }, (status) ->
-        return  unless status.confirmed
-        callback status
-
-    { JSnapshot }     = remote.api
-    jMachine          = machine.data
-    machineSnapshotId = jMachine?.meta?.snapshotId
-
-    # If a machineSnapshotId exists, we need to validate that the
-    # actual *snapshot* belonging to that Id still exists.
-    # If the caller supplied a snapshotId, we don't need to bother
-    # validating it.
-    validateMachineSnapshot = machineSnapshotId and not snapshotId
-
-    # If we don't need to validate the Machine Snapshot,
-    # askFor a normal reinit
-    unless validateMachineSnapshot
-      return askFor 'reinit', startReinit
-
-    # We need to validate that the machineSnapshotId still exists
-    JSnapshot.one machineSnapshotId, (err, snapshot) ->
-      kd.error err  if err
-
-      # If the snapshot exists in mongo, askFor a normal reinit
-      # otherwise, make sure they understand that they are
-      # reinitializing to a base image.
-      if snapshot
-      then askFor 'reinit', startReinit
-      else askFor 'reinitNoSnapshot', startReinit
-
-
-  resize: (machine, resizeTo = 10) ->
-
-    return  if methodNotSupportedBy machine, 'resize'
-
-    @ui.askFor 'resize', {
-      machine, force: @_force, resizeTo
-    }, (status) =>
-
-      return  unless status.confirmed
-
-      @update machine, { resize: resizeTo }, (err) =>
-
-        if err and err.name isnt 'SameValueForResize'
-          return  showError err
-
-        @eventListener.triggerState machine,
-          status      : Machine.State.Pending
-          percentage  : 0
-
-        machine.getBaseKite( no ).disconnect()
-
-        call = @getKloud().resize { machineId: machine._id }
-
-        .then (res) =>
-
-          @_force = no
-
-          kd.log 'resize res:', res
-          @_clearTrialCounts machine
-          @eventListener.addListener 'resize', machine._id
-
-        .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-        .catch (err) =>
-
-          (@errorHandler call, 'resize', machine) err
 
 
   build: (machine) ->
@@ -853,44 +749,6 @@ module.exports = class ComputeController extends KDController
 
     for machine in stack.machines
       @stop machine  if machine.isRunning()
-
-
-  # Snapshots
-  #
-
-  ###*
-   * Create a snapshot for the given machine. For progress updates,
-   * subscribe to computeController's `"createSnapshot-#{machine._id}"`
-   * event.
-   *
-   * @param {Machine} machine - The Machine to create a snapshot from
-   * @param {String} label - The label (name) of the snapshot
-   * @return {Promise}
-   * @emits ComputeController~createSnapshot-machineId
-  ###
-  createSnapshot: (machine, label) ->
-
-    return  if methodNotSupportedBy machine, 'createSnapshot'
-
-    @eventListener.triggerState machine,
-      status      : Machine.State.Snapshotting
-      percentage  : 0
-
-    # Do we plan to stop machine before snapshot starts? ~ GG
-    # machine.getBaseKite( createIfNotExists = no ).disconnect()
-
-    call = @getKloud().createSnapshot { machineId: machine._id, label }
-
-      .then (res) =>
-
-        kd.log 'createSnapshot res:', res
-        @eventListener.addListener 'createSnapshot', machine._id
-
-      .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-      .catch (err) =>
-
-        (@errorHandler call, 'createSnapshot', machine) err
 
 
   # Domain management
@@ -1148,7 +1006,7 @@ module.exports = class ComputeController extends KDController
         .then (shared) ->
           new kd.NotificationView { title: 'Permissions fixed' }
         .catch (err) ->
-          showError err, 'Failed to fix permissions'
+          showError err
 
 
   checkMachinePermissions: ->
@@ -1183,7 +1041,7 @@ module.exports = class ComputeController extends KDController
     provided = stack.credentials
     missings = []
 
-    for provider in requiredProviders when provider isnt 'koding'
+    for provider in requiredProviders
       missings.push provider  unless provided[provider]?
 
     if 'userInput' in missings
@@ -1436,16 +1294,6 @@ module.exports = class ComputeController extends KDController
     return  if not stack or not stack.config
 
     delete stack.config.adminMessage
-
-
-  fetchSoloMachines: (callback) ->
-
-    return callback null, @_soloMachines  if @_soloMachines
-
-    remote.api.ComputeProvider.fetchSoloMachines (err, res) =>
-      @_soloMachines = res?.machines ? []
-      kd.warn err  if err
-      callback null, @_soloMachines
 
 
   deleteStackTemplate: (template) ->

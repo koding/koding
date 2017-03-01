@@ -4,7 +4,7 @@ remote = require 'app/remote'
 module.exports = (machine) ->
 
   switch machine.get 'provider'
-    when 'koding', 'managed'
+    when 'managed'
       return machine.get('credential')
     else # Use users array for other types of providers ~ GG
       jMachine = remote.revive machine.toJS()

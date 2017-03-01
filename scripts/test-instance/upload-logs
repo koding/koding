@@ -1,22 +1,24 @@
 #!/bin/bash
 
-REPOSITORY_PATH=/opt/koding
-LOG_PATH=$REPOSITORY_PATH/.logs
-INSTANCE_ID=$(ec2metadata | grep instance-id | awk '{print $2}')
+set -o errexit
 
-ACCESS_KEY=$2
-SECRET_KEY=$3
+declare instance_data_file=$1
 
-BUCKET="kodingdev-test-instance-logs"
-PREFIX=$1
-DESTINATION="s3://$BUCKET/$PREFIX/$INSTANCE_ID"
+declare scripts=$(dirname $0)/..
 
-if [ -z "$PREFIX" ]; then
-	echo 'error: prefix parameter is not given'
-	exit 1
+if [ "$WERCKER_RESULT" = "passed" ]; then
+	exit 0
 fi
 
-S3CMD_OPTIONS="--human-readable-sizes --follow-symlinks --quiet"
+cat $instance_data_file | awk '{print $2}' \
+	| xargs -n 1 \
+		-I HOST \
+		$KONFIG_PROJECTROOT/scripts/test-instance/ssh HOST \
+		"sudo /opt/koding/run exec \
+			/opt/koding/scripts/test-instance/s3cmd-upload-logs $2"
 
-s3cmd --access_key=$ACCESS_KEY --secret_key=$SECRET_KEY put $S3CMD_OPTIONS --recursive $LOG_PATH/ $DESTINATION/
-s3cmd --access_key=$ACCESS_KEY --secret_key=$SECRET_KEY put $S3CMD_OPTIONS /var/log/cloud-init-output.log $DESTINATION/
+cat - <<EOF
+You can view logs at s3://kodingdev-test-instance-logs/$2/
+EOF
+
+exit 0

@@ -13,7 +13,7 @@ generateMachineParams = (client, opts, callback) ->
   [opts, callback] = [callback, opts]  unless callback
 
   reviveClient client, (err, data) ->
-    data.provider = 'koding'
+    data.provider = 'aws'
     data          = _.extend data, opts
     callback err, data
 

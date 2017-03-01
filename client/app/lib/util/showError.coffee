@@ -1,46 +1,43 @@
 kd = require 'kd'
+sendDataDogEvent = require 'app/util/sendDataDogEvent'
+showNotification = require './showNotification'
 
-KDNotificationView = kd.NotificationView
-
-fn = (err, messages) ->
+fn = (err) ->
   return no  unless err
 
   if Array.isArray err
     @fn er  for er in err
     return err.length
 
-  if 'string' is typeof err
-    message = err
-    err     = { message }
+  message = 'Something went wrong!'
+  notification = {}
 
   defaultMessages =
     AccessDenied : 'Permission denied'
     KodingError  : 'Something went wrong'
 
   err.name or= 'KodingError'
-  content    = ''
 
-  if messages
-    errMessage = messages[err.name] or messages.KodingError \
-                                    or defaultMessages.KodingError
-  messages or= defaultMessages
-  errMessage or= err.message or messages[err.name] or messages.KodingError
+  if 'string' is typeof err
+    message = err
+    err = { message }
+  else if 'object' is typeof err
+    message = err.message or defaultMessages[err.name] or message
 
-  if errMessage?
-    if 'string' is typeof errMessage
-      title = errMessage
-    else if errMessage.title? and errMessage.content?
-      { title, content } = errMessage
 
-  duration = errMessage.duration or 2500
-  title  or= err.message
+  notification.type               = 'caution'
+  notification.content            = message
+  notification.dismissible        = yes
+  notification.primaryButtonTitle = 'OK'
 
-  new KDNotificationView { title, content, duration }
+  showNotification notification
 
   unless err.name is 'AccessDenied'
     kd.warn 'KodingError:', err.message
     kd.error err
-  err?
+    sendDataDogEvent 'ApplicationError', { prefix: 'app-error' }
+
+  return yes
 
 
 module.exports = fn
