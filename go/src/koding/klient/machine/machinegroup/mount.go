@@ -4,24 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
 )
 
-// MountRequest defines machine group mount request.
-type MountRequest struct {
+// HeadMountRequest defines machine group head mount request.
+type HeadMountRequest struct {
 	// ID is a unique identifier for the remote machine.
 	ID machine.ID `json:"id"`
 
 	// Mount describes the mount to be headed.
 	Mount mount.Mount `json:"mount"`
-}
 
-// HeadMountRequest defines machine group head mount request.
-type HeadMountRequest struct {
-	MountRequest
+	// PublicKey contains local machine public key content which is meant to be
+	// added to remote machine authorized_keys file.
+	PublicKey string `json:"public_key"`
 }
 
 // HeadMountResponse defines machine group head mount response.
@@ -37,6 +37,9 @@ type HeadMountResponse struct {
 
 	// AllDiskSize stores the size of all files handled by mount.
 	AllDiskSize int64 `json:"allDiskSize"`
+
+	// Username defines the remote machine user name.
+	Username string `json:"username"`
 }
 
 // HeadMount retrieves information about existing mount or prepares remote
@@ -61,9 +64,28 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 		return nil, err
 	}
 
+	// Add SSH public key to remote machine's authorized_keys file. This is
+	// needed for syncers that use SSH connections.
+	errC, username := make(chan error), ""
+	go func() {
+		var err error
+		username, err = g.ensureSSHPubKey(req.ID, "", req.PublicKey)
+		errC <- err
+	}()
+
 	absRemotePath, count, diskSize, err := c.MountHeadIndex(req.Mount.RemotePath)
 	if err != nil {
 		return nil, err
+	}
+
+	// Wait for remote machine username.
+	select {
+	case <-time.After(30 * time.Second):
+		return nil, fmt.Errorf("cannot add SSH public keys for machine: %s", req.ID)
+	case err := <-errC:
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	res := &HeadMountResponse{
@@ -71,6 +93,7 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 		AbsRemotePath: absRemotePath,
 		AllCount:      count,
 		AllDiskSize:   diskSize,
+		Username:      username,
 	}
 
 	// Check if remote folder of provided machine is already mounted.
@@ -100,7 +123,11 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 
 // AddMountRequest defines machine group add mount request.
 type AddMountRequest struct {
-	MountRequest
+	// ID is a unique identifier for the remote machine.
+	ID machine.ID `json:"id"`
+
+	// Mount describes the mount to be headed.
+	Mount mount.Mount `json:"mount"`
 }
 
 // AddMountResponse defines machine group add mount response.
