@@ -17,7 +17,7 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 doXhrRequest         = require 'app/util/doXhrRequest'
-ContentModal = require 'app/components/contentModal'
+ContentModal         = require 'app/components/contentModal'
 
 MissingDataView      = require './missingdataview'
 
@@ -488,52 +488,6 @@ module.exports = class ComputeControllerUI
         content       : message
         duration      : 0
         closeManually : no
-
-
-  @showBuildScriptEditorModal = (machine) ->
-
-    return  unless machine?
-
-    ComputeHelpers = require './computehelpers'
-    ComputeHelpers.reviveProvisioner machine, (err, provisioner) ->
-
-      return  if showError err
-
-      modal   = new EditorModal
-
-        editor              :
-          title             : 'Build Script Editor'
-          content           : provisioner?.content?.script or ''
-          saveMessage       : 'Build script saved'
-          saveFailedMessage : "Couldn't save build script"
-
-          saveCallback      : (script, modal) ->
-
-            if isMine provisioner
-
-              provisioner.update { content: { script } }, (err, res) ->
-                modal.emit if err then 'SaveFailed' else 'Saved'
-
-            else
-
-              { JProvisioner } = remote.api
-              JProvisioner.create
-                type    : 'shell'
-                content : { script }
-              , (err, newProvisioner) ->
-
-                return  if showError err
-
-                machine.jMachine.setProvisioner newProvisioner.slug, (err) ->
-                  modal.emit if err then 'SaveFailed' else 'Saved'
-
-                  unless showError err
-                    machine.provisioners = [ newProvisioner.slug ]
-                    provisioner          = newProvisioner
-
-                    showInlineInformation provisioner, modal
-
-      showInlineInformation provisioner, modal
 
 
   @showCredentialDetails = (options = {}, callback = kd.noop) ->
