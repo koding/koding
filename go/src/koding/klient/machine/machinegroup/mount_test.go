@@ -39,8 +39,10 @@ func TestHeadMount(t *testing.T) {
 
 	// Head testing mount.
 	headMountReq := &HeadMountRequest{
-		ID:    id,
-		Mount: m,
+		MountRequest{
+			ID:    id,
+			Mount: m,
+		},
 	}
 	headMountRes, err := g.HeadMount(headMountReq)
 	if err != nil {
@@ -93,8 +95,10 @@ func TestAddMount(t *testing.T) {
 
 	// Add testing mount.
 	addMountReq := &AddMountRequest{
-		ID:    id,
-		Mount: m,
+		MountRequest{
+			ID:    id,
+			Mount: m,
+		},
 	}
 	addMountRes, err := g.AddMount(addMountReq)
 	if err != nil {
@@ -360,8 +364,10 @@ func TestUmount(t *testing.T) {
 func testAddMount(g *Group, id machine.ID, ms ...mount.Mount) (mountIDs mount.IDSlice, err error) {
 	for _, m := range ms {
 		req := &AddMountRequest{
-			ID:    id,
-			Mount: m,
+			MountRequest{
+				ID:    id,
+				Mount: m,
+			},
 		}
 		res, err := g.AddMount(req)
 		if err != nil {

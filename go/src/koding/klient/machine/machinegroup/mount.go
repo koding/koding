@@ -6,22 +6,25 @@ import (
 	"path/filepath"
 	"time"
 
+	"koding/kites/config"
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klientctl/ssh"
 )
 
-// HeadMountRequest defines machine group head mount request.
-type HeadMountRequest struct {
+// MountRequest defines machine group mount request.
+type MountRequest struct {
 	// ID is a unique identifier for the remote machine.
 	ID machine.ID `json:"id"`
 
 	// Mount describes the mount to be headed.
 	Mount mount.Mount `json:"mount"`
+}
 
-	// PublicKey contains local machine public key content which is meant to be
-	// added to remote machine authorized_keys file.
-	PublicKey string `json:"public_key"`
+// HeadMountRequest defines machine group head mount request.
+type HeadMountRequest struct {
+	MountRequest
 }
 
 // HeadMountResponse defines machine group head mount response.
@@ -37,9 +40,6 @@ type HeadMountResponse struct {
 
 	// AllDiskSize stores the size of all files handled by mount.
 	AllDiskSize int64 `json:"allDiskSize"`
-
-	// Username defines the remote machine user name.
-	Username string `json:"username"`
 }
 
 // HeadMount retrieves information about existing mount or prepares remote
@@ -66,10 +66,14 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 
 	// Add SSH public key to remote machine's authorized_keys file. This is
 	// needed for syncers that use SSH connections.
-	errC, username := make(chan error), ""
+	errC := make(chan error)
 	go func() {
-		var err error
-		username, err = g.ensureSSHPubKey(req.ID, "", req.PublicKey)
+		pubKey, err := userSSHPublicKey()
+		if err != nil {
+			errC <- err
+			return
+		}
+		_, err = g.ensureSSHPubKey(req.ID, "", pubKey)
 		errC <- err
 	}()
 
@@ -93,7 +97,6 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 		AbsRemotePath: absRemotePath,
 		AllCount:      count,
 		AllDiskSize:   diskSize,
-		Username:      username,
 	}
 
 	// Check if remote folder of provided machine is already mounted.
@@ -121,13 +124,36 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 	return res, nil
 }
 
+// userSSHPublicKey gets the user's public SSH key content.
+func userSSHPublicKey() (string, error) {
+	path, err := ssh.GetKeyPath(config.CurrentUser.User)
+	if err != nil {
+		return "", err
+	}
+
+	pubKeyPath, privKeyPath, err := ssh.KeyPaths(path)
+	if err != nil {
+		return "", err
+	}
+
+	pubKey, err := ssh.PublicKey(pubKeyPath)
+	if err != nil && err != ssh.ErrPublicKeyNotFound {
+		return "", err
+	}
+
+	// Generate new key pair if it does not exist.
+	if err == ssh.ErrPublicKeyNotFound {
+		if pubKey, _, err = ssh.GenerateSaved(pubKeyPath, privKeyPath); err != nil {
+			return "", err
+		}
+	}
+
+	return pubKey, nil
+}
+
 // AddMountRequest defines machine group add mount request.
 type AddMountRequest struct {
-	// ID is a unique identifier for the remote machine.
-	ID machine.ID `json:"id"`
-
-	// Mount describes the mount to be headed.
-	Mount mount.Mount `json:"mount"`
+	MountRequest
 }
 
 // AddMountResponse defines machine group add mount response.
