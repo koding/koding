@@ -58,7 +58,7 @@ $notifications-z-index      = 20000
     .kd_notification_level
       background-color          $primary-1
   .kd_notification_content
-    padding                     17px 25px 17px 20px
+    padding                     17px 20px 17px 20px
     line-height                 16px
     font-size                   14px
     color                       $additional-6-faded
@@ -128,7 +128,7 @@ $notifications-z-index      = 20000
 .kd_notification_close
   position                      absolute
   top                           0px
-  right                         8px
+  right                         5px
   background                    none
   border                        none
   outline                       none

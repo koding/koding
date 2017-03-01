@@ -27,7 +27,6 @@ fn = (err) ->
 
   notification.type               = 'caution'
   notification.content            = message
-  notification.dismissible        = yes
   notification.primaryButtonTitle = 'OK'
 
   showNotification notification
