@@ -3,9 +3,9 @@ md = require 'app/util/applyMarkdown'
 module.exports =
 
   variables : md '''
-    You can define your custom variables, and use them in your stack template.
-    **These variables will not be visible to your non-admins.**
-    This is a YAML file, you can define a key-value pair like this here;
+    Using custom variables is useful in case you have some credentials that you wish to share but not disclose to the members of your team. Variables in the custom variables section are used while the stack is building, but can not be seen by the members using your stack. Admins of your team can see/edit them.
+
+    You can define a key-value pair like this here;
 
       `foo: bar`
 
@@ -13,11 +13,7 @@ module.exports =
 
       `${var.custom_foo}`
 
-    Using custom variables is useful in case you have some credentials that you do not wish to share with everyone. Variables in the custom variables section are used while the stack is building, but can not be seen by the users using your stack.
-
-    To use the credentials, keys, or any important values you added to your Custom Variables tab, you use the below syntax. Remember that your Custom Variables are saved in key-value pairs. We use the KEY name preceded by ${var.custom_
-
-    That means our variable will look like this: `${var.custom_**KEY-NAME**}`
+    You can use YAML format for multiline keys and for more: http://docs.ansible.com/ansible/YAMLSyntax.html
 
   '''
 
@@ -60,11 +56,11 @@ module.exports =
   """
 
   readme: md '''
+    You can write a readme content for this stack template here. Readme is meant to guide users for steps that they need to take once build finishes.
 
-    You can write a readme for this stack template here.
+    It will be displayed before a user builds this stack and it can contain useful instructions such as "do cd /application and run app.py file" etc.
 
-    It will be displayed whenever a user attempts to build this stack.
-
-    You can use markdown within the readme content.
+    You can use markdown within the readme content, you can add images, video and more:
+    https://en.wikipedia.org/wiki/Markdown
 
   '''
