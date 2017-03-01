@@ -59,7 +59,7 @@ module.exports = dispatchInitialActions = (store) ->
 
   promise = loadAccount(store)
     .then -> loadGroup(store)
-    .then -> loadUserDetails(store)
+  # .then -> loadUserDetails(store)
     .then -> ensureGroupPayment()
     .then -> ensureCreditCard(store)
     .then -> loadPaymentDetails(store)
