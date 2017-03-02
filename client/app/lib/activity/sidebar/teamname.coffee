@@ -6,7 +6,7 @@ AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
 ChangeTeamView = require 'app/changeteam'
 JCustomHTMLView  = require 'app/jcustomhtmlview'
 globals = require 'globals'
-
+intercomSupport = require 'app/util/intercomSupport'
 ACCOUNT_MENU  = null
 
 
@@ -36,8 +36,6 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
     return  if ACCOUNT_MENU
 
-    callback = @bound 'handleMenuClick'
-
     account = whoami()
 
     avatar = new AvatarStaticView
@@ -45,7 +43,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
       size       : { width: 38, height: 38 }
     , account
 
-    avatar_wrapper = new kd.CustomHTMLView
+    @avatar_wrapper = new kd.CustomHTMLView
       cssClass : 'HomeAppView-Nav--avatar-wrapper'
       click    : ->
         ACCOUNT_MENU.destroy()
@@ -77,24 +75,44 @@ module.exports = class TeamName extends kd.CustomHTMLView
       tagName : 'div'
       cssClass : 'HomeAppView-Nav--fullname-role'
 
-    avatar_wrapper.addSubView avatar
+    @avatar_wrapper.addSubView avatar
     fullnameAndRoleWrapper.addSubView profileName
     fullnameAndRoleWrapper.addSubView role
-    avatar_wrapper.addSubView fullnameAndRoleWrapper
+    @avatar_wrapper.addSubView fullnameAndRoleWrapper
+
+    @getMenuItems (menuItems) ->
+
+      ACCOUNT_MENU = new kd.ContextMenu
+        cssClass : 'SidebarMenu'
+        x        : 36
+        y        : 40
+      , menuItems
+
+      ACCOUNT_MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> ACCOUNT_MENU = null
 
 
-    ACCOUNT_MENU = new kd.ContextMenu
-      cssClass : 'SidebarMenu'
-      x        : 36
-      y        : 40
-    ,
-      'customView'  : avatar_wrapper
+  getMenuItems: (kallback) ->
+
+    callback = @bound 'handleMenuClick'
+
+    menuItems = {
+      'customView'  : @avatar_wrapper
       'Dashboard'   : { callback }
-      'Support'     : { callback }
       'Change Team' : { callback }
-      'Logout'      : { callback }
+    }
 
-    ACCOUNT_MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> ACCOUNT_MENU = null
+    intercomSupport (isSupported) =>
+      menuItems['Support'] = if isSupported then { callback }
+      else { callback: @bound 'mailToSupport' }
+
+      menuItems['Logout'] = { callback }
+
+      kallback menuItems
+
+
+  mailToSupport: ->
+
+    window.location.href = 'mailto:support@koding.com'
 
 
   handleMenuClick: (item, event) ->
