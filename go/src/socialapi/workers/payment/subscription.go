@@ -145,17 +145,19 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		quantity = uint64(activeCount)
 		params.Plan = GetPlanID(activeCount)
 		params.TrialEnd = 0
+		params.TrialEndNow = true
 	}
 
 	// only send our whitelisted params
 	req := &stripe.SubParams{
-		Customer: group.Payment.Customer.ID,
-		Quantity: quantity,
-		Plan:     params.Plan,
-		Coupon:   params.Coupon,
-		Token:    params.Token,
-		TrialEnd: params.TrialEnd,
-		Card:     params.Card,
+		Customer:    group.Payment.Customer.ID,
+		Quantity:    quantity,
+		Plan:        params.Plan,
+		Coupon:      params.Coupon,
+		Token:       params.Token,
+		TrialEnd:    params.TrialEnd,
+		TrialEndNow: params.TrialEndNow,
+		Card:        params.Card,
 	}
 
 	sub, err := sub.New(req)
