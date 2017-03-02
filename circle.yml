@@ -183,3 +183,8 @@ stages:
         command: |
           ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA circle-build-$CIRCLE_BUILD_NUM
           ./run exec scripts/ci/run-tests INSTANCE_DATA
+
+      - type: shell
+        name: codecov
+        command: |
+          [ -n "$CODECOV_TOKEN" ] && bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || exit 0
