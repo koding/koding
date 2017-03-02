@@ -2,7 +2,7 @@ package do
 
 import "koding/kites/kloud/stack/provider"
 
-var doProvider = &provider.Provider{
+var Provider = &provider.Provider{
 	Name:         "digitalocean",
 	ResourceName: "droplet",
 	Machine:      newMachine,
@@ -11,5 +11,5 @@ var doProvider = &provider.Provider{
 }
 
 func init() {
-	provider.Register(doProvider)
+	provider.Register(Provider)
 }

@@ -3,14 +3,12 @@ package azure
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"text/template"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
-	"koding/kites/kloud/userdata"
 	"koding/tools/utils"
 
 	"github.com/Azure/azure-sdk-for-go/management"
@@ -187,7 +185,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		s.injectEndpointRules(vm)
 
-		if err := s.injectCloudInit(vm, name, "kitekeys_"+name); err != nil {
+		if err := s.injectCloudInit(name, vm); err != nil {
 			return nil, err
 		}
 
@@ -310,64 +308,16 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 	vm["endpoint"] = endpoints
 }
 
-func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) error {
-	// means there will be several instances, we need to create a userdata
-	// with count interpolation, because each machine must have an unique
-	// kite id.
-	count := 1
-	if n, ok := vm["count"].(int); ok && n > 1 {
-		count = n
-	}
-
-	var labels []string
-	if count > 1 {
-		for i := 0; i < count; i++ {
-			labels = append(labels, fmt.Sprintf("%s.%d", name, i))
-		}
-	} else {
-		labels = append(labels, name)
-	}
-
-	// this part will be the same for all machines
-	userCfg := &userdata.CloudInitConfig{
-		Username: s.Req.Username,
-		Groups:   []string{"sudo"},
-		Hostname: s.Req.Username,
-		KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
-	}
-
-	s.Builder.InterpolateField(vm, name, "custom_data")
-
-	if b, ok := vm["debug"].(bool); ok && b {
-		s.Debug = true
-		delete(vm, "debug")
-	}
-
-	if s, ok := vm["custom_data"].(string); ok {
-		userCfg.UserData = s
-	}
-
-	userdata, err := s.Session.Userdata.Create(userCfg)
+func (s *Stack) injectCloudInit(name string, vm map[string]interface{}) error {
+	ub, err := s.BuildUserdata(name, vm)
 	if err != nil {
 		return err
 	}
 
-	vm["custom_data"] = string(userdata)
+	s.Debug = ub.Debug
 
-	// create independent kiteKey for each machine and create a Terraform
-	// lookup map, which is used in conjuctuon with the `count.index`
-	countKeys := make(map[string]string, count)
-	for i, label := range labels {
-		kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
-		if err != nil {
-			return err
-		}
-
-		countKeys[strconv.Itoa(i)] = kiteKey
-	}
-
-	s.Builder.Template.Variable[kiteKeyName] = map[string]interface{}{
-		"default": countKeys,
+	s.Builder.Template.Variable[ub.KiteKeyName] = map[string]interface{}{
+		"default": ub.KiteKeys,
 	}
 
 	return nil
