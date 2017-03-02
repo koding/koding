@@ -185,7 +185,8 @@ build:
           nvm use 6
     - script:
         name: upload logs
-        code: ./run exec scripts/test-instance/upload-logs INSTANCE_DATA $WERCKER_BUILD_ID
+        code: |
+          [[ "$WERCKER_RESULT" == 'passed' ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA $WERCKER_BUILD_ID
     - script:
         name: cleanup
         code: ./run exec scripts/wercker/cleanup INSTANCE_DATA
