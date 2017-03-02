@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"fmt"
+
 	"github.com/djherbis/times"
 )
 
@@ -110,6 +111,47 @@ func NewEntryFile(path string) (*Entry, error) {
 	}
 
 	return NewEntryFileInfo(info), nil
+}
+
+// Copy returns a deep copy of the e value.
+//
+// RefCount field is ignored and set to 0.
+func (e *Entry) Copy() *Entry {
+	return &Entry{
+		real: realEntry{
+			CTime: e.CTime(),
+			MTime: e.MTime(),
+			Size:  e.Size(),
+			Mode:  e.Mode(),
+		},
+		virtual: virtualEntry{
+			inode:    e.Inode(),
+			refCount: 0,
+			promise:  e.Promise(),
+		},
+	}
+}
+
+// MergeIn overwrites e's fields with f's ones, but only
+// with those values the are non-zero.
+//
+// RefCount and Promise fields are ignored.
+func (e *Entry) MergeIn(f *Entry) {
+	if t := f.CTime(); t != 0 {
+		e.SetCTime(t)
+	}
+	if t := f.MTime(); t != 0 {
+		e.SetMTime(t)
+	}
+	if n := f.Size(); n != 0 {
+		e.SetSize(n)
+	}
+	if m := f.Mode(); m != 0 {
+		e.SetMode(m)
+	}
+	if n := f.Inode(); n != 0 {
+		e.SetInode(n)
+	}
 }
 
 // CTime atomically gets entry change time in UNIX nano format.

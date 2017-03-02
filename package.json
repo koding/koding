@@ -50,7 +50,7 @@
     "dogapi": "2.6.0",
     "embedly": "2.1.0",
     "es": "0.5.2",
-    "eventemitter2": "2.2.1",
+    "eventemitter2": "3.0.1",
     "express": "4.14.0",
     "faker": "3.1.0",
     "geoip-lite": "1.1.8",

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -o errexit
+
+declare prefix=$1
+if [ -z "$prefix" ]; then
+	echo 'error: prefix parameter is not given'
+	exit 1
+fi
+
+declare access_key=$KONFIG_TEST_CREDENTIALS_AWS_ACCESSKEYID
+declare secret_key=$KONFIG_TEST_CREDENTIALS_AWS_SECRETACCESSKEY
+
+declare instance_id=$(ec2metadata | grep instance-id | awk '{print $2}')
+declare bucket="kodingdev-test-instance-logs"
+declare destination="s3://$bucket/$prefix/$instance_id/"
+
+function upload() {
+	declare source=$1
+
+	if [ -d "$source" ]; then
+		source="--recursive $source"
+	fi
+
+	s3cmd --access_key=$access_key --secret_key=$secret_key \
+		put --human-readable-sizes --follow-symlinks --quiet \
+		$source $destination
+}
+
+upload $KONFIG_PROJECTROOT/.logs
+upload /var/log/cloud-init-output.log

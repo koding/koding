@@ -84,25 +84,7 @@ module.exports = [
   # ]
 
   # [
-  #   { name: 'environments snapshot' }
-  # ]
-
-  # [
-  #   { name: 'environments paidaccount' }
-  #   # { name: 'environments vm-advanced' }
-  # ]
-
-  # [
   #   { name: 'environments domain' }
-  # ]
-
-  # [
-  #   { name: 'environments vmactions_hobbyist' }
-  # ]
-
-  # [
-  #   { name: 'environments vmactions_developer' }
-  #   { name: 'environments vmactions_professional' }
   # ]
 
 ]

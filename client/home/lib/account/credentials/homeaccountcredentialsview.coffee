@@ -46,7 +46,7 @@ module.exports = class HomeAccountCredentialsView extends kd.CustomHTMLView
 
     for provider in providers
 
-      continue  if provider.key is 'managed' or provider.key is 'koding'
+      continue  if provider.key is 'managed'
 
       selectOptions.push
         title : provider.title

@@ -104,15 +104,6 @@ runTests = -> describe 'server.handlers.createteam', ->
           next()
 
       (next) ->
-        # expecting domainAlias to be saved
-        params = { domain : "#{username}.dev.koding.io" }
-
-        JDomainAlias.one params, (err, domainAlias) ->
-          expect(err).to.not.exist
-          expect(domainAlias).to.exist
-          next()
-
-      (next) ->
         # expecting name to be saved
         params = { name : username }
 

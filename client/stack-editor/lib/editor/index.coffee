@@ -101,6 +101,42 @@ module.exports = class StackEditorView extends kd.View
       title    : 'DELETE THIS STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
+    @secondaryActions.addSubView new CustomLinkView
+      cssClass : 'HomeAppView--button nse'
+      title    : 'TRY NEW STACK EDITOR'
+      click    : ->
+        modal     = new kd.ModalView
+          title   : 'New Stack Editor (Alpha)'
+          overlay : yes
+          content : """
+          <div class="modalformline">
+            <p>
+              We're improving the stack editor by recreating it from scratch
+              with lots of new features and a fresh, fluid new design. It's
+              currently alpha thus not complete yet but we'd like you to try
+              it and let us know what you think!
+            </p>
+            <p>
+              Please note: We recommend that you use new stack editor only on
+              new stack templates, there might be some feature inconsistency
+              that we didn't get to, yet.
+            </p>
+            <p>
+              You can switch back to the current version anytime. Enjoy!
+            </p>
+          </div>
+          """
+          buttons         :
+            'Try it Out'  :
+              cssClass    : 'solid green medium'
+              callback    : ->
+                kd.singletons.mainController.useNewStackEditor()
+                modal.destroy()
+            'Cancel'      :
+              cssClass    : 'solid light-gray medium'
+              callback    : ->
+                modal.destroy()
+
     @tabView.unsetClass 'kdscrollview'
 
     @editorViews = {}

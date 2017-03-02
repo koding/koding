@@ -121,7 +121,7 @@ fetchSession = (Models, token, callback) ->
 
     if session
 
-      if session.getAt 'data.apiSession'
+      if session.getAt 'sessionData.apiSession'
         Models.JApiToken.fetchGroup (session.getAt 'groupName'), (err) ->
           return callback err  if err
           updateSessionTimestamp session, callback

@@ -27,7 +27,7 @@ module.exports = class NotificationViewController extends kd.Controller
     notification.ref = "notification-#{notification.uid}"
     @uid += 1
     return no for notificationOptions in notifications when notificationOptions.uid is notification.uid
-    notifications.push notification
+    notifications.unshift notification
     if typeof notification.onAdd is 'function'
       notificationOptions.onAdd notification
     @container.updateOptions { notifications }

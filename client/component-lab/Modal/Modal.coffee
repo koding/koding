@@ -14,7 +14,7 @@ module.exports = class Modal extends Component
 
   render: ->
 
-    { isOpen, onAfterOpen, onRequestClose, children,
+    { isOpen, onAfterOpen, onRequestClose, children, contentLabel
       shouldCloseOnOverlayClick, width, height, showAlien } = @props
 
     className = classnames [
@@ -25,6 +25,7 @@ module.exports = class Modal extends Component
 
     <ReactModal
       className={className}
+      contentLabel={contentLabel}
       overlayClassName={styles.overlay}
       isOpen={isOpen}
       onAfterOpen={onAfterOpen}

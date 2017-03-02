@@ -14,7 +14,6 @@ module.exports = KiteAPIMap =
     stop            : 'stop'
     start           : 'start'
     build           : 'build'
-    reinit          : 'reinit'
     restart         : 'restart'
     destroy         : 'destroy'
 

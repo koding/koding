@@ -34,8 +34,8 @@ function terminate_failing_instances() {
 		return 0
 	fi
 
-	$SCRIPTS/wercker/upload-logs $FAILING_INSTANCES_DATA_FILE
-	cat $FAILING_INSTANCES_DATA_FILE | xargs --delimiter '\n' --max-args 1 $SCRIPTS/test-instance/terminate
+	$SCRIPTS/test-instance/upload-logs $FAILING_INSTANCES_DATA_FILE
+	cat $FAILING_INSTANCES_DATA_FILE | xargs --max-lines=1 $SCRIPTS/test-instance/terminate
 }
 
 function check_revision() {
@@ -43,7 +43,7 @@ function check_revision() {
 	HOST=$(echo $INSTANCE | awk ' {print $2}')
 	REMOTE_REVISION=$($SCRIPTS/test-instance/ssh $HOST 'GIT_DIR=/opt/koding/.git git rev-parse HEAD')
 
-	if [ "$REMOTE_REVISION" != "$REVISION" ]; then
+	if [ "$REMOTE_REVISION" != $(git rev-parse HEAD) ]; then
 		echo "failed: $INSTANCE revision does not match"
 		return 1
 	fi
@@ -88,7 +88,7 @@ truncate --size 0 $INSTANCE_DATA_FILE
 
 for INSTANCE in $INSTANCES; do
 	(
-		check_revision $INSTANCE || fail_instance $INSTANCE
+		repeat 1m 10 check_revision $INSTANCE || fail_instance $INSTANCE
 		repeat 1m 20 check_connectivity $INSTANCE 80 || fail_instance $INSTANCE
 		repeat 1m 10 health_check $INSTANCE || fail_instance $INSTANCE
 		echo $INSTANCE >>$INSTANCE_DATA_FILE

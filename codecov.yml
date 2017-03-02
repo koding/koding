@@ -1,7 +1,10 @@
 codecov:
   notify:
     require_ci_to_pass: true
-comment: off
+comment:
+  behavior: default
+  layout: header, diff
+  require_changes: true
 coverage:
   precision: 2
   range:

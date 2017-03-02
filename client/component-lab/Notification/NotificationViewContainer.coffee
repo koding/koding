@@ -19,20 +19,20 @@ module.exports = class NotificationViewContainer extends ReactView
 
   getAnimationProps: ->
 
-      enter :
-        from :
-          transform : 'scale(0.9)'
-          opacity : 0
-        to :
-          transform : ''
-          opacity : ''
-      leave :
-        from :
-          transform : 'scale(1)'
-          opacity : 1
-        to :
-          transform : 'scale(0.9)'
-          opacity : 0
+    enter :
+      from :
+        transform : 'scale(0.9)'
+        opacity : 0
+      to :
+        transform : ''
+        opacity : ''
+    leave :
+      from :
+        transform : 'scale(1)'
+        opacity : 1
+      to :
+        transform : 'scale(0.9)'
+        opacity : 0
 
 
   onNotificationRemove: (uid) =>
@@ -49,12 +49,12 @@ module.exports = class NotificationViewContainer extends ReactView
 
   getNotifications: ->
 
-      @options.notifications.map (notification, index) =>
-        <NotificationView
-          index={index}
-          key={notification.uid}
-          notification={notification}
-          onRemove={@bound 'onNotificationRemove'} />
+    @options.notifications.map (notification, index) =>
+      <NotificationView
+        index={index}
+        key={notification.uid}
+        notification={notification}
+        onRemove={@bound 'onNotificationRemove'} />
 
 
   renderReact: ->

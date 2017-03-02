@@ -16,7 +16,7 @@ generatePassword      = require 'app/util/generatePassword'
 ProximityNotifier     = require './splithandleproximitynotifier'
 IDEWorkspaceTabView   = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
-showErrorNotification = require 'app/util/showErrorNotification'
+showError             = require 'app/util/showError'
 Tracker               = require 'app/util/tracker'
 ContentModal          = require 'app/components/contentModal'
 
@@ -261,7 +261,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     file.fetchPermissions (err, result) =>
 
-      return showErrorNotification err  if err
+      return showError err  if err
 
       { readable, writable } = result
       if notifyIfNoPermissions and not readable
@@ -340,7 +340,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     file.fetchPermissions (err, result) =>
 
-      return showErrorNotification err  if err
+      return showError err  if err
 
       { readable, writable } = result
       if not readable
@@ -828,7 +828,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @emitChange terminalPane, change, 'TerminalRenamed'
 
     .catch (err) ->
-      showErrorNotification err
+      showError err
 
   renameTerminal: (paneView, machine, newTitle) ->
 

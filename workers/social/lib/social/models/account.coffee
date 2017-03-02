@@ -129,8 +129,6 @@ module.exports = class JAccount extends jraphical.Module
         ]
         fetchKites :
           (signature Object, Function)
-        fetchMetaInformation :
-          (signature Function)
         fetchRelativeGroups: [
           (signature Function)
           (signature Object, Function)
@@ -1044,36 +1042,6 @@ module.exports = class JAccount extends jraphical.Module
           callback null, data
 
 
-  fetchMetaInformation: secure (client, callback) ->
-
-    { delegate } = client.connection
-    unless delegate.can 'administer accounts'
-      return callback new KodingError 'Access denied!'
-
-    @fetchUser (err, user) =>
-
-      return callback err  if err
-      return callback new KodingError 'Failed to fetch user!'  unless user
-
-      { registeredAt, lastLoginDate, email, status } = user
-      { profile, referrerUsername, referralUsed, globalFlags } = this
-
-      fakeClient = { connection: { delegate: this } }
-
-      plan = 'free'
-
-      JMachine = require './computeproviders/machine'
-      selector = { 'users.id' : user.getId() }
-
-      JMachine.some selector, { limit: 30 }, (err, machines) ->
-
-        if err? then machines = err
-
-        callback null, {
-          profile, registeredAt, lastLoginDate, email, status
-          globalFlags, referrerUsername, referralUsed, plan, machines
-        }
-
   fetchEmailAndStatus: secure (client, callback) ->
     @fetchFromUser client, ['email', 'status'], callback
 
@@ -1340,6 +1308,7 @@ module.exports = class JAccount extends jraphical.Module
               kallback 'JCredential', next, err
 
         (next) ->
+          return next()  unless group
           group.destroy client, (err) ->
             kallback 'GroupDestroy', next, err
 

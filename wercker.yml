@@ -158,7 +158,7 @@ build:
     - script:
         name: check connectivity
         code: |
-          scripts/wercker/run-command ./run exec scripts/wercker/check-connectivity INSTANCE_DATA
+          scripts/wercker/run-command ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA
     - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA
@@ -168,7 +168,7 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
         name: run test suites
-        code: scripts/wercker/run-command scripts/wercker/run-tests INSTANCE_DATA
+        code: scripts/wercker/run-command scripts/ci/run-tests INSTANCE_DATA
     - script:
         name: testing client finished
         code: |
@@ -185,7 +185,7 @@ build:
           nvm use 6
     - script:
         name: upload logs
-        code: ./run exec scripts/wercker/upload-logs INSTANCE_DATA
+        code: ./run exec scripts/test-instance/upload-logs INSTANCE_DATA $WERCKER_BUILD_ID
     - script:
         name: cleanup
         code: ./run exec scripts/wercker/cleanup INSTANCE_DATA
