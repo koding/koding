@@ -155,7 +155,7 @@ func realMain() int {
 	}
 
 	if len(f.Args()) != 0 {
-		if err := handleInternalCommand(f.Arg(0)); err != nil {
+		if err := handleInternalCommand(conf, f.Arg(0), f.Args()[1:]...); err != nil {
 			log.Fatal(err)
 		}
 
@@ -173,7 +173,7 @@ func realMain() int {
 	return 0
 }
 
-func handleInternalCommand(cmd string) (err error) {
+func handleInternalCommand(conf *app.KlientConfig, cmd string, args ...string) (err error) {
 	// The following commands are intended for internal use
 	// only. They are used by kloud to install klient
 	// where no kd is available.
@@ -198,6 +198,8 @@ func handleInternalCommand(cmd string) (err error) {
 		}
 
 		err = klientsvc.Start()
+	case "upload":
+		err = app.Upload(app.NewUploader(conf), args...)
 	default:
 		return fmt.Errorf("unrecognized command: %s", cmd)
 	}
