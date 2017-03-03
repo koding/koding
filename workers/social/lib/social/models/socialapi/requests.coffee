@@ -267,7 +267,7 @@ sendMessageToChannel = (data, callback) ->
   post url, data, callback
 
 initPrivateMessage = (data, callback) ->
-  url = "#{socialProxyUrl}/privatechannel/init"
+  url = "#{socialProxyUrl}/channel/initwithparticipants"
   post url, data, callback
 
 sendPrivateMessage = (data, callback) ->
