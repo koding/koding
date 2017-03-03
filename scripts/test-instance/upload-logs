@@ -6,10 +6,6 @@ declare instance_data_file=$1
 
 declare scripts=$(dirname $0)/..
 
-if [ "$WERCKER_RESULT" = "passed" ]; then
-	exit 0
-fi
-
 cat $instance_data_file | awk '{print $2}' \
 	| xargs -n 1 \
 		-I HOST \
