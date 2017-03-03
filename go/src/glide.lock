@@ -945,7 +945,7 @@ imports:
   - transform
   - unicode/norm
 - name: golang.org/x/tools
-  version: 1cf0a337cd20f304e6caa20d6a07392e7f071245
+  version: 718875e4f9a39b5a303f3fa67a7dd9367b07c02f
   subpackages:
   - go/loader
   - go/types

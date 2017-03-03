@@ -3,14 +3,12 @@ package aws
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"text/template"
 	"time"
 
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
-	"koding/kites/kloud/userdata"
 )
 
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1470666525 -pkg aws -o bootstrap.json.tmpl.go bootstrap.json.tmpl
@@ -130,66 +128,13 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			instance["security_groups"] = []string{bootstrap.SG}
 		}
 
-		// means there will be several instances, we need to create a userdata
-		// with count interpolation, because each machine must have an unique
-		// kite id.
-		count := 1
-		if n, ok := instance["count"].(int); ok && n > 1 {
-			count = n
-		}
-
-		var labels []string
-		if count > 1 {
-			for i := 0; i < count; i++ {
-				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
-			}
-		} else {
-			labels = append(labels, resourceName)
-		}
-
-		// TODO(rjeczalik): move to stackplan
-		if b, ok := instance["debug"].(bool); ok && b {
-			s.Debug = true
-			delete(instance, "debug")
-		}
-
-		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
-
-		s.Builder.InterpolateField(instance, resourceName, "user_data")
-
-		// this part will be the same for all machines
-		userCfg := &userdata.CloudInitConfig{
-			Username: s.Req.Username,
-			Groups:   []string{"sudo"},
-			Hostname: s.Req.Username, // no typo here. hostname = username
-			KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
-		}
-
-		if s, ok := instance["user_data"].(string); ok {
-			userCfg.UserData = s
-		}
-
-		userdata, err := s.Session.Userdata.Create(userCfg)
+		ud, err := s.BuildUserdata(resourceName, instance)
 		if err != nil {
 			return nil, err
 		}
 
-		instance["user_data"] = string(userdata)
-
-		// create independent kiteKey for each machine and create a Terraform
-		// lookup map, which is used in conjuctuon with the `count.index`
-		countKeys := make(map[string]string, count)
-		for i, label := range labels {
-			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
-			if err != nil {
-				return nil, err
-			}
-
-			countKeys[strconv.Itoa(i)] = kiteKey
-		}
-
-		t.Variable[kiteKeyName] = map[string]interface{}{
-			"default": countKeys,
+		t.Variable[ud.KiteKeyName] = map[string]interface{}{
+			"default": ud.KiteKeys,
 		}
 
 		resource.AwsInstance[resourceName] = instance

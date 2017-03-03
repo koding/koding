@@ -5,6 +5,10 @@
 package godoc
 
 import (
+	"bytes"
+	"go/parser"
+	"go/token"
+	"strings"
 	"testing"
 )
 
@@ -113,6 +117,127 @@ func TestSanitizeFunc(t *testing.T) {
 	} {
 		if got := sanitizeFunc(tc.src); got != tc.want {
 			t.Errorf("sanitizeFunc(%v) = %v; want %v", tc.src, got, tc.want)
+		}
+	}
+}
+
+// Test that we add <span id="StructName.FieldName"> elements
+// to the HTML of struct fields.
+func TestStructFieldsIDAttributes(t *testing.T) {
+	got := linkifySource(t, []byte(`
+package foo
+
+type T struct {
+	NoDoc string
+
+	// Doc has a comment.
+	Doc string
+
+	// Opt, if non-nil, is an option.
+	Opt *int
+
+	// Опция - другое поле.
+	Опция bool
+}
+`))
+	want := `type T struct {
+<span id="T.NoDoc"></span>NoDoc <a href="/pkg/builtin/#string">string</a>
+
+<span id="T.Doc"></span><span class="comment">// Doc has a comment.</span>
+Doc <a href="/pkg/builtin/#string">string</a>
+
+<span id="T.Opt"></span><span class="comment">// Opt, if non-nil, is an option.</span>
+Opt *<a href="/pkg/builtin/#int">int</a>
+
+<span id="T.Опция"></span><span class="comment">// Опция - другое поле.</span>
+Опция <a href="/pkg/builtin/#bool">bool</a>
+}`
+	if got != want {
+		t.Errorf("got: %s\n\nwant: %s\n", got, want)
+	}
+}
+
+func TestCompositeLitLinkFields(t *testing.T) {
+	got := linkifySource(t, []byte(`
+package foo
+
+type T struct {
+	X int
+}
+
+var S T = T{X: 12}`))
+	want := `type T struct {
+<span id="T.X"></span>X <a href="/pkg/builtin/#int">int</a>
+}
+var S <a href="#T">T</a> = <a href="#T">T</a>{<a href="#T.X">X</a>: 12}`
+	if got != want {
+		t.Errorf("got: %s\n\nwant: %s\n", got, want)
+	}
+}
+
+func linkifySource(t *testing.T, src []byte) string {
+	p := &Presentation{
+		DeclLinks: true,
+	}
+	fset := token.NewFileSet()
+	af, err := parser.ParseFile(fset, "foo.go", src, parser.ParseComments)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var buf bytes.Buffer
+	pi := &PageInfo{
+		FSet: fset,
+	}
+	sep := ""
+	for _, decl := range af.Decls {
+		buf.WriteString(sep)
+		sep = "\n"
+		buf.WriteString(p.node_htmlFunc(pi, decl, true))
+	}
+	return buf.String()
+}
+
+func TestScanIdentifier(t *testing.T) {
+	tests := []struct {
+		in, want string
+	}{
+		{"foo bar", "foo"},
+		{"foo/bar", "foo"},
+		{" foo", ""},
+		{"фоо", "фоо"},
+		{"f123", "f123"},
+		{"123f", ""},
+	}
+	for _, tt := range tests {
+		got := scanIdentifier([]byte(tt.in))
+		if string(got) != tt.want {
+			t.Errorf("scanIdentifier(%q) = %q; want %q", tt.in, got, tt.want)
+		}
+	}
+}
+
+func TestReplaceLeadingIndentation(t *testing.T) {
+	oldIndent := strings.Repeat(" ", 2)
+	newIndent := strings.Repeat(" ", 4)
+	tests := []struct {
+		src, want string
+	}{
+		{"  foo\n    bar\n  baz", "    foo\n      bar\n    baz"},
+		{"  '`'\n  '`'\n", "    '`'\n    '`'\n"},
+		{"  '\\''\n  '`'\n", "    '\\''\n    '`'\n"},
+		{"  \"`\"\n  \"`\"\n", "    \"`\"\n    \"`\"\n"},
+		{"  `foo\n  bar`", "    `foo\n      bar`"},
+		{"  `foo\\`\n  bar", "    `foo\\`\n    bar"},
+		{"  '\\`'`foo\n  bar", "    '\\`'`foo\n      bar"},
+		{
+			"  if true {\n    foo := `One\n    \tTwo\nThree`\n  }\n",
+			"    if true {\n      foo := `One\n        \tTwo\n    Three`\n    }\n",
+		},
+	}
+	for _, tc := range tests {
+		if got := replaceLeadingIndentation(tc.src, oldIndent, newIndent); got != tc.want {
+			t.Errorf("replaceLeadingIndentation:\n%v\n---\nhave:\n%v\n---\nwant:\n%v\n",
+				tc.src, got, tc.want)
 		}
 	}
 }

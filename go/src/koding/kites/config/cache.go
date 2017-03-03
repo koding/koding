@@ -94,25 +94,65 @@ func KodingHome() string {
 	return home
 }
 
+// KodingCacheHome gives the path of the koding cache directory.
+//
+// The default value is overwritten with KODING_CACHE_HOME env,
+// if it points to a valid directory.
 func KodingCacheHome() string {
 	cache := os.Getenv("KODING_CACHE_HOME")
 
-	if _, err := os.Stat(cache); err != nil {
+	if fi, err := os.Stat(cache); err != nil || !fi.IsDir() {
 		cache = filepath.Join(CurrentUser.HomeDir, ".cache", "koding")
 	}
 
 	return cache
 }
 
+// User is a convenience wrapper for a user.User value.
+//
+// It provides user.Group informations and it implements
+// a flag.Getter interface.
 type User struct {
 	*user.User
 	Uid, Gid int
 	Groups   []*user.Group
 }
 
+// String implements the fmt.Stringer interface.
+func (u *User) String() string {
+	if u.User != nil {
+		return u.User.Username
+	}
+
+	// Workaround for flag package, which calls String()
+	// on a zero-value User type.
+	return currentStdUser().Username
+}
+
+// Set implements the flag.Value interface.
+func (u *User) Set(username string) error {
+	us, err := user.Lookup(username)
+	if err != nil {
+		return err
+	}
+
+	*u = *newUser(us)
+
+	return nil
+}
+
+// Get implements the flag.Getter interface.
+func (u *User) Get() interface{} {
+	return u
+}
+
 func currentUser() *User {
+	return newUser(currentStdUser())
+}
+
+func newUser(us *user.User) *User {
 	u := &User{
-		User: currentStdUser(),
+		User: us,
 	}
 
 	if uid, err := strconv.Atoi(u.User.Uid); err == nil {

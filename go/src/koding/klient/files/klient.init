@@ -10,7 +10,7 @@
 ### END INIT INFO
 
 # Klient - Koding Service Connector
-# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+# Copyright (C) 2012-2017 Koding Inc., all rights reserved.
 
 export DEFAULT_START_COMMAND="/opt/kite/klient/klient -kontrol-url https://koding.com/kontrol/kite"
 export START_COMMAND="%START_COMMAND%"

@@ -66,6 +66,12 @@ stages:
         command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com
 
       - type: shell
+        name: launch test hosts
+        command: |
+          chmod 600 scripts/test-instance/koding-test-instances-2015-06.pem
+          ./run exec scripts/test-instance/launch --branch $CIRCLE_BRANCH --commit $CIRCLE_SHA1 | tee INSTANCE_DATA
+
+      - type: shell
         name: check remote API consistency
         command: ./run exec scripts/api-generator.coffee --check
 
@@ -171,3 +177,9 @@ stages:
       - type: shell
         name: test social worker
         command: ./run exec scripts/node-testing/mocha-runner workers/social/lib/social
+
+      - type: shell
+        name: run test suites
+        command: |
+          ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA circle-build-$CIRCLE_BUILD_NUM
+          ./run exec scripts/ci/run-tests INSTANCE_DATA
