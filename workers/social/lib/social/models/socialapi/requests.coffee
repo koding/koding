@@ -44,13 +44,6 @@ fetchChannelActivities = (data, callback) ->
   url = "#{socialProxyUrl}/channel/#{data.channelId}/history"
   get url, data, callback
 
-fetchActivityCount = (data, callback) ->
-  if not data.channelId
-    return callback new KodingError 'Request is not valid for fetching activity count'
-
-  url = "#{socialProxyUrl}/channel/#{data.channelId}/history/count"
-  get url, data, callback
-
 fetchGroupChannels = (data, callback) ->
   if not data.groupName or not data.accountId
     return callback new KodingError 'Request is not valid for fetching channel'
@@ -143,27 +136,6 @@ fetchPopularPosts = (data, callback) ->
 fetchPinnedMessages = (data, callback) ->
   url = "#{socialProxyUrl}/activity/pin/list"
   get url, data, callback
-
-pinMessage = (data, callback) ->
-  if not data.accountId or not data.messageId or not data.groupName
-    return callback new KodingError 'Request is not valid'
-
-  url = "#{socialProxyUrl}/activity/pin/add"
-  post url, data, callback
-
-unpinMessage = (data, callback) ->
-  if not data.accountId or not data.messageId or not data.groupName
-    return callback new KodingError 'Request is not valid'
-
-  url = "#{socialProxyUrl}/activity/pin/remove"
-  post url, data, callback
-
-glancePinnedPost = (data, callback) ->
-  if not data.accountId or not data.messageId or not data.groupName
-    return callback new KodingError 'Request is not valid'
-
-  url = "#{socialProxyUrl}/activity/pin/glance"
-  post url, data, callback
 
 glanceNotifications = (data, callback) ->
   if not data.accountId
@@ -541,7 +513,6 @@ module.exports = {
   messageById
   channelById
   channelByName
-  glancePinnedPost
   glanceNotifications
   listNotifications
   updateLastSeenTime
@@ -563,8 +534,6 @@ module.exports = {
   acceptInvite
   rejectInvite
   fetchPinnedMessages
-  pinMessage
-  unpinMessage
   fetchPopularPosts
   fetchPopularTopics
   addReply
@@ -580,7 +549,6 @@ module.exports = {
   createChannel
   fetchMessage
   fetchChannelActivities
-  fetchActivityCount
   fetchGroupChannels
   followUser
   unfollowUser

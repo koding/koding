@@ -30,6 +30,8 @@ loadMessages = (channelId, options = {}) ->
   _options = _.assign {}, options, { id: channelId }
 
   new Promise (resolve, reject) ->
+    return resolve { messages: [] } # new Error "socialapi deprecated"
+
     socialapi.channel.fetchActivities _options, (err, messages) ->
       if err
         dispatch LOAD_MESSAGES_FAIL, { err, channelId }

@@ -22,10 +22,6 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         byName               :
           (signature Object, Function)
-        fetchActivities      :
-          (signature Object, Function)
-        fetchActivityCount   :
-          (signature Object, Function)
         fetchChannels        :
           (signature Object, Function)
         fetchParticipants    :
@@ -48,10 +44,6 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchPinnedMessages  :
           (signature Object, Function)
-        pinMessage           :
-          (signature Object, Function)
-        unpinMessage         :
-          (signature Object, Function)
         fetchFollowedChannels:
           (signature Object, Function)
         fetchFollowedChannelCount:
@@ -63,8 +55,6 @@ module.exports = class SocialChannel extends Base
         fetchProfileFeedCount:
           (signature Object, Function)
         updateLastSeenTime   :
-          (signature Object, Function)
-        glancePinnedPost     :
           (signature Object, Function)
         delete:
           (signature Object, Function)
@@ -203,51 +193,10 @@ module.exports = class SocialChannel extends Base
 
     doRequest 'rejectInvite', client, data, callback
 
-  # glancePinnedPost - updates user's lastSeenDate for pinned posts
-  @glancePinnedPost = secureRequest
-    fnName  : 'glancePinnedPost'
-    validate: ['messageId']
-
   # fetchPinnedMessages - fetch user's pinned messages
   @fetchPinnedMessages = permittedRequest
     permissionName: 'pin posts'
     fnName        : 'fetchPinnedMessages'
-
-  # pinMessage - pin a message for future referance
-  @pinMessage = permittedRequest
-    permissionName: 'pin posts'
-    fnName        : 'pinMessage'
-    validate      : ['messageId']
-
-  # unpinMessage - remove a pinned message from followed posts
-  @unpinMessage = permittedRequest
-    permissionName: 'pin posts'
-    fnName        : 'unpinMessage'
-    validate      : ['messageId']
-
-  # fetchActivities - fetch activities of a channel
-  @fetchActivities = secure (client, options, callback) ->
-    { connection:{ delegate } } = client
-    options.showExempt = delegate.checkFlag('super-admin') or delegate.isExempt
-    options.channelId = options.id
-    # just to create social channels
-    ensureGroupChannel client, (err, socialApiChannelId) ->
-      return callback err  if err
-
-      doRequest 'fetchChannelActivities', client, options, callback
-
-  @fetchActivityCount = (options, callback) ->
-    { fetchActivityCount } = require './requests'
-    fetchActivityCount options, callback
-
-  # fetchGroupActivities - fetch public activities of a group
-  @fetchGroupActivities = secure (client, options, callback) ->
-    ensureGroupChannel client, (err, socialApiChannelId) ->
-      return callback err if err
-      return callback new KodingError 'Channel Id is not set'  unless socialApiChannelId
-
-      options.id = socialApiChannelId
-      SocialChannel.fetchActivities client, options, callback
 
   # followUser - a user follows a user
   @followUser = secure (client, options, callback) ->

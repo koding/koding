@@ -908,22 +908,6 @@ module.exports = class SocialApiController extends KDController
         data     : options
       , callback
 
-
-    fetchActivities      : (options = {}, callback = kd.noop) ->
-
-      # show exempt content if only requester is admin or exempt herself
-      showExempt = checkFlag?('super-admin') or whoami()?.isExempt
-
-      options.showExempt or= showExempt
-
-      err = { message: 'An error occurred' }
-
-      endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      doXhrRequest { type: 'GET', endPoint, async: yes }, (err, response) ->
-        return callback err  if err
-
-        return callback null, mapActivities response
-
     fetchActivitiesWithComments : (options = {}, callback = kd.noop) ->
 
       # show exempt content if only requester is admin or exempt herself
@@ -1066,14 +1050,6 @@ module.exports = class SocialApiController extends KDController
         endPoint : "/api/social/account/#{targetId}/posts"
       , callback
 
-    glancePinnedPost: (options, callback) ->
-      { accountId, messageId, groupName } = options
-      doXhrRequest
-        type     : 'POST'
-        endPoint : '/api/social/activity/pin/glance'
-        data     : options
-      , callback
-
     updateLastSeenTime: (options, callback) ->
       { accountId, channelId } = options
       doXhrRequest
@@ -1161,14 +1137,6 @@ module.exports = class SocialApiController extends KDController
       validateOptionsWith: []
       mapperFn           : mapActivities
 
-    pin                  : channelRequesterFn
-      fnName             : 'pinMessage'
-      validateOptionsWith: ['messageId']
-
-    unpin                : channelRequesterFn
-      fnName             : 'unpinMessage'
-      validateOptionsWith: ['messageId']
-
     follow               : channelRequesterFn
       fnName             : 'addParticipants'
       validateOptionsWith: ['channelId']
@@ -1219,10 +1187,6 @@ module.exports = class SocialApiController extends KDController
       fnName             : 'fetchProfileFeed'
       validateOptionsWith: ['targetId']
       mapperFn           : mapActivities
-
-    glancePinnedPost     : channelRequesterFn
-      fnName             : 'glancePinnedPost'
-      validateOptionsWith: ['messageId']
 
     updateLastSeenTime   : channelRequesterFn
       fnName             : 'updateLastSeenTime'
