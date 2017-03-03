@@ -89,6 +89,15 @@ stages:
         name: build client
         command: make -C client dist
 
+      - type: shell
+        name: sync website assets
+        command: |
+          [ -z "$AWS_ACCESS_KEY" || -z "$AWS_ACCESS_SECRET_KEY" ] && exit 0
+          s3cmd sync --access_key=$AWS_ACCESS_KEY --secret_key=$AWS_ACCESS_SECRET_KEY \
+            --no-mime-magic --guess-mime-type --acl-public \
+            website/a/p/p/$(git rev-parse --short HEAD)/ \
+            s3://koding-assets/a/p/p/$(git rev-parse --short HEAD)/
+
       - type: cache-save
         key: client-happypack-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
         paths:
