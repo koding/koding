@@ -45,7 +45,7 @@ module.exports = class SingleGroupInfo extends kd.CustomHTMLView
       @destroy()
 
     buttonwrapper.addSubView deleteTeamButton = new kd.ButtonView
-      title          : 'Delete'
+      title          : 'GO TO TEAM'
       cssClass       : 'GenericButton delete-team-button'
       callback       : ->
 
