@@ -286,7 +286,7 @@ leaveTeam = ->
     <strong>CAUTION! </strong>You are going to leave your team and you will not be able to login again.
     This action <strong>CANNOT</strong> be undone.
   </p> <br>
-  <p>Please enter your <strong>current password</strong> into the field below to continue: </p>
+  <p>Please enter your <strong>password</strong> into the field below to continue: </p>
   '
 
   new Promise (resolve, reject) ->
@@ -314,7 +314,7 @@ deleteTeam = ->
     team members will not be able to access this team again.
     This action <strong>CANNOT</strong> be undone.
   </p> <br>
-  <p>Please enter your <strong>current password</strong> into the field below to continue: </p>'
+  <p>Please enter your <strong>password</strong> into the field below to continue: </p>'
 
 
   new Promise (resolve, reject) ->
@@ -333,7 +333,7 @@ deleteTeam = ->
           resolve()
 
 
-deleteAccount = ->
+deleteAccount = (subscription = yes) ->
 
   fetchMyRelativeGroups (err, groups) ->
 
@@ -341,19 +341,21 @@ deleteAccount = ->
 
     return new DeleteAccountModal {}, groups  if groups.length
 
-    deleteAccountVerifyModal()
+    deleteAccountVerifyModal subscription
 
 
-deleteAccountVerifyModal = ->
+deleteAccountVerifyModal = (subscription = yes) ->
 
-  modalContent = '''
+  transferOwnershipLink = "If you don't want to delete this team please <a class='transferbutton'>transfer its ownership</a> before proceeding."
+
+  modalContent = "
     <p>
       <strong>CAUTION! </strong>You are about to delete your account.
-      This operation will also delete this current team. If you don't like to <strong>delete </strong>
-      this team please transfer the ownership before proceed this action from My Team section.
-    </p>
-    <p>Please enter your <strong>current password</strong> into the field below to continue: </p>
-  '''
+      This operation will also delete the team you're using at the moment.
+      #{if subscription then transferOwnershipLink else ''}
+    </p><br />
+    <p>Please enter your password into the field below to continue: </p>
+  "
 
   new VerifyPasswordModal 'Confirm', modalContent, (password) ->
     verifyPassword password, (err) ->
