@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -77,7 +76,6 @@ func (c *Command) Run(ctx context.Context) error {
 
 	if c.Cmd == nil {
 		c.Cmd = exec.CommandContext(ctx, "rsync")
-		c.Cmd.Env = os.Environ()
 	}
 
 	// Add default arguments.
@@ -134,8 +132,9 @@ func (c *Command) Run(ctx context.Context) error {
 }
 
 var (
-	bitRe  = regexp.MustCompile(`^[.><ch*].......... .`)
-	sizeRe = regexp.MustCompile(`^\s*([\d,]+)\s+\d+%.*$`)
+	rmComma = strings.NewReplacer(",", "")
+	bitRe   = regexp.MustCompile(`^[.><ch*].......... .`)
+	sizeRe  = regexp.MustCompile(`^\s*([\d,]+)\s+\d+%.*$`)
 )
 
 func (c *Command) scan(r io.Reader) {
@@ -165,15 +164,15 @@ func (c *Command) scan(r io.Reader) {
 		if len(ms) < 2 {
 			continue
 		}
-
-		p, err := strconv.Atoi(strings.Replace(ms[1], ",", "", -1))
+		rmComma.Replace(ms[1])
+		p, err := strconv.Atoi(rmComma.Replace(ms[1]))
 		if err != nil {
 			continue
 		}
 
 		part = int64(p)
 
-		speed := int64(float64(part+size) / float64(time.Since(now)/time.Second))
+		speed := int64(float64(part+size)/float64(time.Since(now)/time.Second) + 0.5)
 		c.Progress(n, part+size, speed, nil)
 	}
 }
