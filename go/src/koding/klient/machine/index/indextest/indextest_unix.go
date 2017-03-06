@@ -1,6 +1,6 @@
 // +build !windows
 
-package index_test
+package indextest
 
 import "syscall"
 

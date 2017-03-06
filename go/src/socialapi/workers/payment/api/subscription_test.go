@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
 	"testing"
@@ -343,27 +344,7 @@ func TestResubscribingBeforeTrialEndsSubstractsPreviousUsage(t *testing.T) {
 						firstSub = sub
 					})
 
-					group, err := modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
-
-					oldID := group.Id
-					newID := bson.NewObjectIdWithTime(group.Id.Time().Add(-time.Hour * 24 * 2))
-
-					// change team's creation time by changing it's mongo id.
-					So(modelhelper.RemoveGroup(group.Id), ShouldBeNil)
-					group.Id = newID
-					So(modelhelper.CreateGroup(group), ShouldBeNil)
-					group, err = modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
-					So(newID.Hex(), ShouldEqual, group.Id.Hex())
-
-					// all relationships should be updated.
-					So(modelhelper.UpdateRelationships(
-						modelhelper.Selector{
-							"sourceId": oldID,
-						}, modelhelper.Selector{
-							"$set": modelhelper.Selector{"sourceId": newID}},
-					), ShouldBeNil)
+					travelInTimeForGroupID(groupName, -time.Hour*24*2)
 
 					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 						sub, err := stripesub.Get(subscriptionID, nil)
@@ -377,4 +358,67 @@ func TestResubscribingBeforeTrialEndsSubstractsPreviousUsage(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestResubscribingAfterTrialEndsChargesUser(t *testing.T) {
+	Convey("Given stub data", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				withTrialTestPlan(func(planID string) {
+					addCreditCardToUserWithChecks(endpoint, sessionID)
+
+					var firstSub *stripe.Sub
+					// create and cancel sub, because we will resubscribe again.
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+						firstSub = sub
+					})
+
+					travelInTimeForGroupID(groupName, -time.Hour*24*31) // trial period is 30 days
+
+					acc := models.NewAccount()
+					So(acc.ByNick(username), ShouldBeNil)
+
+					p1 := &models.PresenceDaily{
+						AccountId: acc.Id,
+						GroupName: groupName,
+						CreatedAt: time.Now().UTC().Add(-time.Millisecond * 100),
+					}
+					So(p1.Create(), ShouldBeNil)
+
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+						So(sub.TrialEnd, ShouldBeLessThan, time.Now().UTC().Unix())
+						So(sub.Status, ShouldEqual, "active")
+					})
+				})
+			})
+		})
+	})
+}
+
+func travelInTimeForGroupID(groupName string, dur time.Duration) {
+	group, err := modelhelper.GetGroup(groupName)
+	tests.ResultedWithNoErrorCheck(group, err)
+
+	oldID := group.Id
+	newID := bson.NewObjectIdWithTime(group.Id.Time().Add(dur))
+
+	// change team's creation time by changing it's mongo id.
+	So(modelhelper.RemoveGroup(group.Id), ShouldBeNil)
+	group.Id = newID
+	So(modelhelper.CreateGroup(group), ShouldBeNil)
+	group, err = modelhelper.GetGroup(groupName)
+	tests.ResultedWithNoErrorCheck(group, err)
+	So(newID.Hex(), ShouldEqual, group.Id.Hex())
+
+	// all relationships should be updated.
+	So(modelhelper.UpdateRelationships(
+		modelhelper.Selector{
+			"sourceId": oldID,
+		}, modelhelper.Selector{
+			"$set": modelhelper.Selector{"sourceId": newID}},
+	), ShouldBeNil)
 }

@@ -260,6 +260,7 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 			Salt:           accHex,
 			Name:           nick,
 			Email:          accHex + "@koding.com",
+			SanitizedEmail: accHex + "@koding.com",
 			Status:         "confirmed",
 			EmailFrequency: &kodingmodels.EmailFrequency{},
 		}

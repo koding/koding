@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/index/indextest"
 )
 
 func TestCachedIndexCreate(t *testing.T) {
@@ -18,7 +19,7 @@ func TestCachedIndexCreate(t *testing.T) {
 	}
 	defer cleanTempDir()
 
-	root, clean, err := generateTree()
+	root, clean, err := indextest.GenerateTree(filetree)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -62,7 +63,7 @@ func TestCachedIndexUpdated(t *testing.T) {
 	}
 	defer cleanTempDir()
 
-	root, clean, err := generateTree()
+	root, clean, err := indextest.GenerateTree(filetree)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -77,7 +78,7 @@ func TestCachedIndexUpdated(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if err := writeFile("new_file.txt", 1024)(root); err != nil {
+	if err := indextest.WriteFile("new_file.txt", 1024)(root); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
