@@ -1278,6 +1278,20 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, rel?
 
+  isParticipant: (account, callback) ->
+    return callback new Error 'No account found!'  unless account
+
+    roles = [ 'member', 'moderator', 'admin' ]
+    selector = {
+      sourceId  : @getId()
+      targetId  : account._id
+      as: { $in: roles }
+    }
+
+    Relationship.one selector, (err, rel) ->
+      if err then callback err
+      else callback null, rel?
+
 
   countMembers: (callback) ->
     selector =

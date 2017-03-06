@@ -13,7 +13,7 @@ fetchGroup = (client, callback) ->
 
     { delegate } = client.connection
     return callback { error: 'Request not valid' } unless delegate
-    group.isMember delegate, (err, isMember) ->
+    group.isParticipant delegate, (err, isMember) ->
       if err or not isMember then return callback { error: 'Not allowed to open this group' }
       else callback null, group
 
