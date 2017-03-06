@@ -57,11 +57,6 @@ func (p *ChannelRequest) Create() (*ChannelContainer, error) {
 		c.Name = p.Name
 	}
 
-	// all topic channels under koding, should be public
-	if c.TypeConstant == Channel_TYPE_TOPIC && c.GroupName == Channel_KODING_NAME {
-		c.PrivacyConstant = Channel_PRIVACY_PUBLIC
-	}
-
 	if err := c.Create(); err != nil {
 		return nil, err
 	}
@@ -96,12 +91,7 @@ func (p *ChannelRequest) Create() (*ChannelContainer, error) {
 		}
 	}
 
-	typeConstant := ChannelMessage_TYPE_PRIVATE_MESSAGE
-	if p.TypeConstant == Channel_TYPE_TOPIC {
-		typeConstant = ChannelMessage_TYPE_POST
-	}
-
-	return p.buildInitContainer(c, participantIds, typeConstant)
+	return p.buildInitContainer(c, participantIds)
 }
 
 func checkForGroupParticipation(groupChannel *Channel, participantId int64) error {
@@ -122,26 +112,12 @@ func checkForGroupParticipation(groupChannel *Channel, participantId int64) erro
 	return nil
 }
 
-func (p *ChannelRequest) buildInitContainer(c *Channel, participantIds []int64, typeConstant string) (*ChannelContainer, error) {
+func (p *ChannelRequest) buildInitContainer(c *Channel, participantIds []int64) (*ChannelContainer, error) {
 
 	np := &ChannelRequest{}
 	*np = *p
-	lastMessage, err := p.AddInitActivity(c, participantIds)
-	if err != nil {
-		return nil, err
-	}
 
-	if np.Body != "" {
-		var err error
-		// create private message
-
-		lastMessage, err = p.createActivity(c, typeConstant)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	cmc, err := p.buildContainer(c, lastMessage)
+	cmc, err := p.buildContainer(c)
 	if err != nil {
 		return nil, err
 	}
@@ -202,18 +178,7 @@ func (p *ChannelRequest) Send() (*ChannelContainer, error) {
 		return nil, err
 	}
 
-	typeConstant := ChannelMessage_TYPE_PRIVATE_MESSAGE
-
-	if c.TypeConstant == Channel_TYPE_TOPIC {
-		typeConstant = ChannelMessage_TYPE_POST
-	}
-
-	cm, err := p.createActivity(c, typeConstant)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.buildContainer(c, cm)
+	return p.buildContainer(c)
 }
 
 func (p *ChannelRequest) Clone() *ChannelRequest {
@@ -223,92 +188,10 @@ func (p *ChannelRequest) Clone() *ChannelRequest {
 	return clone
 }
 
-func (p *ChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error {
-	if p.AccountId != addedBy && addedBy != 0 {
-		addedByStr := strconv.FormatInt(addedBy, 10)
-		p.Payload["addedBy"] = &addedByStr
-	}
-
-	_, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
-
-	return err
-}
-
-func (p *ChannelRequest) AddLeaveActivity(c *Channel) error {
-	_, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
-
-	return err
-}
-
-func (p *ChannelRequest) AddInitActivity(c *Channel, participantIds []int64) (*ChannelMessage, error) {
-	if len(participantIds) == 0 {
-		return nil, nil
-	}
-
-	if p.Payload == nil {
-		p.Payload = gorm.Hstore{}
-	}
-
-	if len(participantIds) > 0 {
-		payload := formatParticipantIds(participantIds)
-		p.Payload["initialParticipants"] = &payload
-		activity := ChannelRequestMessage_TYPE_INIT
-		p.Payload["systemType"] = &activity
-		p.PopulateAddedBy(c.CreatorId)
-	}
-
-	cm, err := p.createActivity(c, ChannelMessage_TYPE_SYSTEM)
-	if err != nil {
-		return nil, err
-	}
-
-	return cm, nil
-}
-
-func (p *ChannelRequest) SetSystemMessageType(systemType string) {
-	if p.Payload == nil {
-		p.Payload = gorm.Hstore{}
-	}
-
-	if systemType != "" {
-		p.Payload["systemType"] = &systemType
-	}
-}
-
-func (p *ChannelRequest) createActivity(c *Channel, typeConstant string) (*ChannelMessage, error) {
-	cm, err := p.createMessage(c.Id, typeConstant)
-	if err != nil {
-		return nil, err
-	}
-
-	// add message to the channel
-	cm.ClientRequestId = p.ClientRequestId
-	_, err = c.AddMessage(cm)
-	if err != nil {
-		return nil, err
-	}
-
-	return cm, nil
-}
-
-func (p *ChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
-
-	lastMessageContainer, err := cm.BuildEmptyMessageContainer()
-	if err != nil {
-		return nil, err
-	}
-
-	cm, err = lastMessageContainer.Message.PopulatePayload()
-	if err != nil {
-		return nil, err
-	}
-
+func (p *ChannelRequest) buildContainer(c *Channel) (*ChannelContainer, error) {
 	cmc := NewChannelContainer()
 	cmc.Channel = c
 	cmc.IsParticipant = true
-	cmc.LastMessage = lastMessageContainer
-	cmc.LastMessage.Message = cm
-	cmc.LastMessage.Message.ClientRequestId = p.ClientRequestId
 	cmc.AddAccountOldId()
 	if cmc.Err != nil {
 		return nil, cmc.Err
@@ -327,7 +210,7 @@ func (p *ChannelRequest) validate() error {
 	}
 
 	if p.TypeConstant == "" {
-		p.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+		return ErrChannelTypeConstantRequired
 	}
 
 	return nil
@@ -384,59 +267,6 @@ func prependCreatorId(participants []int64, authorId int64) []int64 {
 	}
 
 	return participantIds
-}
-
-func (p *ChannelRequest) createMessage(channelId int64, typeConstant string) (*ChannelMessage, error) {
-	cm := NewChannelMessage()
-	cm.Body = getBody(p, typeConstant)
-	cm.TypeConstant = typeConstant
-	cm.AccountId = p.AccountId
-	cm.InitialChannelId = channelId
-
-	err := p.setPayloadWithTypeConstant(cm)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := cm.Create(); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
-}
-
-// setPayloadWithTypeConstant sets the payload of the channel message
-// if message type is the system, we dont need to send all payload data to the client
-// we just need participants and systemType in the paylaod of the system message
-func (p *ChannelRequest) setPayloadWithTypeConstant(cm *ChannelMessage) error {
-	if cm.Payload == nil {
-		cm.Payload = gorm.Hstore{}
-	}
-
-	if cm.TypeConstant == ChannelMessage_TYPE_SYSTEM {
-		cm.Payload["systemType"] = p.Payload["systemType"]
-
-		if p.Payload["initialParticipants"] != nil {
-			cm.Payload["initialParticipants"] = p.Payload["initialParticipants"]
-		}
-
-		if p.Payload["addedBy"] != nil {
-			cm.Payload["addedBy"] = p.Payload["addedBy"]
-		}
-
-	} else {
-		cm.Payload = p.Payload
-	}
-
-	return nil
-}
-
-func getBody(p *ChannelRequest, typeConstant string) string {
-	if typeConstant == ChannelMessage_TYPE_SYSTEM {
-		return "system"
-	}
-
-	return p.Body
 }
 
 func formatParticipantIds(participantIds []int64) string {

@@ -2,7 +2,6 @@ package models
 
 import (
 	"socialapi/workers/common/tests"
-	"strings"
 	"testing"
 
 	"github.com/koding/bongo"
@@ -195,74 +194,6 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 	})
 }
 
-func TestAccountCreateFollowingFeedChannel(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		Convey("while creating feed channel", t, func() {
-			Convey("it should have account id", func() {
-				// create account
-				acc := NewAccount()
-
-				_, err := acc.CreateFollowingFeedChannel()
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrAccountIdIsNotSet)
-			})
-
-			Convey("it should have creator id as account id", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				So(acc.Create(), ShouldBeNil)
-
-				cff, err := acc.CreateFollowingFeedChannel()
-				So(err, ShouldBeNil)
-				So(cff.CreatorId, ShouldEqual, acc.Id)
-			})
-
-			Convey("it should have channel name as required", func() {
-				// create account
-				acc := NewAccount()
-				acc.OldId = bson.NewObjectId().Hex()
-				acc.Nick = bson.NewObjectId().Hex()
-				So(acc.Create(), ShouldBeNil)
-
-				cff, err := acc.CreateFollowingFeedChannel()
-				So(err, ShouldBeNil)
-				So(strings.HasSuffix(cff.Name, "-FollowingFeedChannel"), ShouldBeTrue)
-			})
-
-			Convey("it should have group name as Channel_KODING_NAME", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				So(acc.Create(), ShouldBeNil)
-
-				cff, err := acc.CreateFollowingFeedChannel()
-				So(err, ShouldBeNil)
-				So(cff.GroupName, ShouldEqual, Channel_KODING_NAME)
-			})
-
-			Convey("it should have purpose as Following Feed for me", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				So(acc.Create(), ShouldBeNil)
-
-				cff, err := acc.CreateFollowingFeedChannel()
-				So(err, ShouldBeNil)
-				So(cff.Purpose, ShouldEqual, "Following Feed for Me")
-			})
-
-			Convey("it should have type constant as Channel_TYPE_FOLLOWERS", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				So(acc.Create(), ShouldBeNil)
-
-				cff, err := acc.CreateFollowingFeedChannel()
-				So(err, ShouldBeNil)
-				So(cff.TypeConstant, ShouldEqual, Channel_TYPE_FOLLOWERS)
-			})
-		})
-	})
-}
-
 func TestAccountFetchChannel(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 
@@ -282,15 +213,6 @@ func TestAccountFetchChannel(t *testing.T) {
 				_, err := acc.FetchChannel(Channel_TYPE_GROUP)
 				So(err, ShouldNotBeNil)
 				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
-
-			Convey("it should not have error if channel type is exist", func() {
-				acc := CreateAccountWithTest()
-				c := CreateTypedChannelWithTest(acc.Id, Channel_TYPE_TOPIC)
-
-				cha, err := acc.FetchChannel(Channel_TYPE_TOPIC)
-				So(err, ShouldBeNil)
-				So(cha.TypeConstant, ShouldEqual, c.TypeConstant)
 			})
 		})
 	})

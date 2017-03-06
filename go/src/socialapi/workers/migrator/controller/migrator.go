@@ -69,8 +69,6 @@ func (mwc *Controller) Start() {
 
 	mwc.createPublicChannel()
 
-	mwc.createChangelogChannel()
-
 	mwc.migrateAllAccountsToAlgolia()
 
 	mwc.GrantPublicAccess()

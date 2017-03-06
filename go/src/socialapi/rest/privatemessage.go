@@ -10,7 +10,7 @@ import (
 )
 
 func SendPrivateChannelRequest(pmr models.ChannelRequest, token string) (*models.ChannelContainer, error) {
-	url := "/privatechannel/init"
+	url := "/channel/initwithparticipants"
 	res, err := marshallAndSendRequestWithAuth("POST", url, pmr, token)
 	if err != nil {
 		return nil, err

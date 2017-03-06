@@ -3,7 +3,6 @@ package algoliaconnector
 import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/models"
 	"testing"
 	"time"
 
@@ -62,13 +61,33 @@ func getTestHandler() (*runner.Runner, *Controller) {
 
 }
 
-func createChannelMessageList(channelId, messageId int64) *models.ChannelMessageList {
-	cml := models.NewChannelMessageList()
+// makeSureWithSearch tries to search again if given function fails to satisfy
+// with incoming response from algolia
+func makeSureWithSearch(
+	handler *Controller,
+	indexName string,
+	query string,
+	param algoliasearch.Map,
+	f func(algoliasearch.QueryRes, error) bool,
+) error {
+	index, err := handler.indexes.GetIndex(indexName)
+	if err != nil {
+		return err
+	}
 
-	cml.ChannelId = channelId
-	cml.MessageId = messageId
-
-	So(cml.Create(), ShouldBeNil)
-
-	return cml
+	deadLine := time.After(time.Minute * 2)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			record, err := index.Search(query, param)
+			if f(record, err) {
+				return nil
+			}
+		case <-deadLine:
+			handler.log.Critical("deadline reached on search, but not returning an error")
+			// return errDeadline
+			return nil
+		}
+	}
 }

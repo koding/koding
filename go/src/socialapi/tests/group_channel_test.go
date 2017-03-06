@@ -4,7 +4,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/models"
-	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
 	"testing"
@@ -51,42 +50,6 @@ func TestGroupChannel(t *testing.T) {
 				)
 				So(err, ShouldBeNil)
 				So(channel2, ShouldNotBeNil)
-			})
-
-			Convey("group channel should be shown before announcement", func() {
-				account, err := models.CreateAccountInBothDbs()
-				So(err, ShouldBeNil)
-
-				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
-				So(err, ShouldBeNil)
-				So(ses, ShouldNotBeNil)
-
-				_, err = rest.CreateChannelByGroupNameAndType(
-					account.Id,
-					groupName,
-					models.Channel_TYPE_GROUP,
-					ses.ClientId,
-				)
-				So(err, ShouldBeNil)
-
-				_, err = rest.CreateChannelByGroupNameAndType(
-					account.Id,
-					groupName,
-					models.Channel_TYPE_ANNOUNCEMENT,
-					ses.ClientId,
-				)
-				So(err, ShouldBeNil)
-				channels, err := rest.FetchChannelsByQuery(account.Id, &request.Query{
-					GroupName: groupName,
-					Type:      models.Channel_TYPE_GROUP,
-				},
-					ses.ClientId,
-				)
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 2)
-				So(channels[0].TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
-				So(channels[1].TypeConstant, ShouldEqual, models.Channel_TYPE_ANNOUNCEMENT)
-
 			})
 
 			Convey("owner should be able to update it", func() {

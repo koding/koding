@@ -23,7 +23,6 @@ func setDefaults(log logging.Logger) {
 	log.Debug("mongo group found")
 
 	setPublicChannel(log, group)
-	setChangeLogChannel(log, group)
 	log.Info("socialApi defaults are created")
 }
 
@@ -69,55 +68,6 @@ func setPublicChannel(log logging.Logger, group *kodingmodels.Group) {
 	log.Debug("mongo and postgres socialApiChannelId ids are different, fixing it")
 	if err := updateGroupPartially(group.Id, "socialApiChannelId", socialApiId); err != nil {
 		log.Error("err while udpating socialApiChannelId: %s", err.Error())
-		return
-	}
-}
-
-func setChangeLogChannel(log logging.Logger, group *kodingmodels.Group) {
-
-	c := models.NewChannel()
-	selector := map[string]interface{}{
-		"type_constant": models.Channel_TYPE_ANNOUNCEMENT,
-		"group_name":    models.Channel_KODING_NAME,
-	}
-
-	// if err is nil
-	// it means we already have that channel
-	err := c.One(bongo.NewQS(selector))
-	if err != nil && err != bongo.RecordNotFound {
-		log.Error("err while fetching changelog channel:", err.Error())
-		return
-	}
-
-	if err == bongo.RecordNotFound {
-		log.Error("postgres changelog couldn't found, creating it")
-
-		acc, err := createChannelOwner(group)
-		if err != nil {
-			log.Error(err.Error())
-			return
-		}
-
-		c.Name = "changelog"
-		c.CreatorId = acc.Id
-		c.GroupName = models.Channel_KODING_NAME
-		c.TypeConstant = models.Channel_TYPE_ANNOUNCEMENT
-		c.PrivacyConstant = models.Channel_PRIVACY_PRIVATE
-		if err := c.Create(); err != nil {
-			log.Error("err while creating the koding channel:", err.Error())
-			return
-		}
-	}
-
-	socialApiAnnouncementChannelId := strconv.FormatInt(c.Id, 10)
-	if group.SocialApiAnnouncementChannelId == socialApiAnnouncementChannelId {
-		log.Info("mongo and postgres socialApiAnnouncementChannel ids are same")
-		return
-	}
-
-	log.Debug("mongo and postgres socialApiAnnouncementChannel ids are different, fixing it")
-	if err := updateGroupPartially(group.Id, "socialApiAnnouncementChannelId", strconv.FormatInt(c.Id, 10)); err != nil {
-		log.Error("err while udpating socialApiAnnouncementChannelId:", err.Error())
 		return
 	}
 }

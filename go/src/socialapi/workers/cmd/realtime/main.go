@@ -27,12 +27,6 @@ func main() {
 	defer modelhelper.Close()
 
 	r.SetContext(realtime.New(r.Bongo.Broker.MQ, r.Log))
-	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*realtime.Controller).MessageUpdated)
-	r.Register(models.MessageReply{}).OnCreate().Handle((*realtime.Controller).MessageReplySaved)
-	r.Register(models.MessageReply{}).OnDelete().Handle((*realtime.Controller).MessageReplyDeleted)
-	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*realtime.Controller).MessageListSaved)
-	r.Register(models.ChannelMessageList{}).OnUpdate().Handle((*realtime.Controller).ChannelMessageListUpdated)
-	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*realtime.Controller).MessageListDeleted)
 	r.Register(models.ParticipantEvent{}).On(models.ChannelParticipant_Removed_From_Channel_Event).Handle((*realtime.Controller).ChannelParticipantRemoved)
 	r.Register(models.ParticipantEvent{}).On(models.ChannelParticipant_Added_To_Channel_Event).Handle((*realtime.Controller).ChannelParticipantsAdded)
 	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*realtime.Controller).ChannelParticipantUpdatedEvent)

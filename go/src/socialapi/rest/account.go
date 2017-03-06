@@ -3,8 +3,6 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
-	kodingmodels "koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 
@@ -19,26 +17,6 @@ func CreateAccount(a *models.Account) (*models.Account, error) {
 	}
 
 	return acc.(*models.Account), nil
-}
-
-func CreateAccountWithDailyDigest() (*models.Account, error) {
-	acc, err := models.CreateAccountInBothDbs()
-	if err != nil {
-		return nil, err
-	}
-
-	eFreq := kodingmodels.EmailFrequency{
-		Global:  true,
-		Daily:   true,
-		Comment: true,
-	}
-
-	err = modelhelper.UpdateEmailFrequency(acc.OldId, eFreq)
-	if err != nil {
-		return nil, err
-	}
-
-	return acc, nil
 }
 
 func sendOwnershipRequest(accountId int64, q *request.Query) (bool, error) {
@@ -63,51 +41,11 @@ func sendOwnershipRequest(accountId int64, q *request.Query) (bool, error) {
 
 }
 
-func CheckPostOwnership(acc *models.Account, post *models.ChannelMessage) (bool, error) {
-	return sendOwnershipRequest(acc.Id, &request.Query{
-		ObjectId: post.Id,
-		Type:     "channel-message",
-	})
-}
-
 func CheckChannelOwnership(acc *models.Account, channel *models.Channel) (bool, error) {
 	return sendOwnershipRequest(acc.Id, &request.Query{
 		ObjectId: channel.Id,
 		Type:     "channel",
 	})
-}
-
-func FetchAccountActivities(accId int64, token string) ([]*models.ChannelMessageContainer, error) {
-	url := fmt.Sprintf("/account/%d/posts", accId)
-
-	res, err := sendRequestWithAuth("GET", url, nil, token)
-	if err != nil {
-		return make([]*models.ChannelMessageContainer, 0), err
-	}
-
-	var arr []*models.ChannelMessageContainer
-
-	if err := json.Unmarshal(res, &arr); err != nil {
-		return make([]*models.ChannelMessageContainer, 0), err
-	}
-
-	return arr, nil
-}
-
-func FetchAccountActivityCount(accId int64, token string) (*models.CountResponse, error) {
-	url := fmt.Sprintf("/account/%d/posts/count", accId)
-
-	res, err := sendRequestWithAuth("GET", url, nil, token)
-	if err != nil {
-		return new(models.CountResponse), err
-	}
-
-	var cr *models.CountResponse
-	if err := json.Unmarshal(res, &cr); err != nil {
-		return new(models.CountResponse), err
-	}
-
-	return cr, nil
 }
 
 func FetchAccountChannels(token string) (*models.ChannelContainers, error) {

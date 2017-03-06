@@ -68,14 +68,7 @@ func TestAccountSaved(t *testing.T) {
 						if err != nil {
 							return false
 						}
-
-						hits := record.NbHits
-
-						if hits <= 0 {
-							return false
-						}
-
-						return true
+						return record.NbHits > 0
 					},
 				)
 
@@ -205,7 +198,7 @@ func TestAccountParticipantAdded(t *testing.T) {
 
 		tc1 := models.CreateTypedGroupedChannelWithTest(
 			acc.Id,
-			models.Channel_TYPE_TOPIC,
+			models.Channel_TYPE_COLLABORATION,
 			models.Channel_KODING_NAME,
 		)
 
@@ -265,7 +258,7 @@ func TestAccountParticipantRemoved(t *testing.T) {
 
 		tc1 := models.CreateTypedGroupedChannelWithTest(
 			acc.Id,
-			models.Channel_TYPE_TOPIC,
+			models.Channel_TYPE_COLLABORATION,
 			models.Channel_KODING_NAME,
 		)
 
@@ -423,11 +416,7 @@ func makeSureTagLen(handler *Controller, id string, tagLen int) error {
 
 func doBasicTestForAccountDeletion(handler *Controller, id string) error {
 	return makeSureAccount(handler, id, func(record map[string]interface{}, err error) bool {
-		if err == nil {
-			return false
-		}
-
-		return true
+		return err != nil // err should be set.
 	})
 }
 

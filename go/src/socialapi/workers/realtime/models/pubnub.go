@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"socialapi/config"
 	socialapimodels "socialapi/models"
 	"strconv"
@@ -118,31 +117,6 @@ func (p *PubNub) cacheAccessGranted(c ChannelManager) {
 
 func (p *PubNub) Close() {
 	p.pub.Close()
-}
-
-func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
-	mc := NewMessageUpdateChannel(*um)
-
-	if err := p.GrantPublicAccess(mc); err != nil {
-		return err
-	}
-
-	// um.Body is just message data itself in a map. Since we are going
-	// to apply the changes via MongoOp in client side, we are sending
-	// the changes with '$set' key.
-	if um.EventName == "updateInstance" {
-		um.Body = map[string]interface{}{"$set": um.Body}
-	}
-
-	// Prepend instance id to event name. We are no longer creating a channel
-	// for each message by doing this.
-	um.EventName = fmt.Sprintf("instance-%s.%s", um.Token, um.EventName)
-
-	if err := p.publish(mc, *um); err != nil {
-		p.log.Error("Could not push update instance event: %s", err)
-	}
-
-	return nil
 }
 
 func (p *PubNub) NotifyUser(nm *NotificationMessage) error {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
@@ -56,7 +55,6 @@ func TestCollaborationChannels(t *testing.T) {
 			Convey("one can send initiate the collaboration channel with only him", func() {
 				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
-				pmr.Body = "this is a body for private message"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
@@ -70,7 +68,6 @@ func TestCollaborationChannels(t *testing.T) {
 			Convey("one can send initiate the collaboration channel with 2 participants", func() {
 				pmr := models.ChannelRequest{}
 				pmr.AccountId = account.Id
-				pmr.Body = "this is a body message for private message @devrim @sinan"
 				pmr.GroupName = groupName
 				pmr.Recipients = []string{"devrim", "sinan"}
 				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
@@ -211,7 +208,6 @@ func TestCollaborationChannels(t *testing.T) {
 				cmc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
 				So(err, ShouldBeNil)
 				So(cmc, ShouldNotBeNil)
-				So(cmc.LastMessage.Message.Body, ShouldEqual, body)
 			})
 
 			Convey("channel messages should be listed by all recipients", func() {
@@ -245,7 +241,6 @@ func TestCollaborationChannels(t *testing.T) {
 				So(pm[0].Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_COLLABORATION)
 				So(pm[0].Channel.Id, ShouldEqual, cmc.Channel.Id)
 				So(pm[0].Channel.GroupName, ShouldEqual, cmc.Channel.GroupName)
-				So(pm[0].LastMessage.Message.Body, ShouldEqual, cmc.LastMessage.Message.Body)
 				So(pm[0].Channel.PrivacyConstant, ShouldEqual, models.Channel_PRIVACY_PRIVATE)
 				So(len(pm[0].ParticipantsPreview), ShouldEqual, 3)
 				So(pm[0].IsParticipant, ShouldBeTrue)
@@ -282,7 +277,6 @@ func TestCollaborationChannels(t *testing.T) {
 				So(pm[0].Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_COLLABORATION)
 				So(pm[0].Channel.Id, ShouldEqual, cmc.Channel.Id)
 				So(pm[0].Channel.GroupName, ShouldEqual, cmc.Channel.GroupName)
-				So(pm[0].LastMessage.Message.Body, ShouldEqual, cmc.LastMessage.Message.Body)
 				So(pm[0].Channel.PrivacyConstant, ShouldEqual, models.Channel_PRIVACY_PRIVATE)
 				So(pm[0].IsParticipant, ShouldBeTrue)
 
@@ -326,147 +320,6 @@ func TestCollaborationChannels(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
-
-				history, err := rest.GetHistory(
-					cc.Channel.Id,
-					&request.Query{
-						AccountId: account.Id,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(history, ShouldNotBeNil)
-				So(len(history.MessageList), ShouldEqual, 2)
-
-				// add participant
-				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
-				So(err, ShouldBeNil)
-
-				history, err = rest.GetHistory(
-					cc.Channel.Id,
-					&request.Query{
-						AccountId: account.Id,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(history, ShouldNotBeNil)
-				So(len(history.MessageList), ShouldEqual, 3)
-
-				So(history.MessageList[0].Message, ShouldNotBeNil)
-				So(history.MessageList[0].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_SYSTEM)
-				So(history.MessageList[0].Message.Payload, ShouldNotBeNil)
-				addedBy, ok := history.MessageList[0].Message.Payload["addedBy"]
-				So(ok, ShouldBeTrue)
-				So(*addedBy, ShouldEqual, account.Nick)
-
-				systemType, ok := history.MessageList[0].Message.Payload["systemType"]
-				So(ok, ShouldBeTrue)
-				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_JOIN)
-
-				// try to add same participant
-				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
-				So(err, ShouldBeNil)
-
-				history, err = rest.GetHistory(
-					cc.Channel.Id,
-					&request.Query{
-						AccountId: account.Id,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(history, ShouldNotBeNil)
-				So(len(history.MessageList), ShouldEqual, 3)
-
-			})
-
-			Convey("user should not be able to edit join messages", func() {
-				pmr := models.ChannelRequest{}
-				pmr.AccountId = account.Id
-				pmr.Body = "test collaboration channel participants again"
-				pmr.GroupName = groupName
-				pmr.Recipients = []string{"devrim"}
-				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
-
-				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(cc, ShouldNotBeNil)
-
-				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
-				So(err, ShouldBeNil)
-
-				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
-				So(err, ShouldBeNil)
-				So(ses, ShouldNotBeNil)
-
-				history, err := rest.GetHistory(
-					cc.Channel.Id,
-					&request.Query{
-						AccountId: account.Id,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(history, ShouldNotBeNil)
-				So(len(history.MessageList), ShouldEqual, 3)
-
-				joinMessage := history.MessageList[0].Message
-				So(joinMessage, ShouldNotBeNil)
-
-				_, err = rest.UpdatePost(joinMessage, ses.ClientId)
-				So(err, ShouldNotBeNil)
-			})
-
-			Convey("first chat message should include initial participants", func() {
-				pmr := models.ChannelRequest{}
-				pmr.AccountId = account.Id
-				pmr.Body = "test initial participation message"
-				pmr.GroupName = groupName
-				pmr.Recipients = []string{"sinan", "devrim"}
-				pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
-
-				cc, err := rest.SendPrivateChannelRequest(pmr, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(cc, ShouldNotBeNil)
-
-				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
-				So(err, ShouldBeNil)
-				So(ses, ShouldNotBeNil)
-
-				history, err := rest.GetHistory(
-					cc.Channel.Id,
-					&request.Query{
-						AccountId: account.Id,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(history, ShouldNotBeNil)
-				So(len(history.MessageList), ShouldEqual, 2)
-
-				joinMessage := history.MessageList[1].Message
-				So(joinMessage.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_SYSTEM)
-				So(joinMessage.Payload, ShouldNotBeNil)
-				initialParticipants, ok := joinMessage.Payload["initialParticipants"]
-				So(ok, ShouldBeTrue)
-
-				systemType, ok := history.MessageList[1].Message.Payload["systemType"]
-				So(ok, ShouldBeTrue)
-				So(*systemType, ShouldEqual, models.ChannelRequestMessage_TYPE_INIT)
-
-				participants := make([]string, 0)
-				err = json.Unmarshal([]byte(*initialParticipants), &participants)
-				So(err, ShouldBeNil)
-				So(len(participants), ShouldEqual, 2)
-				So(participants, ShouldContain, "devrim")
-				// So(*addedBy, ShouldEqual, account.OldId)
-
 			})
 		})
 	})

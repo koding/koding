@@ -87,48 +87,6 @@ func CreateTypedPublicChannelWithTest(accountId int64, typeConstant string) *Cha
 	return channel
 }
 
-func CreateMessage(channelId, accountId int64, typeConstant string) *ChannelMessage {
-	return CreateMessageWithBody(channelId, accountId, typeConstant, "testing message")
-}
-
-func CreateMessageWithBody(channelId, accountId int64, typeConstant, body string) *ChannelMessage {
-	cm := NewChannelMessage()
-
-	cm.AccountId = accountId
-	// set channel id
-	cm.InitialChannelId = channelId
-	cm.TypeConstant = typeConstant
-	// set body
-	cm.Body = body
-
-	err := cm.Create()
-	So(err, ShouldBeNil)
-
-	c := NewChannel()
-	c.Id = channelId
-	_, err = c.EnsureMessage(cm, false)
-	So(err, ShouldBeNil)
-
-	return cm
-}
-
-func CreateTrollMessage(channelId, accountId int64, typeConstant string) *ChannelMessage {
-	cm := NewChannelMessage()
-
-	cm.AccountId = accountId
-	// set channel id
-	cm.InitialChannelId = channelId
-	cm.TypeConstant = typeConstant
-	// set body
-	cm.Body = "testing message"
-	cm.MetaBits = Troll
-
-	err := cm.Create()
-	So(err, ShouldBeNil)
-
-	return cm
-}
-
 func AddParticipantsWithTest(channelId int64, accountIds ...int64) {
 
 	for _, accountId := range accountIds {
@@ -168,17 +126,6 @@ func CreateAccountWithTest() *Account {
 	So(account, ShouldNotBeNil)
 	So(account.Id, ShouldNotEqual, 0)
 	return account
-}
-
-func CreateMessageWithTest() *ChannelMessage {
-	account := CreateAccountWithTest()
-	channel := CreateChannelWithTest(account.Id)
-
-	cm := NewChannelMessage()
-	cm.AccountId = account.Id
-	cm.InitialChannelId = channel.Id
-	cm.Body = "5five"
-	return cm
 }
 
 func CreateAccountInBothDbs() (*Account, error) {

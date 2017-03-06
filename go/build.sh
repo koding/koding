@@ -2,7 +2,10 @@
 
 set -euo pipefail
 
-export GOPATH=$(cd "$(dirname "$0")"; pwd)
+export GOPATH=$(
+	cd "$(dirname "$0")"
+	pwd
+)
 export GOBIN=${GOBIN:-${GOPATH}/bin}
 export KODING_REPO=$(git rev-parse --show-toplevel)
 export KODING_GIT_VERSION=$(git rev-parse --short HEAD || cat ./VERSION || cat ../VERSION || cat ../../../VERSION || echo "0")
@@ -26,7 +29,6 @@ export COMMANDS=(
 	koding/kites/kloud/scripts/sl
 	koding/klient
 	koding/scripts/multiec2ssh
-
 	socialapi/workers/api
 	socialapi/workers/cmd/realtime
 	socialapi/workers/cmd/realtime/gatekeeper
@@ -38,9 +40,7 @@ export COMMANDS=(
 	socialapi/workers/cmd/collaboration
 	socialapi/workers/cmd/email/emailsender
 	socialapi/workers/cmd/team
-	socialapi/workers/algoliaconnector/tagmigrator
-	socialapi/workers/algoliaconnector/contentmigrator
-
+	socialapi/scripts/accountdeleter
 	vendor/github.com/koding/kite/kitectl
 	vendor/github.com/canthefason/go-watcher
 	vendor/github.com/mattes/migrate
@@ -50,6 +50,7 @@ export COMMANDS=(
 	vendor/github.com/wadey/gocovmerge
 	vendor/github.com/opennota/check/cmd/varcheck
 	vendor/gopkg.in/alecthomas/gometalinter.v1
+
 )
 
 export TERRAFORM_COMMANDS=(
