@@ -14,6 +14,8 @@ import (
 	"github.com/koding/logging"
 )
 
+// TODO(rjeczalik): rename to kite
+
 // Transport is an interface that abstracts underlying
 // RPC round trip.
 //

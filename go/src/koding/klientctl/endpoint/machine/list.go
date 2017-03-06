@@ -20,7 +20,8 @@ import (
 
 // ListOptions stores options for `machine list` call.
 type ListOptions struct {
-	Log logging.Logger
+	MachineID string
+	Log       logging.Logger
 }
 
 // List retrieves user's machines from kloud.
@@ -29,13 +30,13 @@ func List(options *ListOptions) ([]*Info, error) {
 		return nil, errors.New("invalid nil options")
 	}
 
-	var (
-		listReq = stack.MachineListRequest{}
-		listRes = stack.MachineListResponse{}
-	)
+	listReq := &stack.MachineListRequest{
+		MachineID: options.MachineID,
+	}
+	var listRes stack.MachineListResponse
 
 	// Get info from kloud.
-	if err := kloud.Call("machine.list", &listReq, &listRes); err != nil {
+	if err := kloud.Call("machine.list", listReq, &listRes); err != nil {
 		return nil, err
 	}
 

@@ -7,6 +7,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var modelHelper modelHelperAdapter
+
 // modelHelperAdapter wraps modelhelper package with adapter interface. Thus,
 // it allows to use it as ordinal object which satisfies adapter interface.
 type modelHelperAdapter struct{}
@@ -20,4 +22,9 @@ func (modelHelperAdapter) GetParticipatedMachinesByUsername(username string) ([]
 func (modelHelperAdapter) GetStackTemplateFieldsByIds(
 	ids []bson.ObjectId, fields []string) ([]*models.StackTemplate, error) {
 	return modelhelper.GetStackTemplateFieldsByIds(ids, fields)
+}
+
+// GetMachineByID forwards fuction call to the modelhelper package.
+func (modelHelperAdapter) GetMachineByID(id string) (*models.Machine, error) {
+	return modelhelper.GetMachine(id)
 }
