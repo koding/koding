@@ -36,13 +36,8 @@ import (
 	mclient "koding/klient/machine/client"
 	"koding/klient/machine/index"
 	"koding/klient/machine/machinegroup"
-<<<<<<< HEAD
 	"koding/klient/machine/mount/notify/fuse"
-	"koding/klient/machine/mount/sync/discard"
-=======
-	"koding/klient/machine/mount/notify/silent"
 	"koding/klient/machine/mount/sync/rsync"
->>>>>>> klient/machine: move SSH key logic to separate function
 	kos "koding/klient/os"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
