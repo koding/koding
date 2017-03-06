@@ -5,7 +5,7 @@ executorType: docker
 containerInfo:
   - image: koding/circle@sha256:9e17db94f3c4b9d91b593db926111f7f78626ed0ba4209a47ae1980ffe1dce77
 
-  - image: mongo:2.6
+  - image: mongo:3.2.8
     cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
 
   - image: koding/postgres
