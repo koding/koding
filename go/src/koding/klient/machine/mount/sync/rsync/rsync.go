@@ -1,18 +1,13 @@
 package rsync
 
 import (
-	"context"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strconv"
 	"sync"
 	"time"
 
 	"koding/kites/config"
 	"koding/klient/machine/client"
-	"koding/klient/machine/index"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/transport/rsync"
 	"koding/klientctl/ssh"
 )
 
@@ -44,64 +39,37 @@ func (e *Event) Exec() error {
 		return err
 	}
 
-	change := e.ev.Change()
-	err = e.parent.Cmd(e.ev.Context(), e.makeArgs(host, port, change)...).Run()
+	var change = e.ev.Change()
+	err = (&rsync.Command{
+		SourcePath:      e.parent.local,
+		DestinationPath: e.parent.remote,
+		Username:        e.parent.username,
+		PrivateKeyPath:  e.parent.privKeyPath,
+		Host:            host,
+		SSHPort:         port,
+		Change:          change,
+	}).Run(e.ev.Context())
+
 	e.parent.indexSync(change)
 
 	return err
 }
 
-// makeArgs transforms provided index change to rsync executable arguments.
-func (e *Event) makeArgs(host string, port int, c *index.Change) []string {
-	remote := e.parent.username + "@" + host + ":"
-	if e.parent.username == "" || host == "" {
-		remote = ""
-	}
-
-	var (
-		src  = filepath.Join(e.parent.local, c.Path())
-		dst  = remote + filepath.Join(e.parent.remote, c.Path())
-		meta = c.Meta()
-	)
-
-	if meta&index.ChangeMetaLocal == 0 && meta&index.ChangeMetaRemote != 0 {
-		src, dst = dst, src // Swap sync directions.
-	}
-
-	var rsyncAgent []string
-	if e.parent.privKeyPath != "" {
-		sshcmd := "ssh -i " + e.parent.privKeyPath + " -oStrictHostKeyChecking=no"
-		if port > 0 && port != 22 {
-			sshcmd += " -p " + strconv.Itoa(port)
-		}
-		rsyncAgent = append(rsyncAgent, "-e", sshcmd)
-	}
-
-	if meta&index.ChangeMetaRemove != 0 {
-		rsyncAgent = append(rsyncAgent, "--delete")
-	}
-
-	rsyncAgent = append(rsyncAgent, "--include='/"+filepath.Base(src)+"'", "--exclude='*'")
-
-	return append(rsyncAgent, "-zlptgoDd", filepath.Dir(src)+"/", filepath.Dir(dst)+"/")
-}
-
 // String implements fmt.Stringer interface. It pretty prints internal event.
 func (e *Event) String() string {
-	return e.ev.String() + " - " + "rsynced"
+	return e.ev.String() + " - " + "rsync"
 }
 
 // Rsync uses rsync(1) file-copying tool to provide synchronization between
 // remote and local files.
 type Rsync struct {
-	Cmd func(ctx context.Context, args ...string) *exec.Cmd // Comand factory.
+	remote      string // remote directory root.
+	local       string // local directory root.
+	privKeyPath string // ssh private key path.
+	username    string // remote username.
 
-	remote      string               // remote directory root.
-	local       string               // local directory root.
-	privKeyPath string               // ssh private key path.
-	username    string               // remote username.
-	dynSSH      msync.DynamicSSHFunc // address of connected machine.
-	indexSync   msync.IndexSyncFunc  // callback used to update index.
+	dynSSH    msync.DynamicSSHFunc // address of connected machine.
+	indexSync msync.IndexSyncFunc  // callback used to update index.
 
 	once  sync.Once
 	stopC chan struct{} // channel used to close any opened exec streams.
@@ -110,7 +78,7 @@ type Rsync struct {
 // NewRsync creates a new Rsync object from given options.
 func NewRsync(opts *msync.BuildOpts) (*Rsync, error) {
 	// Get path for SSH private key.
-	privKeyPath, err := UserSSHPrivateKeyPath()
+	privKeyPath, err := userSSHPrivateKeyPath()
 	if err != nil {
 		return nil, err
 	}
@@ -122,12 +90,6 @@ func NewRsync(opts *msync.BuildOpts) (*Rsync, error) {
 	}
 
 	return &Rsync{
-		Cmd: func(ctx context.Context, args ...string) *exec.Cmd {
-			cmd := exec.CommandContext(ctx, "rsync", args...)
-			cmd.Env = os.Environ()
-			return cmd
-		},
-
 		remote:      opts.Mount.RemotePath,
 		local:       opts.CacheDir,
 		privKeyPath: privKeyPath,
@@ -136,6 +98,21 @@ func NewRsync(opts *msync.BuildOpts) (*Rsync, error) {
 		indexSync:   opts.IndexSyncFunc,
 		stopC:       make(chan struct{}),
 	}, nil
+}
+
+// userSSHPrivateKeyPath gets the filepath to user's private SSH key.
+func userSSHPrivateKeyPath() (string, error) {
+	path, err := ssh.GetKeyPath(config.CurrentUser.User)
+	if err != nil {
+		return "", err
+	}
+
+	_, privKeyPath, err := ssh.KeyPaths(path)
+	if err != nil {
+		return "", err
+	}
+
+	return privKeyPath, nil
 }
 
 // ExecStream wraps incoming msync events with Rsync event logic that is
@@ -168,21 +145,6 @@ func (r *Rsync) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 	}()
 
 	return exC
-}
-
-// UserSSHPrivateKeyPath gets the filepath to user's private SSH key.
-func UserSSHPrivateKeyPath() (string, error) {
-	path, err := ssh.GetKeyPath(config.CurrentUser.User)
-	if err != nil {
-		return "", err
-	}
-
-	_, privKeyPath, err := ssh.KeyPaths(path)
-	if err != nil {
-		return "", err
-	}
-
-	return privKeyPath, nil
 }
 
 // Close stops all created synchronization streams.
