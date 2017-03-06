@@ -22,8 +22,7 @@ import (
 // IndexFileName is a file name of managed directory index.
 const IndexFileName = "index"
 
-// DynamicSSHFunc is an adapter that allows to retrieve information needed to
-// make SSH connection to remote machine.
+// DynamicSSHFunc locates the remote host which ssh should connect to.
 type DynamicSSHFunc func() (host string, port int, err error)
 
 // BuildOpts represents the context that can be used by external syncers to
