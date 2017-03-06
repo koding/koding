@@ -9,7 +9,6 @@ import (
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
-	"koding/kites/kloud/userdata"
 
 	softlayer "github.com/maximilien/softlayer-go/client"
 )
@@ -116,57 +115,14 @@ func (s *Stack) injectBootstrap(b *Bootstrap, guest map[string]interface{}) erro
 
 // injectKiteKeys creates a kite key for each virtual guest, and sets up
 // the runtime injection of said key using cloud-init/user_data
-func (s *Stack) injectKiteKeys(guest map[string]interface{}, name string) error {
-	count := 1
-	if n, ok := guest["count"].(int); ok && n > 1 {
-		count = n
-	}
-
-	var labels []string
-	if count > 1 {
-		for i := 0; i < count; i++ {
-			labels = append(labels, fmt.Sprintf("%s.%d", name, i))
-		}
-	} else {
-		labels = append(labels, name)
-	}
-
-	kiteKeyName := fmt.Sprintf("kitekeys_%s", name)
-
-	s.Builder.InterpolateField(guest, name, "user_data")
-
-	// Map the generated kite key to the guest via cloud-init config
-	cloudInitConfig := &userdata.CloudInitConfig{
-		Username: s.Req.Username,
-		Groups:   []string{"sudo"},
-		Hostname: s.Req.Username,
-		KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
-	}
-
-	// If user provided user data, associate that with our cloud init config
-	if ud, ok := guest["user_data"].(string); ok {
-		cloudInitConfig.UserData = ud
-	}
-
-	// Create cloud init and associate with guest
-	cloudInit, err := s.Session.Userdata.Create(cloudInitConfig)
+func (s *Stack) injectKiteKeys(name string, guest map[string]interface{}) error {
+	ub, err := s.BuildUserdata(name, guest)
 	if err != nil {
 		return err
 	}
-	guest["user_data"] = string(cloudInit)
 
-	countKeys := make(map[string]string, count)
-	for i, label := range labels {
-		kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
-		if err != nil {
-			return err
-		}
-
-		countKeys[strconv.Itoa(i)] = kiteKey
-	}
-
-	s.Builder.Template.Variable[kiteKeyName] = map[string]interface{}{
-		"default": countKeys,
+	s.Builder.Template.Variable[ub.KiteKeyName] = map[string]interface{}{
+		"default": ub.KiteKeys,
 	}
 
 	return nil
@@ -204,7 +160,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			return nil, err
 		}
 
-		if err := s.injectKiteKeys(guest, name); err != nil {
+		if err := s.injectKiteKeys(name, guest); err != nil {
 			return nil, err
 		}
 	}

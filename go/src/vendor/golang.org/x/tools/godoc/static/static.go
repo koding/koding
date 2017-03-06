@@ -683,6 +683,11 @@ function generateTOC() {
 
 function bindToggle(el) {
   $('.toggleButton', el).click(function() {
+    if ($(this).closest(".toggle, .toggleVisible")[0] != el) {
+      // Only trigger the closest toggle header.
+      return;
+    }
+
     if ($(el).is('.toggle')) {
       $(el).addClass('toggleVisible').removeClass('toggle');
     } else {
@@ -690,6 +695,7 @@ function bindToggle(el) {
     }
   });
 }
+
 function bindToggles(selector) {
   $(selector).each(function(i, el) {
     bindToggle(el);
@@ -809,17 +815,38 @@ function fixFocus() {
 }
 
 function toggleHash() {
-    var hash = $(window.location.hash);
-    if (hash.is('.toggle')) {
-      hash.find('.toggleButton').first().click();
+  var id = window.location.hash.substring(1);
+  // Open all of the toggles for a particular hash.
+  var els = $(
+    document.getElementById(id),
+    $('a[name]').filter(function() {
+      return $(this).attr('name') == id;
+    })
+  );
+
+  while (els.length) {
+    for (var i = 0; i < els.length; i++) {
+      var el = $(els[i]);
+      if (el.is('.toggle')) {
+        el.find('.toggleButton').first().click();
+      }
     }
+    els = el.parent();
+  }
 }
 
 function personalizeInstallInstructions() {
   var prefix = '?download=';
   var s = window.location.search;
   if (s.indexOf(prefix) != 0) {
-    // No 'download' query string; bail.
+    // No 'download' query string; detect "test" instructions from User Agent.
+    if (navigator.platform.indexOf('Win') != -1) {
+      $('.testUnix').hide();
+      $('.testWindows').show();
+    } else {
+      $('.testUnix').show();
+      $('.testWindows').hide();
+    }
     return;
   }
 
@@ -875,9 +902,36 @@ function updateVersionTags() {
   }
 }
 
+function addPermalinks() {
+  function addPermalink(source, parent) {
+    var id = source.attr("id");
+    if (id == "" || id.indexOf("tmp_") === 0) {
+      // Auto-generated permalink.
+      return;
+    }
+    if (parent.find("> .permalink").length) {
+      // Already attached.
+      return;
+    }
+    parent.append(" ").append($("<a class='permalink'>&#xb6;</a>").attr("href", "#" + id));
+  }
+
+  $("#page .container").find("h2[id], h3[id]").each(function() {
+    var el = $(this);
+    addPermalink(el, el);
+  });
+
+  $("#page .container").find("dl[id]").each(function() {
+    var el = $(this);
+    // Add the anchor to the "dt" element.
+    addPermalink(el, el.find("> dt").first());
+  });
+}
+
 $(document).ready(function() {
   bindSearchEvents();
   generateTOC();
+  addPermalinks();
   bindToggles(".toggle");
   bindToggles(".toggleVisible");
   bindToggleLinks(".exampleLink", "example_");
@@ -1734,15 +1788,15 @@ function cgAddChild(tree, ul, cgn) {
 		{{with .Consts}}
 			<h2 id="pkg-constants">Constants</h2>
 			{{range .}}
-				<pre>{{node_html $ .Decl true}}</pre>
 				{{comment_html .Doc}}
+				<pre>{{node_html $ .Decl true}}</pre>
 			{{end}}
 		{{end}}
 		{{with .Vars}}
 			<h2 id="pkg-variables">Variables</h2>
 			{{range .}}
-				<pre>{{node_html $ .Decl true}}</pre>
 				{{comment_html .Doc}}
+				<pre>{{node_html $ .Decl true}}</pre>
 			{{end}}
 		{{end}}
 		{{range .Funcs}}
@@ -1763,17 +1817,17 @@ function cgAddChild(tree, ul, cgn) {
 			<h2 id="{{$tname_html}}">type <a href="{{posLink_url $ .Decl}}">{{$tname_html}}</a>
 				<a class="permalink" href="#{{$tname_html}}">&#xb6;</a>
 			</h2>
-			<pre>{{node_html $ .Decl true}}</pre>
 			{{comment_html .Doc}}
+			<pre>{{node_html $ .Decl true}}</pre>
 
 			{{range .Consts}}
-				<pre>{{node_html $ .Decl true}}</pre>
 				{{comment_html .Doc}}
+				<pre>{{node_html $ .Decl true}}</pre>
 			{{end}}
 
 			{{range .Vars}}
-				<pre>{{node_html $ .Decl true}}</pre>
 				{{comment_html .Doc}}
+				<pre>{{node_html $ .Decl true}}</pre>
 			{{end}}
 
 			{{example_html $ $tname}}
@@ -1860,7 +1914,7 @@ function cgAddChild(tree, ul, cgn) {
 					{{if .HasPkg}}
 						<tr>
 							<td class="pkg-name">
-								<a href="{{html .Path}}/">{{html .Path}}</a>
+								<a href="{{html .Path}}/{{modeQueryString $.Mode | html}}">{{html .Path}}</a>
 							</td>
 							<td class="pkg-synopsis">
 								{{html .Synopsis}}
@@ -1870,7 +1924,7 @@ function cgAddChild(tree, ul, cgn) {
 				{{else}}
 					<tr>
 						<td class="pkg-name" style="padding-left: {{multiply .Depth 20}}px;">
-							<a href="{{html .Path}}/">{{html .Name}}</a>
+							<a href="{{html .Path}}/{{modeQueryString $.Mode | html}}">{{html .Name}}</a>
 						</td>
 						<td class="pkg-synopsis">
 							{{html .Synopsis}}
@@ -2325,8 +2379,9 @@ function PlaygroundOutput(el) {
 			cl = write.Kind;
 
 		var m = write.Body;
-		if (write.Kind == 'end') 
+		if (write.Kind == 'end') {
 			m = '\nProgram exited' + (m?(': '+m):'.');
+		}
 
 		if (m.indexOf('IMAGE:') === 0) {
 			// TODO(adg): buffer all writes before creating image
@@ -2391,11 +2446,12 @@ function PlaygroundOutput(el) {
   //  toysEl - toys select element (optional)
   //  enableHistory - enable using HTML5 history API (optional)
   //  transport - playground transport to use (default is HTTPTransport)
+  //  enableShortcuts - whether to enable shortcuts (Ctrl+S/Cmd+S to save) (default is false)
   function playground(opts) {
     var code = $(opts.codeEl);
     var transport = opts['transport'] || new HTTPTransport();
     var running;
-  
+
     // autoindent helpers.
     function insertTabs(n) {
       // find the selection start and end
@@ -2429,8 +2485,26 @@ function PlaygroundOutput(el) {
         insertTabs(tabs);
       }, 1);
     }
-  
+
+    // NOTE(cbro): e is a jQuery event, not a DOM event.
+    function handleSaveShortcut(e) {
+      if (e.isDefaultPrevented()) return false;
+      if (!e.metaKey && !e.ctrlKey) return false;
+      if (e.key != "S" && e.key != "s") return false;
+
+      e.preventDefault();
+
+      // Share and save
+      share(function(url) {
+        window.location.href = url + ".go?download=true";
+      });
+
+      return true;
+    }
+
     function keyHandler(e) {
+      if (opts.enableShortcuts && handleSaveShortcut(e)) return;
+
       if (e.keyCode == 9 && !e.ctrlKey) { // tab (but not ctrl-tab)
         insertTabs(1);
         e.preventDefault();
@@ -2453,7 +2527,7 @@ function PlaygroundOutput(el) {
     code.unbind('keydown').bind('keydown', keyHandler);
     var outdiv = $(opts.outputEl).empty();
     var output = $('<pre/>').appendTo(outdiv);
-  
+
     function body() {
       return $(opts.codeEl).val();
     }
@@ -2463,7 +2537,7 @@ function PlaygroundOutput(el) {
     function origin(href) {
       return (""+href).split("/").slice(0, 3).join("/");
     }
-  
+
     var pushedEmpty = (window.location.pathname == "/");
     function inputChanged() {
       if (pushedEmpty) {
@@ -2506,7 +2580,7 @@ function PlaygroundOutput(el) {
 
     function fmt() {
       loading();
-      var data = {"body": body()}; 
+      var data = {"body": body()};
       if ($(opts.fmtImportEl).is(":checked")) {
         data["imports"] = "true";
       }
@@ -2525,48 +2599,62 @@ function PlaygroundOutput(el) {
       });
     }
 
+    var shareURL; // jQuery element to show the shared URL.
+    var sharing = false; // true if there is a pending request.
+    var shareCallbacks = [];
+    function share(opt_callback) {
+      if (opt_callback) shareCallbacks.push(opt_callback);
+
+      if (sharing) return;
+      sharing = true;
+
+      var sharingData = body();
+      $.ajax("/share", {
+        processData: false,
+        data: sharingData,
+        type: "POST",
+        complete: function(xhr) {
+          sharing = false;
+          if (xhr.status != 200) {
+            alert("Server error; try again.");
+            return;
+          }
+          if (opts.shareRedirect) {
+            window.location = opts.shareRedirect + xhr.responseText;
+          }
+          var path = "/p/" + xhr.responseText;
+          var url = origin(window.location) + path;
+
+          for (var i = 0; i < shareCallbacks.length; i++) {
+            shareCallbacks[i](url);
+          }
+          shareCallbacks = [];
+
+          if (shareURL) {
+            shareURL.show().val(url).focus().select();
+
+            if (rewriteHistory) {
+              var historyData = {"code": sharingData};
+              window.history.pushState(historyData, "", path);
+              pushedEmpty = false;
+            }
+          }
+        }
+      });
+    }
+
     $(opts.runEl).click(run);
     $(opts.fmtEl).click(fmt);
 
     if (opts.shareEl !== null && (opts.shareURLEl !== null || opts.shareRedirect !== null)) {
-      var shareURL;
       if (opts.shareURLEl) {
         shareURL = $(opts.shareURLEl).hide();
       }
-      var sharing = false;
       $(opts.shareEl).click(function() {
-        if (sharing) return;
-        sharing = true;
-        var sharingData = body();
-        $.ajax("/share", {
-          processData: false,
-          data: sharingData,
-          type: "POST",
-          complete: function(xhr) {
-            sharing = false;
-            if (xhr.status != 200) {
-              alert("Server error; try again.");
-              return;
-            }
-            if (opts.shareRedirect) {
-              window.location = opts.shareRedirect + xhr.responseText;
-            }
-            if (shareURL) {
-              var path = "/p/" + xhr.responseText;
-              var url = origin(window.location) + path;
-              shareURL.show().val(url).focus().select();
-  
-              if (rewriteHistory) {
-                var historyData = {"code": sharingData};
-                window.history.pushState(historyData, "", path);
-                pushedEmpty = false;
-              }
-            }
-          }
-        });
+        share();
       });
     }
-  
+
     if (opts.toysEl !== null) {
       $(opts.toysEl).bind('change', function() {
         var toy = $(this).val();
@@ -2832,6 +2920,13 @@ pre .selection-comment {
 }
 pre .ln {
 	color: #999;
+	background: #efefef;
+}
+.ln {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 body {
 	color: #222;
@@ -2845,11 +2940,17 @@ a:hover,
 .exampleHeading .text:hover {
 	text-decoration: underline;
 }
+.article a {
+	text-decoration: underline;
+}
+.article .title a {
+	text-decoration: none;
+}
 
 .permalink {
 	display: none;
 }
-h2:hover .permalink, h3:hover .permalink {
+:hover > .permalink {
 	display: inline;
 }
 
@@ -3248,10 +3349,10 @@ div#blog .read {
 }
 
 .toggleButton { cursor: pointer; }
-.toggle .collapsed { display: block; }
-.toggle .expanded { display: none; }
-.toggleVisible .collapsed { display: none; }
-.toggleVisible .expanded { display: block; }
+.toggle > .collapsed { display: block; }
+.toggle > .expanded { display: none; }
+.toggleVisible > .collapsed { display: none; }
+.toggleVisible > .expanded { display: block; }
 
 table.codetable { margin-left: auto; margin-right: auto; border-style: none; }
 table.codetable td { padding-right: 10px; }

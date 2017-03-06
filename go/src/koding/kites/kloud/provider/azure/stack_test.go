@@ -144,6 +144,7 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 
 			s := &azure.Stack{
 				BaseStack: &provider.BaseStack{
+					Provider: azure.Provider,
 					Session: &session.Session{
 						Userdata: &userdata.Userdata{
 							KlientURL: "http://127.0.0.1/klient.gz",
