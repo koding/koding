@@ -8,7 +8,7 @@ styles = require './SwitchTeam.stylus'
 SwitchTeam = ({ groups, isOwner }) ->
 
   optionCopy = "
-    … or you can switch to another team of yours
+    ... or you can switch to another team of yours
   "
 
   <div className={styles.switchteam}>

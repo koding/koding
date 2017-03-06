@@ -33,8 +33,8 @@ module.exports = class DeleteAccountModal extends ContentModal
           You can not delete your team because you own
           #{pluralize 'team', groupsCount, yes}.
           You must either transfer #{pronoun1}
-          #{pluralize 'ownership', groupsCount, no}
-          or delete #{pronoun2} from its dashboard.
+          #{pluralize 'ownership', groupsCount, no} or delete #{pronoun2}
+          from #{pronoun1} #{pluralize 'dashboard', groupsCount, no}.
         </p>
         <br />
         <p>

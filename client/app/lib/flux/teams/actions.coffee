@@ -286,7 +286,7 @@ leaveTeam = ->
     <strong>CAUTION! </strong>You are going to leave your team and you will not be able to login again.
     This action <strong>CANNOT</strong> be undone.
   </p> <br>
-  <p>Please enter your <strong>password</strong> into the field below to continue: </p>
+  <p>Please enter your <strong>password</strong> to continue: </p>
   '
 
   new Promise (resolve, reject) ->
@@ -314,7 +314,7 @@ deleteTeam = ->
     team members will not be able to access this team again.
     This action <strong>CANNOT</strong> be undone.
   </p> <br>
-  <p>Please enter your <strong>password</strong> into the field below to continue: </p>'
+  <p>Please enter your <strong>password</strong> to continue: </p>'
 
 
   new Promise (resolve, reject) ->
@@ -354,7 +354,7 @@ deleteAccountVerifyModal = (subscription = yes) ->
       This operation will also delete the team you're using at the moment.
       #{if subscription then transferOwnershipLink else ''}
     </p><br />
-    <p>Please enter your password into the field below to continue: </p>
+    <p>Please enter your <strong>password</strong> to continue: </p>
   "
 
   new VerifyPasswordModal 'Confirm', modalContent, (password) ->

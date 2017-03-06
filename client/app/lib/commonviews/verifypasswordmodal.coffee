@@ -53,7 +53,6 @@ module.exports = class VerifyPasswordModal extends ContentModal
               password            :
                 name              : 'password'
                 cssClass          : 'line-with'
-                label             : 'Your Password'
                 placeholder       : 'Enter your password'
                 type              : 'password'
                 validate          :
