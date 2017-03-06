@@ -4,12 +4,16 @@ import (
 	"errors"
 	"net"
 	"strconv"
+	"sync"
+	"time"
 
 	"koding/kites/tunnelproxy/discover"
 	"koding/klient/machine"
+	"koding/klient/machine/client"
+	msync "koding/klient/machine/mount/sync"
 )
 
-// SSHInfoRequest defines machine group ssh info request.
+// SSHRequest defines machine group ssh info request.
 type SSHRequest struct {
 	// ID is a unique identifier for the remote machine.
 	ID machine.ID `json:"id"`
@@ -24,7 +28,7 @@ type SSHRequest struct {
 	PublicKey string `json:"public_key"`
 }
 
-// SSHInfoResponse defines machine group ssh info response.
+// SSHResponse defines machine group ssh info response.
 type SSHResponse struct {
 	// Username defines the remote machine user name.
 	Username string `json:"username"`
@@ -36,71 +40,19 @@ type SSHResponse struct {
 	Port int `json:"port"`
 }
 
-// Create updates internal state of machine group. It gets the current
-// information about user machines so it can add new ones to group.
+// SSH prepares remote machine for SSH connection and returns necessary data
+// to connect it via SSH protocol.
 func (g *Group) SSH(req *SSHRequest) (*SSHResponse, error) {
 	if req == nil {
 		return nil, errors.New("invalid nil request")
 	}
 
-	c, err := g.client.Client(req.ID)
+	username, err := g.ensureSSHPubKey(req.ID, req.Username, req.PublicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	// Use provided username or ask remote machine to return it.
-	username := req.Username
-	if username == "" {
-		if username, err = c.CurrentUser(); err != nil {
-			return nil, err
-		}
-	}
-
-	// Add pubic key to remote machine authorized keys.
-	if req.PublicKey != "" {
-		if err := c.SSHAddKeys(username, req.PublicKey); err != nil {
-			return nil, err
-		}
-	}
-
-	// Check for tunneled connections.
-	addr, err := g.address.Latest(req.ID, "tunnel")
-	if err != nil {
-		// There are no tunnel addresses. Get latest IP.
-		if addr, err = g.address.Latest(req.ID, "ip"); err != nil {
-			return nil, err
-		}
-
-		return &SSHResponse{
-			Username: username,
-			Host:     addr.Value,
-		}, nil
-	}
-
-	// Discover tunnel SSH address.
-	endpoints, err := g.discover.Discover(addr.Value, "ssh")
-	if err != nil {
-		return &SSHResponse{
-			Username: username,
-			Host:     addr.Value,
-		}, nil
-	}
-
-	tuneladdr := endpoints[0].Addr
-	// We prefer local routes to use first, if there's none, we use first
-	// discovered route.
-	if e := endpoints.Filter(discover.ByLocal(true)); len(e) != 0 {
-		// All local routes will do, typically there's only one,
-		// we use the first one and ignore the rest.
-		tuneladdr = e[0].Addr
-	}
-
-	host, port, err := net.SplitHostPort(tuneladdr)
-	if err != nil {
-		host, port = tuneladdr, "0"
-	}
-
-	n, err := strconv.Atoi(port)
+	host, port, err := g.dynamicSSH(req.ID)()
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +60,93 @@ func (g *Group) SSH(req *SSHRequest) (*SSHResponse, error) {
 	return &SSHResponse{
 		Username: username,
 		Host:     host,
-		Port:     n,
+		Port:     port,
 	}, nil
+}
+
+func (g *Group) ensureSSHPubKey(id machine.ID, username, pubKey string) (string, error) {
+	// How long to wait for a valid client.
+	const timeout = 30 * time.Second
+
+	var err error
+
+	dynClient := func() (client.Client, error) { return g.client.Client(id) }
+	// Use provided username or ask remote machine to return it.
+	c := client.NewSupervised(dynClient, timeout)
+	if username == "" {
+		if username, err = c.CurrentUser(); err != nil {
+			return "", err
+		}
+	}
+
+	// Add pubic key to remote machine authorized keys.
+	if pubKey != "" {
+		if err := c.SSHAddKeys(username, pubKey); err != nil {
+			return "", err
+		}
+	}
+
+	return username, nil
+}
+
+func (g *Group) dynamicSSH(id machine.ID) msync.DynamicSSHFunc {
+	var (
+		mtx  sync.Mutex
+		addr machine.Addr
+		host string
+		port int
+	)
+
+	return func() (string, int, error) {
+		// Check for tunneled connections.
+		a, err := g.address.Latest(id, "tunnel")
+		if err != nil {
+			// There are no tunnel addresses. Get latest IP.
+			if a, err = g.address.Latest(id, "ip"); err != nil {
+				return "", 0, err
+			}
+
+			return a.Value, 0, nil
+		}
+
+		// Use a pseudo-cache in order to not call discover each time.
+		mtx.Lock()
+		if addr == a {
+			mtx.Unlock()
+			return host, port, nil
+		}
+		mtx.Unlock()
+
+		// Discover tunnel SSH address.
+		endpoints, err := g.discover.Discover(a.Value, "ssh")
+		if err != nil {
+			return "", 0, err
+		}
+
+		tunnelAddr := endpoints[0].Addr
+		// We prefer local routes to use first, if there's none, we use first
+		// discovered route.
+		if e := endpoints.Filter(discover.ByLocal(true)); len(e) != 0 {
+			// All local routes will do, typically there's only one,
+			// we use the first one and ignore the rest.
+			tunnelAddr = e[0].Addr
+		}
+
+		h, p, err := net.SplitHostPort(tunnelAddr)
+		if err != nil {
+			h, p = tunnelAddr, "0"
+		}
+
+		n, err := strconv.Atoi(p)
+		if err != nil {
+			return "", 0, err
+		}
+
+		// Cache results.
+		mtx.Lock()
+		addr, host, port = a, h, n
+		mtx.Unlock()
+
+		return host, port, nil
+	}
 }
