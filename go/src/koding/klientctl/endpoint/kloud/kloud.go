@@ -77,6 +77,11 @@ type KiteTransport struct {
 	// If nil, global config.Konfig is going to be used instead.
 	Konfig *cfg.Konfig
 
+	// ClientURL is an remote kite endpoint to connect to.
+	//
+	// If empty, kloud's public endpoint is going to be used instead.
+	ClientURL string
+
 	// DialTimeout is a maximum time external kite is
 	// going to be dialed for.
 	//
@@ -105,7 +110,7 @@ var (
 )
 
 func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
-	k, err := kt.kloud()
+	k, err := kt.client()
 	if err != nil {
 		return err
 	}
@@ -168,17 +173,17 @@ func (kt *KiteTransport) kiteConfig() *kitecfg.Config {
 	return kt.kCfg
 }
 
-func (kt *KiteTransport) kloud() (*kite.Client, error) {
+func (kt *KiteTransport) client() (*kite.Client, error) {
 	if kt.kClient != nil {
 		return kt.kClient, nil
 	}
 
-	kloud, err := kt.newClient(kt.konfig().Endpoints.Kloud().Public.String())
+	c, err := kt.newClient(kt.clientURL())
 	if err != nil {
 		return nil, err
 	}
 
-	kt.kClient = kloud
+	kt.kClient = c
 
 	return kt.kClient, nil
 }
@@ -226,6 +231,14 @@ func (kt *KiteTransport) konfig() *cfg.Konfig {
 		return kt.Konfig
 	}
 	return config.Konfig
+}
+
+func (kt *KiteTransport) clientURL() string {
+	if kt.ClientURL != "" {
+		return kt.ClientURL
+	}
+
+	return kt.konfig().Endpoints.Kloud().Public.String()
 }
 
 func (kt *KiteTransport) Valid() error {
