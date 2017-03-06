@@ -3,7 +3,7 @@ version: 2
 executorType: docker
 
 containerInfo:
-  - image: koding/base@sha256:55cf1b683bde71eac3a162775d8adad1e6061832cb55fe8b39866ea98c3df74a
+  - image: koding/circle@sha256:9e17db94f3c4b9d91b593db926111f7f78626ed0ba4209a47ae1980ffe1dce77
 
   - image: mongo:2.6
     cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
@@ -88,6 +88,15 @@ stages:
       - type: shell
         name: build client
         command: make -C client dist
+
+      - type: shell
+        name: sync website assets
+        command: |
+          [ -z "$AWS_ACCESS_KEY" || -z "$AWS_ACCESS_SECRET_KEY" ] && exit 0
+          s3cmd sync --access_key=$AWS_ACCESS_KEY --secret_key=$AWS_ACCESS_SECRET_KEY \
+            --no-mime-magic --guess-mime-type --acl-public \
+            website/a/p/p/$(git rev-parse --short HEAD)/ \
+            s3://koding-assets/a/p/p/$(git rev-parse --short HEAD)/
 
       - type: cache-save
         key: client-happypack-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
@@ -183,3 +192,8 @@ stages:
         command: |
           ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA circle-build-$CIRCLE_BUILD_NUM
           ./run exec scripts/ci/run-tests INSTANCE_DATA
+
+      - type: shell
+        name: codecov
+        command: |
+          [ -n "$CODECOV_TOKEN" ] && bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || exit 0
