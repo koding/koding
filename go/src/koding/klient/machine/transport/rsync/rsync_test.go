@@ -10,9 +10,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
+	"koding/klient/machine/index"
 	"koding/klient/machine/transport/rsync"
 )
 
@@ -21,10 +23,73 @@ var update = flag.Bool("update", false, "update golden files")
 const dataDir = "testdata"
 
 func dumpFile(name string) *exec.Cmd {
-	args := append([]string{"-test.run=TestHelperProcess", "--", "file", name})
-	cmd := exec.Command(os.Args[0], args...)
+	cmd := exec.Command(os.Args[0], "-test.run=TestHelperProcess", "--", "file", name)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	return cmd
+}
+
+func dumpArgs(w io.Writer) *exec.Cmd {
+	cmd := exec.Command(os.Args[0], "-test.run=TestHelperProcess", "--", "args")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	cmd.Stdout = w
+	return cmd
+}
+
+func TestRsyncArgs(t *testing.T) {
+	tests := map[string]struct {
+		Meta     index.ChangeMeta
+		Expected []string
+	}{
+		"file added locally": {
+			Meta:     index.ChangeMetaAdd | index.ChangeMetaLocal,
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "/src/", "usr@host:/dst/"},
+		},
+		"file updated locally": {
+			Meta:     index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "/src/", "usr@host:/dst/"},
+		},
+		"file removed locally": {
+			Meta:     index.ChangeMetaRemove | index.ChangeMetaLocal,
+			Expected: []string{"-zlptgoDd", "--delete", "--include='/x.txt'", "--exclude='*'", "/src/", "usr@host:/dst/"},
+		},
+		"file added remotely": {
+			Meta:     index.ChangeMetaAdd | index.ChangeMetaRemote,
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "usr@host:/src/", "/dst/"},
+		},
+		"file updated remotely": {
+			Meta:     index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "usr@host:/src/", "/dst/"},
+		},
+		"file removed remotely": {
+			Meta:     index.ChangeMetaRemove | index.ChangeMetaRemote,
+			Expected: []string{"-zlptgoDd", "--delete", "--include='/x.txt'", "--exclude='*'", "usr@host:/src/", "/dst/"},
+		},
+	}
+
+	for name, test := range tests {
+		test := test // Capture range variable.
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var buf = &bytes.Buffer{}
+			cmd := &rsync.Command{
+				Cmd:             dumpArgs(buf),
+				SourcePath:      "/src",
+				DestinationPath: "/dst",
+				Username:        "usr",
+				Host:            "host",
+				Change:          index.NewChange("x.txt", test.Meta),
+			}
+
+			if err := cmd.Run(context.Background()); err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+			got := strings.Split(buf.String(), "\n")
+			if !reflect.DeepEqual(got, test.Expected) {
+				t.Fatalf("want exec args = %v; got %v", test.Expected, got)
+			}
+		})
+	}
 }
 
 func TestRsyncProgress(t *testing.T) {
