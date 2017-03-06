@@ -7,11 +7,14 @@ import (
 	"errors"
 	"io"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
+
+	"koding/klient/machine/index"
 )
 
 // Command describes rsync executable.
@@ -50,6 +53,11 @@ type Command struct {
 	// progress callback function. io.EOF error is sent to the callback when
 	// downloading is complete.
 	Progress func(n, size, speed int64, err error)
+
+	// Change if set, joins change name to source and destination paths and
+	// uses provided metadata to set rsync arguments that allow to sync the
+	// change.
+	Change *index.Change
 }
 
 // valid checks if command fields are valid.
@@ -98,9 +106,27 @@ func (c *Command) Run(ctx context.Context) error {
 		c.Cmd.Args = append(c.Cmd.Args, "-e", strings.Join(rsh, " "))
 	}
 
+	// Apply index change.
+	if c.Change != nil {
+		c.SourcePath = filepath.Join(c.SourcePath, c.Change.Path())
+		c.DestinationPath = filepath.Join(c.DestinationPath, c.Change.Path())
+
+		meta := c.Change.Meta()
+		c.Download = meta&index.ChangeMetaLocal == 0 && meta&index.ChangeMetaRemote != 0
+		if meta&index.ChangeMetaRemove != 0 {
+			c.Cmd.Args = append(c.Cmd.Args, "--delete")
+		}
+
+		c.Cmd.Args = append(c.Cmd.Args, "--include='/"+filepath.Base(c.SourcePath)+"'", "--exclude='*'")
+	}
+
 	// Progress logic needs verbose mode with itemized changes.
 	if c.Progress != nil {
-		c.Cmd.Args = append(c.Cmd.Args, "-Priv")
+		c.Cmd.Args = append(c.Cmd.Args, "-Piv")
+		if c.Change == nil {
+			// Do not use recursive downloads for index changes.
+			c.Cmd.Args = append(c.Cmd.Args, "-r")
+		}
 	}
 
 	if c.Username != "" && c.Host != "" {
@@ -110,7 +136,12 @@ func (c *Command) Run(ctx context.Context) error {
 			c.DestinationPath = c.Username + "@" + c.Host + ":" + c.DestinationPath
 		}
 	}
-	c.Cmd.Args = append(c.Cmd.Args, c.SourcePath, c.DestinationPath)
+
+	if c.Change != nil {
+		c.Cmd.Args = append(c.Cmd.Args, filepath.Dir(c.SourcePath)+"/", filepath.Dir(c.DestinationPath)+"/")
+	} else {
+		c.Cmd.Args = append(c.Cmd.Args, c.SourcePath, c.DestinationPath)
+	}
 
 	if c.Progress == nil {
 		return c.Cmd.Run()
