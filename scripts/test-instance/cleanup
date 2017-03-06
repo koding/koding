@@ -1,0 +1,7 @@
+#!/bin/bash
+
+while read instance
+do
+  $(dirname $0)/unprotect $instance
+  $(dirname $0)/terminate $instance
+done < $1
