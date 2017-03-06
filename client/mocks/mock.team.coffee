@@ -7,7 +7,6 @@ module.exports = {
   },
   "allowedDomains":[],
   "privacy":"private",
-  "socialApiDefaultChannelId":"6126119833621757960",
   "slug":"kiskis3",
   "socialApiChannelId":"6126119833453985799",
   "defaultChannels":["6126119833453985799","6126119833621757960"],

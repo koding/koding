@@ -4,7 +4,7 @@ fixdata = require '../../workers/social/lib/social/render/datafixes'
 koding.once 'dbClientReady', ->
   { JGroup, JSession } = koding.models
 
-  selector = { '$or': [ { 'socialApiChannelId' : { $exists: false } }, { 'socialApiDefaultChannelId' : { $exists: false } } ] }
+  selector = { 'socialApiChannelId' : { $exists: false } }
   JGroup.someData selector, { _id: 1 }, {}, (err, cursor) ->
     return console.error err  if err
 

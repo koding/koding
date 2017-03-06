@@ -26,13 +26,12 @@ func main() {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	channels, err := models.FetchChannelsWithPagination(100, 0)
+	go r.Wait()
+
+	err := models.DeleteChannelsIfGroupNotInMongo()
 	if err != nil {
-		fmt.Println("error while deleting account that non-existing in mongo", err)
+		fmt.Println("error while deleting channels that non-existing in mongo", err)
 		return
 	}
-
-	fmt.Println("channels", channels)
-	fmt.Println("CHANNEL LENGTH:", len(channels))
 
 }

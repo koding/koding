@@ -1206,7 +1206,7 @@ func DeleteChannelsIfGroupNotInMongo() error {
 			}
 			// if error is not nil and equal to record not found
 			// then remove the channel and its participants in postgre
-			if err != nil && err == mgo.ErrNotFound {
+			if err == mgo.ErrNotFound {
 				if err = channel.DeleteWithParticipantsForce(); err != nil {
 					errs = multierror.Append(errs, err)
 				}

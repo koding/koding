@@ -885,12 +885,6 @@
         "socialApiChannelId": {
           "type": "string"
         },
-        "socialApiAnnouncementChannelId": {
-          "type": "string"
-        },
-        "socialApiDefaultChannelId": {
-          "type": "string"
-        },
         "avatar": {
           "type": "string"
         },

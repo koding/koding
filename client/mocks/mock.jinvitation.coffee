@@ -21,7 +21,6 @@ module.exports = {
     },
     'title': 'lol',
     'socialApiChannelId': '6123845198175797258',
-    'socialApiDefaultChannelId': '6123845199182430219',
     'slug': 'lol',
     'privacy': 'private',
     'visibility': 'hidden',

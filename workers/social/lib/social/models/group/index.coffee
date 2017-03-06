@@ -48,9 +48,6 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member', 'moderator']
       'list members'                      : ['moderator', 'member']
-      'read group activity'               :
-        public                            : ['guest', 'member', 'moderator']
-        private                           : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member', 'moderator']
@@ -235,10 +232,6 @@ module.exports = class JGroup extends Module
       # channelId for mapping social API
       # to internal usage
       socialApiChannelId             : String
-      # channel id for announcements of a group
-      socialApiAnnouncementChannelId : String
-      # channel id for default of a non-koding group
-      socialApiDefaultChannelId : String
       avatar        : String
       slug          :
         type        : String
@@ -1268,9 +1261,6 @@ module.exports = class JGroup extends Module
     failure: (client, callback) ->
       callback null, no
 
-
-  @canReadGroupActivity = permit 'read group activity'
-  canReadGroupActivity  : permit 'read group activity'
   @canListMembers       = permit
     advanced: [
       { permission: 'list members' }
@@ -1284,9 +1274,23 @@ module.exports = class JGroup extends Module
       sourceId  : @getId()
       targetId  : account._id
       as        : 'member'
-    Relationship.count selector, (err, count) ->
+    Relationship.one selector, (err, rel) ->
       if err then callback err
-      else callback null, (if count is 0 then no else yes)
+      else callback null, rel?
+
+  isParticipant: (account, callback) ->
+    return callback new Error 'No account found!'  unless account
+
+    roles = [ 'member', 'moderator', 'admin' ]
+    selector = {
+      sourceId  : @getId()
+      targetId  : account._id
+      as: { $in: roles }
+    }
+
+    Relationship.one selector, (err, rel) ->
+      if err then callback err
+      else callback null, rel?
 
 
   countMembers: (callback) ->
@@ -1817,50 +1821,18 @@ module.exports = class JGroup extends Module
           creatorId       : socialApiId
           privacyConstant : privacy
 
-        @createGroupChannel client, options, (err, groupChannelId) =>
+        @createGroupChannel client, options, (err, groupChannelId) ->
           return callback err  if err?
 
-          # announcement channel will only be created for koding channel
-          if @slug is 'koding'
-
-            @createAnnouncementChannel client, options, (err, announcementChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                # channel id for #public - used as group channel
-                socialApiChannelId             : groupChannelId,
-                # channel id for #koding - used for announcements
-                socialApiAnnouncementChannelId : announcementChannelId
-              }
-
-          else
-            @createDefaultChannel client, options, (err, defaultChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                socialApiChannelId: groupChannelId
-                socialApiDefaultChannelId: defaultChannelId
-              }
+          return callback null, {
+            socialApiChannelId: groupChannelId
+          }
 
 
   createGroupChannel:(client, options, callback) ->
     options.name = 'public'
     options.varName = 'socialApiChannelId'
     options.typeConstant = 'group'
-
-    return @createSocialAPIChannel client, options, callback
-
-  createAnnouncementChannel:(client, options, callback) ->
-    options.name = 'changelog'
-    options.varName = 'socialApiAnnouncementChannelId'
-    options.typeConstant = 'announcement'
-
-    return @createSocialAPIChannel client, options, callback
-
-  createDefaultChannel:(client, options, callback) ->
-    options.name = @slug
-    options.varName = 'socialApiDefaultChannelId'
-    options.typeConstant = 'topic'
 
     return @createSocialAPIChannel client, options, callback
 
