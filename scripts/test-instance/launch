@@ -113,6 +113,7 @@ tag = ->
       "pr-#{argv['pull-request']}"
     when argv['commit']
       "rv-#{argv['commit'].substring 0, 7}"
+    else "rv-#{revision}"
 
   Resources = InstanceIds
 
