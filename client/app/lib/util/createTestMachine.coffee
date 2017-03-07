@@ -20,6 +20,7 @@ module.exports = createTestMachine = -> new Promise (resolve, reject) ->
     managedHelper.ensureManagedStack (err) ->
       computeController.create { machine }, (err, machine) ->
         return reject(err)  if err
+        # FIXMERESET ~ GG
         dataProvider.addTestMachine machine, workspaces
         reactor.dispatch 'LOAD_USER_ENVIRONMENT_SUCCESS', dataProvider.get()
         reactor.dispatch 'ADD_TEST_MACHINE', { machine, workspaces }

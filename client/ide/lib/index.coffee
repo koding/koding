@@ -685,8 +685,6 @@ module.exports = class IDEAppController extends AppController
   handleMachineReinit: ({ status }) ->
 
     switch status
-      when 'Building'
-        environmentDataProvider.ensureDefaultWorkspace kd.noop
       when 'Running'
         id = @mountedMachine._id
         { computeController } = kd.singletons
@@ -1282,8 +1280,6 @@ module.exports = class IDEAppController extends AppController
       { mainView }  = kd.singletons
       data          = { machine, workspace: @workspaceData }
 
-      actions.setSelectedWorkspaceId @workspaceData._id
-
       if initial
         computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
 
@@ -1731,11 +1727,6 @@ module.exports = class IDEAppController extends AppController
     appView.unsetClass 'read-only'
     appView.off 'click', @bound 'readOnlyNotifierCallback_'
     @requestEditPermissionView?.destroy()
-
-
-  deleteWorkspaceRootFolder: (machineUId, rootPath) ->
-
-    @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath
 
 
   getActiveInstance: ->
