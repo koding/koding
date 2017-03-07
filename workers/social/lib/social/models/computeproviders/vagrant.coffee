@@ -42,12 +42,4 @@ module.exports = class Vagrant extends ProviderInterface
 
       callback null, { meta, label, credential }
 
-  @postCreate = (client, options, callback) ->
-
-    { r: { account } } = client
-    { machine } = options
-
-    JWorkspace = require '../workspace'
-    JWorkspace.createDefault client, machine.uid, callback
-
   do @_requireTemplate

@@ -3,7 +3,6 @@ bongo = require 'bongo'
 { secure, signature } = bongo
 
 JMachine   = require './computeproviders/machine'
-JWorkspace = require './workspace'
 
 SocialChannel = require './socialapi/channel'
 
@@ -44,17 +43,15 @@ module.exports = class Sidebar extends bongo.Base
       return callback new KodingError err  if err
 
       machineUIds = machines.map (machine) -> machine.uid
-      JWorkspace.some { machineUId: { $in: machineUIds } }, {}, (err, workspaces) ->
+      workspaces = []
 
-        return callback new KodingError err  if err
+      options = { client, user, machines, workspaces, callback }
+      options.addOwnFn = makeEnvironmentNodeAdderFn data.own
+      options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
+      options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
+      options.callback = -> callback null, data
 
-        options = { client, user, machines, workspaces, callback }
-        options.addOwnFn = makeEnvironmentNodeAdderFn data.own
-        options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
-        options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
-        options.callback = -> callback null, data
-
-        decorateEnvironmentData options
+      decorateEnvironmentData options
 
 
   makeEnvironmentNodeAdderFn = (list) ->
