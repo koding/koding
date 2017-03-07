@@ -7,8 +7,6 @@ IDEHelpers = require '../idehelpers'
 module.exports = class IDEFinderTreeController extends NFinderTreeController
 
 
-  cmCreateWorkspace: (node) -> @createWorkspace node
-
 
   cmCreateTerminal:  (node) -> @createTerminal  node
 
@@ -46,25 +44,3 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
 
     super nodeView, kallback, silence
 
-
-  deleteWorkspaceRootFolder: (machineUId, rootPath) ->
-
-    node = @nodes["[#{machineUId}]#{rootPath}"]
-    @deleteFiles [node] if node
-
-
-  createWorkspace: (node) ->
-
-    folder       = node.getData()
-    name         = folder.name
-    machineUId   = folder.machine.uid
-    machineLabel = folder.machine.slug or folder.machine.label
-    rootPath     = FSHelper.plainPath folder.path
-    eventObj     = this
-    options      = { name, machineUId, rootPath, machineLabel, eventObj }
-
-    IDEHelpers.createWorkspace options
-
-    { activitySidebar } = kd.singletons.mainView
-
-    @once 'WorkspaceCreated', activitySidebar.bound 'addWorkspace'

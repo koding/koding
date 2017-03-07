@@ -92,23 +92,9 @@ describe 'IDE.routes', ->
         createSpyAndAssert dataProvider, 'fetchMachine', 'workspace', ROUTE_PARAMS.workspace
 
 
-      it 'should ensureDefaultWorkspace', ->
-
-        mock.envDataProvider.fetchMachine.toReturnMachine()
-        mock.envDataProvider.ensureDefaultWorkspace()
-
-        expect.spyOn dataProvider, 'ensureDefaultWorkspace'
-        expect.spyOn dataProvider, 'fetchWorkspaceByMachineUId' # to prevent ide load and url change
-
-        routes.routeHandler 'workspace', ROUTE_PARAMS.workspace
-        expect(dataProvider.ensureDefaultWorkspace).toHaveBeenCalled()
-        expect(dataProvider.fetchWorkspaceByMachineUId).toHaveBeenCalled()
-
-
       it 'should routeToLatestWorkspace if there is no machine', ->
 
         mock.envDataProvider.fetchMachine.toReturnNull()
-        mock.envDataProvider.ensureDefaultWorkspace()
 
         expect.spyOn routes, 'routeToLatestWorkspace'
 
@@ -116,76 +102,14 @@ describe 'IDE.routes', ->
         expect(routes.routeToLatestWorkspace).toHaveBeenCalled()
 
 
-      it 'should fetchWorkspaceByMachineUId', ->
-
-        mock.envDataProvider.fetchMachine.toReturnMachine()
-        mock.envDataProvider.ensureDefaultWorkspace()
-
-        expect.spyOn dataProvider, 'fetchWorkspaceByMachineUId'
-
-        routes.routeHandler 'workspace', ROUTE_PARAMS.workspace
-        expect(dataProvider.fetchWorkspaceByMachineUId).toHaveBeenCalled()
-
-
-      it 'should loadIDE if machine and workpsace is found', ->
-
-        mock.envDataProvider.fetchMachine.toReturnMachine()
-        mock.envDataProvider.ensureDefaultWorkspace()
-        mock.envDataProvider.fetchWorkspaceByMachineUId.toReturnWorkspace()
-
-        expect.spyOn routes, 'loadIDE'
-
-        routes.routeHandler 'workspace', ROUTE_PARAMS.workspace
-        expect(routes.loadIDE).toHaveBeenCalled()
-
-
       it 'should routeToMachineWorkspace if workspace is not found', ->
 
         mock.envDataProvider.fetchMachine.toReturnMachine()
-        mock.envDataProvider.ensureDefaultWorkspace()
-        mock.envDataProvider.fetchWorkspaceByMachineUId.toReturnNull()
 
         expect.spyOn routes, 'routeToMachineWorkspace'
 
         routes.routeHandler 'workspace', ROUTE_PARAMS.workspace
         expect(routes.routeToMachineWorkspace).toHaveBeenCalled()
-
-
-  describe '.selectWorkspaceOnSidebar', ->
-
-    it 'should return safely if there is no machine or workspace', ->
-
-      calls = [
-        routes.selectWorkspaceOnSidebar()
-        routes.selectWorkspaceOnSidebar {}
-        routes.selectWorkspaceOnSidebar { machine: {} }
-        routes.selectWorkspaceOnSidebar { workspace: {} }
-      ]
-
-      expect(call).toBe no  for call in calls
-
-
-    it.skip 'should call activitySidebar.selectWorkspace', ->
-
-      data                     = { machine: mockMachine, workspace: mockWorkspace }
-      { activitySidebar }      = kd.singletons.mainView
-      { storage, storageData } = getStorageData()
-
-      sidebarSpy = expect.spyOn activitySidebar, 'selectWorkspace'
-      storageSpy = expect.spyOn storage, 'setValue'
-
-      routes.selectWorkspaceOnSidebar data
-
-      expect(activitySidebar.selectWorkspace).toHaveBeenCalled()
-      expect(storage.setValue).toHaveBeenCalled()
-
-      [ firstCall, secondCall ] = storageSpy.calls
-
-      expect(firstCall.arguments[0]).toBe 'LatestWorkspace'
-      expect(firstCall.arguments[1]).toEqual storageData
-
-      expect(secondCall.arguments[0]).toBe "LatestWorkspace_#{mockMachine.uid}"
-      expect(secondCall.arguments[1]).toEqual storageData
 
 
   describe '.getLatestWorkspace', ->
