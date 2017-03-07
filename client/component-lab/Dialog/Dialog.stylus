@@ -61,3 +61,6 @@
   align-items               center
   text-align                center
   padding                   25px 0px
+
+.secondaryContent
+  width                     100%

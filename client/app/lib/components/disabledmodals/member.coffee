@@ -49,7 +49,7 @@ module.exports = class DisabledMemberModal extends ReactView
           secondaryContent={
             <TrialEndedOptions
               groups={groups}
-              mainActionTitle='LEAVE THIS TEAM'
+              mainActionTitle='leave this team'
               mainActionClick={leaveTeamOnClick}
               secondaryActionClick={deleteAccount} />}
         />
@@ -85,5 +85,5 @@ leaveTeamOnClick = ->
     showError err
 
 
-deleteAccount = -> TeamFlux.actions.deleteAccount()
+deleteAccount = -> TeamFlux.actions.deleteAccount(subscription = no)
 

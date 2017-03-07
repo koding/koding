@@ -8,11 +8,7 @@ styles = require './TrialEndedOptionsActions.stylus'
 
 module.exports = TrialEndedOptionsActions = ({mainActionTitle, mainActionClick, secondaryActionClick}) ->
 
-  <div>
-    <div className={styles.mainaction}>
-      <Button type='primary-6' size='medium' onClick={mainActionClick}>{mainActionTitle}</Button>
-    </div>
-    <div className={styles.secondaryaction}>
-      <Button type='link-primary-6' size='medium' onClick={secondaryActionClick}>Or Delete Your Account</Button>
-    </div>
+  <div className={styles.actions}>
+    you can also <Button type='link-primary-6' size='medium' onClick={mainActionClick}>{mainActionTitle}</Button>
+    <span> or </span> <Button type='link-primary-6' size='medium' onClick={secondaryActionClick}> delete your account</Button>
   </div>
