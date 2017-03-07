@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,10 +12,12 @@ import (
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/sync"
+	"koding/klient/machine/transport/rsync"
 	"koding/klientctl/klient"
 
 	"github.com/dustin/go-humanize"
 	"github.com/koding/logging"
+	"github.com/mitchellh/ioprogress"
 )
 
 // MountOptions stores options for `machine mount` call.
@@ -123,11 +126,31 @@ func Mount(options *MountOptions) (err error) {
 		return err
 	}
 
+	// Prefetch files.
+	if _, _, privPath, err := sshGetKeyPath(); err != nil {
+		fmt.Fprintf(os.Stderr, "Cannot prefetch mount files: %s\n", err)
+	} else if addMountRes.SourcePath != "" && addMountRes.DestinationPath != "" {
+		cmd := &rsync.Command{
+			Download:        true,
+			SourcePath:      addMountRes.SourcePath,
+			DestinationPath: addMountRes.DestinationPath,
+			Username:        addMountRes.Username,
+			Host:            addMountRes.Host,
+			SSHPort:         addMountRes.SSHPort,
+			PrivateKeyPath:  privPath,
+			Progress:        drawProgress(os.Stdout, addMountRes.Count, addMountRes.DiskSize),
+		}
+
+		if err := cmd.Run(context.Background()); err != nil {
+			fmt.Fprintf(os.Stderr, "File prefetching interrupted: %s\n", err)
+		}
+	}
+
 	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)
 	return nil
 }
 
-// UmountOptions stores options for `machine mount list` call.
+// ListMountOptions stores options for `machine mount list` call.
 type ListMountOptions struct {
 	ID      string // Machine ID - optional.
 	MountID string // Mount ID - optional.
@@ -274,5 +297,28 @@ func removeContent(path string) error {
 		for _, name := range names {
 			os.RemoveAll(filepath.Join(path, name)) // Ignore errors.
 		}
+	}
+}
+
+func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, err error) {
+	const noop = 0
+	return func(n, size, speed int64, err error) {
+		drawFunc := ioprogress.DrawTerminalf(w, func(_, _ int64) string {
+			return fmt.Sprintf("Prefetching files: %d%% (%d/%d), %s/%s | %s/s",
+				int(float64(n)/float64(nAll)*100.0+0.5), // percentage status.
+				n,    // number of downloaded files.
+				nAll, // number of all files being downloaded.
+				humanize.IBytes(uint64(size)),    // size of downloaded files.
+				humanize.IBytes(uint64(sizeAll)), // total size.
+				humanize.IBytes(uint64(speed)),   // current downloading speed.
+			)
+		})
+
+		if err == io.EOF {
+			drawFunc(-1, -1) // Finish drawing.
+			return
+		}
+
+		drawFunc(noop, noop) // We are not using default values.
 	}
 }

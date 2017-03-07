@@ -11,7 +11,6 @@ import (
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
-	"koding/klient/machine/transport/rsync"
 	"koding/klientctl/ssh"
 )
 
@@ -169,9 +168,20 @@ type AddMountResponse struct {
 	// DiskSize stores the size of all fetched files.
 	DiskSize int64 `json:"diskSize"`
 
-	// FetchCmd contains the prefetch command which needs to be run in order
-	// to download initial files.
-	FetchCmd *rsync.Command `json:"fetchCmd,omitempty"`
+	// SourcePath defines source path from which file(s) will be pulled.
+	SourcePath string `json:"sourcePath"`
+
+	// DestinationPath defines destination path to which file(s) will be pushed.
+	DestinationPath string `json:"destinationPath"`
+
+	// Username defines remote machine user name.
+	Username string `json:"username"`
+
+	// Host defines the remote machine address.
+	Host string `json:"host"`
+
+	// SSHPort defines custom remote shell port.
+	SSHPort int `json:"sshPort"`
 }
 
 // AddMount fetches remote index, prepares mount cache, and runs mount sync in
@@ -217,18 +227,25 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 		panic("mount " + req.Mount.String() + " doesn't exist")
 	}
 
+	g.log.Info("Successfully created mount %s for %s", mountID, req.Mount)
+
 	count, diskSize, cmd, err := sc.FetchCmd()
 	if err != nil {
 		g.log.Error("Cannot prefetch mount data: %s", err)
+		return &AddMountResponse{
+			MountID: mountID,
+		}, nil
 	}
 
-	g.log.Info("Successfully created mount %s for %s", mountID, req.Mount)
-
 	return &AddMountResponse{
-		MountID:  mountID,
-		Count:    count,
-		DiskSize: diskSize,
-		FetchCmd: cmd,
+		MountID:         mountID,
+		Count:           count,
+		DiskSize:        diskSize,
+		SourcePath:      cmd.SourcePath,
+		DestinationPath: cmd.DestinationPath,
+		Username:        cmd.Username,
+		Host:            cmd.Host,
+		SSHPort:         cmd.SSHPort,
 	}, nil
 }
 
