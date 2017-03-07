@@ -6,6 +6,7 @@ import (
 
 	"koding/klient/fs"
 	"koding/klient/machine/index"
+	"koding/klient/os"
 )
 
 // DynamicClientFunc is an adapter that allows to dynamically provide clients.
@@ -86,6 +87,32 @@ func (s *Supervised) MountGetIndex(path string) (idx *index.Index, err error) {
 func (s *Supervised) DiskInfo(path string) (di fs.DiskInfo, err error) {
 	fn := func(c Client) error {
 		di, err = c.DiskInfo(path)
+		return err
+	}
+
+	err = s.call(fn)
+	return
+}
+
+// Exec calls registered Client's Exec method and returns its result if
+// it's not produced by Disconnected client. If it is, this function will wait
+// until valid client is available or timeout is reached.
+func (s *Supervised) Exec(req *os.ExecRequest) (resp *os.ExecResponse, err error) {
+	fn := func(c Client) error {
+		resp, err = c.Exec(req)
+		return err
+	}
+
+	err = s.call(fn)
+	return
+}
+
+// Kill calls registered Client's Kill method and returns its result if
+// it's not produced by Disconnected client. If it is, this function will wait
+// until valid client is available or timeout is reached.
+func (s *Supervised) Kill(req *os.KillRequest) (resp *os.KillResponse, err error) {
+	fn := func(c Client) error {
+		resp, err = c.Kill(req)
 		return err
 	}
 

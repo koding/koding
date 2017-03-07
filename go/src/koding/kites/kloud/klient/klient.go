@@ -13,6 +13,7 @@ import (
 
 	"koding/klient/fs"
 	"koding/klient/machine/index"
+	"koding/klient/os"
 	"koding/klient/sshkeys"
 
 	"github.com/koding/kite"
@@ -213,6 +214,53 @@ func (k *Klient) Close() {
 	k.Client.Close()
 }
 
+// Exec calls the os.exec method of remote klient.
+func (k *Klient) Exec(req *os.ExecRequest) (*os.ExecResponse, error) {
+	var resp os.ExecResponse
+
+	if err := k.call("os.exec", req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+// Kill calls the os.kill method of remote klient.
+func (k *Klient) Kill(req *os.KillRequest) (*os.KillResponse, error) {
+	var resp os.KillResponse
+
+	if err := k.call("os.kill", req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+func (k *Klient) call(method string, req, resp interface{}) error {
+	type validator interface {
+		Valid() error
+	}
+
+	if v, ok := req.(validator); ok {
+		if err := v.Valid(); err != nil {
+			return err
+		}
+	}
+
+	r, err := k.Client.TellWithTimeout(method, k.timeout(), req)
+	if err != nil {
+		return err
+	}
+
+	if resp != nil {
+		if err := r.Unmarshal(resp); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Usage calls the usage method of remote and get's the result back
 func (k *Klient) Usage() (*Usage, error) {
 	resp, err := k.Client.TellWithTimeout("klient.usage", k.timeout())
@@ -220,12 +268,12 @@ func (k *Klient) Usage() (*Usage, error) {
 		return nil, err
 	}
 
-	var usg *Usage
+	var usg Usage
 	if err := resp.Unmarshal(&usg); err != nil {
 		return nil, err
 	}
 
-	return usg, nil
+	return &usg, nil
 }
 
 // Ping checks if the given klient response with "pong" to the "ping" we send.
