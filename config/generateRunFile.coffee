@@ -415,7 +415,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function runCountlyDocker () {
-        docker run -d -p $KONFIG_COUNTLY_APIPORT:80 --env 'COUNTLY_PATH=/countly' --name=countly koding/countly-server:docker-configure
+        docker run -d -p $KONFIG_COUNTLY_APIPORT:80 --env 'COUNTLY_PATH=/countly' --name=countly koding/countly-server:latest
         check_connectivity countly
     }
 
