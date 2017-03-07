@@ -1,5 +1,5 @@
-kd           = require 'kd'
-dataProvider = require './userenvironmentdataprovider'
+kd = require 'kd'
+
 
 module.exports = class MachineShareManager extends kd.Object
 
@@ -55,10 +55,10 @@ module.exports = class MachineShareManager extends kd.Object
 
   handleCollaborationInvitation: (data) ->
 
-    { machineUId, workspaceId } = data
+    { machineUId } = data
 
     type = 'collaboration'
-    @set machineUId, { type, workspaceId }
+    @set machineUId, { type }
 
 
   registerChannelEvent: (channelId, callback = kd.noop) ->
@@ -78,5 +78,4 @@ module.exports = class MachineShareManager extends kd.Object
           return callback err
 
         pubnubChannel?.channel?.once 'RemovedFromChannel', ->
-          dataProvider.fetch ->
-            kd.singletons.mainView.activitySidebar.redrawMachineList()
+          kd.singletons.computeController.storage.fetch()

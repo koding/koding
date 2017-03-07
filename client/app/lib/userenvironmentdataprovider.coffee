@@ -19,7 +19,7 @@ module.exports =
     ]
 
 
-  fetch: (callback, ensureDefaultWorkspace = no) ->
+  fetch: (callback) ->
 
     remote.api.Sidebar.fetchEnvironment (err, data) =>
       return new KDNotificationView { title : "Couldn't fetch your VMs" }  if err
@@ -27,9 +27,7 @@ module.exports =
       data = @setDefaults_ data
       globals.userEnvironmentData = data
 
-      if ensureDefaultWorkspace
-      then @ensureDefaultWorkspace -> callback data
-      else callback data
+      callback data
 
 
   addTestMachine: (machine, workspaces) ->
@@ -120,26 +118,7 @@ module.exports =
           callback machine
 
 
-  fetchWorkspaceByMachineUId: (options, callback) ->
-
-    { machineUId, workspaceSlug } = options
-
-    data      = @getAllMachines()
-    workspace = null
-
-    for obj in data
-      m = obj.machine
-
-      if m.uid is machineUId
-        for ws in obj.workspaces when ws.slug is workspaceSlug
-          workspace = ws
-          break
-
-        break
-
-    callback remote.revive workspace
-
-
+  # FIXMEWS ~ GG
   fetchWorkspacesByMachineUId: (machineUId, callback) ->
 
     for obj in @getAllMachines()
@@ -183,6 +162,7 @@ module.exports =
     @machineFetcher_ '_id', id, callback
 
 
+  # FIXMEWS ~ GG
   fetchMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
     machine   = null
@@ -198,6 +178,7 @@ module.exports =
     callback machine, workspace
 
 
+  # FIXMEWS ~ GG
   findWorkspace: (machineLabel, workspaceSlug, channelId) ->
 
     for item in @getAllMachines()
@@ -231,48 +212,6 @@ module.exports =
     return instance
 
 
-  createDefaultWorkspace: do (inProgress = {}) -> (machine, callback) ->
-
-    if callbacks = inProgress[machine.uid]
-      return callbacks.push callback
-    else
-      callbacks = inProgress[machine.uid] = [callback]
-
-    remote.api.JWorkspace.createDefault machine.uid, (err, workspace) ->
-
-      if err
-        console.error 'User Environment Data Provider:', JSON.stringify err
-
-      delete inProgress[machine.uid]
-
-      callbacks.forEach (callback) ->
-
-        callback err, workspace
-
-
-  ensureDefaultWorkspace: (callback) ->
-
-    data = @get()
-
-    queue = @getMyMachines().concat @getSharedMachines()
-
-      .map ({ machine, workspaces }) => (fin) =>
-
-        kd.utils.defer =>
-
-          for workspace in workspaces when workspace.isDefault
-            return fin()
-
-          @createDefaultWorkspace machine, (err, workspace) ->
-
-            return fin()  if err
-
-            workspaces.push workspace  if workspace
-            fin()
-
-    async.parallel queue, callback
-
-
   removeCollaborationMachine: (machine) ->
 
     @removeMachine 'collaboration', machine
@@ -287,9 +226,3 @@ module.exports =
       kd.utils.defer => @fetch kd.noop
       return
 
-
-  clearWorkspaces: (machine) ->
-
-    for item in @getAllMachines() when item.machine.uid is machine.uid
-      item.workspaces.splice 0
-      return
