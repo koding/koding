@@ -122,23 +122,62 @@ func (s *Syncs) worker() {
 	}
 }
 
-// Add starts synchronization between remote and local directories. It creates
-// all necessary cache files if they are not present.
-func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
-	nb notify.Builder, sb msync.Builder,
-	dynSSH msync.DynamicSSHFunc, dynClient client.DynamicClientFunc) error {
+// AddRequest contains data needed to call Syncs.Add method.
+type AddRequest struct {
+	// MountID is a unique ID of the mount in UUIDv4 format.
+	MountID mount.ID
 
-	if nb == nil {
+	// Mount stores mount paths.
+	Mount mount.Mount
+
+	// NotifyBuilder defines a factory used to build file system notification
+	// objects.
+	NotifyBuilder notify.Builder
+
+	// SyncBuilder defines a factory used to build object which will be
+	// responsible for syncing files.
+	SyncBuilder msync.Builder
+
+	// ClientFunc is a factory for dynamic clients.
+	ClientFunc client.DynamicClientFunc
+
+	// SSHFunc is a factory for client SSH addresses.
+	SSHFunc msync.DynamicSSHFunc
+}
+
+// Valid validates add reqest data.
+func (req *AddRequest) Valid() error {
+	if req == nil {
+		return errors.New("sync add request is nil")
+	}
+
+	if req.MountID == "" {
+		return errors.New("mount ID cannot be empty")
+	}
+	if req.Mount.RemotePath == "" {
+		return errors.New("mount remote path cannot be empty")
+	}
+	if req.NotifyBuilder == nil {
 		return errors.New("notification builder cannot be nil")
 	}
-	if sb == nil {
+	if req.SyncBuilder == nil {
 		return errors.New("synchronization builder cannot be nil")
 	}
-	if dynSSH == nil {
+	if req.ClientFunc == nil {
+		return errors.New("dynamic client function cannot be nil")
+	}
+	if req.SSHFunc == nil {
 		return errors.New("dynamic SSH address function cannot be nil")
 	}
-	if dynClient == nil {
-		return errors.New("dynamic client function cannot be nil")
+
+	return nil
+}
+
+// Add starts synchronization between remote and local directories. It creates
+// all necessary cache files if they are not present.
+func (s *Syncs) Add(req *AddRequest) error {
+	if err := req.Valid(); err != nil {
+		return err
 	}
 
 	s.mu.RLock()
@@ -146,32 +185,32 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
 		s.mu.RUnlock()
 		return fmt.Errorf("syncs is closed")
 	}
-	_, ok := s.scs[mountID]
+	_, ok := s.scs[req.MountID]
 	s.mu.RUnlock()
 
 	if ok {
-		return fmt.Errorf("sync for mount with ID %s already exists", mountID)
+		return fmt.Errorf("sync for mount with ID %s already exists", req.MountID)
 	}
 
-	sc, err := msync.NewSync(mountID, m, msync.Options{
-		ClientFunc:    dynClient,
-		SSHFunc:       dynSSH,
-		WorkDir:       filepath.Join(s.wd, "mount-"+string(mountID)),
-		NotifyBuilder: nb,
-		SyncBuilder:   sb,
-		Log:           s.log.New(string(mountID)),
+	sc, err := msync.NewSync(req.MountID, req.Mount, msync.Options{
+		ClientFunc:    req.ClientFunc,
+		SSHFunc:       req.SSHFunc,
+		WorkDir:       filepath.Join(s.wd, "mount-"+string(req.MountID)),
+		NotifyBuilder: req.NotifyBuilder,
+		SyncBuilder:   req.SyncBuilder,
+		Log:           s.log.New(string(req.MountID)),
 	})
 	if err != nil {
 		return err
 	}
 
 	s.mu.Lock()
-	if _, ok := s.scs[mountID]; ok {
+	if _, ok := s.scs[req.MountID]; ok {
 		s.mu.Unlock()
 		sc.Close()
-		return fmt.Errorf("sync for mount with ID %s added twice", mountID)
+		return fmt.Errorf("sync for mount with ID %s added twice", req.MountID)
 	}
-	s.scs[mountID] = sc
+	s.scs[req.MountID] = sc
 	s.mu.Unlock()
 
 	// proxy synchronization events to workers pool.

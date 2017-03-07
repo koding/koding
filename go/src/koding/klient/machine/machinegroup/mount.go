@@ -8,6 +8,7 @@ import (
 
 	"koding/kites/config"
 	"koding/klient/machine"
+	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
 	"koding/klientctl/ssh"
@@ -184,9 +185,17 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 		}
 	}()
 
+	addReq := &syncs.AddRequest{
+		MountID:       mountID,
+		Mount:         req.Mount,
+		NotifyBuilder: g.nb,
+		SyncBuilder:   g.sb,
+		ClientFunc:    g.dynamicClient(mountID),
+		SSHFunc:       g.dynamicSSH(req.ID),
+	}
+
 	// Start mount syncer.
-	dynSSH, dynClient := g.dynamicSSH(req.ID), g.dynamicClient(mountID)
-	if err = g.sync.Add(mountID, req.Mount, g.nb, g.sb, dynSSH, dynClient); err != nil {
+	if err = g.sync.Add(addReq); err != nil {
 		g.log.Error("Synchronization of %s mount failed: %s", mountID, err)
 		return nil, err
 	}
