@@ -15,8 +15,6 @@ module.exports = class ComputeStorage extends kd.Object
   initialize: ->
 
     @storage  = {}
-    @stacks   = []
-    @machines = []
 
     return this
 
@@ -63,3 +61,10 @@ module.exports = class ComputeStorage extends kd.Object
     { machine, stack, machineId } = options
 
     debug 'pop', options
+
+
+  fetch: ->
+
+    debug 'fetch'
+
+    kd.warn 'wip'

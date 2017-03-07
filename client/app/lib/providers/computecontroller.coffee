@@ -80,6 +80,8 @@ module.exports = class ComputeController extends KDController
         @createDefaultStack()
 
         @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
+
+        debug 'now ready'
         @emit 'ready'
 
         @checkGroupStackRevisions()
@@ -229,6 +231,7 @@ module.exports = class ComputeController extends KDController
           machines = []
           for machine in _machines
             machines.push machine = new Machine { machine }
+          @storage.set 'machines', machines
 
           stacks.forEach (stack) =>
             stack.title    = Encoder.htmlDecode stack.title
@@ -236,11 +239,11 @@ module.exports = class ComputeController extends KDController
               .filter (mId) => @storage.query 'machines', '_id', mId
               .map    (mId) => @storage.query 'machines', '_id', mId
 
+          @storage.set 'stacks', stacks
+
           stacks = runMiddlewares.sync this, 'fetchStacks', stacks
 
-          @storage.set 'stacks',   stacks
-          @storage.set 'machines', machines
-
+          # This is not required here ~ GG
           @checkStackRevisions()
           @stateChecker?.start()
 
@@ -285,7 +288,7 @@ module.exports = class ComputeController extends KDController
     return @storage.query 'machines', 'uid', machineUId
 
   findStackFromStackId: (stackId) ->
-    return @storage.query 'stacks', '_id', stacksId
+    return @storage.query 'stacks', '_id', stackId
 
   findStackFromMachineId: (machineId) ->
     for stack in @storage.get 'stacks'
@@ -358,7 +361,7 @@ module.exports = class ComputeController extends KDController
       { results : { machines } } = newStack
       [ machine ] = machines
 
-      @storage.push { stack }
+      @storage.push { stack: newStack }
       @reloadIDE machine.obj.slug
       @checkGroupStacks()
 
@@ -426,10 +429,6 @@ module.exports = class ComputeController extends KDController
           return  if err
 
           @_clearTrialCounts machine
-
-          # we don't need to wait for deletion of workspace here ~ GG
-          remote.api.JWorkspace.deleteByUid machine.uid, (err) ->
-            console.warn "couldn't delete workspace:", err  if err
 
           @storage.push { machine }
           ideApp = envDataProvider.getIDEFromUId machine.uid
