@@ -3,7 +3,6 @@ module.exports = (options, callback) ->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getTitle     = require './../title'
-  getGraphMeta = require './../graphmeta'
   KONFIG       = require 'koding-config-manager'
 
   options.entryPoint = { slug : 'koding', type: 'group' }
