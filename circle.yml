@@ -193,7 +193,8 @@ stages:
           ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA circle-build-$CIRCLE_BUILD_NUM
           ./run exec scripts/ci/run-tests INSTANCE_DATA
           status=$?
-          [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA
+          [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
+          [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA || :
 
       - type: shell
         name: codecov
