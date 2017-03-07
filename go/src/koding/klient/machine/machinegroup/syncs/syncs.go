@@ -241,8 +241,8 @@ func (s *Syncs) sink(exC <-chan msync.Execer) {
 	}
 }
 
-// Info returns the current state of mount synchronization with provided ID.
-func (s *Syncs) Info(mountID mount.ID) (*msync.Info, error) {
+// Sync returns mount syncer that synchronizes mount with provided ID.
+func (s *Syncs) Sync(mountID mount.ID) (*msync.Sync, error) {
 	s.mu.RLock()
 	sc, ok := s.scs[mountID]
 	s.mu.RUnlock()
@@ -251,7 +251,7 @@ func (s *Syncs) Info(mountID mount.ID) (*msync.Info, error) {
 		return nil, mount.ErrMountNotFound
 	}
 
-	return sc.Info(), nil
+	return sc, nil
 }
 
 // Drop removes the mount sync and cleans the resources it uses.

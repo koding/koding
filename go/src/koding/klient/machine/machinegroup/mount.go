@@ -11,6 +11,7 @@ import (
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/transport/rsync"
 	"koding/klientctl/ssh"
 )
 
@@ -161,6 +162,16 @@ type AddMountRequest struct {
 type AddMountResponse struct {
 	// MountID is a unique identifier of created mount.
 	MountID mount.ID `json:"mountID"`
+
+	// Count stores the amount of files which are going to be prefetched.
+	Count int64 `json:"count"`
+
+	// DiskSize stores the size of all fetched files.
+	DiskSize int64 `json:"diskSize"`
+
+	// FetchCmd contains the prefetch command which needs to be run in order
+	// to download initial files.
+	FetchCmd *rsync.Command `json:"fetchCmd,omitempty"`
 }
 
 // AddMount fetches remote index, prepares mount cache, and runs mount sync in
@@ -200,10 +211,24 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 		return nil, err
 	}
 
+	sc, err := g.sync.Sync(mountID)
+	if err != nil {
+		// Panic here since missing mount here should be impossible.
+		panic("mount " + req.Mount.String() + " doesn't exist")
+	}
+
+	count, diskSize, cmd, err := sc.FetchCmd()
+	if err != nil {
+		g.log.Error("Cannot prefetch mount data: %s", err)
+	}
+
 	g.log.Info("Successfully created mount %s for %s", mountID, req.Mount)
 
 	return &AddMountResponse{
-		MountID: mountID,
+		MountID:  mountID,
+		Count:    count,
+		DiskSize: diskSize,
+		FetchCmd: cmd,
 	}, nil
 }
 
@@ -256,7 +281,7 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 
 	// Get mount infos.
 	for mountID, mm := range mms {
-		info, err := g.sync.Info(mountID)
+		sc, err := g.sync.Sync(mountID)
 		alias := id2alias[mm.id]
 		if err != nil {
 			// Add mount to the list but log not synchronized mount.
@@ -268,7 +293,7 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 			continue
 		}
 
-		res.Mounts[alias] = append(res.Mounts[alias], *info)
+		res.Mounts[alias] = append(res.Mounts[alias], *sc.Info())
 	}
 
 	return res, nil
