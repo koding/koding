@@ -18,6 +18,9 @@ module.exports =
   <title>#{title}</title>
   <meta name="description"             content="#{description}" />
   <meta name="keywords"                content="#{keywords}">
+
+  #{require('../favicon')()}
+
   <!-- Schema.org for Google+ -->
   <meta itemprop="name"                content="#{title}">
   <meta itemprop="description"         content="#{description}">
