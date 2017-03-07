@@ -1,15 +1,9 @@
-module.exports = (machine, workspace) ->
-
-  workspaceSlug = if slug = workspace?.get 'slug' then slug else ''
+module.exports = (machine) ->
 
   switch machine.get 'type'
     when 'own'
       return "/IDE/#{machine.get('slug') or machine.get('label')}/"
     when 'collaboration'
-
-      workspaces = machine.get('workspaces').toJS()
-      workspace  = workspaces[(Object.keys workspaces).first]
-
-      return "/IDE/#{workspace.channelId}"
+      return "/IDE/#{machine.get('channelId')}"
     when 'shared', 'reassigned'
-      return "/IDE/#{machine.get 'uid'}/#{workspaceSlug}"
+      return "/IDE/#{machine.get 'uid'}"

@@ -7,27 +7,6 @@ lazyrouter      = require 'app/lazyrouter'
 dataProvider    = require 'app/userenvironmentdataprovider'
 
 
-selectWorkspaceOnSidebar = (data) ->
-
-  return no  unless data
-
-  { machine, workspace } = data
-
-  return no if not machine or not workspace
-
-  actions.setSelectedWorkspaceId workspace._id
-
-  storage = kd.singletons.localStorageController.storage 'IDE'
-
-  workspaceData    =
-    machineLabel   : machine.slug or machine.label
-    workspaceSlug  : workspace.slug
-    channelId      : workspace.channelId
-
-  storage.setValue 'LatestWorkspace', workspaceData
-  storage.setValue "LatestWorkspace_#{machine.uid}", workspaceData
-
-
 getLatestWorkspace = (machine) ->
 
   storage   = kd.getSingleton('localStorageController').storage 'IDE'
@@ -38,6 +17,7 @@ getLatestWorkspace = (machine) ->
 
   { machineLabel, workspaceSlug, channelId } = workspace
 
+  # FIXMEWS ~ GG
   if dataProvider.findWorkspace machineLabel, workspaceSlug, channelId
     return workspace
 
@@ -56,7 +36,6 @@ loadIDE = (data, done = kd.noop) ->
 
   if showInstance
 
-    selectWorkspaceOnSidebar data
     actions.setSelectedMachineId machine._id
 
     actions.setSelectedTemplateId if machine.data?.generatedFrom?
@@ -90,7 +69,6 @@ loadIDE = (data, done = kd.noop) ->
 
   if ideInstance and showInstance
     appManager.showInstance ideInstance
-    selectWorkspaceOnSidebar data # should not be required
   else
     callback()
 
@@ -185,6 +163,7 @@ routeToLatestWorkspace = ->
         storage.unsetKey 'LatestWorkspace'
         return routeToFallback()
 
+      # FIXMEWS ~ GG
       dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) ->
         if machine and ws then router.handleRoute "/IDE/#{channelId}"
         else routeToFallback()
@@ -192,7 +171,6 @@ routeToLatestWorkspace = ->
   else if machineLabel and workspaceSlug
     dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) ->
       if machine and workspace
-        actions.setSelectedWorkspaceId workspace._id
         router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
       else if machine
         routeToMachineWorkspace machine
@@ -214,6 +192,7 @@ loadCollaborativeIDE = (id) ->
 
     try
 
+      # FIXMEWS ~ GG
       dataProvider.fetchMachineAndWorkspaceByChannelId id, (machine, workspace) ->
         return routeToLatestWorkspace()  unless workspace
 
@@ -268,24 +247,15 @@ routeHandler = (type, info, state, path, ctx) ->
 
       dataProvider.fetchMachine params.machineLabel, (machine) ->
 
-        dataProvider.ensureDefaultWorkspace ->
+        if machine
+          routeToMachineWorkspace machine
 
-          if machine
-            username = machine.getOwner()
-            data = { machineUId: machine.uid, workspaceSlug: params.workspaceSlug }
-
-            dataProvider.fetchWorkspaceByMachineUId data, (workspace) ->
-              if workspace then loadIDE { machine, workspace, username }
-              else
-                routeToMachineWorkspace machine
-
-          else
-            routeToLatestWorkspace()
+        else
+          routeToLatestWorkspace()
 
 
 module.exports = {
 
-  selectWorkspaceOnSidebar
   getLatestWorkspace
   loadIDENotFound
   loadIDE

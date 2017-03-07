@@ -36,12 +36,7 @@ module.exports = CollaborationController =
     @socialChannel = channel
     @bindSocialChannelEvents()
 
-    { reactor } = kd.singletons
-
-    reactor.dispatch actionTypes.UPDATE_WORKSPACE_CHANNEL_ID, {
-      workspaceId : @workspaceData._id
-      channelId   : @getSocialChannelId()
-    }
+    # TODOWS ~ GG - Set channelId on JMachine
 
 
   fetchSocialChannel: (callback) ->
@@ -788,11 +783,9 @@ module.exports = CollaborationController =
 
       @setSocialChannel channel
 
-      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
-        .then =>
-          @workspaceData.channelId = channel.id
-          callbacks.success()
-        .error (err) -> callbacks.error err
+      # TODOWS ~ GG - Update channelId on JMachine
+      callbacks.success()
+
 
 
   onCollaborationErrorCreating: ->
@@ -1086,10 +1079,7 @@ module.exports = CollaborationController =
     { reactor } = kd.singletons
 
     reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
-    reactor.dispatch actionTypes.WORKSPACE_DELETED, {
-      workspaceId : @workspaceData._id
-      machineId   : @mountedMachine._id
-    }
+    # TODOWS ~ GG - Unset channelId on JMachine
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>

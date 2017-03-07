@@ -1,7 +1,7 @@
 remote = require 'app/remote'
 
 
-module.exports = (machine) ->
+module.exports = getMachineOwner = (machine) ->
 
   switch machine.get 'provider'
     when 'managed'
