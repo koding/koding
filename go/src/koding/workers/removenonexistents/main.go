@@ -16,12 +16,11 @@ import (
 )
 
 var (
-	flagMongoConn = flag.String("mongo", "", "mongo connection string")
-	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
-	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
-	flagDry       = flag.Bool("dry", false, "dry run")
-	flagColls     = flag.String("colls", "jUsers,jAccounts,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
-
+	flagMongoConn       = flag.String("mongo", "", "mongo connection string")
+	flagSkip            = flag.Int("s", 0, "Configuration profile from file")
+	flagLimit           = flag.Int("l", 1000, "Configuration profile from file")
+	flagDry             = flag.Bool("dry", false, "dry run")
+	flagColls           = flag.String("colls", "jUsers,jAccounts,jGroups,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
 	deletedGroupBySlug  = cache.NewLRU(10000)
 	existingGroupBySlug = cache.NewLRU(10000)
 

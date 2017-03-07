@@ -25,6 +25,8 @@ func main() {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
+	go r.Wait()
+
 	if err := models.DeleteDiffedDBAccounts(); err != nil {
 		fmt.Println("error while deleting account that non-existing in mongo", err)
 		return

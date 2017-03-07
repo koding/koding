@@ -45,7 +45,7 @@ module.exports = class DisabledAdminModal extends ReactView
             <TrialEndedOptions
               isOwner={isOwner}
               groups={groups}
-              mainActionTitle={if isOwner then 'DELETE THIS TEAM' else 'LEAVE THIS TEAM'}
+              mainActionTitle={if isOwner then 'delete this team' else 'leave this team'}
               mainActionClick={if isOwner then deleteTeamOnClick else leaveTeamOnClick}
               secondaryActionClick={deleteAccount} />}
           />
@@ -66,5 +66,5 @@ deleteTeamOnClick = ->
     showError err
 
 
-deleteAccount = -> TeamFlux.actions.deleteAccount()
+deleteAccount = -> TeamFlux.actions.deleteAccount(subscription = no)
 

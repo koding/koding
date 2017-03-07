@@ -49,7 +49,7 @@ module.exports = Dialog = (props) ->
           title={secondaryButtonTitle}
           onClick={onSecondaryButtonClick} /> }
       {secondaryContent and
-        <div>
+        <div className={styles.secondaryContent}>
           {secondaryContent}
         </div>}
     </Modal.Content>

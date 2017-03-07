@@ -128,5 +128,11 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
         @wrapper.addSubView actionWrapper = new kd.CustomHTMLView
           cssClass : 'myteam-action-wrapper'
 
+        actionWrapper.addSubView hrf = new kd.CustomHTMLView
+          tagName  : 'a'
+          domId : 'actions'
+          attributes:
+            href : '#actions'
+
         actionWrapper.addSubView new DeleteTeamButton {}
-        actionWrapper.addSubView new TransferOwnershipButton {}, team
+        actionWrapper.addSubView new TransferOwnershipButton { currentGroup: yes }, team

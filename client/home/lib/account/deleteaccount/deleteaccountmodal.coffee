@@ -6,6 +6,7 @@ fetchMyRelativeGroups = require 'app/util/fetchMyRelativeGroups'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 verifyPassword = require 'app/util/verifyPassword'
 showError = require 'app/util/showError'
+pluralize = require 'pluralize'
 require('./styl/deleteaccount.styl')
 
 module.exports = class DeleteAccountModal extends ContentModal
@@ -20,22 +21,25 @@ module.exports = class DeleteAccountModal extends ContentModal
 
     super options
 
+    groupsCount = groups.length
+
+    pronoun1 = if groupsCount is 1 then 'its' else 'their'
+    pronoun2 = if groupsCount is 1 then 'it' else 'them'
+
     @main.addSubView new kd.CustomHTMLView
       tagName: 'p'
-      partial: '
+      partial: "
         <p>
-          <strong>CAUTION!</strong>
-          You can not delete your account if you are owner of any team. You must
-          transfer the ownership or delete the team.
-          These are the teams that you are owner of.
+          You can not delete your team because you own
+          #{pluralize 'team', groupsCount, yes}.
+          You must either transfer #{pronoun1}
+          #{pluralize 'ownership', groupsCount, no} or delete #{pronoun2}
+          from #{pronoun1} #{pluralize 'dashboard', groupsCount, no}.
         </p>
+        <br />
         <p>
-          Transferring ownership makes you an admin of that team.
-          You must login and save your keys before you delete your account.
-        </p>
-        <p>
-          Delete team must be handled in the team so you will be redirected.
-        </p>'
+          These are the teams that you own:
+        </p>"
 
     @main.addSubView teamsWrapper = new kd.CustomHTMLView
       cssClass: 'teamswrapper'

@@ -6,7 +6,7 @@ TrialEndedOptionsActions = require 'lab/TrialEndedOptionsActions'
 module.exports = TrialEndedOptions = ({groups, isOwner, mainActionTitle, mainActionClick, secondaryActionClick}) ->
 
   <div>
-    {groups?.length and <SwitchTeam groups={groups} isOwner={isOwner} />}
+    {<SwitchTeam groups={groups} isOwner={isOwner} />  if groups.length}
     <TrialEndedOptionsActions
       mainActionTitle={mainActionTitle}
       mainActionClick={mainActionClick}

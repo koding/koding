@@ -1,15 +1,7 @@
-.mainaction
+.actions
   margin-top                20px
-  width                     421px
-  button
-    width                   100%
-    background-color        #FFF
-    color                   #76abef
-    &:hover
-      background-color      #FFF
-
-.secondaryaction
-  padding-top               20px
-  padding-bottom            0px
-  button
-    padding                 0px
+  text-align                center
+  font-size                 16px
+  line-height               19px
+  font-weight               200
+  color                     #989898

@@ -192,9 +192,6 @@ module.exports = class GroupsController extends kd.Controller
 
         computeController.createDefaultStack yes
 
-        if stackTemplate._updated
-          id = currentGroup.socialApiDefaultChannelId
-
         # Warn other group members about stack template update
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
