@@ -15,22 +15,8 @@ detachSocialChannel = (workspaceData, callback) ->
 
   { _id } = workspaceData
   options = { $unset: { channelId: 1 } }
-  remote.api.JWorkspace.update _id, options, (err) ->
-    return callback err  if err
-
-    workspaceData.channelId = null
-    callback null
-
-
-###*
- * Updates workspace with given id, with the options passed.
- *
- * @param {object} workspaceData
- * @param {object=} options
-###
-updateWorkspace = (workspaceData, options = {}) ->
-
-  remote.api.JWorkspace.update workspaceData._id, { $set : options }
+  # TODOWS ~ GG - Unset channelId on JMachine
+  callback null
 
 
 ###*
@@ -100,6 +86,7 @@ isUserStillParticipantOnMachine = (options, callback) ->
 
     { socialApiId } = accounts.first
 
+    # FIXMEWS ~ GG
     userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) ->
 
       workspaces = workspaces.filter (w) -> w  if w.channelId
@@ -119,7 +106,6 @@ isUserStillParticipantOnMachine = (options, callback) ->
 
 module.exports = {
   detachSocialChannel
-  updateWorkspace
   setMachineUser
   fetchMissingParticipants
   isUserStillParticipantOnMachine

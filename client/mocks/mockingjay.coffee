@@ -56,11 +56,6 @@ module.exports =
           callback null
 
 
-    ensureDefaultWorkspace: ->
-
-      expect.spyOn(dataProvider, 'ensureDefaultWorkspace').andCall (callback) ->
-        callback()
-
     fetch:
 
       toReturnMockMachineAndWorkspace: ->
@@ -99,20 +94,6 @@ module.exports =
           shared        : []
           own           : [ item ]
         }
-
-
-    fetchWorkspaceByMachineUId:
-
-      toReturnWorkspace: ->
-
-        expect.spyOn(dataProvider, 'fetchWorkspaceByMachineUId').andCall (options, callback) ->
-          callback mockjworkspace
-
-
-      toReturnNull: ->
-
-        expect.spyOn(dataProvider, 'fetchWorkspaceByMachineUId').andCall (options, callback) ->
-          callback null
 
 
     findWorkspace:

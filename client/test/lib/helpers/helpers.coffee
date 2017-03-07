@@ -221,26 +221,6 @@ module.exports =
       .click                   'li.change-top-folder'
 
 
-  createWorkspace: require './createworkspace'
-
-
-  deleteWorkspace: (browser, workspaceName) ->
-
-    browser.url (data) ->
-      url               = data.value
-      vmName            = url.split('/IDE/')[1].split('/')[0]
-      workspaceSelector = 'a[href="/IDE/' + vmName + '/' + workspaceName + '"]'
-      modalSelector     = '.activity-modal.ws-settings'
-
-      browser
-        .waitForElementVisible     workspaceSelector, 20000
-        .click                     workspaceSelector
-        .click                     workspaceSelector + ' + .ws-settings-icon'
-        .waitForElementVisible     modalSelector, 20000
-        .click                     modalSelector + ' button.red'
-        .waitForElementNotPresent  workspaceSelector, 20000
-
-
   waitForVMRunning: require './waitforvmrunning'
 
 

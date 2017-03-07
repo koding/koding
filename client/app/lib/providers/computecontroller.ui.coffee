@@ -332,7 +332,6 @@ module.exports = class ComputeControllerUI
             <p>Terminating this VM will destroy all of its:</p>
               <br/>
               <li> files and data </li>
-              <li> workspaces </li>
               <li> running services </li>
               <li> settings </li>
               <li> custom domains (if any) </li>

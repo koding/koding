@@ -97,33 +97,5 @@ module.exports = mockManagedMachine = -> {
   "_id": label,
   "percentage": 100,
   "type": "own",
-  "createdAt": "2016-10-12T07:13:23.305Z",
-  "workspaces": [{
-    "originId": label,
-    "_conf": {
-      "originId": label,
-      "rootPath": "/",
-      "machineUId": label,
-      "layout": {},
-      "name": "My Workspace",
-      "slug": "my-workspace",
-      "machineLabel": domain,
-      "isDefault": true,
-      "_id": 'test-workspace'
-    },
-    "rootPath": "/",
-    "machineUId": label,
-    "layout": {},
-    "name": "My Workspace",
-    "slug": "my-workspace",
-    "machineLabel": domain,
-    "newListener": false,
-    "bongo_": {
-      "constructorName": "JWorkspace",
-      "instanceId": 'test-workspace'
-    },
-    "isDefault": true,
-    "watchers": {},
-    "_id": 'test-workspace'
-  }]
+  "createdAt": "2016-10-12T07:13:23.305Z"
 }

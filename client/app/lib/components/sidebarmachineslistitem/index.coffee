@@ -8,11 +8,9 @@ Machine                        = require 'app/providers/machine'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 EnvironmentFlux                = require 'app/flux/environment'
-AddWorkspaceView               = require './addworkspaceview'
 isMachineRunning               = require 'app/util/isMachineRunning'
 getBoundingClientReact         = require 'app/util/getBoundingClientReact'
 LeaveSharedMachineWidget       = require './leavesharedmachinewidget'
-SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
@@ -27,7 +25,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
   @defaultProps =
     stack                        : null
     showInSidebar                : yes
-    bindWorkspacesTitleClick     : yes
 
 
   getDataBindings: ->
@@ -126,16 +123,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
     <div className={"SidebarListItem-progressbar#{fullClass}"}>
       <cite style={width: "#{percentage}%"} />
     </div>
-
-
-  renderWorkspaces: ->
-
-    @machine('workspaces').toList().map (workspace) =>
-      <SidebarWorkspacesListItem
-        key={workspace.get '_id'}
-        machine={@props.machine}
-        workspace={workspace}
-        />
 
 
   renderLeaveSharedMachine: ->
