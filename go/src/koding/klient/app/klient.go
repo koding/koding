@@ -471,6 +471,8 @@ func (k *Klient) RegisterMethods() {
 	// klient os method(s)
 	k.handleWithSub("os.home", kos.Home)
 	k.handleWithSub("os.currentUsername", kos.CurrentUsername)
+	k.handleWithSub("os.exec", kos.Exec)
+	k.handleWithSub("os.kill", kos.Kill)
 
 	// Klient Info method(s)
 	k.handleWithSub("klient.info", info.Info)
@@ -521,6 +523,8 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
+	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)
+	k.kite.HandleFunc("machine.kill", k.machines.HandleKill)
 
 	// Machine index handlers.
 	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
