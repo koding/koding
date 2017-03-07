@@ -3,21 +3,14 @@ machineRuleChecker = require 'app/util/machinerulechecker'
 getMachineOwner    = require 'app/util/getMachineOwner'
 getGroup           = require 'app/util/getGroup'
 
-{ allChannels }    = require 'app/flux/socialapi/getters'
-
 withEmptyMap       = (storeData) -> storeData or immutable.Map()
 
 StacksStore                       = ['StacksStore']
 MachinesStore                     = ['MachinesStore']
-WorkspacesStore                   = ['WorkspacesStore']
-MachinesWorkspacesStore           = ['MachinesWorkspacesStore']
 OwnMachinesStore                  = ['OwnMachinesStore']
 SharedMachinesStore               = ['SharedMachinesStore']
 CollaborationMachinesStore        = ['CollaborationMachinesStore']
-AddWorkspaceViewStore             = ['AddWorkspaceViewStore']
-ActiveWorkspaceStore              = ['ActiveWorkspaceStore']
 ActiveMachineStore                = ['ActiveMachineStore']
-DeleteWorkspaceWidgetStore        = ['DeleteWorkspaceWidgetStore']
 ConnectedManagedMachineStore      = ['ConnectedManagedMachineStore']
 sharedMachineListItems            = [['SharedMachineListItemsStore'], withEmptyMap]
 ActiveInvitationMachineIdStore    = ['ActiveInvitationMachineIdStore']
@@ -30,37 +23,9 @@ SelectedTemplateIdStore           = ['SelectedTemplateIdStore']
 expandedMachineLabelStore         = ['ExpandedMachineLabelStore']
 
 
-workspacesWithChannels = [
-  WorkspacesStore
-  allChannels
-  (workspaces, channels) ->
-
-    workspaces.map (workspace) ->
-      if channelId = workspace.get('channelId')
-        workspace.set 'channel', channels.get(channelId)
-      else
-        workspace
-]
-
-machinesWithWorkspaces = [
-  MachinesStore
-  workspacesWithChannels
-  MachinesWorkspacesStore
-  (machines, workspaces, machinesWorkspaces) ->
-
-    machines.map (machine) ->
-      # if we use the `sharedUsers` prop, we will have to add 1 to include the
-      # real owner of the machine. `users` prop already includes owner.
-      userCount = ((machine.get('sharedUsers')?.size + 1) or machine.get('users')?.size)
-      machine
-        .set 'isShared', (userCount or 1) > 1
-        .set 'workspaces', machinesWorkspaces.get(machine.get '_id')?.map (workspaceId) ->
-          workspaces.get workspaceId
-]
-
 ownMachines = [
   OwnMachinesStore
-  machinesWithWorkspaces
+  MachinesStore
   (own, machines) -> own.map (id) ->
     machine = machines.get(id)
     machine
@@ -71,7 +36,7 @@ ownMachines = [
 
 sharedMachines = [
   SharedMachinesStore
-  machinesWithWorkspaces
+  MachinesStore
   (shared, machines) -> shared.map (id) ->
     machine = machines.get(id)
     machine
@@ -83,7 +48,7 @@ sharedMachines = [
 
 collaborationMachines = [
   CollaborationMachinesStore
-  machinesWithWorkspaces
+  MachinesStore
   (collaboration, machines) ->
     collaboration.map (id) ->
       machine = machines.get(id)
@@ -119,8 +84,8 @@ allStackTemplates = [
 stacks = [
   StacksStore
   allStackTemplates
-  machinesWithWorkspaces
-  (stacks, templates, machinesWorkspaces) ->
+  MachinesStore
+  (stacks, templates, machines) ->
     # Sort stacks by modifiedAt and type.
     stacks
 
@@ -138,11 +103,10 @@ stacks = [
           .set 'disabled', stack.getIn(['config', 'oldOwner'])?
           .set 'accessLevel', templates.getIn [stack.get('baseStackId'), 'accessLevel']
           .set 'baseTemplate', templates.get stack.get 'baseStackId'
-          .update 'machines', (machines) ->
-            machines
-              .filter (id) -> !!machinesWorkspaces.get(id)
+          .update 'machines', (_machines) ->
+            _machines
               .map (id) ->
-                machine = machinesWorkspaces.get(id)
+                machine = machines.get(id)
                 type    = if machine.getIn ['meta', 'oldOwner'] then 'reassigned' else 'own'
 
                 machine
@@ -217,13 +181,9 @@ module.exports = {
   sharedMachines
   collaborationMachines
   requiredInvitationMachine
-  machinesWithWorkspaces
   sharedMachineListItems
-  addWorkspaceView : AddWorkspaceViewStore
-  activeWorkspace : ActiveWorkspaceStore
   activeMachine : ActiveMachineStore
   activeStack : ActiveStackStore
-  deleteWorkspaceWidget : DeleteWorkspaceWidgetStore
   connectedManagedMachine : ConnectedManagedMachineStore
   activeInvitationMachineId: ActiveInvitationMachineIdStore
   activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
