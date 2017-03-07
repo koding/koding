@@ -28,7 +28,7 @@ module.exports = class MachinesStore extends KodingFluxStore
     envData = own.concat shared.concat collaboration
 
     machines.withMutations (machines) ->
-      envData.forEach ({ machine, workspaces }) ->
+      envData.forEach ({ machine }) ->
         machine.hasOldOwner = machine.meta?.oldOwner?
 
         _machine = toImmutable machine
