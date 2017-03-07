@@ -40,4 +40,7 @@ social:
   github:  https://github.com/koding
   facebook:  https://facebook.com/koding
   linkedin:  https://linkedin.com/company/koding
-
+social_images:
+  twitter: /assets/img/social/share.tw.jpg
+  google: /assets/img/social/share.g+.jpg
+  facebook: /assets/img/social/share.fb.jpg

@@ -1,25 +1,28 @@
+KONFIG = require 'koding-config-manager'
+{ version, environment, client } = KONFIG
+{ runtimeOptions } = client
+
 module.exports = (options, callback) ->
 
   { account } = options
-  userAccount   = JSON.stringify account
-
+  userAccount = JSON.stringify account
   addSiteScripts = require './sitescripts'
-  addSiteTags    = require './sitetags'
 
-  prepareHTML = (site) ->
+  prepareHTML = ->
     """
     <!doctype html>
     <html lang="en">
     <head>
 
-      #{addSiteTags site}
+      <meta charset="utf-8"/>
 
-      <link rel="shortcut icon" href="/a/images/favicon.ico" />
-      <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
+      #{require './sitetags'}
+
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+      <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
       <link href="https://plus.google.com/+KodingInc" rel="publisher" />
-      <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 
-      <link rel="stylesheet" href="/a/site.#{site}/css/main.css?#{KONFIG.version}" />
+      <link rel="stylesheet" href="/a/site.landing/css/main.css?#{version}" />
 
     </head>
 
@@ -28,23 +31,23 @@ module.exports = (options, callback) ->
 
       <script>
         window._runtimeOptions = {
-          google    : #{JSON.stringify KONFIG.client.runtimeOptions.google},
-          gitlab    : #{JSON.stringify KONFIG.client.runtimeOptions.gitlab},
-          recaptcha : #{JSON.stringify KONFIG.client.runtimeOptions.recaptcha},
-          domains   : #{JSON.stringify KONFIG.client.runtimeOptions.domains},
-          stripe    : #{JSON.stringify KONFIG.client.runtimeOptions.stripe},
-          environment : #{JSON.stringify KONFIG.environment}
+          google    : #{JSON.stringify runtimeOptions.google},
+          gitlab    : #{JSON.stringify runtimeOptions.gitlab},
+          recaptcha : #{JSON.stringify runtimeOptions.recaptcha},
+          domains   : #{JSON.stringify runtimeOptions.domains},
+          stripe    : #{JSON.stringify runtimeOptions.stripe},
+          environment : #{JSON.stringify environment}
         }
       </script>
 
 
-      <script src="/a/site.#{site}/js/libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{site}/js/main.js?#{KONFIG.version}"></script>
+      <script src="/a/site.landing/js/libs.js?#{version}"></script>
+      <script src="/a/site.landing/js/main.js?#{version}"></script>
 
-      #{addSiteScripts site}
+      #{addSiteScripts()}
 
     </body>
     </html>
     """
 
-  return callback null, prepareHTML 'landing'
+  return callback null, prepareHTML()

@@ -33,10 +33,6 @@ teams.styl
         a
           margin-left       15px
 
-        .buttonized.yellow
-          right             0
-          margin-left       15px
-
     nav.full-menu
       rel()
       right                 10px
@@ -50,23 +46,6 @@ teams.styl
 
         &:first-child
           margin-left       0
-
-    .buttonized.yellow
-      rel()
-      right                 -4px
-      margin-left           32px
-      border                1px solid yellowColor
-      size                  67px 31px
-      padding               0
-      line-height           30px
-      text-align            center
-      display               inline-block
-
-      span
-        color               yellowColor
-        font-size           14px
-        font-weight         600
-        font-family         "Source Sans Pro"
 
     .teams-header-logo
       noTextDeco()
@@ -492,11 +471,6 @@ teams.styl
       padding               50px 0 0 0
       box-shadow            none
 
-      &.hasNotTeamAccess
-        nav.full-menu
-          .buttonized.yellow
-            margin-left     0px
-
       .teams-header-logo
         abs()
         top                 0
@@ -504,78 +478,6 @@ teams.styl
         margin              0
         font-size           24px
         text-align          left
-
-      nav.full-menu
-        abs()
-        z-index             1
-        padding-top         0
-        top                 0
-        left                0
-        right               auto
-        bg                  color, #19417F
-        display             block
-        overflow            hidden
-        size                100%, 0
-        vendor              transition, height .3s ease
-
-        .login
-          color             #FCE521
-          border            none
-          width             100%
-          right             auto
-
-          .title
-            border-bottom   none
-
-        a
-          margin            0
-          display           block
-          line-height       44px
-
-          &:after
-            display         none
-
-          &:first-child
-            margin-top      50px !important
-
-          .title
-            display         block
-            width           90%
-            text-align      left
-            font-size       16px
-            margin          0 auto
-            border-bottom   1px solid #34568C
-
-      &.mobile-menu-active
-        top                 0
-        bg                  color, #19417F
-
-        nav.mobile-menu
-          display           none
-
-        nav.full-menu
-          height            190px
-
-      .hamburger-menu
-        left                auto
-        right               0
-        z-index             1
-
-        span
-          width             22px
-
-          &:before
-              top           -6px
-
-          &:after
-              top           6px
-
-        &.active
-          bg                color, transparent
-
-        .icon
-          bg                color, #F7E200
-          opacity           1
 
     section.main-wrapper
       h1
@@ -914,112 +816,3 @@ teams.styl
 @media screen and (max-width : 767px)
   .main-header
     z-index                 9 !important
-
-  .expand-menu
-    .main-header
-      height                100%
-
-    .full-menu
-      padding-top           120px
-      height                100%
-      bg                    color, rgba(0,0,0,.85)
-      borderBox()
-
-      a
-        display             block
-        opacity             1
-        margin              0 0 30px 0 !important
-        text-align          center
-        font-size           22px !important
-        color               #f5f5f5 !important
-        line-height         26px
-
-        &.mobile-trigger
-          top               32px
-
-          span
-            font-size       16px
-            &::before
-              opacity       0
-
-            &::after
-              opacity       1
-          i
-            bg              color, transparent
-
-            &::before
-              margin-top    0
-              vendor        transform, rotate(45deg)
-
-            &::after
-              margin-top    0
-              vendor        transform,  rotate(-45deg)
-
-  nav.full-menu
-    left                    0
-    width                   100%
-    z-index                 9
-    height                  0
-    vendor                  transition, height .3s ease\, padding-top .3s ease
-    position                fixed
-
-    a
-      opacity               0
-      display               block
-
-      &.mobile-trigger
-        opacity             1
-        display             inline-block !important
-        margin-right        40px !important
-        top                 36px
-        right               0
-        width               auto
-        height              auto
-        padding             0
-        z-index             9
-        font-size           16px !important
-        font-weight         normal
-        text-align          left
-        text-transform      uppercase
-        vendor              transition, color .2s ease
-        pointer()
-        abs()
-
-        &::after
-          display           none
-
-        span
-          color             #fff
-
-          &::before
-            content         'Menu'
-            abs()
-
-          &::after
-            rel()
-            right           2px
-            content         'Close'
-            bg              color, rgba(0,0,0,.85)
-            opacity         0
-            vendor          transition, opacity .4s ease-in-out
-        i
-          top               -5px
-          margin-left       5px
-          size              15px 2px
-          bg                color, #fff
-          rel()
-          display           inline-block
-
-          &::before
-            margin-top      -6px
-            content         ''
-            size            15px 2px
-            bg              color, #fff
-            abs()
-
-          &::after
-            margin-top      6px
-            content         ''
-            size            15px 2px
-            bg              color, #fff
-            abs()
