@@ -6,7 +6,6 @@ google_utils = require 'koding-googleapis'
 { notifyByUsernames } = require './notify'
 
 JMachine   = require './computeproviders/machine'
-JWorkspace = require './workspace'
 
 
 module.exports = class Collaboration extends Base
@@ -71,34 +70,28 @@ module.exports = class Collaboration extends Base
       else callback 'host is alive'
 
 
-  @add = secure (client, workspaceId, target, callback) ->
+  @add = secure (client, machineUId, target, callback) ->
 
     asUser  = yes
     options = { target, asUser }
-    setUsers client, workspaceId, options, (err, machine) ->
+    setUsers client, machineUId, options, (err, machine) ->
       return callback err  if err
 
-      machineUId = machine.uid
-      data =  { machineUId, workspaceId, group: client?.context?.group }
+      data =  { machineUId, group: client?.context?.group }
 
       notifyByUsernames options.target, 'CollaborationInvitation', data
 
       callback()
 
 
-  @kick = secure (client, workspaceId, target, callback) ->
+  @kick = secure (client, machineUId, target, callback) ->
 
     asUser  = no
     options = { target, asUser }
-    setUsers client, workspaceId, options, callback
+    setUsers client, machineUId, options, callback
 
 
-  setUsers = (client, workspaceId, options, callback) ->
+  setUsers = (client, machineUId, options, callback) ->
 
-    JWorkspace.one { _id: workspaceId }, (err, workspace) ->
-
-      return callback err  if err
-      return callback 'Workspace is not found'  unless workspace
-
-      options.permanent = no
-      JMachine.shareByUId client, workspace.machineUId, options, callback
+    options.permanent = no
+    JMachine.shareByUId client, machineUId, options, callback

@@ -39,12 +39,6 @@ runTests = -> describe 'utils', ->
         expect(err).to.not.exist
         done()
 
-    it 'should deny wrong addresses', (done) ->
-      isAddressValid 'http://somerandomaddress', (err) ->
-        expect(err).to.exist
-        expect(err.type).to.be.equal 'NOT_REACHABLE'
-        done()
-
     it 'should support query strings on addresses', (done) ->
       isAddressValid 'http://yahoo.com?test=foo&bar', (err) ->
         expect(err).to.not.exist
