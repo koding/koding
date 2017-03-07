@@ -14,8 +14,6 @@ whoami = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 globals = require 'globals'
 Machine = require 'app/providers/machine'
-providersParser = require 'app/util/stacks/providersparser'
-requirementsParser = require 'app/util/stacks/requirementsparser'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
 $ = require 'jquery'
@@ -118,36 +116,25 @@ fetchMachineByUId = (machineUId, callback) ->
 
 loadMachines = do (isPayloadUsed = no) -> ->
 
-  { reactor } = kd.singletons
-
+  { reactor, computeController } = kd.singletons
   reactor.dispatch actions.LOAD_USER_ENVIRONMENT_BEGIN
 
   new Promise (resolve, reject) ->
 
-    kallback = (err, data) ->
-      if err
-        reactor.dispatch actions.LOAD_USER_ENVIRONMENT_FAIL, { err }
-        reject err
-      else
-        reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, data
-        resolve data
-        _bindMachineEvents data
+    computeController.ready ->
 
-    if environmentDataProvider.hasData() and not isPayloadUsed
-      isPayloadUsed   = yes
-      environmentData = environmentDataProvider.get()
+      machines = computeController.storage.get 'machines'
 
-      # If there are any collaboration machines, fetch all machines data from server.
-      # Because `_globals` doesn't give workspace data of collaboration machines.
-      # Ping @senthil for the best solution.
-      if environmentData.collaboration.length
-        return environmentDataProvider.fetch (data) -> kallback null, data
+      data = {
+        own: machines.map (machine) -> { machine }
+        shared: []
+        collaboration: []
+      }
 
-      return kd.utils.defer ->
-        environmentDataProvider.revive()
-        kallback null, environmentData
+      console.log ">>>", data
 
-    environmentDataProvider.fetch (data) -> kallback null, data
+      reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, data
+      resolve data
 
 
 loadStacks = (force = no) ->
@@ -158,17 +145,13 @@ loadStacks = (force = no) ->
 
   new Promise (resolve, reject) ->
 
-    computeController.fetchStacks (err, stacks) ->
-      if err
-        reactor.dispatch actions.LOAD_USER_STACKS_FAIL, { err }
-        reject err
-      else
-        stacks.map (stack) ->
-          stack.title = Encoder.htmlDecode stack.title
-        reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
-        resolve stacks
-        _bindStackEvents()
-    , force
+    computeController.ready ->
+
+      stacks = computeController.storage.get 'stacks'
+
+      reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
+      resolve stacks
+      _bindStackEvents()
 
 
 rejectInvitation = (machine) ->
@@ -218,19 +201,6 @@ rejectInvitation = (machine) ->
         channel[method] { channelId }, (err) ->
           showError err  if err
           callback()
-
-    (callback) ->
-
-      { reactor } = kd.singletons
-      workspaces  = machine.get('workspaces')
-
-      workspaces.map (workspace) ->
-        reactor.dispatch actions.WORKSPACE_DELETED, {
-          workspaceId : workspace.get '_id'
-          machineId   : machine.get '_id'
-        }
-
-      callback()
 
     (callback) ->
 
@@ -308,49 +278,6 @@ _getInvitationChannelId = ({ uid, invitation }, callback) ->
         break
 
 
-showAddWorkspaceView = (machineId) ->
-
-  kd.singletons.reactor.dispatch actions.SHOW_ADD_WORKSPACE_VIEW, machineId
-
-
-hideAddWorkspaceView = (machineId) ->
-
-  kd.singletons.reactor.dispatch actions.HIDE_ADD_WORKSPACE_VIEW, machineId
-
-
-deleteWorkspace = (params) ->
-
-  { machine, workspace, deleteRelatedFiles }  = params
-  { router, appManager, reactor }             = kd.singletons
-  { machineUId, rootPath, machineLabel, _id } = workspace.toJS()
-
-  new Promise (resolve, reject) ->
-
-    remote.api.JWorkspace.deleteById _id, (err) ->
-
-      if err
-        reactor.dispatch actions.WORKSPACE_DELETED_FAIL
-        reject err
-        return
-
-      if deleteRelatedFiles
-        methodName = 'deleteWorkspaceRootFolder'
-        ideApp = environmentDataProvider.getIDEFromUId machineUId
-        ideApp?[methodName] machineUId, rootPath
-
-      reactor.dispatch actions.WORKSPACE_DELETED, {
-        workspaceId : _id
-        machineId   : machine.get '_id'
-      }
-
-      resolve()
-
-
-setSelectedWorkspaceId = (workspaceId) ->
-
-  kd.singletons.reactor.dispatch actions.WORKSPACE_SELECTED, workspaceId
-
-
 setSelectedMachineId = (machineId) ->
 
   kd.singletons.reactor.dispatch actions.MACHINE_SELECTED, machineId
@@ -365,16 +292,6 @@ setActiveStackId = (stackId) ->
 
   kd.utils.defer ->
     kd.singletons.reactor.dispatch actions.STACK_IS_ACTIVE, stackId
-
-
-showDeleteWorkspaceWidget = (workspaceId) ->
-
-  kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, workspaceId
-
-
-hideDeleteWorkspaceWidget = ->
-
-  kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET
 
 
 showManagedMachineAddedModal = (info, id) ->
@@ -410,11 +327,6 @@ reinitStackFromWidget = (stack) ->
 
     computeController.reinitStack stack, (err) ->
       if err then reject(err) else resolve()
-
-
-createWorkspace = (machine, workspace) ->
-
-  kd.singletons.reactor.dispatch actions.WORKSPACE_CREATED, { machine, workspace }
 
 
 setMachineListItem = (id, machineListItem) ->
@@ -838,18 +750,11 @@ module.exports = {
   loadStacks
   rejectInvitation
   acceptInvitation
-  showAddWorkspaceView
-  hideAddWorkspaceView
-  deleteWorkspace
-  setSelectedWorkspaceId
   setSelectedMachineId
   setSelectedTemplateId
-  showDeleteWorkspaceWidget
-  hideDeleteWorkspaceWidget
   showManagedMachineAddedModal
   hideManagedMachineAddedModal
   reinitStack
-  createWorkspace
   setMachineListItem
   unsetMachineListItem
   handleMemberWarning

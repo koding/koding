@@ -59,13 +59,14 @@ module.exports = class Sidebar extends React.Component
     TeamFlux.actions.loadTeam()
 
     SidebarFlux.actions.loadVisibilityFilters().then =>
-      EnvironmentFlux.actions.loadStacks().then =>
-        @setState { isLoading: no }
 
       EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
-      # EnvironmentFlux.actions.loadTeamStackTemplates()
-      # EnvironmentFlux.actions.loadPrivateStackTemplates()
+      EnvironmentFlux.actions.loadTeamStackTemplates()
+      EnvironmentFlux.actions.loadPrivateStackTemplates()
+
+      EnvironmentFlux.actions.loadStacks().then =>
+        @setState { isLoading: no }
 
     # These listeners needs to be listen those events only once ~ GG
     kd.singletons.notificationController
