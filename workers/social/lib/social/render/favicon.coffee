@@ -19,4 +19,3 @@ module.exports = (options = {}) ->
   <meta name="msapplication-config" content="/a/favicon/browserconfig.xml?v=wAvxkwgmmY">
   <meta name="theme-color" content="#d9e0ec">
   """
-
