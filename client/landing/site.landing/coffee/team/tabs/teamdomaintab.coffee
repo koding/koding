@@ -15,11 +15,7 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
     { mainController } = kd.singletons
     name               = @getOption 'name'
 
-    @header = new MainHeaderView
-      cssClass : 'team'
-      navItems : [
-        { title : 'Login',    href : '/Teams',     name : 'login' }
-      ]
+    @header = new MainHeaderView { cssClass : 'team', navItems : [] }
 
     @form = new TeamDomainTabForm
       callback: (formData) =>
