@@ -696,49 +696,6 @@ module.exports = class ComputeController extends KDController
       @stop machine  if machine.isRunning()
 
 
-  # Domain management
-  #
-
-  fetchDomains: do (queue = []) ->
-
-    (callback = kd.noop) -> kd.singletons.mainController.ready =>
-
-      @domains ?= []
-
-      if @domains.length > 0
-        callback null, @domains
-        kd.info 'Domains returned from cache.'
-        return
-
-      return  if (queue.push callback) > 1
-
-      topDomain = "#{nick()}.#{globals.config.userSitesDomain}"
-
-      remote.api.JDomainAlias.some {}, (err, domains) =>
-
-        if err?
-          cb err  for cb in queue
-          queue = []
-          return
-
-        # Move topDomain to index 0
-        _domains = []
-        for jdomain in domains
-          if jdomain.domain is topDomain
-          then _domains.unshift jdomain
-          else _domains.push    jdomain
-
-        @domains = _domains
-        cb null, @domains  for cb in queue
-        queue = []
-
-
-  setDomain: (machine, newDomain, callback = kd.noop) ->
-
-    @getKloud().setDomain { machineId: machine._id, newDomain }
-    .nodeify callback
-
-
   # Utils beyond this point
   #
 
