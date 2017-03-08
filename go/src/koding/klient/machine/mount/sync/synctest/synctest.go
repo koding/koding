@@ -14,7 +14,7 @@ import (
 // provided syncer. Then it calls produced Execers. Returned contex will be
 // closed when all changes are consumed and their events executed. The direction
 // of changes is marked by dir argument and it must be ChangeMetaRemote and/or
-// ChangeMetaRemote
+// ChangeMetaRemote.
 func SyncLocal(s msync.Syncer, rootA, rootB string, dir index.ChangeMeta) (context.Context, context.CancelFunc, error) {
 	if dir&^(index.ChangeMetaLocal|index.ChangeMetaRemote) != 0 {
 		return nil, nil, fmt.Errorf("invalid change type: %v", dir)

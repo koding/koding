@@ -11,6 +11,7 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 	"koding/klient/machine/mount/notify/silent"
+	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/discard"
 )
 
@@ -23,23 +24,18 @@ func TestSyncsAdd(t *testing.T) {
 
 	// Create new supervisor.
 	mountID := mount.MakeID()
-	s, err := syncs.New(syncs.SyncsOpts{
-		WorkDir:       wd,
-		NotifyBuilder: silent.SilentBuilder{},
-		SyncBuilder:   discard.DiscardBuilder{},
-	})
+	s, err := syncs.New(syncs.Options{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer s.Close()
 
-	dynClient := func() (client.Client, error) {
-		return clienttest.NewClient(), nil
-	}
-	if err := s.Add(mountID, m, dynClient); err != nil {
+	dynSSH, dynClient := dynFunctions()
+	nb, sb := silent.Builder{}, discard.Builder{}
+	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := s.Add(mountID, m, dynClient); err == nil {
+	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err == nil {
 		t.Error("want err != nil; got nil")
 	}
 
@@ -59,19 +55,15 @@ func TestSyncsDrop(t *testing.T) {
 
 	// Create new sync.
 	mountID := mount.MakeID()
-	s, err := syncs.New(syncs.SyncsOpts{
-		WorkDir:       wd,
-		NotifyBuilder: silent.SilentBuilder{},
-		SyncBuilder:   discard.DiscardBuilder{},
-	})
+	s, err := syncs.New(syncs.Options{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer s.Close()
 
-	if err := s.Add(mountID, m, func() (client.Client, error) {
-		return clienttest.NewClient(), nil
-	}); err != nil {
+	dynSSH, dynClient := dynFunctions()
+	nb, sb := silent.Builder{}, discard.Builder{}
+	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -89,4 +81,16 @@ func TestSyncsDrop(t *testing.T) {
 	if _, err := os.Stat(mountWD); !os.IsNotExist(err) {
 		t.Errorf("want err = os.ErrNotExist; got %v", err)
 	}
+}
+
+func dynFunctions() (msync.DynamicSSHFunc, client.DynamicClientFunc) {
+	dynSSH := func() (string, int, error) {
+		return "", 0, nil
+	}
+
+	dynClient := func() (client.Client, error) {
+		return clienttest.NewClient(), nil
+	}
+
+	return dynSSH, dynClient
 }
