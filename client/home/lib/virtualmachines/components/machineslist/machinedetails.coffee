@@ -283,7 +283,7 @@ module.exports = class MachineDetails extends React.Component
     kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'label'}"
 
     { computeController } = kd.singletons
-    machine = computeController.findMachineFromMachineUId machineUId
+    [ machine ] = computeController.findMachineFromMachineUId machineUId
     computeController.showBuildLogs machine, 0
 
 
