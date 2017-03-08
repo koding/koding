@@ -210,7 +210,7 @@ rejectInvitation = (machine) ->
 
       kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
       # FIXMERESET ~ GG
-      kd.singletons.computeController.reset callback
+      # kd.singletons.computeController.reset callback
 
   ])
 
@@ -550,10 +550,10 @@ generateStack = (stackTemplateId) ->
           { results : { machines } } = stack
           [ machine ] = machines
           # FIXMERESET ~ GG
-          computeController.reset yes, ->
-            computeController.reloadIDE machine.obj.slug
-            new kd.NotificationView { title: 'Stack generated successfully' }
-            resolve({ stack, template })
+          # computeController.reset yes, ->
+          #   computeController.reloadIDE machine.obj.slug
+          #   new kd.NotificationView { title: 'Stack generated successfully' }
+          resolve({ stack, template })
         .catch (err) ->
           showError err
           reject(err)
