@@ -43,9 +43,8 @@ module.exports = class Sidebar extends bongo.Base
       return callback new KodingError err  if err
 
       machineUIds = machines.map (machine) -> machine.uid
-      workspaces = []
 
-      options = { client, user, machines, workspaces, callback }
+      options = { client, user, machines, callback }
       options.addOwnFn = makeEnvironmentNodeAdderFn data.own
       options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
       options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
@@ -62,20 +61,17 @@ module.exports = class Sidebar extends bongo.Base
         if machine.uid is node.machine.uid
           return node
 
-    return ({ machine, workspace }) ->
+    return ({ machine }) ->
 
       unless node = findNode machine
-        node = { machine, workspaces: [] }
+        node = { machine }
         list.push node
-
-      { workspaces } = node
-      workspaces.push workspace  if workspace
 
 
   decorateEnvironmentData = (options) ->
 
     { client, user } = options
-    { machines, workspaces } = options
+    { machines } = options
     { addOwnFn, addSharedFn, addCollaborationFn } = options
     { callback } = options
 
@@ -92,65 +88,7 @@ module.exports = class Sidebar extends bongo.Base
 
       addNodeFn? { machine }
 
-    workspaceQueue = workspaces.map (workspace) ->
-
-      machine = machineMap[workspace.machineUId]
-
-      nodeValue = { machine, workspace }
-
-      return (workspaceQueueFin) ->
-
-        makeFailureFn = (callback) ->
-
-          return callback
-
-        makeSuccessFn = (fn, callback) ->
-
-          return ->
-
-            fn.call null, nodeValue
-            callback()
-
-        filterQueue = [
-
-          (fin) ->
-
-            successFn = makeSuccessFn addOwnFn, fin
-            failureFn = makeFailureFn fin
-
-            if isMachineOwner user, machine
-            then successFn()
-            else failureFn()
-
-          (fin) ->
-
-            successFn = makeSuccessFn addSharedFn, fin
-            failureFn = makeFailureFn fin
-
-            if isMachineShared user, machine
-            then successFn()
-            else failureFn()
-
-          (fin) ->
-
-            return fin()  unless workspace.channelId
-
-            isOwner  = isMachineOwner  user, machine
-            isShared = isMachineShared user, machine
-            skip     = workspace.channelId and (isOwner or isShared)
-
-            return fin()  if skip
-
-            successFn = makeSuccessFn addCollaborationFn, fin
-            failureFn = makeFailureFn fin
-
-            options = { client, user, workspace, successFn, failureFn }
-            filterCollaborationWorkspace options
-        ]
-
-        async.parallel filterQueue, workspaceQueueFin
-
-    async.parallel workspaceQueue, callback
+    callback()
 
 
   isMachineOwner = (user, machine) ->
@@ -169,28 +107,3 @@ module.exports = class Sidebar extends bongo.Base
         return yes
 
     return no
-
-
-  filterCollaborationWorkspace = (options = {}) ->
-
-    { client, user, workspace, successFn, failureFn } = options
-
-    SocialChannel.byId client, { id: workspace.channelId }, (err, channel) ->
-
-      if err
-
-        switch err.error
-          when 'koding.NotFoundError'
-            return failureFn()
-
-        data =
-          channelId   : workspace.channelId
-          workspaceId : workspace.getId()
-
-        console.error 'error: fetch workspace channel'
-        console.error JSON.stringify { data }
-        console.error JSON.stringify { err }
-
-        return failureFn()
-
-      successFn()

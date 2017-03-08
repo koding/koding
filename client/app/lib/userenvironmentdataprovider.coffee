@@ -21,21 +21,16 @@ module.exports =
 
   fetch: (callback) ->
 
-    remote.api.Sidebar.fetchEnvironment (err, data) =>
-      return new KDNotificationView { title : "Couldn't fetch your VMs" }  if err
-
-      data = @setDefaults_ data
-      globals.userEnvironmentData = data
-
-      callback data
+    callback do @setDefaults_
 
 
-  addTestMachine: (machine, workspaces) ->
-    @_testMachine = { machine, workspaces }
+  addTestMachine: (machine) ->
+    @_testMachine = { machine }
     @revive()
 
 
   get: ->
+    console.trace()
     return @setDefaults_ globals.userEnvironmentData
 
 
