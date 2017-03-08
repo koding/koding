@@ -163,22 +163,6 @@ module.exports =
 
 
   # FIXMEWS ~ GG
-  fetchMachineAndWorkspaceByChannelId: (channelId, callback) ->
-
-    machine   = null
-    workspace = null
-    data      = @getAllMachines()
-
-    for obj in data
-      for ws in obj.workspaces
-        if ws.channelId is channelId
-          machine   = obj.machine
-          workspace = ws
-
-    callback machine, workspace
-
-
-  # FIXMEWS ~ GG
   findWorkspace: (machineLabel, workspaceSlug, channelId) ->
 
     for item in @getAllMachines()
