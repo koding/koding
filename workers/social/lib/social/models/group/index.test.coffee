@@ -326,6 +326,20 @@ runTests = -> describe 'workers.social.group.index', ->
               next()
 
           (next) ->
+            JForeignAuth = require '../foreignauth'
+            foreignData =
+              foreignId: 'test-foreignid'
+              foreignAuthType: 'test'
+              foreignAuth:
+                test: 'test-foreignAuth'
+
+            username = account.profile.nickname
+            JForeignAuth.create { foreignData, group: groupSlug, username }, (err, foreignAuth) ->
+              expect(err).to.not.exist
+              expect(foreignAuth).to.exist
+              next()
+
+          (next) ->
             # add slack integration
             slackIntegration =
               slack:
@@ -412,6 +426,13 @@ runTests = -> describe 'workers.social.group.index', ->
               JMachine.some client, {}, (err, machines) ->
                 expect(err).to.not.exist
                 expect(machines.length).to.be.equal 0
+                next()
+
+            (next) ->
+              JForeignAuth = require '../foreignauth'
+              JForeignAuth.one { group: groupSlug }, (err, foreignAuth) ->
+                expect(err).to.not.exist
+                expect(foreignAuth).to.not.exist
                 next()
 
             (next) ->
