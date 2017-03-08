@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -158,8 +159,16 @@ func (c *Command) Run(ctx context.Context) error {
 		return err
 	}
 
+	c.Cmd.Stderr = os.Stderr
+
 	c.scan(rc)
-	return c.Cmd.Wait()
+	if err = c.Cmd.Wait(); err != nil {
+		c.Progress(0, 0, 0, err)
+	} else {
+		c.Progress(0, 0, 0, io.EOF)
+	}
+
+	return err
 }
 
 var (
@@ -169,8 +178,6 @@ var (
 )
 
 func (c *Command) scan(r io.Reader) {
-	defer c.Progress(0, 0, 0, io.EOF)
-
 	var (
 		now           time.Time
 		n, size, part int64
@@ -203,7 +210,7 @@ func (c *Command) scan(r io.Reader) {
 
 		part = int64(p)
 
-		speed := int64(float64(part+size)/float64(time.Since(now)/time.Second) + 0.5)
+		speed := int64(float64(part+size)/(float64(time.Since(now))/float64(time.Second)) + 0.5)
 		c.Progress(n, part+size, speed, nil)
 	}
 }

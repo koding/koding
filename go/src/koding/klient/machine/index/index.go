@@ -184,6 +184,14 @@ func (idx *Index) Lookup(name string) (*Node, bool) {
 	return idx.root.Lookup(name)
 }
 
+// LookupAll looks up a node by the given name. It doesn't ignore promised nodes.
+func (idx *Index) LookupAll(name string) (*Node, bool) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+
+	return idx.root.LookupAll(name)
+}
+
 // Merge calls MergeBranch on all nodes pointed by root path.
 func (idx *Index) Merge(root string) ChangeSlice {
 	return idx.MergeBranch(root, "")
@@ -249,6 +257,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 		// set to source atime. That's why this is necessary.
 		if (mtime == info.ModTime().UnixNano() || mtime == atime(info)) && entry.Size() == info.Size() && mode == info.Mode() {
 			// Files are identical. Allow different ctimes.
+			entry.SwapPromise(0, EntryPromiseVirtual)
 			return
 		}
 
@@ -259,7 +268,8 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return
 		}
 
-		// Files differ.
+		// Files differ. However the local file is not virtual.
+		entry.SwapPromise(EntryPromiseUpdate, EntryPromiseVirtual)
 		cs = append(cs, NewChange(
 			filepath.ToSlash(filepath.Join(branch, nameOS)),
 			ChangeMetaUpdate|markLargeMeta(info.Size()),

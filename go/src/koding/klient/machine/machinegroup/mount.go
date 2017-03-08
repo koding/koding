@@ -249,6 +249,31 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 	}, nil
 }
 
+// UpdateIndexRequest defines index update request.
+type UpdateIndexRequest struct {
+	// MountID stores the identifier of mount which index should be updated.
+	MountID mount.ID `json:"mountID,omitempty"`
+}
+
+// UpdateIndexResponse defines index update response.
+type UpdateIndexResponse struct{}
+
+// UpdateIndex forces mount index to rescan cache directory. This will update
+// index information about files that are already synced.
+func (g *Group) UpdateIndex(req *UpdateIndexRequest) (res *UpdateIndexResponse, err error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	sc, err := g.sync.Sync(req.MountID)
+	if err != nil {
+		return nil, errors.New("mount with ID: " + string(req.MountID) + " doesn't exist")
+	}
+	sc.UpdateIndex()
+
+	return &UpdateIndexResponse{}, nil
+}
+
 // ListMountRequest defines machine group mount list request.
 type ListMountRequest struct {
 	// ID is an optional identifier for the remote machine. If set, only

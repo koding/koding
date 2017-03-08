@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
@@ -141,8 +142,18 @@ func Mount(options *MountOptions) (err error) {
 			Progress:        drawProgress(os.Stdout, addMountRes.Count, addMountRes.DiskSize),
 		}
 
+		// Create initial progess report and run the command.
+		cmd.Progress(0, 0, 0, nil)
 		if err := cmd.Run(context.Background()); err != nil {
 			fmt.Fprintf(os.Stderr, "File prefetching interrupted: %s\n", err)
+		}
+
+		// Index needs to be updated after prefetching.
+		updateIndexReq := machinegroup.UpdateIndexRequest{
+			MountID: addMountRes.MountID,
+		}
+		if _, err := k.Tell("machine.mount.updateIndex", updateIndexReq); err != nil {
+			fmt.Fprintf(os.Stderr, "Cannot update mount index: %s\n", err)
 		}
 	}
 
@@ -302,9 +313,15 @@ func removeContent(path string) error {
 
 func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, err error) {
 	const noop = 0
+
+	maxLength, speedLast := 0, int64(0)
 	return func(n, size, speed int64, err error) {
+		if err == io.EOF {
+			n, size, speed = nAll, sizeAll, speedLast
+		}
+
 		drawFunc := ioprogress.DrawTerminalf(w, func(_, _ int64) string {
-			return fmt.Sprintf("Prefetching files: %d%% (%d/%d), %s/%s | %s/s",
+			line := fmt.Sprintf("Prefetching files: %d%% (%d/%d), %s/%s | %s/s",
 				int(float64(n)/float64(nAll)*100.0+0.5), // percentage status.
 				n,    // number of downloaded files.
 				nAll, // number of all files being downloaded.
@@ -312,13 +329,18 @@ func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, e
 				humanize.IBytes(uint64(sizeAll)), // total size.
 				humanize.IBytes(uint64(speed)),   // current downloading speed.
 			)
+
+			if len(line) < maxLength {
+				line = fmt.Sprintf("%s%s", line, strings.Repeat(" ", maxLength-len(line)))
+			}
+			maxLength, speedLast = len(line), speed
+
+			return line
 		})
 
-		if err == io.EOF {
-			drawFunc(-1, -1) // Finish drawing.
-			return
-		}
-
 		drawFunc(noop, noop) // We are not using default values.
+		if err != nil {
+			drawFunc(-1, -1) // Finish drawing.
+		}
 	}
 }
