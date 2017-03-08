@@ -28,11 +28,12 @@ detachSocialChannel = (workspaceData, callback) ->
  * @param {boolean} share
  * @param {function(err: object)}
 ###
-setMachineUser = (machine, workspace, usernames, share, callback) ->
+setMachineUser = (machine, usernames, share, callback) ->
 
   method = if share then 'add' else 'kick'
+  channelId = machine.getChannelID()
 
-  remote.api.Collaboration[method] workspace.getId(), usernames, (err) ->
+  remote.api.Collaboration[method] channelId, usernames, (err) ->
     return callback err  if err
 
     kite   = machine.getBaseKite()
@@ -75,38 +76,38 @@ fetchMissingParticipants = (machine, usernames, callback) ->
     .catch callback
 
 
-isUserStillParticipantOnMachine = (options, callback) ->
+# isUserStillParticipantOnMachine = (options, callback) ->
 
-  { username, machineUId } = options
+#   { username, machineUId } = options
 
-  remote.cacheable username, (err, accounts) ->
+#   remote.cacheable username, (err, accounts) ->
 
-    return callback no  if err
-    return callback no  unless accounts.length
+#     return callback no  if err
+#     return callback no  unless accounts.length
 
-    { socialApiId } = accounts.first
+#     { socialApiId } = accounts.first
 
-    # FIXMEWS ~ GG
-    userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) ->
+#     # FIXMEWS ~ GG
+#     userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) ->
 
-      workspaces = workspaces.filter (w) -> w  if w.channelId
+#       workspaces = workspaces.filter (w) -> w  if w.channelId
 
-      socialHelpers.fetchParticipantsCollaborationChannels socialApiId, (err, channels) ->
+#       socialHelpers.fetchParticipantsCollaborationChannels socialApiId, (err, channels) ->
 
-        return callback no  if err
+#         return callback no  if err
 
-        anyActiveSession = no
+#         anyActiveSession = no
 
-        workspaces.forEach (w) ->
-          channel = _.find channels, { _id : w.channelId }
-          anyActiveSession = yes  if channel
+#         workspaces.forEach (w) ->
+#           channel = _.find channels, { _id : w.channelId }
+#           anyActiveSession = yes  if channel
 
-        callback anyActiveSession
+#         callback anyActiveSession
 
 
 module.exports = {
   detachSocialChannel
   setMachineUser
   fetchMissingParticipants
-  isUserStillParticipantOnMachine
+  # isUserStillParticipantOnMachine
 }
