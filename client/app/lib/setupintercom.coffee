@@ -1,4 +1,6 @@
 kd                     = require 'kd'
+globals                = require 'globals'
+
 whoami                 = require 'app/util/whoami'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 fetchIntercomKey       = require 'app/util/fetchIntercomKey'
@@ -35,12 +37,11 @@ module.exports = setupIntercom = ->
       x = d.getElementsByTagName('script')[0]
       x.parentNode.insertBefore s, x
 
-      account = whoami()
-      account.fetchEmail (err, email) ->
-        intercomSupport (isSupported) ->
-          window.Intercom 'boot',
-            app_id  : intercomAppId
-            name    : getFullnameFromAccount account
-            email   : email
-            user_id : account._id
-            hide_default_launcher : not isSupported
+      intercomSupport (isSupported) ->
+        account = whoami()
+        window.Intercom 'boot',
+          app_id  : intercomAppId
+          name    : getFullnameFromAccount account
+          email   : globals.userEmail
+          user_id : account._id
+          hide_default_launcher : not isSupported

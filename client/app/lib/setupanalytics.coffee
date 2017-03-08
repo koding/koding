@@ -20,15 +20,12 @@ identifyUser = (account) ->
 
   { nickname } = profile
 
-  remote.api.JUser.fetchUser (err, user) ->
-    return  if err or not user
+  env = globals.config.environment
+  { userAgent } = window.navigator
 
-    env = globals.config.environment
-    { userAgent } = window.navigator
+  traits = { email: globals.userEmail, env, userAgent }
 
-    traits = { email: user.email, env, userAgent }
-
-    analytics?.identify nickname, traits
+  analytics?.identify nickname, traits
 
 setupPageAnalyticsEvent = ->
 
