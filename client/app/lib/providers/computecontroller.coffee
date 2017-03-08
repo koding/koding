@@ -503,9 +503,7 @@ module.exports = class ComputeController extends KDController
         kd.warn 'Stack already initialized, skipping.', stack
       return
 
-    stack.machines.forEach (machineId) =>
-      return  unless machine = @findMachineFromMachineId machineId
-
+    stack.machines.forEach (machine) =>
       @eventListener.triggerState machine,
         status      : Machine.State.Building
         percentage  : 0
@@ -549,8 +547,7 @@ module.exports = class ComputeController extends KDController
         name    : 'InProgress'
         message : "This stack is currently #{state.toLowerCase()}."
 
-    if followEvents then stack.machines.forEach (machineId) =>
-      return  unless machine = @findMachineFromMachineId machineId
+    if followEvents then stack.machines.forEach (machine) =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
