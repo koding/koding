@@ -24,40 +24,41 @@ module.exports = class OnboardingController extends KDController
 
     { mainController, windowController, appManager } = kd.singletons
 
-    if isLoggedIn() then @fetchItems()
-    else
-      mainController.on 'accountChanged.to.loggedIn', @bound 'fetchItems'
+    # if isLoggedIn() then @fetchItems()
+    # else
+    #   mainController.on 'accountChanged.to.loggedIn', @bound 'fetchItems'
 
     appManager.on 'FrontAppIsChanged', @bound 'handleFrontAppChanged'
 
     @viewController.on 'OnboardingItemCompleted', @bound 'handleItemCompleted'
 
+    @ready()
 
-  ###*
-   * Fetches onboardings from DB
-   * Preview mode is always enabled for super admin, so super admin always gets onboardings on preview
-   * Other users receive published onboardings
-  ###
-  fetchItems: ->
+  # ###*
+  #  * Fetches onboardings from DB
+  #  * Preview mode is always enabled for super admin, so super admin always gets onboardings on preview
+  #  * Other users receive published onboardings
+  # ###
+  # fetchItems: ->
 
-    { STORAGE_NAME, STORAGE_VERSION } = OnboardingConstants
+  #   { STORAGE_NAME, STORAGE_VERSION } = OnboardingConstants
 
-    account           = whoami()
-    @registrationDate = new Date(account.meta.createdAt)
-    @appStorage       = kd.getSingleton('appStorageController').storage STORAGE_NAME, STORAGE_VERSION
-    query             = { partialType : 'ONBOARDING' }
+  #   account           = whoami()
+  #   @registrationDate = new Date(account.meta.createdAt)
+  #   @appStorage       = kd.getSingleton('appStorageController').storage STORAGE_NAME, STORAGE_VERSION
+  #   query             = { partialType : 'ONBOARDING' }
 
-    if @isPreviewMode()
-    then query.isPreview = yes
-    else query.isActive  = yes
+  #   if @isPreviewMode()
+  #   then query.isPreview = yes
+  #   else query.isActive  = yes
 
-    remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
-      return kd.warn err  if err
+  #   remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
+  #     return kd.warn err  if err
 
-      for data in onboardings when data.partial
-        @onboardings[data.name] = data
+  #     for data in onboardings when data.partial
+  #       @onboardings[data.name] = data
 
-      @appStorage.fetchStorage @bound 'ready'
+  #     @appStorage.fetchStorage @bound 'ready'
 
 
   ###*
