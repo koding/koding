@@ -1,3 +1,4 @@
+debug             = (require 'debug') 'remote'
 globals           = require 'globals'
 kd                = require 'kd'
 kookies           = require 'kookies'
@@ -24,8 +25,16 @@ createInstance = ->
     fetchName      : do ->
       cache = {}
       (nameStr, callback) ->
+        debug 'fetchName called with', nameStr
+
         if cache[nameStr]?
-          return callback null, cache[nameStr], name
+          debug 'found in cache, returning'
+          return callback null, cache[nameStr]
+
+        if nameStr is (group = globals.currentGroup).slug
+          debug 'currentGroup is requested, reviving'
+          return callback null, [ bongoInstance.revive group ]
+
         @api.JName.one { name: nameStr }, (err, name) =>
           if err then return callback err
           else unless name?
@@ -58,6 +67,7 @@ createInstance = ->
           async.parallel queue, =>
             @emit 'modelsReady'
             cache[nameStr] = models
+            debug 'models ready', err, models, name
             callback err, models, name
     mq: null
 
