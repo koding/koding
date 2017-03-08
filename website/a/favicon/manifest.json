@@ -1,0 +1,19 @@
+{
+    "name": "Koding",
+    "icons": [
+        {
+            "src": "/a/favicon/android-chrome-192x192.png?v=wAvxkwgmmY",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/a/favicon/android-chrome-512x512.png?v=wAvxkwgmmY",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#d9e0ec",
+    "background_color": "#d9e0ec",
+    "start_url": "http://www.koding.com",
+    "display": "standalone"
+}

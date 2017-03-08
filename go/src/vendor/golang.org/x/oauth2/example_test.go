@@ -5,13 +5,17 @@
 package oauth2_test
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 
 	"golang.org/x/oauth2"
 )
 
 func ExampleConfig() {
+	ctx := context.Background()
 	conf := &oauth2.Config{
 		ClientID:     "YOUR_CLIENT_ID",
 		ClientSecret: "YOUR_CLIENT_SECRET",
@@ -35,11 +39,33 @@ func ExampleConfig() {
 	if _, err := fmt.Scan(&code); err != nil {
 		log.Fatal(err)
 	}
-	tok, err := conf.Exchange(oauth2.NoContext, code)
+	tok, err := conf.Exchange(ctx, code)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	client := conf.Client(oauth2.NoContext, tok)
+	client := conf.Client(ctx, tok)
 	client.Get("...")
+}
+
+func ExampleHTTPClient() {
+	hc := &http.Client{Timeout: 2 * time.Second}
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, hc)
+
+	conf := &oauth2.Config{
+		ClientID:     "YOUR_CLIENT_ID",
+		ClientSecret: "YOUR_CLIENT_SECRET",
+		Scopes:       []string{"SCOPE1", "SCOPE2"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://provider.com/o/oauth2/auth",
+			TokenURL: "https://provider.com/o/oauth2/token",
+		},
+	}
+
+	// Exchange request will be made by the custom
+	// HTTP client, hc.
+	_, err := conf.Exchange(ctx, "foo")
+	if err != nil {
+		log.Fatal(err)
+	}
 }

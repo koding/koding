@@ -5,11 +5,7 @@ CustomLinkView = require './customlinkview'
 module.exports = class TopNavigation extends kd.CustomHTMLView
 
   menu = [
-    { title : 'Koding University', href : 'https://koding.com/docs',         name : 'about' }
-    { title : 'Teams',             href : '/Teams',                          name : 'teams' }
-    { title : 'Features',          href : 'https://www.koding.com/Features', name : 'features', attributes: { target: '_blank' } }
-    { title : 'Sign In',           href : '/Login',                          name : 'buttonized white login',  attributes : { testpath : 'login-link' } }
-    { title : 'Sign Up',           href : '/Register',                       name : 'buttonized green signup', attributes : { testpath : 'signup-link' } }
+    { title : 'Login',   href : '/Teams', name : 'teams' }
   ]
 
   constructor: (options = {}, data) ->
@@ -30,12 +26,6 @@ module.exports = class TopNavigation extends kd.CustomHTMLView
     { navItems } = @getOptions()
     return  unless navItems.length
 
-    @addSubView new kd.CustomHTMLView
-      cssClass  : 'mobile-trigger'
-      tagName   : 'a'
-      partial   : '<span></span><i></i>'
-      click     : -> document.body.classList.toggle 'expand-menu'
-
     @createItem options  for options in navItems
 
 
@@ -43,7 +33,9 @@ module.exports = class TopNavigation extends kd.CustomHTMLView
 
     options.cssClass = options.name.toLowerCase()
     link             = new CustomLinkView options
-    link.setAttribute 'target', '_self'
+
+    if /^http/.test options.href
+      link.setAttribute 'target', '_self'
 
     @addSubView @menu[options.name] = link
 

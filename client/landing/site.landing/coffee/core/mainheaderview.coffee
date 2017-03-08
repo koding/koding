@@ -1,5 +1,6 @@
 kd = require 'kd'
 TopNavigation  = require './topnavigation'
+utils = require './utils'
 
 module.exports = class MainHeaderView extends kd.View
 
@@ -14,37 +15,20 @@ module.exports = class MainHeaderView extends kd.View
 
   viewAppended: ->
 
-    @addSubView @mobileMenu = new TopNavigation { cssClass : 'mobile-menu' }
-
     { navItems, headerLogo } = @getOptions()
     @addSubView new TopNavigation { navItems, cssClass : 'full-menu' }
 
-    @addSubView @hamburgerMenu = new kd.ButtonView
-      cssClass  : 'hamburger-menu'
-      iconOnly  : yes
-      callback  : =>
-        @toggleClass 'mobile-menu-active'
-        @hamburgerMenu.toggleClass 'active'
-        @mobileMenu.toggleClass 'active'
-
-        @once 'click', =>
-          @toggleClass 'mobile-menu-active'
-          @hamburgerMenu.toggleClass 'active'
-          @mobileMenu.toggleClass 'active'
+    if location.hostname is 'koding.com'
+      href = 'https://www.koding.com'
 
     @addSubView @logo = headerLogo or new kd.CustomHTMLView
       tagName   : 'a'
+      attributes: { href }  if href
       cssClass  : 'koding-header-logo'
-      partial   : '<img src="/a/images/logos/header_logo.svg" class="main-header-logo">'
+      partial   : '<img src="/a/images/logos/header_logo.svg" class="main-header-logo" alt="Koding Logo">'
       click     : (event) ->
+
+        return yes  if href
+
         kd.utils.stopDOMEvent event
         kd.singletons.router.handleRoute '/'
-
-    @addSubView @hiringBadge = new kd.CustomHTMLView
-      tagName   : 'a'
-      cssClass  : 'hiring-badge'
-      attributes:
-        href    : 'http://bit.ly/1MTsnJt'
-        title   : 'Join the Global Virtual Hackathon with $100k grand prize!'
-
-    kd.utils.wait 3000, => @setClass 'hiring-badge-in'

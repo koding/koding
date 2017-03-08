@@ -25,11 +25,7 @@ module.exports = class TeamsView extends kd.TabPaneView
     isEnterprise       = /type\=enterprise/.test location.search
     withDemo           = /demo\=on/.test location.search
 
-    @header = new MainHeaderView
-      cssClass : 'team'
-      navItems : [
-        { title : 'Login',    href : '/Teams',    name : 'login' }
-      ]
+    @header = new MainHeaderView { cssClass : 'team', navItems : [] }
 
 
     @form = new TeamsSignupForm

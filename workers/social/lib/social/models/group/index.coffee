@@ -1705,6 +1705,17 @@ module.exports = class JGroup extends Module
         JName.one { name: slug }, (err, name) ->
           removeHelper name, err, next, 'JName'
 
+      (next) ->
+        # unlink slack if anyone in this team auth slack previously
+        JUser = require '../user'
+        JUser.update { "foreignAuth.slack.#{slug}": { $exists: true } }, { $unset: { "foreignAuth.slack.#{slug}": 1 } }, (err) ->
+          kallback 'JUser foreign auth', next, err
+
+      (next) ->
+        JForeignAuth = require '../foreignauth'
+        JForeignAuth.remove { group: slug }, (err) ->
+          kallback 'JForeignAuth', next, err
+
       (next) =>
         Relationship.remove { sourceId : @getId() }, next
 
