@@ -15,7 +15,7 @@ module.exports = class JAccount extends remote.api.JAccount
   fetchCombinedStorage: (options, callback) ->
 
     if globals.combinedStorage
-      callback null, globals.combinedStorage
+      return callback null, globals.combinedStorage
 
     @_storageQueue.push callback
     return  if @_storageQueue.length > 1
