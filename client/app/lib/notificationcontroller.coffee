@@ -123,7 +123,7 @@ module.exports = class NotificationController extends KDObject
             ideInstance.showUserRemovedModal()
 
       # FIXMERESET ~ GG
-      computeController.reset yes
+      # computeController.reset yes
 
     @on 'UsernameChanged', ({ username, oldUsername }) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)

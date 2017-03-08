@@ -1,3 +1,4 @@
+debug                 = (require 'debug') 'machine'
 Promise               = require 'bluebird'
 _                     = require 'lodash'
 kd                    = require 'kd'
@@ -71,7 +72,7 @@ module.exports = class Machine extends KDObject
         @status = { state: Machine.State.Terminated }
         @queryString = null
         # FIXMERESET ~ GG
-        computeController.reset yes
+        # computeController.reset yes
 
     @jMachine.on? 'update', =>
 
@@ -204,3 +205,9 @@ module.exports = class Machine extends KDObject
   isBuilt     : -> @status?.state isnt Machine.State.NotInitialized
   isUsable    : -> @isRunning() or @isStopped()
   getOldOwner : -> @jMachine.meta.oldOwner
+
+  getChannelID: ->
+    debug 'getChannelID requested'
+    return null
+
+
