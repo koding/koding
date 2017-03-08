@@ -5,6 +5,7 @@
   querystring
   generateUrl
   generateRandomEmail
+  checkBongoConnectivity
   generateRandomString }                = require '../../../testhelper'
 { generateRegisterRequestParams }       = require '../../../testhelper/handler/registerhelper'
 { generateCreateTeamRequestParams
@@ -13,6 +14,9 @@
 JGroup      = require '../../../models/group'
 JInvitation = require '../../../models/invitation'
 
+beforeTests = -> before (done) ->
+
+  checkBongoConnectivity done
 
 # here we have actual tests
 runTests = -> describe 'server.handlers.getteammembers', ->

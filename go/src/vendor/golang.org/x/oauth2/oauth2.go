@@ -21,6 +21,8 @@ import (
 
 // NoContext is the default context you should supply if not using
 // your own context.Context (see https://golang.org/x/net/context).
+//
+// Deprecated: Use context.Background() or context.TODO() instead.
 var NoContext = context.TODO()
 
 // RegisterBrokenAuthHeaderProvider registers an OAuth2 server
@@ -178,7 +180,6 @@ func (c *Config) Exchange(ctx context.Context, code string) (*Token, error) {
 		"grant_type":   {"authorization_code"},
 		"code":         {code},
 		"redirect_uri": internal.CondVal(c.RedirectURL),
-		"scope":        internal.CondVal(strings.Join(c.Scopes, " ")),
 	})
 }
 

@@ -62,7 +62,7 @@ module.exports =
       .setValue                emailSelector, newEmail + '\n'
       .click                   saveButtonSelector
       .waitForElementVisible   modalSelector, 20000
-      .assert.containsText     '.ContentModal.content-modal header > h1', 'Please verify your current password'
+      .assert.containsText     '.ContentModal.content-modal header > h1', 'Please verify your password'
       .setValue                passwordSelector, '123456'
       .click                   confirmEmailButton
       .waitForElementVisible   notificationSelector, 20000

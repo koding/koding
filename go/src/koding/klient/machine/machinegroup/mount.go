@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
+	"koding/kites/config"
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klientctl/ssh"
 )
 
 // MountRequest defines machine group mount request.
@@ -61,9 +64,32 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 		return nil, err
 	}
 
+	// Add SSH public key to remote machine's authorized_keys file. This is
+	// needed for syncers that use SSH connections.
+	errC := make(chan error)
+	go func() {
+		pubKey, err := userSSHPublicKey()
+		if err != nil {
+			errC <- err
+			return
+		}
+		_, err = g.ensureSSHPubKey(req.ID, "", pubKey)
+		errC <- err
+	}()
+
 	absRemotePath, count, diskSize, err := c.MountHeadIndex(req.Mount.RemotePath)
 	if err != nil {
 		return nil, err
+	}
+
+	// Wait for remote machine username.
+	select {
+	case <-time.After(30 * time.Second):
+		return nil, fmt.Errorf("cannot add SSH public keys for machine: %s", req.ID)
+	case err := <-errC:
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	res := &HeadMountResponse{
@@ -96,6 +122,33 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 	}
 
 	return res, nil
+}
+
+// userSSHPublicKey gets the user's public SSH key content.
+func userSSHPublicKey() (string, error) {
+	path, err := ssh.GetKeyPath(config.CurrentUser.User)
+	if err != nil {
+		return "", err
+	}
+
+	pubKeyPath, privKeyPath, err := ssh.KeyPaths(path)
+	if err != nil {
+		return "", err
+	}
+
+	pubKey, err := ssh.PublicKey(pubKeyPath)
+	if err != nil && err != ssh.ErrPublicKeyNotFound {
+		return "", err
+	}
+
+	// Generate new key pair if it does not exist.
+	if err == ssh.ErrPublicKeyNotFound {
+		if pubKey, _, err = ssh.GenerateSaved(pubKeyPath, privKeyPath); err != nil {
+			return "", err
+		}
+	}
+
+	return pubKey, nil
 }
 
 // AddMountRequest defines machine group add mount request.
@@ -132,7 +185,8 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 	}()
 
 	// Start mount syncer.
-	if err = g.sync.Add(mountID, req.Mount, g.dynamicClient(mountID)); err != nil {
+	dynSSH, dynClient := g.dynamicSSH(req.ID), g.dynamicClient(mountID)
+	if err = g.sync.Add(mountID, req.Mount, g.nb, g.sb, dynSSH, dynClient); err != nil {
 		g.log.Error("Synchronization of %s mount failed: %s", mountID, err)
 		return nil, err
 	}

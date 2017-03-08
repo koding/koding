@@ -70,26 +70,23 @@ func (a *Account) FetchOrCreate() error {
 	}
 
 	err := a.One(bongo.NewQS(selector))
-	// if we dont get any error
-	// it means we found the record in our db
-	if err == nil {
-		return nil
+	// first check if the err is not found err
+	if err != bongo.RecordNotFound {
+		return err
 	}
 
-	// first check if the err is not found err
-	if err == bongo.RecordNotFound {
-		if a.Nick == "" {
-			return ErrNickIsNotSet
-		}
+	if a.Nick == "" {
+		return ErrNickIsNotSet
+	}
 
-		if err := a.Create(); err != nil {
+	// if we got here it means we have an obsolete account in the db, remove it.
+	if err := a.ByNick(a.Nick); err != bongo.RecordNotFound {
+		if err := a.DeleteIfNotInMongo(); err != nil {
 			return err
 		}
-
-		return nil
 	}
 
-	return err
+	return a.Create()
 }
 
 func (a *Account) FetchChannels(q *request.Query) ([]Channel, error) {
@@ -318,14 +315,21 @@ func (a *Account) DeleteIfNotInMongo() error {
 	}
 
 	_, err := modelhelper.GetAccountById(a.OldId)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return a.Delete()
-		}
+	if err != mgo.ErrNotFound {
 		return err
 	}
 
-	return nil
+	query := fmt.Sprintf("DELETE FROM %s WHERE account_id = ?", NewChannelParticipant().BongoName())
+	if err := bongo.B.DB.Exec(query, a.Id).Error; err != nil {
+		return err
+	}
+
+	query = fmt.Sprintf("DELETE FROM %s WHERE creator_id = ?", NewChannel().BongoName())
+	if err := bongo.B.DB.Exec(query, a.Id).Error; err != nil {
+		return err
+	}
+
+	return a.Delete()
 }
 
 // FetchAccountsWithBongoOffset fetches the accounts with bongo
@@ -362,8 +366,8 @@ func DeleteDiffedDBAccounts() error {
 
 			if err := acc.DeleteIfNotInMongo(); err != nil {
 				errs = multierror.Append(errs, err)
+				counter++
 			}
-			counter++
 		}
 
 		// we increase offset number

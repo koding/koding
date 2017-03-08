@@ -107,7 +107,7 @@ participantHandler = (funcName, data, callback = ->) ->
           console.error 'couldnt create socialapi channels', err
           return callback err
 
-        { socialApiChannelId, socialApiAnnouncementChannelId } = socialApiChannels
+        { socialApiChannelId } = socialApiChannels
 
         # ensure member has socialapi id
         member.createSocialApiId (err, socialApiId) ->
@@ -123,16 +123,6 @@ participantHandler = (funcName, data, callback = ->) ->
           SocialChannel[funcName] client, options, (err, participants) ->
             if err
               console.error "couldnt #{funcName} user into group socialapi chan", err, options
-              return new Error "couldnt #{funcName} user into group socialapi chan"
+              return callback new Error "couldnt #{funcName} user into group socialapi chan"
 
-            # only add koding's members to announcement channel
-            return callback null if group.slug isnt 'koding'
-
-            options = {
-              channelId  : socialApiAnnouncementChannelId
-              accountIds : [ socialApiId ]
-            }
-
-            SocialChannel[funcName] client, options, (err) ->
-              console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
-              return callback err
+            return callback null

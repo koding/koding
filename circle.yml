@@ -5,7 +5,7 @@ executorType: docker
 containerInfo:
   - image: koding/circle@sha256:9e17db94f3c4b9d91b593db926111f7f78626ed0ba4209a47ae1980ffe1dce77
 
-  - image: mongo:2.6
+  - image: mongo:3.2.8
     cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
 
   - image: koding/postgres
@@ -92,7 +92,7 @@ stages:
       - type: shell
         name: sync website assets
         command: |
-          [ -z "$AWS_ACCESS_KEY" || -z "$AWS_ACCESS_SECRET_KEY" ] && exit 0
+          [[ -z "$AWS_ACCESS_KEY" || -z "$AWS_ACCESS_SECRET_KEY" ]] && exit 0
           s3cmd sync --access_key=$AWS_ACCESS_KEY --secret_key=$AWS_ACCESS_SECRET_KEY \
             --no-mime-magic --guess-mime-type --acl-public \
             website/a/p/p/$(git rev-parse --short HEAD)/ \
@@ -192,8 +192,11 @@ stages:
         command: |
           ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA circle-build-$CIRCLE_BUILD_NUM
           ./run exec scripts/ci/run-tests INSTANCE_DATA
+          status=$?
+          [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
+          [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA || :
 
       - type: shell
         name: codecov
         command: |
-          [ -n "$CODECOV_TOKEN" ] && bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || exit 0
+          [[ -n "$CODECOV_TOKEN" ]] && bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || exit 0

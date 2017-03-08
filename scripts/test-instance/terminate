@@ -1,5 +1,11 @@
 #!/usr/bin/env coffee
 
+KONFIG = require 'koding-config-manager'
+
+{
+  route53: { hostedZoneId }
+} = KONFIG.test.credentials.AWS
+
 [
   instanceId
   ipAddress
@@ -15,7 +21,7 @@ EC2.terminateInstances InstanceIds: [instanceId], (err, res) ->
     console.error err
 
   params =
-    HostedZoneId: process.env.TEST_AWS_HOSTED_ZONE_ID
+    HostedZoneId: hostedZoneId
     ChangeBatch: {
       Changes: [
         {

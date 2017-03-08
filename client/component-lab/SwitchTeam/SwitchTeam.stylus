@@ -3,6 +3,10 @@
 
 .optiontext
   margin-bottom             25px
+  text-align                center
+  font-size                 16px
+  line-height               19px
+  font-weight               200
   span
     color                   #989898 !important
 

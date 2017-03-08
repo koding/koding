@@ -14,7 +14,7 @@ module.exports = class VerifyPasswordModal extends ContentModal
 
 
     options =
-      title                       : 'Please verify your current password'
+      title                       : 'Please verify your password'
       cssClass                    : cssClass
       overlay                     : yes
       overlayClick                : no
@@ -53,8 +53,7 @@ module.exports = class VerifyPasswordModal extends ContentModal
               password            :
                 name              : 'password'
                 cssClass          : 'line-with'
-                label             : 'Current Password'
-                placeholder       : 'Enter your current password'
+                placeholder       : 'Enter your password'
                 type              : 'password'
                 validate          :
                   rules           :
@@ -64,6 +63,10 @@ module.exports = class VerifyPasswordModal extends ContentModal
 
 
     super options
+
+    $('.transferbutton').on 'click', =>
+      kd.singletons.router.handleRoute '/Home/my-team#actions'
+      @destroy()
 
   doRecover: (email) ->
     $.ajax

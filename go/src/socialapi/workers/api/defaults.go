@@ -108,18 +108,6 @@ func setChangeLogChannel(log logging.Logger, group *kodingmodels.Group) {
 			return
 		}
 	}
-
-	socialApiAnnouncementChannelId := strconv.FormatInt(c.Id, 10)
-	if group.SocialApiAnnouncementChannelId == socialApiAnnouncementChannelId {
-		log.Info("mongo and postgres socialApiAnnouncementChannel ids are same")
-		return
-	}
-
-	log.Debug("mongo and postgres socialApiAnnouncementChannel ids are different, fixing it")
-	if err := updateGroupPartially(group.Id, "socialApiAnnouncementChannelId", strconv.FormatInt(c.Id, 10)); err != nil {
-		log.Error("err while udpating socialApiAnnouncementChannelId:", err.Error())
-		return
-	}
 }
 
 func createChannelOwner(group *kodingmodels.Group) (*models.Account, error) {

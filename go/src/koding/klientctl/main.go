@@ -561,8 +561,9 @@ func run(args []string) {
 				}},
 			},
 			cli.Command{
-				Name:  "machine",
-				Usage: "Manage remote machines.",
+				Name:         "machine",
+				Usage:        "Manage remote machines.",
+				BashComplete: func(c *cli.Context) {},
 				Subcommands: []cli.Command{{
 					Name:      "list",
 					ShortName: "ls",

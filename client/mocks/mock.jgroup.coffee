@@ -7,7 +7,6 @@ module.exports = {
   'title': 'Koding',
   'body': 'Modern Dev Environment Delivered · Koding',
   'socialApiChannelId': '6093214666459185153',
-  'socialApiAnnouncementChannelId': '6093214666857644034',
   'slug': 'koding',
   'privacy': 'private',
   'visibility': 'visible',

@@ -43,9 +43,6 @@ button
 .kdview
   overflow                  visible
 
-.no-anim
-  noAnim()
-
 .login-input-view
   margin                    0 0 17px 0
   bg                        color white
@@ -86,43 +83,6 @@ button
     z-index                 1
     opacity                 1
 
-.mobile-menu
-  overflow                  hidden
-  bg                        color, #232323
-  height                    0
-  left                      0
-  top                       0
-  width                     100%
-  vendor                    transition, height .3s ease\, margin-top .3s ease\, padding-top .3s ease
-  borderBox()
-
-  a
-    display                 block
-    line-height             37px
-    font-size               14px
-    color                   #f6f6f6
-    font-weight             600
-    padding                 0 27px 0 22px
-    noTextDeco()
-    borderBox()
-
-    &:after
-      content       ''
-      r-sprite      'app', 'mobile_menu_arrow'
-      margin        14px 0 0 0
-      fr()
-
-    &:hover
-      opacity       .5
-
-.hamburger-menu
-  display           none
-
-figure.hackathon-header
-  bg                        color, rgba(255, 0, 0, .75)
-  color                     white
-
-
 
 #kdmaincontainer
   width             auto
@@ -153,17 +113,6 @@ figure.hackathon-header
   .inner-container
     bg                      color, transparent
 
-  .logotype
-    font-size               24px
-    color                   #444
-    font-weight             700
-    line-height             16px
-    color                   #fff
-    -webkit-font-smoothing  antialiased
-    noTextDeco()
-    visible()
-    fl()
-
   .koding-header-logo
     margin                  0 14px 0 0
     size                    auto auto
@@ -173,41 +122,6 @@ figure.hackathon-header
 
     .main-header-logo
       width                 95px
-
-  .hiring-badge
-    font-size               12px
-    font-family             Oxygen
-    letter-spacing          0.77px
-    line-height             29px
-    text-decoration         none
-    text-align              center
-    color                   #535353
-    bg                      color #F7E747
-    rounded                 3px
-    abs                     -4px 0 0 155px
-    size                    auto 29px
-    padding                 0 20px
-    margin-left             30px
-    vendor                  transition, all .3s ease-out
-    opacity                 0
-    hidden()
-
-    &:after
-      font-weight           bold
-      content               'Join our Global Hackathon with $100k grand prize!'
-
-    &:before
-      content               ''
-      abs                   6px 0 0 -5px
-      size                  0 0
-      border-style          solid
-      border-width          8px 8px 8px 0
-      border-color          transparent #f7e847 transparent transparent
-
-  &.hiring-badge-in
-    .hiring-badge
-      opacity               1
-      margin-left           0
 
   nav.full-menu
     line-height             18px
@@ -228,57 +142,8 @@ figure.hackathon-header
         margin-right    0
         visibility      visible
 
-      &.buttonized
-        padding         7px 13px
-        rounded         4px
-        white-space     nowrap
-        margin-left     21px
-        font-size       14px
-        font-weight     600
-
-      &.buttonized.white
-        border          1px solid rgba(255, 255, 255, .5)
-
-      &.buttonized.green
-        border          1px solid rgba(39, 174, 96, .5)
-        background      rgba(39, 174, 96, 1)
-        color           #fff
-
-      &.buttonized.login
-      .buttonized.signup
-        text-transform  uppercase
-
-
-
 .koding-header-logo
-  size              57px 55px
-  bg                color, logoBg
-  z-index           11
-  top               0
-  left              22px
   z-index           1
-  abs()
-
-  &.staging
-    bg              color #ff9200 // old koding orange
-
-  &.sandbox
-    bg              color #0099cc
-
-  &.vagrant
-    bg              color purple
-
-  &.custom
-    bg              color transparent
-    bg              position, center center
-    bg              repeat, no-repeat
-    cite
-      hidden()
-
-  cite
-    r-sprite        app 'nav_logo'
-    margin          0 0 0 1px
-    display         block
 
 
 #kdmaincontainer.scale
@@ -783,24 +648,6 @@ footer.main-footer
 
       .button-title
         font-weight         600
-
-// Smartphones and tablets [Commons]
-@media only screen and (min-width : 320px) and (max-width : 1250px)
-  .mobile-menu
-    &.active
-      padding-top           10px
-      height                158px
-      margin-top            -158px
-
-  .main-header.mobile-menu-active
-    top                     158px !important
-
-    nav a
-      color                 #f6f6f6 !important
-
-    .hamburger-menu.active
-      background            transparent
-
 
 @media screen and (max-width : 767px)
 
