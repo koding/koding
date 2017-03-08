@@ -217,7 +217,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     cc = kd.singletons.computeController
 
     emit = (status) ->
-      if cc.findMachineFromMachineUId(machineUId)?.isRunning()
+      if cc.findMachineFromMachineUId(machineUId)[0].isRunning?()
         cc.emit "#{status}-#{machineUId}"
 
     kite.on 'open',      -> emit 'connected'
