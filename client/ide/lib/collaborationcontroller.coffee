@@ -56,7 +56,7 @@ module.exports = CollaborationController =
 
   getSocialChannelId: ->
 
-    return @socialChannel?.id or @channelId or @workspaceData.channelId
+    return @socialChannel?.id or @channelId # or @workspaceData.channelId
 
 
   unsetSocialChannel: ->
@@ -69,9 +69,10 @@ module.exports = CollaborationController =
     socialHelpers.destroyChannel @socialChannel, (err) =>
       return callback err  if err
 
-      envHelpers.detachSocialChannel @workspaceData, (err) =>
-        return callback err  if err
-        @unsetSocialChannel()
+      # FIXMEWS ~ GG
+      # envHelpers.detachSocialChannel @workspaceData, (err) =>
+      #   return callback err  if err
+      @unsetSocialChannel()
 
 
   # FIXME: This method is called more than once. It should cache the result and
@@ -147,8 +148,9 @@ module.exports = CollaborationController =
     # Check collaboration sessions of participant.
     # If participant has 2 or more active collaboration sessions, don't remove
     # access from machine
-    envHelpers.isUserStillParticipantOnMachine options, (status) =>
-      @removeParticipantFromMachine username  unless status
+    # FIXMEWS ~ GG
+    # envHelpers.isUserStillParticipantOnMachine options, (status) =>
+    #   @removeParticipantFromMachine username  unless status
 
 
   # Remove leaved / kicked participants from the mounted machine
@@ -512,7 +514,8 @@ module.exports = CollaborationController =
 
   sendPing: ->
 
-    { channelId } = @workspaceData
+    # { channelId } = @workspaceData
+    channelId = @mountedMachine.getChannelID()
 
     doXhrRequest
       endPoint : '/api/social/collaboration/ping'
@@ -724,12 +727,12 @@ module.exports = CollaborationController =
 
   checkSessionActivity: (callbacks, showSessionModal = yes) ->
 
-    { channelId } = @workspaceData
-    machine       = @mountedMachine
+    channelId = @mountedMachine.getChannelID()
+    machine   = @mountedMachine
 
     callMethod = (name, args...) -> callbacks[name] args...
 
-    unless @workspaceData.channelId
+    unless channelId
       return callMethod 'notStarted'
 
     checkRealtimeSession = (channel) =>
@@ -1025,8 +1028,9 @@ module.exports = CollaborationController =
       socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
 
-      envHelpers.detachSocialChannel @workspaceData, (err) ->
-        throwError err  if err
+      # FIXMEWS ~ GG
+      # envHelpers.detachSocialChannel @workspaceData, (err) ->
+      #   throwError err  if err
 
       callback()
 
@@ -1138,19 +1142,6 @@ module.exports = CollaborationController =
   # environment related
 
 
-  removeMachineNode: ->
-
-    { activitySidebar } = kd.singletons.mainView
-
-    machineBox = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
-
-    if machineBox?.listController.getItemCount() > 1
-      machineBox.removeWorkspace @workspaceData.getId()
-    else
-      activitySidebar.removeMachineNode @mountedMachine
-      environmentDataProvider.removeCollaborationMachine @mountedMachine
-
-
   ensureMachineShare: (usernames, callback) ->
 
     { fetchMissingParticipants } = envHelpers
@@ -1187,7 +1178,7 @@ module.exports = CollaborationController =
 
     { setMachineUser } = envHelpers
 
-    setMachineUser @mountedMachine, @workspaceData, usernames, share, (err) =>
+    setMachineUser @mountedMachine, usernames, share, (err) =>
       return callback err  if err
 
       @emit 'SetMachineUser', usernames, share
@@ -1273,7 +1264,7 @@ module.exports = CollaborationController =
 
     return  unless @stateMachine
 
-    { channelId } = @workspaceData
+    channelId = @mountedMachine.getChannelID()
 
     if channelId and typeof channelId is 'string' and channelId.length
       return  unless @stateMachine.state is 'NotStarted'
@@ -1289,7 +1280,7 @@ module.exports = CollaborationController =
 
     notificationController.on 'AddedToChannel', (update) =>
 
-      { channelId } = @workspaceData
+      channelId = @mountedMachine.getChannelID()
 
       return  unless update.channel.id is channelId
 

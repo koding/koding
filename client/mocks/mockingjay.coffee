@@ -165,25 +165,6 @@ module.exports =
 
   ideRoutes:
 
-    getLatestWorkspace:
-
-      toReturnWorkspace: ->
-
-        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall ->
-          return { workspaceSlug: 'foo-workspace', machineLabel: 'aws-vm-0' }
-
-
-      toReturnNull: ->
-
-        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall -> return null
-
-
-      toReturnWorkspaceWithChannelId: ->
-
-        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall ->
-          return { workspaceSlug: 'foo-workspace', channelId: '6075644514008039523', machineLabel: 'aws-vm-0' }
-
-
     findInstance:
 
       toReturnInstance: ->

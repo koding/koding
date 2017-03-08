@@ -122,10 +122,11 @@ module.exports = class IDEAppController extends AppController
 
     @on 'SnapshotUpdated', @bound 'saveLayoutSize'
 
+    # FIXMEWS ~ GG
     kd.singletons.notificationController.on 'WorkspaceRemoved', (data) =>
       { machineUId, slug } = data
 
-      if @mountedMachineUId is machineUId and slug is @workspaceData.slug
+      if @mountedMachineUId is machineUId # and slug is @workspaceData.slug
         @quit()
 
     @layoutManager.once 'LayoutSizesApplied', @bound 'doResize'
@@ -201,22 +202,22 @@ module.exports = class IDEAppController extends AppController
         .then ({ id }) => @klientOpenFilesSubscriberId = id
 
 
-  bindWorkspaceDataEvents: ->
+  # bindWorkspaceDataEvents: ->
 
-    @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
+  #   @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
 
-    return  unless @workspaceData
+  #   return  unless @workspaceData
 
-    unless 'function' is typeof @workspaceData.on
-      @workspaceData = remote.revive @workspaceData
+  #   unless 'function' is typeof @workspaceData.on
+  #     @workspaceData = remote.revive @workspaceData
 
-    @workspaceData.on 'update', (fields) =>
+  #   @workspaceData.on 'update', (fields) =>
 
-      fields.forEach (field) =>
+  #     fields.forEach (field) =>
 
-        switch field
-          when 'channelId'
-            @emit 'WorkspaceChannelChanged'
+  #       switch field
+  #         when 'channelId'
+  #           @emit 'WorkspaceChannelChanged'
 
 
   handleWindowFocus: (state) ->
@@ -499,7 +500,7 @@ module.exports = class IDEAppController extends AppController
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
-    return  if machineData.uid isnt @workspaceData.machineUId
+    # return  if machineData.uid isnt @workspaceData.machineUId
 
     panel     = @workspace.getView()
     filesPane = panel.getPaneByName 'filesPane'
@@ -568,13 +569,13 @@ module.exports = class IDEAppController extends AppController
   setMountedMachine: (machine) ->
 
     @mountedMachine = machine
-    @emit 'MachineDidMount', machine, @workspaceData
+    @emit 'MachineDidMount', machine
 
 
   whenMachineReady: (callback) ->
 
     if @mountedMachine
-    then callback @mountedMachine, @workspaceData
+    then callback @mountedMachine
     else @once 'MachineDidMount', callback
 
 
@@ -586,13 +587,10 @@ module.exports = class IDEAppController extends AppController
     if @mountedMachine
       return callback null, @mountedMachine
 
-    environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
-
-      unless machine instanceof Machine
-        machine = new Machine { machine }
-
-      @setMountedMachine machine
-      callback null, machine
+    cc = kd.singletons.computeController
+    [ machine ] = cc.storage.query 'machines', 'uid', @mountedMachineUId
+    @setMountedMachine machine
+    callback null, machine
 
 
   showNoMachineState: ->
@@ -648,7 +646,7 @@ module.exports = class IDEAppController extends AppController
             @runOnboarding()
 
         @bindMachineEvents machineItem
-        @bindWorkspaceDataEvents()
+        # @bindWorkspaceDataEvents()
 
         adminMessage = new StackAdminMessageController {
           container
@@ -659,9 +657,10 @@ module.exports = class IDEAppController extends AppController
       else
         return @showNoMachineState()
 
-    environmentDataProvider.fetchMachineByUId machineUId, (machineItem) ->
-      mount machineItem
-      done()
+    cc = kd.singletons.computeController
+    [ machine ] = cc.storage.query 'machines', 'uid', machineUId
+    mount machine
+    done()
 
 
   bindMachineEvents: (machineItem) ->
@@ -821,14 +820,6 @@ module.exports = class IDEAppController extends AppController
 
 
   createNewTerminal: (options = {}) ->
-
-    { machine, path, resurrectSessions, command } = options
-
-    machine = @mountedMachine  unless machine instanceof Machine
-
-    if @workspaceData and not path
-      { rootPath, isDefault } = @workspaceData
-      options.path = rootPath  if rootPath and not isDefault
 
     @activeTabView.emit 'TerminalPaneRequested', options
 
@@ -993,9 +984,9 @@ module.exports = class IDEAppController extends AppController
   getWorkspaceStorageKey: (prefix) ->
 
     if prefix
-      return "#{prefix}.wss.#{@workspaceData.slug}"
+      return "#{prefix}.wss.#{@mountedMachine.uid}"
     else
-      return "wss.#{@workspaceData.slug}"
+      return "wss.#{@mountedMachine.uid}"
 
 
   registerPane: (pane) ->
@@ -1177,8 +1168,9 @@ module.exports = class IDEAppController extends AppController
 
     return @contentSearch.findInput.setFocus()  if @contentSearch
 
-    data = { machine: @mountedMachine, workspace: @workspaceData }
-    @contentSearch = new IDEContentSearch {}, data
+    data = { machine: @mountedMachine }
+    rootPath = '/' # FIXME ~ GG
+    @contentSearch = new IDEContentSearch { rootPath }, data
     @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
@@ -1255,7 +1247,7 @@ module.exports = class IDEAppController extends AppController
 
     machine.fetchInfo (err, info) =>
       kd.warn '[IDE] Failed to fetch info', err  if err
-      rootPath = info?.home or @workspaceData?.rootPath or '/'
+      rootPath = info?.home or '/'
       finderController.updateMachineRoot @mountedMachine.uid, rootPath
 
     machine.getBaseKite()?.fetchTerminalSessions?()
@@ -1275,10 +1267,6 @@ module.exports = class IDEAppController extends AppController
           else @layoutManager.setSnapshot snapshot
         else
           @addInitialViews()  unless @initialViewsReady
-
-
-      { mainView }  = kd.singletons
-      data          = { machine, workspace: @workspaceData }
 
       if initial
         computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
