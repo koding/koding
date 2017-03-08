@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Environ is a conveniance wrapper for environment variables
+// Environ is a convenience wrapper for environment variables
 // produced by os.Environ.
 type Environ map[string]string
 
