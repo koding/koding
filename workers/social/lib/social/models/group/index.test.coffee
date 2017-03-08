@@ -281,7 +281,7 @@ runTests = -> describe 'workers.social.group.index', ->
           groupId = group._id
           done()
 
-      it 'should add resources, invitations, apiToken, groupData to team', (done) ->
+      it 'should add resources, invitations, apiToken, groupData to team and add slack integration to admin account', (done) ->
 
         queue = [
           (next) ->
@@ -323,6 +323,40 @@ runTests = -> describe 'workers.social.group.index', ->
               expect(err).to.not.exist
               expect(machines).to.exist
               expect(stack).to.exist
+              next()
+
+          (next) ->
+            JForeignAuth = require '../foreignauth'
+            foreignData =
+              foreignId: 'test-foreignid'
+              foreignAuthType: 'test'
+              foreignAuth:
+                test: 'test-foreignAuth'
+
+            username = account.profile.nickname
+            JForeignAuth.create { foreignData, group: groupSlug, username }, (err, foreignAuth) ->
+              expect(err).to.not.exist
+              expect(foreignAuth).to.exist
+              next()
+
+          (next) ->
+            # add slack integration
+            slackIntegration =
+              slack:
+                "#{groupSlug}":
+                  token : 'slack-token-test'
+
+            username = account.profile.nickname
+
+            JUser.update { username }, { $set: { foreignAuth: slackIntegration } }, (err) ->
+              expect(err).to.not.exist
+              next()
+
+          (next) ->
+            # make sure slack integration is attached to user
+            JUser.one { "foreignAuth.slack.#{groupSlug}": { $exists: true } }, (err, user) ->
+              expect(err).to.not.exist
+              expect(user.data.foreignAuth.slack).to.exist
               next()
 
           (next) ->
@@ -392,6 +426,19 @@ runTests = -> describe 'workers.social.group.index', ->
               JMachine.some client, {}, (err, machines) ->
                 expect(err).to.not.exist
                 expect(machines.length).to.be.equal 0
+                next()
+
+            (next) ->
+              JForeignAuth = require '../foreignauth'
+              JForeignAuth.one { group: groupSlug }, (err, foreignAuth) ->
+                expect(err).to.not.exist
+                expect(foreignAuth).to.not.exist
+                next()
+
+            (next) ->
+              JUser.one { "foreignAuth.slack.#{groupSlug}": { $exists: true } }, (err, user) ->
+                expect(err).to.not.exist
+                expect(user).to.not.exist
                 next()
 
             (next) ->
