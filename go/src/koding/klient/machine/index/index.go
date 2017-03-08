@@ -12,6 +12,8 @@ import (
 	"sort"
 	"sync"
 	"text/tabwriter"
+
+	"github.com/djherbis/times"
 )
 
 // Version stores current version of index.
@@ -241,10 +243,19 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return
 		}
 
-		// File exists in both remote and local.
-		if entry.MTime() == info.ModTime().UnixNano() && entry.CTime() == ctime(info) &&
-			entry.Size() == info.Size() && entry.Mode() == info.Mode() {
-			// Files are identical.
+		mode, mtime := entry.Mode(), entry.MTime()
+		// File exists in both remote and local. We compare entry mtime with
+		// file mtime and atime. Sometimes synced files may have their mtimes
+		// set to source atime. That's why this is necessary.
+		if (mtime == info.ModTime().UnixNano() || mtime == atime(info)) && entry.Size() == info.Size() && mode == info.Mode() {
+			// Files are identical. Allow different ctimes.
+			return
+		}
+
+		// Merge will not report directory updates because this means that file
+		// inside directory was added/removed and this file should be reported.
+		// Howewer we want to detect permission changes on all files.
+		if mode.IsDir() && mode == info.Mode() {
 			return
 		}
 
@@ -292,6 +303,8 @@ skipBranch:
 		return nil
 	}
 
+	// Put sortest paths to the end.
+	sort.Sort(sort.Reverse(cs))
 	return cs
 }
 
@@ -422,4 +435,18 @@ func (idx *Index) DebugString() string {
 	tw.Flush()
 
 	return buf.String()
+}
+
+// ctime gets file's change time in UNIX Nano format.
+func ctime(fi os.FileInfo) int64 {
+	if tspec := times.Get(fi); tspec.HasChangeTime() {
+		return tspec.ChangeTime().UnixNano()
+	}
+
+	return 0
+}
+
+// atime gets file's access time in UNIX Nano format.
+func atime(fi os.FileInfo) int64 {
+	return times.Get(fi).AccessTime().UnixNano()
 }

@@ -2,20 +2,17 @@ package index
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync/atomic"
 	"time"
-
-	"fmt"
-
-	"github.com/djherbis/times"
 )
 
 // EntryPromise describes the promised state of index entry.
 type EntryPromise uint32
 
 const (
-	EntryPromiseVirtual EntryPromise = 1 << iota // E: promise that file exists, doesn't exist locally.
+	EntryPromiseVirtual EntryPromise = 1 << iota // V: promise that file exists, doesn't exist locally.
 	EntryPromiseAdd                              // A: promise after adding, exists locally.
 	EntryPromiseUpdate                           // U: promise after updating, exists locally.
 	EntryPromiseDel                              // D: promise after deleting, doesn't exist locally.
@@ -278,13 +275,4 @@ func (e *Entry) MarshalJSON() ([]byte, error) {
 // data into private entry fields.
 func (e *Entry) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &e.real)
-}
-
-// ctime gets file's change time in UNIX Nano format.
-func ctime(fi os.FileInfo) int64 {
-	if tspec := times.Get(fi); tspec.HasChangeTime() {
-		return tspec.ChangeTime().UnixNano()
-	}
-
-	return 0
 }
