@@ -383,13 +383,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     frontApp         = appManager.getFrontApp()
     options.machine ?= frontApp.mountedMachine
 
-    unless options.path
-      workspaceData = frontApp.workspaceData or {}
-      { rootPath, isDefault } = workspaceData
-
-      if rootPath and not isDefault
-        options.path = frontApp.workspaceData.rootPath
-
     terminalPane = new IDETerminalPane options
     { isActivePane } = options
 

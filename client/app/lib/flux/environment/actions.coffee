@@ -131,8 +131,6 @@ loadMachines = do (isPayloadUsed = no) -> ->
         collaboration: []
       }
 
-      console.log ">>>", data
-
       reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, data
       resolve data
 
