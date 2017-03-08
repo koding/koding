@@ -104,7 +104,7 @@ module.exports = (options = {}, callback) ->
         currentGroup = group  if group
 
         if channelId = currentGroup.socialApiChannelId
-          SocialChannel.byId client, { id: channelId }, (err, _channel) =>
+          SocialChannel.byId client, { id: channelId }, (err, _channel) ->
             console.log err  if err
             channel = _channel ? {}
             fin()

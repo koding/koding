@@ -209,5 +209,3 @@ module.exports = class Machine extends KDObject
   getChannelID: ->
     debug 'getChannelID requested'
     return null
-
-
