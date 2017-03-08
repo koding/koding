@@ -5,13 +5,12 @@ module.exports = (options = {}, callback) ->
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
   _         = require 'lodash'
-  SocialAccount = require '../models/socialapi/socialaccount'
+  SocialChannel = require '../models/socialapi/channel'
 
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= 'koding'
   options.client.connection    or= {}
-
 
   prefetchedFeeds     = null
   currentGroup        = null
@@ -19,6 +18,7 @@ module.exports = (options = {}, callback) ->
   userEnvironmentData = null
   userId              = null
   userEmail           = null
+  channel             = null
   roles               = null
   permissions         = null
   combinedStorage     = null
@@ -43,6 +43,7 @@ module.exports = (options = {}, callback) ->
     userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
     userId               = JSON.stringify userId, replacer
     userEmail            = JSON.stringify userEmail, replacer
+    channel              = JSON.stringify channel, replacer
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
@@ -56,6 +57,7 @@ module.exports = (options = {}, callback) ->
     <script>
       var _globals = {
         config: #{config},
+        channel: #{channel},
         userId: #{userId},
         userEmail: #{userEmail},
         userAccount: #{userAccount},
@@ -102,7 +104,14 @@ module.exports = (options = {}, callback) ->
 
         currentGroup = group  if group
 
-        fin()
+        if channelId = currentGroup.socialApiChannelId
+          SocialChannel.byId client, { id: channelId }, (err, _channel) =>
+            console.log err  if err
+            channel = _channel ? {}
+            fin()
+
+        else
+          fin()
 
     (fin) ->
       { delegate : account } = client.connection

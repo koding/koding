@@ -69,9 +69,10 @@ module.exports = class GroupsController extends kd.Controller
         @emit event, rest...
 
   openSocialGroupChannel: (group, callback = -> ) ->
+
     { realtime, socialapi } = kd.singletons
 
-    socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
+    @fetchChannel group, (err, channel) ->
       return callback err  if err
 
       socialapi.registerAndOpenChannel group, channel, (err, registeredChan) =>
@@ -196,3 +197,9 @@ module.exports = class GroupsController extends kd.Controller
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
         callback null
+
+  fetchChannel: (group, callback) ->
+    if channel = globals.channel
+      callback null, remote.revive channel
+    else
+      socialapi.channel.byId { id: group.socialApiChannelId }, callback
