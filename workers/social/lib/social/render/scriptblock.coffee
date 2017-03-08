@@ -18,6 +18,7 @@ module.exports = (options = {}, callback) ->
   userMachines        = null
   userEnvironmentData = null
   userId              = null
+  userEmail           = null
   roles               = null
   permissions         = null
   combinedStorage     = null
@@ -41,6 +42,7 @@ module.exports = (options = {}, callback) ->
     userMachines         = JSON.stringify userMachines, replacer
     userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
     userId               = JSON.stringify userId, replacer
+    userEmail            = JSON.stringify userEmail, replacer
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
@@ -55,6 +57,7 @@ module.exports = (options = {}, callback) ->
       var _globals = {
         config: #{config},
         userId: #{userId},
+        userEmail: #{userEmail},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         combinedStorage: #{combinedStorage},
@@ -139,8 +142,12 @@ module.exports = (options = {}, callback) ->
           console.error '[scriptblock] user not found', err
           return fin()
 
-        if user then userId = user.getId()
-        else console.error '[scriptblock] user not found', err
+        if user
+          userId    = user.getId()
+          userEmail = user.getAt 'email'
+        else
+          console.error '[scriptblock] user not found', err
+
         fin()
 
   ]
