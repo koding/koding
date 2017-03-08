@@ -277,7 +277,7 @@ func (s *Sync) FetchCmd() (count, diskSize int64, cmd *rsync.Command, err error)
 	}
 
 	// Look for git VCS.
-	if n, ok := s.idx.LookupAll(".git"); ok {
+	if n, ok := s.idx.LookupAll(".git"); ok && n.IsDir() {
 		// Download only git data.
 		cmd.SourcePath += ".git/"
 		cmd.DestinationPath += ".git/"
