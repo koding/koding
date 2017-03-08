@@ -126,7 +126,7 @@ loadMachines = do (isPayloadUsed = no) -> ->
       machines = computeController.storage.get 'machines'
 
       data = {
-        own: machines.map (machine) -> { machine }
+        own: machines.map (machine) -> { machine: machine.jMachine }
         shared: []
         collaboration: []
       }
