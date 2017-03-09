@@ -80,7 +80,11 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	if resp.KiteKey != "" {
 		f.Konfig.KiteKey = resp.KiteKey
 		if resp.Metadata != nil {
+			fixKlientEndpoint(f.Konfig.Endpoints)
+
+			base := f.Konfig.Endpoints.Koding // do not overwrite baseurl
 			f.Konfig.Endpoints = resp.Metadata.Endpoints
+			f.Konfig.Endpoints.Koding = base
 		}
 
 		if err := configstore.Use(f.Konfig); err != nil {
