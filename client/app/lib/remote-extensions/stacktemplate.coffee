@@ -1,3 +1,4 @@
+debug  = (require 'debug') 'remote:api:jstacktemplate'
 remote = require('../remote')
 
 module.exports = class JStackTemplate extends remote.api.JStackTemplate
@@ -19,3 +20,9 @@ module.exports = class JStackTemplate extends remote.api.JStackTemplate
       providers = providers.concat provider
 
     return providers
+
+
+  @one = ->
+    debug 'one called'
+    console.trace()
+    super

@@ -114,7 +114,6 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     { actions, getters } = EnvironmentFlux
 
     actions.loadTeamStackTemplates()
-    actions.loadPrivateStackTemplates()
 
     if canCreateStacks()
       @stacks.addSubView view = new HomeStacksCreate

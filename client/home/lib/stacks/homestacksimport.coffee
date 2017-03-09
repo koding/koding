@@ -156,6 +156,6 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
     GitProvider.createImportedStackTemplate null, stackData, (err, stack) ->
 
       unless err
-        EnvironmentFlux.actions.loadPrivateStackTemplates()
+        EnvironmentFlux.actions.loadStackTemplates()
 
       callback err, stack
