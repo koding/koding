@@ -19,7 +19,11 @@ module.exports = class ComputeStorage extends kd.Object
 
   initialize: ->
 
-    @storage = {}
+    @storage = {
+      stacks    : []
+      machines  : []
+      templates : []
+    }
 
     { userMachines, userStacks } = globals
 
@@ -72,14 +76,17 @@ module.exports = class ComputeStorage extends kd.Object
 
   push: (options = {}) ->
 
-    { machine, stack, machineId } = options
+    { machine, stack, template, machineId } = options
+
+    if template
+      @storage.templates.push template
 
     debug 'push', options
 
 
   pop: (options = {}) ->
 
-    { machine, stack, machineId } = options
+    { machine, stack, template, machineId } = options
 
     debug 'pop', options
 
