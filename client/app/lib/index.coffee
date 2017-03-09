@@ -34,6 +34,7 @@ bootup = ->
   # it is very important that you invoke this method before anything else does, so f important.
 
   console.log 'Application loaded with browser info:', require 'bowser'
+  console.log 'Initial Payload size:', JSON.stringify(globals).length
 
   globals.os = os # linux, mac or windows
   globals.keymapType = do ->
@@ -64,8 +65,6 @@ bootup = ->
   require('./routehandler')()
 
   firstLoad = yes
-
-  mainController.tempStorage = {}
 
   ConnectionChecker.listen()
 
