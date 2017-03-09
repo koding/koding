@@ -46,7 +46,7 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
 
         cc          = kd.singletons.computeController
         machineUId  = @getOption 'correlationName'
-        [ machine ] = cc.findMachineFromMachineUId(machineUId)
+        machine     = cc.findMachineFromMachineUId machineUId
 
         @transport.options.url = @_baseURL  if @_baseURL
         @disconnect()  if not machine or not machine.isRunning()

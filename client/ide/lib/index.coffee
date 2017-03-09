@@ -588,7 +588,7 @@ module.exports = class IDEAppController extends AppController
       return callback null, @mountedMachine
 
     cc = kd.singletons.computeController
-    [ machine ] = cc.storage.query 'machines', 'uid', @mountedMachineUId
+    machine = cc.storage.get 'machines', 'uid', @mountedMachineUId
     @setMountedMachine machine
     callback null, machine
 
@@ -658,7 +658,7 @@ module.exports = class IDEAppController extends AppController
         return @showNoMachineState()
 
     cc = kd.singletons.computeController
-    [ machine ] = cc.storage.query 'machines', 'uid', machineUId
+    machine = cc.storage.get 'machines', 'uid', machineUId
     mount machine
     done()
 
