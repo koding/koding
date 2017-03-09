@@ -91,6 +91,46 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
             expect(template.config.requiredProviders) .to.be.deep.equal ['aws']
             done()
 
+      it 'should generate rawContent automatically from template content if not provided', (done) ->
+
+        withConvertedUser ({ client }) ->
+
+          stackTemplateData = generateStackTemplateData client
+          delete stackTemplateData.rawContent
+
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
+            expect(err?.message)                      .not.exist
+            expect(template.template.rawContent)      .to.exist
+            expect(template.template.rawContent)      .to.be.deep.equal """
+            provider:
+              aws:
+                access_key: '${var.aws_access_key}'
+                secret_key: '${var.aws_secret_key}'
+            resource:
+              aws_instance:
+                test_machine:
+                  instance_type: t2.nano
+                  ami: ''
+                  tags:
+                    Name: '${var.koding_user_username}-${var.koding_group_slug}'
+
+            """
+            done()
+
+      it 'should fail to generate rawContent automatically from broken template content if not provided', (done) ->
+
+        withConvertedUser ({ client }) ->
+
+          stackTemplateData = generateStackTemplateData client
+          delete stackTemplateData.rawContent
+          stackTemplateData.template = 'broken json; {'
+
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
+            expect(err)         .to.exist
+            expect(err.message) .to.be.equal 'Failed to parse template'
+            expect(err.error)   .to.be.equal 'Unexpected token b in JSON at position 0'
+            done()
+
 
   describe '#some$()', ->
 
