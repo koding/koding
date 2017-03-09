@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Koding Service Connector Installer.
-# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+# Copyright (C) 2012-2017 Koding Inc., all rights reserved.
 
 is_macosx=$(uname -v | grep -Ec '^Darwin Kernel.*')
 init_tool=
@@ -212,7 +212,7 @@ EOF
 #!/bin/bash
 
 # Koding Service Connector
-# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+# Copyright (C) 2012-2017 Koding Inc., all rights reserved.
 
 # wait till network is ready
 
@@ -239,7 +239,7 @@ EOF
 		cat <<EOF | sudo tee /opt/kite/klient/klient.init &>/dev/null
 <!--
 Koding Service Connector
-Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+Copyright (C) 2012-2017 Koding Inc., all rights reserved.
 -->
 
 <?xml version="1.0" encoding="UTF-8"?>

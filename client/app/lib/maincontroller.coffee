@@ -388,6 +388,16 @@ module.exports = class MainController extends kd.Controller
     return null
 
 
+  useNewStackEditor: (use = yes) ->
+
+    if use
+      Cookies.set 'use-nse', yes, { path:'/' }
+    else
+      Cookies.expire 'use-nse', { path:'/' }
+
+    global.location.reload yes
+
+
 # This function compares type of given account with global user
 # account to determine whether user is logged out or not.
 checkLoggedOut = (account) ->

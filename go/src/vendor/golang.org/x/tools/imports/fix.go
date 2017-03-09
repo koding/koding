@@ -378,12 +378,6 @@ func (s byImportPathShortLength) Less(i, j int) bool {
 }
 func (s byImportPathShortLength) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
-// gate is a semaphore for limiting concurrency.
-type gate chan struct{}
-
-func (g gate) enter() { g <- struct{}{} }
-func (g gate) leave() { <-g }
-
 var visitedSymlinks struct {
 	sync.Mutex
 	m map[string]struct{}
@@ -460,6 +454,9 @@ func shouldTraverse(dir string, fi os.FileInfo) bool {
 		return false
 	}
 	if !ts.IsDir() {
+		return false
+	}
+	if skipDir(ts) {
 		return false
 	}
 

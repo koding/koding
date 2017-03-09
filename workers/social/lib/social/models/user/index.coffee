@@ -421,9 +421,6 @@ module.exports = class JUser extends jraphical.Module
             ip        : session.clientIP
             username  : username
 
-          if process.env.CI
-            return next null, session
-
           # todo add alert support(mail, log etc)
           JLog.checkLoginBruteForce bruteForceControlData, (res) ->
             unless res

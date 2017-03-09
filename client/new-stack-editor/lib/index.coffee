@@ -3,7 +3,7 @@ debug = (require 'debug') 'nse'
 kd = require 'kd'
 async = require 'async'
 AppController = require 'app/appcontroller'
-showErrorNotification = require 'app/util/showErrorNotification'
+showError = require 'app/util/showError'
 
 EnvironmentFlux = require 'app/flux/environment'
 
@@ -61,7 +61,7 @@ module.exports = class StackEditorAppController extends AppController
     @fetchStackTemplate templateId, (err, template) =>
 
       if err
-        showErrorNotification err
+        showError err
         return callback err
 
       @stackEditor.setData template, reset
@@ -101,9 +101,9 @@ module.exports = class StackEditorAppController extends AppController
 
     debug 'initializeStack called for', templateId
 
-    { controllers: { editor, logs, credentials, variables } } = @stackEditor
-    currentTemplate = @stackEditor.getData()
+    { editor, logs, stack, credentials, variables } = @stackEditor.controllers
 
+    currentTemplate = @stackEditor.getData()
     logs.add 'updating stack template...'
 
     @stackEditor.setBusy yes
@@ -137,6 +137,14 @@ module.exports = class StackEditorAppController extends AppController
         logs.add 'saving template...'
         editor.save next
 
+      (next) ->
+        logs.add 'checking stack...'
+        stack.check next
+
+      (next) ->
+        logs.add 'generating stack...'
+        stack.save next
+
     ]
 
     async.series queue, (err, result) =>
@@ -148,9 +156,10 @@ module.exports = class StackEditorAppController extends AppController
       if err
         logs.handleError err
       else
-        [ ..., updatedTemplate ] = result
+        [ ..., updatedTemplate, generatedStack ] = result
         logs.add 'stack template updated successfully'
         debug 'updated template instance', updatedTemplate
+        debug 'generated stack', generatedStack
 
 
   createStackTemplate: (provider) ->

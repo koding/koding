@@ -78,6 +78,7 @@ func main() {
 }
 
 func realMain() int {
+	f.Var(config.CurrentUser, "metadata-user", "Overwrite default user to store the metadata for.")
 	f.Parse(os.Args[1:])
 
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is

@@ -1,10 +1,10 @@
 React = require 'react'
-
 Dialog = require 'lab/Dialog'
+
 
 module.exports = TrialEndedMemberModal = (props) ->
 
-  { isOpen, onButtonClick, onSecondaryButtonClick } = props
+  { isOpen, onButtonClick, secondaryContent } = props
 
   message = "
     We hope you have enjoyed using Koding. Please ask one of your team
@@ -17,10 +17,9 @@ module.exports = TrialEndedMemberModal = (props) ->
     type='danger'
     title='Important Message'
     subtitle="Your team's free trial has ended."
+    height='height_auto'
     message={message}
     buttonTitle='NOTIFY MY ADMINS'
     onButtonClick={onButtonClick}
-    secondaryButtonType='link'
-    secondaryButtonTitle='Logout'
-    onSecondaryButtonClick={onSecondaryButtonClick}
+    secondaryContent={secondaryContent}
   />

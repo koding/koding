@@ -1,14 +1,12 @@
 #!/bin/bash
-version=$(cat /var/app/current/VERSION || echo $WERCKER_GIT_COMMIT || echo "0")
-
-SHA=${version:0:8}
-BRANCH=$WERCKER_GIT_BRANCH
+SHA=$(cat /var/app/current/VERSION || git rev-parse --short HEAD || echo "0")
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
 NAME=$1
 MESSAGE=$2
 STATUS=$3
 PERCENTAGE=$4
 
-ENV_NAME="wercker"
+ENV_NAME="CI"
 
 if [ ! -n "$EB_ENV_NAME" ]; then
 	ENV_NAME=$EB_ENV_NAME

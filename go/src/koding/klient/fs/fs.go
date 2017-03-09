@@ -9,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
-	"syscall"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -378,6 +377,7 @@ type DiskInfo struct {
 	BlocksTotal uint64 `json:"blocksTotal"`
 	BlocksFree  uint64 `json:"blocksFree"`
 	BlocksUsed  uint64 `json:"blocksUsed"`
+	IOSize      int32  `json:"ioSize"`
 }
 
 // GetDiskInfo returns DiskInfo about the mount at the specified path.
@@ -390,17 +390,10 @@ func GetDiskInfo(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("{ path: [string] }")
 	}
 
-	stfs := syscall.Statfs_t{}
-	if err := syscall.Statfs(params.Path, &stfs); err != nil {
+	di, err := Statfs(params.Path)
+	if err != nil {
 		return nil, err
 	}
-
-	di := &DiskInfo{
-		BlockSize:   uint32(stfs.Bsize),
-		BlocksTotal: stfs.Blocks,
-		BlocksFree:  stfs.Bfree,
-	}
-	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
 
 	return di, nil
 }

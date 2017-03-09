@@ -133,7 +133,6 @@ module.exports = class ThrobberView extends KDView
 
     super
 
-    #reinit tooltip if it was hidden before
     @showTooltip()  if @tooltip
 
 

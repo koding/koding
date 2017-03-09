@@ -55,10 +55,6 @@
       "name": "JProvisioner"
     },
     {
-      "description": "Model JSnapshot",
-      "name": "JSnapshot"
-    },
-    {
       "description": "Model JStackTemplate",
       "name": "JStackTemplate"
     },
@@ -580,36 +576,6 @@
         }
       }
     },
-    "JSnapshot": {
-      "type": "object",
-      "properties": {
-        "_id": {
-          "type": "string"
-        },
-        "originId": {
-          "type": "string"
-        },
-        "machineId": {
-          "type": "string"
-        },
-        "snapshotId": {
-          "type": "string"
-        },
-        "region": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date"
-        },
-        "storageSize": {
-          "type": "string"
-        },
-        "label": {
-          "type": "string"
-        }
-      }
-    },
     "JStackTemplate": {
       "type": "object",
       "required": [
@@ -917,12 +883,6 @@
           "type": "string"
         },
         "socialApiChannelId": {
-          "type": "string"
-        },
-        "socialApiAnnouncementChannelId": {
-          "type": "string"
-        },
-        "socialApiDefaultChannelId": {
           "type": "string"
         },
         "avatar": {
@@ -1393,7 +1353,7 @@
         "impersonating": {
           "type": "boolean"
         },
-        "data": {
+        "sessionData": {
           "type": "object"
         }
       }
@@ -2778,40 +2738,6 @@
         }
       }
     },
-    "/remote.api/JAccount.fetchMetaInformation/{id}": {
-      "post": {
-        "tags": [
-          "JAccount"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
     "/remote.api/JAccount.fetchRelativeGroups/{id}": {
       "post": {
         "tags": [
@@ -2991,6 +2917,40 @@
           "application/json"
         ],
         "description": "",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/JAccount.destroy/{id}": {
+      "post": {
+        "tags": [
+          "JAccount"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "Method JAccount.destroy",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
@@ -3407,36 +3367,6 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.fetchUsage": {
-      "post": {
-        "tags": [
-          "ComputeProvider"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
     "/remote.api/ComputeProvider.fetchProviders": {
       "post": {
         "tags": [
@@ -3503,32 +3433,6 @@
           }
         ],
         "description": "Method ComputeProvider.updateTeamCounters",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/ComputeProvider.fetchSoloMachines": {
-      "post": {
-        "tags": [
-          "ComputeProvider"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [],
-        "description": "",
         "responses": {
           "200": {
             "description": "Request processed successfully",
@@ -3839,6 +3743,40 @@
         }
       }
     },
+    "/remote.api/JCredential.bootstrap/{id}": {
+      "post": {
+        "tags": [
+          "JCredential"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JCredential.isBootstrapped/{id}": {
       "post": {
         "tags": [
@@ -4024,36 +3962,6 @@
       }
     },
     "/remote.api/Kloud.build": {
-      "post": {
-        "tags": [
-          "Kloud"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/Kloud.reinit": {
       "post": {
         "tags": [
           "Kloud"
@@ -4907,100 +4815,6 @@
         }
       }
     },
-    "/remote.api/JSnapshot.one": {
-      "post": {
-        "tags": [
-          "JSnapshot"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JSnapshot.some": {
-      "post": {
-        "tags": [
-          "JSnapshot"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JSnapshot.rename/{id}": {
-      "post": {
-        "tags": [
-          "JSnapshot"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JSnapshot"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
     "/remote.api/JStackTemplate.create": {
       "post": {
         "tags": [
@@ -5325,6 +5139,40 @@
           "application/json"
         ],
         "description": "",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/JStackTemplate.verify/{id}": {
+      "post": {
+        "tags": [
+          "JStackTemplate"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "Method JStackTemplate.verify",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
@@ -7177,7 +7025,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "",
+        "description": "Method JGroup.transferOwnership",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"

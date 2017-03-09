@@ -69,13 +69,6 @@
     - assignDomain
     - addInvalidDomain
 
-  - paidaccount
-    - seeUpgradeModalForNotPaidUser
-    - makeAlwaysOnForNotPaidUser
-    - addVM
-    - turnOnNewPaidVM
-    - makePaidVMAlwaysOn
-
   - vm
     - turnOffVm
     - turnOnVm

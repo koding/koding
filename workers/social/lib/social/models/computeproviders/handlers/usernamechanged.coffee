@@ -9,7 +9,7 @@ module.exports = usernameChanged = ({ oldUsername, username, isRegistration }) -
   console.log "Removing user #{oldUsername} vms..."
 
   JMachine.update
-    provider      : { $in: ['koding', 'managed'] }
+    provider      : 'managed'
     credential    : oldUsername
   ,
     $set          :

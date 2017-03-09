@@ -2,12 +2,12 @@ package silent
 
 import "koding/klient/machine/mount/notify"
 
-// SilentBuilder is a factory for Silent notification objects.
-type SilentBuilder struct{}
+// Builder is a factory for Silent notification objects.
+type Builder struct{}
 
 // Build satisfies notify.Builder interface. It produces Silent objects. Build
 // options are not used.
-func (SilentBuilder) Build(_ *notify.BuildOpts) (notify.Notifier, error) {
+func (Builder) Build(_ *notify.BuildOpts) (notify.Notifier, error) {
 	return Silent{}, nil
 }
 

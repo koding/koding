@@ -39,7 +39,7 @@ module.exports = class JSession extends Model
       impersonating     : Boolean
       # data holds arbitary transitive session based info, not necessarily
       # should be used. There won't be any kind of index on this field.
-      data              : Object
+      sessionData       : Object
     sharedEvents        :
       instance          : []
       static            : []

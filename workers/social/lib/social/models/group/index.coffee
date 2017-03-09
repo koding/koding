@@ -5,6 +5,7 @@ async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
 backoff = require 'backoff'
+{ checkUserPassword } = require '../utils'
 
 module.exports = class JGroup extends Module
 
@@ -47,9 +48,6 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member', 'moderator']
       'list members'                      : ['moderator', 'member']
-      'read group activity'               :
-        public                            : ['guest', 'member', 'moderator']
-        private                           : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member', 'moderator']
@@ -200,7 +198,7 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         ]
         transferOwnership:
-          (signature String, Function)
+          (signature Object, Function)
         destroy:
           (signature String, Function)
         addSubscription:
@@ -234,10 +232,6 @@ module.exports = class JGroup extends Module
       # channelId for mapping social API
       # to internal usage
       socialApiChannelId             : String
-      # channel id for announcements of a group
-      socialApiAnnouncementChannelId : String
-      # channel id for default of a non-koding group
-      socialApiDefaultChannelId : String
       avatar        : String
       slug          :
         type        : String
@@ -1267,9 +1261,6 @@ module.exports = class JGroup extends Module
     failure: (client, callback) ->
       callback null, no
 
-
-  @canReadGroupActivity = permit 'read group activity'
-  canReadGroupActivity  : permit 'read group activity'
   @canListMembers       = permit
     advanced: [
       { permission: 'list members' }
@@ -1283,9 +1274,23 @@ module.exports = class JGroup extends Module
       sourceId  : @getId()
       targetId  : account._id
       as        : 'member'
-    Relationship.count selector, (err, count) ->
+    Relationship.one selector, (err, rel) ->
       if err then callback err
-      else callback null, (if count is 0 then no else yes)
+      else callback null, rel?
+
+  isParticipant: (account, callback) ->
+    return callback new Error 'No account found!'  unless account
+
+    roles = [ 'member', 'moderator', 'admin' ]
+    selector = {
+      sourceId  : @getId()
+      targetId  : account._id
+      as: { $in: roles }
+    }
+
+    Relationship.one selector, (err, rel) ->
+      if err then callback err
+      else callback null, rel?
 
 
   countMembers: (callback) ->
@@ -1466,43 +1471,105 @@ module.exports = class JGroup extends Module
           @addMember account, {}, callback  unless removeUserFromTeam
 
 
-  transferOwnership: permit
+  transferOwnership$: permit
     advanced: [
       { permission: 'grant permissions' }
       { permission: 'grant permissions', superadmin: yes }
     ]
-    success: (client, accountId, callback) ->
-      JAccount = require '../account'
+    success: (client, options, callback) ->
 
       { delegate } = client.connection
-      if delegate.getId().equals accountId
+      { accountId, currentPassword, slug } = options
+
+      clientAccountId = delegate.getId()
+
+      return callback new KodingError 'User is not selected!'  unless accountId
+
+      checkUserPassword delegate, currentPassword, (err) =>
+
+        return callback new KodingError err  if err
+
+        @transferOwnership { clientAccountId, accountId, slug }, callback
+
+
+  transferOwnership: (options, callback) ->
+
+    { clientAccountId, accountId, slug } = options
+
+    return callback new KodingError 'Account is not provided'  unless accountId
+
+    @fetchOwner (err, oldOwner) =>
+
+      return callback err if err
+
+      if clientAccountId and not oldOwner.getId().equals clientAccountId
+        return callback new KodingError 'You must be the owner to perform this action!'
+
+      if oldOwner.getId().equals accountId
         return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
 
-      Relationship.one {
-        targetId: delegate.getId(),
-        sourceId: @getId(),
-        as      : 'owner'
-      }, (err, owner) =>
-        return callback err if err
-        return callback new KodingError 'You must be the owner to perform this action!' unless owner
+      JAccount = require '../account'
+      JAccount.one { _id: accountId }, (err, newOwnerAccount) =>
 
-        JAccount.one { _id:accountId }, (err, account) =>
+        return callback err if err
+
+        @fetchRolesByAccount newOwnerAccount, (err, newOwnersRoles) =>
+
           return callback err if err
 
-          @fetchRolesByAccount account, (err, newOwnersRoles) =>
-            return callback err if err
+          if 'blockedAccount' in newOwnersRoles
+            return callback new KodingError 'You cannot transfer ownership to blocked account'
 
-            kallback = (err) ->
-              callback err
+          kallback = (err) ->
+            callback err
 
-            # give rights to new owner
-            queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
-              @addMember account, role, fin
+          # give rights to new owner
+          queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
+            @addMember newOwnerAccount, role, fin
 
-            async.parallel queue, (err) ->
-              return kallback err  if err
-              # transfer ownership
-              owner.update { $set: { targetId: account.getId() } }, kallback
+          async.parallel queue, (err) =>
+            return kallback err  if err
+
+            slug ?= 'koding'
+
+            async.series [
+
+              (next) =>
+                # update relationship for old owner as an admin
+                 Relationship.one {
+                  targetId: oldOwner.getId(),
+                  sourceId: @getId(),
+                  as      : 'owner'
+                }, (err, ownerRelation) ->
+                  ownerRelation.update { $set: { as: 'admin' } }
+                  next()
+
+              (next) =>
+                # add new relationship to new owner
+                (new Relationship
+                  targetName  : 'JAccount'
+                  targetId    : newOwnerAccount.getId()
+                  sourceName  : 'JGroup'
+                  sourceId    : @getId()
+                  as          : 'owner'
+                ).save next
+
+              (next) ->
+                # notify the team for new owner
+                contents =
+                  role: 'owner'
+                  id: newOwnerAccount.getId()
+                  group: slug
+                  adminNick: oldOwner.profile.nickname
+
+                JGroup.one { slug }, (err, group) ->
+                  if group
+                    group.sendNotification 'MembershipRoleChanged', contents
+
+                  next()
+
+            ], kallback
+
 
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback) ->
     unless callback
@@ -1553,20 +1620,6 @@ module.exports = class JGroup extends Module
       else oldAddOwner.call this, target, options, callback
 
 
-  checkUserPassword: (account, password, callback) ->
-
-    unless account or password
-      return callback "Couldn't verify user"
-
-    account.fetchUser (err, user) ->
-      return callback "Couldn't verify user"  if err
-
-      unless user.checkPassword password
-        return callback "Your password didn't match with our records"
-      else
-        callback()
-
-
   destroy$   : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.own }
@@ -1576,12 +1629,12 @@ module.exports = class JGroup extends Module
 
       account = client?.connection?.delegate
 
-      @checkUserPassword account, password, (err) =>
+      checkUserPassword account, password, (err) =>
 
         return callback new KodingError err  if err
 
         @destroy client, (err) ->
-          console.log '[GROUP_DESTROY_FAILED] Ignoring errors:', err
+          console.log '[GROUP_DESTROY_FAILED] Ignoring errors:', err  if err
           callback null
 
 
@@ -1651,6 +1704,17 @@ module.exports = class JGroup extends Module
         JName = require '../name'
         JName.one { name: slug }, (err, name) ->
           removeHelper name, err, next, 'JName'
+
+      (next) ->
+        # unlink slack if anyone in this team auth slack previously
+        JUser = require '../user'
+        JUser.update { "foreignAuth.slack.#{slug}": { $exists: true } }, { $unset: { "foreignAuth.slack.#{slug}": 1 } }, (err) ->
+          kallback 'JUser foreign auth', next, err
+
+      (next) ->
+        JForeignAuth = require '../foreignauth'
+        JForeignAuth.remove { group: slug }, (err) ->
+          kallback 'JForeignAuth', next, err
 
       (next) =>
         Relationship.remove { sourceId : @getId() }, next
@@ -1768,50 +1832,18 @@ module.exports = class JGroup extends Module
           creatorId       : socialApiId
           privacyConstant : privacy
 
-        @createGroupChannel client, options, (err, groupChannelId) =>
+        @createGroupChannel client, options, (err, groupChannelId) ->
           return callback err  if err?
 
-          # announcement channel will only be created for koding channel
-          if @slug is 'koding'
-
-            @createAnnouncementChannel client, options, (err, announcementChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                # channel id for #public - used as group channel
-                socialApiChannelId             : groupChannelId,
-                # channel id for #koding - used for announcements
-                socialApiAnnouncementChannelId : announcementChannelId
-              }
-
-          else
-            @createDefaultChannel client, options, (err, defaultChannelId) ->
-              return callback err if err?
-
-              return callback null, {
-                socialApiChannelId: groupChannelId
-                socialApiDefaultChannelId: defaultChannelId
-              }
+          return callback null, {
+            socialApiChannelId: groupChannelId
+          }
 
 
   createGroupChannel:(client, options, callback) ->
     options.name = 'public'
     options.varName = 'socialApiChannelId'
     options.typeConstant = 'group'
-
-    return @createSocialAPIChannel client, options, callback
-
-  createAnnouncementChannel:(client, options, callback) ->
-    options.name = 'changelog'
-    options.varName = 'socialApiAnnouncementChannelId'
-    options.typeConstant = 'announcement'
-
-    return @createSocialAPIChannel client, options, callback
-
-  createDefaultChannel:(client, options, callback) ->
-    options.name = @slug
-    options.varName = 'socialApiDefaultChannelId'
-    options.typeConstant = 'topic'
 
     return @createSocialAPIChannel client, options, callback
 

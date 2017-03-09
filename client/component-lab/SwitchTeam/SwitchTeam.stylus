@@ -1,0 +1,18 @@
+.switchteam
+  margin-top                25px
+
+.optiontext
+  margin-bottom             25px
+  text-align                center
+  font-size                 16px
+  line-height               19px
+  font-weight               200
+  span
+    color                   #989898 !important
+
+.groups
+  max-height                250px
+  overflow                  hidden
+  overflow-y                auto
+  border                    1px solid #ececec
+  padding                   10px

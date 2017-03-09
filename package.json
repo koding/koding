@@ -50,11 +50,10 @@
     "dogapi": "2.6.0",
     "embedly": "2.1.0",
     "es": "0.5.2",
-    "eventemitter2": "2.2.1",
+    "eventemitter2": "3.0.1",
     "express": "4.14.0",
     "faker": "3.1.0",
     "geoip-lite": "1.1.8",
-    "git-rev": "0.2.1",
     "github": "7.3.1",
     "gitlab": "1.7.1",
     "googleapis": "16.0.0",
@@ -121,8 +120,10 @@
     "chai": "3.5.0",
     "coffeelint": "1.16.0",
     "crypto": "0.0.3",
+    "git-rev-sync": "1.8.0",
     "mocha": "2.2.4",
     "mongodb-migrate": "2.0.1",
+    "sync-request": "4.0.1",
     "which": "1.2.12"
   },
   "optionalDependencies": {}

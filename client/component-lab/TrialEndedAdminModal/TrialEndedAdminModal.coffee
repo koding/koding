@@ -1,8 +1,8 @@
 React = require 'react'
-
 Dialog = require 'lab/Dialog'
 
-module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick }) ->
+
+module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick, secondaryContent }) ->
 
   message = "
     We hope you have enjoyed using Koding. Please enter a credit card to
@@ -16,6 +16,8 @@ module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick }) ->
     title='Important Message'
     subtitle="Your team's free trial has ended."
     message={message}
-    buttonTitle='ENTER A CREDIT CARD'
+    height='height_auto'
+    buttonTitle='REACTIVATE YOUR SUBSCRIPTION'
     onButtonClick={onButtonClick}
+    secondaryContent={secondaryContent}
   />

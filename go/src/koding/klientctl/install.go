@@ -35,7 +35,7 @@ var defaultServiceOpts = &ServiceOptions{
 var klientShTmpl = template.Must(template.New("").Parse(`#!/bin/bash
 
 # Koding Service Connector
-# Copyright (C) 2012-2016 Koding Inc., all rights reserved.
+# Copyright (C) 2012-2017 Koding Inc., all rights reserved.
 
 # source environment
 for src in /etc/{environment,profile,bashrc}; do

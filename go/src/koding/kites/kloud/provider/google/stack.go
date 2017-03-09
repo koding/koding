@@ -3,12 +3,10 @@ package google
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"text/template"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
-	"koding/kites/kloud/userdata"
 
 	compute "google.golang.org/api/compute/v1"
 )
@@ -179,69 +177,23 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			return nil, fmt.Errorf("%q instance name is invalid: %v", resourceName, instanceName)
 		}
 
-		// means there will be several instances, we need to create a userdata
-		// with count interpolation, because each machine must have an unique
-		// kite id.
-		count := 1
-		if n, ok := instance["count"].(int); ok && n > 1 {
-			count = n
-		}
-
-		var labels []string
-		if count > 1 {
-			for i := 0; i < count; i++ {
-				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
-			}
-		} else {
-			labels = append(labels, resourceName)
-		}
-
-		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
-
 		// Cloud-Init can be injected only via "user-data" field defined in
 		// root "metadata" object.
 		var metadata = make(map[string]interface{})
 		if meta, ok := instance["metadata"].([]map[string]interface{}); ok {
 			metadata = flatten(meta)
 		}
-		s.Builder.InterpolateField(metadata, resourceName, "user-data")
 
-		// this part will be the same for all machines
-		userCfg := &userdata.CloudInitConfig{
-			Username: s.Req.Username,
-			Groups:   []string{"sudo"},
-			Hostname: s.Req.Username, // no typo here. hostname = username
-			KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
-		}
-
-		if s, ok := metadata["user-data"].(string); ok {
-			userCfg.UserData = s
-		}
-
-		userdata, err := s.Session.Userdata.Create(userCfg)
+		ub, err := s.BuildUserdata(resourceName, metadata)
 		if err != nil {
 			return nil, err
 		}
 
-		metadata["user-data"] = string(userdata)
+		t.Variable[ub.KiteKeyName] = map[string]interface{}{
+			"default": ub.KiteKeys,
+		}
+
 		instance["metadata"] = addPublicKey(metadata, s.Req.Username, s.Keys.PublicKey)
-
-		// create independent kiteKey for each machine and create a Terraform
-		// lookup map, which is used in conjuctuon with the `count.index`
-		countKeys := make(map[string]string, count)
-		for i, label := range labels {
-			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
-			if err != nil {
-				return nil, err
-			}
-
-			countKeys[strconv.Itoa(i)] = kiteKey
-		}
-
-		t.Variable[kiteKeyName] = map[string]interface{}{
-			"default": countKeys,
-		}
-
 		resource.GCInstance[resourceName] = instance
 	}
 

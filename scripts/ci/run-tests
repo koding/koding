@@ -1,0 +1,183 @@
+#!/usr/bin/env coffee
+
+fs = require 'fs'
+path = require 'path'
+child_process = require 'child_process'
+
+_ = require 'underscore'
+async = require 'async'
+
+monitor = require './monitor-test'
+
+RETRY_COUNT = 2
+
+unless filename = process.argv[2]
+  console.error 'error: data file is not specified'
+  process.exit 1
+
+unless fs.existsSync filename
+  filename = path.join process.cwd(), path.normalize filename
+
+unless fs.existsSync filename
+  console.error 'error: data file is not found'
+  process.exit 1
+
+parallelSets = require '../test-instance/parallel-sets'
+stopwatch = {}
+
+instances = []
+
+fs.readFileSync filename
+  .toString()
+  .split "\n"
+  .forEach (line) ->
+    return  if line.length is 0
+    [instanceId, publicIpAddress] = line.split " "
+    instances.push {instanceId, publicIpAddress}
+
+
+limit = instances.length
+
+if limit is 0
+  console.error 'error: no test instance is found'
+  process.exit 1
+
+start = Date.now()
+
+logs = []
+
+
+log = (message) ->
+
+  fs.appendFileSync 'TEST_SUITE_TIMELINE', "#{message}\n"
+
+
+logWithTime = (message) ->
+
+  time = (Date.now() - start) / 1000
+  log "#{time}\t#{message}"
+
+
+runTestScript = path.join __dirname, '../test-instance/run-test'
+
+
+nextInstance = (instance) ->
+
+  index = instances.indexOf instance
+  return instances[0]  if index is -1
+  return instances[((index + 1) % instances.length)]
+
+
+runTest = (job, next) ->
+
+  job.lap ?= 0
+
+  { setId, instance, test } = job
+  { NIGHTWATCH_OPTIONS }    = test
+  { IGNORED_TEST_CASES }    = process.env
+
+  env = {}
+
+  if IGNORED_TEST_CASES
+    env['IGNORED_TEST_CASES'] = IGNORED_TEST_CASES
+
+  if NIGHTWATCH_OPTIONS
+    env['NIGHTWATCH_OPTIONS'] = NIGHTWATCH_OPTIONS
+
+  { CI } = process.env
+
+  env.CI                 = CI
+
+  args  = [instance.publicIpAddress, test.name]
+  opts  = { env }
+  child = child_process.execFile runTestScript, args, opts, do (job) ->
+
+    (error, stdout, stderr) ->
+
+      job.end = Date.now() - start
+
+      if error and ++job.lap is RETRY_COUNT
+        error.job    = job
+        error.stdout = stdout
+        error.stderr = stderr
+        next error
+      else if error
+        runTest job, next
+      else
+        next()
+
+  monitor child, _.debounce do (job) ->
+    ->
+      {setId, test, lap} = job
+      console.log "Set:#{setId} #{test.name} (#{lap}) is progressing"
+  , 30000
+
+
+startTest = (setId, instance, test, next) ->
+
+  begin = Date.now() - start
+  stopwatch[setId].push job = {setId, test, instance, begin}
+  runTest job, next
+
+
+finishSet = (id, instance, callback, error) ->
+
+  instance.isBusy = no
+
+  if error
+    {job, code, signal, stdout, stderr} = error
+    {test, lap} = job
+    console.log ""
+    console.log "Set:#{id} is failed at #{test.name} (#{lap})"
+    console.log "Exit code: #{code} signal: #{signal}"
+    console.log ""
+    console.log "Stderr\n#{stderr}"
+    console.log "Stdout\n#{stdout}"
+  else
+    console.log "Finished Set:#{id}"
+
+  logWithTime "Set:#{id} on #{instance.instanceId} #{instance.publicIpAddress}"
+
+  for job in stopwatch[id]
+    {test, begin, end} = job
+    duration = (end - begin) / 1000
+    log "#{duration}\t#{test.name}"
+
+  log ""
+
+  callback error
+
+
+iterator = (id, callback) ->
+
+  for instance in instances when not instance.isBusy
+    instance.isBusy = yes
+    break
+
+  stopwatch[id] ?= []
+
+  console.log "Set:#{id} will run on #{instance.instanceId} #{instance.publicIpAddress}"
+
+  iteratorArgs = []
+
+  testIterator = startTest.bind null, id, instance
+  setCompleter = finishSet.bind null, id, instance, callback
+
+  async.eachSeries parallelSets[id], testIterator, setCompleter
+
+
+parallelSets.forEach (set, index) ->
+
+  console.log "Set:#{index}"
+  set.forEach ({name}) -> console.log name
+  console.log ""
+
+
+async.eachLimit Object.keys(parallelSets), limit, iterator, (error) ->
+
+  if error
+    process.stdout.write error.message
+    process.exit error.code
+    return
+
+  process.exit()

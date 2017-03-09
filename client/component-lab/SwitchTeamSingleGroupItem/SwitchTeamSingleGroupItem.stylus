@@ -1,0 +1,45 @@
+.singlegroupinfo
+  border-bottom             1px solid #ececec
+  padding-bottom            10px
+
+.singlegroupinfo ~ .singlegroupinfo
+  padding                   10px 0px
+
+.singlegroupinfo > div
+  align-items               center
+
+.singlegroupinfo:last-of-type
+  border-bottom             none
+  padding-bottom            0px
+
+.teamlogo
+  size                      40px, 40px
+
+img
+  max-width                 100%
+  max-height                100%
+  height                    auto
+  flex                      0 0 auto
+  -webkit-align-self        center
+  align-self                center
+  rounded                   4px
+
+
+.defaultTeamLogo
+  m-sprite                  app team_logo
+  rounded                   4px
+
+.groupname
+  text-align                left
+  margin-left               -20px
+
+.action
+  text-decoration           none !important
+  padding                   8px 17px
+
+  &.join
+    bg                      color, #fff
+    color                   #727272
+    border                  1px solid #d0d0d0
+    padding-right           23px
+    padding-left            23px

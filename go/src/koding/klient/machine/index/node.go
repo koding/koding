@@ -4,8 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
-	"time"
 )
 
 // Node represents a file tree.
@@ -22,22 +20,9 @@ type Node struct {
 }
 
 func newNode() *Node {
-	e := newEntry()
-	e.Mode = 0755 | os.ModeDir
-
 	return &Node{
 		Sub:   make(map[string]*Node),
-		Entry: e,
-	}
-}
-
-func newEntry() *Entry {
-	t := time.Now().UTC().UnixNano()
-
-	return &Entry{
-		CTime: t,
-		MTime: t,
-		Mode:  0644,
+		Entry: NewEntry(0, 0755|os.ModeDir),
 	}
 }
 
@@ -87,7 +72,6 @@ func (nd *Node) Del(path string) {
 		}
 
 		node, path = split(path)
-
 		if path == "" {
 			delete(nd.Sub, node)
 			return
@@ -108,10 +92,7 @@ func (nd *Node) Del(path string) {
 //
 // If the node is already marked as newly added, the method is a no-op.
 //
-// If entry.Mode is non-zero, the effictive node's entry is overwritten
-// with this value.
-//
-// If entry.Aux is non-zero, the effictive node's Aux is overwritten
+// If entry.Mode is non-zero, the effective node's entry is overwritten
 // with this value.
 //
 // Rest of entry's fields are currently ignored.
@@ -120,33 +101,13 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 
 	if nd, ok := nd.lookup(path, true); ok {
 		newE = nd.Entry
-
-		if entry.Inode != 0 {
-			newE.SetInode(entry.Inode)
-		}
-
-		if entry.Mode != 0 {
-			// BUG(rjeczalik): this is not safe when nd is read elsewhere.
-			//
-			// This field is read by fuse.ReadDir and PromiseAdd is called
-			// by fuse.CreateFile or fuse.MkDir, and fuse.ReadDir is not
-			// called until one of the former returns.
-			//
-			// However this should be changed to an atomic op once the field
-			// is read by something else.
-			newE.Mode = entry.Mode
-		}
-
+		newE.MergeIn(entry)
 	} else {
-		newE = newEntry()
-		if entry.Mode != 0 {
-			newE.Mode = entry.Mode
-		}
-		newE.Inode = entry.Inode
+		newE = NewEntry(entry.Size(), entry.Mode())
+		newE.MergeIn(entry)
 	}
 
-	newE.SwapMeta(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
-
+	newE.SwapPromise(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
 	nd.Add(path, newE)
 }
 
@@ -166,7 +127,7 @@ func (nd *Node) PromiseDel(path string, node *Node) {
 		}
 	}
 
-	node.Entry.SwapMeta(EntryPromiseDel, EntryPromiseAdd|EntryPromiseUnlink)
+	node.Entry.SwapPromise(EntryPromiseDel, EntryPromiseAdd|EntryPromiseUnlink)
 }
 
 // PromiseUnlink marks a node under the given path as unlinked.
@@ -185,7 +146,7 @@ func (nd *Node) PromiseUnlink(path string, node *Node) {
 		}
 	}
 
-	node.Entry.SwapMeta(EntryPromiseUnlink, EntryPromiseAdd)
+	node.Entry.SwapPromise(EntryPromiseUnlink, EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -193,8 +154,22 @@ func (nd *Node) PromiseUnlink(path string, node *Node) {
 // If maxsize is 0, the method is a no-op.
 // If maxsize is < 0, the method counts all nodes.
 //
-// Count ignored nodes marked as deleted.
-func (nd *Node) Count(maxsize int64) (count int) {
+// Count ignores nodes marked as deleted and/or virtual.
+func (nd *Node) Count(maxsize int64) int {
+	return nd.count(maxsize, false)
+}
+
+// CountAll counts nodes which Entry.Size is at most maxsize.
+//
+// If maxsize is 0, the method is a no-op.
+// If maxsize is < 0, the method counts all nodes.
+//
+// CountAll does not ignore nodes marked as deleted and/or virtual.
+func (nd *Node) CountAll(maxsize int64) int {
+	return nd.count(maxsize, true)
+}
+
+func (nd *Node) count(maxsize int64, all bool) (count int) {
 	if maxsize == 0 {
 		return 0 // no-op
 	}
@@ -204,11 +179,11 @@ func (nd *Node) Count(maxsize int64) (count int) {
 	for len(stack) != 0 {
 		cur, stack = stack[0], stack[1:]
 
-		if cur.Deleted() {
+		if !all && (cur.Deleted() || cur.Virtual()) {
 			continue
 		}
 
-		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size <= maxsize) && cur != nd {
+		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size() <= maxsize) {
 			count++
 		}
 
@@ -224,10 +199,25 @@ func (nd *Node) Count(maxsize int64) (count int) {
 // is at most maxsize.
 //
 // If maxsize is 0, the method is a no-op.
+// If maxsize is <0, all the nodes are summed up.
+//
+// DiskSize ignores nodes marked as deleted and/or virtual.
+func (nd *Node) DiskSize(maxsize int64) (size int64) {
+	return nd.diskSize(maxsize, false)
+}
+
+// DiskSizeAll sums all Entry.Size of the nodes, given the condition the size
+// is at most maxsize.
+//
+// If maxsize is 0, the method is a no-op.
 // If maxsize is <0, all the nodes are sumed up.
 //
-// DiskSize ignores nodes marked as deleted.
-func (nd *Node) DiskSize(maxsize int64) (size int64) {
+// DiskSizeAll does not ignore nodes marked as deleted and/or virtual.
+func (nd *Node) DiskSizeAll(maxsize int64) (size int64) {
+	return nd.diskSize(maxsize, true)
+}
+
+func (nd *Node) diskSize(maxsize int64, all bool) (size int64) {
 	if maxsize == 0 {
 		return 0 // no-op
 	}
@@ -237,12 +227,12 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 	for len(stack) != 0 {
 		nd, stack = stack[0], stack[1:]
 
-		if nd.Deleted() {
+		if !all && (nd.Deleted() || nd.Virtual()) {
 			continue
 		}
 
-		if nd.Entry != nil && (maxsize < 0 || nd.Entry.Size <= maxsize) {
-			size += nd.Entry.Size
+		if nd.Entry != nil && (maxsize < 0 || nd.Entry.Size() <= maxsize) {
+			size += nd.Entry.Size()
 		}
 
 		for _, nd := range nd.Sub {
@@ -260,6 +250,11 @@ func (nd *Node) ForEach(fn func(string, *Entry)) {
 	nd.forEach(fn, false)
 }
 
+// ForEachAll traverses the tree and calls fn on every node's entry.
+func (nd *Node) ForEachAll(fn func(string, *Entry)) {
+	nd.forEach(fn, true)
+}
+
 func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
 	type node struct {
 		path string
@@ -268,13 +263,11 @@ func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
 
 	n, stack := node{}, make([]node, 0, len(nd.Sub))
 
-	for path, nd := range nd.Sub {
-		stack = append(stack, node{
-			path: path,
-			node: nd,
-		})
-	}
-
+	// Add root node to stack.
+	stack = append(stack, node{
+		path: "",
+		node: nd,
+	})
 	for len(stack) != 0 {
 		n, stack = stack[0], stack[1:]
 
@@ -297,6 +290,11 @@ func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
 // that is marked as deleted.
 func (nd *Node) Lookup(path string) (*Node, bool) {
 	return nd.lookup(path, false)
+}
+
+// LookupAll looks up a node given by the path.
+func (nd *Node) LookupAll(path string) (*Node, bool) {
+	return nd.lookup(path, true)
 }
 
 func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
@@ -328,33 +326,45 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 
 // IsDir tells whether a node is a directory.
 func (nd *Node) IsDir() bool {
-	return nd.Entry.Mode&os.ModeDir != 0
+	return nd.Entry.Mode().IsDir()
 }
 
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
-	return atomic.LoadInt32(&nd.Entry.Meta)&(EntryPromiseDel|EntryPromiseUnlink) != 0
+	return nd.Entry.Deleted()
+}
+
+// Virtual tells whether node is marked as virtual.
+func (nd *Node) Virtual() bool {
+	return nd.Entry.HasPromise(EntryPromiseVirtual)
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.SwapMeta(0, EntryPromiseDel|EntryPromiseUnlink)
+	nd.Entry.SwapPromise(0, EntryPromiseDel|EntryPromiseUnlink)
 }
 
 func (nd *Node) shallowCopy() *Node {
-	if len(nd.Sub) != 0 {
+	if nd.Sub != nil {
 		sub := make(map[string]*Node, len(nd.Sub))
 
 		for k, v := range nd.Sub {
 			sub[k] = v
 		}
 
-		nd.Sub = sub
+		return &Node{
+			Sub:   sub,
+			Entry: nd.Entry,
+		}
 	}
 
 	return nd
 }
 
 func split(path string) (string, string) {
+	if path == "" {
+		return "", ""
+	}
+
 	if path[0] == '/' {
 		path = path[1:]
 	}

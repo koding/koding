@@ -44,9 +44,7 @@ var godocTests = []struct {
 	{
 		args: []string{"nonexistingpkg"},
 		matches: []string{
-			// The last pattern (does not e) is for plan9:
-			// http://build.golang.org/log/2d8e5e14ed365bfa434b37ec0338cd9e6f8dd9bf
-			`no such file or directory|does not exist|cannot find the file|(?:' does not e)`,
+			`cannot find package`,
 		},
 	},
 	{
@@ -140,7 +138,7 @@ func waitForServerReady(t *testing.T, addr string) {
 	waitForServer(t,
 		fmt.Sprintf("http://%v/", addr),
 		"The Go Programming Language",
-		5*time.Second)
+		15*time.Second)
 }
 
 func waitForSearchReady(t *testing.T, addr string) {
@@ -252,14 +250,14 @@ func testWeb(t *testing.T, withIndex bool) {
 			match: []string{
 				"Standard library",
 				"Package fmt implements formatted I/O",
-				"internal/syscall",
+				"internal/syscall/?m=all",
 			},
 			dontmatch: []string{
 				"cmd/gc",
 			},
 		},
 		{
-			path: "/search?q=notwithstanding",
+			path: "/search?q=ListenAndServe",
 			match: []string{
 				"/src",
 			},
@@ -277,7 +275,7 @@ func testWeb(t *testing.T, withIndex bool) {
 		{
 			path: "/cmd/compile/internal/amd64/",
 			match: []string{
-				`href="/src/cmd/compile/internal/amd64/reg.go"`,
+				`href="/src/cmd/compile/internal/amd64/prog.go"`,
 			},
 		},
 	}

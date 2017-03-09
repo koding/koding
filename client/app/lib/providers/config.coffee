@@ -87,14 +87,6 @@ module.exports = globals.config.providers =
         attributes         :
           autocomplete     : if isProd then 'off' else 'on'
 
-  koding                   :
-    name                   : 'Koding'
-    link                   : 'https://koding.com'
-    title                  : 'Koding'
-    color                  : '#50c157'
-    description            : 'Koding rulez.'
-    credentialFields       : {}
-
   managed                  :
     name                   : 'Managed VMs'
     link                   : "https://#{baseURL}"

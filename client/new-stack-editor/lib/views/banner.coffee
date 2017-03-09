@@ -22,6 +22,8 @@ module.exports = class Banner extends JView
 
     super options, data
 
+    @_wait = null
+
     @messageButton = new kd.ButtonView
       cssClass : 'message-button solid blue small'
       title    : @getData 'buttonTitle'
@@ -39,26 +41,28 @@ module.exports = class Banner extends JView
 
     unless data._initial
 
+      kd.utils.killWait @_wait
+
       if action
         @messageButton.setTitle action.title  if action.title
-        if typeof action is 'function'
-          @messageButton.setCallback action
+        if typeof action.fn is 'function'
+          @messageButton.setCallback action.fn
         else if actionEvent = action.event
           @messageButton.setCallback =>
-            @emit Events.Banner.Closed
-            @emit Events.ToolbarAction, actionEvent, (action.args ? [])...
+            @emit Events.Banner.Close
+            @emit Events.Action, actionEvent, (action.args ? [])...
         @messageButton.show()
       else
         @messageButton.hide()
 
       if autohide
-        kd.utils.wait autohide, @bound 'close'
+        @_wait = kd.utils.wait autohide, @bound 'close'
 
     return data
 
 
   close: ->
-    @emit Events.Banner.Closed
+    @emit Events.Banner.Close
 
 
   pistachio: ->

@@ -102,6 +102,12 @@ type Provider struct {
 	// If empty, "instance" will be used instead.
 	ResourceName string
 
+	// Userdata is a name of user_data field containing
+	// post-provision user scipt.
+	//
+	// If empty, "user_data" will be used instead.
+	Userdata string
+
 	// Machine creates a Machine value, that is responsible
 	// for managing lifetime of a single machine
 	// within user's stack (start/stop etc.).
@@ -312,6 +318,13 @@ func (ps *Schema) newBootstrap() interface{} {
 
 func (p *Provider) newMetadata(m *stack.Machine) interface{} {
 	return p.Schema.newMetadata(m)
+}
+
+func (p *Provider) userdata() string {
+	if p.Userdata != "" {
+		return p.Userdata
+	}
+	return "user_data"
 }
 
 func (ps *Schema) newMetadata(m *stack.Machine) interface{} {

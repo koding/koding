@@ -3,7 +3,6 @@ KodingError    = require '../../error'
 
 PROVIDERS      =
   aws          : require './aws'
-  koding       : require './koding'    # TODO: stacks not supported, remove this ~ GG
   softlayer    : require './softlayer'
   rackspace    : require './rackspace' # TODO: stacks not supported, remove or update this ~ GG
   digitalocean : require './digitalocean'
@@ -19,7 +18,7 @@ PLANS          = require './plans'
 # the default value to add, if no storage is defined.
 DEFAULT_STORAGE_USAGE = 3
 
-PROVIDERS_WITHOUT_CREDS = ['koding', 'managed', 'softlayer']
+PROVIDERS_WITHOUT_CREDS = ['managed']
 
 reviveProvisioners = (client, provisioners, callback, revive = no) ->
 
@@ -209,9 +208,6 @@ revive = do -> (
 
           return
 
-        # This is Koding only which doesn't need a valid credential
-        # since the user session is enough for koding provider for now.
-
         if shouldPassCredential and not credential?
           unless provider in PROVIDERS_WITHOUT_CREDS
             return callback new KodingError \
@@ -375,42 +371,6 @@ checkLimit = (usage, plan, storage) ->
   if err then return new KodingError err
 
 
-fetchUsage = (client, options, callback) ->
-
-  JMachine  = require './machine'
-  JSnapshot = require './snapshot'
-
-  { r: { user, account } } = client
-
-  { provider }     = options
-  selector         = { provider }
-  selector.users   =
-    $elemMatch     :
-      id           : user.getId()
-      sudo         : yes
-      owner        : yes
-
-  snapshotSelector = { originId: account.getId() }
-
-  JSnapshot.some snapshotSelector, {}, (err, snapshots = []) ->
-    return callback err  if err?
-
-    snapshots = snapshots.length
-
-    JMachine.some selector, { limit: 30 }, (err, machines) ->
-      return callback err  if err?
-
-      total    = machines.length
-      alwaysOn = 0
-      storage  = 0
-
-      machines.forEach (machine) ->
-        alwaysOn++  if machine.meta?.alwaysOn
-        storage += machine.meta?.storage_size ? DEFAULT_STORAGE_USAGE
-
-      callback null, { total, alwaysOn, storage, snapshots }
-
-
 # Signature generator for given apiMap like in
 # client/app/lib/kite/kites/kiteapimap ~ GG
 generateSignatures = (apiMap, extras = []) ->
@@ -440,7 +400,7 @@ flattenPayload = (payload, prefix = 'payload', res = {}) ->
 
 
 module.exports = {
-  fetchUserPlan, fetchGroupStackTemplate, fetchUsage
+  fetchUserPlan, fetchGroupStackTemplate
   PLANS, PROVIDERS, guessNextLabel, checkLimit
   revive, reviveClient, reviveCredential, reviveGroupLimits
   checkTemplateUsage, generateSignatures, flattenPayload

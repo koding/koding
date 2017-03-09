@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -17,9 +18,18 @@ import (
 const (
 	sessionPrefix      = "koding"
 	defaultShell       = "/bin/bash"
-	defaultScreenPath  = "/usr/bin/screen"
 	randomStringLength = 24 // 144 bit base64 encoded
 )
+
+var defaultScreenPath = "/usr/bin/screen"
+
+func init() {
+	const embeddedScreen = "/opt/kite/klient/embedded/bin/screen"
+
+	if fi, err := os.Stat(embeddedScreen); err == nil && !fi.IsDir() {
+		defaultScreenPath = embeddedScreen
+	}
+}
 
 type Command struct {
 	// Name is used for starting the terminal instance, it's the program path

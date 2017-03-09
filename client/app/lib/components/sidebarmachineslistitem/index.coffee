@@ -63,7 +63,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     if stackId = @props.stack?.get('_id')
       computeController.on "apply-#{stackId}", (event) =>
         { percentage, message } = event
-        if percentage is 100 and message in [ 'apply finished', 'reinit finished' ]
+        if percentage is 100 and message is 'apply finished'
           @setState { collapsed: no }
 
 

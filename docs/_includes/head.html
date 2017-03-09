@@ -5,38 +5,52 @@
   <!-- Plain Description -->
   <title>{{ page.title || site.title }}</title>
   <meta name="keywords" content="integrated development environment, cloud ide, dev environment, cloud development environment, cloud editor, virtual dev environment, web based ide, test environment, docker, aws, vagrant, azure, rackspace">
-  <meta name="description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.description}}{% endif %}">
-  <link rel="icon" type="image/png" href="{{ site.url }}/assets/img/favicon.png">
+  <meta name="description" content="{% if page.excerpt %}{{ page.excerpt }}{% else %}{{ site.description }}{% endif %}">
+
+  <!-- favicon -->
+  <meta name="apple-mobile-web-app-title" content="Koding">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ site.url }}/assets/favicon/apple-touch-icon.png?v=wAvxkwgmmY">
+  <link rel="mask-icon" href="{{ site.url }}/assets/favicon/safari-pinned-tab.svg?v=wAvxkwgmmY" color="#5271a7">
+  <link rel="icon" type="image/png" href="{{ site.url }}/assets/favicon/favicon-32x32.png?v=wAvxkwgmmY" sizes="32x32">
+  <link rel="icon" type="image/png" href="{{ site.url }}/assets/favicon/favicon-16x16.png?v=wAvxkwgmmY" sizes="16x16">
+  <link rel="shortcut icon" href="{{ site.url }}/favicon.ico?v=wAvxkwgmmY">
+  <meta name="application-name" content="Koding">
+  <link rel="manifest" href="{{ site.url }}/assets/favicon/manifest.json?v=wAvxkwgmmY">
+  <meta name="msapplication-TileColor" content="#5271a7">
+  <meta name="msapplication-TileImage" content="{{ site.url }}/assets/favicon/mstile-144x144.png?v=wAvxkwgmmY">
+  <meta name="msapplication-config" content="{{ site.url }}/assets/favicon/browserconfig.xml?v=wAvxkwgmmY">
+  <meta name="theme-color" content="#d9e0ec">
 
   <!-- Google+ -->
-  <link rel="publisher" href="https://plus.google.com/{{site.googleplus}}"/>
-  <meta itemprop="name" content="{% if page.fulltitle %}{{page.fulltitle}}{% else %}{{page.title}} | {{ site.title }} {% endif %}">
-  <meta itemprop="description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.description}}{% endif %}">
-  <meta itemprop="image" content="{% if page.image %}{{site.url}}{{page.image}}{% else %}{{site.url}}{{site.socialimg}}{% endif %}">
+  <link rel="publisher" href="https://plus.google.com/{{ site.googleplus }}"/>
+  <meta itemprop="name" content="{% if page.fulltitle %}{{ page.fulltitle }}{% else %}{{ page.title }} | {{ site.title }} {% endif %}">
+  <meta itemprop="description" content="{% if page.excerpt %}{{ page.excerpt }}{% else %}{{ site.description }}{% endif %}">
+  <meta itemprop="image" content="{% if page.image %}{{ site.url }}{{ page.image }}{% else %}{{ site.url }}{{ site.social_images.google }}{% endif %}">
 
   <!-- Facebook -->
   <meta property="og:type" content="website"/>
-  <meta property="og:title" content="{% if page.fulltitle %}{{page.fulltitle}}{% else %}{{page.title}} | {{ site.title }} {% endif %}"/>
-  <meta property="og:description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.description}}{% endif %}"/>
-  <meta property="og:image" content="{% if page.image %}{{site.url}}{{page.image}}{% else %}{{site.url}}{{site.socialimg}}{% endif %}"/>
-  <meta property="og:url" content="{{site.url}}{{page.url}}"/>
+  <meta property="og:title" content="{% if page.fulltitle %}{{ page.fulltitle }}{% else %}{{ page.title }} | {{ site.title }} {% endif %}"/>
+  <meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt }}{% else %}{{ site.description }}{% endif %}"/>
+  <meta property="og:image" content="{% if page.image %}{{ site.url }}{{ page.image }}{% else %}{{ site.url }}{{ site.social_images.facebook }}{% endif %}"/>
+  <meta property="og:url" content="{{ site.url }}{{ page.url }}"/>
   <meta property="og:site_name" content="{{ site.title }} "/>
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="{% if page.fulltitle %}{{page.fulltitle}}{% else %}{{page.title}} | {{ site.title }} {% endif %}">
-  <meta name="twitter:description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.description}}{% endif %}">
-  <meta name="twitter:image" content="{{site.url}}{{site.socialimg}}">
-  <meta name="twitter:url" content="{{site.url}}{{page.url}}">
+  <meta name="twitter:title" content="{% if page.fulltitle %}{{ page.fulltitle }}{% else %}{{ page.title }} | {{ site.title }} {% endif %}">
+  <meta name="twitter:description" content="{% if page.excerpt %}{{ page.excerpt }}{% else %}{{ site.description }}{% endif %}">
+  <meta name="twitter:image" content="{{ site.url }}{{ site.social_images.twitter }}">
+  <meta name="twitter:url" content="{{ site.url }}{{ page.url }}">
 
   <!-- Microdata -->
-  <link href="{{ site.social.facebook }}" itemprop="sameAs" id="sitelink-profile-facebook">
-  <link href="{{ site.social.twitter }}" itemprop="sameAs" id="sitelink-profile-twitter">
-  <link href="{{ site.social.linkedin }}" itemprop="sameAs" id="sitelink-profile-linkedin">
-  <link href="{{ site.social.github }}" itemprop="sameAs" id="sitelink-profile-github">
-  <meta itemscope="" itemtype="http://schema.org/WebSite" itemref="sitename sitelink  sitelink-profile-facebook sitelink-profile-twitter sitelink-profile-linkedin sitelink-profile-github ">
+  <meta itemscope="" itemtype="http://schema.org/WebSite" itemref="sitename sitelink image sitelink-profile-facebook sitelink-profile-twitter sitelink-profile-linkedin sitelink-profile-github ">
   <meta itemprop="name" content="Koding" id="sitename">
-  <link href="{{ site.url }}" itemprop="url" id="sitelink">
+  <link itemprop="url" href="{{ site.url }}" id="sitelink">
+  <meta itemprop="image" content="{{ site.url }}{{ site.social_images.facebook }}">
+  <link itemprop="sameAs" href="{{ site.social.facebook }}" id="sitelink-profile-facebook">
+  <link itemprop="sameAs" href="{{ site.social.twitter }}" id="sitelink-profile-twitter">
+  <link itemprop="sameAs" href="{{ site.social.linkedin }}" id="sitelink-profile-linkedin">
+  <link itemprop="sameAs" href="{{ site.social.github }}" id="sitelink-profile-github">
 
   <!-- CSS & fonts -->
   {% if include.no_additions %}

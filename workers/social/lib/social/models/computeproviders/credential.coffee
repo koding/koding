@@ -63,6 +63,8 @@ module.exports = class JCredential extends jraphical.Module
           (signature Function)
         update        :
           (signature Object, Function)
+        bootstrap:
+          (signature Function)
         isBootstrapped:
           (signature Function)
 
@@ -587,6 +589,9 @@ module.exports = class JCredential extends jraphical.Module
           callback null
 
 
+  getProvider: -> PROVIDERS[@getAt 'provider']
+
+
   isBootstrapped: permit
 
     advanced: [
@@ -595,9 +600,7 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, callback) ->
 
-      provider = PROVIDERS[@provider]
-
-      unless provider
+      unless provider = @getProvider()
         return callback null, no
 
       { bootstrapKeys } = provider
@@ -617,3 +620,26 @@ module.exports = class JCredential extends jraphical.Module
           verifiedCount++  if data['meta']?[key]?
 
         callback null, bootstrapKeys.length is verifiedCount
+
+
+  bootstrap: permit
+
+    advanced: [
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator ACCESSLEVEL.WRITE
+      }
+      { permission   : 'modify credential', superadmin: yes }
+    ]
+
+    success: (client, callback) ->
+
+      unless provider = @getProvider()
+        return callback new KodingError 'Provider does not support bootstrap'
+
+      provider    = provider.providerSlug
+      identifiers = [@getAt 'identifier']
+
+      Kloud = require './kloud'
+      Kloud.bootstrap client, { identifiers, provider }, callback

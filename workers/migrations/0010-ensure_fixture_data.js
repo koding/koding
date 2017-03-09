@@ -1215,7 +1215,6 @@ var data = {
       "parent": [],
       "privacy": "private",
       "slug": "koding",
-      "socialApiAnnouncementChannelId": "6190337718241722370",
       "socialApiChannelId": "6190337717964898305",
       "stackTemplates": [
         "53925a609b76835748c0c4fd"

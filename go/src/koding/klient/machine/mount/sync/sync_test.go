@@ -24,7 +24,7 @@ func TestSyncNew(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	sA, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
+	sA, err := msync.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -34,10 +34,7 @@ func TestSyncNew(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(wd, msync.LocalIndexName)); err != nil {
-		t.Errorf("want err = nil; got %v", err)
-	}
-	if _, err := os.Stat(filepath.Join(wd, msync.RemoteIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, msync.IndexFileName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
 
@@ -46,19 +43,17 @@ func TestSyncNew(t *testing.T) {
 	if info == nil {
 		t.Fatalf("want info != nil; got nil")
 	}
-	if info.AllDiskSize == 0 {
+	if info.DiskSizeAll == 0 {
 		t.Error("want all disk size > 0")
 	}
 
 	expected := &msync.Info{
-		ID:           mountID,
-		Mount:        m,
-		SyncCount:    0,
-		AllCount:     1,
-		SyncDiskSize: 0,
-		AllDiskSize:  info.AllDiskSize,
-		Queued:       0,
-		Syncing:      0,
+		ID:          mountID,
+		Mount:       m,
+		Count:       1,
+		CountAll:    2,
+		DiskSize:    info.DiskSize,
+		DiskSizeAll: info.DiskSizeAll,
 	}
 
 	if !reflect.DeepEqual(info, expected) {
@@ -74,7 +69,7 @@ func TestSyncNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	sB, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
+	sB, err := msync.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -84,11 +79,19 @@ func TestSyncNew(t *testing.T) {
 		t.Fatalf("want info != nil; got nil")
 	}
 
-	// TODO: All count should be two, since synced file is not the one from
-	// remote directory. This is temporary state since sync will balance
-	// indexes, but should be handled anyway.
-	expected.SyncCount = 1
-	expected.SyncDiskSize = info.SyncDiskSize
+	expected = &msync.Info{
+		ID:          mountID,
+		Mount:       m,
+		Count:       2,
+		CountAll:    3,
+		DiskSize:    info.DiskSize,
+		DiskSizeAll: info.DiskSizeAll,
+	}
+
+	expected.Count = 2
+	expected.CountAll = 3
+	expected.DiskSize = info.DiskSize
+	expected.DiskSizeAll = info.DiskSizeAll
 
 	if !reflect.DeepEqual(info, expected) {
 		t.Errorf("want info = %#v; got %#v", expected, info)
@@ -104,7 +107,7 @@ func TestSyncDrop(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	s, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
+	s, err := msync.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -120,13 +123,16 @@ func TestSyncDrop(t *testing.T) {
 	}
 }
 
-func defaultSyncOpts(wd string) msync.SyncOpts {
-	return msync.SyncOpts{
+func defaultOptions(wd string) msync.Options {
+	return msync.Options{
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
-		NotifyBuilder: silent.SilentBuilder{},
-		SyncBuilder:   discard.DiscardBuilder{},
+		SSHFunc: func() (host string, port int, err error) {
+			return "host", 0, nil
+		},
+		NotifyBuilder: silent.Builder{},
+		SyncBuilder:   discard.Builder{},
 		WorkDir:       wd,
 	}
 }

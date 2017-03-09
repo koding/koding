@@ -3,9 +3,9 @@ version: 2
 executorType: docker
 
 containerInfo:
-  - image: koding/base@sha256:55cf1b683bde71eac3a162775d8adad1e6061832cb55fe8b39866ea98c3df74a
+  - image: koding/circle@sha256:9e17db94f3c4b9d91b593db926111f7f78626ed0ba4209a47ae1980ffe1dce77
 
-  - image: mongo:2.6
+  - image: mongo:3.2.8
     cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
 
   - image: koding/postgres
@@ -56,8 +56,20 @@ stages:
         command: $(npm bin)/coffeelint --quiet .
 
       - type: shell
+        name: credentials
+        command: |
+          export BRANCH=$CIRCLE_BRANCH
+          scripts/copy-deployment-credentials.sh
+
+      - type: shell
         name: configure
-        command: ./configure
+        command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com
+
+      - type: shell
+        name: launch test hosts
+        command: |
+          chmod 600 scripts/test-instance/koding-test-instances-2015-06.pem
+          ./run exec scripts/test-instance/launch --branch $CIRCLE_BRANCH --commit $CIRCLE_SHA1 | tee INSTANCE_DATA
 
       - type: shell
         name: check remote API consistency
@@ -76,6 +88,15 @@ stages:
       - type: shell
         name: build client
         command: make -C client dist
+
+      - type: shell
+        name: sync website assets
+        command: |
+          [[ -z "$AWS_ACCESS_KEY" || -z "$AWS_ACCESS_SECRET_KEY" ]] && exit 0
+          s3cmd sync --access_key=$AWS_ACCESS_KEY --secret_key=$AWS_ACCESS_SECRET_KEY \
+            --no-mime-magic --guess-mime-type --acl-public \
+            website/a/p/p/$(git rev-parse --short HEAD)/ \
+            s3://koding-assets/a/p/p/$(git rev-parse --short HEAD)/
 
       - type: cache-save
         key: client-happypack-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
@@ -146,7 +167,36 @@ stages:
         command: ./run migrations up
 
       - type: shell
-        name: set up dnsmasq
+        name: run
         command: |
-          service dnsmasq start
-          echo nameserver 127.0.0.1 > /etc/resolv.conf
+          ./run exec supervisord -c supervisord.conf
+          nginx -c $(pwd)/nginx.conf
+          ./run health-check 30 600
+
+      - type: shell
+        name: test social API
+        environment:
+          EXTRAS: -convey-story=true
+        command: ./run exec make -C go/src/socialapi testapi
+
+      - type: shell
+        name: test web server
+        command: ./run exec scripts/node-testing/mocha-runner servers/lib/server
+
+      - type: shell
+        name: test social worker
+        command: ./run exec scripts/node-testing/mocha-runner workers/social/lib/social
+
+      - type: shell
+        name: run test suites
+        command: |
+          ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA circle-build-$CIRCLE_BUILD_NUM
+          ./run exec scripts/ci/run-tests INSTANCE_DATA
+          status=$?
+          [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
+          [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA || :
+
+      - type: shell
+        name: codecov
+        command: |
+          [[ -n "$CODECOV_TOKEN" ]] && bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || exit 0

@@ -16,6 +16,7 @@ Statusbar = require './statusbar'
 SideView = require './sideview'
 
 LogsController = require '../controllers/logs'
+StackController = require '../controllers/stack'
 EditorController = require '../controllers/editor'
 VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
@@ -42,8 +43,6 @@ module.exports = class StackEditor extends kd.View
     # Toolbar
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
-    @toolbar.on Events.MenuAction,    @bound 'handleMenuActions'
-    @toolbar.on Events.ToolbarAction, @bound 'emit'
 
     # Status bar
     @statusbar = new Statusbar
@@ -60,6 +59,7 @@ module.exports = class StackEditor extends kd.View
       cssClass: 'logs'
       title: 'Logs'
       filename: 'logs.sh'
+      theme: 'clouds_midnight'
       showgutter: no
       readonly: yes
       closable: yes
@@ -103,6 +103,8 @@ module.exports = class StackEditor extends kd.View
       shared   :
         logs   : @controllers.logs
 
+    @controllers.stack = new StackController
+
     @sideView       = new SideView
       title         : yes
       views         :
@@ -124,23 +126,32 @@ module.exports = class StackEditor extends kd.View
           cssClass  : 'docs show-controls has-markdown'
           view      : new kd.View { partial: 'WIP' }
 
-    @on Events.ShowSideView,   @sideView.bound 'show'
-    @on Events.ToggleSideView, @sideView.bound 'toggle'
-
     for _, controller of @controllers
       controller.on Events.TemplateDataChanged, @bound 'setData'
       controller.on Events.WarnUser, @toolbar.bound 'setBanner'
+      controller.on Events.Action, @bound 'handleActions'
+
+    @toolbar.on Events.Action, @bound 'handleActions'
 
     @emit 'ready'
 
 
-  handleMenuActions: (event) ->
+  handleActions: (event, rest...) ->
 
     switch event
       when Events.Menu.Logs
+        @logs.unsetClass 'shake'
+        unless @logs.isClosed()
+          kd.utils.defer => @logs.setClass 'shake'
         @logs.resize { percentage: 40, store: yes }
       when Events.Menu.Credentials
-        @emit Events.ShowSideView, 'credentials'
+        @sideView.show 'credentials'
+      when Events.ShowSideView
+        @sideView.show rest...
+      when Events.ToggleSideView
+        @sideView.toggle rest...
+      when Events.HideWarning
+        @toolbar.banner.emit Events.Banner.Close
 
 
   setData: (data, reset = no) ->
@@ -156,9 +167,8 @@ module.exports = class StackEditor extends kd.View
 
     @toolbar.setData data
 
-    @controllers.editor.setData data
-    @controllers.variables.setData data
-    @controllers.credentials.setData data
+    for controller in ['editor', 'variables', 'credentials', 'stack']
+      @controllers[controller].setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
@@ -216,6 +226,7 @@ module.exports = class StackEditor extends kd.View
 
     # Layout
     @addSubView new FlexSplit
+      name                : 'stackEditor'
       cssClass            : 'mainview'
       resizable           : no
       views               : [

@@ -39,9 +39,9 @@ type result struct {
 // from file path to the MD5 sum of the file's contents. If the directory walk
 // fails or any read operation fails, MD5All returns an error.
 func MD5All(ctx context.Context, root string) (map[string][md5.Size]byte, error) {
-	// ctx is canceled when MD5All calls g.Wait(). When this version of MD5All
-	// returns - even in case of error! - we know that all of the goroutines have
-	// finished and the memory they were using can be garbage-collected.
+	// ctx is canceled when g.Wait() returns. When this version of MD5All returns
+	// - even in case of error! - we know that all of the goroutines have finished
+	// and the memory they were using can be garbage-collected.
 	g, ctx := errgroup.WithContext(ctx)
 	paths := make(chan string)
 

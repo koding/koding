@@ -43,8 +43,9 @@ func (c *Cached) GetCachedIndex(root string) (*Index, error) {
 		}
 	} else if createdAt.IsZero() || time.Since(createdAt) > c.Rescan {
 		// Update loaded index.
-		cs = idx.Compare(root)
-		idx.Apply(root, cs)
+		for _, c := range idx.Merge(root) {
+			idx.Sync(root, c)
+		}
 	}
 
 	// If index changed or was generated, save it.

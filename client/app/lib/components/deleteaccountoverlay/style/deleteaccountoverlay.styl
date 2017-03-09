@@ -1,0 +1,63 @@
+.delete-account-overlay
+  background                #000
+  z-index                   20002
+
+.delete-account-overlay .content
+  color                     #FFF
+  position                  absolute
+  top                       0
+  right                     0
+  left                      0
+  text-align                center
+  line-height               20px
+  margin                    166px auto 0
+  width                     500px
+  padding-top               288px
+
+.delete-account-overlay .spacestation
+  position                  absolute
+  top                       87px
+  left                      94px
+  animation                 spacestationDrift 7s 1 ease
+  animation-fill-mode       forwards
+
+.delete-account-overlay .disconnected
+  position                  absolute
+  top                       53px
+  left                      248px
+  opacity                   1
+  animation                 disconnectedDrift 4s 1 ease-in
+  animation-fill-mode       forwards
+
+@keyframes spacestationDrift
+  0%
+    transform
+  100%
+    transform               translate(-40px, 18px) rotate(-30deg)
+
+@keyframes disconnectedDrift
+  0%
+    transform
+  100%
+    transform               translate(33px, 23px) rotate(28deg) scale(0.3)
+    opacity                 0
+
+.delete-account-overlay .content-header
+  font-size                 42px
+  margin-bottom             22px
+
+.delete-account-overlay .content-description
+  font-size                 18px
+  font-weight               200
+  line-height               20px
+  margin                    0 auto 37px
+  width                     480px
+
+.delete-account-overlay a
+  display                   inline-block
+  margin                    0 auto
+  border                    1px solid #ffffff
+  border-radius             4px
+  padding                   9px 30px
+  color                     #F2778A
+  text-decoration           none

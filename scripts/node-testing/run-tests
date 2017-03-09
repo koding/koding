@@ -15,7 +15,7 @@ function run_task() {
 	OUTFILE=$OUTPUT_DIR/$TASK.log
 
 	$SCRIPTS/test-instance/ssh \
-		$HOST "MOCHA_VERBOSE=1 /opt/koding/run $TASK" \
+		$HOST "CI=$CI MOCHA_VERBOSE=1 /opt/koding/run $TASK" \
 		2>&1 >$OUTFILE
 
 	EXIT_CODE=$?

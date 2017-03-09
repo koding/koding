@@ -98,7 +98,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
         createUserAndMachine generateUserInfo(), (err, data) ->
           { machine, user } = data
           expect(err).to.not.exist
-          expect(machine.provider).to.be.equal 'koding'
+          expect(machine.provider).to.be.equal 'aws'
           expect(machine.status.state).to.be.equal 'NotInitialized'
           expect(machine.users[0].id + '').to.be.equal user.getId() + ''
           expect(machine.label).to.exist

@@ -12,6 +12,7 @@ module.exports = Dialog = (props) ->
     showAlien
     type
     title
+    height
     subtitle
     message
     buttonType
@@ -20,6 +21,7 @@ module.exports = Dialog = (props) ->
     secondaryButtonType
     secondaryButtonTitle
     onSecondaryButtonClick
+    secondaryContent
   } = props
 
   modalProps =
@@ -27,7 +29,7 @@ module.exports = Dialog = (props) ->
     showAlien: showAlien
     shouldCloseOnOverlayClick: no
     width: 'medium'
-    height: 'short'
+    height: height or 'short'
 
   titleClassName = "#{styles.title} #{styles[type]}"
 
@@ -46,6 +48,10 @@ module.exports = Dialog = (props) ->
           type={secondaryButtonType}
           title={secondaryButtonTitle}
           onClick={onSecondaryButtonClick} /> }
+      {secondaryContent and
+        <div className={styles.secondaryContent}>
+          {secondaryContent}
+        </div>}
     </Modal.Content>
   </Modal>
 

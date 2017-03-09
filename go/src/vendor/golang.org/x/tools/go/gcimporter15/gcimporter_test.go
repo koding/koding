@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build go1.5
-
-// This file is a copy of $GOROOT/src/go/internal/gcimporter/gcimporter_test.go, tagged for go1.5,
-// and minimally adjusted to make it build with code from (std lib) internal/testenv copied.
+// This file is a copy of $GOROOT/src/go/internal/gcimporter/gcimporter_test.go,
+// adjusted to make it build with code from (std lib) internal/testenv copied.
 
 package gcimporter
 
 import (
+	"bytes"
 	"fmt"
 	"go/types"
 	"io/ioutil"
@@ -129,6 +128,8 @@ func testDir(t *testing.T, dir string, endTime time.Time) (nimports int) {
 	return
 }
 
+const testfile = "exports.go"
+
 func TestImportTestdata(t *testing.T) {
 	// This package only handles gc export data.
 	if runtime.Compiler != "gc" {
@@ -136,23 +137,91 @@ func TestImportTestdata(t *testing.T) {
 		return
 	}
 
-	if outFn := compile(t, "testdata", "exports.go"); outFn != "" {
+	if outFn := compile(t, "testdata", testfile); outFn != "" {
 		defer os.Remove(outFn)
 	}
 
-	if pkg := testPath(t, "./testdata/exports", "."); pkg != nil {
+	// filename should end with ".go"
+	filename := testfile[:len(testfile)-3]
+	if pkg := testPath(t, "./testdata/"+filename, "."); pkg != nil {
 		// The package's Imports list must include all packages
-		// explicitly imported by exports.go, plus all packages
-		// referenced indirectly via exported objects in exports.go.
-		// With the textual export format, the list may also include
-		// additional packages that are not strictly required for
-		// import processing alone (they are exported to err "on
-		// the safe side").
+		// explicitly imported by testfile, plus all packages
+		// referenced indirectly via exported objects in testfile.
+		// With the textual export format (when run against Go1.6),
+		// the list may also include additional packages that are
+		// not strictly required for import processing alone (they
+		// are exported to err "on the safe side").
+		// For now, we just test the presence of a few packages
+		// that we know are there for sure.
 		got := fmt.Sprint(pkg.Imports())
 		for _, want := range []string{"go/ast", "go/token"} {
 			if !strings.Contains(got, want) {
 				t.Errorf(`Package("exports").Imports() = %s, does not contain %s`, got, want)
 			}
+		}
+	}
+}
+
+func TestVersionHandling(t *testing.T) {
+	skipSpecialPlatforms(t) // we really only need to exclude nacl platforms, but this is fine
+
+	// This package only handles gc export data.
+	if runtime.Compiler != "gc" {
+		t.Skipf("gc-built packages not available (compiler = %s)", runtime.Compiler)
+		return
+	}
+
+	const dir = "./testdata/versions"
+	list, err := ioutil.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, f := range list {
+		name := f.Name()
+		if !strings.HasSuffix(name, ".a") {
+			continue // not a package file
+		}
+		if strings.Contains(name, "corrupted") {
+			continue // don't process a leftover corrupted file
+		}
+		pkgpath := "./" + name[:len(name)-2]
+
+		// test that export data can be imported
+		_, err := Import(make(map[string]*types.Package), pkgpath, dir)
+		if err != nil {
+			t.Errorf("import %q failed: %v", pkgpath, err)
+			continue
+		}
+
+		// create file with corrupted export data
+		// 1) read file
+		data, err := ioutil.ReadFile(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		// 2) find export data
+		i := bytes.Index(data, []byte("\n$$B\n")) + 5
+		j := bytes.Index(data[i:], []byte("\n$$\n")) + i
+		if i < 0 || j < 0 || i > j {
+			t.Fatalf("export data section not found (i = %d, j = %d)", i, j)
+		}
+		// 3) corrupt the data (increment every 7th byte)
+		for k := j - 13; k >= i; k -= 7 {
+			data[k]++
+		}
+		// 4) write the file
+		pkgpath += "_corrupted"
+		filename := filepath.Join(dir, pkgpath) + ".a"
+		ioutil.WriteFile(filename, data, 0666)
+		defer os.Remove(filename)
+
+		// test that importing the corrupted file results in an error
+		_, err = Import(make(map[string]*types.Package), pkgpath, dir)
+		if err == nil {
+			t.Errorf("import corrupted %q succeeded", pkgpath)
+		} else if msg := err.Error(); !strings.Contains(msg, "version skew") {
+			t.Errorf("import %q error incorrect (%s)", pkgpath, msg)
 		}
 	}
 }
@@ -353,9 +422,9 @@ func TestIssue13898(t *testing.T) {
 	}
 
 	// lookup go/types.Object.Pkg method
-	m, _, _ := types.LookupFieldOrMethod(typ, false, nil, "Pkg")
+	m, index, indirect := types.LookupFieldOrMethod(typ, false, nil, "Pkg")
 	if m == nil {
-		t.Fatal("go/types.Object.Pkg not found")
+		t.Fatalf("go/types.Object.Pkg not found (index = %v, indirect = %v)", index, indirect)
 	}
 
 	// the method must belong to go/types

@@ -18,8 +18,7 @@ helpers      = require './helpers'
 module.exports = class ComputeProvider extends Base
 
   {
-    PLANS, PROVIDERS, fetchGroupStackTemplate, revive,
-    fetchUsage, checkTemplateUsage
+    PLANS, PROVIDERS, fetchGroupStackTemplate, revive, checkTemplateUsage
   } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
@@ -57,16 +56,12 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchAvailable    :
           (signature Object, Function)
-        fetchUsage        :
-          (signature Object, Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
           (signature Function)
         updateTeamCounters:
           (signature String, Function)
-        fetchSoloMachines :
-          (signature Function)
 
 
   @providers      = PROVIDERS
@@ -208,20 +203,6 @@ module.exports = class ComputeProvider extends Base
 
     { provider } = options
     provider.fetchAvailable client, options, callback
-
-
-  @fetchUsage$ = secure (client, options, callback) ->
-    ComputeProvider.fetchUsage client, options, callback
-
-  @fetchUsage = revive
-
-    shouldReviveClient   : yes
-    shouldPassCredential : yes
-
-  , (client, options, callback) ->
-
-    { slug } = options.provider
-    fetchUsage client, { provider: slug }, callback
 
 
   @update = secure revive
@@ -392,6 +373,39 @@ module.exports = class ComputeProvider extends Base
         next()
 
     async.series queue, -> callback null
+
+
+  @destroyAccountResources = (account, callback) ->
+
+    skip = (type, next) -> (err) ->
+      console.log "[#{type}] Failed to destroy account resource:", err  if err
+      next()
+
+    async.series [
+
+      # Remove all machines associated with account
+      (next) ->
+        JMachine.remove {
+          users: { $elemMatch: { username: account.getAt('profile.nickname'), sudo: yes, owner: yes } }
+        }, skip 'JMachine', next
+
+      # Remove all stacks associated with account
+      (next) ->
+        JComputeStack = require '../stack'
+        JComputeStack.remove {
+          originId: account.getId()
+        }, skip 'JComputeStack', next
+
+      # Remove all stack templates associated with account
+      (next) ->
+        JStackTemplate = require './stacktemplate'
+        JStackTemplate.remove {
+          originId: account.getId()
+        }, skip 'JStackTemplate', next
+
+    ], ->
+
+      callback null
 
 
   # WARNING! This will destroy all the resources related with given group!
@@ -788,43 +802,6 @@ module.exports = class ComputeProvider extends Base
         }, next
 
       async.series queue, (err) -> callback err
-
-
-  @fetchSoloMachines = secure revive
-
-    shouldReviveProvider : no
-    shouldReviveClient   : yes
-    hasOptions           : no
-
-  , (client, callback) ->
-
-    { user, group, account } = client.r
-
-    { isSoloAccessible } = require '../user/validators'
-
-    return callback null, { machines: [] }  unless isSoloAccessible {
-      groupName: 'koding'
-      account: account
-      env: KONFIG.environment
-    }
-
-    activeMachinesSelector = {
-      'users.id': user.getId()
-      'provider': 'koding'
-      'status.state': {
-        $in: [
-          'Starting', 'Running',
-          'Stopped', 'Stopping', 'Rebooting'
-        ]
-      }
-    }
-
-    JMachine.some activeMachinesSelector, { limit: 30 }, (err, machines) ->
-
-      if err or not machines?.length
-        return callback null, { machines: [] }
-
-      callback null, { machines }
 
 
   do ->

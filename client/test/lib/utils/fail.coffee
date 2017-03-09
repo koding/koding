@@ -35,8 +35,6 @@ NW::fail = (result, actual, expected, defaultMsg) ->
             s3path = "https://kodingdev-test-data.s3.amazonaws.com/#{filename}"
             console.log ' ✔ Test screenshot uploaded to', s3path
 
-            { CI, WERCKER_STARTED_BY, WERCKER_GIT_BRANCH, WERCKER_BUILD_URL } = process.env
-
             try
 
               logString = ''

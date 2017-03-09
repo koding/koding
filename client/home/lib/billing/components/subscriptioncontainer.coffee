@@ -3,6 +3,7 @@ globals = require 'globals'
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
 whoami = require 'app/util/whoami'
+hasCreditCard = require 'app/util/hasCreditCard'
 pluralize = require 'pluralize'
 
 subscription = require 'app/redux/modules/payment/subscription'
@@ -50,7 +51,7 @@ mapStateToProps = (state) ->
 
   { payment } = globals.currentGroup
 
-  title = if payment.customer.hasCard
+  title = if hasCreditCard(payment)
   then subscriptionTitle(state)
   else 'Cancelled Subscription'
 
@@ -65,7 +66,7 @@ mapStateToProps = (state) ->
     # TODO(umut): activate this when we have coupon support.
     isSurveyTaken: yes # !!customer.coupon(state)
     isEmailVerified: isEmailVerified(state)
-    hasCreditCard: payment.customer.hasCard
+    hasCreditCard: hasCreditCard(payment)
   }
 
 

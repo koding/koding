@@ -45,11 +45,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     @alreadyMember = teamData.signup?.alreadyMember
     @forgotPassword = null  if @forgotPassword?
 
-    @addSubView new MainHeaderView
-      cssClass: 'team'
-      navItems : [
-        { title : 'Login',    href : '/Teams',    name : 'login' }
-      ]
+    @addSubView new MainHeaderView { cssClass : 'team', navItems : [] }
 
     wrapperCssClass = 'TeamsModal TeamsModal--groupCreation'
     wrapperCssClass = kd.utils.curry wrapperCssClass, 'alreadyMember'  if @alreadyMember

@@ -25,7 +25,7 @@
   text-align                center
 
 .action
-  padding-bottom            5px
+  padding-bottom            0px
 
   a
     display                 block
@@ -60,3 +60,7 @@
   justify-content           center
   align-items               center
   text-align                center
+  padding                   25px 0px
+
+.secondaryContent
+  width                     100%

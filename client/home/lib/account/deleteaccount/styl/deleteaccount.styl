@@ -1,0 +1,85 @@
+.delete-account-modal
+
+  .modal-footer
+    width                   100%
+    height                  61px
+    text-align              center
+    border                  1px solid #eceaea
+    background              #fff
+    align-items             center
+    display                 flex
+
+
+  .teamswrapper
+
+    border                  1px solid #ececec
+    margin-top              30px
+    max-height              427px
+    overflow                hidden
+    overflow-y              visible
+
+    &:empty
+      display               none
+
+  .single-group-info
+    display                 flex
+    background              #FFF
+    border-bottom           1px solid #ececec
+    padding                 10px
+    align-items             center
+
+    .teamlogo-wrapper
+      display               flex
+      align-items           center
+
+    .team-logo
+      size                  40px, 40px
+      dFlex()
+      -webkit-align-content center
+      align-content         center
+      justify-content       center
+      -webkit-justify-content center
+      img
+        max-width           100%
+        max-height          100%
+        height              auto
+        flex                0 0 auto
+        rounded             4px
+
+    .default
+      margin-right          10px
+      r-sprite              app, team_logo
+
+    .team-name
+      max-width             140px
+      text-overflow         ellipsis
+      overflow              hidden
+
+    .action-wrapper
+      display               flex
+      text-align            right
+      margin                0 auto
+      margin-right          0px
+      cursor                pointer
+
+      .transferownershipbutton
+        font-size           13px
+
+        .transfer-ready
+          color #fff
+          background-color #f2778a
+          padding 7px 12px
+          border none
+          border-radius 4px
+
+      .delete-team-button
+        margin-left         10px
+        background-color    #fff
+        border              1px solid #67a2ee
+        color               #67a2ee
+
+    .select-box
+      flex                  1 0 auto
+
+  .delete-account-button
+    margin                  0px 40px 0px auto

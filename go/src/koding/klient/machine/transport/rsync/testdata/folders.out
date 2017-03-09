@@ -1,0 +1,38 @@
+receiving incremental file list
+cd+++++++++ test/
+>f+++++++++ test/file.1
+              0   0%    0.00kB/s    0:00:00        1,622,711  39%    1.53MB/s    0:00:01        3,393,002  82%    1.53MB/s    0:00:00        4,096,000 100%    1.66MB/s    0:00:02 (xfr#1, to-chk=17/19)
+cd+++++++++ test/dir.1/
+>f+++++++++ test/dir.1/file.1
+              0   0%    0.00kB/s    0:00:00           14,336 100%   57.14kB/s    0:00:00 (xfr#2, to-chk=13/19)
+>f+++++++++ test/dir.1/file.2
+              0   0%    0.00kB/s    0:00:00           18,432 100%   69.77kB/s    0:00:00 (xfr#3, to-chk=12/19)
+>f+++++++++ test/dir.1/file.3
+              0   0%    0.00kB/s    0:00:00            2,048 100%    7.75kB/s    0:00:00 (xfr#4, to-chk=11/19)
+>f+++++++++ test/dir.1/file.4
+              0   0%    0.00kB/s    0:00:00            2,048 100%    7.75kB/s    0:00:00 (xfr#5, to-chk=10/19)
+cd+++++++++ test/dir.2/
+cd+++++++++ test/dir.3/
+>f+++++++++ test/dir.3/file.01
+              0   0%    0.00kB/s    0:00:00           16,384 100%   62.02kB/s    0:00:00 (xfr#6, to-chk=9/19)
+>f+++++++++ test/dir.3/file.02
+              0   0%    0.00kB/s    0:00:00            6,144 100%   23.26kB/s    0:00:00 (xfr#7, to-chk=8/19)
+>f+++++++++ test/dir.3/file.03
+              0   0%    0.00kB/s    0:00:00           20,480 100%   72.20kB/s    0:00:00 (xfr#8, to-chk=7/19)
+>f+++++++++ test/dir.3/file.04
+              0   0%    0.00kB/s    0:00:00            6,144 100%   21.66kB/s    0:00:00 (xfr#9, to-chk=6/19)
+>f+++++++++ test/dir.3/file.05
+              0   0%    0.00kB/s    0:00:00            2,048 100%    7.22kB/s    0:00:00 (xfr#10, to-chk=5/19)
+>f+++++++++ test/dir.3/file.06
+              0   0%    0.00kB/s    0:00:00           16,384 100%   55.56kB/s    0:00:00 (xfr#11, to-chk=4/19)
+>f+++++++++ test/dir.3/file.07
+              0   0%    0.00kB/s    0:00:00           16,384 100%   55.56kB/s    0:00:00 (xfr#12, to-chk=3/19)
+>f+++++++++ test/dir.3/file.08
+              0   0%    0.00kB/s    0:00:00            6,144 100%   20.83kB/s    0:00:00 (xfr#13, to-chk=2/19)
+>f+++++++++ test/dir.3/file.09
+              0   0%    0.00kB/s    0:00:00            8,192 100%   27.40kB/s    0:00:00 (xfr#14, to-chk=1/19)
+>f+++++++++ test/dir.3/file.10
+              0   0%    0.00kB/s    0:00:00            8,192 100%   27.40kB/s    0:00:00 (xfr#15, to-chk=0/19)
+
+sent 337 bytes  received 4,242,770 bytes  771,474.00 bytes/sec
+total size is 4,239,360  speedup is 1.00

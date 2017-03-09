@@ -18,6 +18,10 @@ KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
 showError = require 'app/util/showError'
 DeleteTeamOverlay = require 'app/components/deleteteamoverlay'
+DeleteAccountOverlay = require 'app/components/deleteaccountoverlay'
+fetchMyRelativeGroups = require 'app/util/fetchMyRelativeGroups'
+DeleteAccountModal = require 'home/account/deleteaccount/deleteaccountmodal'
+verifyPassword = require 'app/util/verifyPassword'
 
 loadTeam = ->
 
@@ -276,53 +280,94 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
-leaveTeam = (partial) ->
+leaveTeam = ->
+  modalContent = '
+  <p>
+    <strong>CAUTION! </strong>You are going to leave your team and you will not be able to login again.
+    This action <strong>CANNOT</strong> be undone.
+  </p> <br>
+  <p>Please enter your <strong>password</strong> to continue: </p>
+  '
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+    new VerifyPasswordModal 'Confirm', modalContent, (password) ->
+      verifyPassword password, (err) ->
+        return reject err  if err
 
-      whoami().fetchEmail (err, email) ->
-        options = { password: currentPassword, email }
-        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+        { groupsController, reactor } = kd.singletons
+        team = groupsController.getCurrentGroup()
 
-          return reject err.message  if err
-          return reject 'Current password cannot be confirmed'  unless confirmed
+        team.leave { password }, (err) ->
+          if err
+            return new kd.NotificationView { title : err.message }
 
-          resolve confirmed
-
-          { groupsController, reactor } = kd.singletons
-          team = groupsController.getCurrentGroup()
-
-          team.leave { password: currentPassword }, (err) ->
-            if err
-              return new kd.NotificationView { title : err.message }
-
-            Tracker.track Tracker.USER_LEFT_TEAM
-            kookies.expire 'clientId'
-            global.location.replace '/'
+          Tracker.track Tracker.USER_LEFT_TEAM
+          kookies.expire 'clientId'
+          global.location.replace '/'
 
 
-deleteTeam = (partial) ->
+deleteTeam = ->
+
+  modalContent = '
+  <p>
+    <strong>CAUTION! </strong>You are going to delete your team. You and your
+    team members will not be able to access this team again.
+    This action <strong>CANNOT</strong> be undone.
+  </p> <br>
+  <p>Please enter your <strong>password</strong> to continue: </p>'
+
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+    new VerifyPasswordModal 'Confirm', modalContent, (password) ->
+      verifyPassword password, (err) ->
 
-      whoami().fetchEmail (err, email) ->
-        options = { password: currentPassword, email }
-        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+        return reject err  if err
 
-          return reject err.message  if err
-          return reject 'Current password cannot be confirmed'  unless confirmed
+        new DeleteTeamOverlay()
 
-          # show delete team overlay
-          new DeleteTeamOverlay()
+        { groupsController, reactor } = kd.singletons
+        team = groupsController.getCurrentGroup()
 
-          { groupsController, reactor } = kd.singletons
-          team = groupsController.getCurrentGroup()
+        team.destroy password, (err) ->
+          reject err  if err
+          resolve()
 
-          team.destroy currentPassword, (err) ->
-            reject err  if err
-            resolve()
+
+deleteAccount = (subscription = yes) ->
+
+  fetchMyRelativeGroups (err, groups) ->
+
+    return  if showError err
+
+    return new DeleteAccountModal {}, groups  if groups.length
+
+    deleteAccountVerifyModal subscription
+
+
+deleteAccountVerifyModal = (subscription = yes) ->
+
+  transferOwnershipLink = "If you don't want to delete this team please <a class='transferbutton'>transfer its ownership</a> before proceeding."
+
+  modalContent = "
+    <p>
+      <strong>CAUTION! </strong>You are about to delete your account.
+      This operation will also delete the team you're using at the moment.
+      #{if subscription then transferOwnershipLink else ''}
+    </p><br />
+    <p>Please enter your <strong>password</strong> to continue: </p>
+  "
+
+  new VerifyPasswordModal 'Confirm', modalContent, (password) ->
+    verifyPassword password, (err) ->
+
+      return if showError err
+
+      new DeleteAccountOverlay()
+
+      whoami().destroy password, (err) ->
+        if err
+          showError err
+          window.location = '/IDE'
 
 
 
@@ -391,6 +436,8 @@ module.exports = {
   loadTeam
   leaveTeam
   deleteTeam
+  deleteAccount
+  deleteAccountVerifyModal
   updateTeam
   updateInvitationInputValue
   fetchMembers
