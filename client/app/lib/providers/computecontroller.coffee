@@ -955,8 +955,18 @@ module.exports = class ComputeController extends KDController
 
   fetchStackTemplate: (id, callback = kd.noop) ->
 
-    remote.api.JStackTemplate.one { _id: id }, (err, template) ->
+    debug 'fetchStackTemplate called for', id
+
+    if template = @storage.get 'templates', '_id', id
+      debug 'found on cache returning', template
+      return callback null, template
+
+    debug 'not found on cache fetching'
+
+    remote.api.JStackTemplate.one { _id: id }, (err, template) =>
       return callback { message: "Stack template doesn't exist." }  if err or not template
+
+      @storage.push { template }
 
       # Follow update events to get change set from remote-extensions
       # This is not required but we will need a huge set of changes
@@ -964,6 +974,20 @@ module.exports = class ComputeController extends KDController
       template.on 'update', kd.noop
 
       return callback null, template
+
+
+  fetchStackTemplates: (callback) ->
+
+    if (templates = @storage.get 'templates').length
+      callback null, templates
+
+    query   = { group: getGroup().slug }
+    options = { limit: 60 }
+
+    remote.api.JStackTemplate.some query, options, (err, templates) =>
+      return callback err  if err
+      @storage.set 'templates', templates
+      callback null, templates
 
 
   showBuildLogs: (machine, tailOffset) ->
