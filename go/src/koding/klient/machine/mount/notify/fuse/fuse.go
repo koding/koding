@@ -456,7 +456,10 @@ func (fs *Filesystem) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) er
 		return err
 	}
 
-	return fs.update(ctx, f, nd)
+	err = f.Sync()
+	updateSize(f, nd)
+
+	return err
 }
 
 // ReleaseFileHandle releases file handle. It does not return errors even if it
