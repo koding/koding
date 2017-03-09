@@ -270,15 +270,23 @@ func mustURL(s string) *URL {
 // the build in one. This function should be removed when service environments
 // are unified/cleaned.
 func ReplaceEnv(e *Endpoint, env string) *Endpoint {
+	return ReplaceCustomEnv(e, environment, env)
+}
+
+// ReplaceCustomEnv should be used in case when provided environment is different than
+// the build one.
+//
+// This function should be removed when service environments are unified/cleaned.
+func ReplaceCustomEnv(e *Endpoint, env, newEnv string) *Endpoint {
 	// This is a workaround when caller's env doesn't match build in one.
 	eReplaced := &Endpoint{}
 
 	if e.Public != nil {
-		eReplaced.Public = mustURL(strings.Replace(e.Public.String(), environment, RmAlias(env), -1))
+		eReplaced.Public = mustURL(strings.Replace(e.Public.String(), env, RmAlias(newEnv), -1))
 	}
 
 	if e.Private != nil {
-		eReplaced.Private = mustURL(strings.Replace(e.Private.String(), environment, RmAlias(env), -1))
+		eReplaced.Private = mustURL(strings.Replace(e.Private.String(), env, RmAlias(newEnv), -1))
 	}
 
 	return eReplaced
