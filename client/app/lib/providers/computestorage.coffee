@@ -23,22 +23,16 @@ module.exports = class ComputeStorage extends kd.Object
 
     { userMachines, userStacks } = globals
 
-    machines = []
-    for machine in userMachines
-      machines.push new Machine { machine: remote.revive machine }
+    @set 'machines', userMachines.map (machine) ->
+      return new Machine { machine: remote.revive machine }
 
-    @set 'machines', machines
-
-    stacks = []
-    userStacks.forEach (stack) =>
+    @set 'stacks', userStacks.map (stack) =>
       stack = remote.revive stack
       stack.title = Encoder.htmlDecode stack.title
       stack.machines = stack.machines
-        .filter (mId) => @query 'machines', '_id', mId
-        .map    (mId) => @query 'machines', '_id', mId
-      stacks.push stack
-
-    @set 'stacks', stacks
+        .filter (mId) => @get 'machines', '_id', mId
+        .map    (mId) => @get 'machines', '_id', mId
+      return stack
 
     return this
 
@@ -55,11 +49,12 @@ module.exports = class ComputeStorage extends kd.Object
 
     debug 'query requested', type, key, value
 
-    res = []
     if items = @storage[type]
-      res.push item  for item in items when item and item[key] is value
+      if typeof key is 'string'
+        res = items.map (item) ->
+          return item  if item and item[key] is value
 
-    [ res ] = res  if (key is '_id') and res.length is 1
+    res ?= []
 
     debug 'query result', res
 
