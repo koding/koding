@@ -245,8 +245,6 @@ module.exports = class ComputeController extends KDController
 
           stacks = runMiddlewares.sync this, 'fetchStacks', stacks
 
-          # This is not required here ~ GG
-          @checkStackRevisions()
           @stateChecker?.start()
 
           @emit 'MachineDataUpdated'
@@ -821,30 +819,18 @@ module.exports = class ComputeController extends KDController
       reactor.dispatch 'STACK_UPDATED', stack
 
 
-
   checkGroupStacks: ->
 
     @checkStackRevisions()
 
-    { groupsController } = kd.singletons
-    { slug } = currentGroup = groupsController.getCurrentGroup()
+    # TMS-1919: This can stay as is, but this time it will create the first
+    # avaiable stacktemplate for who has no stacks yet. ~ GG
 
-    remote.api.JGroup.one { slug }, (err, _currentGroup) =>
-      return kd.warn err  if err
-      return kd.warn 'No such Group!'  unless _currentGroup
+    groupStacks = (@storage.get 'stacks').filter (stack) ->
+      stack.config?.groupStack
+    @createDefaultStack yes  if groupStacks.length is 0
 
-      currentGroup.stackTemplates = _currentGroup.stackTemplates
-      @emit 'GroupStackTemplatesUpdated'
-
-      # TMS-1919: This can stay as is, but this time it will create the first
-      # avaiable stacktemplate for who has no stacks yet. ~ GG
-
-      groupStacks = (@storage.get 'stacks').filter (stack) ->
-        stack.config?.groupStack
-
-      @createDefaultStack yes  if groupStacks.length is 0
-
-      @checkGroupStackRevisions()
+    @checkGroupStackRevisions()
 
 
   checkGroupStackRevisions: ->
