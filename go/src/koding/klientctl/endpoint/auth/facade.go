@@ -7,6 +7,7 @@ import (
 	"koding/kites/config"
 	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
+	conf "koding/klientctl/config"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/endpoint/team"
@@ -122,4 +123,16 @@ func newKonfig(base *url.URL) (*config.Konfig, error) {
 	}
 
 	return k, nil
+}
+
+// fixKlientEndpoint fixes klient latest endpoint - kloud always installs
+// klient from development/production channels, however kd needs to use
+// managed/devmanaed ones.
+//
+// This is a hack that eventually needs to be removed.
+func fixKlientEndpoint(e *config.Endpoints) {
+	if !e.KlientLatest.IsNil() {
+		e.KlientLatest = config.ReplaceCustomEnv(e.KlientLatest, conf.Environments.Env,
+			conf.Environments.KlientEnv)
+	}
 }
