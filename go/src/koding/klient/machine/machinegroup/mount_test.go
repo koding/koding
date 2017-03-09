@@ -353,11 +353,18 @@ func TestUmount(t *testing.T) {
 	shouldNotExist(mountIDs[2])
 
 	// Invalid identifier.
-	umountReq = &UmountRequest{
-		Identifier: "invalid",
+	invalidIDs := []string{
+		"invalid",
+		"00000000-0000-4000-0000-000000000000", // non -existing.
 	}
-	if umountRes, err = g.Umount(umountReq); err == nil {
-		t.Fatalf("want err != nil; got nil")
+
+	for _, invalidID := range invalidIDs {
+		umountReq = &UmountRequest{
+			Identifier: invalidID,
+		}
+		if umountRes, err = g.Umount(umountReq); err == nil {
+			t.Fatalf("want err != nil for identifier == %q; got nil", invalidID)
+		}
 	}
 }
 

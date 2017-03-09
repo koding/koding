@@ -358,16 +358,17 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 		}
 	}
 
+	// Get mount machine.
+	id, err := g.mount.MachineID(mountID)
+	if err != nil {
+		g.log.Error("Could not find mount with ID: %s", mountID)
+		return nil, err
+	}
+
 	// Stop mount synchronization routine.
 	if err := g.sync.Drop(mountID); err != nil {
 		g.log.Error("Cannot remove synced mount %s: %s", mountID, err)
 		return nil, err
-	}
-
-	// Get mount machine.
-	id, err := g.mount.MachineID(mountID)
-	if err != nil {
-		g.log.Error("Could not find machine ID for mount %s: %s", mountID, err)
 	}
 
 	var m mount.Mount
