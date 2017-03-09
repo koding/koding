@@ -1,6 +1,11 @@
 debug = (require 'debug') 'cs'
-globals = require 'globals'
+
 kd = require 'kd'
+Encoder = require 'htmlencode'
+
+remote  = require('../remote')
+globals = require 'globals'
+Machine = require './machine'
 
 
 module.exports = class ComputeStorage extends kd.Object
@@ -14,7 +19,26 @@ module.exports = class ComputeStorage extends kd.Object
 
   initialize: ->
 
-    @storage  = {}
+    @storage = {}
+
+    { userMachines, userStacks } = globals
+
+    machines = []
+    for machine in userMachines
+      machines.push new Machine { machine: remote.revive machine }
+
+    @set 'machines', machines
+
+    stacks = []
+    userStacks.forEach (stack) =>
+      stack = remote.revive stack
+      stack.title = Encoder.htmlDecode stack.title
+      stack.machines = stack.machines
+        .filter (mId) => @query 'machines', '_id', mId
+        .map    (mId) => @query 'machines', '_id', mId
+      stacks.push stack
+
+    @set 'stacks', stacks
 
     return this
 
@@ -23,10 +47,6 @@ module.exports = class ComputeStorage extends kd.Object
 
     debug 'set', type, data
     @storage[type] = data
-
-    switch type
-      when 'machines'
-        globals.userMachines = data
 
     return this
 

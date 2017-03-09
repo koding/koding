@@ -53,26 +53,27 @@ module.exports = class Machine extends KDObject
         options.machine = this
         require('../util/fs/fsitem').create options, callback
 
-    { computeController } = kd.singletons
+    # FIXME ~ GG
+    # { computeController } = kd.singletons
 
-    computeController.on "public-#{machine._id}", (event) =>
+    # computeController.on "public-#{machine._id}", (event) =>
 
-      unless event.status is @jMachine.status.state
+    #   unless event.status is @jMachine.status.state
 
-        @jMachine.setAt? 'status.state', event.status
-        @updateLocalData()
+    #     @jMachine.setAt? 'status.state', event.status
+    #     @updateLocalData()
 
-    computeController.on "revive-#{machine._id}", (machine) =>
+    # computeController.on "revive-#{machine._id}", (machine) =>
 
-      if machine?
-        # update machine data
-        @jMachine = machine
-        @updateLocalData()
-      else
-        @status = { state: Machine.State.Terminated }
-        @queryString = null
-        # FIXMERESET ~ GG
-        # computeController.reset yes
+    #   if machine?
+    #     # update machine data
+    #     @jMachine = machine
+    #     @updateLocalData()
+    #   else
+    #     @status = { state: Machine.State.Terminated }
+    #     @queryString = null
+    #     # FIXMERESET ~ GG
+    #     # computeController.reset yes
 
     @jMachine.on? 'update', =>
 

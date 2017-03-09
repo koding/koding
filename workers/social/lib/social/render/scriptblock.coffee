@@ -15,6 +15,7 @@ module.exports = (options = {}, callback) ->
   prefetchedFeeds     = null
   currentGroup        = null
   userMachines        = null
+  userStacks          = null
 # userEnvironmentData = null
   userId              = null
   userEmail           = null
@@ -40,6 +41,7 @@ module.exports = (options = {}, callback) ->
     userAccount          = JSON.stringify delegate, replacer
     combinedStorage      = JSON.stringify combinedStorage, replacer
     userMachines         = JSON.stringify userMachines, replacer
+    userStacks           = JSON.stringify userStacks, replacer
   # userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
     userId               = JSON.stringify userId, replacer
     userEmail            = JSON.stringify userEmail, replacer
@@ -62,6 +64,7 @@ module.exports = (options = {}, callback) ->
         userEmail: #{userEmail},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
+        userStacks: #{userStacks},
         combinedStorage: #{combinedStorage},
         userRoles: #{userRoles},
         userPermissions: #{userPermissions},
@@ -137,6 +140,12 @@ module.exports = (options = {}, callback) ->
       bongoModels.JMachine.some$ client, {}, (err, machines) ->
         console.log err  if err
         userMachines = machines or []
+        fin()
+
+    (fin) ->
+      bongoModels.JComputeStack.some$ client, {}, (err, stacks) ->
+        console.log err  if err
+        userStacks = stacks or []
         fin()
 
     # (fin) ->

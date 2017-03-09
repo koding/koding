@@ -208,6 +208,8 @@ module.exports = class ComputeController extends KDController
         callback null, _stacks
         return
 
+      debug 'cache not found, pushed to the queue', _stacks, @storage
+
       return  if (queue.push callback) > 1
 
       remote.api.JComputeStack.some {}, (err, stacks = []) =>
