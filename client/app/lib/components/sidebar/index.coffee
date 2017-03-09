@@ -62,9 +62,6 @@ module.exports = class Sidebar extends React.Component
 
       EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
 
-      EnvironmentFlux.actions.loadTeamStackTemplates()
-      EnvironmentFlux.actions.loadPrivateStackTemplates()
-
       EnvironmentFlux.actions.loadStacks().then =>
         @setState { isLoading: no }
 

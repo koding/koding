@@ -74,8 +74,6 @@ _bindStackEvents = ->
     computeController.on 'GroupStacksConsistent', ->
       reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
-    computeController.checkGroupStacks()
-
 
 _bindTemplateEvents = (stackTemplate) ->
 
@@ -367,38 +365,21 @@ loadTeamStackTemplates = ->
 
   { reactor } = kd.singletons
 
-  query = { group: getGroup().slug }
+  reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_BEGIN,    {}
+  reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_BEGIN, {}
 
-  reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_BEGIN, { query }
-
-  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
-
-    if err
-      return reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL, { query, err }
-
-    templates = templates.filter (t) -> t.accessLevel is 'group'
-
-    reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
-
-    templates.forEach (template) -> _bindTemplateEvents template
-
-
-loadPrivateStackTemplates = ->
-
-  { reactor } = kd.singletons
-
-  query = { group: getGroup().slug, originId: whoami()._id }
-
-  reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_BEGIN, { query }
-
-  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
+  kd.singletons.computeController.fetchStackTemplates (err, templates) ->
 
     if err
-      return reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { query, err }
+      reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL,    { err }
+      reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { err }
+      return
 
-    templates = templates.filter (t) -> t.accessLevel is 'private'
+    teamTemplates    = templates.filter (t) -> t.accessLevel is 'group'
+    privateTemplates = templates.filter (t) -> (t.originId is whoami()._id) and (t.accessLevel is 'private')
 
-    reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
+    reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS,    { templates: teamTemplates }
+    reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { templates: privateTemplates }
 
     templates.forEach (template) -> _bindTemplateEvents template
 
@@ -764,7 +745,6 @@ module.exports = {
   dispatchCollaborationInvitationRejected
   dispatchSharedVMInvitationRejected
   loadTeamStackTemplates
-  loadPrivateStackTemplates
   setMachineAlwaysOn
   setMachinePowerStatus
   createStackTemplate
