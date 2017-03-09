@@ -238,8 +238,8 @@ module.exports = class ComputeController extends KDController
           stacks.forEach (stack) =>
             stack.title    = Encoder.htmlDecode stack.title
             stack.machines = stack.machines
-              .filter (mId) => @storage.query 'machines', '_id', mId
-              .map    (mId) => @storage.query 'machines', '_id', mId
+              .filter (mId) => @storage.get 'machines', '_id', mId
+              .map    (mId) => @storage.get 'machines', '_id', mId
 
           @storage.set 'stacks', stacks
 
@@ -284,13 +284,13 @@ module.exports = class ComputeController extends KDController
 
 
   findMachineFromMachineId: (machineId) ->
-    return @storage.query 'machines', '_id', machineId
+    return @storage.get 'machines', '_id', machineId
 
   findMachineFromMachineUId: (machineUId) ->
-    return @storage.query 'machines', 'uid', machineUId
+    return @storage.get 'machines', 'uid', machineUId
 
   findStackFromStackId: (stackId) ->
-    return @storage.query 'stacks', '_id', stackId
+    return @storage.get 'stacks', '_id', stackId
 
   findStackFromMachineId: (machineId) ->
     for stack in @storage.get 'stacks'
@@ -298,7 +298,7 @@ module.exports = class ComputeController extends KDController
         return stack  if machine._id is machineId
 
   findStackFromTemplateId: (baseStackId) ->
-    return @storage.query 'stacks', 'baseStackId', baseStackId
+    return @storage.get 'stacks', 'baseStackId', baseStackId
 
   findMachineFromQueryString: (queryString) ->
 
@@ -858,14 +858,8 @@ module.exports = class ComputeController extends KDController
     return  if not stackTemplates?.length
 
     existents = 0
-
-    # TMS-1919: This is already written for multiple stacks, just a check
-    # might be required ~ GG
-
     for stackTemplate in stackTemplates
-      for stack in (@storage.get 'stacks') when stack.baseStackId is stackTemplate
-        existents++
-        break # only count one matched stack ~ GG
+      existents += (@storage.query 'stacks', 'baseStackId', stackTemplate).length
 
     if existents isnt stackTemplates.length
     then @emit 'GroupStacksInconsistent'

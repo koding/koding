@@ -103,10 +103,10 @@ routeToMachine = (options = {}) ->
     cc.ready ->
 
       if label
-        [ machine ] = cc.storage.query 'machines', 'label', label
+        machine = cc.storage.get 'machines', 'label', label
         debug 'machine with label', { label, machine }
       else if uid
-        [ machine ] = cc.storage.query 'machines', 'uid', uid
+        machine = cc.storage.get 'machines', 'uid', uid
         debug 'machine with uid', { uid, machine }
 
       unless machine

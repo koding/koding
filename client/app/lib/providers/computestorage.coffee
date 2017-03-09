@@ -66,7 +66,13 @@ module.exports = class ComputeStorage extends kd.Object
     return res
 
 
-  get: (type) -> @storage[type] ? []
+  get: (type, key, value) ->
+
+    if not key and not value
+      return @storage[type] ? []
+
+    [ item ] = @query type, key, value
+    return item
 
 
   push: (options = {}) ->
