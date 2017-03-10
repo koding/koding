@@ -1,4 +1,4 @@
-debug = (require 'debug') 'remote:jcredential'
+debug = (require 'debug') 'remote:api:jcredential'
 remote = require('../remote')
 
 
