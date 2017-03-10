@@ -18,27 +18,26 @@ module.exports = class CredentialsController extends kd.Controller
     queue = {
       credentials  : (next) -> helpers.loadCredentials stack, next
       requirements : (next) -> helpers.loadRequirements stack, next
-      kdCmd        : (next) -> helpers.getKDCmd next
     }
 
     async.parallel queue, (err, results) ->
       return  if showError err
 
-      { credentials, requirements, kdCmd } = results
-      callback credentials, requirements, kdCmd
+      { credentials, requirements } = results
+      callback credentials, requirements
 
 
   loadData: -> @fetchData @bound 'setup'
 
 
-  setup: (credentials, requirements, kdCmd) ->
+  setup: (credentials, requirements) ->
 
     stack = @getData()
     { container } = @getOptions()
 
     @credentialsPage = new CredentialsPageView {}, {
       stack
-      credentials  : _.extend { kdCmd }, credentials
+      credentials
       requirements
     }
     @errorPage = new CredentialsErrorPageView {}, { stack }
@@ -61,13 +60,13 @@ module.exports = class CredentialsController extends kd.Controller
       @_credentials[item.identifier] = item
 
 
-  refresh: (credentials, requirements, kdCmd) ->
+  refresh: (credentials, requirements) ->
 
     stack = @getData()
 
     @credentialsPage.setData {
       stack
-      credentials  : _.extend { kdCmd }, credentials
+      credentials
       requirements
     }
 
