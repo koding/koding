@@ -471,6 +471,8 @@ func (k *Klient) RegisterMethods() {
 	// klient os method(s)
 	k.handleWithSub("os.home", kos.Home)
 	k.handleWithSub("os.currentUsername", kos.CurrentUsername)
+	k.handleWithSub("os.exec", kos.Exec)
+	k.handleWithSub("os.kill", kos.Kill)
 
 	// Klient Info method(s)
 	k.handleWithSub("klient.info", info.Info)
