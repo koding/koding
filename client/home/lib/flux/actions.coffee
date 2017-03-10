@@ -74,7 +74,7 @@ checkFinishedSteps = ->
   unobserve = reactor.observe EnvironmentGetters.stacks, (_stacks) ->
     checkStacksForBuild _stacks, unobserve
 
-  checkCredentialSteps()
+  checkCredentialSteps()  unless finishedSteps['enterCredentials']
 
   checkIntegrationSteps()
 
