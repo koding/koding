@@ -521,6 +521,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
 	k.kite.HandleFunc("machine.mount.head", machinegroup.KiteHandlerHeadMount(k.machines))
 	k.kite.HandleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
+	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
 

@@ -129,6 +129,31 @@ func KiteHandlerAddMount(g *Group) kite.HandlerFunc {
 	}
 }
 
+// KiteHandlerUpdateIndex creates a kite handler function that, when called,
+// invokes machine group UpdateIndex method.
+func KiteHandlerUpdateIndex(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &UpdateIndexRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.UpdateIndex(req)
+		if err != nil {
+			// TODO(ppknap): create errors file similar to kloud/stack/errors.
+			return nil, &kite.Error{
+				Type:    "machinesError",
+				Message: err.Error(),
+			}
+		}
+
+		return res, nil
+	}
+}
+
 // KiteHandlerListMount creates a kite handler function that, when called,
 // invokes machine group ListMount method.
 func KiteHandlerListMount(g *Group) kite.HandlerFunc {

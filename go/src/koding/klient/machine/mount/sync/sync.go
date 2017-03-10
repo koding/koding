@@ -15,6 +15,7 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/notify"
+	"koding/klient/machine/transport/rsync"
 
 	"github.com/koding/logging"
 )
@@ -174,8 +175,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 	}
 
 	// Create directory structure if it doesn't exist.
-	cacheDir := filepath.Join(s.opts.WorkDir, "data")
-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+	if err := os.MkdirAll(s.CacheDir(), 0755); err != nil {
 		return nil, err
 	}
 
@@ -186,7 +186,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 	}
 
 	// Check current state of synchronization and set promises.
-	s.idx.Merge(cacheDir)
+	s.UpdateIndex()
 
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
@@ -196,7 +196,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		MountID:  mountID,
 		Mount:    m,
 		Cache:    s.a,
-		CacheDir: cacheDir,
+		CacheDir: s.CacheDir(),
 		DiskInfo: s.diskInfo(),
 		Index:    s.idx,
 	})
@@ -207,7 +207,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 	// Create file synchronization object.
 	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
 		Mount:         m,
-		CacheDir:      cacheDir,
+		CacheDir:      s.CacheDir(),
 		ClientFunc:    s.opts.ClientFunc,
 		SSHFunc:       s.opts.SSHFunc,
 		IndexSyncFunc: s.indexSync(),
@@ -238,6 +238,58 @@ func (s *Sync) Info() *Info {
 		Queued:      items,
 		Syncing:     items - queued,
 	}
+}
+
+// CacheDir returns the name of mount cache directory.
+func (s *Sync) CacheDir() string {
+	return filepath.Join(s.opts.WorkDir, "data")
+}
+
+// UpdateIndex rescans the cache directory and sets all recorded changes to
+// managed index. This function allows to express the current state of
+// synchronized files inside index structure.
+func (s *Sync) UpdateIndex() {
+	s.idx.Merge(s.CacheDir())
+}
+
+// FetchCmd creates a strategy with prefetch command to run.
+func (s *Sync) FetchCmd() (count, diskSize int64, cmd *rsync.Command, err error) {
+	spv := client.NewSupervised(s.opts.ClientFunc, 30*time.Second)
+	// Get remote username.
+	username, err := spv.CurrentUser()
+	if err != nil {
+		return 0, 0, nil, err
+	}
+
+	// Get remote host and port.
+	host, port, err := s.opts.SSHFunc()
+	if err != nil {
+		return 0, 0, nil, err
+	}
+
+	cmd = &rsync.Command{
+		Download:        true,
+		SourcePath:      s.m.RemotePath + "/",
+		DestinationPath: s.CacheDir() + "/",
+		Username:        username,
+		Host:            host,
+		SSHPort:         port,
+	}
+
+	// Look for git VCS.
+	if n, ok := s.idx.LookupAll(".git"); ok && n.IsDir() {
+		// Download only git data.
+		cmd.SourcePath += ".git/"
+		cmd.DestinationPath += ".git/"
+
+		count = int64(n.CountAll(-1))
+		diskSize = n.DiskSizeAll(-1)
+	} else {
+		count = int64(s.idx.CountAll(-1))
+		diskSize = s.idx.DiskSizeAll(-1)
+	}
+
+	return count, diskSize, cmd, nil
 }
 
 // Drop closes synced mount and cleans up all resources acquired by it.
