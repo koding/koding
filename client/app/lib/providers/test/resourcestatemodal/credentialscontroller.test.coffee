@@ -14,7 +14,6 @@ describe 'CredentialsController', ->
     credentials : { custom : [ '123' ] }
   credentials   = { provider : 'aws', items : [] }
   requirements  = { provider : 'userInput', items : [] }
-  kdCmd         = ''
 
   beforeEach ->
 
@@ -26,7 +25,7 @@ describe 'CredentialsController', ->
     it 'should show credentials page if error page requests it', ->
 
       controller = new CredentialsController { container }, stack
-      controller.setup credentials, requirements, kdCmd
+      controller.setup credentials, requirements
 
       controller.errorPage.emit 'CredentialsRequested'
 
@@ -37,7 +36,7 @@ describe 'CredentialsController', ->
     it 'requests instructions page from parent controller if credentials page asks for that', ->
 
       controller = new CredentialsController { container }, stack
-      controller.setup credentials, requirements, kdCmd
+      controller.setup credentials, requirements
 
       listener = { callback: kd.noop }
       spy = expect.spyOn listener, 'callback'
@@ -52,7 +51,7 @@ describe 'CredentialsController', ->
     it 'should show credentials page by default', ->
 
       controller = new CredentialsController { container }, stack
-      controller.setup credentials, requirements, kdCmd
+      controller.setup credentials, requirements
       controller.show()
 
       activePane = container.getActivePane()
@@ -65,7 +64,7 @@ describe 'CredentialsController', ->
     it 'should show error page', ->
 
       controller = new CredentialsController { container }, stack
-      controller.setup credentials, requirements, kdCmd
+      controller.setup credentials, requirements
       controller.show()
       controller.showError 'Error!'
 
@@ -123,7 +122,7 @@ describe 'CredentialsController', ->
     it 'should show error page if error is passed', ->
 
       controller = new CredentialsController { container }, stack
-      controller.setup credentials, requirements, kdCmd
+      controller.setup credentials, requirements
 
       controller.handleSubmitResult 'Error!'
 
@@ -136,7 +135,7 @@ describe 'CredentialsController', ->
       identifiers = [ { aws : [ '456' ] } ]
 
       controller = new CredentialsController { container }, stack
-      controller.setup credentials, requirements, kdCmd
+      controller.setup credentials, requirements
 
       controller.on 'StartBuild', (_identifiers) ->
         expect(_identifiers['aws']).toEqual [ '456' ]
