@@ -132,9 +132,12 @@ var _ fuseutil.FileSystem = (*Filesystem)(nil)
 
 // NewFilesystem creates new Filesystem value.
 func NewFilesystem(opts *Opts) (*Filesystem, error) {
-	if err := os.MkdirAll(opts.MountDir, 0755); err != nil {
-		return nil, err
-	}
+	// Best-effort attempt of unmounting already existing mount.
+	_ = Umount(opts.MountDir)
+
+	// Ignore mkdir errors since it can return `file exists` error. Other errors
+	// will cause FUSE backend fail.
+	_ = os.MkdirAll(opts.MountDir, 0755)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -148,9 +151,6 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		seqHandle: uint64(3),
 		handles:   make(map[fuseops.HandleID]*os.File),
 	}
-
-	// Best-effort attempt of unmounting already existing mount.
-	_ = Umount(fs.MountDir)
 
 	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
 	if err != nil {
