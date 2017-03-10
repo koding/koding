@@ -42,27 +42,27 @@ func TestRsyncArgs(t *testing.T) {
 	}{
 		"file added locally": {
 			Meta:     index.ChangeMetaAdd | index.ChangeMetaLocal,
-			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "/src/", "usr@host:/dst/"},
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "/A/", "usr@host:/B/"},
 		},
 		"file updated locally": {
 			Meta:     index.ChangeMetaUpdate | index.ChangeMetaLocal,
-			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "/src/", "usr@host:/dst/"},
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "/A/", "usr@host:/B/"},
 		},
 		"file removed locally": {
 			Meta:     index.ChangeMetaRemove | index.ChangeMetaLocal,
-			Expected: []string{"-zlptgoDd", "--delete", "--include='/x.txt'", "--exclude='*'", "/src/", "usr@host:/dst/"},
+			Expected: []string{"-zlptgoDd", "--delete", "--include='/x.txt'", "--exclude='*'", "/A/", "usr@host:/B/"},
 		},
 		"file added remotely": {
 			Meta:     index.ChangeMetaAdd | index.ChangeMetaRemote,
-			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "usr@host:/src/", "/dst/"},
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "usr@host:/B/", "/A/"},
 		},
 		"file updated remotely": {
 			Meta:     index.ChangeMetaUpdate | index.ChangeMetaRemote,
-			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "usr@host:/src/", "/dst/"},
+			Expected: []string{"-zlptgoDd", "--include='/x.txt'", "--exclude='*'", "usr@host:/B/", "/A/"},
 		},
 		"file removed remotely": {
 			Meta:     index.ChangeMetaRemove | index.ChangeMetaRemote,
-			Expected: []string{"-zlptgoDd", "--delete", "--include='/x.txt'", "--exclude='*'", "usr@host:/src/", "/dst/"},
+			Expected: []string{"-zlptgoDd", "--delete", "--include='/x.txt'", "--exclude='*'", "usr@host:/B/", "/A/"},
 		},
 	}
 
@@ -74,8 +74,8 @@ func TestRsyncArgs(t *testing.T) {
 			var buf = &bytes.Buffer{}
 			cmd := &rsync.Command{
 				Cmd:             dumpArgs(buf),
-				SourcePath:      "/src",
-				DestinationPath: "/dst",
+				SourcePath:      "/A",
+				DestinationPath: "/B",
 				Username:        "usr",
 				Host:            "host",
 				Change:          index.NewChange("x.txt", test.Meta),
