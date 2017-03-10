@@ -23,9 +23,6 @@ type JSession struct {
 	// client Id
 	ClientID string `json:"clientId,omitempty"`
 
-	// data
-	Data interface{} `json:"data,omitempty"`
-
 	// foreign auth
 	ForeignAuth *JSessionForeignAuth `json:"foreignAuth,omitempty"`
 
@@ -55,6 +52,9 @@ type JSession struct {
 
 	// session began
 	SessionBegan strfmt.Date `json:"sessionBegan,omitempty"`
+
+	// session data
+	SessionData interface{} `json:"sessionData,omitempty"`
 
 	// terminal Id
 	TerminalID string `json:"terminalId,omitempty"`

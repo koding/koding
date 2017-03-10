@@ -33,12 +33,12 @@ import (
 	"koding/remoteapi/client/j_reward"
 	"koding/remoteapi/client/j_reward_campaign"
 	"koding/remoteapi/client/j_session"
-	"koding/remoteapi/client/j_snapshot"
 	"koding/remoteapi/client/j_stack_template"
 	"koding/remoteapi/client/j_team_invitation"
 	"koding/remoteapi/client/j_url_alias"
 	"koding/remoteapi/client/j_user"
 	"koding/remoteapi/client/j_workspace"
+	"koding/remoteapi/client/kloud"
 	"koding/remoteapi/client/o_auth"
 	"koding/remoteapi/client/s3"
 	"koding/remoteapi/client/shared_machine"
@@ -115,8 +115,6 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Koding {
 
 	cli.JSession = j_session.New(transport, formats)
 
-	cli.JSnapshot = j_snapshot.New(transport, formats)
-
 	cli.JStackTemplate = j_stack_template.New(transport, formats)
 
 	cli.JTeamInvitation = j_team_invitation.New(transport, formats)
@@ -126,6 +124,8 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Koding {
 	cli.JUser = j_user.New(transport, formats)
 
 	cli.JWorkspace = j_workspace.New(transport, formats)
+
+	cli.Kloud = kloud.New(transport, formats)
 
 	cli.OAuth = o_auth.New(transport, formats)
 
@@ -198,8 +198,6 @@ type Koding struct {
 
 	JSession *j_session.Client
 
-	JSnapshot *j_snapshot.Client
-
 	JStackTemplate *j_stack_template.Client
 
 	JTeamInvitation *j_team_invitation.Client
@@ -209,6 +207,8 @@ type Koding struct {
 	JUser *j_user.Client
 
 	JWorkspace *j_workspace.Client
+
+	Kloud *kloud.Client
 
 	OAuth *o_auth.Client
 
@@ -283,8 +283,6 @@ func (c *Koding) SetTransport(transport runtime.ClientTransport) {
 
 	c.JSession.SetTransport(transport)
 
-	c.JSnapshot.SetTransport(transport)
-
 	c.JStackTemplate.SetTransport(transport)
 
 	c.JTeamInvitation.SetTransport(transport)
@@ -294,6 +292,8 @@ func (c *Koding) SetTransport(transport runtime.ClientTransport) {
 	c.JUser.SetTransport(transport)
 
 	c.JWorkspace.SetTransport(transport)
+
+	c.Kloud.SetTransport(transport)
 
 	c.OAuth.SetTransport(transport)
 
