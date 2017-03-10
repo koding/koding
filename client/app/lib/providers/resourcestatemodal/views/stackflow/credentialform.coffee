@@ -100,9 +100,7 @@ module.exports = class CredentialForm extends JView
 
     return @cancelNew.show()  if items.length > 0
 
-    @setClass 'form-visible'
-    @newHeader.show()
-    @header.hide()
+    @onCreateNew()
     @cancelNew.hide()
 
 
