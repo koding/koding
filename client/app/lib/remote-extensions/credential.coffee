@@ -23,3 +23,9 @@ module.exports = class JCredential extends remote.api.JCredential
         sendDataDogEvent 'ApplicationError', { prefix: 'app-error' }
 
       callback err, credential
+
+
+  @one = ->
+    debug 'one called'
+    console.trace()
+    super
