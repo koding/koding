@@ -40,6 +40,7 @@ func (e *Event) Exec() error {
 	}
 
 	var change = e.ev.Change()
+
 	err = (&rsync.Command{
 		SourcePath:      e.parent.local,
 		DestinationPath: e.parent.remote,
@@ -50,9 +51,13 @@ func (e *Event) Exec() error {
 		Change:          change,
 	}).Run(e.ev.Context())
 
+	if err != nil {
+		return err
+	}
+
 	e.parent.indexSync(change)
 
-	return err
+	return nil
 }
 
 // String implements fmt.Stringer interface. It pretty prints internal event.

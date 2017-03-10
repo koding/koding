@@ -254,8 +254,9 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 
 		// Merge will not report directory updates because this means that file
 		// inside directory was added/removed and this file should be reported.
-		// Howewer we want to detect permission changes on all files.
+		// Howewer we want to detect permission changes in all files.
 		if mode.IsDir() && mode == info.Mode() {
+			entry.SwapPromise(0, EntryPromiseVirtual)
 			return
 		}
 
