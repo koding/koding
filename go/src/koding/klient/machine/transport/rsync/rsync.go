@@ -113,6 +113,10 @@ func (c *Command) Run(ctx context.Context) error {
 
 		meta := c.Change.Meta()
 		c.Download = meta&index.ChangeMetaLocal == 0 && meta&index.ChangeMetaRemote != 0
+		if c.Download {
+			c.SourcePath, c.DestinationPath = c.DestinationPath, c.SourcePath
+		}
+
 		if meta&index.ChangeMetaRemove != 0 {
 			c.Cmd.Args = append(c.Cmd.Args, "--delete")
 		}
