@@ -84,6 +84,7 @@ module.exports = class IDEContentSearchResultView extends kd.View
 
       fileOptions  = { file, contents, switchIfOpen: yes }
 
-      ideApp = envDataProvider.getIDEFromUId @machine.uid
+      { appManager } = kd.singletons
+      ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', @machine.uid
       ideApp?.openFile fileOptions, (editorPane) ->
         editorPane?.goToLine lineNumber

@@ -1,7 +1,6 @@
 kookies            = require 'kookies'
 getGroup           = require 'app/util/getGroup'
 whoami             = require 'app/util/whoami'
-envDataProvider    = require 'app/userenvironmentdataprovider'
 kd                 = require 'kd'
 articlize          = require 'indefinite-article'
 KDModalView        = kd.ModalView
@@ -115,12 +114,13 @@ module.exports = class NotificationController extends KDObject
     @on 'MachineListUpdated', (data = {}) ->
 
       { machineUId, action, permanent } = data
+      { appManager } = kd.singletons
 
       switch action
         when 'removed'
           EnvironmentFlux.actions.dispatchSharedVMInvitationRejected machineUId
-          if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent
-            ideInstance.showUserRemovedModal()
+          ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
+          ideInstance.showUserRemovedModal()  if ideInstance and permanent
 
       # FIXMERESET ~ GG
       # computeController.reset yes

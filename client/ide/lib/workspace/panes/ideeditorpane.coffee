@@ -31,7 +31,8 @@ module.exports = class IDEEditorPane extends IDEPane
     @createEditor()
 
     file.once 'fs.delete.finished', ->
-      ideApp = envDataProvider.getIDEFromUId file.machine.uid
+      { appManager } = kd.singletons
+      ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', file.machine.uid
       ideApp?.handleFileDeleted file
 
     @errorOnSave = no

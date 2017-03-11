@@ -178,19 +178,6 @@ module.exports =
           return workspace
 
 
-  getIDEFromUId: (uid) ->
-
-    { IDE } = kd.singletons.appManager.appControllers
-
-    return null  unless IDE
-
-    for i in IDE.instances when i.mountedMachineUId is uid
-      instance = i
-      break
-
-    return instance
-
-
   removeCollaborationMachine: (machine) ->
 
     @removeMachine 'collaboration', machine
