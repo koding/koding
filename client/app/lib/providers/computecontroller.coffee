@@ -13,7 +13,6 @@ isLoggedIn           = require 'app/util/isLoggedIn'
 actions              = require 'app/flux/environment/actions'
 
 remote               = require('../remote')
-Machine              = require './machine'
 KiteCache            = require '../kite/kitecache'
 ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
@@ -59,6 +58,8 @@ module.exports = class ComputeController extends KDController
 
     @ui = ComputeController_UI
     @storage = new ComputeStorage
+
+    @_trials = {}
 
     mainController.ready =>
 
@@ -221,7 +222,7 @@ module.exports = class ComputeController extends KDController
           queue = []
           return
 
-        remote.api.JMachine.some {}, (err, _machines = []) =>
+        remote.api.JMachine.some {}, (err, machines = []) =>
 
           debug 'machines from remote', err, stacks
 
@@ -230,9 +231,6 @@ module.exports = class ComputeController extends KDController
             queue = []
             return
 
-          machines = []
-          for machine in _machines
-            machines.push machine = new Machine { machine }
           @storage.set 'machines', machines
 
           stacks.forEach (stack) =>
@@ -257,14 +255,14 @@ module.exports = class ComputeController extends KDController
 
     remote.api.JMachine.one idOrUid, (err, machine) ->
       if showError err then callback err
-      else if machine? then callback null, new Machine { machine }
+      else if machine? then callback null, machine
 
 
   queryMachines: (query = {}, callback = kd.noop) ->
 
     remote.api.JMachine.some query, (err, machines) ->
       if showError err then callback err
-      else callback null, (new Machine { machine } for machine in machines)
+      else callback null, machines
 
 
   findStackFromRemoteData: (options) ->
@@ -696,27 +694,25 @@ module.exports = class ComputeController extends KDController
   # Utils beyond this point
   #
 
-  triggerReviveFor: (machineId, asStack = no) ->
+  triggerReviveFor: (instanceId, asStack = no) ->
 
-    return  unless machineId
+    return  unless instanceId
 
-    kd.info "Reviving #{if asStack then 'stack' else 'machine'} #{machineId}..."
+    kd.info "Reviving #{if asStack then 'stack' else 'machine'} #{instanceId}..."
 
     @fetchStacks =>
 
       if asStack
-        if stack = @findStackFromStackId machineId
-          # FIXMERESET ~ GG
-          @reset yes, =>
-            stack.machines.forEach (machine) =>
-              @triggerReviveFor machine._id
-          return
+        remote.api.JComputeStack.one { _id: instanceId }, (err, stack) ->
+          stack.machines.forEach (machine) =>
+            @triggerReviveFor machine._id
+        return
 
-      remote.api.JMachine.one machineId, (err, machine) =>
-        kd.warn "Revive failed for #{machineId}: ", err  if err
-        @invalidateCache machineId
-        @emit "revive-#{machineId}", machine
-        kd.info "Revive triggered for #{machineId}", machine
+      remote.api.JMachine.one instanceId, (err, machine) =>
+        kd.warn "Revive failed for #{instanceId}: ", err  if err
+        @invalidateCache instanceId
+        @emit "revive-#{instanceId}", machine
+        kd.info "Revive triggered for #{instanceId}", machine
 
 
   invalidateCache: (machineId) ->
@@ -902,7 +898,7 @@ module.exports = class ComputeController extends KDController
 
     (@storage.get 'machines').forEach (machine) =>
 
-      { oldOwner, permissionUpdated } = machine.jMachine.meta
+      { oldOwner, permissionUpdated } = machine.meta
 
       return  unless oldOwner
       return  if not machine.isRunning()

@@ -82,7 +82,7 @@ describe 'StackFlowController', ->
 
     it 'should call build stack controller to show event error', ->
 
-      machine = { status : { state : 'Building' }, jMachine : { _id : '1' } }
+      machine = { status : { state : 'Building' } }
       stack   = { status : { state : 'Building' }, _id : '1' }
       error   = 'Build error'
 
@@ -96,7 +96,7 @@ describe 'StackFlowController', ->
 
     it 'should call build stack controller to show build progress', ->
 
-      machine = { status : { state : 'Building' }, jMachine : { _id : '1' } }
+      machine = { status : { state : 'Building' } }
       stack   = { status : { state : 'Building' }, _id : '1' }
 
       percentage = 50
@@ -113,7 +113,7 @@ describe 'StackFlowController', ->
 
     it 'should emit ResourceBecameRunning if event status is Running', ->
 
-      machine = { status : { state : 'Building' }, jMachine : { _id : '1' } }
+      machine = { status : { state : 'Building' } }
       stack   = { status : { state : 'Building' }, _id : '1' }
 
       controller = new StackFlowController { container }, { machine, stack }
@@ -127,7 +127,7 @@ describe 'StackFlowController', ->
 
     it 'should not handle event with another stack id', ->
 
-      machine = { status : { state : 'NotInitialized' }, jMachine : { _id : '1' } }
+      machine = { status : { state : 'NotInitialized' } }
       stack   = { status : { state : 'NotInitialized' }, _id : '1' }
 
       controller = new StackFlowController { container }, { machine, stack }

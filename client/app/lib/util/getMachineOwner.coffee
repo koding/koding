@@ -1,13 +1,12 @@
 remote = require 'app/remote'
 
 
-module.exports = getMachineOwner = (machine) ->
+module.exports = getMachineOwner = (_machine) ->
 
-  switch machine.get 'provider'
+  switch _machine.get 'provider'
     when 'managed'
-      return machine.get('credential')
+      return _machine.get 'credential'
     else # Use users array for other types of providers ~ GG
-      jMachine = remote.revive machine.toJS()
-
-      for user in jMachine.users when user.owner
+      machine = remote.revive _machine.toJS()
+      for user in machine.users when user.owner
         return user.username

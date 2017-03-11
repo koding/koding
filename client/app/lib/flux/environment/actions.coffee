@@ -123,7 +123,7 @@ loadMachines = do (isPayloadUsed = no) -> ->
       machines = computeController.storage.get 'machines'
 
       data = {
-        own: machines.map (machine) -> { machine: machine.jMachine }
+        own: machines.map (machine) -> { machine }
         shared: []
         collaboration: []
       }
@@ -215,18 +215,18 @@ rejectInvitation = (machine) ->
   ])
 
 
-acceptInvitation = (machine) ->
+acceptInvitation = (_machine) ->
 
   { router, machineShareManager, socialapi, reactor } = kd.singletons
 
-  uid = machine.get 'uid'
+  uid = _machine.get 'uid'
 
-  invitation  = machineShareManager.get uid
+  invitation = machineShareManager.get uid
   machineShareManager.unset uid
 
-  jMachine    = remote.revive machine.toJS()
+  machine = remote.revive _machine.toJS()
 
-  jMachine.approve (err) ->
+  machine.approve (err) ->
 
     return showError err  if err
 
@@ -638,7 +638,7 @@ loadMachineSharedUsers = (machineId) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  machine.jMachine.reviveUsers { permanentOnly : yes }, (err, users = []) ->
+  machine.reviveUsers { permanentOnly : yes }, (err, users = []) ->
     reactor.dispatch actions.LOAD_MACHINE_SHARED_USERS, { id : machineId, users }
 
 

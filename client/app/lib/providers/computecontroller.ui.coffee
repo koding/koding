@@ -270,9 +270,9 @@ module.exports = class ComputeControllerUI
 
     { force, machine, dontAskAgain } = options
 
-    machine               ?= {}
-    { provider, jMachine } = machine
-    machineName            = machine.getName?() ? 'a machine'
+    machine     ?= {}
+    { provider } = machine
+    machineName  = machine.getName?() ? 'a machine'
 
     return callback()  if force
 
@@ -300,7 +300,7 @@ module.exports = class ComputeControllerUI
           title        : "Permission fix required for #{machineName}"
           message      : "
             <p>You don't have access to this Machine (<strong>#{machineName}</strong>).
-            It belonged to <strong>@#{jMachine?.meta?.oldOwner}</strong></p>
+            It belonged to <strong>@#{machine.meta?.oldOwner}</strong></p>
 
             <p>This is because you removed this user from your team.
             You need to fix permissions to proceed.</p>

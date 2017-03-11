@@ -5,7 +5,6 @@ nick            = require 'app/util/nick'
 showError       = require 'app/util/showError'
 remote          = require 'app/remote'
 actions         = require 'app/flux/environment/actions'
-Machine         = require 'app/providers/machine'
 lazyrouter      = require 'app/lazyrouter'
 
 
@@ -96,7 +95,7 @@ routeToMachine = (options = {}) ->
   cc = kd.singletons.computeController
   { machine, label, uid } = options
 
-  if machine and machine instanceof Machine
+  if machine
     loadIDE { machine }
 
   else
@@ -117,7 +116,7 @@ routeToMachine = (options = {}) ->
           kd.getSingleton('router').handleRoute "/IDE/#{machine.label}"
           return
 
-      # if machine.isPermanent() or machine.jMachine.meta?.oldOwner
+      # if machine.isPermanent() or machine.meta?.oldOwner
       #   identifier = machine.uid
       # kd.getSingleton('router').handleRoute "/IDE/#{identifier}"
 

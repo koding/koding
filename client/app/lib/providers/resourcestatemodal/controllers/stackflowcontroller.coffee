@@ -5,7 +5,6 @@ BuildStackController = require './buildstackcontroller'
 BuildStackHeaderView = require '../views/stackflow/buildstackheaderview'
 BaseErrorPageView = require '../views/baseerrorpageview'
 WizardSteps = require '../views/stackflow/wizardsteps'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 helpers = require '../helpers'
 constants = require '../constants'
 showError = require 'app/util/showError'
@@ -83,7 +82,7 @@ module.exports = class StackFlowController extends kd.Controller
     { status, percentage, message, error } = event
 
     { machine, stack } = @getData()
-    machineId = machine.jMachine._id
+    machineId = machine._id
 
     return  unless helpers.isTargetEvent event, stack
 

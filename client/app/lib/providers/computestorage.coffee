@@ -5,7 +5,6 @@ Encoder = require 'htmlencode'
 
 remote  = require('../remote')
 globals = require 'globals'
-Machine = require './machine'
 
 
 module.exports = class ComputeStorage extends kd.Object
@@ -28,7 +27,7 @@ module.exports = class ComputeStorage extends kd.Object
     { userMachines, userStacks } = globals
 
     @set 'machines', userMachines.map (machine) ->
-      return new Machine { machine: remote.revive machine }
+      return remote.revive machine
 
     @set 'stacks', userStacks.map (stack) =>
       stack = remote.revive stack

@@ -13,9 +13,9 @@ MemoryFsKlient = require 'app/kite/kites/memoryfsklient'
 # thinking about making network requests.
 module.exports = TestMachineMiddleware =
 
-  Machine:
+  JMachine:
     getBaseKite: ->
-      if isTestMachine @getData()
+      if isTestMachine this
         return @_mockKlient  if @_mockKlient
         @_mockKlient = new MemoryFsKlient
         @_mockKlient.setTransport()
@@ -23,9 +23,8 @@ module.exports = TestMachineMiddleware =
 
   ComputeController:
     create: (options, callback) ->
-      Machine = require 'app/providers/machine'
       if isTestMachine options.machine
-        @_testMachine = new Machine { machine: options.machine }
+        @_testMachine = options.machine
         return callback null, assign {}, options, { shouldStop: yes }
 
       return callback null, options
