@@ -1,6 +1,5 @@
 kd      = require 'kd'
 helpers = require './helpers'
-Machine = require '../machine'
 
 
 # The default delay (in seconds) that ManagedKiteChecker will wait on
@@ -117,10 +116,8 @@ module.exports = class ManagedKiteChecker extends kd.Object
     listener = @_getListener()
 
     # Create a machine for this kite.
-    createMachine kite, (err, jMachine) =>
+    createMachine kite, (err, machine) =>
       return kd.error err  if err
-
-      machine = new Machine { machine: jMachine }
 
       # Get the klient kite, and the info from that klient so we
       # can popup a Provider specific modal

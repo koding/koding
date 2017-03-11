@@ -71,54 +71,6 @@ module.exports = {
         ]
       },
       '_maxListeners': 10,
-      'jMachine': {
-        'watchers': {},
-        'bongo_': {
-          'constructorName': 'JMachine',
-          'instanceId': 'cf27e4f8a927e3af48bc89297472a380'
-        },
-        'uid': 'utta2eac5ad0',
-        'domain': 'utta2eac5ad0.turunc',
-        'provider': 'aws',
-        'label': 'mymachine_1',
-        'slug': 'mymachine-1',
-        'provisioners': [],
-        'credential': '2f49083619c06a9f0a6039df83907748',
-        'users': [
-          {
-            'id': '569e54e73577d1b63864cc9e',
-            'sudo': true,
-            'owner': true,
-            'username': 'turunc'
-          }
-        ],
-        'groups': [
-          {
-            'id': '56aa03f83a7307cd51c34047'
-          }
-        ],
-        'createdAt': '2016-01-28T13:10:01.910Z',
-        'status': {
-          'state': 'NotInitialized',
-          'modifiedAt': '2016-01-28T13:10:01.910Z'
-        },
-        'meta': {
-          'type': 'aws',
-          'region': 'us-east-1',
-          'instance_type': 't2.nano',
-          'storage_size': 8,
-          'assignedLabel': 'mymachine_1'
-        },
-        'assignee': {
-          'inProgress': false,
-          'assignedAt': '2016-01-28T13:10:01.910Z'
-        },
-        'generatedFrom': {
-          'templateId': '56aa08f0a6e74bce51cc885f',
-          'revision': 'a58e8b8f51dc70e5f7316dccacfb8a05eaad9b14'
-        },
-        '_id': '56aa1329a6e74bce51cc886e'
-      },
       'label': 'mymachine_1',
       '_id': '56aa1329a6e74bce51cc886e',
       'provisioners': [],

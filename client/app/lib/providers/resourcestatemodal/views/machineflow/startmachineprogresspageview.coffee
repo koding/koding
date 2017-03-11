@@ -33,7 +33,7 @@ module.exports = class StartMachineProgressPageView extends JView
         </header>
         <section class="main">
           <div class="background"></div>
-          <h2>Spinning up {{ #(jMachine.label)}}</h2>
+          <h2>Spinning up {{ #(label)}}</h2>
           <p>We're turning on your VM. Once it is running you can get to coding.</p>
           <div class="progressbar-wrapper">
             {{> @progressBar}}

@@ -3,7 +3,6 @@ PageContainer = require '../views/pagecontainer'
 StackFlowController = require './stackflowcontroller'
 MachineFlowController = require './machineflowcontroller'
 NoStackPageView = require '../views/nostackpageview'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 module.exports = class ResourceStateController extends kd.Controller
 
@@ -22,7 +21,7 @@ module.exports = class ResourceStateController extends kd.Controller
 
     { computeController } = kd.singletons
     computeController.ready =>
-      machineId = machine.jMachine._id
+      machineId = machine.getId()
       stack     = computeController.findStackFromMachineId machineId
       return kd.log 'ResourceStateController: stack not found!'  unless stack
 
@@ -85,9 +84,9 @@ module.exports = class ResourceStateController extends kd.Controller
   onResourceBecameRunning: (reason) ->
 
     machine = @getData()
-    { appManager } = kd.singletons
+    { computeController, appManager } = kd.singletons
 
-    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
+    computeController.fetchMachine machine.uid, (_machine) =>
       return appManager.tell 'IDE', 'quit'  unless _machine
 
       initial = reason is 'BuildCompleted'

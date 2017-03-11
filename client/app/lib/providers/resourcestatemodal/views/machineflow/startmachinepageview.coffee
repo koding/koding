@@ -22,7 +22,7 @@ module.exports = class StartMachinePageView extends JView
         </header>
         <section class="main">
           <div class="background"></div>
-          <h2>Let's Boot up {{ #(jMachine.label)}}</h2>
+          <h2>Let's Boot up {{ #(label)}}</h2>
           <p>One click and your flawless dev environment<br />will be ready to use</p>
           {{> @startButton}}
         </section>

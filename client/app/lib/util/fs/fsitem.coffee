@@ -82,7 +82,7 @@ module.exports = class FSItem extends KDObject
 
   # Helper to get corresponding kite
   # TODO: add check kite state functionality
-  getKite: -> @machine.getBaseKite()# kites.klient
+  getKite: -> @machine.getBaseKite()
 
   # Copy file instance to provided target folder
   copy: (folderPath, callback) ->

@@ -620,9 +620,6 @@ module.exports = class IDEAppController extends AppController
       unless machineItem
         return @showNoMachineState()
 
-      unless machineItem instanceof Machine
-        machineItem = new Machine { machine: machineItem }
-
       @setMountedMachine machineItem
       @prepareIDE withFakeViews
 
@@ -692,7 +689,7 @@ module.exports = class IDEAppController extends AppController
 
     switch status
       when 'Running'
-        id = @mountedMachine._id
+        id = @mountedMachine.getId()
         { computeController } = kd.singletons
 
         computeController.once "revive-#{id}", @lazyBound 'quit'
@@ -1785,7 +1782,7 @@ module.exports = class IDEAppController extends AppController
           callback : =>
 
             { reactor } = kd.singletons
-            reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
+            reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine.getId()
 
             @modal.destroy()
             @quit()

@@ -33,7 +33,7 @@ module.exports = class StopMachineProgressPageView extends JView
         </header>
         <section class="main">
           <div class="background"></div>
-          <h2>{{#(jMachine.label)}} is Being Turned Off</h2>
+          <h2>{{#(label)}} is Being Turned Off</h2>
           <div class="progressbar-wrapper">
             {{> @progressBar}}
             {{> @statusText}}

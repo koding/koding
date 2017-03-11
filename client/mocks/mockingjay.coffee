@@ -2,7 +2,6 @@ kd                        = require 'kd'
 expect                    = require 'expect'
 remote                    = require 'app/remote'
 FSFile                    = require 'app/util/fs/fsfile'
-Machine                   = require 'app/providers/machine'
 ideRoutes                 = require 'ide/routes.coffee'
 mockjgroup                = require './mock.jgroup'
 mockjstack                = require './mock.jstack'
@@ -31,7 +30,7 @@ teamSendInvites           = require './mock.teamSendInvites'
 team                      = require './mock.team'
 
 
-mockMachine = new Machine { machine: mockjmachine }
+mockMachine = remote.revive mockjmachine
 mockGroup   = remote.revive mockjgroup
 
 { socialapi, appManager } = kd.singletons
