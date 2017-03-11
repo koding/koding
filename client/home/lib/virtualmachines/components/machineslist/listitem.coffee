@@ -1,7 +1,6 @@
 kd = require 'kd'
 React = require 'app/react'
 MachineDetails = require './machinedetails'
-Machine = require 'app/providers/machine'
 immutable = require 'immutable'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
@@ -109,8 +108,8 @@ module.exports = class MachinesListItem extends React.Component
     status     = @props.machine.getIn ['status', 'state']
     percentage = @props.machine.get('percentage') or 0
 
-    return null  if status in [Machine.State.NotInitialized, Machine.State.Stopped]
-    return null  if status is Machine.State.Running and percentage is 100
+    return null  if status in ['NotInitialized', 'Stopped']
+    return null  if status is 'Running' and percentage is 100
 
     fullClass  = if percentage is 100 then ' full' else ''
 

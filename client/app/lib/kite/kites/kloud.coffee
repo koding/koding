@@ -1,9 +1,9 @@
 Promise = require 'bluebird'
 kd = require 'kd'
-Machine = require '../../providers/machine'
 KiteLogger = require '../../kitelogger'
 globals = require 'globals'
 KiteAPIMap = require './kiteapimap'
+remote = require 'app/remote'
 
 
 module.exports = class KodingKiteKloudKite extends require('../kodingkite')
@@ -120,13 +120,13 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
     if not machine or not machineId
       return deferredCallback null
 
-    managed    = machine.provider is 'managed'
+    managed    = machine.isManaged()
     klientKite = klient?[machine.uid]
 
-    if machine.status.state is Machine.State.NotInitialized
-      return deferredCallback { State: Machine.State.NotInitialized, via: 'klient' }
+    unless machine.isBuilt()
+      return deferredCallback { State: machine.status.state , via: 'klient' }
 
-    else if machine.status.state is Machine.State.Running or managed
+    else if machine.isRunning() or managed
       unless klientKite?
         klientKite = kontrol.getKite
           name            : 'klient'
@@ -135,12 +135,14 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
     else
       return deferredCallback null
 
+    { Running, Stopped } = remote.api.JMachine.State
+
     klientKite.ping()
 
       .then (res) ->
 
         if res is 'pong'
-          callback { State: Machine.State.Running, via: 'klient' }
+          callback { State: Running, via: 'klient' }
         else
           computeController.invalidateCache machineId
           callback null
@@ -150,7 +152,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
       .catch (err) ->
 
         if err?.name is 'TimeoutError' and managed
-          callback { State: Machine.State.Stopped, via: 'klient' }
+          callback { State: Stopped, via: 'klient' }
         else
           KiteLogger.failed 'klient', 'kite.ping'
           callback null
@@ -158,6 +160,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
 
   askInfoFromKloud: (machineId, currentState) ->
 
+    { Running, Stopped } = remote.api.JMachine.State
     { kontrol, computeController } = kd.singletons
 
     provider  = getMachineProvider machineId
@@ -172,7 +175,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
 
         @resolveRequestingInfos machineId, info
 
-        unless info.State is Machine.State.Running
+        unless info.State is Running
           computeController.invalidateCache machineId
 
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
@@ -193,9 +196,9 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
         # at this point we can assume that the machine is Stopped. But on
         # the other hand, Kloud should also mark this machine as Stopped if
         # it couldn't find it in Kontrol registry ~ GG FIXME: FA
-        else if err.message is 'not found' and currentState is Machine.State.Running
+        else if err.message is 'not found' and currentState is Running
 
-          @resolveRequestingInfos machineId, { State: Machine.State.Stopped }
+          @resolveRequestingInfos machineId, { State: Stopped }
           KiteLogger.failed 'kloud', 'info', payload
 
           kd.warn '[kloud:info] failed, Kite not found in Kontrol registry!', err

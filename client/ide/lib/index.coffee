@@ -42,10 +42,17 @@ module.exports = class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
 
-  {
-    Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
-    Starting, Building, Stopping, Rebooting, Terminating, Updating
-  } = Machine.State
+  NotInitialized = 'NotInitialized'  # Initial state, machine instance does not exists
+  Building       = 'Building'        # Build started machine instance is being created...
+  Starting       = 'Starting'        # Machine is booting...
+  Running        = 'Running'         # Machine is physically running
+  Stopping       = 'Stopping'        # Machine is turning off...
+  Stopped        = 'Stopped'         # Machine is turned off
+  Rebooting      = 'Rebooting'       # Machine is rebooting...
+  Terminating    = 'Terminating'     # Machine is being destroyed...
+  Terminated     = 'Terminated'      # Machine is destroyed, does not exist anymore
+  Updating       = 'Updating'        # Machine is being updated by provisioner
+  Unknown        = 'Unknown'         # Machine is in an unknown state
 
   { noop, warn } = kd
 
@@ -665,7 +672,7 @@ module.exports = class IDEAppController extends AppController
 
   bindMachineEvents: (machineItem) ->
 
-    actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
+    actionRequiredStates = [Stopping, Stopped, Terminating, Terminated]
 
     kd.getSingleton 'computeController'
 

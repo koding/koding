@@ -1,6 +1,5 @@
 kd = require 'kd'
 KDObject = kd.Object
-Machine = require './machine'
 globals = require 'globals'
 
 module.exports = class ComputeStateChecker extends KDObject
@@ -82,8 +81,7 @@ module.exports = class ComputeStateChecker extends KDObject
       if machineId in @ignoredMachines
         return
 
-      if currentState isnt Machine.State.Running \
-      and not machine.provider is 'managed'
+      if not machine.isRunning() and not machine.isManaged()
         return  if not checkAll
       else
         { klient }   = kontrol.kites
