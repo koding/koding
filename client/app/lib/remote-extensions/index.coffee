@@ -11,14 +11,14 @@ module.exports = RemoteExtensions =
 
   initialize: (remote) ->
 
-    @injectCacheOnAPI remote
-
     remote.api.JStackTemplate = require './stacktemplate'
     remote.api.JComputeStack  = require './computestack'
     remote.api.JCredential    = require './credential'
     remote.api.JMachine       = require './machine'
     remote.api.JAccount       = require './account'
     remote.api.JGroup         = require './group'
+
+    @injectCacheOnAPI remote
 
 
   injectCacheOnAPI: (remote) ->

@@ -151,7 +151,10 @@ loadStacks = (force = no) ->
 
 rejectInvitation = (machine) ->
 
-  kd.singletons.machineShareManager.unset machine.get 'uid'
+  { machineShareManager, appManager } = kd.singletons
+
+  machineUId = machine.get 'uid'
+  machineShareManager.unset machineUId
 
   isApproved      = machine.get 'isApproved'
   isPermanent     = machine.get 'isPermanent'
