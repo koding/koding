@@ -4,7 +4,6 @@ KDCustomScrollView   = kd.CustomScrollView
 KDNotificationView   = kd.NotificationView
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
 
-Machine              = require '../providers/machine'
 settings             = require './settings'
 Terminal             = require './terminal'
 TerminalWrapper      = require './terminalwrapper'
@@ -82,16 +81,15 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     # watch machine state:
     { computeController } = kd.singletons
-    { Stopped, Stopping } = Machine.State
     machineId             = @getMachine()._id
 
     computeController.on "public-#{machineId}", (event) =>
-      if event.status in [Stopping, Stopped]
+      if event.status in ['Stopping', 'Stopped']
         @terminal.cursor.stopBlink()
 
         # If machine is stopped we need to invalidate current sessions
         # user can decide to create a new one or destroy this one.
-        if event.status is Stopped
+        if event.status is 'Stopped'
           @messagePane.handleError { message: 'ErrNoSession' }
 
     @setKeyView()

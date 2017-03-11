@@ -429,15 +429,16 @@ module.exports = class ComputeController extends KDController
           return  if err
 
           @_clearTrialCounts machine
-
           @storage.push { machine }
-          ideApp = envDataProvider.getIDEFromUId machine.uid
+
+          { appManager } = kd.singletons
+          ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
           ideApp?.quit()
 
         return
 
       @eventListener.triggerState machine,
-        status      : Machine.State.Terminating
+        status      : remote.api.JMachine.State.Terminating
         percentage  : 0
 
       call = @getKloud().destroy { machineId: machine._id }
@@ -469,7 +470,7 @@ module.exports = class ComputeController extends KDController
     return  if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
-      status      : Machine.State.Building
+      status      : remote.api.JMachine.State.Building
       percentage  : 0
 
     machine.getBaseKite( no ).disconnect()
@@ -505,7 +506,7 @@ module.exports = class ComputeController extends KDController
 
     stack.machines.forEach (machine) =>
       @eventListener.triggerState machine,
-        status      : Machine.State.Building
+        status      : remote.api.JMachine.State.Building
         percentage  : 0
 
       machine.getBaseKite( no ).disconnect()
@@ -550,7 +551,7 @@ module.exports = class ComputeController extends KDController
     if followEvents then stack.machines.forEach (machine) =>
 
       @eventListener.triggerState machine,
-        status      : Machine.State.Terminating
+        status      : remote.api.JMachine.State.Terminating
         percentage  : 0
 
       machine.getBaseKite( no ).disconnect()
@@ -585,7 +586,7 @@ module.exports = class ComputeController extends KDController
     return  if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
-      status      : Machine.State.Starting
+      status      : remote.api.JMachine.State.Starting
       percentage  : 0
 
     machine.getBaseKite( no ).isDisconnected = no
@@ -610,7 +611,7 @@ module.exports = class ComputeController extends KDController
     return  if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
-      status      : Machine.State.Stopping
+      status      : remote.api.JMachine.State.Stopping
       percentage  : 0
       silent      : yes
 
@@ -996,7 +997,9 @@ module.exports = class ComputeController extends KDController
     path = '/var/log/cloud-init-output.log'
     file = FSHelper.createFileInstance { path, machine }
 
-    return  unless ideApp = envDataProvider.getIDEFromUId machine.uid
+    { appManager } = kd.singletons
+    ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
+    return  unless ideApp
 
     ideApp.tailFile {
       file

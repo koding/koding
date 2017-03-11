@@ -4,7 +4,6 @@ React                          = require 'app/react'
 ReactDOM                       = require 'react-dom'
 remote                         = require 'app/remote'
 actions                        = require 'app/flux/environment/actions'
-Machine                        = require 'app/providers/machine'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 EnvironmentFlux                = require 'app/flux/environment'
@@ -115,8 +114,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
     status     = @machine ['status', 'state']
     percentage = @machine('percentage') or 0
 
-    return null  if status in [Machine.State.NotInitialized, Machine.State.Stopped]
-    return null  if status is Machine.State.Running and percentage is 100
+    { NotInitialized, Running, Stopped } = remote.api.JMachine.State
+
+    return null  if status in [NotInitialized, Stopped]
+    return null  if status is Running and percentage is 100
 
     fullClass  = if percentage is 100 then ' full' else ''
 

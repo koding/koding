@@ -5,7 +5,6 @@ React               = require 'app/react'
 classnames          = require 'classnames'
 GenericToggler      = require './generictoggler'
 immutable           = require 'immutable'
-Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
@@ -104,11 +103,10 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderSpecs
 
-    { Starting, Stopping } = Machine.State
     specs = generateSpecs @props.machine
 
     className = 'MachineDetails-SpecsList'
-    if @status() in [ Starting, Stopping ]
+    if @status() in [ 'Starting', 'Stopping' ]
       className = 'MachineDetails-SpecsList notReady'
 
     children = specs.map (spec) ->
@@ -121,13 +119,11 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderDisconnect
 
-    { Running, Starting, Stopped } = Machine.State
-
     <GenericToggler
       title='VM Disconnect'
       description='Turn your machine off from here'
-      checked={@status() in [ Running, Starting ]}
-      disabled={not (@status() in [ Running, Stopped ])}
+      checked={@status() in [ 'Running', 'Starting' ]}
+      disabled={not (@status() in [ 'Running', 'Stopped' ])}
       onToggle={@props.onDisconnectVM} />
 
 
@@ -135,13 +131,11 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderPower
 
-    { Running, Starting, Stopped } = Machine.State
-
     <GenericToggler
       title='VM Power'
       description='Turn your machine on or off from here'
-      checked={@status() in [ Running, Starting ]}
-      disabled={not (@status() in [ Running, Stopped ])}
+      checked={@status() in [ 'Running', 'Starting' ]}
+      disabled={not (@status() in [ 'Running', 'Stopped' ])}
       onToggle={@props.onChangePowerStatus} />
 
 
@@ -149,13 +143,11 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderAlwaysOn
 
-    { NotInitialized } = Machine.State
-
     <GenericToggler
       title='Always On'
       description='Keep this machine running indefinitely'
       checked={@props.machine.getIn [ 'meta', 'alwaysOn' ]}
-      disabled={@status() is NotInitialized}
+      disabled={@status() is 'NotInitialized'}
       onToggle={@props.onChangeAlwaysOn} />
 
 
@@ -163,13 +155,11 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderSharing
 
-    { Running } = Machine.State
-
     <GenericToggler
       title='VM Sharing'
       description='Share my VM with teammates'
       checked={@isShared()}
-      disabled={@status() isnt Running}
+      disabled={@status() isnt 'Running'}
       onToggle={@bound 'onSharingToggle'}>
         {@renderSharingDetails()}
     </GenericToggler>

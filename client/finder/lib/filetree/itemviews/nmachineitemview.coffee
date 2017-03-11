@@ -1,7 +1,6 @@
 kd = require 'kd'
 KDContextMenu = kd.ContextMenu
 KDCustomHTMLView = kd.CustomHTMLView
-Machine = require 'app/providers/machine'
 FSHelper = require 'app/util/fs/fshelper'
 NFileItemView = require './nfileitemview'
 
@@ -26,7 +25,7 @@ module.exports = class NMachineItemView extends NFileItemView
       cssClass : 'vm-info'
       partial  : "on <strong>#{@machine.getName()}</strong> VM"
 
-    @setClass 'online'  if @machine.status.state is Machine.State.Running
+    @setClass 'online'  if @machine.isRunning()
 
   showLoader: ->
 

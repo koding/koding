@@ -1,6 +1,5 @@
 kd       = require 'kd'
 globals  = require 'globals'
-Machine  = require './machine'
 Tracker  = require 'app/util/tracker'
 getGroup = require 'app/util/getGroup'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
@@ -8,7 +7,6 @@ sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
 module.exports = class ComputeEventListener extends kd.Object
 
-  { Stopped, Running, Terminated } = Machine.State
 
   constructor: (options = {}) ->
 
@@ -61,7 +59,7 @@ module.exports = class ComputeEventListener extends kd.Object
 
     return  unless machine?
     return  if machine.provider is 'managed' and \
-               event.status not in [Running, Stopped]
+               event.status not in ['Running', 'Stopped']
 
     { computeController, kontrol } = kd.singletons
 
@@ -74,7 +72,7 @@ module.exports = class ComputeEventListener extends kd.Object
 
     computeController.emit "public-#{machine._id}", state
 
-    unless event.status is Running
+    unless event.status is 'Running'
       computeController.invalidateCache machine._id
 
 
@@ -89,19 +87,19 @@ module.exports = class ComputeEventListener extends kd.Object
   TypeStateMap     =
     stop           :
       public       : 'MachineStopped'
-      private      : Stopped
+      private      : 'Stopped'
     start          :
       public       : 'MachineStarted'
-      private      : Running
+      private      : 'Running'
     build          :
       public       : 'MachineBuilt'
-      private      : Running
+      private      : 'Running'
     destroy        :
       public       : 'MachineDestroyed'
-      private      : Terminated
+      private      : 'Terminated'
     apply          :
       public       : 'MachineBuilt'
-      private      : Running
+      private      : 'Running'
 
 
   tick: (force) ->
@@ -138,7 +136,7 @@ module.exports = class ComputeEventListener extends kd.Object
           computeController.emit type, event
 
         if event.percentage < 100 and \
-           event.status isnt Machine.State.Unknown
+           event.status isnt 'Unknown'
           uniqueAdd activeListeners, type, eventId
 
         kd.info "#{event.eventId}", event
