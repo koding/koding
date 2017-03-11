@@ -132,6 +132,10 @@ var _ fuseutil.FileSystem = (*Filesystem)(nil)
 
 // NewFilesystem creates new Filesystem value.
 func NewFilesystem(opts *Opts) (*Filesystem, error) {
+	if err := opts.Valid(); err != nil {
+		return nil, err
+	}
+
 	// Best-effort attempt of unmounting already existing mount.
 	_ = Umount(opts.MountDir)
 

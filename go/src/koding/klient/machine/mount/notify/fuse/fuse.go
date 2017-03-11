@@ -86,7 +86,7 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 
 	op.Attributes = fs.attr(nd.Entry)
 
-	if op.Size != nil && *op.Size != 0 {
+	if op.Size != nil {
 		if err := f.Truncate(int64(*op.Size)); err != nil {
 			return nonil(err, f.Close())
 		}
