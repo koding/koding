@@ -1,9 +1,24 @@
+debug          = (require 'debug') 'remote:api:jmachine'
+Promise        = require 'bluebird'
+_              = require 'lodash'
 kd             = require 'kd'
 remote         = require('../remote')
-Machine        = require 'app/providers/machine'
+
+
+doesQueryStringValid  = require 'app/util/doesQueryStringValid'
+nick                  = require 'app/util/nick'
+globals               = require 'globals'
+
+runMiddlewares        = require 'app/util/runMiddlewares'
+TestMachineMiddleware = require 'app/providers/middlewares/testmachine'
 
 
 module.exports = class JMachine extends remote.api.JMachine
+
+  @getMiddlewares = ->
+    return [
+      TestMachineMiddleware.JMachine
+    ]
 
   @State = {
 
@@ -22,7 +37,126 @@ module.exports = class JMachine extends remote.api.JMachine
   }
 
   stop: ->
-    kd.singletons.computeController.stop new Machine { machine: this }
+    kd.singletons.computeController.stop this
 
   start: ->
-    kd.singletons.computeController.start new Machine { machine: this }
+    kd.singletons.computeController.start this
+
+  constructor: ->
+
+    super
+
+    @fs =
+      create: (options = {}, callback) =>
+        options.machine = this
+        require('../util/fs/fsitem').create options, callback
+
+    @on 'update', =>
+
+      { reactor } = kd.singletons
+      actions     = require 'app/flux/environment/actiontypes'
+      reactor.dispatch actions.MACHINE_UPDATED, {
+        id: @_id, machine: this
+      }
+
+    @fetchInfo => @emit 'ready'
+
+
+  getName: ->
+
+    { uid, label, ipAddress } = this
+
+    return label or ipAddress or uid or "one of #{nick()}'s machines"
+
+
+  invalidateKiteCache: ->
+
+    currentKite = @getBaseKite no
+    currentKite.disconnect()
+
+    kd.singletons.computeController.invalidateCache @_id
+
+
+  getBaseKite: (createIfNotExists = yes) ->
+
+    { kontrol } = kd.singletons
+
+    # this is a chance for other middlewares to inject their own kite/klient.
+    testKlient = runMiddlewares.sync this, 'getBaseKite', createIfNotExists
+
+    return testKlient  if testKlient
+
+    klient = kontrol.kites?.klient?[@uid]
+    return klient  if klient
+
+    if createIfNotExists and doesQueryStringValid @queryString
+
+      kontrol.getKite { name: 'klient', @queryString, correlationName: @uid }
+
+    else
+
+      {
+        init       : -> Promise.reject()
+        connect    : kd.noop
+        disconnect : kd.noop
+        ready      : kd.noop
+      }
+
+
+  fetchInfo: (callback = kd.noop) ->
+
+    owner = @getOwner()
+
+    kallback = (info = {}) =>
+      callback null, @info = _.merge {},
+        home     : "/home/#{owner}"
+        groups   : [owner, 'sudo']
+        username : owner
+      , info
+
+    if @isRunning()
+      kite = @getBaseKite()
+      kite.init().then ->
+        kite.klientInfo().then (info) ->
+          kallback info
+        .timeout globals.COMPUTECONTROLLER_TIMEOUT
+        .catch (err) ->
+          kd.warn '[Machine][fetchInfo] Failed to get klient.info', err
+          kallback()
+    else
+      kallback()
+
+
+  getOwner: ->
+
+    switch @provider
+      when 'managed'
+        return @credential
+      else # Use users array for other types of providers ~ GG
+        for user in @users when user.owner
+          return user.username
+
+
+  _ruleChecker: (rules) ->
+
+    for user in @users when user.id is globals.userId
+      for rule in rules
+        return no  unless user[rule]
+      return yes
+
+    return no
+
+
+  isMine      : -> @_ruleChecker ['owner']
+  isApproved  : -> @isMine() or @_ruleChecker ['approved']
+  isPermanent : -> @_ruleChecker ['permanent']
+  isManaged   : -> @provider is 'managed'
+  isRunning   : -> @status?.state is JMachine.State.Running
+  isStopped   : -> @status?.state is JMachine.State.Stopped
+  isBuilt     : -> @status?.state isnt JMachine.State.NotInitialized
+  isUsable    : -> @isRunning() or @isStopped()
+  getOldOwner : -> @getAt 'meta.oldOwner'
+
+  getChannelID: ->
+    debug 'getChannelID requested'
+    return null
