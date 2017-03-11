@@ -56,7 +56,7 @@ module.exports = class ComputeStorage extends kd.Object
       if typeof key is 'string'
         res = items
           .map (item) ->
-            return item  if item and item[key] is value
+            return item  if item and (item.getAt?(key) ? item[key]) is value
           .filter Boolean
 
     res ?= []
