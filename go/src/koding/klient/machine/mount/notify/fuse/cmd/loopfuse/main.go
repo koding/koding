@@ -11,12 +11,15 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 
 	"koding/klient/fs"
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/notify/fuse/fusetest"
 )
+
+const sep = string(os.PathSeparator)
 
 var (
 	verbose = flag.Bool("v", false, "Turn on verbose logging.")
@@ -71,6 +74,10 @@ func main() {
 		if err != nil {
 			die(err)
 		}
+	}
+
+	if !strings.HasSuffix(*tmp, sep) {
+		*tmp = *tmp + sep
 	}
 
 	log.Printf("using cache directory: %s", *tmp)
