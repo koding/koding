@@ -2,7 +2,6 @@ _       = require 'lodash'
 kd      = require 'kd'
 globals = require 'globals'
 remote  = require 'app/remote'
-Machine = require 'app/providers/machine'
 async   = require 'async'
 
 runMiddlewares = require 'app/util/runMiddlewares'
@@ -97,20 +96,6 @@ module.exports =
   getMachineWithPredicate: (fn, predicate) ->
 
     @getAllMachines().filter(predicate)[0]
-
-
-  fetchMachine: (identifier, callback) ->
-
-    @fetchMachineBySlug identifier, (machine) =>
-      return callback new Machine { machine }  if machine
-
-      @fetchMachineByLabel identifier, (machine) =>
-        return  callback new Machine { machine }  if machine
-
-        @fetchMachineByUId identifier, (machine) ->
-          machine = if machine then new Machine { machine } else null
-
-          callback machine
 
 
   # FIXMEWS ~ GG

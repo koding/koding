@@ -6,7 +6,6 @@ remote                        = require 'app/remote'
 actions                       = require 'app/flux/environment/actions'
 kookies                       = require 'kookies'
 Encoder                       = require 'htmlencode'
-Machine                       = require 'app/providers/machine'
 IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
 showError                     = require 'app/util/showError'
@@ -24,7 +23,6 @@ IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
 IDEContentSearch              = require './views/contentsearch/idecontentsearch'
 IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
-environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
 ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
@@ -1676,10 +1674,8 @@ module.exports = class IDEAppController extends AppController
     if destroy
       @stopCollaborationSession()  if stopCollaborationSession
       kd.singletons.appManager.quit this, =>
-        # fetch data to ensure target workspace is still exist
-        environmentDataProvider.fetch =>
-          route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
-          kd.singletons.router.handleRoute route
+        route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
+        kd.singletons.router.handleRoute route
 
       @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
