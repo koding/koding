@@ -419,3 +419,13 @@ class ApplicationManager extends KDObject
       cssClass : 'error'
       duration : 5000
 
+
+  getInstance: (app, key, value) ->
+
+    if not appController = kd.singletons.appManager.appControllers[app]
+      return null
+
+    [ instance ] = appController.instances.filter (instance) ->
+      instance[key] is value
+
+    return instance

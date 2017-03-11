@@ -11,7 +11,6 @@ showError = require 'app/util/showError'
 toImmutable = require 'app/util/toImmutable'
 getGroup = require 'app/util/getGroup'
 whoami = require 'app/util/whoami'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 globals = require 'globals'
 Machine = require 'app/providers/machine'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
@@ -160,7 +159,7 @@ rejectInvitation = (machine) ->
     when 'shared'         then isPermanent
     when 'collaboration'  then not isPermanent
 
-  ideApp = environmentDataProvider.getIDEFromUId machine.get('uid')
+  ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
 
   async.series([
     (callback) ->
@@ -180,7 +179,7 @@ rejectInvitation = (machine) ->
       # Because it will be called it in next queue item by "quit()" method instead of this queue.
       # You can check "stopCollaborationSession" method of collaborationcontroller.coffee
       # ~TURUNC
-      return callback()  if ideApp and denyMachine
+      return callback()  if ideInstance and denyMachine
 
       { channel } = kd.singletons.socialapi
       workspace   = machine.get('workspaces').first()
@@ -200,7 +199,7 @@ rejectInvitation = (machine) ->
 
     (callback) ->
 
-      ideApp?.quit()  if denyMachine
+      ideInstance?.quit()  if denyMachine
 
       actionType = if machine.get('type') is 'collaboration'
       then 'COLLABORATION_INVITATION_REJECTED'
