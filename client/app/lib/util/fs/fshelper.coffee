@@ -1,9 +1,9 @@
 nick = require '../nick'
 whoami = require '../whoami'
-DummyMachine = require '../../providers/dummymachine'
 kd = require 'kd'
 sortFiles = require '../sortFiles'
 globals = require 'globals'
+remote = require 'app/remote'
 ContentModal = require 'app/components/contentModal'
 
 module.exports = class FSHelper
@@ -24,7 +24,7 @@ module.exports = class FSHelper
     else
       unless isLocalFile
         kd.warn 'No machine instance passed, creating dummy file instance'
-      options.machine = new DummyMachine
+      options.machine = new remote.api.JMachine { users: [] }
 
     options.type       ?= 'file'
     options.name       ?= @getFileNameFromPath options.path
