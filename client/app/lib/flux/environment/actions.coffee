@@ -228,6 +228,8 @@ acceptInvitation = (_machine) ->
   machine.approve (err) ->
 
     return showError err  if err
+    # FIXME ~GG
+    return showError 'Approval disabled - WIP'
 
     kallback = (route, callback) ->
       # Fetch all machines
