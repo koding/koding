@@ -161,7 +161,7 @@ func (c *Client) ListMount(options *ListMountOptions) (map[string][]sync.Info, e
 	}
 	var listMountRes machinegroup.ListMountResponse
 
-	if err := c.klient().Call("machine.mount.list", listMountReq, listMountRes); err != nil {
+	if err := c.klient().Call("machine.mount.list", listMountReq, &listMountRes); err != nil {
 		return nil, err
 	}
 
