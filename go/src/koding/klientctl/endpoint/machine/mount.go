@@ -129,10 +129,10 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		}
 
 		// Index needs to be updated after prefetching.
-		updateIndexReq := machinegroup.UpdateIndexRequest{
+		updateIndexReq := &machinegroup.UpdateIndexRequest{
 			MountID: addMountRes.MountID,
 		}
-		if _, err := k.Tell("machine.mount.updateIndex", updateIndexReq); err != nil {
+		if err := c.klient().Call("machine.mount.updateIndex", updateIndexReq, nil); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot update mount index: %s\n", err)
 		}
 	}
