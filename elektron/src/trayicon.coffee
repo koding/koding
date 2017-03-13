@@ -122,15 +122,15 @@ module.exports = class KodingTray
         keys.map (key) =>
           return  if key is 'latest'
           teamName = @_previousTeams[key]
-          return { label: teamName, click: -> @_mainWindow.loadURL "https://#{key}.koding.com" }
+          return { label: teamName, click: => @_mainWindow.loadURL "https://#{key}.koding.com" }
         .filter(Boolean)
 
       submenu or= []
 
       submenu = submenu.concat [
         { type: 'separator', visible: !!submenu.length }
-        { label: 'Login to Another Team', click: -> @_mainWindow.loadURL 'https://koding.com/Teams' }
-        { label: 'Create a Team', click: -> @_mainWindow.loadURL 'https://koding.com/Teams/Create' }
+        { label: 'Login to Another Team', click: => @_mainWindow.loadURL 'https://koding.com/Teams' }
+        { label: 'Create a Team', click: => @_mainWindow.loadURL 'https://koding.com/Teams/Create' }
       ]
 
       menu.unshift { label: 'Your Teams', submenu }
