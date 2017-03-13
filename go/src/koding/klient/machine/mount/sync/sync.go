@@ -73,17 +73,17 @@ type Syncer interface {
 
 // Info stores information about current mount status.
 type Info struct {
-	ID    mount.ID    // Mount ID.
-	Mount mount.Mount // Mount paths stored in absolute form.
+	ID    mount.ID    `json:"id"`    // Mount ID.
+	Mount mount.Mount `json:"mount"` // Mount paths stored in absolute form.
 
-	Count    int // Number of synced files.
-	CountAll int // Number of all files handled by mount.
+	Count    int `json:"count"`    // Number of synced files.
+	CountAll int `json:"countAll"` // Number of all files handled by mount.
 
-	DiskSize    int64 // Total size of synced files.
-	DiskSizeAll int64 // Size of all files handled by mount.
+	DiskSize    int64 `json:"diskSize"`    // Total size of synced files.
+	DiskSizeAll int64 `json:"diskSizeAll"` // Size of all files handled by mount.
 
-	Queued  int // Number of files waiting for synchronization.
-	Syncing int // Number of files being synced.
+	Queued  int `json:"queued"`  // Number of files waiting for synchronization.
+	Syncing int `json:"syncing"` // Number of files being synced.
 }
 
 // Options are the options used to configure Sync object.
