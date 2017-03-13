@@ -140,135 +140,150 @@ func run(args []string) {
 
 	app.Commands = []cli.Command{
 		{
-			Name:      "list",
-			ShortName: "ls",
-			Usage:     "List running machines for user.",
-			Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "json",
-					Usage: "Output in JSON format",
+			Name:  "compat",
+			Usage: "Compatibility commands for use with old mounts.",
+			Subcommands: []cli.Command{{
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List running machines for user.",
+				Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format",
+					},
+					cli.BoolFlag{
+						Name:  "all",
+						Usage: "Include machines that have been offline for more than 24h.",
+					},
 				},
-				cli.BoolFlag{
-					Name:  "all",
-					Usage: "Include machines that have been offline for more than 24h.",
-				},
-			},
-			Subcommands: []cli.Command{
-				{
-					Name:   "mounts",
-					Usage:  "List the mounted machines.",
-					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format",
+				Subcommands: []cli.Command{
+					{
+						Name:   "mounts",
+						Usage:  "List the mounted machines.",
+						Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format",
+							},
 						},
 					},
 				},
+			}, {
+				Name:        "mount",
+				ShortName:   "m",
+				Usage:       "Mount a remote folder to a local folder.",
+				Description: cmdDescriptions["mount"],
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "remotepath, r",
+						Usage: "Full path of remote folder in machine to mount.",
+					},
+					cli.BoolFlag{
+						Name:  "oneway-sync, s",
+						Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
+					},
+					cli.IntFlag{
+						Name:  "oneway-interval",
+						Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
+						Value: 2,
+					},
+					cli.BoolFlag{
+						Name:  "fuse, f",
+						Usage: "Mount the remote folder via Fuse.",
+					},
+					cli.BoolFlag{
+						Name:  "noprefetch-meta, p",
+						Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
+					},
+					cli.BoolFlag{
+						Name:  "prefetch-all, a",
+						Usage: "For fuse: Prefetch all contents of the remote directory up front.",
+					},
+					cli.IntFlag{
+						Name:  "prefetch-interval",
+						Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
+					},
+					cli.BoolFlag{
+						Name:  "nowatch, w",
+						Usage: "For fuse: Disable watching for changes on remote machine.",
+					},
+					cli.BoolFlag{
+						Name:  "noignore, i",
+						Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
+					},
+					cli.BoolFlag{
+						Name:  "trace, t",
+						Usage: "Turn on trace logs.",
+					},
+				},
+				Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
+				BashComplete: ctlcli.FactoryCompletion(
+					MountCommandFactory, log, "mount",
+				),
+			}, {
+				Name:        "ssh",
+				ShortName:   "s",
+				Usage:       "SSH into the machine.",
+				Description: cmdDescriptions["ssh"],
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name: "debug",
+					},
+					cli.StringFlag{
+						Name:  "username",
+						Usage: "The username to ssh into on the remote machine.",
+					},
+				},
+				Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
+			}, {
+				Name:            "run",
+				Usage:           "Run command on remote or local machine.",
+				Description:     cmdDescriptions["run"],
+				Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
+				SkipFlagParsing: true,
+			}, {
+				Name:   "repair",
+				Usage:  "Repair the given mount",
+				Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
+			}, {
+				Name: "cp",
+				Usage: fmt.Sprintf(
+					"Copy a file from one one machine to another",
+				),
+				Description: cmdDescriptions["cp"],
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name: "debug",
+					},
+				},
+				Action: ctlcli.FactoryAction(
+					CpCommandFactory, log, "cp",
+				),
+				BashComplete: ctlcli.FactoryCompletion(
+					CpCommandFactory, log, "cp",
+				),
+			}, {
+				Name:        "unmount",
+				ShortName:   "u",
+				Usage:       "Unmount previously mounted machine.",
+				Description: cmdDescriptions["unmount"],
+				Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
+			}, {
+				Name:        "remount",
+				ShortName:   "r",
+				Usage:       "Remount previously mounted machine using same settings.",
+				Description: cmdDescriptions["remount"],
+				Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
 			},
-		},
+			}},
 		{
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
 			Description: cmdDescriptions["version"],
 			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
-		},
-		{
-			Name:        "mount",
-			ShortName:   "m",
-			Usage:       "Mount a remote folder to a local folder.",
-			Description: cmdDescriptions["mount"],
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "remotepath, r",
-					Usage: "Full path of remote folder in machine to mount.",
-				},
-				cli.BoolFlag{
-					Name:  "oneway-sync, s",
-					Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
-				},
-				cli.IntFlag{
-					Name:  "oneway-interval",
-					Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
-					Value: 2,
-				},
-				cli.BoolFlag{
-					Name:  "fuse, f",
-					Usage: "Mount the remote folder via Fuse.",
-				},
-				cli.BoolFlag{
-					Name:  "noprefetch-meta, p",
-					Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
-				},
-				cli.BoolFlag{
-					Name:  "prefetch-all, a",
-					Usage: "For fuse: Prefetch all contents of the remote directory up front.",
-				},
-				cli.IntFlag{
-					Name:  "prefetch-interval",
-					Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
-				},
-				cli.BoolFlag{
-					Name:  "nowatch, w",
-					Usage: "For fuse: Disable watching for changes on remote machine.",
-				},
-				cli.BoolFlag{
-					Name:  "noignore, i",
-					Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
-				},
-				cli.BoolFlag{
-					Name:  "trace, t",
-					Usage: "Turn on trace logs.",
-				},
-			},
-			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
-			BashComplete: ctlcli.FactoryCompletion(
-				MountCommandFactory, log, "mount",
-			),
-		},
-		{
-			Name:        "unmount",
-			ShortName:   "u",
-			Usage:       "Unmount previously mounted machine.",
-			Description: cmdDescriptions["unmount"],
-			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
-		},
-		{
-			Name:        "remount",
-			ShortName:   "r",
-			Usage:       "Remount previously mounted machine using same settings.",
-			Description: cmdDescriptions["remount"],
-			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
-		},
-		{
-			Name:        "ssh",
-			ShortName:   "s",
-			Usage:       "SSH into the machine.",
-			Description: cmdDescriptions["ssh"],
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-				cli.StringFlag{
-					Name:  "username",
-					Usage: "The username to ssh into on the remote machine.",
-				},
-			},
-			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
-		},
-		{
-			Name:            "run",
-			Usage:           "Run command on remote or local machine.",
-			Description:     cmdDescriptions["run"],
-			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
-			SkipFlagParsing: true,
-		},
-		{
-			Name:   "repair",
-			Usage:  "Repair the given mount",
-			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
 		},
 		{
 			Name:        "status",
@@ -374,24 +389,6 @@ func run(args []string) {
 			),
 			BashComplete: ctlcli.FactoryCompletion(
 				AutocompleteCommandFactory, log, "autocompletion",
-			),
-		},
-		{
-			Name: "cp",
-			Usage: fmt.Sprintf(
-				"Copy a file from one one machine to another",
-			),
-			Description: cmdDescriptions["cp"],
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-			},
-			Action: ctlcli.FactoryAction(
-				CpCommandFactory, log, "cp",
-			),
-			BashComplete: ctlcli.FactoryCompletion(
-				CpCommandFactory, log, "cp",
 			),
 		},
 		{
