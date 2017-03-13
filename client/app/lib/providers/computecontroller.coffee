@@ -497,7 +497,7 @@ module.exports = class ComputeController extends KDController
 
     .then (res) =>
 
-      actions.reinitStack stack._id
+      actions.checkTeamStack stack._id
       @eventListener.addListener 'apply', stackId  if followEvents
 
       Tracker.track Tracker.STACKS_DELETE, {
