@@ -8,6 +8,7 @@ import (
 	"koding/klient/fs"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
+	"koding/klient/os"
 )
 
 type invCounter int64
@@ -58,6 +59,16 @@ func (c *Counter) MountGetIndex(path string) (*index.Index, error) {
 // DiskInfo increases function call counter and returns it as an error.
 func (c *Counter) DiskInfo(path string) (fs.DiskInfo, error) {
 	return fs.DiskInfo{}, invCounter(atomic.AddInt64(&c.curr, 1))
+}
+
+// Exec increases function call counter and returns it as an error.
+func (c *Counter) Exec(*os.ExecRequest) (*os.ExecResponse, error) {
+	return nil, invCounter(atomic.AddInt64(&c.curr, 1))
+}
+
+// Kill increases function call counter and returns it as an error.
+func (c *Counter) Kill(*os.KillRequest) (*os.KillResponse, error) {
+	return nil, invCounter(atomic.AddInt64(&c.curr, 1))
 }
 
 // Context increases function call counter and returns background context.

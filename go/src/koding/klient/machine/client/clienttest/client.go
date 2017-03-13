@@ -13,6 +13,7 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
+	"koding/klient/os"
 )
 
 // Builder uses Server logic to build test clients.
@@ -146,6 +147,16 @@ func (c *Client) DiskInfo(path string) (di fs.DiskInfo, err error) {
 	}
 
 	return
+}
+
+// Exec mocks running process on a remote, always succeeds.
+func (c *Client) Exec(*os.ExecRequest) (*os.ExecResponse, error) {
+	return &os.ExecResponse{PID: 0xD}, nil
+}
+
+// Kill mocks remote process termination, always succeeds.
+func (c *Client) Kill(*os.KillRequest) (*os.KillResponse, error) {
+	return &os.KillResponse{}, nil
 }
 
 // SetContext sets provided context to test client.
