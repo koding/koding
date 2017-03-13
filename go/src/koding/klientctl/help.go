@@ -14,7 +14,7 @@ var cmdDescriptions = map[string]string{
 		"<authToken>",
 		fmt.Sprintf("Install the %s. sudo is required.", config.KlientName),
 	),
-	"mount": fmtDesc(
+	"compat-mount": fmtDesc(
 		"[optional args] <alias:remote path> <local folder>",
 		fmt.Sprintf(`Mount folder from remote machine to local folder.
     Alias is the local identifer for machine in 'kd list'.
@@ -27,7 +27,7 @@ var cmdDescriptions = map[string]string{
     that does a lot of filesystem operations like git,
     use --oneway-sync.`),
 	),
-	"mount-new": fmtDesc(
+	"mount": fmtDesc(
 		"(<machine-identifier>:<remote-path> <local-path> | <command>) [<options>...]",
 		`Mount <remote-path> from remote machine to <local-path>.
 
@@ -51,11 +51,11 @@ var cmdDescriptions = map[string]string{
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
 	),
-	"unmount": fmtDesc(
+	"compat-unmount": fmtDesc(
 		"<alias>",
 		"Unmount folder which was previously mounted.",
 	),
-	"umount-new": fmtDesc(
+	"umount": fmtDesc(
 		"<mount-id>",
 		"Unmount existing mount with given ID.",
 	),
