@@ -65,6 +65,11 @@ func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 		return nil, err
 	}
 
+	// remove all presence info for the group.
+	if err := (&socialapimodels.PresenceDaily{}).DeleteByGroupName(groupName); err != nil {
+		return nil, err
+	}
+
 	if err := syncGroupWithCustomerID(group.Payment.Customer.ID); err != nil {
 		return nil, err
 	}
