@@ -306,12 +306,9 @@ hideManagedMachineAddedModal = (id) ->
   kd.singletons.reactor.dispatch actions.HIDE_MANAGED_MACHINE_ADDED_MODAL, { id }
 
 
-reinitStack = (stackId) ->
+checkTeamStack = (stackId) ->
 
   { reactor } = kd.singletons
-
-  reactor.dispatch actions.REMOVE_STACK, stackId
-
   if reactor.evaluate ['DifferentStackResourcesStore']
     reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
@@ -736,7 +733,7 @@ module.exports = {
   setSelectedTemplateId
   showManagedMachineAddedModal
   hideManagedMachineAddedModal
-  reinitStack
+  checkTeamStack
   setMachineListItem
   unsetMachineListItem
   handleMemberWarning
