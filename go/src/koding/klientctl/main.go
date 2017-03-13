@@ -520,6 +520,13 @@ func run(args []string) {
 		},
 	}
 
+	// Alias commands.
+	app.Commands = append(app.Commands, find(app.Commands, "machine", "list"))
+	app.Commands = append(app.Commands, find(app.Commands, "machine", "ssh"))
+	app.Commands = append(app.Commands, find(app.Commands, "machine", "mount"))
+	app.Commands = append(app.Commands, find(app.Commands, "machine", "umount"))
+	app.Commands = append(app.Commands, find(app.Commands, "machine", "exec"))
+
 	if experimental {
 		app.Commands = append(app.Commands,
 			cli.Command{
@@ -765,4 +772,25 @@ func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string
 
 		return nil
 	}
+}
+
+func find(cmds cli.Commands, names ...string) cli.Command {
+	last := len(names) - 1
+
+	for _, name := range names[:last] {
+		for _, cmd := range cmds {
+			if cmd.Name == name {
+				cmds = cmd.Subcommands
+				break
+			}
+		}
+	}
+
+	for _, cmd := range cmds {
+		if cmd.Name == names[last] {
+			return cmd
+		}
+	}
+
+	return cli.Command{}
 }
