@@ -5,7 +5,7 @@ jobs:
   build:
 
     docker:
-      - image: koding/circle@sha256:9e17db94f3c4b9d91b593db926111f7f78626ed0ba4209a47ae1980ffe1dce77
+      - image: koding/circle@sha256:dec761b93b060282748019f40012988f4f4677f40827fd763579358f17e3c8ea
 
       - image: mongo:3.2.8
         cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
