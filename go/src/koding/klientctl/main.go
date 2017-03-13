@@ -174,7 +174,7 @@ func run(args []string) {
 				Name:        "mount",
 				ShortName:   "m",
 				Usage:       "Mount a remote folder to a local folder.",
-				Description: cmdDescriptions["mount"],
+				Description: cmdDescriptions["compat-mount"],
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "remotepath, r",
@@ -268,7 +268,7 @@ func run(args []string) {
 				Name:        "unmount",
 				ShortName:   "u",
 				Usage:       "Unmount previously mounted machine.",
-				Description: cmdDescriptions["unmount"],
+				Description: cmdDescriptions["compat-unmount"],
 				Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
 			}, {
 				Name:        "remount",
@@ -453,6 +453,70 @@ func run(args []string) {
 				cli.BoolFlag{Name: "debug"},
 			},
 			Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
+		}, {
+			Name:         "machine",
+			Usage:        "Manage remote machines.",
+			BashComplete: func(c *cli.Context) {},
+			Subcommands: []cli.Command{{
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List available machines.",
+				Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:      "ssh",
+				ShortName: "s",
+				Usage:     "SSH into provided remote machine.",
+				Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "username",
+						Usage: "Remote machine username.",
+					},
+				},
+			}, {
+				Name:        "mount",
+				Aliases:     []string{"m"},
+				Usage:       "Mount remote directory.",
+				Description: cmdDescriptions["mount"],
+				Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
+				Flags:       []cli.Flag{},
+				Subcommands: []cli.Command{{
+					Name:    "list",
+					Aliases: []string{"ls"},
+					Usage:   "List available mounts.",
+					Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "filter",
+							Usage: "Limits the output to a specific `<mount-id>`.",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}},
+			}, {
+				Name:        "umount",
+				ShortName:   "u",
+				Usage:       "Unmount remote directory.",
+				Description: cmdDescriptions["umount"],
+				Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
+				Flags:       []cli.Flag{},
+			}, {
+				Name:            "exec",
+				ShortName:       "e",
+				Description:     cmdDescriptions["exec"],
+				Usage:           "Run a command in a started machine.",
+				Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
+				SkipFlagParsing: true,
+			}},
 		},
 	}
 
@@ -558,71 +622,6 @@ func run(args []string) {
 							Usage: "Specify credential provider.",
 						},
 					},
-				}},
-			},
-			cli.Command{
-				Name:         "machine",
-				Usage:        "Manage remote machines.",
-				BashComplete: func(c *cli.Context) {},
-				Subcommands: []cli.Command{{
-					Name:      "list",
-					ShortName: "ls",
-					Usage:     "List available machines.",
-					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:      "ssh",
-					ShortName: "s",
-					Usage:     "SSH into provided remote machine.",
-					Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "username",
-							Usage: "Remote machine username.",
-						},
-					},
-				}, {
-					Name:        "mount",
-					Aliases:     []string{"m"},
-					Usage:       "",
-					Description: cmdDescriptions["mount-new"],
-					Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
-					Flags:       []cli.Flag{},
-					Subcommands: []cli.Command{{
-						Name:    "list",
-						Aliases: []string{"ls"},
-						Usage:   "List available mounts.",
-						Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
-						Flags: []cli.Flag{
-							cli.StringFlag{
-								Name:  "filter",
-								Usage: "Limits the output to a specific `<mount-id>`.",
-							},
-							cli.BoolFlag{
-								Name:  "json",
-								Usage: "Output in JSON format.",
-							},
-						},
-					}},
-				}, {
-					Name:        "umount",
-					ShortName:   "u",
-					Usage:       "Unmount remote directory.",
-					Description: cmdDescriptions["umount-new"],
-					Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
-					Flags:       []cli.Flag{},
-				}, {
-					Name:            "exec",
-					ShortName:       "e",
-					Description:     cmdDescriptions["exec"],
-					Usage:           "Run a command in a started machine.",
-					Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
-					SkipFlagParsing: true,
 				}},
 			},
 			cli.Command{
