@@ -70,7 +70,7 @@ module.exports = class ComputeController extends KDController
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
-      @fetchStacks =>
+      kd.singletons.mainController.ready =>
 
         @eventListener      = new ComputeEventListener
         @managedKiteChecker = new ManagedKiteChecker
@@ -187,67 +187,6 @@ module.exports = class ComputeController extends KDController
       @stateChecker.watch machine._id
 
       return err
-
-
-  # Fetchers most of these methods has internal
-  # caches with in ComputeController
-
-  fetchStacks: do (queue = []) ->
-
-    (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
-
-      debug 'fetchStacks called'
-
-      if @disabled
-        callback null, []
-        return
-
-      _stacks = @storage.get 'stacks'
-      if _stacks.length > 0 and not force
-        debug 'returning from cache', _stacks
-        callback null, _stacks
-        return
-
-      debug 'cache not found, pushed to the queue', _stacks, @storage
-
-      return  if (queue.push callback) > 1
-
-      remote.api.JComputeStack.some {}, (err, stacks = []) =>
-
-        debug 'stacks from remote', err, stacks
-
-        if err?
-          cb err  for cb in queue
-          queue = []
-          return
-
-        remote.api.JMachine.some {}, (err, machines = []) =>
-
-          debug 'machines from remote', err, stacks
-
-          if err?
-            cb err  for cb in queue
-            queue = []
-            return
-
-          @storage.set 'machines', machines
-
-          stacks.forEach (stack) =>
-            stack.title    = Encoder.htmlDecode stack.title
-            stack.machines = stack.machines
-              .filter (mId) => @storage.get 'machines', '_id', mId
-              .map    (mId) => @storage.get 'machines', '_id', mId
-
-          @storage.set 'stacks', stacks
-
-          stacks = runMiddlewares.sync this, 'fetchStacks', stacks
-
-          @stateChecker?.start()
-
-          @emit 'MachineDataUpdated'
-
-          cb null, stacks  for cb in queue
-          queue = []
 
 
   fetchMachine: (idOrUid, callback = kd.noop) ->
@@ -699,19 +638,17 @@ module.exports = class ComputeController extends KDController
 
     kd.info "Reviving #{if asStack then 'stack' else 'machine'} #{instanceId}..."
 
-    @fetchStacks =>
+    if asStack
+      remote.api.JComputeStack.one { _id: instanceId }, (err, stack) ->
+        stack.machines.forEach (machine) =>
+          @triggerReviveFor machine._id
+      return
 
-      if asStack
-        remote.api.JComputeStack.one { _id: instanceId }, (err, stack) ->
-          stack.machines.forEach (machine) =>
-            @triggerReviveFor machine._id
-        return
-
-      remote.api.JMachine.one instanceId, (err, machine) =>
-        kd.warn "Revive failed for #{instanceId}: ", err  if err
-        @invalidateCache instanceId
-        @emit "revive-#{instanceId}", machine
-        kd.info "Revive triggered for #{instanceId}", machine
+    remote.api.JMachine.one instanceId, (err, machine) =>
+      kd.warn "Revive failed for #{instanceId}: ", err  if err
+      @invalidateCache instanceId
+      @emit "revive-#{instanceId}", machine
+      kd.info "Revive triggered for #{instanceId}", machine
 
 
   invalidateCache: (machineId) ->

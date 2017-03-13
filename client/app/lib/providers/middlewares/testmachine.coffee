@@ -29,14 +29,6 @@ module.exports = TestMachineMiddleware =
 
       return callback null, options
 
-    fetchStacks: (stacks) ->
-      stacks.map (stack) =>
-        if stack.title is 'Managed VMs'
-          if @_testMachine and not (@_testMachine in stack.machines)
-            stack.machines.push @_testMachine
-
-        return stack
-
 
   EnvironmentDataProvider:
     setDefaults_: (data) ->
