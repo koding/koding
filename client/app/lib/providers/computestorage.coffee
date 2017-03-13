@@ -6,6 +6,8 @@ Encoder = require 'htmlencode'
 remote  = require('../remote')
 globals = require 'globals'
 
+isGroupDisabled = require 'app/util/isGroupDisabled'
+
 
 module.exports = class ComputeStorage extends kd.Object
 
@@ -23,6 +25,8 @@ module.exports = class ComputeStorage extends kd.Object
       machines  : []
       templates : []
     }
+
+    return this  if isGroupDisabled()
 
     { userMachines, userStacks } = globals
 
@@ -43,6 +47,9 @@ module.exports = class ComputeStorage extends kd.Object
   set: (type, data) ->
 
     debug 'set', type, data
+
+    return this  if isGroupDisabled()
+
     @storage[type] = data
 
     return this
@@ -77,12 +84,14 @@ module.exports = class ComputeStorage extends kd.Object
 
   push: (options = {}) ->
 
+    debug 'push', options
+
+    return  if isGroupDisabled()
+
     { machine, stack, template, machineId } = options
 
     if template
       @storage.templates.push template
-
-    debug 'push', options
 
 
   pop: (options = {}) ->
