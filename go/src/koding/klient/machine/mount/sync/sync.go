@@ -309,12 +309,16 @@ func (s *Sync) FetchCmd() (count, diskSize int64, cmd *rsync.Command, err error)
 
 	// Look for git VCS.
 	if n, ok := s.idx.LookupAll(".git"); ok && n.IsDir() {
-		// Download only git data.
-		cmd.SourcePath += ".git/"
-		cmd.DestinationPath += ".git/"
+		// TODO(ppknap) Enable after https://github.com/koding/koding/issues/10750
+		// // Download only git data.
+		// cmd.SourcePath += ".git/"
+		// cmd.DestinationPath += ".git/"
 
-		count = int64(n.CountAll(-1))
-		diskSize = n.DiskSizeAll(-1)
+		// count = int64(n.CountAll(-1))
+		// diskSize = n.DiskSizeAll(-1)
+
+		count = int64(s.idx.CountAll(-1))
+		diskSize = s.idx.DiskSizeAll(-1)
 	} else {
 		count = int64(s.idx.CountAll(-1))
 		diskSize = s.idx.DiskSizeAll(-1)
