@@ -8,6 +8,7 @@ import (
 
 	"koding/kites/config"
 	"koding/klient/machine"
+	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
 	"koding/klientctl/ssh"
@@ -160,6 +161,27 @@ type AddMountRequest struct {
 type AddMountResponse struct {
 	// MountID is a unique identifier of created mount.
 	MountID mount.ID `json:"mountID"`
+
+	// Count stores the amount of files which are going to be prefetched.
+	Count int64 `json:"count"`
+
+	// DiskSize stores the size of all fetched files.
+	DiskSize int64 `json:"diskSize"`
+
+	// SourcePath defines source path from which file(s) will be pulled.
+	SourcePath string `json:"sourcePath"`
+
+	// DestinationPath defines destination path to which file(s) will be pushed.
+	DestinationPath string `json:"destinationPath"`
+
+	// Username defines remote machine user name.
+	Username string `json:"username"`
+
+	// Host defines the remote machine address.
+	Host string `json:"host"`
+
+	// SSHPort defines custom remote shell port.
+	SSHPort int `json:"sshPort"`
 }
 
 // AddMount fetches remote index, prepares mount cache, and runs mount sync in
@@ -184,18 +206,72 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 		}
 	}()
 
+	addReq := &syncs.AddRequest{
+		MountID:       mountID,
+		Mount:         req.Mount,
+		NotifyBuilder: g.nb,
+		SyncBuilder:   g.sb,
+		ClientFunc:    g.dynamicClient(mountID),
+		SSHFunc:       g.dynamicSSH(req.ID),
+	}
+
 	// Start mount syncer.
-	dynSSH, dynClient := g.dynamicSSH(req.ID), g.dynamicClient(mountID)
-	if err = g.sync.Add(mountID, req.Mount, g.nb, g.sb, dynSSH, dynClient); err != nil {
+	if err = g.sync.Add(addReq); err != nil {
 		g.log.Error("Synchronization of %s mount failed: %s", mountID, err)
 		return nil, err
 	}
 
+	sc, err := g.sync.Sync(mountID)
+	if err != nil {
+		// Panic here since missing mount here should be impossible.
+		panic("mount " + req.Mount.String() + " doesn't exist")
+	}
+
 	g.log.Info("Successfully created mount %s for %s", mountID, req.Mount)
 
+	count, diskSize, cmd, err := sc.FetchCmd()
+	if err != nil {
+		g.log.Error("Cannot prefetch mount data: %s", err)
+		return &AddMountResponse{
+			MountID: mountID,
+		}, nil
+	}
+
 	return &AddMountResponse{
-		MountID: mountID,
+		MountID:         mountID,
+		Count:           count,
+		DiskSize:        diskSize,
+		SourcePath:      cmd.SourcePath,
+		DestinationPath: cmd.DestinationPath,
+		Username:        cmd.Username,
+		Host:            cmd.Host,
+		SSHPort:         cmd.SSHPort,
 	}, nil
+}
+
+// UpdateIndexRequest defines index update request.
+type UpdateIndexRequest struct {
+	// MountID stores the identifier of mount which index should be updated.
+	MountID mount.ID `json:"mountID,omitempty"`
+}
+
+// UpdateIndexResponse defines index update response.
+type UpdateIndexResponse struct{}
+
+// UpdateIndex forces mount index to rescan cache directory. This will update
+// index information about files that are already synced.
+func (g *Group) UpdateIndex(req *UpdateIndexRequest) (res *UpdateIndexResponse, err error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	sc, err := g.sync.Sync(req.MountID)
+	if err != nil {
+		return nil, errors.New("mount with ID: " + string(req.MountID) + " doesn't exist")
+	}
+	sc.UpdateIndex()
+
+	return &UpdateIndexResponse{}, nil
 }
 
 // ListMountRequest defines machine group mount list request.
@@ -247,7 +323,7 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 
 	// Get mount infos.
 	for mountID, mm := range mms {
-		info, err := g.sync.Info(mountID)
+		sc, err := g.sync.Sync(mountID)
 		alias := id2alias[mm.id]
 		if err != nil {
 			// Add mount to the list but log not synchronized mount.
@@ -259,7 +335,7 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 			continue
 		}
 
-		res.Mounts[alias] = append(res.Mounts[alias], *info)
+		res.Mounts[alias] = append(res.Mounts[alias], *sc.Info())
 	}
 
 	return res, nil

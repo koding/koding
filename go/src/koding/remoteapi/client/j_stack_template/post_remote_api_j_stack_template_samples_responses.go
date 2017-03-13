@@ -100,39 +100,6 @@ func (o *PostRemoteAPIJStackTemplateSamplesUnauthorized) readResponse(response r
 	return nil
 }
 
-/*PostRemoteAPIJStackTemplateSamplesBody post remote API j stack template samples body
-swagger:model PostRemoteAPIJStackTemplateSamplesBody
-*/
-type PostRemoteAPIJStackTemplateSamplesBody struct {
-
-	// provider
-	// Required: true
-	Provider *string `json:"provider"`
-
-	// use defaults
-	// Required: true
-	UseDefaults bool `json:"useDefaults"`
-}
-
-/*PostRemoteAPIJStackTemplateSamplesOKBodyDefaults post remote API j stack template samples o k body defaults
-swagger:model PostRemoteAPIJStackTemplateSamplesOKBodyDefaults
-*/
-type PostRemoteAPIJStackTemplateSamplesOKBodyDefaults struct {
-
-	// user inputs
-	UserInputs interface{} `json:"userInputs,omitempty"`
-}
-
-// Validate validates this post remote API j stack template samples o k body defaults
-func (o *PostRemoteAPIJStackTemplateSamplesOKBodyDefaults) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
 /*PostRemoteAPIJStackTemplateSamplesOKBody post remote API j stack template samples o k body
 swagger:model PostRemoteAPIJStackTemplateSamplesOKBody
 */
@@ -210,5 +177,38 @@ func (o *PostRemoteAPIJStackTemplateSamplesOKBody) validateYaml(formats strfmt.R
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJStackTemplateSamplesBody post remote API j stack template samples body
+swagger:model PostRemoteAPIJStackTemplateSamplesBody
+*/
+type PostRemoteAPIJStackTemplateSamplesBody struct {
+
+	// provider
+	// Required: true
+	Provider *string `json:"provider"`
+
+	// use defaults
+	// Required: true
+	UseDefaults bool `json:"useDefaults"`
+}
+
+/*PostRemoteAPIJStackTemplateSamplesOKBodyDefaults post remote API j stack template samples o k body defaults
+swagger:model PostRemoteAPIJStackTemplateSamplesOKBodyDefaults
+*/
+type PostRemoteAPIJStackTemplateSamplesOKBodyDefaults struct {
+
+	// user inputs
+	UserInputs interface{} `json:"userInputs,omitempty"`
+}
+
+// Validate validates this post remote API j stack template samples o k body defaults
+func (o *PostRemoteAPIJStackTemplateSamplesOKBodyDefaults) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

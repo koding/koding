@@ -250,8 +250,16 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 			go func() {
 				defer wg.Done()
 
-				dynSSH, dynClient := g.dynamicSSH(id), g.dynamicClient(mountID)
-				if err := g.sync.Add(mountID, m, g.nb, g.sb, dynSSH, dynClient); err != nil {
+				addReq := &syncs.AddRequest{
+					MountID:       mountID,
+					Mount:         m,
+					NotifyBuilder: g.nb,
+					SyncBuilder:   g.sb,
+					ClientFunc:    g.dynamicClient(mountID),
+					SSHFunc:       g.dynamicSSH(id),
+				}
+
+				if err := g.sync.Add(addReq); err != nil {
 					atomic.AddInt64(&errN, 1)
 					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
 				}

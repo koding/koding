@@ -7,6 +7,7 @@ import (
 	"koding/kites/config"
 	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
+	conf "koding/klientctl/config"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/endpoint/team"
@@ -79,7 +80,11 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	if resp.KiteKey != "" {
 		f.Konfig.KiteKey = resp.KiteKey
 		if resp.Metadata != nil {
+			fixKlientEndpoint(f.Konfig.Endpoints)
+
+			base := f.Konfig.Endpoints.Koding // do not overwrite baseurl
 			f.Konfig.Endpoints = resp.Metadata.Endpoints
+			f.Konfig.Endpoints.Koding = base
 		}
 
 		if err := configstore.Use(f.Konfig); err != nil {
@@ -122,4 +127,16 @@ func newKonfig(base *url.URL) (*config.Konfig, error) {
 	}
 
 	return k, nil
+}
+
+// fixKlientEndpoint fixes klient latest endpoint - kloud always installs
+// klient from development/production channels, however kd needs to use
+// managed/devmanaed ones.
+//
+// This is a hack that eventually needs to be removed.
+func fixKlientEndpoint(e *config.Endpoints) {
+	if !e.KlientLatest.IsNil() {
+		e.KlientLatest = config.ReplaceCustomEnv(e.KlientLatest, conf.Environments.Env,
+			conf.Environments.KlientEnv)
+	}
 }
