@@ -276,22 +276,70 @@ func run(args []string) {
 				Usage:       "Remount previously mounted machine using same settings.",
 				Description: cmdDescriptions["remount"],
 				Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
-			},
 			}},
-		{
+		}, {
+			Name:  "config",
+			Usage: "Manage tool configuration.",
+			Subcommands: []cli.Command{{
+				Name:   "show",
+				Usage:  "Show configuration.",
+				Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "defaults",
+						Usage: "Show also default configuration",
+					},
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List all available configurations.",
+				Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:   "use",
+				Usage:  "Change active configuration.",
+				Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
+			}, {
+				Name:   "set",
+				Usage:  "Set a value for the given key, overwriting default one.",
+				Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
+			}, {
+				Name:   "unset",
+				Usage:  "Unset the given key, restoring the defaut value.",
+				Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+			}, {
+				Name:   "reset",
+				Usage:  "Resets configuration to the default value fetched from Koding.",
+				Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force",
+						Usage: "Force retrieving configuration from Koding.",
+					},
+				},
+			}},
+		}, {
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
 			Description: cmdDescriptions["version"],
 			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
-		},
-		{
+		}, {
 			Name:        "status",
 			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 			Description: cmdDescriptions["status"],
 			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
-		},
-		{
+		}, {
 			Name:        "update",
 			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
 			Description: cmdDescriptions["update"],
@@ -323,32 +371,27 @@ func run(args []string) {
 					Hidden: true,
 				},
 			},
-		},
-		{
+		}, {
 			Name:        "restart",
 			Usage:       fmt.Sprintf("Restart the %s.", config.KlientName),
 			Description: cmdDescriptions["restart"],
 			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
-		},
-		{
+		}, {
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s.", config.KlientName),
 			Description: cmdDescriptions["start"],
 			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
-		},
-		{
+		}, {
 			Name:        "stop",
 			Usage:       fmt.Sprintf("Stop the %s.", config.KlientName),
 			Description: cmdDescriptions["stop"],
 			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
-		},
-		{
+		}, {
 			Name:        "uninstall",
 			Usage:       fmt.Sprintf("Uninstall the %s.", config.KlientName),
 			Description: cmdDescriptions["uninstall"],
 			Action:      ExitWithMessage(UninstallCommand, log, "uninstall"),
-		},
-		{
+		}, {
 			Name:        "install",
 			Usage:       fmt.Sprintf("Install the %s.", config.KlientName),
 			Description: cmdDescriptions["install"],
@@ -359,14 +402,12 @@ func run(args []string) {
 				},
 			},
 			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
-		},
-		{
+		}, {
 			Name:     "metrics",
 			Usage:    fmt.Sprintf("Internal use only."),
 			HideHelp: true,
 			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
-		},
-		{
+		}, {
 			Name:        "autocompletion",
 			Usage:       "Enable autocompletion support for bash and fish shells",
 			Description: cmdDescriptions["autocompletion"],
@@ -390,8 +431,7 @@ func run(args []string) {
 			BashComplete: ctlcli.FactoryCompletion(
 				AutocompleteCommandFactory, log, "autocompletion",
 			),
-		},
-		{
+		}, {
 			Name:  "log",
 			Usage: "Display logs.",
 			Flags: []cli.Flag{
@@ -403,8 +443,7 @@ func run(args []string) {
 				cli.IntFlag{Name: "lines, n"},
 			},
 			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
-		},
-		{
+		}, {
 			Name: "open",
 			Usage: fmt.Sprintf(
 				"Open the given file(s) on the Koding UI",
@@ -450,58 +489,6 @@ func run(args []string) {
 					// command: kd auth register
 					auth.NewRegisterSubCommand(log),
 				},
-			},
-			cli.Command{
-				Name:  "config",
-				Usage: "Manage tool configuration.",
-				Subcommands: []cli.Command{{
-					Name:   "show",
-					Usage:  "Show configuration.",
-					Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "defaults",
-							Usage: "Show also default configuration",
-						},
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:      "list",
-					ShortName: "ls",
-					Usage:     "List all available configurations.",
-					Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:   "use",
-					Usage:  "Change active configuration.",
-					Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
-				}, {
-					Name:   "set",
-					Usage:  "Set a value for the given key, overwriting default one.",
-					Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
-				}, {
-					Name:   "unset",
-					Usage:  "Unset the given key, restoring the defaut value.",
-					Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
-				}, {
-					Name:   "reset",
-					Usage:  "Resets configuration to the default value fetched from Koding.",
-					Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "force",
-							Usage: "Force retrieving configuration from Koding.",
-						},
-					},
-				}},
 			},
 			cli.Command{
 				Name:      "credential",
