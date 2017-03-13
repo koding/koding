@@ -195,6 +195,7 @@ stages:
           status=$?
           [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
           [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA || :
+          [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
 
       - type: shell
         name: codecov

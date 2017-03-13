@@ -23,6 +23,34 @@ type Client struct {
 }
 
 /*
+PostRemoteAPIJStackTemplateBuildID post remote API j stack template build ID API
+*/
+func (a *Client) PostRemoteAPIJStackTemplateBuildID(params *PostRemoteAPIJStackTemplateBuildIDParams) (*PostRemoteAPIJStackTemplateBuildIDOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostRemoteAPIJStackTemplateBuildIDParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PostRemoteAPIJStackTemplateBuildID",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JStackTemplate.build/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostRemoteAPIJStackTemplateBuildIDReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*PostRemoteAPIJStackTemplateBuildIDOK), nil
+
+}
+
+/*
 PostRemoteAPIJStackTemplateCloneID post remote API j stack template clone ID API
 */
 func (a *Client) PostRemoteAPIJStackTemplateCloneID(params *PostRemoteAPIJStackTemplateCloneIDParams) (*PostRemoteAPIJStackTemplateCloneIDOK, error) {
@@ -327,6 +355,34 @@ func (a *Client) PostRemoteAPIJStackTemplateUpdateID(params *PostRemoteAPIJStack
 		return nil, err
 	}
 	return result.(*PostRemoteAPIJStackTemplateUpdateIDOK), nil
+
+}
+
+/*
+PostRemoteAPIJStackTemplateVerifyID Method JStackTemplate.verify
+*/
+func (a *Client) PostRemoteAPIJStackTemplateVerifyID(params *PostRemoteAPIJStackTemplateVerifyIDParams) (*PostRemoteAPIJStackTemplateVerifyIDOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostRemoteAPIJStackTemplateVerifyIDParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PostRemoteAPIJStackTemplateVerifyID",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JStackTemplate.verify/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostRemoteAPIJStackTemplateVerifyIDReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*PostRemoteAPIJStackTemplateVerifyIDOK), nil
 
 }
 

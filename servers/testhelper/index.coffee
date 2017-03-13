@@ -52,8 +52,7 @@ generateUrl = (opts = {}) ->
     else  ''
 
   urlParts =
-    hostname  : KONFIG.domains.base
-    port      : ":#{KONFIG.publicPort}"
+    hostname  : KONFIG.domains.main
     route     : ''
     protocol  : 'http://'
     subdomain : ''
@@ -64,7 +63,6 @@ generateUrl = (opts = {}) ->
     urlParts.protocol +
     getSubdomain(urlParts.subdomain) +
     urlParts.hostname +
-    urlParts.port +
     getRoute(urlParts.route)
 
   return url

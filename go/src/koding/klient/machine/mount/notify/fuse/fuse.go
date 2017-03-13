@@ -86,7 +86,7 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 
 	op.Attributes = fs.attr(nd.Entry)
 
-	if op.Size != nil && *op.Size != 0 {
+	if op.Size != nil {
 		if err := f.Truncate(int64(*op.Size)); err != nil {
 			return nonil(err, f.Close())
 		}
@@ -456,7 +456,10 @@ func (fs *Filesystem) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) er
 		return err
 	}
 
-	return fs.update(ctx, f, nd)
+	err = f.Sync()
+	updateSize(f, nd)
+
+	return err
 }
 
 // ReleaseFileHandle releases file handle. It does not return errors even if it
@@ -477,17 +480,24 @@ func (fs *Filesystem) Destroy() {
 	fs.mu.Unlock()
 }
 
+// Umount unmounts FUSE filesystem.
 func Umount(dir string) error {
+	umountCmd := func(name string, args ...string) error {
+		if p, err := exec.Command(name, args...).CombinedOutput(); err != nil {
+			return fmt.Errorf("%s: %s", err, bytes.TrimSpace(p))
+		}
+
+		return nil
+	}
+
 	if runtime.GOOS == "linux" {
-		return fuse.Unmount(dir)
+		if err := fuse.Unmount(dir); err != nil {
+			return umountCmd("fusermount", "-uz", dir) // Try lazy umount.
+		}
+		return nil
 	}
 
 	// Under Darwin fuse.Umount uses syscall.Umount without syscall.MNT_FORCE flag,
 	// so we replace that implementation with diskutil.
-	p, err := exec.Command("diskutil", "unmount", "force", dir).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("%s: %s", err, bytes.TrimSpace(p))
-	}
-
-	return nil
+	return umountCmd("diskutil", "unmount", "force", dir)
 }

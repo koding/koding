@@ -135,62 +135,6 @@ func (a *Client) PostRemoteAPIComputeProviderFetchProviders(params *PostRemoteAP
 }
 
 /*
-PostRemoteAPIComputeProviderFetchSoloMachines post remote API compute provider fetch solo machines API
-*/
-func (a *Client) PostRemoteAPIComputeProviderFetchSoloMachines(params *PostRemoteAPIComputeProviderFetchSoloMachinesParams) (*PostRemoteAPIComputeProviderFetchSoloMachinesOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIComputeProviderFetchSoloMachinesParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderFetchSoloMachines",
-		Method:             "POST",
-		PathPattern:        "/remote.api/ComputeProvider.fetchSoloMachines",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderFetchSoloMachinesReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIComputeProviderFetchSoloMachinesOK), nil
-
-}
-
-/*
-PostRemoteAPIComputeProviderFetchUsage post remote API compute provider fetch usage API
-*/
-func (a *Client) PostRemoteAPIComputeProviderFetchUsage(params *PostRemoteAPIComputeProviderFetchUsageParams) (*PostRemoteAPIComputeProviderFetchUsageOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIComputeProviderFetchUsageParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderFetchUsage",
-		Method:             "POST",
-		PathPattern:        "/remote.api/ComputeProvider.fetchUsage",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderFetchUsageReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIComputeProviderFetchUsageOK), nil
-
-}
-
-/*
 PostRemoteAPIComputeProviderPing pings to requested provider implementation
 */
 func (a *Client) PostRemoteAPIComputeProviderPing(params *PostRemoteAPIComputeProviderPingParams) (*PostRemoteAPIComputeProviderPingOK, error) {
