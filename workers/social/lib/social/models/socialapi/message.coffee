@@ -18,47 +18,6 @@ module.exports = class SocialMessage extends Base
       # but SocialMessage requests will not be batched
       bypassBatch   : yes
 
-    sharedMethods :
-      static   :
-        byId   :
-          (signature Object, Function)
-        bySlug :
-          (signature Object, Function)
-        post   :
-          (signature Object, Function)
-        reply  :
-          (signature Object, Function)
-        edit   :
-          (signature Object, Function)
-        delete :
-          (signature Object, Function)
-        listReplies:
-          (signature Object, Function)
-        like   :
-          (signature Object, Function)
-        unlike :
-          (signature Object, Function)
-        listLikers:
-          (signature Object, Function)
-        initPrivateMessage:
-          (signature Object, Function)
-        sendPrivateMessage:
-          (signature Object, Function)
-        fetchPrivateMessages:
-          (signature Object, Function)
-        fetchPrivateMessageCount:
-          (signature Object, Function)
-        search :
-          (signature Object, Function)
-        fetch  :
-          (signature Object, Function)
-        fetchDataFromEmbedly: [
-          (signature String, Object, Function)
-          (signature [String], Object, Function)
-        ]
-        paymentSubscribe:
-          (signature Object, Function)
-
     schema             :
       id               : Number
       body             : String
