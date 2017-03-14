@@ -14,7 +14,6 @@ const (
 	ChangeMetaAdd                           // a: File was added.
 	ChangeMetaRemove                        // d: File was removed.
 	ChangeMetaUpdate                        // u: File was updated.
-	ChangeMetaHuge                          // H: File size is above 4GB.
 )
 
 // Followed constants are helpers for ChangeMeta.Coalesce method.
@@ -109,7 +108,6 @@ var cmMapping = map[byte]ChangeMeta{
 	'a': ChangeMetaAdd,
 	'd': ChangeMetaRemove,
 	'u': ChangeMetaUpdate,
-	'H': ChangeMetaHuge,
 }
 
 // String implements fmt.Stringer interface and pretty prints stored change.

@@ -131,11 +131,6 @@ func TestChangeMetaCoalesce(t *testing.T) {
 			B:      index.ChangeMetaAdd,
 			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
-		"AL_AL_OTHER META": {
-			A:      index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaHuge,
-			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
-			Result: index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaHuge,
-		},
 	}
 
 	for name, test := range tests {
@@ -298,27 +293,27 @@ func TestChangeMetaString(t *testing.T) {
 		{
 			// 0 //
 			CM:     index.ChangeMetaUpdate | index.ChangeMetaLocal,
-			Result: "L---u-",
+			Result: "L---u",
 		},
 		{
 			// 1 //
 			CM:     index.ChangeMetaUpdate | index.ChangeMetaLocal | index.ChangeMetaRemote,
-			Result: "LR--u-",
+			Result: "LR--u",
 		},
 		{
 			// 2 //
-			CM:     index.ChangeMetaAdd | index.ChangeMetaHuge | index.ChangeMetaRemote,
-			Result: "-Ra--H",
+			CM:     index.ChangeMetaAdd | index.ChangeMetaRemote,
+			Result: "-Ra--",
 		},
 		{
 			// 3 //
 			CM:     0,
-			Result: "------",
+			Result: "-----",
 		},
 		{
 			// 4 //
 			CM:     index.ChangeMetaRemove,
-			Result: "---d--",
+			Result: "---d-",
 		},
 	}
 

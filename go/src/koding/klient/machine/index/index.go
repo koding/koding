@@ -241,7 +241,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			entry.SwapPromise(EntryPromiseVirtual, 0)
 			cs = append(cs, NewChange(
 				filepath.ToSlash(filepath.Join(branch, nameOS)),
-				ChangeMetaAdd|ChangeMetaRemote|markLargeMeta(entry.Size()),
+				ChangeMetaAdd|ChangeMetaRemote,
 			))
 			return
 		}
@@ -273,7 +273,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 		entry.SwapPromise(EntryPromiseUpdate, EntryPromiseVirtual)
 		cs = append(cs, NewChange(
 			filepath.ToSlash(filepath.Join(branch, nameOS)),
-			ChangeMetaUpdate|markLargeMeta(info.Size()),
+			ChangeMetaUpdate,
 		))
 	})
 	idx.mu.RUnlock()
@@ -297,7 +297,7 @@ skipBranch:
 
 		cs = append(cs, NewChange(
 			filepath.ToSlash(name),
-			ChangeMetaAdd|markLargeMeta(info.Size()),
+			ChangeMetaAdd,
 		))
 
 		idx.mu.Lock()
@@ -317,15 +317,6 @@ skipBranch:
 	// Put sortest paths to the end.
 	sort.Sort(sort.Reverse(cs))
 	return cs
-}
-
-// markLargeMeta adds large file flag for files which size is over 4GiB.
-func markLargeMeta(n int64) ChangeMeta {
-	if n < 0 || (n>>32) == 0 {
-		return 0
-	}
-
-	return ChangeMetaHuge
 }
 
 // Sync modifies index according to provided change path. It checks the file
