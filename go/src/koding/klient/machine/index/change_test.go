@@ -190,11 +190,11 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 	const workersN = 10
 
 	// The oldest change in this test.
-	oldest := index.NewChange("change", 0)
+	oldest := index.NewChange("change", index.PriorityHigh, 0)
 
 	var wg sync.WaitGroup
 	cC := make(chan *index.Change)
-	c := index.NewChange("change", index.ChangeMetaUpdate)
+	c := index.NewChange("change", index.PriorityMedium, index.ChangeMetaUpdate)
 
 	wg.Add(workersN)
 	for i := 0; i < workersN; i++ {
@@ -209,7 +209,7 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 
 	var cs = make([]*index.Change, 200)
 	randIdx := rand.Intn(len(cs))
-	newest := index.NewChange("change", index.ChangeMetaRemove)
+	newest := index.NewChange("change", index.PriorityLow, index.ChangeMetaRemove)
 	for i := range cs {
 		if i == randIdx {
 			cC <- newest
@@ -227,6 +227,10 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 
 	if want, caun := newest.CreatedAtUnixNano(), c.CreatedAtUnixNano(); caun != want {
 		t.Errorf("want caun = %d; got %d", want, caun)
+	}
+
+	if want, cp := index.PriorityHigh, c.Priority(); cp != want {
+		t.Errorf("want cp = %b; got %b", want, cp)
 	}
 }
 

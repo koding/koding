@@ -241,6 +241,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			entry.SwapPromise(EntryPromiseVirtual, 0)
 			cs = append(cs, NewChange(
 				filepath.ToSlash(filepath.Join(branch, nameOS)),
+				PriorityLow,
 				ChangeMetaAdd|ChangeMetaRemote,
 			))
 			return
@@ -273,6 +274,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 		entry.SwapPromise(EntryPromiseUpdate, EntryPromiseVirtual)
 		cs = append(cs, NewChange(
 			filepath.ToSlash(filepath.Join(branch, nameOS)),
+			PriorityMedium,
 			ChangeMetaUpdate,
 		))
 	})
@@ -297,6 +299,7 @@ skipBranch:
 
 		cs = append(cs, NewChange(
 			filepath.ToSlash(name),
+			PriorityLow,
 			ChangeMetaAdd,
 		))
 

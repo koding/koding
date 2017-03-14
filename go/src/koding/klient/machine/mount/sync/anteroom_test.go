@@ -16,7 +16,7 @@ func TestAnteroom(t *testing.T) {
 	a := msync.NewAnteroom()
 	defer a.Close()
 
-	c := index.NewChange("a/test.txt", index.ChangeMetaAdd)
+	c := index.NewChange("a/test.txt", index.PriorityLow, index.ChangeMetaAdd)
 	ctx := a.Commit(c)
 
 	items, queued := a.Status()
@@ -66,8 +66,8 @@ func TestAnteroomCoalescing(t *testing.T) {
 	defer a.Close()
 
 	cs := [2]*index.Change{
-		index.NewChange("a/test.txt", index.ChangeMetaAdd),
-		index.NewChange("a/test.txt", index.ChangeMetaUpdate),
+		index.NewChange("a/test.txt", index.PriorityLow, index.ChangeMetaAdd),
+		index.NewChange("a/test.txt", index.PriorityLow, index.ChangeMetaUpdate),
 	}
 
 	// Add ChangeMetaAdd first - this will make all other events coalesce to
@@ -111,8 +111,8 @@ func TestAnteroomPopChange(t *testing.T) {
 	defer a.Close()
 
 	var (
-		cA = index.NewChange("a/test.txt", index.ChangeMetaAdd)
-		cB = index.NewChange("a/test.txt", index.ChangeMetaRemove)
+		cA = index.NewChange("a/test.txt", index.PriorityLow, index.ChangeMetaAdd)
+		cB = index.NewChange("a/test.txt", index.PriorityLow, index.ChangeMetaRemove)
 	)
 
 	a.Commit(cA)
@@ -159,7 +159,7 @@ func TestAnteroomMultiEvents(t *testing.T) {
 	for i := 0; i < eventsN; i++ {
 		path := "file" + strconv.Itoa(i) + ".txt"
 
-		a.Commit(index.NewChange(path, index.ChangeMetaRemove))
+		a.Commit(index.NewChange(path, index.PriorityLow, index.ChangeMetaRemove))
 		sent[path] = struct{}{}
 	}
 
