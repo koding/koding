@@ -93,7 +93,7 @@ loadTestIDE = ->
 routeToMachine = (options = {}) ->
 
   cc = kd.singletons.computeController
-  { machine, label, uid } = options
+  { machine, slug, uid } = options
 
   if machine
     loadIDE { machine }
@@ -101,9 +101,9 @@ routeToMachine = (options = {}) ->
   else
     cc.ready ->
 
-      if label
-        machine = cc.storage.get 'machines', 'label', label
-        debug 'machine with label', { label, machine }
+      if slug
+        machine = cc.storage.get 'machines', 'slug', slug
+        debug 'machine with slug', { slug, machine }
       else if uid
         machine = cc.storage.get 'machines', 'uid', uid
         debug 'machine with uid', { uid, machine }
@@ -111,9 +111,9 @@ routeToMachine = (options = {}) ->
       unless machine
         [ machine ] = cc.storage.get 'machines'
         if machine
-          if label or uid
+          if slug or uid
             showError 'Requested machine not found, first available machine is loaded instead.'
-          kd.getSingleton('router').handleRoute "/IDE/#{machine.label}"
+          kd.getSingleton('router').handleRoute "/IDE/#{machine.slug}"
           return
 
       # if machine.isPermanent() or machine.meta?.oldOwner
@@ -183,7 +183,7 @@ routeHandler = (type, info, state, path, ctx) ->
       else if machineLabel is 'test-machine'
         routeToTestWorkspace()
       else
-        routeToMachine { label: machineLabel }
+        routeToMachine { slug: machineLabel }
 
     when 'workspace'
 
