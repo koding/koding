@@ -2,10 +2,12 @@ debug = (require 'debug') 'cs'
 
 kd = require 'kd'
 Encoder = require 'htmlencode'
+Promise = require 'bluebird'
 
 remote  = require('../remote')
 globals = require 'globals'
 
+actions = require 'app/flux/environment/actiontypes'
 isGroupDisabled = require 'app/util/isGroupDisabled'
 
 
@@ -13,35 +15,51 @@ module.exports = class ComputeStorage extends kd.Object
 
 
   Storage        =
-    machine      :
-      path       : 'machines'
+    machines     :
       collection : 'JMachine'
       payload    : 'userMachines'
       modifier   : (machines) ->
-        machines = [ machines ]  unless Array.isArray machines
         machines.map (machine) ->
           return remote.revive machine
 
-    stack        :
-      path       : 'stacks'
+    stacks       :
       collection : 'JComputeStack'
       payload    : 'userStacks'
+      prePop     : (stackId) ->
+        if cached = @get 'stacks', '_id', stackId
+          @pop 'machines', '_id', machine._id  for machine in cached.machines
+
+      postPop    : (stackId) ->
+        { reactor } = kd.singletons
+        reactor.dispatch actions.REMOVE_STACK, stackId
+
+      prePush    : (stack) ->
+        @push 'machines', machine  for machine in stack.machines
+
+      postPush   : (stacks) ->
+        { reactor } = kd.singletons
+        reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, @get 'machines'
+        reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, @get 'stacks'
+
       modifier   : (stacks) ->
-        stacks = [ stacks ]  unless Array.isArray stacks
         stacks.map (stack) =>
           stack = remote.revive stack
           stack.title = Encoder.htmlDecode stack.title
           stack.machines = stack.machines
-            .map    (machineId) => @get 'machines', '_id', machineId
-            .filter (machine)   -> machine.bongo_?
+            .map (machine) =>
+              if machine.bongo_
+              then machine
+              else @get 'machines', '_id', machine
+
+            .filter (machine) ->
+              machine?.bongo_?
+
           return stack
 
-    template     :
-      path       : 'templates'
+    templates    :
       collection : 'JStackTemplate'
 
-    credential   :
-      path       : 'credentials'
+    credentials  :
       collection : 'JCredential'
 
 
@@ -58,12 +76,11 @@ module.exports = class ComputeStorage extends kd.Object
     @storage = new Object
     Object.keys(Storage).forEach (type) =>
 
-      { path } = Storage[type]
       if not disabled and payload = Storage[type].payload
         payloadData = globals[payload]
-        @storage[path] = Storage[type].modifier?.call this, payloadData
+        @storage[type] = Storage[type].modifier?.call this, payloadData
       else
-        @storage[path] = []
+        @storage[type] = []
 
     debug 'storage initialized as', @storage
 
@@ -72,7 +89,7 @@ module.exports = class ComputeStorage extends kd.Object
 
   set: (type, data) ->
 
-    console.warn '[Warning] ComputeStorage::set will be deprecated!'
+    console.warn 'ComputeStorage::set will be deprecated!'
 
     debug 'set', type, data
 
@@ -110,27 +127,94 @@ module.exports = class ComputeStorage extends kd.Object
     return item
 
 
-  push: (options = {}) ->
+  push: (type, value) ->
 
-    debug 'push', options
+    debug 'push', type, value
 
     return  if isGroupDisabled()
 
-    { machine, stack, template, machineId } = options
+    debug 'before push', @storage
+    kd.utils.defer =>
+      debug 'after push', @storage
 
-    if template
-      @storage.templates.push template
+    return  unless Storage[type]
+
+    { modifier, prePush, postPush } = Storage[type]
+
+    if cached = @get type, '_id', value._id ? value
+      debug 'pushed data was in cache, passed'
+      return cached
+
+    if typeof value is 'string'
+      return @fetch type, value
+
+    [ value ] = modifier.call this, [ value ]  if modifier
+
+    prePush?.call this, value
+
+    @storage[type].push value
+
+    postPush?.call this, value
+
+    return value
 
 
-  pop: (options = {}) ->
+  pop: (type, key, value) ->
 
-    { machine, stack, template, machineId } = options
+    debug 'pop', type, key, value
 
-    debug 'pop', options
+    [ key, value ] = [ value, key ]  unless value
+    key ?= '_id'
+
+    debug 'before pop', @storage
+    kd.utils.defer =>
+      debug 'after pop', @storage
+
+    return  unless Storage[type]
+    { prePop, postPop } = Storage[type]
+
+    value = value._id ? value
+
+    prePop?.call this, value
+
+    @storage[type] = @storage[type].filter (item) ->
+      item._id isnt value
+
+    postPop?.call this, value
+
+    return value
 
 
-  fetch: ->
+  fetch: (type, key, value) ->
 
-    debug 'fetch'
+    debug 'fetch', type, key, value
 
-    kd.warn 'wip'
+    [ key, value ] = [ value, key ]  unless value
+    key ?= '_id'
+
+    new Promise (resolve, reject) =>
+
+      unless @storage[type]
+        return reject new Error 'Storage not supported'
+
+      if isGroupDisabled()
+        return reject new Error 'Team disabled'
+
+      if cached = @get type, key, value
+        debug 'data found in cache'
+        return resolve cached
+
+      query = {}
+      query[key] = value
+      { collection } = Storage[type]
+
+      debug 'fetching from remote', collection, query
+      remote.api[collection].one query, (err, data) =>
+        debug 'remote fetch result', err, data
+        if err
+          reject err
+        else if data
+          @push type, data
+          resolve data
+        else
+          resolve null
