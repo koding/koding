@@ -262,7 +262,14 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 				if err := g.sync.Add(addReq); err != nil {
 					atomic.AddInt64(&errN, 1)
 					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
+					return
 				}
+
+				sc, err := g.sync.Sync(mountID)
+				if err != nil {
+					panic("created mount " + m.String() + " does not exist")
+				}
+				sc.UpdateIndex()
 			}()
 		}
 	}

@@ -169,6 +169,7 @@ func (a *Anteroom) dequeue() {
 			if ev = a.queue.Pop(); ev == nil {
 				evC = nil // queue is empty - turn off event channel.
 			} else {
+				atomic.AddInt64(&a.synced, 1)
 				atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusPop))
 			}
 		case <-a.wakeupC:

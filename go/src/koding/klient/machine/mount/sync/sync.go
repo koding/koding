@@ -185,9 +185,6 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		return nil, err
 	}
 
-	// Check current state of synchronization and set promises.
-	s.UpdateIndex()
-
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
 
@@ -249,7 +246,11 @@ func (s *Sync) CacheDir() string {
 // managed index. This function allows to express the current state of
 // synchronized files inside index structure.
 func (s *Sync) UpdateIndex() {
-	s.idx.Merge(s.CacheDir())
+	cs := s.idx.Merge(s.CacheDir())
+
+	for i := range cs {
+		s.a.Commit(cs[i])
+	}
 }
 
 // FetchCmd creates a strategy with prefetch command to run.

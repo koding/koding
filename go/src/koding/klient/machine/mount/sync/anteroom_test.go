@@ -187,8 +187,8 @@ func TestAnteroomMultiEvents(t *testing.T) {
 	if items != eventsN {
 		t.Errorf("want %d items; got %d", eventsN, items)
 	}
-	if synced != 1 {
-		t.Errorf("want 1 synced events; got %d", synced)
+	if synced != eventsN {
+		t.Errorf("want %d synced events; got %d", eventsN, synced)
 	}
 
 	if !reflect.DeepEqual(sent, got) {
