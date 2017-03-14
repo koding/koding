@@ -32,13 +32,9 @@ module.exports = class TeamStackTemplatesStore extends KodingFluxStore
   changeTitle: (stackTemplates, { id, value }) ->
 
     template = stackTemplates.get id
-
     return stackTemplates  unless template
 
-    stackTemplates.withMutations (templates) ->
-      templates
-        .setIn [id, 'title'], value
-        .setIn [id, 'isDirty'], yes
+    stackTemplates.set id, template.set 'title', value
 
 
   remove: (stackTemplates, { id }) -> stackTemplates.remove id
