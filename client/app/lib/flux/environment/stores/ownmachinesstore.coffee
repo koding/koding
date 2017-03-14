@@ -14,10 +14,10 @@ module.exports = class OwnMachinesStore extends KodingFluxStore
     @on actions.ADD_TEST_MACHINE, @set
 
 
-  load: (machines, { own }) ->
+  load: (machines, jmachines) ->
 
     machines.withMutations (machines) ->
-      own.forEach ({ machine }) ->
+      jmachines.forEach (machine) ->
         machines.set machine._id, machine._id
 
 

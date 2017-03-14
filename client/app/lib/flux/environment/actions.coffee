@@ -121,14 +121,8 @@ loadMachines = do (isPayloadUsed = no) -> ->
 
       machines = computeController.storage.get 'machines'
 
-      data = {
-        own: machines.map (machine) -> { machine }
-        shared: []
-        collaboration: []
-      }
-
-      reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, data
-      resolve data
+      reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, machines
+      resolve machines
 
 
 loadStacks = (force = no) ->

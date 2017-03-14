@@ -15,10 +15,10 @@ module.exports = class CollaborationMachinesStore extends KodingFluxStore
     @on actions.COLLABORATION_INVITATION_REJECTED, @rejectInvitation
 
 
-  load: (machines, { collaboration }) ->
+  load: (machines, jmachines) ->
 
     machines.withMutations (machines) ->
-      collaboration.forEach ({ machine }) ->
+      jmachines.forEach (machine) ->
         machines.set machine._id, machine._id
 
 

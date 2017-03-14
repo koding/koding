@@ -23,17 +23,23 @@ module.exports = class MachinesStore extends KodingFluxStore
 
 
 
-  load: (machines, { own, shared, collaboration }) ->
-
-    envData = own.concat shared.concat collaboration
+  load: (machines, jmachines) ->
 
     machines.withMutations (machines) ->
-      envData.forEach ({ machine }) ->
+      jmachines.forEach (machine) ->
         machine.hasOldOwner = machine.meta?.oldOwner?
 
-        _machine = toImmutable machine
+        if machine.isMine()
+          type = 'own'
+        else if machine.isPermanent()
+          type = 'shared'
+        else
+          type = 'collaboration'
 
-        if m = machines.get(machine._id)
+        _machine = toImmutable machine
+        _machine.set 'type', type
+
+        if m = machines.get machine._id
           if sharedUsers = m.get 'sharedUsers'
             _machine = _machine.set 'sharedUsers', sharedUsers
 

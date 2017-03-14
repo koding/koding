@@ -14,10 +14,10 @@ module.exports = class SharedMachinesStore extends KodingFluxStore
     @on actions.SHARED_VM_INVITATION_REJECTED, @rejectInvitation
 
 
-  load: (machines, { shared }) ->
+  load: (machines, jmachines) ->
 
     machines.withMutations (machines) ->
-      shared.forEach ({ machine }) ->
+      jmachines.forEach (machine) ->
         machines.set machine.uid, machine._id
 
 
