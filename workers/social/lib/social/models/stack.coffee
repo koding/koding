@@ -290,30 +290,26 @@ module.exports = class JComputeStack extends jraphical.Module
       options.limit = 1
 
       @some$ client, selector, options, (err, stacks) ->
-        [stack] = stacks ? []
-        callback err, stack
+        return callback err  if err
+
+        [ stack ] = stacks ? []
+        if stack
+        then stack.revive client, callback
+        else callback null
 
 
-  revive: (callback) ->
+  revive: (client, callback) ->
 
-    JMachine        = require './computeproviders/machine'
-    JAccount        = require './account'
-    JProposedDomain = require './domain'
+    JMachine = require './computeproviders/machine'
+    JAccount = require './account'
 
     queue    = []
-    domains  = []
     machines = []
 
     (@machines ? []).forEach (machineId) ->
       queue.push (next) -> JMachine.one { _id: machineId }, (err, machine) ->
         if not err? and machine
           machines.push machine
-        next()
-
-    (@domains ? []).forEach (domainId) ->
-      queue.push (next) -> JProposedDomain.one { _id: domainId }, (err, domain) ->
-        if not err? and domain
-          domains.push domain
         next()
 
     async.series queue, =>
@@ -324,7 +320,6 @@ module.exports = class JComputeStack extends jraphical.Module
 
         this.owner    = owner ? { error: 'Owner not exists' }
         this.machines = machines
-        this.domains  = domains
 
         callback null, this
 
