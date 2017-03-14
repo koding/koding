@@ -639,7 +639,7 @@ module.exports = class ComputeProvider extends Base
     ], callback
 
 
-  @fetchGroupResources = (group, selector, options, callback) ->
+  @fetchGroupResources = (client, group, selector, options, callback) ->
 
     selector ?= {}
     selector.$and ?= []
@@ -657,7 +657,7 @@ module.exports = class ComputeProvider extends Base
           if stacks?.length > 0
             reviveQueue = []
             stacks.forEach (stack) ->
-              reviveQueue.push (next) -> stack.revive next
+              reviveQueue.push (next) -> stack.revive client, next
             async.parallel reviveQueue, -> next null, stacks
           else
             next null, []

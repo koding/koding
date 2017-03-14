@@ -1007,7 +1007,7 @@ module.exports = class JGroup extends Module
         delete selector.searchFor
 
       ComputeProvider = require '../computeproviders/computeprovider'
-      ComputeProvider.fetchGroupResources this, selector, options, callback
+      ComputeProvider.fetchGroupResources client, this, selector, options, callback
 
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.
