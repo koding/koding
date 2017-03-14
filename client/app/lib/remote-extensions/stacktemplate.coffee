@@ -1,4 +1,6 @@
 debug  = (require 'debug') 'remote:api:jstacktemplate'
+
+kd = require 'kd'
 remote = require('../remote')
 
 module.exports = class JStackTemplate extends remote.api.JStackTemplate
@@ -20,6 +22,22 @@ module.exports = class JStackTemplate extends remote.api.JStackTemplate
       providers = providers.concat provider
 
     return providers
+
+
+  generateStack: (options, callback) ->
+
+    debug 'generateStack called', options
+
+    super options, (err, newStack) ->
+
+      debug 'generateStack res:', err, newStack
+      return callback err  if err
+
+      { results: { machines }, stack } = newStack
+      stack.machines = machines.map (m) -> m.obj
+      kd.singletons.computeController.storage.push 'stacks', stack
+
+      callback null, newStack
 
 
   @one = ->
