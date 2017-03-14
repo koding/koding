@@ -7,10 +7,8 @@ module.exports = class JCredential extends remote.api.JCredential
 
   @some$ = (selector, options, callback) ->
 
-    debug 'some$ called', selector, options
-    JCredential.some selector, options, (err, res) ->
-      debug 'some$ returned', err, res
-      callback err, res
+    console.warn 'JCredential.some$ will be deprecated!'
+    JCredential.some selector, options, callback
 
 
   @create = (data, callback) ->
@@ -26,6 +24,5 @@ module.exports = class JCredential extends remote.api.JCredential
 
 
   @one = ->
-    debug 'one called'
-    console.trace()
+    console.warn 'JCredential.one will be deprecated!'
     super

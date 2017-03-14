@@ -23,6 +23,10 @@ module.exports = class JStackTemplate extends remote.api.JStackTemplate
 
 
   @one = ->
-    debug 'one called'
-    console.trace()
+    console.warn 'JStackTemplate.one will be deprecated!'
+    super
+
+
+  @some = ->
+    console.warn 'JStackTemplate.some will be deprecated!'
     super
