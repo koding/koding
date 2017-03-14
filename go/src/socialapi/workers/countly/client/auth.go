@@ -11,6 +11,9 @@ func BasicAuth(username, password, address string) string {
 	client := &http.Client{}
 	url := fmt.Sprintf("%v/api-key", address)
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return ""
+	}
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 	if err != nil {
