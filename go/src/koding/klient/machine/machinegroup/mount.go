@@ -328,8 +328,10 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 		if err != nil {
 			// Add mount to the list but log not synchronized mount.
 			res.Mounts[alias] = append(res.Mounts[alias], msync.Info{
-				ID:    mountID,
-				Mount: mm.m,
+				ID:      mountID,
+				Mount:   mm.m,
+				Queued:  -1,
+				Syncing: -1,
 			})
 			g.log.Warning("Mount %s for %s is not synchronized: %s", mountID, mm.m, err)
 			continue
