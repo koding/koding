@@ -189,9 +189,9 @@ module.exports = class ComputeController extends KDController
       return err
 
 
-  fetchMachine: (idOrUid, callback = kd.noop) ->
+  fetchMachine: (query = {}, callback = kd.noop) ->
 
-    remote.api.JMachine.one idOrUid, (err, machine) ->
+    remote.api.JMachine.one query, (err, machine) ->
       if showError err then callback err
       else if machine? then callback null, machine
 

@@ -68,7 +68,7 @@ module.exports = class NFinderController extends KDViewController
         @unmountMachine machineId
 
       computeController.on 'MachineStarted', ({ machineId }) =>
-        computeController.fetchMachine machineId, (err, machine) =>
+        computeController.fetchMachine { _id: machineId }, (err, machine) =>
           @mountMachine machine  unless err
 
 
@@ -173,7 +173,7 @@ module.exports = class NFinderController extends KDViewController
 
     { computeController } = kd.singletons
 
-    computeController.fetchMachine uid, (err, machine) =>
+    computeController.fetchMachine { uid }, (err, machine) =>
       return showError err  if err
       @mountMachine machine
 

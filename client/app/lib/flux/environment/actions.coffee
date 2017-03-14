@@ -103,7 +103,7 @@ handleSharedMachineInvitation = (sharedMachine) ->
 
 fetchMachineByUId = (machineUId, callback) ->
 
-  remote.api.JMachine.one machineUId, (err, machine) ->
+  remote.api.JMachine.one { uid: machineUId }, (err, machine) ->
     if err
       showError err
     else if machine?

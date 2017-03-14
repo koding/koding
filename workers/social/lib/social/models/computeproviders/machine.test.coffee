@@ -497,7 +497,7 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
             machine = machines[0]
 
             # expecting machine to be fetched by machine id and client
-            JMachine.one$ client, machine._id + '', (err, machine_) ->
+            JMachine.one$ client, { _id: machine._id }, (err, machine_) ->
               expect(err).to.not.exist
               expect(machine).to.exist
               expect(machine._id + '').to.be.equal machine_._id + ''
