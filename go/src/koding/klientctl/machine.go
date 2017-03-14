@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"koding/klient/machine/mount/sync"
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
@@ -161,6 +162,64 @@ func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, er
 	}
 
 	return 0, nil
+}
+
+// MachineExecCommand runs a command in a started machine.
+func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if c.NArg() < 2 {
+		cli.ShowCommandHelp(c, "exec")
+		return 1, nil
+	}
+
+	done := make(chan int, 1)
+
+	opts := &machine.ExecOptions{
+		Cmd:  c.Args()[1],
+		Args: c.Args()[2:],
+		Stdout: func(line string) {
+			fmt.Println(line)
+		},
+		Stderr: func(line string) {
+			fmt.Fprintln(os.Stderr, line)
+		},
+		Exit: func(exit int) {
+			done <- exit
+			close(done)
+		},
+	}
+
+	if s := c.Args()[0]; strings.HasPrefix(s, "@") {
+		opts.MachineID = s[1:]
+	} else {
+		if filepath.IsAbs(s) {
+			var err error
+			if s, err = filepath.Abs(s); err != nil {
+				return 1, err
+			}
+		}
+
+		opts.Path = s
+	}
+
+	pid, err := machine.Exec(opts)
+	if err != nil {
+		return 1, err
+	}
+
+	ctlcli.CloseOnExit(ctlcli.CloseFunc(func() error {
+		select {
+		case <-done:
+			return nil
+		default:
+			return machine.Kill(&machine.KillOptions{
+				MachineID: opts.MachineID,
+				Path:      opts.Path,
+				PID:       pid,
+			})
+		}
+	}))
+
+	return <-done, nil
 }
 
 // getIdentifiers extracts identifiers and validate provided arguments.
