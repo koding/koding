@@ -7,6 +7,5 @@ module.exports = class JGroup extends remote.api.JGroup
   isDisabled: -> isGroupDisabled this
 
   @one = ->
-    debug 'one called'
-    console.trace()
+    console.warn 'JGroup.one will be deprecated!'
     super

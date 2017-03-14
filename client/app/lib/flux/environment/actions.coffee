@@ -601,16 +601,7 @@ deleteStack = ({ stackTemplateId, stack }) ->
     appManager.quitByName 'IDE', ->
       computeController.destroyStack _stack, (err) ->
         return  if showError err
-
         reactor.dispatch actions.REMOVE_STACK, _stack._id
-
-        computeController
-          # FIXMERESET ~ GG
-          .reset yes
-          .once 'RenderStacks', ->
-            loadTeamStackTemplates()  unless teamStackTemplatesStore.size
-            router.handleRoute '/IDE'
-
       , followEvents = no
 
 

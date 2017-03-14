@@ -62,8 +62,8 @@ module.exports = class ComputeController extends KDController
 
     mainController.ready =>
 
-      @on 'MachineBuilt',            (machineId) => @storage.push { machineId }
-      @on 'MachineDestroyed',        (machineId) => @storage.pop  { machineId }
+      @on 'MachineBuilt',            (machineId) => @storage.push 'machines', machineId
+      @on 'MachineDestroyed',        (machineId) => @storage.pop  'machines', machineId
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
@@ -87,7 +87,6 @@ module.exports = class ComputeController extends KDController
         @checkGroupStackRevisions()
 
         if groupsController.canEditGroup()
-          @on 'RenderMachines', @bound 'checkMachinePermissions'
           @checkMachinePermissions()
 
         @checkMachines()
@@ -274,7 +273,7 @@ module.exports = class ComputeController extends KDController
 
     kallback = (err, machine) =>
       return callback err  if err?
-      @storage.push { machine }
+      @storage.push 'machines', machine
       callback null, machine
 
     runMiddlewares this, 'create', options, (err, newOptions) ->
@@ -295,10 +294,8 @@ module.exports = class ComputeController extends KDController
       return kd.warn 'Stack data not found'  unless newStack
 
       { results : { machines } } = newStack
-      [ machine ] = machines
 
-      @storage.push { stack: newStack }
-      @reloadIDE machine.obj.slug
+      @reloadIDE machines[0].obj.slug
       @checkGroupStacks()
 
     mainController.ready =>
@@ -365,7 +362,7 @@ module.exports = class ComputeController extends KDController
           return  if err
 
           @_clearTrialCounts machine
-          @storage.push { machine }
+          @storage.push 'machines', machine
 
           { appManager } = kd.singletons
           ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
@@ -497,7 +494,9 @@ module.exports = class ComputeController extends KDController
 
     .then (res) =>
 
+      @storage.pop 'stacks', stackId
       actions.checkTeamStack stack._id
+
       @eventListener.addListener 'apply', stackId  if followEvents
 
       Tracker.track Tracker.STACKS_DELETE, {
@@ -899,7 +898,7 @@ module.exports = class ComputeController extends KDController
     remote.api.JStackTemplate.one { _id: id }, (err, template) =>
       return callback { message: "Stack template doesn't exist." }  if err or not template
 
-      @storage.push { template }
+      @storage.push 'templates', template
 
       # Follow update events to get change set from remote-extensions
       # This is not required but we will need a huge set of changes
@@ -1098,7 +1097,7 @@ module.exports = class ComputeController extends KDController
             callback err
             return showError err
 
-          @storage.pop { stack }
+          @storage.pop 'stacks', stack
 
           notification.destroy()
           Tracker.track Tracker.STACKS_REINIT, {
