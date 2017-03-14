@@ -26,37 +26,48 @@ expandedMachineLabelStore         = ['ExpandedMachineLabelStore']
 ownMachines = [
   OwnMachinesStore
   MachinesStore
-  (own, machines) -> own.map (id) ->
-    machine = machines.get(id)
-    machine
-      .set 'type', 'own'
-      .set 'isApproved', yes
-      .set 'isManaged', machineRuleChecker machine, ['managed']
+  (own, machines) ->
+    own
+      .map (id) ->
+        machine = machines.get(id)
+        machine
+          .set 'isApproved', yes
+          .set 'isManaged', machineRuleChecker machine, ['managed']
+      .filter (machine) ->
+        'own' is machine.get 'type'
+
 ]
 
 sharedMachines = [
   SharedMachinesStore
   MachinesStore
-  (shared, machines) -> shared.map (id) ->
-    machine = machines.get(id)
-    machine
-      .set 'type', 'shared'
-      .set 'owner', getMachineOwner machine
-      .set 'isApproved', machineRuleChecker machine, ['approved']
-      .set 'isPermanent', machineRuleChecker machine, ['permanent']
+  (shared, machines) ->
+    shared
+      .map (id) ->
+        machine = machines.get(id)
+        machine
+          .set 'owner', getMachineOwner machine
+          .set 'isApproved', machineRuleChecker machine, ['approved']
+          .set 'isPermanent', machineRuleChecker machine, ['permanent']
+      .filter (machine) ->
+        'shared' is machine.get 'type'
+
 ]
 
 collaborationMachines = [
   CollaborationMachinesStore
   MachinesStore
   (collaboration, machines) ->
-    collaboration.map (id) ->
-      machine = machines.get(id)
-      machine
-        .set 'type', 'collaboration'
-        .set 'owner', getMachineOwner machine
-        .set 'isApproved', machineRuleChecker machine, ['approved']
-        .set 'isPermanent', machineRuleChecker machine, ['permanent']
+    collaboration
+      .map (id) ->
+        machine = machines.get(id)
+        machine
+          .set 'owner', getMachineOwner machine
+          .set 'isApproved', machineRuleChecker machine, ['approved']
+          .set 'isPermanent', machineRuleChecker machine, ['permanent']
+      .filter (machine) ->
+        'collaboration' is machine.get 'type'
+
 ]
 
 requiredInvitationMachine = [
