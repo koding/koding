@@ -517,21 +517,15 @@ generateStack = (stackTemplateId) ->
   { computeController } = kd.singletons
 
   new Promise (resolve, reject) ->
-    computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
-      return reject(err)  if err
 
-      generateStackFromTemplate stackTemplate
-        .then ({ stack, template }) ->
-          { results : { machines } } = stack
-          [ machine ] = machines
-          # FIXMERESET ~ GG
-          # computeController.reset yes, ->
-          #   computeController.reloadIDE machine.obj.slug
-          #   new kd.NotificationView { title: 'Stack generated successfully' }
-          resolve({ stack, template })
-        .catch (err) ->
-          showError err
-          reject(err)
+    stackTemplate = computeController.storage.get 'templates', '_id', stackTemplateId
+    return reject new Error 'StackTemplate not found'  unless stackTemplate
+
+    generateStackFromTemplate stackTemplate
+      .then resolve
+      .catch (err) ->
+        showError err
+        reject err
 
 
 generateStackFromTemplate = (template) ->
@@ -542,7 +536,7 @@ generateStackFromTemplate = (template) ->
 
     reactor.dispatch actions.GENERATE_STACK_BEGIN, { template }
 
-    template.generateStack {}, (err, stack) ->
+    template.generateStack { verify: yes }, (err, stack) ->
       if err
         reactor.dispatch actions.GENERATE_STACK_FAIL, { template, err }
         reject err
