@@ -86,7 +86,7 @@ module.exports = class ResourceStateController extends kd.Controller
     machine = @getData()
     { computeController, appManager } = kd.singletons
 
-    computeController.fetchMachine machine.uid, (_machine) =>
+    computeController.fetchMachine { uid: machine.uid }, (_machine) =>
       return appManager.tell 'IDE', 'quit'  unless _machine
 
       initial = reason is 'BuildCompleted'
