@@ -19,12 +19,12 @@ func TestAnteroom(t *testing.T) {
 	c := index.NewChange("a/test.txt", index.PriorityLow, index.ChangeMetaAdd)
 	ctx := a.Commit(c)
 
-	items, queued := a.Status()
+	items, synced := a.Status()
 	if items != 1 {
 		t.Errorf("want 1 item; got %d", items)
 	}
-	if queued != 1 {
-		t.Errorf("want 1 queued event; got %d", queued)
+	if synced != 0 {
+		t.Errorf("want 0 synced events; got %d", synced)
 	}
 
 	var ev *msync.Event
@@ -38,12 +38,12 @@ func TestAnteroom(t *testing.T) {
 		t.Errorf("want err != nil; got nil")
 	}
 
-	items, queued = a.Status()
+	items, synced = a.Status()
 	if items != 1 {
 		t.Errorf("want 1 item; got %d", items)
 	}
-	if queued != 0 {
-		t.Errorf("want 0 queued events; got %d", queued)
+	if synced != 1 {
+		t.Errorf("want 1 synced event; got %d", synced)
 	}
 
 	ev.Done()
@@ -52,12 +52,12 @@ func TestAnteroom(t *testing.T) {
 		t.Errorf("want err = nil; got %s", err)
 	}
 
-	items, queued = a.Status()
+	items, synced = a.Status()
 	if items != 0 {
 		t.Errorf("want 0 items; got %d", items)
 	}
-	if queued != 0 {
-		t.Errorf("want 0 queued events; got %d", queued)
+	if synced != 0 {
+		t.Errorf("want 0 synced events; got %d", synced)
 	}
 }
 
@@ -97,12 +97,12 @@ func TestAnteroomCoalescing(t *testing.T) {
 	wg.Wait()
 
 	// Coalesced event should not be added to the queue again.
-	items, queued := a.Status()
+	items, synced := a.Status()
 	if items != 1 {
 		t.Errorf("want 1 items; got %d", items)
 	}
-	if queued != 0 {
-		t.Errorf("want 0 queued events; got %d", queued)
+	if synced != 1 {
+		t.Errorf("want 1 synced event; got %d", synced)
 	}
 }
 
@@ -141,12 +141,12 @@ func TestAnteroomPopChange(t *testing.T) {
 		t.Fatalf("timed out after %s", time.Second)
 	}
 
-	items, queued := a.Status()
+	items, synced := a.Status()
 	if items != 1 {
 		t.Errorf("want 1 items; got %d", items)
 	}
-	if queued != 0 {
-		t.Errorf("want 0 queued event; got %d", queued)
+	if synced != 2 {
+		t.Errorf("want 2 synced events; got %d", synced)
 	}
 }
 
@@ -183,12 +183,12 @@ func TestAnteroomMultiEvents(t *testing.T) {
 	case <-time.After(20 * time.Millisecond):
 	}
 
-	items, queued := a.Status()
+	items, synced := a.Status()
 	if items != eventsN {
 		t.Errorf("want %d items; got %d", eventsN, items)
 	}
-	if queued != 0 {
-		t.Errorf("want 0 queued events; got %d", queued)
+	if synced != 1 {
+		t.Errorf("want 1 synced events; got %d", synced)
 	}
 
 	if !reflect.DeepEqual(sent, got) {

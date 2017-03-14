@@ -226,7 +226,7 @@ func (s *Sync) Stream() <-chan Execer {
 
 // Info returns the current mount synchronization status.
 func (s *Sync) Info() *Info {
-	items, queued := s.a.Status()
+	items, synced := s.a.Status()
 
 	return &Info{
 		ID:          s.mountID,
@@ -236,7 +236,7 @@ func (s *Sync) Info() *Info {
 		DiskSize:    s.idx.DiskSize(-1),
 		DiskSizeAll: s.idx.DiskSizeAll(-1),
 		Queued:      items,
-		Syncing:     items - queued,
+		Syncing:     synced,
 	}
 }
 
