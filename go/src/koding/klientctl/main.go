@@ -16,6 +16,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"runtime"
 
 	"koding/klientctl/auth"
@@ -41,6 +42,11 @@ var sudoRequiredFor = []string{
 	"stop",
 	"restart",
 	"update",
+}
+
+var signals = []os.Signal{
+	os.Interrupt,
+	os.Kill,
 }
 
 // log is used as a global loggger, for commands like ListCommand that
@@ -106,6 +112,16 @@ func run(args []string) {
 		ctlcli.Close()
 		os.Exit(10)
 	}
+
+	sig := make(chan os.Signal, 1)
+
+	go func() {
+		<-sig
+		ctlcli.Close()
+		os.Exit(1)
+	}()
+
+	signal.Notify(sig, signals...)
 
 	kloud.DefaultLog = log
 	testKloudHook(kloud.DefaultClient)
@@ -616,6 +632,13 @@ func run(args []string) {
 					Description: cmdDescriptions["umount-new"],
 					Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
 					Flags:       []cli.Flag{},
+				}, {
+					Name:            "exec",
+					ShortName:       "e",
+					Description:     cmdDescriptions["exec"],
+					Usage:           "Run a command in a started machine.",
+					Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
+					SkipFlagParsing: true,
 				}},
 			},
 			cli.Command{

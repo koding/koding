@@ -8,6 +8,7 @@ import (
 
 	"koding/klient/fs"
 	"koding/klient/machine/index"
+	"koding/klient/os"
 )
 
 // Cached allows user to cache Client method calls results. It is limited to
@@ -43,6 +44,20 @@ func NewCached(c Client, interval time.Duration) *Cached {
 // client.
 func (c *Cached) CurrentUser() (string, error) {
 	return c.currentUser()
+}
+
+// Exec calls registered Client's Exec method.
+//
+// The method does not cache the result.
+func (c *Cached) Exec(r *os.ExecRequest) (*os.ExecResponse, error) {
+	return c.c.Exec(r)
+}
+
+// Kill calls registered Client's Kill method.
+//
+// The method does not cache the result.
+func (c *Cached) Kill(r *os.KillRequest) (*os.KillResponse, error) {
+	return c.c.Kill(r)
 }
 
 func currentUser(c Client, interval time.Duration) func() (string, error) {
