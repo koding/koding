@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"koding/klient/fs"
@@ -149,6 +150,10 @@ type Sync struct {
 
 	a *Anteroom // file system event consumer.
 
+	sk     Skipper       // local to remote file skippers.
+	once   sync.Once     // used for closing closeC chan.
+	closeC chan struct{} // closed when sync object is closed.
+
 	n notify.Notifier // object responsible for file system notifications.
 	s Syncer          // object responsible for actual file synchronization.
 
@@ -166,6 +171,8 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		opts:    opts,
 		mountID: mountID,
 		m:       m,
+		sk:      DefaultSkipper,
+		closeC:  make(chan struct{}),
 	}
 
 	if opts.Log != nil {
@@ -183,6 +190,11 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 	var err error
 	if s.idx, err = s.loadIdx(IndexFileName); err != nil {
 		return nil, err
+	}
+
+	// Initialize skippers.
+	if err = s.sk.Initialize(s.CacheDir()); err != nil {
+		s.log.Warning("File local filters were not initialized: %s", err)
 	}
 
 	// Check current state of synchronization and set promises.
@@ -221,7 +233,26 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 
 // Stream creates a stream of file synchronization jobs.
 func (s *Sync) Stream() <-chan Execer {
-	return s.s.ExecStream(s.a.Events())
+	evC := make(chan *Event)
+
+	go func() {
+		// Event loop will be closed once Anteroom is closed.
+		evSourceC := s.a.Events()
+		for ev := range evSourceC {
+			if s.sk.IsSkip(ev) {
+				ev.Done()
+				continue
+			}
+
+			select {
+			case evC <- ev:
+			case <-s.closeC:
+				return
+			}
+		}
+	}()
+
+	return s.s.ExecStream(evC)
 }
 
 // Info returns the current mount synchronization status.
@@ -300,6 +331,10 @@ func (s *Sync) Drop() error {
 
 // Close closes memory resources acquired by Sync object.
 func (s *Sync) Close() error {
+	s.once.Do(func() {
+		close(s.closeC)
+	})
+
 	return nonil(s.n.Close(), s.s.Close(), s.a.Close())
 }
 
