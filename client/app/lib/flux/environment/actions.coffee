@@ -522,10 +522,7 @@ generateStack = (stackTemplateId) ->
 
     generateStackFromTemplate stackTemplate
       .then resolve
-      .catch (err) ->
-        showError err
-        reject err
-
+      .catch reject
 
 generateStackFromTemplate = (template) ->
 

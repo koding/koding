@@ -3,6 +3,7 @@ kd = require 'kd'
 Link = require 'app/components/common/link'
 React = require 'app/react'
 Scroller = require 'app/components/scroller'
+showError = require 'app/util/showError'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
 SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
@@ -92,8 +93,12 @@ module.exports = class Sidebar extends React.Component
     switch title
       when 'Edit', 'View Stack' then router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
-        EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
-          appManager.tell 'Stackeditor', 'reloadEditor', template._id
+        EnvironmentFlux.actions.generateStack(id)
+          .then ({ template }) ->
+            appManager.tell 'Stackeditor', 'reloadEditor', template._id
+          .catch (err) ->
+            showError err
+
       when 'Clone'
         EnvironmentFlux.actions.cloneStackTemplate remote.revive draft.toJS()
       when 'Open on GitLab'
