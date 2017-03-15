@@ -2,7 +2,7 @@
 
 set -o errexit
 
-HOSTNAME="$(ec2metadata --instance-id).test.ci.koding.io"
+HOSTNAME="$(ec2metadata --public-ipv4).xip.io"
 
 export HOME=/root/
 export REPOSITORY_PATH='/opt/koding'

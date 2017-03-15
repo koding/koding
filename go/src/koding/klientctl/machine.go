@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -236,12 +237,12 @@ func getIdentifiers(c *cli.Context) (idents []string, err error) {
 	}
 
 	if len(unknown) > 0 {
-		plular := ""
+		plural := ""
 		if len(unknown) > 1 {
-			plular = "s"
+			plural = "s"
 		}
 
-		return nil, fmt.Errorf("unrecognized argument%s: %s", plular, strings.Join(unknown, ", "))
+		return nil, fmt.Errorf("unrecognized argument%s: %s", plural, strings.Join(unknown, ", "))
 	}
 
 	return idents, nil
@@ -314,20 +315,37 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
 	fmt.Fprintf(tw, "ID\tMACHINE\tMOUNT\tFILES\tQUEUED\tSYNCING\tSIZE\n")
 	for alias, infos := range mounts {
 		for _, info := range infos {
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%d/%d\t%d\t%d\t%s/%s\n",
+			sign := info.Syncing
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s/%s\t%s\t%s\t%s/%s\n",
 				info.ID,
 				alias,
 				info.Mount,
-				info.Count,
-				info.CountAll,
-				info.Queued,
-				info.Syncing,
-				humanize.IBytes(uint64(info.DiskSize)),
-				humanize.IBytes(uint64(info.DiskSizeAll)),
+				dashIfNegative(sign, info.Count),
+				dashIfNegative(sign, info.CountAll),
+				dashIfNegative(sign, info.Queued),
+				errorIfNegative(info.Syncing),
+				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSize))),
+				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSizeAll))),
 			)
 		}
 	}
 	tw.Flush()
+}
+
+func errorIfNegative(val int) string {
+	if val < 0 {
+		return "err"
+	}
+
+	return strconv.Itoa(val)
+}
+
+func dashIfNegative(sign int, val interface{}) string {
+	if sign < 0 {
+		return "-"
+	}
+
+	return fmt.Sprint(val)
 }
 
 func dashIfEmpty(val string) string {
