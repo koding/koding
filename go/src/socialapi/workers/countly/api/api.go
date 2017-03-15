@@ -63,7 +63,6 @@ func (c *CountlyAPI) CreateCountlyApp(slug string) (appKey string, apiKey string
 		return group.Countly.APPKey, group.Countly.APIKey, nil
 	}
 
-	c.log.Info("creating app for %q group", slug)
 	app, err := c.client.CreateApp(&client.App{
 		Name:  slug,
 		Owner: c.globalOwner,
@@ -73,7 +72,6 @@ func (c *CountlyAPI) CreateCountlyApp(slug string) (appKey string, apiKey string
 	}
 	c.log.Debug("created app for %q group: %+v", slug, app)
 
-	c.log.Info("creating user for %q group", slug)
 	info := &client.User{
 		FullName: "Team " + slug,
 		Username: slug,

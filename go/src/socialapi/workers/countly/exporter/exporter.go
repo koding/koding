@@ -34,15 +34,11 @@ func NewCountlyExporter(cfg *config.Config) *CountlyExporter {
 
 // Send publishes the events to countly.
 func (c *CountlyExporter) Send(event *eventexporter.Event) error {
-	// fmt.Printf("event %# v", pretty.Formatter(event))
+	c.log.Debug("got event %+v", event)
 
 	slug := getGroupName(event)
 	if slug == "" {
 		c.log.Debug("skipping event, does not have group %+v", event)
-		return nil
-	}
-
-	if true {
 		return nil
 	}
 
@@ -52,6 +48,12 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 	}
 
 	if !group.HasCountly() {
+		// appKey, apiKey, err := api.NewCountlyAPI(config.MustGet()).CreateCountlyApp(slug)
+		// if err != nil {
+		// 	return err
+		// }
+		// group.Countly.APPKey = appKey
+		// group.Countly.APIKey = apiKey
 		return nil
 	}
 
@@ -73,11 +75,11 @@ func getGroupName(event *eventexporter.Event) string {
 		return ""
 	}
 
-	if name := event.Properties["groupName"]; name != "" {
+	if name, ok := event.Properties["groupName"]; ok {
 		return name.(string)
 	}
 
-	if name := event.Properties["group"]; name != "" {
+	if name, ok := event.Properties["group"]; ok {
 		return name.(string)
 	}
 
