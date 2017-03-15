@@ -375,9 +375,10 @@ module.exports = class StackEditorView extends kd.View
       placeholder: generatedStackTemplateTitle
       bind: 'keyup'
 
-      keyup: (e) ->
+      keyup: _.debounce (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
+      , 100
 
     @titleTabHandle = new kd.TabHandleView
       cssClass : 'stack-template'
