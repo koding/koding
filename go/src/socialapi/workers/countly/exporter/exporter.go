@@ -1,14 +1,12 @@
 package exporter
 
 import (
-	"fmt"
 	"socialapi/config"
 	"socialapi/workers/countly/client"
 
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
-	"github.com/kr/pretty"
 )
 
 // CountlyExporter exports events to countly..
@@ -16,6 +14,7 @@ type CountlyExporter struct {
 	client      *client.Client
 	log         logging.Logger
 	globalOwner string
+	groupCache  *groupCache
 }
 
 // NewCountlyExporter creates exporter for countly.
@@ -29,24 +28,39 @@ func NewCountlyExporter(cfg *config.Config) *CountlyExporter {
 		),
 		log:         logger,
 		globalOwner: cfg.Countly.AppOwner,
+		groupCache:  newGroupCache(),
 	}
 }
 
 // Send publishes the events to countly.
-func (s *CountlyExporter) Send(event *eventexporter.Event) error {
-	fmt.Printf("event %# v", pretty.Formatter(event))
+func (c *CountlyExporter) Send(event *eventexporter.Event) error {
+	// fmt.Printf("event %# v", pretty.Formatter(event))
 
 	slug := getGroupName(event)
 	if slug == "" {
-		s.log.Debug("skipping event, does not have group %+v", event)
+		c.log.Debug("skipping event, does not have group %+v", event)
 		return nil
 	}
 
-	return nil
+	if true {
+		return nil
+	}
+
+	group, err := c.groupCache.BySlug(slug)
+	if err != nil {
+		return err
+	}
+
+	if !group.HasCountly() {
+		return nil
+	}
+
+	events := client.Events{}
+	return c.client.WriteEvent(group.Countly.APPKey, group.Id.Hex(), events)
 }
 
 // Close closes the exporter.
-func (s *CountlyExporter) Close() error {
+func (c *CountlyExporter) Close() error {
 	return nil
 }
 
