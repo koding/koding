@@ -20,7 +20,7 @@ module.exports = class ComputeStorage extends kd.Object
       payload    : 'userMachines'
       modifier   : (machines) ->
         machines.map (machine) ->
-          return remote.revive machine
+          if machine.ಠ_ಠ then machine else remote.revive machine
 
     stacks       :
       collection : 'JComputeStack'
@@ -43,7 +43,7 @@ module.exports = class ComputeStorage extends kd.Object
 
       modifier   : (stacks) ->
         stacks.map (stack) =>
-          stack = remote.revive stack
+          stack = remote.revive stack  unless stack.ಠ_ಠ
           stack.title = Encoder.htmlDecode stack.title
           stack.machines = stack.machines
             .map (machine) =>
