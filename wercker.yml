@@ -224,8 +224,6 @@ deploy:
         name: create temporary tokens
         code: |
           echo $ROLLBAR_TOKEN > ROLLBAR_TOKEN
-          echo $PAPERTRAIL_PORT > PAPERTRAIL_PORT
-          echo $PAPERTRAIL_TOKEN > PAPERTRAIL_TOKEN
     - script:
         name: setup nvm
         code: |
