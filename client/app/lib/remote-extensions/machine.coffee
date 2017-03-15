@@ -59,7 +59,13 @@ module.exports = class JMachine extends remote.api.JMachine
         id: @_id, machine: this
       }
 
+    @once 'ready', => @readyState = yes
     @fetchInfo => @emit 'ready'
+
+
+  ready: (listener) ->
+    if @readyState then kd.utils.defer listener
+    else @once 'ready', listener
 
 
   getName: ->
