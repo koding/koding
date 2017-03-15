@@ -105,6 +105,10 @@ func KodingCacheHome() string {
 		cache = filepath.Join(CurrentUser.HomeDir, ".cache", "koding")
 	}
 
+	// Best-effort attempt, ignore errors.
+	_ = os.MkdirAll(cache, 0755)
+	_ = util.Chown(cache, CurrentUser.User)
+
 	return cache
 }
 
