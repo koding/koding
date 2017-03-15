@@ -78,7 +78,7 @@ func TestRsyncArgs(t *testing.T) {
 				DestinationPath: "/B",
 				Username:        "usr",
 				Host:            "host",
-				Change:          index.NewChange("x.txt", test.Meta),
+				Change:          index.NewChange("x.txt", index.PriorityLow, test.Meta),
 			}
 
 			if err := cmd.Run(context.Background()); err != nil {

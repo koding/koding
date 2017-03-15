@@ -329,7 +329,7 @@ func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, boo
 }
 
 func (fs *Filesystem) commit(rel string, meta index.ChangeMeta) stdcontext.Context {
-	return fs.Cache.Commit(index.NewChange(rel, meta))
+	return fs.Cache.Commit(index.NewChange(rel, index.PriorityHigh, meta))
 }
 
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {

@@ -20,8 +20,9 @@ type Anteroom struct {
 	closed bool          // set to true when the object was closed.
 	stopC  chan struct{} // channel used to close queue dispatching go-routine.
 
-	mu  sync.Mutex
-	evs map[string]*Event // Change name to change event map.
+	mu     sync.Mutex
+	evs    map[string]*Event // Change name to change event map.
+	synced int64             // How many events are processing.
 }
 
 // NewAnteroom creates a new Anteroom object. Once it's created, Close method
@@ -105,12 +106,13 @@ func (a *Anteroom) Events() <-chan *Event {
 // Status reports the current status of Anteroom object. The items value can
 // be interpreted as a number of files waiting for synchronization. Comparing
 // items and queued events shows how fast syncers are able to synchronize files.
-func (a *Anteroom) Status() (items int, queued int) {
+func (a *Anteroom) Status() (items int, synced int) {
 	a.mu.Lock()
 	items = len(a.evs)
+	synced = int(atomic.LoadInt64(&a.synced))
 	a.mu.Unlock()
 
-	return items, a.queue.Size()
+	return items, synced
 }
 
 // Close stops the dynamic client. After this function is called, client is
@@ -155,6 +157,7 @@ func (a *Anteroom) dequeue() {
 		if ev = a.queue.Pop(); ev == nil {
 			evC = nil // queue is empty - turn off event channel.
 		} else {
+			atomic.AddInt64(&a.synced, 1)
 			atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusPop))
 			evC = a.evC // there is an event - turn on event channel.
 		}
@@ -166,6 +169,7 @@ func (a *Anteroom) dequeue() {
 			if ev = a.queue.Pop(); ev == nil {
 				evC = nil // queue is empty - turn off event channel.
 			} else {
+				atomic.AddInt64(&a.synced, 1)
 				atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusPop))
 			}
 		case <-a.wakeupC:
@@ -197,6 +201,7 @@ func (a *Anteroom) detach(path string, id uint64) {
 	defer a.mu.Unlock()
 
 	if ev, ok := a.evs[path]; ok && ev.ID() == id {
+		atomic.AddInt64(&a.synced, -1)
 		delete(a.evs, path)
 	}
 }
