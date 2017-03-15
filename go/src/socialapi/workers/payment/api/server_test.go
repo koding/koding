@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/tests"
@@ -15,41 +14,29 @@ import (
 
 // TODO(cihangir): make generalized "withTestServer"
 func withTestServer(t *testing.T, f func(url string)) {
-	const workerName = "paymentwebhook"
+	tests.WithRunner(t, func(r *runner.Runner) {
+		if r.Conf.Debug {
+			stripe.LogLevel = 3
+		}
+		payment.Initialize(config.MustGet())
+		port := tests.GetFreePort()
+		mc := mux.NewConfig(r.Name, "localhost", port)
+		mc.Debug = r.Conf.Debug
+		m := mux.New(mc, r.Log, r.Metrics)
 
-	r := runner.New(workerName)
-	if err := r.Init(); err != nil {
-		t.Fatal(err)
-	}
+		AddHandlers(m)
 
-	if r.Conf.Debug {
-		stripe.LogLevel = 3
-	}
+		m.Listen()
 
-	c := config.MustRead(r.Conf.Path)
-	// init mongo connection
-	modelhelper.Initialize(c.Mongo)
-	defer modelhelper.Close()
+		go r.Listen()
 
-	payment.Initialize(c)
+		f(fmt.Sprintf("http://localhost:%s", port))
 
-	port := tests.GetFreePort()
-	mc := mux.NewConfig(workerName, "localhost", port)
-	mc.Debug = r.Conf.Debug
-	m := mux.New(mc, r.Log, r.Metrics)
+		if err := r.Close(); err != nil {
+			t.Fatalf("server close errored: %s", err.Error())
+		}
 
-	AddHandlers(m)
-
-	m.Listen()
-
-	go r.Listen()
-
-	f(fmt.Sprintf("http://localhost:%s", port))
-
-	if err := r.Close(); err != nil {
-		t.Fatalf("server close errored: %s", err.Error())
-	}
-
-	// shutdown server
-	m.Close()
+		// shutdown server
+		m.Close()
+	})
 }

@@ -322,3 +322,21 @@ func UpdateUsernameInBothDbs(currentUsername, newUsername string) error {
 
 	return acc.Update()
 }
+
+// WithStubData creates barebones for operating with koding services.
+func WithStubData(f func(username string, groupName string, sessionID string)) {
+	acc, _, groupName := CreateRandomGroupDataWithChecks()
+
+	group, err := modelhelper.GetGroup(groupName)
+	So(err, ShouldBeNil)
+	So(group, ShouldNotBeNil)
+
+	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
+	So(err, ShouldBeNil)
+
+	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
+	So(err, ShouldBeNil)
+	So(ses, ShouldNotBeNil)
+
+	f(acc.Nick, groupName, ses.ClientId)
+}
