@@ -36,10 +36,10 @@ module.exports = class ComputeStorage extends kd.Object
       prePush    : (stack) ->
         @push 'machines', machine  for machine in stack.machines
 
-      postPush   : (stacks) ->
+      postPush   : (stack) ->
         { reactor } = kd.singletons
-        reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, @get 'machines'
-        reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, @get 'stacks'
+        reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, stack.machines
+        reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, [ stack ]
 
       modifier   : (stacks) ->
         stacks.map (stack) =>
