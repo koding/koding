@@ -191,7 +191,7 @@ module.exports = class GroupsController extends kd.Controller
         # since we will allow users to select one stacktemplate from
         # available stacktemplates list of group ~ GG
 
-        computeController.createDefaultStack yes
+        computeController.createDefaultStack { force: yes }
 
         # Warn other group members about stack template update
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
