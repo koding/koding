@@ -229,7 +229,10 @@ func (c *Client) FixOwner() error {
 		return nil
 	}
 
-	return util.ChownAll(c.home(), c.owner().User)
+	return nonil(
+		util.ChownAll(c.home(), c.owner().User),
+		util.ChownAll(c.mounts(), c.owner().User),
+	)
 }
 
 func FixOwner() error                { return DefaultClient.FixOwner() }

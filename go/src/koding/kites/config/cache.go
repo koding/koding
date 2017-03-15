@@ -94,20 +94,16 @@ func KodingHome() string {
 	return home
 }
 
-// KodingCacheHome gives the path of the koding cache directory.
+// KodingMounts gives the path of the koding cache directory.
 //
-// The default value is overwritten with KODING_CACHE_HOME env,
+// The default value is overwritten with KODING_MOUNTS env,
 // if it points to a valid directory.
-func KodingCacheHome() string {
-	cache := os.Getenv("KODING_CACHE_HOME")
+func KodingMounts() string {
+	cache := os.Getenv("KODING_MOUNTS")
 
 	if fi, err := os.Stat(cache); err != nil || !fi.IsDir() {
 		cache = filepath.Join(CurrentUser.HomeDir, ".cache", "koding")
 	}
-
-	// Best-effort attempt, ignore errors.
-	_ = os.MkdirAll(cache, 0755)
-	_ = util.Chown(cache, CurrentUser.User)
 
 	return cache
 }
