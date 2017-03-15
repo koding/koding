@@ -55,7 +55,11 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		return nil
 	}
 
-	events := client.Events{}
+	events := []client.Event{client.Event{
+		Key:          event.Name,
+		Count:        1,
+		Segmentation: event.Properties,
+	}}
 	return c.client.WriteEvent(group.Countly.APPKey, group.Id.Hex(), events)
 }
 
