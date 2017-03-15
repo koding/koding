@@ -63,8 +63,7 @@ _bindStackEvents = ->
     computeController.on 'StackRevisionChecked', (stack) ->
       return  if _revisionStatus?.error? and not stack._revisionStatus.status
 
-      loadMachines().then ->
-        reactor.dispatch actions.STACK_UPDATED, stack
+      reactor.dispatch actions.STACK_UPDATED, stack
 
     computeController.on 'GroupStacksInconsistent', ->
       reactor.dispatch actions.GROUP_STACKS_INCONSISTENT
