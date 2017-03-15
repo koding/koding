@@ -300,7 +300,7 @@ module.exports = class ComputeController extends KDController
       kd.utils.defer =>
         @reloadIDE machines[0].obj.slug
 
-      @checkGroupStacks()
+      @checkGroupStacks newStack.stack.getId()
 
       callback null
 
@@ -670,24 +670,29 @@ module.exports = class ComputeController extends KDController
     delete kontrol.kites?.klient?[machine.uid]
 
 
-  checkStackRevisions: ->
+  checkStackRevisions: (stackTemplateId) ->
 
-    # TMS-1919: This is already written for multiple stacks, code change
-    # might be required if existing flow changes ~ GG
-
+    # fetch all the stacks in cache
     (@storage.get 'stacks').forEach (stack) =>
 
+      # if a specific stackTemplateId provided then skip all others
+      # otherwise check all of them one by one
+      if stackTemplateId and stack.baseStackId isnt stackTemplateId
+        return
+
+      # get current revision status for comparison
+      { _revisionStatus } = stack
+
+      # check revision from JComputeStack.checkRevision
       stack.checkRevision (error, data) =>
 
         data ?= {}
         { status, machineCount } = data
         stack._revisionStatus = { error, status }
 
-        # console.info "Revision info for stack #{stack.title}", status
-        @emit 'StackRevisionChecked', stack
-
-        if stack.machines.length isnt machineCount
-          @emit 'StacksInconsistent', stack
+        debug "revision info for stack #{stack.title}", status
+        if not _revisionStatus or _revisionStatus.status isnt status
+          @emit 'StackRevisionChecked', stack
 
 
   setStackTemplateAccessLevel: (template, type) ->
@@ -757,16 +762,19 @@ module.exports = class ComputeController extends KDController
       reactor.dispatch 'STACK_UPDATED', stack
 
 
-  checkGroupStacks: ->
+  checkGroupStacks: (changedStackTemplateId) ->
 
-    @checkStackRevisions()
+    @checkStackRevisions changedStackTemplateId
 
-    # TMS-1919: This can stay as is, but this time it will create the first
-    # avaiable stacktemplate for who has no stacks yet. ~ GG
+    # check if there is a stackTemplate assigned to this team
+    { stackTemplates } = kd.singletons.groupsController.getCurrentGroup()
+    return  unless stackTemplates?.length
 
-    groupStacks = (@storage.get 'stacks').filter (stack) ->
-      stack.config?.groupStack
-    @createDefaultStack { force: yes }  if groupStacks.length is 0
+    # if so, this time check for existing stacks marked as groupStack
+    groupStacks = @storage.query 'stacks', 'config.groupStack', yes
+    if groupStacks.length is 0
+      # if not found try to create the default stack
+      @createDefaultStack { force: yes }
 
     @checkGroupStackRevisions()
 
@@ -782,8 +790,9 @@ module.exports = class ComputeController extends KDController
     return  if not stackTemplates?.length
 
     existents = 0
-    for stackTemplate in stackTemplates
-      existents += (@storage.query 'stacks', 'baseStackId', stackTemplate).length
+    for stackTemplateId in stackTemplates
+      existentStacks = @storage.query 'stacks', 'baseStackId', stackTemplateId
+      existents += existentStacks.length
 
     if existents isnt stackTemplates.length
     then @emit 'GroupStacksInconsistent'

@@ -746,16 +746,13 @@ module.exports = class StackEditorView extends kd.View
         # since this is an existing stack, show renit buttons and update
         # sidebar no matter what.
         @afterProcessTemplate 'reinit'
-        computeController.checkGroupStacks()
 
       else
         # admin is creating a new stack
         if isAdmin()
           @afterProcessTemplate 'maketeamdefault'
           @afterProcessTemplate 'initialize'
-          if hasGroupTemplates
-            computeController.checkGroupStacks()
-          else
+          unless hasGroupTemplates
             @handleSetDefaultTemplate =>
               @outputView.add '''
                 Your stack script is saved successfully and all your new team
@@ -765,12 +762,11 @@ module.exports = class StackEditorView extends kd.View
 
                 You can now close this window or continue working with your stack.
               '''
-            computeController.checkGroupStacks()
         # member is creating a new stack
         else
           @afterProcessTemplate 'initialize'
-          computeController.checkGroupStacks()
 
+      computeController.checkGroupStacks stackTemplate._id
       callback null, stackTemplate
 
 
