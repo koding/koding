@@ -30,11 +30,11 @@ ownMachines = [
     own
       .map (id) ->
         machine = machines.get(id)
+        return  if 'own' isnt machine.get 'type'
         machine
           .set 'isApproved', yes
           .set 'isManaged', machineRuleChecker machine, ['managed']
-      .filter (machine) ->
-        'own' is machine.get 'type'
+      .filter Boolean
 
 ]
 
@@ -45,12 +45,12 @@ sharedMachines = [
     shared
       .map (id) ->
         machine = machines.get(id)
+        return  if 'shared' isnt machine.get 'type'
         machine
           .set 'owner', getMachineOwner machine
           .set 'isApproved', machineRuleChecker machine, ['approved']
           .set 'isPermanent', machineRuleChecker machine, ['permanent']
-      .filter (machine) ->
-        'shared' is machine.get 'type'
+      .filter Boolean
 
 ]
 
@@ -61,12 +61,12 @@ collaborationMachines = [
     collaboration
       .map (id) ->
         machine = machines.get(id)
+        return  if 'collaboration' isnt machine.get 'type'
         machine
           .set 'owner', getMachineOwner machine
           .set 'isApproved', machineRuleChecker machine, ['approved']
           .set 'isPermanent', machineRuleChecker machine, ['permanent']
-      .filter (machine) ->
-        'collaboration' is machine.get 'type'
+      .filter Boolean
 
 ]
 
