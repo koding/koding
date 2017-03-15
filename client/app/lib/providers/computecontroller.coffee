@@ -283,20 +283,26 @@ module.exports = class ComputeController extends KDController
       remote.api.ComputeProvider.create newOptions, kallback
 
 
-  createDefaultStack: (force, template) ->
+  createDefaultStack: (options = {}, callback = kd.noop) ->
 
     return  unless isLoggedIn()
 
+    { force = no, template } = options
     { mainController, groupsController } = kd.singletons
 
     handleStackCreate = (err, newStack) =>
       return kd.warn err  if err
+      return callback err  if err
       return kd.warn 'Stack data not found'  unless newStack
 
       { results : { machines } } = newStack
 
-      @reloadIDE machines[0].obj.slug
+      kd.utils.defer =>
+        @reloadIDE machines[0].obj.slug
+
       @checkGroupStacks()
+
+      callback null
 
     mainController.ready =>
 
@@ -760,7 +766,7 @@ module.exports = class ComputeController extends KDController
 
     groupStacks = (@storage.get 'stacks').filter (stack) ->
       stack.config?.groupStack
-    @createDefaultStack yes  if groupStacks.length is 0
+    @createDefaultStack { force: yes }  if groupStacks.length is 0
 
     @checkGroupStackRevisions()
 
@@ -1062,7 +1068,7 @@ module.exports = class ComputeController extends KDController
         return kd.singletons.router.handleRoute '/Home/stacks'
 
       else
-        @createDefaultStack()
+        @createDefaultStack {}, callback
 
       return
 
@@ -1097,8 +1103,6 @@ module.exports = class ComputeController extends KDController
             callback err
             return showError err
 
-          @storage.pop 'stacks', stack
-
           notification.destroy()
           Tracker.track Tracker.STACKS_REINIT, {
             customEvent :
@@ -1106,11 +1110,11 @@ module.exports = class ComputeController extends KDController
               group     : getGroup().slug
           }
           new kd.NotificationView { title : 'Stack reinitialized' }
-          callback()
 
           if template and not groupStack
-          then @createDefaultStack no, template
-          else @createDefaultStack()
+            @createDefaultStack { force: no, template }, callback
+          else
+            @createDefaultStack {}, callback
 
         , followEvents = no
 
