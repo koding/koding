@@ -57,16 +57,9 @@ import (
 	"github.com/koding/logging"
 )
 
-const (
-	// The default timeout to use for Klient's http.Client
-	defaultXHRTimeout = 30 * time.Second
-)
-
-var (
-	// the implementation of New() doesn't have any error to be returned yet it
-	// returns, so it's totally safe to neglect the error
-	cookieJar, _ = cookiejar.New(nil)
-)
+// the implementation of New() doesn't have any error to be returned yet it
+// returns, so it's totally safe to neglect the error
+var cookieJar, _ = cookiejar.New(nil)
 
 // Klient is the central app which provides all available methods.
 type Klient struct {
@@ -432,10 +425,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 //
 // https://github.com/koding/kite/blob/master/sockjsclient/xhr.go#L28
 func klientXHRClientFunc(opts *sockjsclient.DialOptions) *http.Client {
-	if opts.Timeout == 0 {
-		opts.Timeout = defaultXHRTimeout
-	}
-
 	return &http.Client{
 		Timeout: opts.Timeout,
 		Jar:     cookieJar,
