@@ -58,6 +58,8 @@ module.exports = class ComputeStorage extends kd.Object
 
     templates    :
       collection : 'JStackTemplate'
+      prePush    : (template) ->
+        template.on 'update', kd.noop
 
     credentials  :
       collection : 'JCredential'

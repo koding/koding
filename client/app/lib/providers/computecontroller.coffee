@@ -698,7 +698,7 @@ module.exports = class ComputeController extends KDController
     { reactor } = kd.singletons
     { contents: { id: _id, change: { $set: { accessLevel } } } } = params
 
-    remote.api.JStackTemplate.one { _id }, (err, stackTemplate) =>
+    @fetchStackTemplate _id, (err, stackTemplate) =>
 
       return kd.NotificationView { title: 'Error occurred' }  if err
 
@@ -893,25 +893,10 @@ module.exports = class ComputeController extends KDController
 
   fetchStackTemplate: (id, callback = kd.noop) ->
 
-    debug 'fetchStackTemplate called for', id
-
-    if template = @storage.get 'templates', '_id', id
-      debug 'found on cache returning', template
-      return callback null, template
-
-    debug 'not found on cache fetching'
-
-    remote.api.JStackTemplate.one { _id: id }, (err, template) =>
-      return callback { message: "Stack template doesn't exist." }  if err or not template
-
-      @storage.push 'templates', template
-
-      # Follow update events to get change set from remote-extensions
-      # This is not required but we will need a huge set of changes
-      # to make it happen in a better way, FIXME ~GG
-      template.on 'update', kd.noop
-
-      return callback null, template
+    @storage.fetch 'templates', id
+      .then (template) ->
+        callback null, template
+      .catch callback
 
 
   fetchStackTemplates: (callback) ->
