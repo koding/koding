@@ -9,6 +9,8 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
 	"koding/klient/os"
+
+	"github.com/koding/kite/dnode"
 )
 
 // MachineRequest represents a common part of Exec and Kill
@@ -40,7 +42,31 @@ func (r *ExecRequest) Valid() error {
 	if err := r.ExecRequest.Valid(); err != nil {
 		return err
 	}
-	return r.MachineRequest.Valid()
+	if err := r.MachineRequest.Valid(); err != nil {
+		return err
+	}
+
+	// dnode.Function cannot be forwarded, they need to be
+	// wrapped again in a callback.
+
+	if fn := r.ExecRequest.Stdout; fn.IsValid() {
+		r.ExecRequest.Stdout = dnode.Callback(func(r *dnode.Partial) {
+			fn.Call(r.One().MustString())
+		})
+	}
+	if fn := r.ExecRequest.Stderr; fn.IsValid() {
+		r.ExecRequest.Stderr = dnode.Callback(func(r *dnode.Partial) {
+			fn.Call(r.One().MustString())
+		})
+	}
+	if fn := r.ExecRequest.Exit; fn.IsValid() {
+		r.ExecRequest.Exit = dnode.Callback(func(r *dnode.Partial) {
+			var exit int
+			r.One().MustUnmarshal(&exit)
+			fn.Call(exit)
+		})
+	}
+	return nil
 }
 
 // ExecResponse is a response value of "machine.exec" kite method.
