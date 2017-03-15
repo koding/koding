@@ -83,7 +83,7 @@ func (ds DirectorySkip) Initialize(wd string) error {
 // the path itself.
 func (ds DirectorySkip) IsSkip(ev *Event) bool {
 	path := ev.Change().Path()
-	return path == string(ds) || (strings.HasPrefix(path, string(ds)) && path[len(ds):len(ds)+1] == "/")
+	return path == string(ds) || (strings.HasPrefix(path, string(ds)) && path[len(ds)] == '/')
 }
 
 // PathSuffixSkip skips all paths that end with provided suffix.
@@ -95,7 +95,7 @@ func (PathSuffixSkip) Initialize(_ string) error { return nil }
 // IsSkip returns true for all change paths that ends with provided suffix.
 func (pss PathSuffixSkip) IsSkip(ev *Event) bool {
 	path := ev.Change().Path()
-	return path == string(pss) || (strings.HasSuffix(path, string(pss)) && path[len(path)-len(pss)-1:len(path)-len(pss)] == "/")
+	return path == string(pss) || (strings.HasSuffix(path, string(pss)) && path[len(path)-len(pss)-1] == '/')
 }
 
 // OsSkip returns provided skipper only when goos name matches current system. It
