@@ -41,13 +41,6 @@ func TestCached(t *testing.T) {
 			},
 			Arguments: true,
 		},
-		"disk info": {
-			Method: func(i int, c client.Client) (err error) {
-				_, err = c.DiskInfo(strings.Repeat("s", i))
-				return
-			},
-			Arguments: true,
-		},
 	}
 
 	const callsN = 100
