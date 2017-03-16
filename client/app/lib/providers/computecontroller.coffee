@@ -27,6 +27,7 @@ runMiddlewares       = require 'app/util/runMiddlewares'
 SidebarFlux          = require 'app/flux/sidebar'
 whoami               = require 'app/util/whoami'
 ComputeStorage       = require './computestorage'
+IDERoutes            = require 'ide/routes'
 
 TestMachineMiddleware = require './middlewares/testmachine'
 
@@ -298,7 +299,7 @@ module.exports = class ComputeController extends KDController
       { results : { machines } } = newStack
 
       kd.utils.defer =>
-        @reloadIDE machines[0].obj.slug
+        @reloadIDE machines[0].obj
 
       @checkGroupStacks newStack.stack.getId()
 
@@ -965,14 +966,21 @@ module.exports = class ComputeController extends KDController
     return null
 
 
-  reloadIDE: (machineSlug) ->
+  reloadIDE: (machine) ->
 
-    route   = '/IDE'
-    if machineSlug
-      route = "/IDE/#{machineSlug}"
+    route = '/IDE'
+    { appManager, router } = kd.singletons
 
-    kd.singletons.appManager.quitByName 'IDE', ->
-      kd.singletons.router.handleRoute route
+    if machine
+
+      route = "/IDE/#{machine.slug}"
+      ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
+      ideApp?.quit()
+
+      if router.currentPath is route
+        return IDERoutes.loadIDE { machine, username: nick() }
+
+    router.handleRoute route
 
 
   makeTeamDefault: (stackTemplate, revive) ->
@@ -1201,6 +1209,6 @@ module.exports = class ComputeController extends KDController
 
     if change.method is 'apply'
       stack = @findStackFromStackId change.payload.stackId
-      @reloadIDE stack.machines.first.slug
+      @reloadIDE stack.machines.first
 
     console.log '[Kloud:API]', change
