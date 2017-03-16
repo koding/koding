@@ -19,42 +19,42 @@ func TestIsSkip(t *testing.T) {
 		IsSkip bool
 	}{
 		"directory itself": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash", index.PriorityMedium, 0)),
 			Sk:     msync.DirectorySkip(".Trash"),
 			IsSkip: true,
 		},
 		"file inside directory": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash/file.txt", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash/file.txt", index.PriorityMedium, 0)),
 			Sk:     msync.DirectorySkip(".Trash"),
 			IsSkip: true,
 		},
 		"similar prefix": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trasher/file.txt", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trasher/file.txt", index.PriorityMedium, 0)),
 			Sk:     msync.DirectorySkip(".Trash"),
 			IsSkip: false,
 		},
 		"in the middle": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("aa/.Trasher/file.txt", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("aa/.Trasher/file.txt", index.PriorityMedium, 0)),
 			Sk:     msync.DirectorySkip(".Trash"),
 			IsSkip: false,
 		},
 		"path suffix equal": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".git/index.lock", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".git/index.lock", index.PriorityMedium, 0)),
 			Sk:     msync.PathSuffixSkip(".git/index.lock"),
 			IsSkip: true,
 		},
 		"path suffix": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/.git/index.lock", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/.git/index.lock", index.PriorityMedium, 0)),
 			Sk:     msync.PathSuffixSkip(".git/index.lock"),
 			IsSkip: true,
 		},
 		"path suffix part": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/troll.git/index.lock", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/troll.git/index.lock", index.PriorityMedium, 0)),
 			Sk:     msync.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
 		"path suffix too short": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("git/index.lock", 0)),
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("git/index.lock", index.PriorityMedium, 0)),
 			Sk:     msync.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
