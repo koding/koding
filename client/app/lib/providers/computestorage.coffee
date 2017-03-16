@@ -143,9 +143,10 @@ module.exports = class ComputeStorage extends kd.Object
 
     { modifier, prePush, postPush } = Storage[type]
 
-    if cached = @get type, '_id', value._id ? value
-      debug 'pushed data was in cache, passed'
-      return cached
+    if value?._id
+      if cached = @update type, value._id, value
+        debug 'pushed data was in cache, updated and passed'
+        return cached
 
     if typeof value is 'string'
       return @fetch type, value
@@ -187,7 +188,7 @@ module.exports = class ComputeStorage extends kd.Object
     return value
 
 
-  fetch: (type, key, value) ->
+  fetch: (type, key, value, reset = no) ->
 
     debug 'fetch', type, key, value
 
@@ -202,7 +203,7 @@ module.exports = class ComputeStorage extends kd.Object
       if isGroupDisabled()
         return reject new Error 'Team disabled'
 
-      if cached = @get type, key, value
+      if not reset and cached = @get type, key, value
         debug 'data found in cache'
         return resolve cached
 
@@ -220,3 +221,13 @@ module.exports = class ComputeStorage extends kd.Object
           resolve data
         else
           resolve null
+
+
+  update: (type, key, value) ->
+
+    debug 'update', type, key, value
+
+    for item, index in (@get type)
+      if item._id is key
+        @storage[type][index] = value
+        return @storage[type][index]
