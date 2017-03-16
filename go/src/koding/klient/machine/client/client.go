@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 
-	"koding/klient/fs"
 	"koding/klient/machine/index"
 	"koding/klient/os"
 )
@@ -23,9 +22,6 @@ type Client interface {
 	// MountGetIndex returns an index that describes the current state of remote
 	// directory.
 	MountGetIndex(string) (*index.Index, error)
-
-	// DiskInfo gets basic information about volume pointed by provided path.
-	DiskInfo(string) (fs.DiskInfo, error)
 
 	// Exec runs a command on a remote machine.
 	Exec(*os.ExecRequest) (*os.ExecResponse, error)
