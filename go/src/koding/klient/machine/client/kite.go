@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"koding/kites/kloud/klient"
-	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/index"
 	"koding/klient/os"
@@ -80,11 +79,6 @@ func (kc *kiteClient) MountHeadIndex(path string) (string, int, int64, error) {
 // directory.
 func (kc *kiteClient) MountGetIndex(path string) (*index.Index, error) {
 	return kc.get().MountGetIndex(path)
-}
-
-// DiskInfo gets basic information about volume pointed by provided path.
-func (kc *kiteClient) DiskInfo(path string) (fs.DiskInfo, error) {
-	return kc.get().DiskInfo(path)
 }
 
 // Exec runs a command on a remote machine.
