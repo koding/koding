@@ -36,10 +36,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     super
 
-    status = @machine ['status', 'state']
-
     @state =
-      collapsed: yes
+      percentage: 0
+      status: @machine ['status', 'state']
       showLeaveSharedMachineWidget : no
 
     @listenMachineEvents()
@@ -47,20 +46,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   listenMachineEvents: ->
 
-    machineId             = @machine('_id')
-    { computeController } = kd.singletons
-
-    computeController.on "start-#{machineId}", (event) =>
-      @setState { collapsed: no }  if event.percentage is 100
-
-    computeController.on "stop-#{machineId}", (event) =>
-      @setState { collapsed : yes }  unless event.percentage
-
     if stackId = @props.stack?.get('_id')
+      { computeController } = kd.singletons
       computeController.on "apply-#{stackId}", (event) =>
-        { percentage, message } = event
-        if percentage is 100 and message is 'apply finished'
-          @setState { collapsed: no }
+        { percentage, status } = event
+        @setState { percentage, status }
 
 
   componentWillReceiveProps: ->
@@ -111,9 +101,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderProgressbar: ->
 
-    status     = @machine ['status', 'state']
-    percentage = @machine('percentage') or 0
-
+    { percentage, status } = @state
     { NotInitialized, Running, Stopped } = remote.api.JMachine.State
 
     return null  if status in [NotInitialized, Stopped]
@@ -206,7 +194,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     return null  unless @props.showInSidebar
 
-    status      = @machine ['status', 'state']
+    { status }  = @state
     activeClass = ''
 
     if @state.activeMachine is @machine('_id')
