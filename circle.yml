@@ -92,7 +92,7 @@ stages:
       - type: shell
         name: sync website assets
         command: |
-          [[ -z "S3CMD_ACCESS_KEY" || -z "S3CMD_SECRET_KEY" ]] && exit 0
+          [[ -z "$S3CMD_ACCESS_KEY" || -z "$S3CMD_SECRET_KEY" ]] && exit 0
           s3cmd sync --access_key=$S3CMD_ACCESS_KEY --secret_key=$S3CMD_SECRET_KEY \
             --no-mime-magic --guess-mime-type --acl-public \
             website/a/p/p/$(git rev-parse --short HEAD)/ \
