@@ -166,8 +166,6 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   createKite: (options, query) ->
 
-    cc = kd.singletons.computeController
-
     { kite } = options
     kiteName = kite.name
 
@@ -190,6 +188,8 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
         kite.options.autoReconnect = no
         KiteCache.unset query
+
+        cc = kd.singletons.computeController
 
         if kiteInstance = @kites[kiteName]?['singleton']
           { waitingPromises } = kiteInstance
@@ -218,7 +218,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
       cc = kd.singletons.computeController
 
       emit = (status) ->
-        if cc.findMachineFromMachineUId(machineUId).isRunning?()
+        if cc.findMachineFromMachineUId(machineUId)?.isRunning?()
           cc.emit "#{status}-#{machineUId}"
 
       kite.on 'open',      -> emit 'connected'

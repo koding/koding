@@ -682,18 +682,6 @@ module.exports = class IDEAppController extends AppController
 
   handleMachineTerminated: ->
 
-
-  handleMachineReinit: ({ status }) ->
-
-    switch status
-      when 'Running'
-        id = @mountedMachine.getId()
-        { computeController } = kd.singletons
-
-        computeController.once "revive-#{id}", @lazyBound 'quit'
-        computeController.triggerReviveFor id
-
-
   showStateMachineModal: (machineItem, event) ->
 
     machineItem.getBaseKite( no ).disconnect()

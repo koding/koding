@@ -63,8 +63,6 @@ module.exports = class ComputeController extends KDController
 
     mainController.ready =>
 
-      @on 'MachineBuilt',            (machineId) => @storage.push 'machines', machineId
-      @on 'MachineDestroyed',        (machineId) => @storage.pop  'machines', machineId
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
@@ -645,16 +643,25 @@ module.exports = class ComputeController extends KDController
     kd.info "Reviving #{if asStack then 'stack' else 'machine'} #{instanceId}..."
 
     if asStack
-      remote.api.JComputeStack.one { _id: instanceId }, (err, stack) ->
-        stack.machines.forEach (machine) =>
-          @triggerReviveFor machine._id
-      return
 
-    remote.api.JMachine.one instanceId, (err, machine) =>
-      kd.warn "Revive failed for #{instanceId}: ", err  if err
-      @invalidateCache instanceId
-      @emit "revive-#{instanceId}", machine
-      kd.info "Revive triggered for #{instanceId}", machine
+      # this.storage.pop   'stacks', instanceId
+      this.storage.fetch 'stacks', '_id', instanceId, reset = yes
+        .then (stack) =>
+          stack.machines.forEach (machine) =>
+            @invalidateCache machine.getId()
+            @emit "revive-#{machine.getId()}", machine
+        .catch (err) ->
+          kd.warn "Revive failed for #{instanceId}: ", err
+
+    else
+
+      # this.storage.pop   'machines', instanceId
+      this.storage.fetch 'machines', '_id', instanceId, reset = yes
+        .then (machine) =>
+          @invalidateCache instanceId
+          @emit "revive-#{instanceId}", machine
+        .catch (err) ->
+          kd.warn "Revive failed for #{instanceId}: ", err
 
 
   invalidateCache: (machineId) ->
@@ -1058,6 +1065,7 @@ module.exports = class ComputeController extends KDController
   ###
   reinitStack: (stack, callback = kd.noop) ->
 
+    stackProvided = stack?
     stack ?= @getGroupStack()
 
     if not stack
@@ -1113,7 +1121,7 @@ module.exports = class ComputeController extends KDController
           }
           new kd.NotificationView { title : 'Stack reinitialized' }
 
-          if template and not groupStack
+          if template and stackProvided
             @createDefaultStack { force: no, template }, callback
           else
             @createDefaultStack {}, callback

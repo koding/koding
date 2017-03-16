@@ -636,6 +636,7 @@ setLabel = (machineUId, label) ->
   new Promise (resolve, reject) ->
     fetchMachineByUId machineUId, (machine) ->
       machine.setLabel label, (err, newLabel) ->
+        # FIXME this shouldn't be necessary
         computeController.triggerReviveFor machine._id
         return reject err  if err
         resolve newLabel
