@@ -18,37 +18,6 @@ $ = require 'jquery'
 canCreateStacks = require 'app/util/canCreateStacks'
 _eventsCache = { machine: {}, stack: no }
 
-_bindMachineEvents = (environmentData) ->
-
-  { reactor, computeController } = kd.singletons
-
-  machines = reactor.evaluate getters.machinesWithWorkspaces
-
-  computeController.ready ->
-
-    machines.map (machine, id) ->
-      return  if _eventsCache.machine[id]
-
-      _eventsCache.machine[id] = yes
-
-      publicHandler = (event) ->
-        reactor.dispatch actions.MACHINE_UPDATED, { id, event }
-      computeController.off "public-#{id}", publicHandler
-      computeController.on  "public-#{id}", publicHandler
-
-      reviveHandler = (newMachine) ->
-        return loadMachines()  unless newMachine
-        reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
-      computeController.off "revive-#{id}", reviveHandler
-      computeController.on  "revive-#{id}", reviveHandler
-
-      if stack = computeController.findStackFromMachineId id
-        applyHandler = (event) ->
-          reactor.dispatch actions.MACHINE_UPDATED, { id, event }
-
-        computeController.off "apply-#{stack._id}", applyHandler
-        computeController.on  "apply-#{stack._id}", applyHandler
-
 
 _bindStackEvents = ->
 
