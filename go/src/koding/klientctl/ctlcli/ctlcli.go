@@ -16,6 +16,12 @@ import (
 
 var closers []io.Closer
 
+// CloseFunc wraps func to provide an implementation for the io.Closer interface.
+type CloseFunc func() error
+
+// Close implements the io.Closer interface.
+func (c CloseFunc) Close() error { return c() }
+
 // ExitFunc is called upon command exit, it sets exit code.
 //
 // It is overwritten during testing, as calling os.Exit

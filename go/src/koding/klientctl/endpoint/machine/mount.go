@@ -14,7 +14,6 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/sync"
 	"koding/klient/machine/transport/rsync"
-	"koding/klientctl/klient"
 
 	"github.com/dustin/go-humanize"
 	"github.com/koding/logging"
@@ -30,7 +29,7 @@ type MountOptions struct {
 }
 
 // Mount synchronizes directories between remote and local machines.
-func Mount(options *MountOptions) (err error) {
+func (c *Client) Mount(options *MountOptions) (err error) {
 	if options == nil {
 		return errors.New("invalid nil options")
 	}
@@ -46,27 +45,13 @@ func Mount(options *MountOptions) (err error) {
 		}
 	}()
 
-	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
-	k, err := klient.CreateKlientWithDefaultOpts()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating klient:", err)
-		return err
-	}
-
-	if err := k.Dial(); err != nil {
-		return err
-	}
-
 	// Translate identifier to machine ID.
-	idReq := machinegroup.IDRequest{
+	idReq := &machinegroup.IDRequest{
 		Identifier: options.Identifier,
 	}
-	idRaw, err := k.Tell("machine.id", idReq)
-	if err != nil {
-		return err
-	}
-	idRes := machinegroup.IDResponse{}
-	if err := idRaw.Unmarshal(&idRes); err != nil {
+	var idRes machinegroup.IDResponse
+
+	if err := c.klient().Call("machine.id", idReq, &idRes); err != nil {
 		return err
 	}
 
@@ -76,19 +61,17 @@ func Mount(options *MountOptions) (err error) {
 		Path:       options.Path,
 		RemotePath: options.RemotePath,
 	}
+
 	// First head the remote machine directory in order to get basic mount info.
-	headMountReq := machinegroup.HeadMountRequest{
+	headMountReq := &machinegroup.HeadMountRequest{
 		MountRequest: machinegroup.MountRequest{
 			ID:    idRes.ID,
 			Mount: m,
 		},
 	}
-	headMountRaw, err := k.Tell("machine.mount.head", headMountReq)
-	if err != nil {
-		return err
-	}
-	headMountRes := machinegroup.HeadMountResponse{}
-	if err := headMountRaw.Unmarshal(&headMountRes); err != nil {
+	var headMountRes machinegroup.HeadMountResponse
+
+	if err := c.klient().Call("machine.mount.head", headMountReq, &headMountRes); err != nil {
 		return err
 	}
 
@@ -112,18 +95,15 @@ func Mount(options *MountOptions) (err error) {
 	fmt.Fprintf(os.Stdout, "Initializing mount %s...\n", m)
 
 	// Create mount.
-	addMountReq := machinegroup.AddMountRequest{
+	addMountReq := &machinegroup.AddMountRequest{
 		MountRequest: machinegroup.MountRequest{
 			ID:    idRes.ID,
 			Mount: m,
 		},
 	}
-	addMountRaw, err := k.Tell("machine.mount.add", addMountReq)
-	if err != nil {
-		return err
-	}
-	addMountRes := machinegroup.AddMountResponse{}
-	if err := addMountRaw.Unmarshal(&addMountRes); err != nil {
+	var addMountRes machinegroup.AddMountResponse
+
+	if err := c.klient().Call("machine.mount.add", addMountReq, &addMountRes); err != nil {
 		return err
 	}
 
@@ -149,10 +129,10 @@ func Mount(options *MountOptions) (err error) {
 		}
 
 		// Index needs to be updated after prefetching.
-		updateIndexReq := machinegroup.UpdateIndexRequest{
+		updateIndexReq := &machinegroup.UpdateIndexRequest{
 			MountID: addMountRes.MountID,
 		}
-		if _, err := k.Tell("machine.mount.updateIndex", updateIndexReq); err != nil {
+		if err := c.klient().Call("machine.mount.updateIndex", updateIndexReq, nil); err != nil {
 			fmt.Fprintf(os.Stderr, "Cannot update mount index: %s\n", err)
 		}
 	}
@@ -168,34 +148,20 @@ type ListMountOptions struct {
 	Log     logging.Logger
 }
 
-// ListMount removes existing mount.
-func ListMount(options *ListMountOptions) (map[string][]sync.Info, error) {
+// ListMount lists local mounts that are known to a klient.
+func (c *Client) ListMount(options *ListMountOptions) (map[string][]sync.Info, error) {
 	if options == nil {
 		return nil, errors.New("invalid nil options")
 	}
 
-	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
-	k, err := klient.CreateKlientWithDefaultOpts()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating klient:", err)
-		return nil, err
-	}
-
-	if err := k.Dial(); err != nil {
-		return nil, err
-	}
-
 	// List mounts.
-	listMountReq := machinegroup.ListMountRequest{
+	listMountReq := &machinegroup.ListMountRequest{
 		ID:      machine.ID(options.ID),
 		MountID: mount.ID(options.MountID),
 	}
-	listMountRaw, err := k.Tell("machine.mount.list", listMountReq)
-	if err != nil {
-		return nil, err
-	}
-	listMountRes := machinegroup.ListMountResponse{}
-	if err := listMountRaw.Unmarshal(&listMountRes); err != nil {
+	var listMountRes machinegroup.ListMountResponse
+
+	if err := c.klient().Call("machine.mount.list", listMountReq, &listMountRes); err != nil {
 		return nil, err
 	}
 
@@ -209,35 +175,21 @@ type UmountOptions struct {
 }
 
 // Umount removes existing mount.
-func Umount(options *UmountOptions) (err error) {
+func (c *Client) Umount(options *UmountOptions) (err error) {
 	if options == nil {
 		return errors.New("invalid nil options")
-	}
-
-	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
-	k, err := klient.CreateKlientWithDefaultOpts()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating klient:", err)
-		return err
-	}
-
-	if err := k.Dial(); err != nil {
-		return err
 	}
 
 	// TODO: ask user to confirm unmounting.
 	fmt.Fprintf(os.Stdout, "Unmounting %s...\n", options.Identifier)
 
 	// Remove mount.
-	umountReq := machinegroup.UmountRequest{
+	umountReq := &machinegroup.UmountRequest{
 		Identifier: options.Identifier,
 	}
-	umountRaw, err := k.Tell("machine.umount", umountReq)
-	if err != nil {
-		return err
-	}
-	umountRes := machinegroup.UmountResponse{}
-	if err := umountRaw.Unmarshal(&umountRes); err != nil {
+	var umountRes machinegroup.UmountResponse
+
+	if err := c.klient().Call("machine.umount", umountReq, &umountRes); err != nil {
 		return err
 	}
 
@@ -344,3 +296,15 @@ func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, e
 		}
 	}
 }
+
+// Mount synchronizes directories between remote and local machines
+// using DefaultClient.
+func Mount(opts *MountOptions) error { return DefaultClient.Mount(opts) }
+
+// ListMount lists local mounts that are known to a klient using DefaultClient.
+func ListMount(opts *ListMountOptions) (map[string][]sync.Info, error) {
+	return DefaultClient.ListMount(opts)
+}
+
+// Umount removes existing mount using DefaultClient.
+func Umount(opts *UmountOptions) error { return DefaultClient.Umount(opts) }

@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
+	"socialapi/workers/payment"
 	"testing"
 	"time"
 
@@ -242,6 +243,72 @@ func TestCancellingSubscriptionCreatesAnotherInvoice(t *testing.T) {
 								})
 							})
 						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestCancellingSubscriptionRemovesPresenceInfo(t *testing.T) {
+	Convey("Given stub data", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				withTrialTestPlan(func(planID string) {
+					addCreditCardToUserWithChecks(endpoint, sessionID)
+
+					acc := models.NewAccount()
+					So(acc.ByNick(username), ShouldBeNil)
+
+					group, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(group, err)
+
+					// create and cancel sub, because we will resubscribe again.
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+
+						So((&models.PresenceDaily{
+							AccountId: acc.Id,
+							GroupName: groupName,
+							CreatedAt: time.Now().UTC().Add(-time.Millisecond * 100),
+						}).Create(), ShouldBeNil)
+
+						// presence should work properly
+						count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(groupName)
+						tests.ResultedWithNoErrorCheck(count, err)
+						So(count, ShouldEqual, 1)
+					})
+
+					// make sure we have zero-ed the count. using bare functions
+					// because we wont be getting info when there isnt a sub
+					count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(groupName) // check for std
+					So(err, ShouldBeNil)
+					So(count, ShouldEqual, 0)
+
+					processedCount, err := (&models.PresenceDaily{}).CountDistinctProcessedByGroupName(groupName) // check for processed
+					So(err, ShouldBeNil)
+					So(processedCount, ShouldEqual, 0)
+
+					// create the sub again and check for the usage info.
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+
+						count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(groupName)
+						tests.ResultedWithNoErrorCheck(count, err)
+
+						So((&models.PresenceDaily{
+							AccountId: acc.Id,
+							GroupName: groupName,
+							CreatedAt: time.Now().UTC().Add(-time.Millisecond * 100),
+						}).Create(), ShouldBeNil)
+
+						// info should work properly
+						info, err := payment.EnsureInfoForGroup(group, username)
+						tests.ResultedWithNoErrorCheck(info, err)
+						So(info.User.Total, ShouldEqual, 1)
+						So(info.Trial.User.Total, ShouldEqual, 0)
 					})
 				})
 			})

@@ -19,27 +19,18 @@ import (
 )
 
 func withStubData(endpoint string, f func(username string, groupName string, sessionID string)) {
-	createURL := endpoint + EndpointCustomerCreate
-	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
+	models.WithStubData(func(username string, groupName string, sessionID string) {
+		req, err := json.Marshal(&stripe.CustomerParams{})
+		tests.ResultedWithNoErrorCheck(req, err)
 
-	group, err := modelhelper.GetGroup(groupName)
-	tests.ResultedWithNoErrorCheck(group, err)
+		createURL := endpoint + EndpointCustomerCreate
+		res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
+		tests.ResultedWithNoErrorCheck(res, err)
 
-	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
-	So(err, ShouldBeNil)
+		f(username, groupName, sessionID)
 
-	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
-	tests.ResultedWithNoErrorCheck(ses, err)
-
-	req, err := json.Marshal(&stripe.CustomerParams{})
-	tests.ResultedWithNoErrorCheck(req, err)
-
-	res, err := rest.DoRequestWithAuth("POST", createURL, req, ses.ClientId)
-	tests.ResultedWithNoErrorCheck(res, err)
-
-	f(acc.Nick, groupName, ses.ClientId)
-
-	So(payment.DeleteCustomerForGroup(groupName), ShouldBeNil)
+		So(payment.DeleteCustomerForGroup(groupName), ShouldBeNil)
+	})
 }
 
 func withTestPlan(f func(planID string)) {

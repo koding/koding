@@ -17,37 +17,5 @@ EC2 = new AWS.EC2()
 R53 = new AWS.Route53()
 
 EC2.terminateInstances InstanceIds: [instanceId], (err, res) ->
-  if err
-    console.error err
-
-  params =
-    HostedZoneId: hostedZoneId
-    ChangeBatch: {
-      Changes: [
-        {
-          Action: 'DELETE',
-          ResourceRecordSet: {
-            Name: hostname
-            Type: 'A'
-            TTL: 300
-            ResourceRecords: [{ Value: ipAddress }]
-          }
-        }
-
-        {
-          Action: 'DELETE',
-          ResourceRecordSet: {
-            Name: "*.#{hostname}"
-            Type: 'CNAME'
-            TTL: 300
-            ResourceRecords: [{ Value: hostname }]
-          }
-        }
-      ]
-    }
-
-  R53.changeResourceRecordSets params, (err, res) ->
-    if err
-      console.error err
-
-    process.exit()
+  console.error err  if err
+  process.exit()

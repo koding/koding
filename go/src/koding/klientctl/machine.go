@@ -6,11 +6,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
 
 	"koding/klient/machine/mount/sync"
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
@@ -163,6 +165,64 @@ func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, er
 	return 0, nil
 }
 
+// MachineExecCommand runs a command in a started machine.
+func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if c.NArg() < 2 {
+		cli.ShowCommandHelp(c, "exec")
+		return 1, nil
+	}
+
+	done := make(chan int, 1)
+
+	opts := &machine.ExecOptions{
+		Cmd:  c.Args()[1],
+		Args: c.Args()[2:],
+		Stdout: func(line string) {
+			fmt.Println(line)
+		},
+		Stderr: func(line string) {
+			fmt.Fprintln(os.Stderr, line)
+		},
+		Exit: func(exit int) {
+			done <- exit
+			close(done)
+		},
+	}
+
+	if s := c.Args()[0]; strings.HasPrefix(s, "@") {
+		opts.MachineID = s[1:]
+	} else {
+		if filepath.IsAbs(s) {
+			var err error
+			if s, err = filepath.Abs(s); err != nil {
+				return 1, err
+			}
+		}
+
+		opts.Path = s
+	}
+
+	pid, err := machine.Exec(opts)
+	if err != nil {
+		return 1, err
+	}
+
+	ctlcli.CloseOnExit(ctlcli.CloseFunc(func() error {
+		select {
+		case <-done:
+			return nil
+		default:
+			return machine.Kill(&machine.KillOptions{
+				MachineID: opts.MachineID,
+				Path:      opts.Path,
+				PID:       pid,
+			})
+		}
+	}))
+
+	return <-done, nil
+}
+
 // getIdentifiers extracts identifiers and validate provided arguments.
 // TODO(ppknap): other CLI libraries like Cobra have this out of the box.
 func getIdentifiers(c *cli.Context) (idents []string, err error) {
@@ -177,12 +237,12 @@ func getIdentifiers(c *cli.Context) (idents []string, err error) {
 	}
 
 	if len(unknown) > 0 {
-		plular := ""
+		plural := ""
 		if len(unknown) > 1 {
-			plular = "s"
+			plural = "s"
 		}
 
-		return nil, fmt.Errorf("unrecognized argument%s: %s", plular, strings.Join(unknown, ", "))
+		return nil, fmt.Errorf("unrecognized argument%s: %s", plural, strings.Join(unknown, ", "))
 	}
 
 	return idents, nil
@@ -255,20 +315,37 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
 	fmt.Fprintf(tw, "ID\tMACHINE\tMOUNT\tFILES\tQUEUED\tSYNCING\tSIZE\n")
 	for alias, infos := range mounts {
 		for _, info := range infos {
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%d/%d\t%d\t%d\t%s/%s\n",
+			sign := info.Syncing
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%s/%s\t%s\t%s\t%s/%s\n",
 				info.ID,
 				alias,
 				info.Mount,
-				info.Count,
-				info.CountAll,
-				info.Queued,
-				info.Syncing,
-				humanize.IBytes(uint64(info.DiskSize)),
-				humanize.IBytes(uint64(info.DiskSizeAll)),
+				dashIfNegative(sign, info.Count),
+				dashIfNegative(sign, info.CountAll),
+				dashIfNegative(sign, info.Queued),
+				errorIfNegative(info.Syncing),
+				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSize))),
+				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSizeAll))),
 			)
 		}
 	}
 	tw.Flush()
+}
+
+func errorIfNegative(val int) string {
+	if val < 0 {
+		return "err"
+	}
+
+	return strconv.Itoa(val)
+}
+
+func dashIfNegative(sign int, val interface{}) string {
+	if sign < 0 {
+		return "-"
+	}
+
+	return fmt.Sprint(val)
 }
 
 func dashIfEmpty(val string) string {

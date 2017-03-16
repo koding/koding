@@ -524,6 +524,8 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
+	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)
+	k.kite.HandleFunc("machine.kill", k.machines.HandleKill)
 
 	// Machine index handlers.
 	k.handleWithSub("machine.index.head", index.KiteHandlerHead())

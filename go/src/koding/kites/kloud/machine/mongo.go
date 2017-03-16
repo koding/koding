@@ -14,6 +14,9 @@ import (
 // singleton. This allows to mock database and create reproducible tests for
 // MongoDatabase logic.
 type adapter interface {
+	// GetMachineByID gets a machine by its ID.
+	GetMachineByID(string) (*models.Machine, error)
+
 	// GetParticipatedMachinesByUsername gets all machines which are accessible to
 	// provided user.
 	GetParticipatedMachinesByUsername(string) ([]*models.Machine, error)
@@ -34,7 +37,7 @@ var _ Database = (*MongoDatabase)(nil)
 // NewMongoDatabase creates a new MongoDatabase instance.
 func NewMongoDatabase() *MongoDatabase {
 	return &MongoDatabase{
-		adapter: modelHelperAdapter{}, // use modelhelper package's singleton.
+		adapter: modelHelper, // use modelhelper package's singleton.
 	}
 }
 
@@ -53,11 +56,23 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 		return nil, errors.New("machine requires user name to be provided")
 	}
 
-	// Get all machines that can be seen by provided user. This also includes
-	// shared machines.
-	machinesDB, err := m.adapter.GetParticipatedMachinesByUsername(f.Username)
-	if err != nil {
-		return nil, models.ResError(err, modelhelper.MachinesColl)
+	var machinesDB []*models.Machine
+
+	if f.ID != "" {
+		machine, err := m.adapter.GetMachineByID(f.ID)
+		if err != nil {
+			return nil, models.ResError(err, modelhelper.MachinesColl)
+		}
+
+		machinesDB = append(machinesDB, machine)
+	} else {
+		// Get all machines that can be seen by provided user. This also includes
+		// shared machines.
+		var err error
+		machinesDB, err = m.adapter.GetParticipatedMachinesByUsername(f.Username)
+		if err != nil {
+			return nil, models.ResError(err, modelhelper.MachinesColl)
+		}
 	}
 
 	// We do not need machines from koding solo(koding provider) so, skip them.

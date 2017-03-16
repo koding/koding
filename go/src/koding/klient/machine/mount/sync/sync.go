@@ -72,17 +72,17 @@ type Syncer interface {
 
 // Info stores information about current mount status.
 type Info struct {
-	ID    mount.ID    // Mount ID.
-	Mount mount.Mount // Mount paths stored in absolute form.
+	ID    mount.ID    `json:"id"`    // Mount ID.
+	Mount mount.Mount `json:"mount"` // Mount paths stored in absolute form.
 
-	Count    int // Number of synced files.
-	CountAll int // Number of all files handled by mount.
+	Count    int `json:"count"`    // Number of synced files.
+	CountAll int `json:"countAll"` // Number of all files handled by mount.
 
-	DiskSize    int64 // Total size of synced files.
-	DiskSizeAll int64 // Size of all files handled by mount.
+	DiskSize    int64 `json:"diskSize"`    // Total size of synced files.
+	DiskSizeAll int64 `json:"diskSizeAll"` // Size of all files handled by mount.
 
-	Queued  int // Number of files waiting for synchronization.
-	Syncing int // Number of files being synced.
+	Queued  int `json:"queued"`  // Number of files waiting for synchronization.
+	Syncing int `json:"syncing"` // Number of files being synced.
 }
 
 // Options are the options used to configure Sync object.
@@ -185,9 +185,6 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		return nil, err
 	}
 
-	// Check current state of synchronization and set promises.
-	s.UpdateIndex()
-
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
 
@@ -226,7 +223,7 @@ func (s *Sync) Stream() <-chan Execer {
 
 // Info returns the current mount synchronization status.
 func (s *Sync) Info() *Info {
-	items, queued := s.a.Status()
+	items, synced := s.a.Status()
 
 	return &Info{
 		ID:          s.mountID,
@@ -236,7 +233,7 @@ func (s *Sync) Info() *Info {
 		DiskSize:    s.idx.DiskSize(-1),
 		DiskSizeAll: s.idx.DiskSizeAll(-1),
 		Queued:      items,
-		Syncing:     items - queued,
+		Syncing:     synced,
 	}
 }
 
@@ -249,7 +246,11 @@ func (s *Sync) CacheDir() string {
 // managed index. This function allows to express the current state of
 // synchronized files inside index structure.
 func (s *Sync) UpdateIndex() {
-	s.idx.Merge(s.CacheDir())
+	cs := s.idx.Merge(s.CacheDir())
+
+	for i := range cs {
+		s.a.Commit(cs[i])
+	}
 }
 
 // FetchCmd creates a strategy with prefetch command to run.
@@ -278,12 +279,16 @@ func (s *Sync) FetchCmd() (count, diskSize int64, cmd *rsync.Command, err error)
 
 	// Look for git VCS.
 	if n, ok := s.idx.LookupAll(".git"); ok && n.IsDir() {
-		// Download only git data.
-		cmd.SourcePath += ".git/"
-		cmd.DestinationPath += ".git/"
+		// TODO(ppknap) Enable after https://github.com/koding/koding/issues/10750
+		// // Download only git data.
+		// cmd.SourcePath += ".git/"
+		// cmd.DestinationPath += ".git/"
 
-		count = int64(n.CountAll(-1))
-		diskSize = n.DiskSizeAll(-1)
+		// count = int64(n.CountAll(-1))
+		// diskSize = n.DiskSizeAll(-1)
+
+		count = int64(s.idx.CountAll(-1))
+		diskSize = s.idx.DiskSizeAll(-1)
 	} else {
 		count = int64(s.idx.CountAll(-1))
 		diskSize = s.idx.DiskSizeAll(-1)

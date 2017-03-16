@@ -2,7 +2,14 @@
 
 package main
 
-import "errors"
+import (
+	"errors"
+	"syscall"
+)
+
+func init() {
+	signals = append(signals, syscall.SIGQUIT, syscall.SIGABRT)
+}
 
 // AdminChecker is a simple interface used to determine if admin is required.
 type AdminChecker interface {
