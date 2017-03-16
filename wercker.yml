@@ -47,9 +47,7 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
     - script:
         name: copy deployment credentials
-        code: |
-          scripts/copy-deployment-credentials.sh
-          scripts/inject_credentials.sh
+        code: scripts/copy-deployment-credentials.sh
     - script:
         name: change mod of test instace private key
         code: chmod 600 ./scripts/test-instance/koding-test-instances-2015-06.pem
