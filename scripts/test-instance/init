@@ -4,6 +4,8 @@ set -o errexit
 
 HOSTNAME="$(ec2metadata --public-ipv4).xip.io"
 
+sed --in-place --expression "s/\(127.0.0.1 localhost\)/\1 $HOSTNAME/g" /etc/hosts
+
 export HOME=/root/
 export REPOSITORY_PATH='/opt/koding'
 
