@@ -75,10 +75,6 @@ func New(opts Options) (*Syncs, error) {
 		return nil, err
 	}
 
-	if err := os.MkdirAll(opts.WorkDir, 0755); err != nil {
-		return nil, err
-	}
-
 	s := &Syncs{
 		wd:  opts.WorkDir,
 		log: opts.Log,
