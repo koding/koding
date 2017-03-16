@@ -131,11 +131,6 @@ func TestChangeMetaCoalesce(t *testing.T) {
 			B:      index.ChangeMetaAdd,
 			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
-		"AL_AL_OTHER META": {
-			A:      index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaHuge,
-			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
-			Result: index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaHuge,
-		},
 	}
 
 	for name, test := range tests {
@@ -195,11 +190,11 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 	const workersN = 10
 
 	// The oldest change in this test.
-	oldest := index.NewChange("change", 0)
+	oldest := index.NewChange("change", index.PriorityHigh, 0)
 
 	var wg sync.WaitGroup
 	cC := make(chan *index.Change)
-	c := index.NewChange("change", index.ChangeMetaUpdate)
+	c := index.NewChange("change", index.PriorityMedium, index.ChangeMetaUpdate)
 
 	wg.Add(workersN)
 	for i := 0; i < workersN; i++ {
@@ -214,7 +209,7 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 
 	var cs = make([]*index.Change, 200)
 	randIdx := rand.Intn(len(cs))
-	newest := index.NewChange("change", index.ChangeMetaRemove)
+	newest := index.NewChange("change", index.PriorityLow, index.ChangeMetaRemove)
 	for i := range cs {
 		if i == randIdx {
 			cC <- newest
@@ -232,6 +227,10 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 
 	if want, caun := newest.CreatedAtUnixNano(), c.CreatedAtUnixNano(); caun != want {
 		t.Errorf("want caun = %d; got %d", want, caun)
+	}
+
+	if want, cp := index.PriorityHigh, c.Priority(); cp != want {
+		t.Errorf("want cp = %b; got %b", want, cp)
 	}
 }
 
@@ -298,27 +297,27 @@ func TestChangeMetaString(t *testing.T) {
 		{
 			// 0 //
 			CM:     index.ChangeMetaUpdate | index.ChangeMetaLocal,
-			Result: "L---u-",
+			Result: "L---u",
 		},
 		{
 			// 1 //
 			CM:     index.ChangeMetaUpdate | index.ChangeMetaLocal | index.ChangeMetaRemote,
-			Result: "LR--u-",
+			Result: "LR--u",
 		},
 		{
 			// 2 //
-			CM:     index.ChangeMetaAdd | index.ChangeMetaHuge | index.ChangeMetaRemote,
-			Result: "-Ra--H",
+			CM:     index.ChangeMetaAdd | index.ChangeMetaRemote,
+			Result: "-Ra--",
 		},
 		{
 			// 3 //
 			CM:     0,
-			Result: "------",
+			Result: "-----",
 		},
 		{
 			// 4 //
 			CM:     index.ChangeMetaRemove,
-			Result: "---d--",
+			Result: "---d-",
 		},
 	}
 

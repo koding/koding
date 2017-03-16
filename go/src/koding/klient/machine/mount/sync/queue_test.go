@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+
+	"koding/klient/machine/index"
 )
 
 func TestQueue(t *testing.T) {
@@ -16,7 +18,8 @@ func TestQueue(t *testing.T) {
 		t.Errorf("want size = 0; got %d", s)
 	}
 
-	q.Push(NewEvent(context.Background(), nil, nil))
+	c := index.NewChange(".", index.PriorityMedium, 0)
+	q.Push(NewEvent(context.Background(), nil, c))
 	if s := q.Size(); s != 1 {
 		t.Errorf("want size = 1; got %d", s)
 	}
@@ -61,7 +64,8 @@ func TestQueueConcurrent(t *testing.T) {
 
 	send := make(map[uint64]struct{})
 	for i := 0; i < eventsN; i++ {
-		ev := NewEvent(context.Background(), nil, nil)
+		c := index.NewChange(".", index.PriorityMedium, 0)
+		ev := NewEvent(context.Background(), nil, c)
 		send[ev.ID()] = struct{}{}
 		evC <- ev
 	}
