@@ -46,10 +46,6 @@ func (kb *KiteBuilder) Ping(dynAddr DynamicAddrFunc) (machine.Status, machine.Ad
 // Build builds new kite client that will connect to machine using provided
 // address.
 func (kb *KiteBuilder) Build(ctx context.Context, addr machine.Addr) Client {
-	if _, err := kb.pool.Get(addr.Value); err != nil {
-		return NewDisconnected(ctx)
-	}
-
 	return &kiteClient{
 		ctx:  ctx,
 		addr: addr.Value,
