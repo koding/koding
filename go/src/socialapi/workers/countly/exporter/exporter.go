@@ -35,7 +35,7 @@ func NewCountlyExporter(cfg *config.Config) *CountlyExporter {
 // Send publishes the events to countly.
 func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 	c.log.Debug("got event %+v", event)
-
+	return nil
 	slug := getGroupName(event)
 	if slug == "" {
 		c.log.Debug("skipping event, does not have group %+v", event)
