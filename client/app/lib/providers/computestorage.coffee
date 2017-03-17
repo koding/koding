@@ -1,6 +1,7 @@
 debug = (require 'debug') 'cs'
 
 kd = require 'kd'
+_ = require 'lodash'
 Encoder = require 'htmlencode'
 Promise = require 'bluebird'
 
@@ -229,5 +230,5 @@ module.exports = class ComputeStorage extends kd.Object
 
     for item, index in (@get type)
       if item._id is key
-        @storage[type][index] = value
+        _.extend @storage[type][index], value
         return @storage[type][index]
