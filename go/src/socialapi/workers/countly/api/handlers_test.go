@@ -15,6 +15,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+// This test is not run by the test runners because we dont have countly in our
+// testing env yet.
+// TODO(cihangir): add countly to testing env.
+
 func TestCreateApp(t *testing.T) {
 	Convey("Given testing user & group", t, func() {
 		withTestServer(t, func(endpoint string) {
@@ -55,8 +59,7 @@ func TestCreateApp(t *testing.T) {
 	})
 }
 
-//TODO(cihangir): below shamelessly copied from payment api tests with small
-//modifications, unify them. https://github.com/koding/koding/issues/10771
+//TODO(cihangir): Unify them. https://github.com/koding/koding/issues/10771
 
 func withTestServer(t *testing.T, f func(url string)) {
 	tests.WithRunner(t, func(r *runner.Runner) {
@@ -68,6 +71,7 @@ func withTestServer(t *testing.T, f func(url string)) {
 		api.AddHandlers(m, config.MustGet())
 
 		m.Listen()
+		defer m.Close()
 
 		go r.Listen()
 
@@ -76,8 +80,5 @@ func withTestServer(t *testing.T, f func(url string)) {
 		if err := r.Close(); err != nil {
 			t.Fatalf("server close errored: %s", err.Error())
 		}
-
-		// shutdown server
-		m.Close()
 	})
 }

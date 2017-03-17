@@ -13,11 +13,16 @@ const (
 type SubStatus string
 
 const (
+	// SubStatusTrailing holds trailing subscription status
 	SubStatusTrailing SubStatus = "trialing"
-	SubStatusActive   SubStatus = "active"
-	SubStatusPastDue  SubStatus = "past_due"
+	// SubStatusActive holds active subscription status
+	SubStatusActive SubStatus = "active"
+	// SubStatusPastDue holds past_due subscription status
+	SubStatusPastDue SubStatus = "past_due"
+	// SubStatusCanceled holds canceled subscription status
 	SubStatusCanceled SubStatus = "canceled"
-	SubStatusUnpaid   SubStatus = "unpaid"
+	// SubStatusUnpaid holds unpaid subscription status
+	SubStatusUnpaid SubStatus = "unpaid"
 )
 
 // Active returns true when subscription is considered to be active.
@@ -55,7 +60,8 @@ type Payment struct {
 // Countly is general container for Countly info
 type Countly struct {
 	APIKey string `bson:"apiKey" json:"apiKey"`
-	APPKey string `bson:"appKey" json:"appKey"`
+	AppKey string `bson:"appKey" json:"appKey"`
+	AppID  string `bson:"appKey" json:"appKey"`
 }
 
 // Subscription holds customer-plan subscription related info
@@ -82,5 +88,5 @@ func (g *Group) IsSubActive() bool {
 
 // HasCountly checks if group has countly data.
 func (g *Group) HasCountly() bool {
-	return g.Countly.APIKey != "" && g.Countly.APPKey != ""
+	return g.Countly.APIKey != "" && g.Countly.AppKey != ""
 }

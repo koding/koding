@@ -15,6 +15,20 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// CountlyAPI is a wrapper struct for api handlers.
+type CountlyAPI struct {
+	client      *client.Client
+	log         logging.Logger
+	globalOwner string
+}
+
+// CreateAppResponse holds the response for create app request return params.
+type CreateAppResponse struct {
+	AppID  string `json:"appId"`
+	AppKey string `json:"appKey"`
+	APIKey string `json:"apiKey"`
+}
+
 // NewCountlyAPI creates api handler functions for countly
 func NewCountlyAPI(cfg *config.Config) *CountlyAPI {
 	logger := runner.MustGetLogger().New("countly-api")
@@ -30,37 +44,34 @@ func NewCountlyAPI(cfg *config.Config) *CountlyAPI {
 	}
 }
 
-// CountlyAPI is a wrapper struct for api handlers.
-type CountlyAPI struct {
-	client      *client.Client
-	log         logging.Logger
-	globalOwner string
-}
-
 // Init handles account and user creation
 func (c *CountlyAPI) Init(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	appKey, apiKey, err := c.CreateCountlyApp(context.GroupName)
+	res, err := c.CreateCountlyApp(context.GroupName)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(map[string]string{"appKey": appKey, "apiKey": apiKey})
+	return response.NewOK(res)
 }
 
 // CreateCountlyApp creates an app for given group.
-func (c *CountlyAPI) CreateCountlyApp(slug string) (appKey string, apiKey string, err error) {
+func (c *CountlyAPI) CreateCountlyApp(slug string) (*CreateAppResponse, error) {
 	group, err := modelhelper.GetGroup(slug)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	// make this call idempotent
-	if group.Countly.APIKey != "" {
-		return group.Countly.APPKey, group.Countly.APIKey, nil
+	if group.HasCountly() {
+		return &CreateAppResponse{
+			AppID:  group.Countly.AppID,
+			AppKey: group.Countly.AppKey,
+			APIKey: group.Countly.APIKey,
+		}, nil
 	}
 
 	app, err := c.client.CreateApp(&client.App{
@@ -68,7 +79,7 @@ func (c *CountlyAPI) CreateCountlyApp(slug string) (appKey string, apiKey string
 		Owner: c.globalOwner,
 	})
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	c.log.Debug("created app for %q group: %+v", slug, app)
 
@@ -82,24 +93,30 @@ func (c *CountlyAPI) CreateCountlyApp(slug string) (appKey string, apiKey string
 
 	user, err := c.client.CreateUser(info)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	c.log.Debug("created user for %q group: %+v", slug, user)
 
-	if err := setAPIKey(group.Id, app.Key, user.APIKey); err != nil {
-		return "", "", err
+	res := &CreateAppResponse{
+		AppID:  app.ID,
+		AppKey: app.Key,
+		APIKey: user.APIKey,
+	}
+	if err := persist(group.Id, res); err != nil {
+		return nil, err
 	}
 
-	return app.Key, user.APIKey, nil
+	return res, nil
 }
 
-func setAPIKey(id bson.ObjectId, appKey, apiKey string) error {
+func persist(id bson.ObjectId, res *CreateAppResponse) error {
 	return modelhelper.UpdateGroupPartial(
 		modelhelper.Selector{"_id": id},
 		modelhelper.Selector{
 			"$set": modelhelper.Selector{
-				"countly.apiKey": apiKey,
-				"countly.appKey": appKey,
+				"countly.apiKey": res.APIKey,
+				"countly.appKey": res.AppKey,
+				"countly.appId":  res.AppID,
 			},
 		},
 	)

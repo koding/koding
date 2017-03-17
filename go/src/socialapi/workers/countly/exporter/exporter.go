@@ -5,6 +5,8 @@ import (
 	"socialapi/workers/countly/api"
 	"socialapi/workers/countly/client"
 
+	mgo "gopkg.in/mgo.v2"
+
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
@@ -52,6 +54,9 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 
 	group, err := c.groupCache.BySlug(slug)
 	if err != nil {
+		if err == mgo.ErrNotFound {
+			return nil
+		}
 		return err
 	}
 

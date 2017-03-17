@@ -9,7 +9,7 @@ import (
 )
 
 func newGroupCache() *groupCache {
-	slugCache := cache.NewMemoryWithTTL(time.Minute * 5)
+	slugCache := cache.NewMemoryWithTTL(time.Second * 5)
 	slugCache.StartGC(time.Minute)
 	return &groupCache{
 		slug: slugCache,
@@ -28,9 +28,8 @@ func (s *groupCache) BySlug(slug string) (*mongomodels.Group, error) {
 	}
 
 	if err == nil {
-		ses, ok := data.(*mongomodels.Group)
-		if ok {
-			return ses, nil
+		if group, ok := data.(*mongomodels.Group); ok {
+			return group, nil
 		}
 	}
 

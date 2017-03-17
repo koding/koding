@@ -13,10 +13,9 @@ const (
 
 // AddHandlers injects handlers for countly system
 func AddHandlers(m *mux.Mux, cfg *config.Config) {
-	capi := NewCountlyAPI(cfg)
 	m.AddHandler(
 		handler.Request{
-			Handler:  capi.Init,
+			Handler:  NewCountlyAPI(cfg).Init,
 			Name:     "countly-init",
 			Type:     handler.GetRequest,
 			Endpoint: EndpointInit,
