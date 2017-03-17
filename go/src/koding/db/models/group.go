@@ -43,12 +43,19 @@ type Group struct {
 	// channels
 	DefaultChannels []string `bson:"defaultChannels,omitempty" json:"defaultChannels"`
 	Payment         Payment  `bson:"payment" json:"payment"`
+	Countly         Countly  `bson:"countly" json:"countly"`
 }
 
 // Payment is general container for payment info
 type Payment struct {
 	Subscription Subscription
 	Customer     Customer
+}
+
+// Countly is general container for Countly info
+type Countly struct {
+	APIKey string `bson:"apiKey" json:"apiKey"`
+	APPKey string `bson:"appKey" json:"appKey"`
 }
 
 // Subscription holds customer-plan subscription related info
@@ -71,4 +78,9 @@ type Customer struct {
 // IsSubActive checks if subscription is in valid state for operation
 func (g *Group) IsSubActive() bool {
 	return g.Payment.Subscription.Status.Active()
+}
+
+// HasCountly checks if group has countly data.
+func (g *Group) HasCountly() bool {
+	return g.Countly.APIKey != "" && g.Countly.APPKey != ""
 }

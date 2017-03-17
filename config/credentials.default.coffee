@@ -171,8 +171,15 @@ module.exports = (options) ->
 
   countlyApiPort = '32768'
   countly  =
-    host: "http://#{options.serviceHost}:#{countlyApiPort}"
+    host: "http://#{options.serviceHost}:#{countlyApiPort}/countly"
     apiPort: countlyApiPort
+    email: 'admin@countly.com'
+    username: 'admin'
+    apiKey: 'e6bfab40a224d55a2f5d40c83abc7ed4'
+    appName: 'default'
+    appOwner: '58bf0614a68a980015486d03'
+    appKey:'b41e02136be60a58b9b7459ad89030537a58e099'
+
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
   intercomAppId = ''
   wufoo = ''
