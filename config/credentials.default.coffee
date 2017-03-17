@@ -179,6 +179,8 @@ module.exports = (options) ->
     appName: 'default'
     appOwner: '58bf0614a68a980015486d03'
     appKey:'b41e02136be60a58b9b7459ad89030537a58e099'
+    disabled: no
+    fixApps: no
 
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
   intercomAppId = ''
