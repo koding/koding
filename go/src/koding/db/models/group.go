@@ -61,7 +61,7 @@ type Payment struct {
 type Countly struct {
 	APIKey string `bson:"apiKey" json:"apiKey"`
 	AppKey string `bson:"appKey" json:"appKey"`
-	AppID  string `bson:"appKey" json:"appKey"`
+	AppID  string `bson:"appId" json:"appId"`
 }
 
 // Subscription holds customer-plan subscription related info
