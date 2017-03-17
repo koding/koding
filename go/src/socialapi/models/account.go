@@ -6,11 +6,10 @@ import (
 	"socialapi/request"
 	"strings"
 
-	mgo "gopkg.in/mgo.v2"
-
 	"github.com/hashicorp/go-multierror"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	mgo "gopkg.in/mgo.v2"
 )
 
 type Account struct {
