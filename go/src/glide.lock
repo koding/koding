@@ -984,7 +984,7 @@ imports:
 - name: gopkg.in/fsnotify.v1
   version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
 - name: gopkg.in/igm/sockjs-go.v2
-  version: 05b5e3121f692bea77aeb1160e4e7881017dc093
+  version: c8cd214dfc5fc2aae33c123ae7bdee687436713a
   subpackages:
   - sockjs
 - name: gopkg.in/inf.v0

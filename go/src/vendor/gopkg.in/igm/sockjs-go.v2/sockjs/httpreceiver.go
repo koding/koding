@@ -1,10 +1,8 @@
 package sockjs
 
 import (
-	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"sync"
 )
 
@@ -61,13 +59,8 @@ func newHTTPReceiver(rw http.ResponseWriter, maxResponse uint32, frameWriter fra
 }
 
 func (recv *httpReceiver) sendBulk(messages ...string) {
-	if len(messages) > 0 {
-		recv.sendFrame(fmt.Sprintf("a[%s]",
-			strings.Join(
-				transform(messages, quote),
-				",",
-			),
-		))
+	if f := frame(messages); f != "" {
+		recv.sendFrame(f)
 	}
 }
 

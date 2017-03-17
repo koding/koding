@@ -23,7 +23,7 @@ func TestInfoGet(t *testing.T) {
 		t.Errorf("Websocket field should be set true")
 	}
 	if a.CookieNeeded {
-		t.Errorf("CookieNeede should be set to false")
+		t.Errorf("CookieNeeded should be set to false")
 	}
 }
 

@@ -108,7 +108,7 @@ func TestHandler_WebSocketCommunication(t *testing.T) {
 	}
 	conn, _, _ := websocket.DefaultDialer.Dial(url, map[string][]string{"Origin": []string{server.URL}})
 	conn.WriteJSON([]string{"message 3"})
-	var expected = []string{"o", `a["message 1"]`, `a["message 2"]`, `c[123,"close"]`}
+	var expected = []string{"o", `m"message 1"`, `m"message 2"`, `c[123,"close"]`}
 	for _, exp := range expected {
 		_, msg, err := conn.ReadMessage()
 		if string(msg) != exp || err != nil {

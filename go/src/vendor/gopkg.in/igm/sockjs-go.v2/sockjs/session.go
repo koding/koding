@@ -1,24 +1,24 @@
 package sockjs
 
 import (
-	"encoding/gob"
 	"errors"
-	"io"
+	"net/http"
 	"sync"
 	"time"
 )
 
-type sessionState uint32
+// SessionState defines the current state of the session
+type SessionState uint32
 
 const (
 	// brand new session, need to send "h" to receiver
-	sessionOpening sessionState = iota
+	SessionOpening SessionState = iota
 	// active session
-	sessionActive
+	SessionActive
 	// session being closed, sending "closeFrame" to receivers
-	sessionClosing
+	SessionClosing
 	// closed session, no activity at all, should be removed from handler completely and not reused
-	sessionClosed
+	SessionClosed
 )
 
 var (
@@ -29,22 +29,15 @@ var (
 )
 
 type session struct {
-	sync.Mutex
+	sync.RWMutex
 	id    string
-	state sessionState
-	// protocol dependent receiver (xhr, eventsource, ...)
-	recv receiver
-	// messages to be sent to client
-	sendBuffer []string
-	// messages received from client to be consumed by application
-	// receivedBuffer chan string
-	msgReader  *io.PipeReader
-	msgWriter  *io.PipeWriter
-	msgEncoder *gob.Encoder
-	msgDecoder *gob.Decoder
+	req   *http.Request
+	state SessionState
 
-	// closeFrame to send after session is closed
-	closeFrame string
+	recv       receiver       // protocol dependent receiver (xhr, eventsource, ...)
+	sendBuffer []string       // messages to be sent to client
+	recvBuffer *messageBuffer // messages received from client to be consumed by application
+	closeFrame string         // closeFrame to send after session is closed
 
 	// internal timer used to handle session expiration if no receiver is attached, or heartbeats if recevier is attached
 	sessionTimeoutInterval time.Duration
@@ -69,17 +62,17 @@ type receiver interface {
 }
 
 // Session is a central component that handles receiving and sending frames. It maintains internal state
-func newSession(sessionID string, sessionTimeoutInterval, heartbeatInterval time.Duration) *session {
-	r, w := io.Pipe()
+func newSession(req *http.Request, sessionID string, sessionTimeoutInterval, heartbeatInterval time.Duration) *session {
+
 	s := &session{
-		id:                     sessionID,
-		msgReader:              r,
-		msgWriter:              w,
-		msgEncoder:             gob.NewEncoder(w),
-		msgDecoder:             gob.NewDecoder(r),
+		id:  sessionID,
+		req: req,
 		sessionTimeoutInterval: sessionTimeoutInterval,
 		heartbeatInterval:      heartbeatInterval,
-		closeCh:                make(chan struct{})}
+		recvBuffer:             newMessageBuffer(),
+		closeCh:                make(chan struct{}),
+	}
+
 	s.Lock() // "go test -race" complains if ommited, not sure why as no race can happen here
 	s.timer = time.AfterFunc(sessionTimeoutInterval, s.close)
 	s.Unlock()
@@ -89,7 +82,7 @@ func newSession(sessionID string, sessionTimeoutInterval, heartbeatInterval time
 func (s *session) sendMessage(msg string) error {
 	s.Lock()
 	defer s.Unlock()
-	if s.state > sessionActive {
+	if s.state > SessionActive {
 		return ErrSessionNotOpen
 	}
 	s.sendBuffer = append(s.sendBuffer, msg)
@@ -117,56 +110,52 @@ func (s *session) attachReceiver(recv receiver) error {
 		}
 	}(recv)
 
-	if s.state == sessionClosing {
+	if s.state == SessionClosing {
 		s.recv.sendFrame(s.closeFrame)
 		s.recv.close()
 		return nil
 	}
-	if s.state == sessionOpening {
+	if s.state == SessionOpening {
 		s.recv.sendFrame("o")
-		s.state = sessionActive
+		s.state = SessionActive
 	}
 	s.recv.sendBulk(s.sendBuffer...)
 	s.sendBuffer = nil
 	s.timer.Stop()
-	s.timer = time.AfterFunc(s.heartbeatInterval, s.heartbeat)
+	if s.heartbeatInterval > 0 {
+		s.timer = time.AfterFunc(s.heartbeatInterval, s.heartbeat)
+	}
 	return nil
 }
 
 func (s *session) detachReceiver() {
 	s.Lock()
-	defer s.Unlock()
 	s.timer.Stop()
 	s.timer = time.AfterFunc(s.sessionTimeoutInterval, s.close)
 	s.recv = nil
+	s.Unlock()
 }
 
 func (s *session) heartbeat() {
 	s.Lock()
-	defer s.Unlock()
 	if s.recv != nil { // timer could have fired between Lock and timer.Stop in detachReceiver
 		s.recv.sendFrame("h")
 		s.timer = time.AfterFunc(s.heartbeatInterval, s.heartbeat)
 	}
+	s.Unlock()
 }
 
 func (s *session) accept(messages ...string) error {
-	for _, msg := range messages {
-		if err := s.msgEncoder.Encode(msg); err != nil {
-			return err
-		}
-	}
-	return nil
+	return s.recvBuffer.push(messages...)
 }
 
 // idempotent operation
 func (s *session) closing() {
 	s.Lock()
 	defer s.Unlock()
-	if s.state < sessionClosing {
-		s.msgReader.Close()
-		s.msgWriter.Close()
-		s.state = sessionClosing
+	if s.state < SessionClosing {
+		s.state = SessionClosing
+		s.recvBuffer.close()
 		if s.recv != nil {
 			s.recv.sendFrame(s.closeFrame)
 			s.recv.close()
@@ -179,8 +168,8 @@ func (s *session) close() {
 	s.closing()
 	s.Lock()
 	defer s.Unlock()
-	if s.state < sessionClosed {
-		s.state = sessionClosed
+	if s.state < SessionClosed {
+		s.state = SessionClosed
 		s.timer.Stop()
 		close(s.closeCh)
 	}
@@ -191,7 +180,7 @@ func (s *session) closedNotify() <-chan struct{} { return s.closeCh }
 // Conn interface implementation
 func (s *session) Close(status uint32, reason string) error {
 	s.Lock()
-	if s.state < sessionClosing {
+	if s.state < SessionClosing {
 		s.closeFrame = closeFrame(status, reason)
 		s.Unlock()
 		s.closing()
@@ -202,12 +191,7 @@ func (s *session) Close(status uint32, reason string) error {
 }
 
 func (s *session) Recv() (string, error) {
-	var msg string
-	err := s.msgDecoder.Decode(&msg)
-	if err == io.ErrClosedPipe {
-		err = ErrSessionNotOpen
-	}
-	return msg, err
+	return s.recvBuffer.pop()
 }
 
 func (s *session) Send(msg string) error {
@@ -215,3 +199,13 @@ func (s *session) Send(msg string) error {
 }
 
 func (s *session) ID() string { return s.id }
+
+func (s *session) GetSessionState() SessionState {
+	s.RLock()
+	defer s.RUnlock()
+	return s.state
+}
+
+func (s *session) Request() *http.Request {
+	return s.req
+}

@@ -2,6 +2,8 @@ package sockjs
 
 import (
 	"bufio"
+	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +12,9 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 func BenchmarkSimple(b *testing.B) {
@@ -80,6 +85,95 @@ func BenchmarkMessages(b *testing.B) {
 	}
 	wg.Wait()
 	server.Close()
+}
+
+var (
+	clients = flag.Int("clients", 25, "Number of concurrent clients.")
+	size    = flag.Int("size", 4*1024, "Size of one message.")
+)
+
+func BenchmarkMessageWebsocket(b *testing.B) {
+	flag.Parse()
+
+	msg := strings.Repeat("x", *size)
+	wsFrame := []byte(fmt.Sprintf("[%q]", msg))
+
+	opts := Options{
+		Websocket:       true,
+		SockJSURL:       "//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js",
+		HeartbeatDelay:  time.Hour,
+		DisconnectDelay: time.Hour,
+		ResponseLimit:   uint32(*size),
+	}
+
+	h := NewHandler("/echo", opts, func(session Session) {
+		for i := 0; i < b.N; i++ {
+			if err := session.Send(msg); err != nil {
+				b.Fatalf("Send()=%s", err)
+			}
+
+			msg, err := session.Recv()
+			if err != nil {
+				b.Fatalf("Recv()=%s", err)
+			}
+
+			_ = msg
+		}
+
+		session.Close(1060, "Go Away!")
+	})
+
+	server := httptest.NewServer(h)
+	defer server.Close()
+
+	clients := make([]*websocket.Conn, *clients)
+
+	for i := range clients {
+		url := "ws" + server.URL[4:] + fmt.Sprintf("/echo/server/%d/websocket", i)
+
+		client, _, err := websocket.DefaultDialer.Dial(url, nil)
+		if err != nil {
+			b.Fatalf("%d: Dial()=%s", i, err)
+		}
+		defer client.Close()
+
+		_, p, err := client.ReadMessage()
+		if err != nil || string(p) != "o" {
+			b.Fatalf("%d: failed to start new session: frame=%v, err=%v", p, err)
+		}
+
+		clients[i] = client
+	}
+
+	var wg sync.WaitGroup
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for _, c := range clients {
+		wg.Add(1)
+
+		go func(client *websocket.Conn) {
+			defer wg.Done()
+
+			for {
+				if err := client.WriteMessage(websocket.TextMessage, wsFrame); err != nil {
+					b.Fatalf("WriteMessage()=%s", err)
+				}
+
+				_, p, err := client.ReadMessage()
+				if err != nil {
+					b.Fatalf("ReadMessage()=%s", err)
+				}
+
+				if bytes.Compare(p, []byte(`c[1060,"Go Away!"]`)) == 0 {
+					return
+				}
+			}
+		}(c)
+	}
+
+	wg.Wait()
 }
 
 func BenchmarkHandler_ParseSessionID(b *testing.B) {

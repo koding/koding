@@ -1,23 +1,34 @@
 package sockjs
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/websocket"
 )
 
 // WebSocketReadBufSize is a parameter that is used for WebSocket Upgrader.
 // https://github.com/gorilla/websocket/blob/master/server.go#L230
+//
+// Deprecated: Set WebSocketUpgrader.ReadBufferSize instead.
 var WebSocketReadBufSize = 4096
 
 // WebSocketWriteBufSize is a parameter that is used for WebSocket Upgrader
 // https://github.com/gorilla/websocket/blob/master/server.go#L230
+//
+// Deprecated: Set WebSocketUpgrader.WriteBufferSize instead.
 var WebSocketWriteBufSize = 4096
 
+// WebSocketUpgrader is used to configure websocket handshakes and websocket
+// connection details.
+var WebSocketUpgrader = &websocket.Upgrader{
+	ReadBufferSize:  0,                                                       // reuses HTTP server's buffers
+	WriteBufferSize: 0,                                                       // reuses HTTP server's buffers
+	Error:           func(http.ResponseWriter, *http.Request, int, error) {}, // don't return errors to maintain backwards compatibility
+	CheckOrigin:     func(*http.Request) bool { return true },                // allow all connections by default
+}
+
 func (h *handler) sockjsWebsocket(rw http.ResponseWriter, req *http.Request) {
-	conn, err := websocket.Upgrade(rw, req, nil, WebSocketReadBufSize, WebSocketWriteBufSize)
+	conn, err := WebSocketUpgrader.Upgrade(rw, req, nil)
 	if _, ok := err.(websocket.HandshakeError); ok {
 		http.Error(rw, `Can "Upgrade" only to "WebSocket".`, http.StatusBadRequest)
 		return
@@ -26,7 +37,7 @@ func (h *handler) sockjsWebsocket(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	sessID, _ := h.parseSessionID(req.URL)
-	sess := newSession(sessID, h.options.DisconnectDelay, h.options.HeartbeatDelay)
+	sess := newSession(req, sessID, h.options.DisconnectDelay, h.options.HeartbeatDelay)
 	if h.handlerFunc != nil {
 		go h.handlerFunc(sess)
 	}
@@ -67,8 +78,8 @@ func newWsReceiver(conn *websocket.Conn) *wsReceiver {
 }
 
 func (w *wsReceiver) sendBulk(messages ...string) {
-	if len(messages) > 0 {
-		w.sendFrame(fmt.Sprintf("a[%s]", strings.Join(transform(messages, quote), ",")))
+	if f := frame(messages); f != "" {
+		w.sendFrame(f)
 	}
 }
 
