@@ -190,11 +190,11 @@ stages:
       - type: shell
         name: run test suites
         command: |
-          ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA circle-build-$CIRCLE_BUILD_NUM
+          ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA $CIRCLE_PROJECT_REPONAME-$CIRCLE_PROJECT_USERNAME-$CIRCLE_BUILD_NUM
           ./run exec scripts/ci/run-tests INSTANCE_DATA
           status=$?
+          [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA $CIRCLE_PROJECT_REPONAME-$CIRCLE_PROJECT_USERNAME-$CIRCLE_BUILD_NUM || :
           [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
-          [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA || :
           [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
 
       - type: shell
