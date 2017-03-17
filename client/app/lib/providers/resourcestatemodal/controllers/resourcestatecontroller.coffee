@@ -1,3 +1,4 @@
+debug = (require 'debug') 'resourcestatemodal:controller'
 kd = require 'kd'
 PageContainer = require '../views/pagecontainer'
 StackFlowController = require './stackflowcontroller'
@@ -83,15 +84,23 @@ module.exports = class ResourceStateController extends kd.Controller
 
   onResourceBecameRunning: (reason) ->
 
+    debug 'onResourceBecameRunning', reason
+
     machine = @getData()
-    { computeController, appManager } = kd.singletons
+    { computeController: cc, router } = kd.singletons
 
-    computeController.fetchMachine { uid: machine.uid }, (_machine) =>
-      return appManager.tell 'IDE', 'quit'  unless _machine
+    machine = cc.storage.get 'machines', '_id', machine.getId()
+    debug 'found machine', machine
 
-      initial = reason is 'BuildCompleted'
-      @emit 'IDEBecameReady', _machine, initial
-      @emit 'ClosingRequested'  unless reason
+    unless machine
+      router.handleRoute '/IDE'
+      return
+
+    initial = reason is 'BuildCompleted'
+    @emit 'IDEBecameReady', machine, initial
+    @emit 'ClosingRequested'  unless reason
+
+    return machine
 
 
   destroy: ->
