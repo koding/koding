@@ -1,3 +1,4 @@
+debug = (require 'debug') 'resourcestatemodal:buildstackcontroller'
 kd = require 'kd'
 BuildStackPageView = require '../views/stackflow/buildstackpageview'
 BuildStackErrorPageView = require '../views/stackflow/buildstackerrorpageview'
@@ -57,6 +58,8 @@ module.exports = class BuildStackController extends kd.Controller
 
     { machine } = @getData()
 
+    debug 'getLogFile', machine.status.state, @getData()
+
     path = if machine.status.state is 'Running'
     then constants.BUILD_LOG_FILE_PATH
     else "localfile:/build-log-#{Date.now()}.txt"
@@ -90,13 +93,14 @@ module.exports = class BuildStackController extends kd.Controller
     @timeoutChecker.update percentage
 
 
-  completeBuildProcess: ->
+  completeBuildProcess: (machine) ->
 
     { MAX_BUILD_PROGRESS_VALUE, DEFAULT_BUILD_DURATION, TIMEOUT_DURATION } = constants
     { stack, stackTemplate } = @getData()
 
+    @setData { stack, stackTemplate, machine }  if machine
     @buildStackPage.setData { stack, file : @getLogFile() }
-    @updateProgress  MAX_BUILD_PROGRESS_VALUE, 'Installing software...'
+    @updateProgress MAX_BUILD_PROGRESS_VALUE, 'Installing software...'
 
     duration = stackTemplate.config?.buildDuration ? DEFAULT_BUILD_DURATION
 

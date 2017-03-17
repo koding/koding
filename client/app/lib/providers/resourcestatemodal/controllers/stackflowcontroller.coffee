@@ -98,8 +98,8 @@ module.exports = class StackFlowController extends kd.Controller
 
       if prevState is 'Building' and @state is 'Running'
         { computeController } = kd.singletons
-        computeController.once "revive-#{machineId}", =>
-          @buildStack.completeBuildProcess()
+        computeController.once "revive-#{machineId}", (machine) =>
+          @buildStack.completeBuildProcess machine
           @checkIfResourceRunning 'BuildCompleted'
     else
       @checkIfResourceRunning()
