@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"net/http"
 	"net/url"
 )
 
@@ -19,32 +20,42 @@ type App struct {
 	Owner     string `json:"owner,omitempty"`
 }
 
+// Apps holds map[appName]App. This is how Countly responds.
 type Apps map[string]App
 
+// AppsResponse is the collection of Admin and User apps of the current token.
 type AppsResponse struct {
 	AdminOf Apps `json:"admin_of,omitempty"`
 	UserOf  Apps `json:"user_of,omitempty"`
 }
 
+// Valid checks if app instance is valid for operations.
+func (a *App) Valid() error {
+	if a.Name == "" {
+		return errors.New("app name should be set")
+	}
+	if a.Key != "" {
+		return errors.New("key should not be set")
+	}
+	if a.Country == "" {
+		a.Country = "US"
+	}
+	if a.Category == "" {
+		a.Category = "6"
+	}
+	if a.Timezone == "" {
+		a.Timezone = "Etc/GMT"
+	}
+	if a.Type == "" {
+		a.Type = "web"
+	}
+	return nil
+}
+
 // CreateApp creates an app with admin key.
 func (c *Client) CreateApp(app *App) (*App, error) {
-	if app.Name == "" {
-		return nil, errors.New("app name should be set")
-	}
-	if app.Key != "" {
-		return nil, errors.New("key should not be set")
-	}
-	if app.Country == "" {
-		app.Country = "US"
-	}
-	if app.Category == "" {
-		app.Category = "6"
-	}
-	if app.Timezone == "" {
-		app.Timezone = "Etc/GMT"
-	}
-	if app.Type == "" {
-		app.Type = "web"
+	if err := app.Valid(); err != nil {
+		return nil, err
 	}
 
 	values := url.Values{}
@@ -52,7 +63,7 @@ func (c *Client) CreateApp(app *App) (*App, error) {
 	values = mustAddArgs(values, app)
 
 	v := new(App)
-	err := c.do("GET", "/i/apps/create", values, &v)
+	err := c.do(http.MethodGet, "/i/apps/create", values, &v)
 	if err != nil {
 		return nil, err
 	}
