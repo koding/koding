@@ -425,7 +425,7 @@ class ApplicationManager extends KDObject
     if not appController = kd.singletons.appManager.appControllers[app]
       return null
 
-    [ instance ] = appController.instances.filter (instance) ->
-      instance[key] is value
+    for instance in appController.instances
+      return instance  if instance and instance[key] is value
 
-    return instance
+    return null
