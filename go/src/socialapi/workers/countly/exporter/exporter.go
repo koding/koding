@@ -2,12 +2,16 @@ package exporter
 
 import (
 	"socialapi/config"
+	"socialapi/workers/countly/api"
 	"socialapi/workers/countly/client"
 
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
 )
+
+// whether to fix non existing apps on the fly or not.
+const fixNonExistentApps = false
 
 // CountlyExporter exports events to countly..
 type CountlyExporter struct {
@@ -48,13 +52,18 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 	}
 
 	if !group.HasCountly() {
-		// appKey, apiKey, err := api.NewCountlyAPI(config.MustGet()).CreateCountlyApp(slug)
-		// if err != nil {
-		// 	return err
-		// }
-		// group.Countly.APPKey = appKey
-		// group.Countly.APIKey = apiKey
-		return nil
+		if !fixNonExistentApps {
+			return nil
+		}
+
+		res, err := api.NewCountlyAPI(config.MustGet()).CreateCountlyApp(slug)
+		if err != nil {
+			return err
+		}
+		// we persist in API call but here we have the old group, so update it
+		group.Countly.AppKey = res.AppKey
+		group.Countly.AppID = res.AppID
+		group.Countly.APIKey = res.APIKey
 	}
 
 	events := []client.Event{client.Event{
@@ -62,7 +71,7 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		Count:        1,
 		Segmentation: event.Properties,
 	}}
-	return c.client.WriteEvent(group.Countly.APPKey, group.Id.Hex(), events)
+	return c.client.WriteEvent(group.Countly.AppKey, group.Id.Hex(), events)
 }
 
 // Close closes the exporter.
