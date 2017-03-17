@@ -108,17 +108,14 @@ module.exports = class ComputeStorage extends kd.Object
     debug 'query requested', type, key, value
 
     if items = @storage[type]
-      if typeof key is 'string'
-        res = items
-          .map (item) ->
-            return item  if item and (item.getAt?(key) ? item[key]) is value
-          .filter Boolean
-
-    res ?= []
+      res = items
+        .map (item) ->
+          return item  if item and (item.getAt?(key) ? item[key]) is value
+        .filter Boolean
 
     debug 'query result', res
 
-    return res
+    return res ? []
 
 
   get: (type, key, value) ->
@@ -126,8 +123,11 @@ module.exports = class ComputeStorage extends kd.Object
     if not key and not value
       return @storage[type] ? []
 
-    [ item ] = @query type, key, value
-    return item
+    if items = @storage[type]
+      for item in items when (item and (item.getAt?(key) ? item[key]) is value)
+        return item
+
+    return null
 
 
   push: (type, value) ->
