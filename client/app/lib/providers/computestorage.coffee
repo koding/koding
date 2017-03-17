@@ -170,8 +170,6 @@ module.exports = class ComputeStorage extends kd.Object
     key ?= '_id'
 
     debug 'before pop', @storage
-    kd.utils.defer =>
-      debug 'after pop', @storage
 
     return  unless Storage[type]
     { prePop, postPop } = Storage[type]
@@ -184,6 +182,8 @@ module.exports = class ComputeStorage extends kd.Object
       item._id isnt value
 
     postPop?.call this, value
+
+    debug 'after pop', @storage
 
     return value
 
