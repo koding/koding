@@ -144,11 +144,6 @@ module.exports = class ComputeStorage extends kd.Object
 
     { modifier, prePush, postPush } = Storage[type]
 
-    if value?._id
-      if cached = @update type, value._id, value
-        debug 'pushed data was in cache, updated and passed'
-        return cached
-
     if typeof value is 'string'
       return @fetch type, value
 
@@ -156,7 +151,11 @@ module.exports = class ComputeStorage extends kd.Object
 
     prePush?.call this, value
 
-    @storage[type].push value
+    if value?._id and cached = @update type, value._id, value
+      debug 'pushed data was in cache, updated and passed'
+      value = cached
+    else
+      @storage[type].push value
 
     postPush?.call this, value
 
