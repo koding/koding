@@ -48,3 +48,13 @@ module.exports = class JStackTemplate extends remote.api.JStackTemplate
   @some = ->
     console.warn 'JStackTemplate.some will be deprecated!'
     super
+
+
+  update: (data, callback) ->
+
+    super data, (err, updated) ->
+
+      if not err and updated
+        kd.singletons.computeController.storage.push 'templates', updated
+
+      callback err, updated
