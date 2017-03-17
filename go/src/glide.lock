@@ -304,7 +304,7 @@ imports:
 - name: github.com/gorilla/schema
   version: a30fc2876ba631a279fc9207eb889f33f6c52d9f
 - name: github.com/gorilla/websocket
-  version: a69d25be2fe2923a97c2af6849b2f52426f68fc0
+  version: b258b4fadb573ac412f187b9f31974ea99d32f50
 - name: github.com/gosimple/slug
   version: 8d258463b4459f161f51d6a357edacd3eef9d663
 - name: github.com/grafana/grafana
