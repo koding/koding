@@ -9,6 +9,7 @@ KDController         = kd.Controller
 nick                 = require 'app/util/nick'
 FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
+showNotification     = require 'app/util/showNotification'
 isLoggedIn           = require 'app/util/isLoggedIn'
 actions              = require 'app/flux/environment/actions'
 
@@ -298,6 +299,10 @@ module.exports = class ComputeController extends KDController
 
       kd.utils.defer =>
         @reloadIDE machines[0].obj
+        showNotification
+          content  : 'A new stack generated and ready to build!'
+          type     : 'success'
+          duration : 3000
 
       @checkGroupStacks newStack.stack.getId()
 
@@ -308,9 +313,7 @@ module.exports = class ComputeController extends KDController
       if template
         template.generateStack {}, handleStackCreate
       else if force or groupHasStacks = groupsController.currentGroupHasStack()
-        for stack in @storage.get 'stacks'
-          return  if stack.config?.groupStack
-        if groupHasStacks
+        if groupHasStacks and not @storage.get 'stacks', 'config.groupStack'
           remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
@@ -1072,7 +1075,7 @@ module.exports = class ComputeController extends KDController
 
     if not stack
 
-      if (@storage.get 'stacks').length
+      if not (@storage.get 'stacks').length
         new kd.NotificationView
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'
