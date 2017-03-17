@@ -46,7 +46,7 @@ func New(apiKey string, opts ...Option) *Client {
 	}
 
 	if client.log == nil {
-		logging.NewCustom("countly client", false)
+		client.log = logging.NewCustom("countly client", false)
 	}
 
 	return client
