@@ -1,3 +1,4 @@
+debug                         = (require 'debug') 'ide'
 _                             = require 'lodash'
 kd                            = require 'kd'
 nick                          = require 'app/util/nick'
@@ -99,6 +100,9 @@ module.exports = class IDEAppController extends AppController
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
+    kd.utils.defer =>
+      debug 'IDE initialized', this
+
     appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app is this
@@ -195,16 +199,17 @@ module.exports = class IDEAppController extends AppController
   ###
   bindKlientEvents: (machine) ->
 
-    kite = machine.getBaseKite()
-    kite.ready =>
-      kem = new KlientEventManager {}, machine
+    kem = new KlientEventManager {}, machine
 
-      if @klientOpenFilesSubscriberId?
-        kem.unsubscribe 'openFiles', @klientOpenFilesSubscriberId
+    if @klientOpenFilesSubscriberId?
+      kem.unsubscribe 'openFiles', @klientOpenFilesSubscriberId
 
-      kem
-        .subscribe 'openFiles', @bound 'handleKlientOpenFiles'
-        .then ({ id }) => @klientOpenFilesSubscriberId = id
+    kem
+      .subscribe 'openFiles', @bound 'handleKlientOpenFiles'
+      .then (res) =>
+        { id } = res
+        @klientOpenFilesSubscriberId = id
+        return res
 
 
   # bindWorkspaceDataEvents: ->
@@ -244,7 +249,10 @@ module.exports = class IDEAppController extends AppController
    *  data.
    * @param {Array<string>} eventData.files - A list of file paths
   ###
-  handleKlientOpenFiles: (eventData) -> @openFiles eventData.files
+  handleKlientOpenFiles: (eventData) ->
+
+    @openFiles eventData.files
+    return eventData
 
 
   isTabViewFocused: (tabView) ->
@@ -1232,17 +1240,23 @@ module.exports = class IDEAppController extends AppController
     { computeController } = kd.singletons
     { finderController }  = @finderPane
 
+    debug 'handleIDEBecameReady', { machine, initial }
+
     # when MachineStateModal calls this func, we need to rebind Klient.
     @bindKlientEvents machine
 
     machine.fetchInfo (err, info) =>
+      debug 'machine.fetchInfo res', { err, info }
       kd.warn '[IDE] Failed to fetch info', err  if err
       rootPath = info?.home or '/'
+      debug 'updating machine root as', @mountedMachine.uid, rootPath
       finderController.updateMachineRoot @mountedMachine.uid, rootPath
 
     machine.getBaseKite()?.fetchTerminalSessions?()
 
     @fetchSnapshot (snapshot) =>
+
+      debug 'snapshot fetched', snapshot
 
       unless @fakeViewsDestroyed
         @removeFakeViews()
@@ -1261,7 +1275,10 @@ module.exports = class IDEAppController extends AppController
       if initial
         computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
 
+      debug 'firing ready event IDEReady'
       @emit 'IDEReady'
+
+    return null
 
 
   removeFakeViews: ->
