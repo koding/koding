@@ -13,7 +13,6 @@ const (
 
 // AddHandlers injects handlers for countly system
 func AddHandlers(m *mux.Mux, cfg *config.Config) {
-	return
 	capi := NewCountlyAPI(cfg)
 	m.AddHandler(
 		handler.Request{
