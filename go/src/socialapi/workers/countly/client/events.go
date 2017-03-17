@@ -61,7 +61,7 @@ func (c *Client) WriteEventWithBulk(appKey string, bulk BulkDatas) error {
 		return err
 	}
 
-	resp, err := c.defaultClient.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
