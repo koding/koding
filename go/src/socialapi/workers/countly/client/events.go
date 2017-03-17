@@ -30,7 +30,7 @@ func (c *Client) WriteEvent(appKey, deviceId string, events Events) error {
 	}
 	values.Add("events", string(evs))
 
-	return c.do("GET", "/i", values, nil)
+	return c.do(http.MethodGet, "/i", values, nil)
 }
 
 // BulkData holds the bulk data
@@ -55,7 +55,7 @@ func (c *Client) WriteEventWithBulk(appKey string, bulk BulkDatas) error {
 
 	u := c.createURL("/i/bulk", values)
 
-	req, err := http.NewRequest("POST", u.String(), nil)
+	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
 	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		return err

@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"net/http"
 	"net/url"
 )
 
@@ -29,37 +30,46 @@ type User struct {
 }
 
 // CreateUser creates a user with admin credentials.
-func (c *Client) CreateUser(info *User) (*User, error) {
-	if info.FullName == "" {
-		return nil, errors.New("full_name should be set")
+func (c *Client) CreateUser(u *User) (*User, error) {
+	if err := u.Valid(); err != nil {
+		return nil, err
 	}
-	if info.Username == "" {
-		return nil, errors.New("username should be set")
-	}
-	if info.Password == "" {
-		return nil, errors.New("password should be set")
-	}
-	if info.FullName == "" {
-		return nil, errors.New("full_name should be set")
-	}
-	if info.Email == "" {
-		return nil, errors.New("email should be set")
-	}
-	if len(info.UserOf) == 0 {
-		return nil, errors.New("UserOf should be set")
-	}
+
 	// override GlobalAdmin since we dont allow creating global admin via api.
-	info.GlobalAdmin = false
-	info.Language = "en"
+	u.GlobalAdmin = false
+	u.Language = "en"
 
 	values := url.Values{}
 	values.Add("api_key", c.token)
-	values = mustAddArgs(values, info)
+	values = mustAddArgs(values, u)
 
 	v := new(User)
-	if err := c.do("GET", "/i/users/create", values, &v); err != nil {
+	if err := c.do(http.MethodGet, "/i/users/create", values, &v); err != nil {
 		return nil, err
 	}
 
 	return v, nil
+}
+
+// Valid checks if user instance is valid for operations.
+func (u *User) Valid() error {
+	if u.FullName == "" {
+		return errors.New("full_name should be set")
+	}
+	if u.Username == "" {
+		return errors.New("username should be set")
+	}
+	if u.Password == "" {
+		return errors.New("password should be set")
+	}
+	if u.FullName == "" {
+		return errors.New("full_name should be set")
+	}
+	if u.Email == "" {
+		return errors.New("email should be set")
+	}
+	if len(u.UserOf) == 0 {
+		return errors.New("UserOf should be set")
+	}
+	return nil
 }
