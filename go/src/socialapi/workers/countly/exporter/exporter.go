@@ -10,15 +10,14 @@ import (
 	"github.com/koding/runner"
 )
 
-// whether to fix non existing apps on the fly or not.
-const fixNonExistentApps = false
-
 // CountlyExporter exports events to countly..
 type CountlyExporter struct {
 	client      *client.Client
 	log         logging.Logger
 	globalOwner string
 	groupCache  *groupCache
+	disabled    bool // if countly integration is disabled.
+	fixApps     bool // if we should create non existing apps.
 }
 
 // NewCountlyExporter creates exporter for countly.
@@ -33,13 +32,18 @@ func NewCountlyExporter(cfg *config.Config) *CountlyExporter {
 		log:         logger,
 		globalOwner: cfg.Countly.AppOwner,
 		groupCache:  newGroupCache(),
+		disabled:    cfg.Countly.Disabled,
+		fixApps:     cfg.Countly.FixApps,
 	}
 }
 
 // Send publishes the events to countly.
 func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 	c.log.Debug("got event %+v", event)
-	return nil
+	if c.disabled {
+		return nil
+	}
+
 	slug := getGroupName(event)
 	if slug == "" {
 		c.log.Debug("skipping event, does not have group %+v", event)
@@ -52,7 +56,7 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 	}
 
 	if !group.HasCountly() {
-		if !fixNonExistentApps {
+		if !c.fixApps {
 			return nil
 		}
 
