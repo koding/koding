@@ -650,6 +650,7 @@ module.exports = class ComputeController extends KDController
           stack.machines.forEach (machine) =>
             @invalidateCache machine.getId()
             @emit "revive-#{machine.getId()}", machine
+          return stack
         .catch (err) ->
           kd.warn "Revive failed for #{instanceId}: ", err
 
@@ -660,6 +661,7 @@ module.exports = class ComputeController extends KDController
         .then (machine) =>
           @invalidateCache instanceId
           @emit "revive-#{instanceId}", machine
+          return machine
         .catch (err) ->
           kd.warn "Revive failed for #{instanceId}: ", err
 

@@ -1,3 +1,4 @@
+debug = (require 'debug') 'resourcestatemodal:buildstackpage'
 kd = require 'kd'
 JView = require 'app/jview'
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
@@ -24,6 +25,8 @@ module.exports = class BuildStackPageView extends JView
 
     { file } = @getData()
     { tailOffset } = @getOptions()
+
+    debug 'render', @getData()
 
     isDummyFile = file.path.indexOf('localfile:/') is 0
 
@@ -78,12 +81,9 @@ module.exports = class BuildStackPageView extends JView
     percentage = Math.max percentage ? 0, constants.INITIAL_PROGRESS_VALUE
     @progressBar.updateBar percentage
 
-    message = helpers.formatProgressStatus message
-    @setStatusText message  if message
-
-    return  unless @buildLogs instanceof BuildStackLogsPane and message
-
-    @buildLogs.appendLogLine message
+    if message = helpers.formatProgressStatus message
+      @setStatusText message
+      @buildLogs.appendLogLine message
 
 
   reset: ->

@@ -97,10 +97,12 @@ module.exports = class JMachine extends remote.api.JMachine
 
     if createIfNotExists and doesQueryStringValid @queryString
 
+      debug 'getBaseKite: machine ready getting from kontrol'
       kontrol.getKite { name: 'klient', @queryString, correlationName: @uid }
 
     else
 
+      debug 'getBaseKite: machine not ready'
       {
         init       : -> Promise.reject()
         connect    : kd.noop
@@ -123,14 +125,18 @@ module.exports = class JMachine extends remote.api.JMachine
     if @isRunning()
       kite = @getBaseKite()
       kite.init().then ->
-        kite.klientInfo().then (info) ->
-          kallback info
-        .timeout globals.COMPUTECONTROLLER_TIMEOUT
-        .catch (err) ->
-          kd.warn '[Machine][fetchInfo] Failed to get klient.info', err
-          kallback()
+        kite.klientInfo()
+          .then (info) ->
+            kallback info
+            return info
+          .timeout globals.COMPUTECONTROLLER_TIMEOUT
+          .catch (err) ->
+            kd.warn '[Machine][fetchInfo] Failed to get klient.info', err
+            kallback()
     else
       kallback()
+
+    return null
 
 
   getOwner: ->
