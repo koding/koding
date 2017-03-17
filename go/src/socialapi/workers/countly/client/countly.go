@@ -98,7 +98,9 @@ func (c *Client) do(method, path string, values url.Values, v interface{}) error
 		message := "status: " + resp.Status + " response: " + string(b)
 		return errors.New(message)
 	}
-
+	if v == nil {
+		return nil
+	}
 	return json.Unmarshal(b, &v)
 }
 
