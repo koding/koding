@@ -339,7 +339,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function check_connectivity_countly() {
-      local HOST=$KONFIG_COUNTLY_HOST/countly/
+      local HOST=$KONFIG_COUNTLY_HOST/
       local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' $HOST)
 
       if [[ $? != 0 || $RESPONSE_CODE != 302 ]]; then

@@ -6,7 +6,7 @@ comment:
   layout: header, diff
   require_changes: true
 coverage:
-  precision: 2
+  precision: 1
   range:
   - 70.0
   - 100.0
