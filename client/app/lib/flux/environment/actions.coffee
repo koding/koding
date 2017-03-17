@@ -319,7 +319,7 @@ setActiveLeavingSharedMachineId = (id) ->
   reactor.dispatch actions.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, { id }
 
 
-loadTeamStackTemplates = ->
+loadStackTemplates = ->
 
   { reactor } = kd.singletons
 
@@ -685,7 +685,7 @@ module.exports = {
   setActiveStackId
   dispatchCollaborationInvitationRejected
   dispatchSharedVMInvitationRejected
-  loadTeamStackTemplates
+  loadStackTemplates
   setMachineAlwaysOn
   setMachinePowerStatus
   createStackTemplate
