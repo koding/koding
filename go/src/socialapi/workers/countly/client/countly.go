@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -11,7 +12,9 @@ import (
 	"github.com/koding/logging"
 )
 
-var (
+const (
+	// this is just an arbitary number, one can increase it in case of an issue
+	maxBody          = 4 << 20
 	defaultDomainURL = "http://localhost:32768"
 )
 
@@ -85,7 +88,7 @@ func (c *Client) do(method, path string, values url.Values, v interface{}) error
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(io.LimitReader(resp.Body, maxBody))
 	if err != nil {
 		return err
 	}
