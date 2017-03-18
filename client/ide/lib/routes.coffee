@@ -101,12 +101,14 @@ routeToMachine = (options = {}) ->
   else
     cc.ready ->
 
-      if slug
-        machine = cc.storage.get 'machines', 'slug', slug
-        debug 'machine with slug', { slug, machine }
-      else if uid
+      if uid
         machine = cc.storage.get 'machines', 'uid', uid
         debug 'machine with uid', { uid, machine }
+
+      if not machine and slug
+        for machine in cc.storage.query 'machines', 'slug', slug
+          break  if machine.isMine()
+        debug 'machine with slug', { slug, machine }
 
       unless machine
         [ machine ] = cc.storage.get 'machines'
@@ -183,7 +185,8 @@ routeHandler = (type, info, state, path, ctx) ->
       else if machineLabel is 'test-machine'
         routeToTestWorkspace()
       else
-        routeToMachine { slug: machineLabel }
+        slug = uid = machineLabel
+        routeToMachine { slug, uid }
 
     when 'workspace'
 
