@@ -47,7 +47,6 @@ module.exports = class Sidebar extends React.Component
       requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
       templates                    : EnvironmentFlux.getters.allStackTemplates
-      team                         : TeamFlux.getters.team
       selectedTemplateId           : EnvironmentFlux.getters.selectedTemplateId
     }
 
