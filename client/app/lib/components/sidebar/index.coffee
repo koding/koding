@@ -54,7 +54,7 @@ module.exports = class Sidebar extends React.Component
     }
 
 
-  componentWillMount: ->
+  componentDidMount: ->
 
     TeamFlux.actions.loadTeam()
 
