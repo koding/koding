@@ -1,3 +1,4 @@
+debug              = (require 'debug') 'app:notificationcontroller'
 kookies            = require 'kookies'
 getGroup           = require 'app/util/getGroup'
 whoami             = require 'app/util/whoami'
@@ -123,6 +124,7 @@ module.exports = class NotificationController extends KDObject
           ideInstance.showUserRemovedModal()  if ideInstance and permanent
 
       # FIXMERESET ~ GG
+      debug 'FIXMERESET', 'MachineListUpdated', data
       # computeController.reset yes
 
     @on 'UsernameChanged', ({ username, oldUsername }) ->

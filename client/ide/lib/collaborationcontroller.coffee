@@ -1,3 +1,4 @@
+debug                         = (require 'debug') 'ide:collaborationcontroller'
 _                             = require 'lodash'
 kd                            = require 'kd'
 FSFile                        = require 'app/util/fs/fsfile'
@@ -966,17 +967,29 @@ module.exports = CollaborationController =
 
     channel = @socialChannel
 
+    debug 'bindAutoInviteHandlers', channel
+
     mainController.ready ->
       notificationController.on 'notificationFromOtherAccount', (notification) ->
+
+        debug 'got notification', notification
+
         switch notification.action
           when 'COLLABORATION_REQUEST'
+
+            debug 'COLLABORATION_REQUEST', notification.channelId, channel.id
 
             return if notification.channelId isnt channel.id
 
             { channelId, senderUserId, senderAccountId, sender } = notification
             accountIds = [senderAccountId]
 
+            debug 'calling socialapi', { channelId, accountIds }
+
             socialapi.channel.addParticipants { channelId, accountIds }, (err) ->
+
+              debug 'got response from socialapi', err
+
               return throwError err  if err
 
 
