@@ -313,7 +313,7 @@ module.exports = class ComputeController extends KDController
       if template
         template.generateStack {}, handleStackCreate
       else if force or groupHasStacks = groupsController.currentGroupHasStack()
-        if groupHasStacks and not @storage.get 'stacks', 'config.groupStack'
+        if groupHasStacks and not @storage.get 'stacks', 'config.groupStack', true
           remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
