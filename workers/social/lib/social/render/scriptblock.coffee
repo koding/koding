@@ -129,8 +129,8 @@ module.exports = (options = {}, callback) ->
 
     (fin) ->
       { delegate : account } = client.connection
-      query = { accountId : account._id }
-      bongoModels.JCombinedAppStorage.one query, (err, storage) ->
+      storageInitialData = { appId: 'Koding', version: '1.0' }
+      account.fetchOrCreateAppStorage storageInitialData, (err, storage) ->
         console.log err  if err
         combinedStorage = storage ? {}
 
