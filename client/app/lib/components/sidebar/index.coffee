@@ -48,7 +48,7 @@ module.exports = class Sidebar extends React.Component
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
       requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
-      allStackTemplates            : EnvironmentFlux.getters.allStackTemplates
+      templates                    : EnvironmentFlux.getters.allStackTemplates
       team                         : TeamFlux.getters.team
       selectedTemplateId           : EnvironmentFlux.getters.selectedTemplateId
     }
@@ -190,7 +190,7 @@ module.exports = class Sidebar extends React.Component
 
   renderStack: (stack) ->
 
-    template = @state.allStackTemplates.get stack.get 'baseStackId'
+    template = @state.templates.get stack.get 'baseStackId'
 
     <SidebarStackSection
       key={stack.get '_id'}
