@@ -202,6 +202,7 @@ module.exports = {
   selectedTemplateId : SelectedTemplateIdStore
   teamStackTemplates
   privateStackTemplates
+  allMachines: MachinesStore
   allStackTemplates
   inUseTeamStackTemplates
   inUsePrivateStackTemplates
