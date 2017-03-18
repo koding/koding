@@ -1,3 +1,4 @@
+debug = (require 'debug') 'environment:actions'
 _ = require 'lodash'
 kd = require 'kd'
 async = require 'async'
@@ -167,6 +168,7 @@ rejectInvitation = (machine) ->
 
       kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
       # FIXMERESET ~ GG
+      debug 'FIXMERESET', 'rejectInvitation', machine
       # kd.singletons.computeController.reset callback
 
   ])

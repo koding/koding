@@ -1,3 +1,5 @@
+debug          = (require 'debug') 'app:routes'
+
 kd             = require 'kd'
 KDRouter       = kd.Router
 
@@ -68,7 +70,10 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       new ShortcutsModal
 
 
-requestCollaboration = ({ nickname, channelId }) ->
+requestCollaboration = (options = {}) ->
+
+  { nickname, channelId } = options
+  debug 'requestCollaboration', options
 
   kd.singletons.mainController.ready ->
 
@@ -78,6 +83,7 @@ requestCollaboration = ({ nickname, channelId }) ->
     kd.utils.defer -> kd.singletons.router.handleRoute '/IDE'
 
     me = whoami()
+    debug 'whoami?', me
     me.pushNotification
       receiver: nickname
       channelId: channelId
@@ -85,6 +91,6 @@ requestCollaboration = ({ nickname, channelId }) ->
       senderUserId: me._id
       senderAccountId: me.socialApiId
     , (err) ->
-
+      debug 'pushNotification result', err
       showError err
       kd.singletons.router.back()

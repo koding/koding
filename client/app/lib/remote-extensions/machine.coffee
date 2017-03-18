@@ -170,5 +170,5 @@ module.exports = class JMachine extends remote.api.JMachine
   getOldOwner : -> @getAt 'meta.oldOwner'
 
   getChannelID: ->
-    debug 'getChannelID requested'
+    debug 'getChannelID requested', this
     return null
