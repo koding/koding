@@ -37,7 +37,9 @@ module.exports = class MachinesStore extends KodingFluxStore
           type = 'collaboration'
 
         _machine = toImmutable machine
-        _machine.set 'type', type
+        _machine = _machine
+          .set 'type', type
+          .set 'owner', machine.getOwner()
 
         if m = machines.get machine._id
           if sharedUsers = m.get 'sharedUsers'

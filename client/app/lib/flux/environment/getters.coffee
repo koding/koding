@@ -1,6 +1,5 @@
 immutable = require 'immutable'
 machineRuleChecker = require 'app/util/machinerulechecker'
-getMachineOwner    = require 'app/util/getMachineOwner'
 getGroup           = require 'app/util/getGroup'
 
 withEmptyMap       = (storeData) -> storeData or immutable.Map()
@@ -47,7 +46,6 @@ sharedMachines = [
         machine = machines.get(id)
         return  if 'shared' isnt machine.get 'type'
         machine
-          .set 'owner', getMachineOwner machine
           .set 'isApproved', machineRuleChecker machine, ['approved']
           .set 'isPermanent', machineRuleChecker machine, ['permanent']
       .filter Boolean
@@ -63,7 +61,6 @@ collaborationMachines = [
         machine = machines.get(id)
         return  if 'collaboration' isnt machine.get 'type'
         machine
-          .set 'owner', getMachineOwner machine
           .set 'isApproved', machineRuleChecker machine, ['approved']
           .set 'isPermanent', machineRuleChecker machine, ['permanent']
       .filter Boolean
@@ -122,7 +119,6 @@ stacks = [
 
                 machine
                   .set 'type', type
-                  .set 'owner', getMachineOwner machine
                   .set 'isApproved', yes
 ]
 
