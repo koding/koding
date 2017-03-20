@@ -370,7 +370,9 @@ body {
     overflow: auto;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a{
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a,
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > ul > li > a
+  {
     color: #727272;
     font-size: 18px;
     font-weight: 600;
@@ -381,20 +383,24 @@ body {
     border-radius: 0;
   }
 
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > a {
+    display: none;
+  }
+
   .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub{
     flex: 1 50%;
     padding-top: 24px;
     overflow: auto;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub ul{
-    display: none;
-  }
-
   .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub ul.active{
     display: block;
   }
 
+  .navMenuSectionsSub >ul> li> a {
+      display: none;
+  }
+  
   .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub a{  
     border-radius: 0;
     margin: 0;
@@ -409,6 +415,14 @@ body {
     color: #515151;
     font-weight: 600;
   } 
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a.hovered {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .navMenuSectionsSub .terraform-docs> li > ul > li> a {
+    display: none;
+  }
 
   .burgerToggle .Homepage-HeaderWrapper .searchBox .docs__search,
   .burgerToggle .Homepage-HeaderWrapper .searchBox .docs__search input {
@@ -435,8 +449,19 @@ body {
     padding-left: 21px;
     padding-right: 10px;
   }
-  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a {
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a,
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > ul > li > a {
     padding-left: 39px;
+  }
+}
+
+@media (min-width: 661px) and (max-width: 900px) {
+  .navMenuSections ul ul, .navMenuSections ul.terraform-docs ul ul {
+    display: none !important;
+  }
+
+  .navMenuSections ul.terraform-docs ul {
+    display: block !important;
   }
 }
 
@@ -452,7 +477,8 @@ body {
     flex: 1 100%;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a {
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a,
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > ul > li > a {
     padding: 10px 0 12px 25px;
   }
 
@@ -517,6 +543,7 @@ body {
 }
 
 .Homepage-Header.light a:hover,
+.Homepage-Header.light a.hovered,
 .StickyHeader .Homepage-Header a:hover {
   color: white;
   background-color: rgba(0, 0, 0, 0.05);

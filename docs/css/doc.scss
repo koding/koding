@@ -15,12 +15,11 @@ main {
   margin: 20px auto 80px;
   background-color: #FFFFFF;
   border-radius: 3px;
-  overflow: hidden;
 
   > aside {
     width: 298px;
     background-color: #FAFBFD;
-    padding: 32px 30px;
+    padding: 32px 0 32px 30px;
     border-right: 1px solid #EAEDEF;
     box-sizing: border-box;
 
@@ -54,19 +53,17 @@ main {
       }
     }
 
-    li.title {
-      > a {
-        font-weight: bold;
-      }
-    }
-
     li.separator > ul {
       padding: 12px 0;
     }
 
-    .docs__search input {
-      width: 100%;
-      margin-bottom: 15px;
+    .docs__search {
+      margin-right: 32px;
+
+      input {
+        width: 100%;
+        margin-bottom: 13px;
+      }
     }
 
     .docs__index__results {
@@ -85,21 +82,38 @@ main {
   }
 
   ul {
-    padding: 12px 0 0 0;
+    padding: 7px 0 0 0;
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &.terraform-docs {
+      padding-top: 0;
+    }
   }
 
   li ul {
     padding: 0;
     border-left: 1px solid #E8E8E8;
-    margin-top: 12px;
+    margin-top: 8px;
+    margin-bottom: 14px;
 
     li {
-      padding: 2px 0 2px 20px;
+
+      > a {
+        padding: 4px 32px 4px 20px;
+        width: 100%;
+        display: block;
+        box-sizing: border-box;
+        white-space: normal;
+        line-height: 14px;
+      }
 
       &.active {
-        background-color: #F4F4F4;
 
-        a {
+        > a {
+          background-color: #F4F4F4;
           color: #515151;
         }
       }
@@ -132,6 +146,28 @@ main {
           background-color: #F7F7F7;
           border-radius: 3px 3px 0 0;
         }
+      }
+    }
+  }
+}
+
+main>aside ul.terraform-docs > li {
+  > a {
+    display: none;
+  }
+
+  > ul {
+    border-left: 0;
+    margin-top: 0;
+
+    > li {
+      padding: 0;
+      padding-top: 7px;
+
+      > a {
+        font-weight: 600;
+        font-size: 16px;
+        color: #727272;
       }
     }
   }

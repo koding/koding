@@ -119,11 +119,16 @@
   border-radius: 4px;
 }
 
-.docs__index__body__content a {
+.docs__index__body__content ul ul a,
+.docs__index__body__content ul.terraform-docs ul ul a,
+.docs__index__body__content ul.terraform-docs li.load-more a {
   color: #67A2EE;
   font-size: 15px;
   text-decoration: none;
-  line-height: 32px;
+  line-height: 20px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-weight: 400;
 }
 
 .docs__index__body__header {
@@ -148,26 +153,85 @@
   width: 400px;
 }
 
-.docs__index__body__content a.docs__section__topic {
+.docs__index__body__content ul.terraform-docs {
+  width: 50%;
+  max-height: 808px;
+  overflow: hidden;
+  position: relative;
+}
+
+.docs__index__body__content ul.terraform-docs li.load-more {
+  position: absolute;
+  bottom: 9px;
+  left: 50%;
+  background-color: white;
+  z-index: 10;
+  padding-right: 20px;
+}
+.docs__index__body__content ul.terraform-docs li.load-more a {
+  display: block;
+  font-weight: 600;
+}
+.docs__index__body__content ul.terraform-docs > li {
+  max-height: inherit;
+}
+.docs__index__body__content ul.terraform-docs > li > ul {
+  display: flex;
+  flex-flow: column wrap;
+  max-height: inherit;
+  align-items: center;
+  justify-content: center;
+  align-content: flex-start;
+}
+.docs__index__body__content ul.terraform-docs > li > ul > li {
+  width: 50%;
+  max-height: inherit;
+}
+.docs__index__body__content a,
+.docs__index__body__content ul.terraform-docs ul a {
   color: #727272;
   font-weight: 700;
   font-size: 17px;
   padding-top: 38px;
   display: block;
+  text-decoration: none;
+  padding-bottom: 8px;
+  line-height: 17px;
+}
+
+.docs__index__body__content ul.terraform-docs > li > a,
+.docs__index__body__content ul.terraform-docs ul ul ul {
+  display: none;
 }
 
 .docs__index__body__sections {
   display: flex;
   flex-flow: column wrap;
-  max-height: 800px;
+  max-height: 1510px;
+  align-items: center;
+  justify-content: center;
+  align-content: flex-start;
 }
 
-.docs__index__body__sections > ul{
+.docs__index__body__sections > div {
+  display: flex;
+  flex-flow: column wrap;
+  max-height: 800px;
   width: 50%;
+}
+
+.docs__index__body__sections > div > ul {
+  width: 50%;
+  padding-right: 20px;
+  box-sizing: border-box;
 }
 
 .docs__index__results {
   right: 0;
+}
+
+.docs__search input.expanded {
+  width: 775px;
 }
 
 .clearfix:after {
@@ -246,6 +310,10 @@
     width: 100%;
   }
 
+  .docs__index__body__sections > div > ul {
+    width: 50%;
+  }
+
   .docs__index__body__header .docs__search {
     float: none;
   }
@@ -253,10 +321,6 @@
   .docs__index__body__header .docs__search input,
   .docs__index__body__header .docs__search input.expanded {
     width: 100%;
-  }
-
-  .docs__search input.expanded {
-    width: 775px;
   }
 
   .docs__index__items {
@@ -305,14 +369,57 @@
 }
 
 @media screen and (max-width: 1100px) {
+  .docs__index__body__sections div ul {
+    width: 100%;
+  }
+
+  .docs__index__body__content ul.terraform-docs {
+    width: 100%;
+    max-height: 1212px;
+  }
+
+  .docs__index__body__sections > div {
+    max-height: inherit;
+  }
+
   .docs__search input.expanded {
     width: 600px;
+  }
+
+  .docs__index__body__content ul.terraform-docs > li > ul {
+    justify-content: initial;
+    align-items: flex-start;
+    flex-flow: column;
+  }
+
+  .docs__index__body__content ul.terraform-docs li.load-more {
+    left: 0;
+    bottom: 0;
+  }
+
+  .docs__index__body__sections {
+    max-height: 2150px;
   }
 }
 
 @media screen and (max-width: 900px) {
   .docs__search input.expanded {
     width: 500px;
+  }
+}
+
+@media screen and (max-width: 750px) {
+  .docs__index__body__sections {
+    max-height: none;
+  }
+  .docs__index__body__sections > div {
+    width: 100%;
+  }
+  .docs__index__body__content ul.terraform-docs {
+    max-height: none;
+  }
+  .docs__index__body__content ul.terraform-docs li.load-more {
+    display: none;
   }
 }
 

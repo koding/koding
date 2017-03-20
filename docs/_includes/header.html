@@ -31,7 +31,7 @@
   {% if include.has_docs_nav %}
     <div class="searchBox">
 
-      {% include docs-search.html %}
+      {% include docs-search.html placeholder="Search any keyword or topic&hellip;" %}
 
     </div>
     <div class="navMenu">
@@ -49,17 +49,23 @@
           </li>
         </ul>
         {% endfor %}
-        <ul id="terraform-docs"></ul>
+        <ul class="terraform-docs"></ul>
       </div>
       <div class="navMenuSectionsSub">
         {% for section in site.data.nav-docs %}
-          <ul id="navmenu-{{section.id}}">
-            {% for item in section.items %}
-            {% assign url = "/docs/" | append: item.id %}
-            <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
-            {% endfor %}
-          </ul>
+        <ul>
+          <li>
+            <a href='#' class="docs__section__topic" id="{{section.id}}">{{ section.title}}</a>
+            <ul>
+              {% for item in section.items %}
+              {% assign url = "/docs/" | append: item.id %}
+              <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
+              {% endfor %}
+            </ul>
+          </li>
+        </ul>
         {% endfor %}
+        <ul class="terraform-docs"></ul>
       </div>
     </div>
   {% endif %}

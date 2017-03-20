@@ -13,10 +13,11 @@ cssClass='light' %}
 
 <style type="text/css">{% include css/docs-home.css %}</style>
 <script type="text/javascript">
-  window.TERRAFORM_DOCS = [{% for p in site.pages %}{% if p.url contains "docs/terraform/" %}{ url: "{{ p.url }}", title: "{{ p.page_title }}", sidebar_current: "{{ p.sidebar_current }}"},{% endif %}{% endfor %}''];
+  window.TERRAFORM_DOCS = [{% for p in site.pages %}{% if p.url contains "docs/terraform/" %}{ url: "{{ p.url }}", title: "{{ p.page_title }}", description: "{{ p.description | strip_newlines }}", sidebar_current: "{{ p.sidebar_current }}"},{% endif %}{% endfor %}''];
   TERRAFORM_DOCS.pop();
   window.PAGE_URL = "{{ page.url }}";
 </script>
+<script type="text/javascript" src="{{ site.url }}/js/lodash.set.js"></script>
 
 {% include docs-svgs.html %}
 
@@ -39,24 +40,30 @@ cssClass='light' %}
       <div class="docs__index__body__header clearfix">
         <div class="docs__index__body__title">All Topics</div>
 
-        {% include docs-search.html %}
+        {% include docs-search.html placeholder="Search any keyword or topic&hellip;" %}
 
       </div>
       <div class="docs__index__body__sections">
-        {% for section in site.data.nav-docs %}
-        <ul>
-          <li>
-            <a href='#' class="docs__section__topic">{{ section.title}}</a>
-            <ul>
-              {% for item in section.items %}
-              {% assign url = "/docs/" | append: item.id %}
-              <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
-              {% endfor %}
-            </ul>
+        <div>
+          {% for section in site.data.nav-docs %}
+          <ul>
+            <li>
+              <a href='#' class="docs__section__topic">{{ section.title}}</a>
+              <ul>
+                {% for item in section.items %}
+                {% assign url = "/docs/" | append: item.id %}
+                <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
+                {% endfor %}
+              </ul>
+            </li>
+          </ul>
+          {% endfor %}
+        </div>
+        <ul class="terraform-docs">
+          <li class="load-more">
+            <a href="#">Load more...</a>
           </li>
         </ul>
-        {% endfor %}
-        <ul id="terraform-docs"></ul>
       </div>
     </div>
   </div>
@@ -65,46 +72,24 @@ cssClass='light' %}
 
 </section>
 <script type="text/javascript" src="{{ site.url }}/js/nav-terraform.js"></script>
+<script type="text/javascript" src="{{ site.url }}/js/docs-search.js"></script>
 <script>
 
   var navDocs = {{ site.data.nav-docs | jsonify }}
-  var results = null;
-
-  var docsSearchEl = $('.docs__search');
-  docsSearchEl.find('input')
-    .focus(function() {
-      $(this).addClass('expanded');
-    }).blur(function() {
-      $(this).removeClass('expanded');
-      if (results) results.remove();
-    }).keyup(function() {
-    var value = $.trim($(this).val());
-
-    if (results) results.remove();
-    docsSearchEl.append('<div class="docs__index__results"></div>');
-
-
-    results = docsSearchEl.find('.docs__index__results');
-
-    navDocs.forEach(function(doc) {
-
-      var items = doc.items.filter(function(obj){
-          return obj.title.toLowerCase().indexOf(value) != -1;
+  var titles = ["Configuration", "Provisioners", "Providers"];
+  titles.forEach(function(title) {
+    navDocs.push({
+      title: title, 
+      items: TERRAFORM_DOCS.filter(function(obj) {
+        return obj.url.indexOf(title.toLowerCase()) != -1;
       })
-
-      if (items.length) {
-
-        results.append('<div class="docs__index__results__header">'+doc.title+'</div>');
-
-        items.map(function(obj) {
-            return "<div class='docs__index__results__row'><a href='/docs/" + obj.id + "' class='results__row__title'>" + obj.title +"</a><div class='results__row__description'>The detail copy will be here.</div></div>";
-        }).forEach(function(obj) {
-          results.append(obj);
-        })
-      }
-      //$('.docs_index__search__results').append()
     });
   })
+
+  $('.load-more').click(function() {
+    $('.terraform-docs').css('max-height', 'inherit');
+    $('.load-more').hide();
+  });
 
 </script>
 

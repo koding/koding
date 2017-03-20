@@ -11,7 +11,7 @@
     font-size: 15px;
     color: #989898;
     box-sizing: border-box;
-    transition: width 1s;
+    transition: width 0.4s ease-out;
   }
 
   .docs__search a.icon-magnify-link {
@@ -35,7 +35,9 @@
     top: 39px;
     border: 1px solid #ccc;
     background-color: #fff;
-    width: 773px;
+    width: 100%;
+    z-index: 100;
+    box-sizing: border-box;
   }
 
   .docs__index__results__header {
@@ -44,28 +46,46 @@
     font-size: 14px;
     text-transform: uppercase;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    padding: 14px 10px 10px;
+    padding: 14px 20px 10px;
   }
 
   .docs__index__results__row {
-    padding: 14px 10px 10px;
+    padding: 14px 20px;
     background-color: #ffffff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    display: block;
+    text-decoration: none;
+    word-break: break-word;
+  }
+
+  .Homepage-Header a.docs__index__results__row {
+    margin: 0;
+    justify-content: flex-start;
+    padding-left: 20px;
+  }
+
+  .docs__index__results__row:hover,
+  .docs__index__results__row.hovered {
+    background-color: #FAFAFA;
   }
 
   .docs__index__results__row .results__row__title {
     color: #515151;
     font-size: 16px;
-    display: block;
+    padding: 0;
+    margin: 0;
+    font-weight: 500;
+    text-transform: none;
   }
 
   .docs__index__results__row .results__row__description {
     color: #A8A8A8;
     font-size: 12px;
+    padding-top: 2px;
   }
 
 </style>
 <div class="docs__search">
-  <input placeholder="Search any keyword or topic..." />
+  <input placeholder="{{include.placeholder}}" />
   <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
 </div>

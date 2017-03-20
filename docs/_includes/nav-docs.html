@@ -1,12 +1,24 @@
 <script type="text/javascript">
-  window.TERRAFORM_DOCS = [{% for p in site.pages %}{% if p.url contains "docs/terraform/" %}{ url: "{{ p.url }}", title: "{{ p.page_title }}", sidebar_current: "{{ p.sidebar_current }}"},{% endif %}{% endfor %}''];
+
+  window.TERRAFORM_DOCS = [
+    {% for p in site.pages %}
+      {% if p.url contains "docs/terraform/" %}
+        {
+          url:   "{{ p.url }}",
+          title: "{{ p.page_title }}",
+          description: "{{ p.description | strip_newlines }}",
+          sidebar_current: "{{ p.sidebar_current }}"
+        },
+      {% endif %}
+    {% endfor %}''
+  ];
   TERRAFORM_DOCS.pop();
   window.PAGE_URL = "{{ page.url }}";
 </script>
 <script type="text/javascript" src="{{ site.url }}/js/lodash.set.js"></script>
 <aside>
 
-  {% include docs-search.html %}
+  {% include docs-search.html placeholder="Search&hellip;" %}
 
   <nav>
     {% for section in site.data.nav-docs %}
@@ -22,52 +34,57 @@
       </li>
     </ul>
     {% endfor %}
-    <ul id="terraform-docs"></ul>
+    <ul class="terraform-docs">
+    </ul>
   </nav>
 </aside>
 
 <script type="text/javascript" src="{{ site.url }}/js/nav-terraform.js"></script>
+<script type="text/javascript" src="{{ site.url }}/js/docs-search.js"></script>
 <script>
 
   var navDocs = {{ site.data.nav-docs | jsonify }}
-  var results = null;
-
-  var docsSearchEl = $('.docs__search');
-  docsSearchEl.find('input')
-    .blur(function() {
-      if (results) results.remove();
-    }).keyup(function() {
-    var value = $.trim($(this).val());
-
-    if (results) results.remove();
-    docsSearchEl.append('<div class="docs__index__results"></div>');
-
-
-    results = docsSearchEl.find('.docs__index__results');
-
-    navDocs.forEach(function(doc) {
-
-      var items = doc.items.filter(function(obj){
-          return obj.title.toLowerCase().indexOf(value) != -1;
+  var titles = ["Configuration", "Provisioners", "Providers"];
+  titles.forEach(function(title) {
+    navDocs.push({
+      title: title, 
+      items: TERRAFORM_DOCS.filter(function(obj) {
+        return obj.url.indexOf(title.toLowerCase()) != -1;
       })
-
-      if (items.length) {
-
-        results.append('<div class="docs__index__results__header">'+doc.title+'</div>');
-
-        items.map(function(obj) {
-            return "<div class='docs__index__results__row'><div class='results__row__title'>" + obj.title +"</div><div class='results__row__description'>The detail copy will be here.</div></div>";
-        }).forEach(function(obj) {
-          results.append(obj);
-        })
-      }
-      //$('.docs_index__search__results').append()
     });
-  })
+  });
 
-  $('.navMenuSections').on('mouseover', 'a', function() {
-    $('.navMenuSectionsSub ul').removeClass('active');
-    $('.navMenuSectionsSub').find('#navmenu-' + $(this).attr('id')).addClass('active');
+  var navDocsEl    = $('.navMenuSections'),
+      navDocsSubEl = $('.navMenuSectionsSub');
+
+  var resetNavDocsSub = function() {
+    navDocsSubEl.find('> ul').hide();
+    navDocsSubEl.find('.terraform-docs').show();
+    navDocsSubEl.find('.terraform-docs > li > ul > li').hide();
+  }
+
+  resetNavDocsSub();
+
+  navDocsEl.on('mouseover', 'a', function() {
+
+    // Reset Sub List
+    resetNavDocsSub();
+    navDocsEl.find("a").removeClass('hovered');
+
+    var matchingElement = navDocsSubEl.find("a:contains('" + $(this).html() + "')");
+
+    if (matchingElement.closest('.terraform-docs').length) {
+      matchingElement.parent().show();
+    } else {
+      matchingElement.closest('ul').show();
+    }
+  });
+
+  navDocsSubEl.on('mouseover', 'a', function() {
+
+    var navDocsSubLabel = $(this).closest('ul').siblings('a');
+    var matchingElement = navDocsSubEl.find("a:contains('"+ navDocsSubLabel.html() + "')");
+    matchingElement.addClass('hovered');
   });
 
 </script>
