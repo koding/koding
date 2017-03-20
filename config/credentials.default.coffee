@@ -178,8 +178,9 @@ module.exports = (options) ->
     apiKey: 'e6bfab40a224d55a2f5d40c83abc7ed4'
     appName: 'default'
     appOwner: '58bf0614a68a980015486d03'
-    appKey:'b41e02136be60a58b9b7459ad89030537a58e099'
-    disabled: no
+    appId: '58bf06bd6cba850047ac9f19'
+    appKey: 'b41e02136be60a58b9b7459ad89030537a58e099'
+    disabled: yes
     fixApps: no
 
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
