@@ -41,16 +41,39 @@ module.exports = class SidebarMachinesListItem extends React.Component
       status: @machine ['status', 'state']
       showLeaveSharedMachineWidget : no
 
-    @listenMachineEvents()
+
+  onComputeEvent: ({ percentage = 0, status }) ->
+
+    @setState { percentage, status }
 
 
-  listenMachineEvents: ->
+  componentDidMount: ->
 
-    if stackId = @props.stack?.get('_id')
-      { computeController } = kd.singletons
-      computeController.on "apply-#{stackId}", (event) =>
-        { percentage, status } = event
-        @setState { percentage, status }
+    { computeController } = kd.singletons
+
+    stackId = @props.stack.get '_id'
+    machineId = @props.machine.get '_id'
+
+    computeController.on "apply-#{stackId}", @bound 'onComputeEvent'
+    computeController.on "public-#{machineId}", @bound 'onComputeEvent'
+
+    kd.utils.defer =>
+      actions.setMachineListItem @machine('_id'), this
+
+
+  componentWillUnmount: ->
+
+    { computeController } = kd.singletons
+
+    stackId = @props.stack.get '_id'
+    machineId = @props.machine.get '_id'
+
+    computeController.off "apply-#{stackId}", @bound 'onComputeEvent'
+    computeController.off "public-#{machineId}", @bound 'onComputeEvent'
+
+
+    kd.utils.defer =>
+      actions.unsetMachineListItem @machine('_id'), this
 
 
   componentWillReceiveProps: ->
@@ -59,18 +82,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     coordinates = getBoundingClientReact @refs.sidebarMachinesListItem
     @setState { coordinates: coordinates }
-
-
-  componentDidMount: ->
-
-    kd.utils.defer =>
-      actions.setMachineListItem @machine('_id'), this
-
-
-  componentWillUnmount: ->
-
-    kd.utils.defer =>
-      actions.unsetMachineListItem @machine('_id'), this
 
 
   machine: (key) ->
