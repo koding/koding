@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	// this is just an arbitary number, one can increase it in case of an issue
+	// this is just an arbitrary number, one can increase it in case of an issue
 	maxBody          = 4 << 20
 	defaultDomainURL = "http://localhost:32768"
 )
