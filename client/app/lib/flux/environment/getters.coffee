@@ -7,7 +7,6 @@ withEmptyMap       = (storeData) -> storeData or immutable.Map()
 StacksStore                       = ['StacksStore']
 MachinesStore                     = ['MachinesStore']
 OwnMachinesStore                  = ['OwnMachinesStore']
-SharedMachinesStore               = ['SharedMachinesStore']
 CollaborationMachinesStore        = ['CollaborationMachinesStore']
 ActiveMachineStore                = ['ActiveMachineStore']
 ConnectedManagedMachineStore      = ['ConnectedManagedMachineStore']
@@ -37,19 +36,16 @@ ownMachines = [
 
 ]
 
+
 sharedMachines = [
-  SharedMachinesStore
   MachinesStore
-  (shared, machines) ->
-    shared
-      .map (id) ->
-        machine = machines.get(id)
-        return  if 'shared' isnt machine.get 'type'
+  (machines) ->
+    return machines
+      .filter (machine) -> machine.get('type') is 'shared'
+      .map (machine) ->
         machine
           .set 'isApproved', machineRuleChecker machine, ['approved']
           .set 'isPermanent', machineRuleChecker machine, ['permanent']
-      .filter Boolean
-
 ]
 
 collaborationMachines = [

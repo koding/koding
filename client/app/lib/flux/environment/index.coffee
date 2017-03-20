@@ -6,7 +6,6 @@ module.exports =
     require './stores/stacksstore'
     require './stores/machinesstore'
     require './stores/ownmachinesstore'
-    require './stores/sharedmachinesstore'
     require './stores/sharedmachinelistitemsstore'
     require './stores/collaborationmachinesstore'
     require './stores/connectedmanagedmachinestore'
