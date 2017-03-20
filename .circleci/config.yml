@@ -4,6 +4,8 @@ jobs:
 
   build:
 
+    resource_class: large
+
     docker:
       - image: koding/circle@sha256:dec761b93b060282748019f40012988f4f4677f40827fd763579358f17e3c8ea
 
