@@ -20,6 +20,21 @@ canCreateStacks = require 'app/util/canCreateStacks'
 _eventsCache = { machine: {}, stack: no }
 
 
+_bindMachineEvents = (machine) ->
+
+  return  unless id = machine?._id
+
+  { computeController, reactor } = kd.singletons
+
+  if handler = _eventsCache.machine[id]
+    return computeController.off "revive-#{id}", handler
+
+  _eventsCache.machine[id] = handler = (newMachine) ->
+    reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
+
+  computeController.on "revive-#{id}", handler
+
+
 _bindStackEvents = ->
 
   return  if _eventsCache.stack is yes
@@ -87,6 +102,9 @@ loadMachines = do (isPayloadUsed = no) -> ->
       machines = computeController.storage.get 'machines'
 
       reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, machines
+
+      machines.forEach _bindMachineEvents
+
       resolve machines
 
 
