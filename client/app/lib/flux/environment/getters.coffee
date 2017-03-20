@@ -6,7 +6,6 @@ withEmptyMap       = (storeData) -> storeData or immutable.Map()
 
 StacksStore                       = ['StacksStore']
 MachinesStore                     = ['MachinesStore']
-OwnMachinesStore                  = ['OwnMachinesStore']
 CollaborationMachinesStore        = ['CollaborationMachinesStore']
 ActiveMachineStore                = ['ActiveMachineStore']
 ConnectedManagedMachineStore      = ['ConnectedManagedMachineStore']
@@ -20,20 +19,15 @@ PrivateStackTemplatesStore        = ['PrivateStackTemplatesStore']
 SelectedTemplateIdStore           = ['SelectedTemplateIdStore']
 expandedMachineLabelStore         = ['ExpandedMachineLabelStore']
 
-
 ownMachines = [
-  OwnMachinesStore
   MachinesStore
-  (own, machines) ->
-    own
-      .map (id) ->
-        machine = machines.get(id)
-        return  if 'own' isnt machine.get 'type'
+  (machines) ->
+    return machines
+      .filter (machine) -> machine.get('type') is 'own'
+      .map (machine) ->
         machine
           .set 'isApproved', yes
           .set 'isManaged', machineRuleChecker machine, ['managed']
-      .filter Boolean
-
 ]
 
 
