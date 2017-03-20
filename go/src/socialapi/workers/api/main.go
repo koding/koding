@@ -16,6 +16,7 @@ import (
 	"socialapi/workers/api/modules/reply"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
+	countlyapi "socialapi/workers/countly/api"
 	credential "socialapi/workers/credentials/api"
 	emailapi "socialapi/workers/email/api"
 	mailapi "socialapi/workers/email/mailparse/api"
@@ -77,6 +78,7 @@ func main() {
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)
+	countlyapi.AddHandlers(m, c)
 
 	mmdb, err := helper.ReadGeoIPDB(c)
 	if err != nil {
