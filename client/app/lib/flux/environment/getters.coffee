@@ -6,7 +6,6 @@ withEmptyMap       = (storeData) -> storeData or immutable.Map()
 
 StacksStore                       = ['StacksStore']
 MachinesStore                     = ['MachinesStore']
-CollaborationMachinesStore        = ['CollaborationMachinesStore']
 ActiveMachineStore                = ['ActiveMachineStore']
 ConnectedManagedMachineStore      = ['ConnectedManagedMachineStore']
 sharedMachineListItems            = [['SharedMachineListItemsStore'], withEmptyMap]
@@ -42,20 +41,18 @@ sharedMachines = [
           .set 'isPermanent', machineRuleChecker machine, ['permanent']
 ]
 
+
 collaborationMachines = [
-  CollaborationMachinesStore
   MachinesStore
-  (collaboration, machines) ->
-    collaboration
-      .map (id) ->
-        machine = machines.get(id)
-        return  if 'collaboration' isnt machine.get 'type'
+  (machines) ->
+    return machines
+      .filter (machine) -> machine.get('type') is 'collaboration'
+      .map (machine) ->
         machine
           .set 'isApproved', machineRuleChecker machine, ['approved']
           .set 'isPermanent', machineRuleChecker machine, ['permanent']
-      .filter Boolean
-
 ]
+
 
 requiredInvitationMachine = [
   sharedMachines
