@@ -1,0 +1,199 @@
+version: 2
+
+jobs:
+
+  build:
+
+    docker:
+      - image: koding/circle@sha256:9e17db94f3c4b9d91b593db926111f7f78626ed0ba4209a47ae1980ffe1dce77
+
+      - image: mongo:3.2.8
+        cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
+
+      - image: koding/postgres
+
+      - image: rabbitmq:3
+
+      - image: redis
+
+    working_directory: ~/koding
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - node_modules-{{ checksum "package.json" }}
+      - restore_cache:
+          keys:
+            - client-node_modules-{{ checksum "client/package.json" }}
+      - restore_cache:
+          keys:
+            - landing-node_modules-{{ checksum "client/landing/package.json" }}
+
+      - run:
+          name: npm install
+          command: npm install --unsafe-perm
+
+      - save_cache:
+          key: node_modules-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - save_cache:
+          key: client-node_modules-{{ checksum "client/package.json" }}
+          paths:
+            - client/node_modules
+      - save_cache:
+          key: landing-node_modules-{{ checksum "client/landing/package.json" }}
+          paths:
+            - client/landing/node_modules
+
+      - run:
+          name: coffeelint
+          command: $(npm bin)/coffeelint --quiet .
+
+      - run:
+          name: credentials
+          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
+
+      - run:
+          name: configure
+          command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com
+
+      - run:
+          name: launch test hosts
+          command: |
+            chmod 600 scripts/test-instance/koding-test-instances-2015-06.pem
+            set -o pipefail
+            ./run exec scripts/test-instance/launch --branch $CIRCLE_BRANCH --commit $CIRCLE_SHA1 | tee INSTANCE_DATA
+
+      - run:
+          name: check remote API consistency
+          command: ./run exec scripts/api-generator.coffee --check
+
+      - run:
+          name: check client code quality
+          command: scripts/check_client_code_quality.sh
+
+      - restore_cache:
+          keys:
+            - client-happypack-{{ .Branch }}-{{ .Revision }}
+            - client-happypack-{{ .Branch }}
+            - client-happypack-master
+
+      - run:
+          name: build client
+          command: make -C client dist
+
+      - run:
+          name: sync website assets
+          command: |
+            [[ -z "$S3CMD_ACCESS_KEY" || -z "$S3CMD_SECRET_KEY" ]] && exit 0
+            s3cmd sync --access_key=$S3CMD_ACCESS_KEY --secret_key=$S3CMD_SECRET_KEY \
+              --no-mime-magic --guess-mime-type --acl-public \
+              website/a/p/p/$(git rev-parse --short HEAD)/ \
+              s3://koding-assets/a/p/p/$(git rev-parse --short HEAD)/
+
+      - save_cache:
+          key: client-happypack-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
+          paths:
+            - client/.happypack
+      - save_cache:
+          key: client-happypack-{{ .Branch }}-{{ epoch }}
+          paths:
+            - client/.happypack
+
+      - restore_cache:
+          keys:
+            - go-{{ .Branch }}-{{ .Revision }}
+            - go-{{ .Branch }}
+            - go-master
+
+      - run: go/build.sh
+
+      - save_cache:
+          key: go-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
+          paths:
+            - go/bin
+            - go/pkg
+      - save_cache:
+          key: go-{{ .Branch }}-{{ epoch }}
+          paths:
+            - go/bin
+            - go/pkg
+
+      - run:
+          name: check kite configuration
+          command: ./run exec scripts/gotests.sh kites koding/kites/config
+
+      - run:
+          name: check generated JSON files
+          command: ./run exec scripts/check-generated-files.sh
+
+      - run:
+          name: test kites
+          command: ./run exec go/src/koding/kites/e2etest/e2etest.sh
+
+      - run:
+          name: test klient
+          command: ./run exec scripts/test-klient.sh
+
+      - run:
+          name: test kd
+          command: ./run exec scripts/test-kd.sh
+
+      - run:
+          name: test kontrol
+          command: ./run exec scripts/gotests.sh koding/kites/kontrol/kontrol
+
+      - run:
+          name: test kloud
+          command: ./run exec scripts/gotests.sh kites \
+            koding/kites/kloud/provider/... koding/kites/kloud/credential/... \
+            koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
+
+      - run:
+          name: test mongo models
+          command: ./run exec go test koding/db/mongodb/modelhelper
+
+      - run:
+          name: run database migration
+          command: ./run migrations up
+
+      - run:
+          name: run
+          command: |
+            ./run exec supervisord -c supervisord.conf
+            nginx -c $(pwd)/nginx.conf
+            ./run health-check 30 600
+
+      - run:
+          name: test social API
+          command: ./run exec env EXTRAS=-convey-story=true make -C go/src/socialapi testapi
+
+      - run:
+          name: test web server
+          command: ./run exec scripts/node-testing/mocha-runner servers/lib/server
+
+      - run:
+          name: test social worker
+          command: ./run exec scripts/node-testing/mocha-runner workers/social/lib/social
+
+      - run:
+          name: run test suites
+          environment:
+            LOG_PREFIX: $CIRCLE_PROJECT_REPONAME-$CIRCLE_PROJECT_USERNAME-$CIRCLE_BUILD_NUM
+          command: |
+            ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA $LOG_PREFIX
+            ./run exec scripts/ci/run-tests INSTANCE_DATA
+            status=$?
+            [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA $LOG_PREFIX || :
+            [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
+            [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
+
+      - run:
+          name: codecov
+          command: |
+            [[ -n "$CODECOV_TOKEN" ]] && \
+              bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
+              exit 0
