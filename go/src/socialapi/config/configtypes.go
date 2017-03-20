@@ -176,6 +176,9 @@ type (
 		APIKey   string `json:"apiKey"`
 		AppName  string `json:"appName"`
 		AppOwner string `json:"appOwner"`
+		AppID    string `json:"appId"`
 		AppKey   string `json:"appKey"`
+		Disabled bool   `json:"disabled"`
+		FixApps  bool   `json:"disabled"`
 	}
 )
