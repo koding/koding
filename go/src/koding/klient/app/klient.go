@@ -326,7 +326,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		SyncBuilder:     rsync.Builder{},
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
-		WorkDir:         cfg.KodingCacheHome(),
+		WorkDir:         cfg.KodingMounts(),
 	}
 
 	machines, err := machinegroup.New(machinesOpts)

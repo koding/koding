@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
@@ -133,20 +132,6 @@ func (c *Client) MountHeadIndex(path string) (string, int, int64, error) {
 // not cached.
 func (c *Client) MountGetIndex(path string) (*index.Index, error) {
 	return index.NewIndexFiles(path)
-}
-
-// DiskInfo gets faked information about file-system.
-func (c *Client) DiskInfo(path string) (di fs.DiskInfo, err error) {
-	// TODO(ppknap): replace with non-faked data when we have platform
-	// independent logic for disk stat operation.
-	di = fs.DiskInfo{
-		BlockSize:   512,
-		BlocksTotal: 1e9,
-		BlocksFree:  9e8,
-		BlocksUsed:  1e9 - 9e8,
-	}
-
-	return
 }
 
 // Exec mocks running process on a remote, always succeeds.

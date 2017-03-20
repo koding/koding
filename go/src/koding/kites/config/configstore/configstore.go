@@ -35,6 +35,7 @@ type Client struct {
 	Cache     *config.Cache        // if nil, a new db will be opened during each operation
 	CacheOpts *config.CacheOptions // if nil, defaultCacheOpts are going to be used
 	Home      string               // uses config.KodingHome by default
+	Mounts    string               // uses config.KodingMounts by default
 	Owner     *config.User         // uses config.CurrentUser by default
 
 	once sync.Once // for c.init()
@@ -210,6 +211,13 @@ func (c *Client) home() string {
 		return c.Home
 	}
 	return config.KodingHome()
+}
+
+func (c *Client) mounts() string {
+	if c.Mounts != "" {
+		return c.Mounts
+	}
+	return config.KodingMounts()
 }
 
 func (c *Client) owner() *config.User {

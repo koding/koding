@@ -35,8 +35,14 @@ type builder struct{}
 
 // Build implements the notify.Builder interface.
 func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
+	di, err := fs.Statfs(opts.CacheDir)
+	if err != nil {
+		return nil, err
+	}
+
 	o := &Opts{
 		Index:    opts.Index,
+		Disk:     di,
 		Cache:    opts.Cache,
 		CacheDir: opts.CacheDir,
 		Mount:    filepath.Base(opts.Mount.Path),
@@ -44,13 +50,6 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		// intentionally separate env to not enable fuse logging
 		// for regular kd debug
 		Debug: os.Getenv("KD_MOUNT_DEBUG") == "1",
-	}
-
-	// TODO(ppknap) get disk info from client.
-	if o.Disk == nil {
-		if di, err := fs.Statfs(opts.CacheDir); err == nil {
-			o.Disk = di
-		}
 	}
 
 	if err := o.Valid(); err != nil {
@@ -78,6 +77,9 @@ func (o *Opts) Valid() error {
 
 	if o.Index == nil {
 		return errors.New("index is nil")
+	}
+	if o.Disk == nil {
+		return errors.New("disk info is nil")
 	}
 	if o.Cache == nil {
 		return errors.New("cache is nil")

@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"koding/klient/fs"
 	"koding/klient/machine/index"
 	"koding/klient/os"
 )
@@ -20,7 +19,6 @@ type Cached struct {
 	sshAddKeys     func(string, ...string) error            // SSHAddKeys.
 	mountHeadIndex func(string) (string, int, int64, error) // MountHeadIndex.
 	mountGetIndex  func(string) (*index.Index, error)       // MountGetIndex.
-	diskInfo       func(string) (fs.DiskInfo, error)        // DiskBlocks
 
 	c Client // Client used by Context method.
 }
@@ -34,7 +32,6 @@ func NewCached(c Client, interval time.Duration) *Cached {
 		sshAddKeys:     sshAddKeys(c, interval),
 		mountHeadIndex: mountHeadIndex(c, interval),
 		mountGetIndex:  mountGetIndex(c, interval),
-		diskInfo:       diskInfo(c, interval),
 		c:              c,
 	}
 }
@@ -44,20 +41,6 @@ func NewCached(c Client, interval time.Duration) *Cached {
 // client.
 func (c *Cached) CurrentUser() (string, error) {
 	return c.currentUser()
-}
-
-// Exec calls registered Client's Exec method.
-//
-// The method does not cache the result.
-func (c *Cached) Exec(r *os.ExecRequest) (*os.ExecResponse, error) {
-	return c.c.Exec(r)
-}
-
-// Kill calls registered Client's Kill method.
-//
-// The method does not cache the result.
-func (c *Cached) Kill(r *os.KillRequest) (*os.KillResponse, error) {
-	return c.c.Kill(r)
 }
 
 func currentUser(c Client, interval time.Duration) func() (string, error) {
@@ -188,38 +171,18 @@ func mountGetIndex(c Client, interval time.Duration) func(string) (*index.Index,
 	}
 }
 
-// DiskInfo calls registered Client's DiskInfo method and caches its result for
-// the specified interval. It doesn't cache results from disconnected client. If
-// call arguments change, the cache will be invalidated.
-func (c *Cached) DiskInfo(path string) (fs.DiskInfo, error) {
-	return c.diskInfo(path)
+// Exec calls registered Client's Exec method.
+//
+// The method does not cache the result.
+func (c *Cached) Exec(r *os.ExecRequest) (*os.ExecResponse, error) {
+	return c.c.Exec(r)
 }
 
-func diskInfo(c Client, interval time.Duration) func(string) (fs.DiskInfo, error) {
-	lastCall, mu := time.Now().Add(-interval-time.Second), sync.Mutex{}
-
-	aPath := ""
-	rDi, rErr := fs.DiskInfo{}, error(nil)
-
-	return func(path string) (di fs.DiskInfo, err error) {
-		mu.Lock()
-		if time.Since(lastCall) < interval && aPath == path && rErr != ErrDisconnected {
-			di, err = rDi, rErr
-			mu.Unlock()
-			return
-		}
-		mu.Unlock()
-
-		di, err = c.DiskInfo(path)
-
-		mu.Lock()
-		aPath = path
-		rDi, rErr = di, err
-		lastCall = time.Now()
-		mu.Unlock()
-
-		return
-	}
+// Kill calls registered Client's Kill method.
+//
+// The method does not cache the result.
+func (c *Cached) Kill(r *os.KillRequest) (*os.KillResponse, error) {
+	return c.c.Kill(r)
 }
 
 // Context calls registered Client's Context without any cache.

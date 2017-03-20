@@ -4,13 +4,9 @@ import (
 	"context"
 	"io"
 
-	"koding/klient/fs"
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount"
 )
-
-// DiskInfo retrieves information about remote directory volume.
-type DiskInfo func() (fs.DiskInfo, error)
 
 // BuildOpts represents the context that can be used by external notifiers to
 // build their own type.
@@ -20,8 +16,6 @@ type BuildOpts struct {
 
 	Cache    Cache  // index file system change consumer.
 	CacheDir string // absolute path to locally cached files.
-
-	DiskInfo DiskInfo // remote directory volume info.
 
 	Index *index.Index // known state of managed index.
 }

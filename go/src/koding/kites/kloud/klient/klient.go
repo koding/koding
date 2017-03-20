@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"koding/klient/fs"
 	"koding/klient/machine/index"
 	"koding/klient/os"
 	"koding/klient/sshkeys"
@@ -437,25 +436,6 @@ func (k *Klient) MountGetIndex(path string) (*index.Index, error) {
 	}
 
 	return resp.Index, nil
-}
-
-// DiskInfo gets basic information about volume pointed by provided path.
-func (k *Klient) DiskInfo(path string) (fs.DiskInfo, error) {
-	req := fs.GetInfoOptions{
-		Path: path,
-	}
-
-	raw, err := k.Client.TellWithTimeout("fs.getDiskInfo", k.timeout(), req)
-	if err != nil {
-		return fs.DiskInfo{}, err
-	}
-
-	resp := fs.DiskInfo{}
-	if err := raw.Unmarshal(&resp); err != nil {
-		return fs.DiskInfo{}, err
-	}
-
-	return resp, nil
 }
 
 // SetContext sets provided context to Klient.
