@@ -13,14 +13,15 @@ module.exports = class MachinesStore extends KodingFluxStore
 
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
     @on actions.MACHINE_UPDATED, @updateMachine
-    @on actions.INVITATION_ACCEPTED, @acceptInvitation
     @on actions.SET_MACHINE_ALWAYS_ON_BEGIN, @setAlwaysOnBegin
     @on actions.SET_MACHINE_ALWAYS_ON_SUCCESS, @setAlwaysOnSuccess
     @on actions.SET_MACHINE_ALWAYS_ON_FAIL, @setAlwaysOnFail
     @on actions.LOAD_MACHINE_SHARED_USERS, @loadSharedUsers
-    @on actions.SHARED_VM_INVITATION_REJECTED, @removeSharedUser
     @on actions.ADD_TEST_MACHINE, @set
 
+    @on actions.INVITATION_ACCEPTED, @acceptInvitation
+    @on actions.SHARED_VM_INVITATION_REJECTED, @rejectInvitation
+    @on actions.COLLABORATION_INVITATION_REJECTED, @rejectInvitation
 
 
   load: (machines, jmachines) ->
@@ -67,6 +68,13 @@ module.exports = class MachinesStore extends KodingFluxStore
   acceptInvitation: (machines, id ) ->
 
     machines.setIn [id, 'isApproved'], yes
+
+
+  rejectInvitation: (machines, id) ->
+
+    return machines  unless machines.has id
+
+    return machines.remove id
 
 
   setAlwaysOnBegin: (machines, { id, state }) ->
