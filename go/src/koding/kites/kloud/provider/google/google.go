@@ -116,7 +116,11 @@ func (c *Cred) ComputeService() (*compute.Service, error) {
 		return nil, err
 	}
 
-	return compute.New(cfg.Client(context.Background()))
+	// TODO(rjeczalik): requires testing (also pass (*BaseStack).Debug)
+	// ctx := context.WithValue(context.Background(), oauth2.HTTPClient, httputil.Client(false))
+	ctx := context.Background()
+
+	return compute.New(cfg.Client(ctx))
 }
 
 type Bootstrap struct {

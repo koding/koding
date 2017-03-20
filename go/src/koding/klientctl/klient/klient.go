@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	konfig "koding/kites/config"
 	"koding/klient/client"
 	"koding/klient/command"
 	"koding/klient/fs"
@@ -106,7 +107,7 @@ func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 		return nil, errors.New("CreateKlientClient: Address is required")
 	}
 
-	k := kite.New(opts.Name, opts.Version)
+	k := kite.NewWithConfig(opts.Name, opts.Version, konfig.NewKiteConfig(false))
 	k.Config.Environment = opts.Environment
 	c := k.NewClient(opts.Address)
 

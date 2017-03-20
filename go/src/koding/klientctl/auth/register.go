@@ -97,7 +97,7 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	host := config.Konfig.Endpoints.Koding.Public.String()
 
-	client := httputil.DefaultRestClient(false)
+	client := httputil.Client(false)
 
 	// TODO ~mehmetali
 	// handle --alreadyMember flag with various option.
