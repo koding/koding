@@ -57,6 +57,8 @@ type (
 		DummyAdmins []string
 
 		Clearbit string `env:"key=KONFIG_SOCIALAPI_CLEARBIT                             required"`
+
+		Countly Countly
 	}
 
 	// Email holds Email Workers' config
@@ -163,5 +165,17 @@ type (
 		Domain     string `env:"key=KONFIG_SOCIALAPI_MAILGUN_DOMAIN"`
 		PrivateKey string `env:"key=KONFIG_SOCIALAPI_MAILGUN_PRIVATEKEY"`
 		PublicKey  string `env:"key=KONFIG_SOCIALAPI_SLACK_PUBLICKEY"`
+	}
+
+	// Countly holds countly configuration.
+	Countly struct {
+		Host     string `json:"host"`
+		APIPort  string `json:"apiPort"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		APIKey   string `json:"apiKey"`
+		AppName  string `json:"appName"`
+		AppOwner string `json:"appOwner"`
+		AppKey   string `json:"appKey"`
 	}
 )

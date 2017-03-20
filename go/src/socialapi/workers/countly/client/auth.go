@@ -10,7 +10,7 @@ import (
 func BasicAuth(username, password, address string) string {
 	client := &http.Client{}
 	url := fmt.Sprintf("%v/api-key", address)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return ""
 	}

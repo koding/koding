@@ -1,6 +1,7 @@
 #!/bin/bash
 
 INSTANCE_DATA_FILE=$1
+LOG_PREFIX=$2
 
 FAILING_INSTANCES_DATA_FILE=$(mktemp)
 
@@ -34,7 +35,7 @@ function terminate_failing_instances() {
 		return 0
 	fi
 
-	$SCRIPTS/test-instance/upload-logs $FAILING_INSTANCES_DATA_FILE
+	$SCRIPTS/test-instance/upload-logs $FAILING_INSTANCES_DATA_FILE $LOG_PREFIX
 	cat $FAILING_INSTANCES_DATA_FILE | xargs --max-lines=1 $SCRIPTS/test-instance/terminate
 }
 
