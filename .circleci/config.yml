@@ -103,6 +103,10 @@ jobs:
           paths:
             - client/.happypack
 
+      - type: shell
+        name: Go Meta Linter
+        command: scripts/gometalinter.sh
+
       - restore_cache:
           keys:
             - go-{{ .Branch }}-{{ .Revision }}
