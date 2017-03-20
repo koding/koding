@@ -75,7 +75,7 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		group.Countly.APIKey = res.APIKey
 	}
 
-	events := []client.Event{client.Event{
+	events := []client.Event{{
 		Key:          event.Name,
 		Count:        1,
 		Segmentation: event.Properties,
