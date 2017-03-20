@@ -93,12 +93,12 @@ func getGroupName(event *eventexporter.Event) string {
 		return ""
 	}
 
-	if name, ok := event.Properties["groupName"]; ok {
-		return name.(string)
+	if name, ok := event.Properties["groupName"].(string); ok {
+		return name
 	}
 
-	if name, ok := event.Properties["group"]; ok {
-		return name.(string)
+	if name, ok := event.Properties["group"].(string); ok {
+		return name
 	}
 
 	return ""
