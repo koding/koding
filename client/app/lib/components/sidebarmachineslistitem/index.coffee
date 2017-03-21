@@ -51,10 +51,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     { computeController } = kd.singletons
 
-    stackId = @props.stack.get '_id'
-    machineId = @props.machine.get '_id'
+    # Shared/Collab or Managed machines does not have any stacks ~ GG
+    if stackId = @props.stack?.get '_id'
+      computeController.on "apply-#{stackId}", @bound 'onComputeEvent'
 
-    computeController.on "apply-#{stackId}", @bound 'onComputeEvent'
+    machineId = @props.machine.get '_id'
     computeController.on "public-#{machineId}", @bound 'onComputeEvent'
 
     kd.utils.defer =>
@@ -65,12 +66,12 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     { computeController } = kd.singletons
 
-    stackId = @props.stack.get '_id'
+    # Shared/Collab or Managed machines does not have any stacks ~ GG
+    if stackId = @props.stack?.get '_id'
+      computeController.off "apply-#{stackId}", @bound 'onComputeEvent'
+
     machineId = @props.machine.get '_id'
-
-    computeController.off "apply-#{stackId}", @bound 'onComputeEvent'
     computeController.off "public-#{machineId}", @bound 'onComputeEvent'
-
 
     kd.utils.defer =>
       actions.unsetMachineListItem @machine('_id'), this
