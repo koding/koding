@@ -59,7 +59,7 @@ unregisters the client and closes the websocket.
 
 The code for the `Client` type is in [client.go](https://github.com/gorilla/websocket/blob/master/examples/chat/client.go).
 
-The `wsHandler` function is registered by the application's `main` function as
+The `serveWs` function is registered by the application's `main` function as
 an HTTP handler. The handler upgrades the HTTP connection to the WebSocket
 protocol, creates a client, registers the client with the hub and schedules the
 client to be unregistered using a defer statement.
@@ -71,6 +71,17 @@ there's an error writing to the websocket connection.
 
 Finally, the HTTP handler calls the client's `readPump` method. This method
 transfers inbound messages from the websocket to the hub.
+
+WebSocket connections [support one concurrent reader and one concurrent
+writer](https://godoc.org/github.com/gorilla/websocket#hdr-Concurrency). The
+application ensures that these concurrency requirements are met by executing
+all reads from the `readPump` goroutine and all writes from the `writePump`
+goroutine.
+
+To improve efficiency under high load, the `writePump` function coalesces
+pending chat messages in the `send` channel to a single WebSocket message. This
+reduces the number of system calls and the amount of data sent over the
+network.
 
 ## Frontend
 
