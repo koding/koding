@@ -125,26 +125,28 @@ loadStacks = (force = no) ->
       _bindStackEvents()
 
 
-rejectInvitation = (machine) ->
+rejectInvitation = (_machine) ->
 
-  { machineShareManager, appManager } = kd.singletons
+  { reactor, machineShareManager, appManager, computeController } = kd.singletons
 
-  machineUId = machine.get 'uid'
+  machineUId = _machine.get 'uid'
   machineShareManager.unset machineUId
 
-  isApproved      = machine.get 'isApproved'
-  isPermanent     = machine.get 'isPermanent'
-  denyMachine     = switch machine.get 'type'
+  isApproved  = _machine.get 'isApproved'
+  isPermanent = _machine.get 'isPermanent'
+  denyMachine = switch _machine.get 'type'
     when 'shared'         then isPermanent
     when 'collaboration'  then not isPermanent
 
   ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
+  machine = computeController.storage.get 'machines', 'uid', machineUId
 
   async.series([
+
     (callback) ->
 
       if denyMachine
-        remote.revive(machine.toJS()).deny (err) ->
+        machine.deny (err) ->
           showError err  if err
           callback err
       else
@@ -152,7 +154,7 @@ rejectInvitation = (machine) ->
 
     (callback) ->
 
-      return callback()  unless machine.get('type') is 'collaboration'
+      return callback()  unless _machine.get('type') is 'collaboration'
 
       # Do not call social api from here if there is an ide app instance.
       # Because it will be called it in next queue item by "quit()" method instead of this queue.
@@ -161,8 +163,7 @@ rejectInvitation = (machine) ->
       return callback()  if ideInstance and denyMachine
 
       { channel } = kd.singletons.socialapi
-      workspace   = machine.get('workspaces').first()
-      channelId   = workspace.get 'channelId'
+      channelId   = machine.getChannelId()
 
       channel.byId { id: channelId }, (err, socialChannel) ->
         if err
@@ -180,19 +181,23 @@ rejectInvitation = (machine) ->
 
       ideInstance?.quit()  if denyMachine
 
-      actionType = if machine.get('type') is 'collaboration'
+      actionType = if _machine.get('type') is 'collaboration'
       then 'COLLABORATION_INVITATION_REJECTED'
       else 'SHARED_VM_INVITATION_REJECTED'
 
-      kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
-      # FIXMERESET ~ GG
-      debug 'FIXMERESET', 'rejectInvitation', machine
-      # kd.singletons.computeController.reset callback
+      machineId = machine.getId()
+      reactor.dispatch actions[actionType], machineId
+      computeController.storage.pop 'machines', machineId
+      reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, \
+        computeController.storage.get 'machines'
+
 
   ])
 
 
 acceptInvitation = (_machine) ->
+
+  debug 'acceptInvitation', _machine
 
   { router, machineShareManager, socialapi, reactor } = kd.singletons
 
@@ -201,13 +206,15 @@ acceptInvitation = (_machine) ->
   invitation = machineShareManager.get uid
   machineShareManager.unset uid
 
+  debug 'acceptInvitation invitation', invitation
+
   machine = remote.revive _machine.toJS()
+
+  debug 'acceptInvitation machine', machine
 
   machine.approve (err) ->
 
     return showError err  if err
-    # FIXME ~GG
-    return showError 'Approval disabled - WIP'
 
     kallback = (route, callback) ->
       # Fetch all machines
@@ -215,21 +222,26 @@ acceptInvitation = (_machine) ->
         callback()
         router.handleRoute route
 
-    if invitation?.type is 'collaboration' or machine.get('type') is 'collaboration'
+    if invitation?.type is 'collaboration' or _machine.get('type') is 'collaboration'
       _getInvitationChannelId { uid, invitation }, (channelId) ->
+
+        unless channelId
+          return showError 'Session is invalid or ended by host'
+
         require('app/flux/socialapi/actions/channel').loadChannel(channelId).then ({ channel }) ->
           if channel.isParticipant
-            return kallback "/IDE/#{channelId}", ->
-              reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+            return kallback "/IDE/#{uid}", ->
+              reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
 
           socialapi.channel.acceptInvite { channelId }, (err) ->
             return showError err  if err
 
-            kallback "/IDE/#{channelId}", ->
-              reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+            kallback "/IDE/#{uid}", ->
+              reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
+
     else
-      kallback "/IDE/#{machine.get 'uid'}", ->
-        reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+      kallback "/IDE/#{uid}", ->
+        reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
 
 
 dispatchCollaborationInvitationRejected = (id) ->
