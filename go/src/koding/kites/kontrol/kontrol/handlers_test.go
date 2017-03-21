@@ -51,6 +51,7 @@ func TestFilterResult(t *testing.T) {
 
 	tests := []struct {
 		name                 string
+		env                  string
 		getKodingKitesResult *GetKodingKitesResult
 		groups               []*models.Group
 		kitesByGroupID       map[string][]*KodingKiteWithToken
@@ -59,6 +60,7 @@ func TestFilterResult(t *testing.T) {
 	}{
 		{
 			name: "should stay same - everything is perfect",
+			env:  "dev",
 			getKodingKitesResult: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
 			},
@@ -72,6 +74,7 @@ func TestFilterResult(t *testing.T) {
 		},
 		{
 			name: "remove past_due_group's kites when there is another group",
+			env:  "dev",
 			getKodingKitesResult: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
 			},
@@ -86,6 +89,7 @@ func TestFilterResult(t *testing.T) {
 		},
 		{
 			name: "remove past_due_group's kites when there isnt any other group",
+			env:  "dev",
 			getKodingKitesResult: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
 			},
@@ -99,6 +103,7 @@ func TestFilterResult(t *testing.T) {
 		},
 		{
 			name: "should not remove if the group is not in  group list",
+			env:  "dev",
 			getKodingKitesResult: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
 			},
@@ -113,6 +118,7 @@ func TestFilterResult(t *testing.T) {
 		},
 		{
 			name: "should not remove anything if there is no group",
+			env:  "dev",
 			getKodingKitesResult: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
 			},
@@ -127,6 +133,7 @@ func TestFilterResult(t *testing.T) {
 		},
 		{
 			name: "should not remove anything if there is no past due group kite",
+			env:  "dev",
 			getKodingKitesResult: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
 			},
@@ -134,6 +141,21 @@ func TestFilterResult(t *testing.T) {
 			kitesByGroupID: map[string][]*KodingKiteWithToken{
 				activeGroup1.Id.Hex(): {kite1},
 				activeGroup2.Id.Hex(): {kite2},
+			},
+			response: &GetKodingKitesResult{
+				Kites: []*KodingKiteWithToken{kite1, kite2},
+			},
+		},
+		{
+			name: "should not remove anything if env is default even if there is past_due group.",
+			env:  "default",
+			getKodingKitesResult: &GetKodingKitesResult{
+				Kites: []*KodingKiteWithToken{kite1, kite2},
+			},
+			groups: []*models.Group{activeGroup1, activeGroup2, pastDueGroup},
+			kitesByGroupID: map[string][]*KodingKiteWithToken{
+				activeGroup1.Id.Hex(): {kite1},
+				pastDueGroup.Id.Hex(): {kite2},
 			},
 			response: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
@@ -147,7 +169,7 @@ func TestFilterResult(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			filterRes := filterResult(test.getKodingKitesResult, test.groups, test.kitesByGroupID)
+			filterRes := test.getKodingKitesResult.filter(test.env, test.groups, test.kitesByGroupID)
 			if len(test.response.Kites) != len(filterRes.Kites) {
 				t.Fatalf("len expected %d, got %d", len(test.response.Kites), len(filterRes.Kites))
 			}

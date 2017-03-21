@@ -49,6 +49,7 @@ type Stacker struct {
 	Kite           *kite.Kite
 	KloudSecretKey string
 	Debug          bool
+	Environment    string
 	TunnelURL      string
 
 	Userdata  *userdata.Userdata
@@ -255,7 +256,7 @@ func (s *Stacker) BaseStack(ctx context.Context) (*BaseStack, error) {
 		return nil, err
 	}
 
-	if !bs.Builder.Team.IsSubActive() {
+	if !bs.Builder.Team.IsSubActive(s.Environment) {
 		return nil, stack.NewError(stack.ErrTeamSubIsNotActive)
 	}
 
