@@ -530,6 +530,9 @@
               "type": "string"
             }
           }
+        },
+        "channelId": {
+          "type": "string"
         }
       }
     },
@@ -4551,6 +4554,40 @@
       }
     },
     "/remote.api/JMachine.unshare/{id}": {
+      "post": {
+        "tags": [
+          "JMachine"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/JMachine.setChannelId/{id}": {
       "post": {
         "tags": [
           "JMachine"

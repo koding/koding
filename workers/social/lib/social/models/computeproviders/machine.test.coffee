@@ -878,6 +878,86 @@ runTests = -> describe 'workers.social.models.computeproviders.machine', ->
       async.series queue, done
 
 
+  describe '#setChannelId()', ->
+
+    client       = {}
+    clientGuest  = {}
+    userFormData = generateDummyUserFormData()
+    machine      = null
+
+    before (done) ->
+
+      async.series [
+
+        (next) ->
+          withConvertedUser { userFormData }, (data) ->
+            { client } = data
+            next()
+
+        (next) ->
+          formData = generateDummyUserFormData()
+          withConvertedUser { userFormData: formData }, (data) ->
+            { client: clientGuest } = data
+            next()
+
+        (next) ->
+          fetchMachinesByUsername userFormData.username, (machines) ->
+            [ machine ] = machines
+            next()
+
+      ], done
+
+    it 'should deny set channel id requests for non-owners', (done) ->
+
+      channelId = '123456789123456789'
+      machine.setChannelId clientGuest, { channelId }, (err) ->
+        expect(err).to.exist
+        expect(err.message).to.be.equal 'Access denied'
+        expect(machine.channelId).to.not.exist
+        done()
+
+    it 'should not allow to set an object as channel id', (done) ->
+
+      expect(machine.channelId).to.not.exist
+
+      channelId = { foo: 'bar' }
+      machine.setChannelId client, { channelId }, (err) ->
+        expect(err).to.exist
+        expect(err.message).to.be.equal 'Invalid ChannelID provided'
+        expect(machine.channelId).to.not.exist
+        done()
+
+    it 'should not allow to set an invalid channel id', (done) ->
+
+      expect(machine.channelId).to.not.exist
+
+      channelId = 'somefoobarbazinvalidandlongchannelid'
+      machine.setChannelId client, { channelId }, (err) ->
+        expect(err).to.exist
+        expect(err.message).to.be.equal 'Invalid ChannelID provided'
+        expect(machine.channelId).to.not.exist
+        done()
+
+    it 'should be able set a valid channel id on machine', (done) ->
+
+      expect(machine.channelId).to.not.exist
+
+      channelId = '123456789123456789'
+      machine.setChannelId client, { channelId }, (err) ->
+        expect(err).to.not.exist
+        expect(machine.channelId).to.be.equal channelId
+        done()
+
+    it 'should be able to unset channel id on machine', (done) ->
+
+      expect(machine.channelId).to.exist
+
+      machine.setChannelId client, {}, (err, _machine) ->
+        expect(err).to.not.exist
+        expect(_machine.channelId).to.not.exist
+        done()
+
+
 beforeTests()
 
 runTests()
