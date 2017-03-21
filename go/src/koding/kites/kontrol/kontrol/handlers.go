@@ -152,12 +152,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc, environment string) k
 			}
 		}
 
-		// if env is default, do not filter the unpaid team's content
-		if environment == "default" {
-			return result, nil
-		}
-
-		return filterResult(result, groups, kitesByGroupID), nil
+		return result.filter(environment, groups, kitesByGroupID), nil
 	}
 }
 
@@ -174,11 +169,16 @@ func getMachinesByQueryID(machines []*models.Machine) map[string]*models.Machine
 	return machinesByQuery
 }
 
-func filterResult(res *GetKodingKitesResult, groups []*models.Group, kitesByGroupID map[string][]*KodingKiteWithToken) *GetKodingKitesResult {
+func (res *GetKodingKitesResult) filter(env string, groups []*models.Group, kitesByGroupID map[string][]*KodingKiteWithToken) *GetKodingKitesResult {
+	// if env is default, do not filter the unpaid team's content
+	if env == "default" {
+		return res
+	}
+
 	// first find to be removed kites
 	toBeRemovedKiteIDs := make(map[string]struct{})
 	for _, group := range groups {
-		if group.IsSubActive() {
+		if group.IsSubActive(env) {
 			continue
 		}
 
