@@ -244,15 +244,8 @@ dispatchSharedVMInvitationRejected = (id) ->
 
 _getInvitationChannelId = ({ uid, invitation }, callback) ->
 
-  environmentDataProvider.fetchMachineByUId uid, (machine, workspaces) ->
-    for workspace in workspaces
-
-      if invitation?.workspaceId is workspace.getId()
-        callback workspace.channelId
-        break
-      else if not invitation and workspace.channelId
-        callback workspace.channelId
-        break
+  machine = kd.singletons.computeController.storage.get 'machines', 'uid', uid
+  callback if machine then machine.getChannelId() else null
 
 
 setSelectedMachineId = (machineId) ->

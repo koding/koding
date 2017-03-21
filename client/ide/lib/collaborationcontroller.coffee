@@ -36,10 +36,13 @@ module.exports = CollaborationController =
     @socialChannel = channel
     @bindSocialChannelEvents()
 
-    # TODOWS ~ GG - Set channelId on JMachine
+    @mountedMachine.setChannelId { channelId: channel.id }, (err) ->
+      console.warn 'Failed to set channelId', err  if err
 
 
   fetchSocialChannel: (callback) ->
+
+    debug 'fetchSocialChannel', @socialChannel
 
     if @socialChannel
       return callback null, @socialChannel
@@ -48,6 +51,11 @@ module.exports = CollaborationController =
       return callback()
 
     socialHelpers.fetchChannel id, (err, channel) =>
+
+      # if channel couldn't fetch clear channel id from machine ~ GG
+      if err and @mountedMachine.getChannelId()
+        return @mountedMachine.setChannelId {}, -> callback err
+
       return callback err  if err
 
       @setSocialChannel channel
@@ -56,23 +64,12 @@ module.exports = CollaborationController =
 
   getSocialChannelId: ->
 
-    return @socialChannel?.id or @channelId # or @workspaceData.channelId
+    return @socialChannel?.id or @channelId or @mountedMachine.getChannelId()
 
 
   unsetSocialChannel: ->
 
     @channelId = @socialChannel = null
-
-
-  deletePrivateMessage: (callback = kd.noop) ->
-
-    socialHelpers.destroyChannel @socialChannel, (err) =>
-      return callback err  if err
-
-      # FIXMEWS ~ GG
-      # envHelpers.detachSocialChannel @workspaceData, (err) =>
-      #   return callback err  if err
-      @unsetSocialChannel()
 
 
   # FIXME: This method is called more than once. It should cache the result and
@@ -514,8 +511,7 @@ module.exports = CollaborationController =
 
   sendPing: ->
 
-    # { channelId } = @workspaceData
-    channelId = @mountedMachine.getChannelID()
+    channelId = @mountedMachine.getChannelId()
 
     doXhrRequest
       endPoint : '/api/social/collaboration/ping'
@@ -727,7 +723,7 @@ module.exports = CollaborationController =
 
   checkSessionActivity: (callbacks, showSessionModal = yes) ->
 
-    channelId = @mountedMachine.getChannelID()
+    channelId = @mountedMachine.getChannelId()
     machine   = @mountedMachine
 
     callMethod = (name, args...) -> callbacks[name] args...
@@ -748,6 +744,9 @@ module.exports = CollaborationController =
         @showSessionStartingModal()
 
     @fetchSocialChannel (err, channel) =>
+
+      debug 'checkSessionActivity', err, channel
+
       if err
         throwError err
         return callMethod 'notStarted'
@@ -786,7 +785,6 @@ module.exports = CollaborationController =
 
       @setSocialChannel channel
 
-      # TODOWS ~ GG - Update channelId on JMachine
       callbacks.success()
 
 
@@ -979,7 +977,7 @@ module.exports = CollaborationController =
 
             debug 'COLLABORATION_REQUEST', notification.channelId, channel.id
 
-            return if notification.channelId isnt channel.id
+            return  if notification.channelId isnt channel.id
 
             { channelId, senderUserId, senderAccountId, sender } = notification
             accountIds = [senderAccountId]
@@ -1040,16 +1038,17 @@ module.exports = CollaborationController =
       socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
 
-      # FIXMEWS ~ GG
-      # envHelpers.detachSocialChannel @workspaceData, (err) ->
-      #   throwError err  if err
+      @mountedMachine.setChannelId {}, (err) ->
+        throwError err  if err
 
       callback()
 
 
   clearParticipantsSnapshot: ->
 
-    { users } = @mountedMachine.data
+    debug 'clearParticipantsSnapshot', @mountedMachine
+
+    { users } = @mountedMachine
 
     @listChatParticipants (accounts) =>
       accounts.forEach (account) =>
@@ -1095,7 +1094,8 @@ module.exports = CollaborationController =
     { reactor } = kd.singletons
 
     reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
-    # TODOWS ~ GG - Unset channelId on JMachine
+    @mountedMachine.setChannelId {}, (err) ->
+      console.warn 'Failed to set channelId', err  if err
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
@@ -1182,6 +1182,7 @@ module.exports = CollaborationController =
 
   setMachineUser: (usernames, share = yes, callback = kd.noop) ->
 
+    debug 'setMachineUser', { usernames, share, @mountedMachine }
     # TODO: needs an investigation here.
     # if this usernames length check would be done
     # via helper method, the broadcastMessage
@@ -1191,6 +1192,8 @@ module.exports = CollaborationController =
     { setMachineUser } = envHelpers
 
     setMachineUser @mountedMachine, usernames, share, (err) =>
+      debug 'setMachineUser result', err
+
       return callback err  if err
 
       @emit 'SetMachineUser', usernames, share
@@ -1276,7 +1279,7 @@ module.exports = CollaborationController =
 
     return  unless @stateMachine
 
-    channelId = @mountedMachine.getChannelID()
+    channelId = @mountedMachine.getChannelId()
 
     if channelId and typeof channelId is 'string' and channelId.length
       return  unless @stateMachine.state is 'NotStarted'
@@ -1292,7 +1295,7 @@ module.exports = CollaborationController =
 
     notificationController.on 'AddedToChannel', (update) =>
 
-      channelId = @mountedMachine.getChannelID()
+      channelId = @mountedMachine.getChannelId()
 
       return  unless update.channel.id is channelId
 

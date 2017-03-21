@@ -31,7 +31,8 @@ detachSocialChannel = (workspaceData, callback) ->
 setMachineUser = (machine, usernames, share, callback) ->
 
   method = if share then 'add' else 'kick'
-  channelId = machine.getChannelID()
+  channelId = machine.getChannelId()
+
 
   remote.api.Collaboration[method] channelId, usernames, (err) ->
     return callback err  if err

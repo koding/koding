@@ -162,6 +162,7 @@ module.exports = class JMachine extends remote.api.JMachine
   isMine      : -> @_ruleChecker ['owner']
   isApproved  : -> @isMine() or @_ruleChecker ['approved']
   isPermanent : -> @_ruleChecker ['permanent']
+  isShared    : -> not @isMine() and not @isPermanent()
   isManaged   : -> @provider is 'managed'
   isRunning   : -> @status?.state is JMachine.State.Running
   isStopped   : -> @status?.state is JMachine.State.Stopped
@@ -169,6 +170,10 @@ module.exports = class JMachine extends remote.api.JMachine
   isUsable    : -> @isRunning() or @isStopped()
   getOldOwner : -> @getAt 'meta.oldOwner'
 
-  getChannelID: ->
-    debug 'getChannelID requested', this
-    return null
+  getChannelId: -> @getAt 'channelId'
+  setChannelId: (options, callback) ->
+    super options, (err, machine) ->
+      return callback err  if err
+
+      kd.singletons.computeController.storage.push 'machines', machine
+      callback err, machine
