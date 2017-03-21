@@ -273,8 +273,8 @@ func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, e
 		}
 
 		drawFunc := ioprogress.DrawTerminalf(w, func(_, _ int64) string {
-			line := fmt.Sprintf("Prefetching files: %d%% (%d/%d), %s/%s | %s/s",
-				int(float64(n)/float64(nAll)*100.0+0.5), // percentage status.
+			line := fmt.Sprintf("Prefetching files: %.1f%% (%d/%d), %s/%s | %s/s",
+				float64(size)/float64(sizeAll)*100.0, // percentage status.
 				n,    // number of downloaded files.
 				nAll, // number of all files being downloaded.
 				humanize.IBytes(uint64(size)),    // size of downloaded files.
