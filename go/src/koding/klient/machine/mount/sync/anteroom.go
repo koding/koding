@@ -201,7 +201,12 @@ func (a *Anteroom) detach(path string, id uint64) {
 	defer a.mu.Unlock()
 
 	if ev, ok := a.evs[path]; ok && ev.ID() == id {
-		atomic.AddInt64(&a.synced, -1)
+		a.unsync()
 		delete(a.evs, path)
 	}
+}
+
+// unsync is called by event which is considered done.
+func (a *Anteroom) unsync() {
+	atomic.AddInt64(&a.synced, -1)
 }

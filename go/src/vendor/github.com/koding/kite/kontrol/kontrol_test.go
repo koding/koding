@@ -478,15 +478,15 @@ func TestGetKites(t *testing.T) {
 	}
 
 	if len(kites) != 1 {
-		t.Fatalf("Only one kite is registerd, we have %d", len(kites))
+		t.Fatalf("Only one kite is registered, we have %d", len(kites))
 	}
 
 	if kites[0].Name != testName {
-		t.Errorf("getkites got %s exptected %", kites[0].Name, testName)
+		t.Errorf("getkites got %s exptected %s", kites[0].Name, testName)
 	}
 
 	if kites[0].Version != testVersion {
-		t.Errorf("getkites got %s exptected %", kites[0].Version, testVersion)
+		t.Errorf("getkites got %s exptected %s", kites[0].Version, testVersion)
 	}
 }
 
@@ -522,7 +522,7 @@ func TestRegisterKite(t *testing.T) {
 	defer m.Close()
 
 	if kiteURL.String() != res.URL.String() {
-		t.Error("register: got %s expected %s", res.URL.String(), kiteURL.String())
+		t.Errorf("register: got %s expected %s", res.URL.String(), kiteURL.String())
 	}
 }
 
@@ -562,7 +562,7 @@ func TestKontrol(t *testing.T) {
 		t.Fatal("No mathworker available")
 	}
 
-	// exp2 connectes to mathworker
+	// exp2 connects to mathworker
 	remoteMathWorker := kites[0]
 	err = remoteMathWorker.Dial()
 	if err != nil {
@@ -701,7 +701,7 @@ func TestKontrolMultiKey(t *testing.T) {
 		t.Fatal("No mathworker available")
 	}
 
-	// exp3 connectes to mathworker
+	// exp3 connects to mathworker
 	remoteMathWorker := kites[0]
 	err = remoteMathWorker.Dial()
 	if err != nil {

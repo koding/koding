@@ -223,7 +223,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 
 	rootBranch := filepath.Join(root, branch)
 	visited := map[string]struct{}{
-		rootBranch: struct{}{}, // Skip root.
+		rootBranch: {}, // Skip root.
 	}
 
 	if !ok {

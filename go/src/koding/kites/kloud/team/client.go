@@ -10,6 +10,11 @@ type Team struct {
 	SubStatus models.SubStatus `json:"subscription"` // Subscription status.
 }
 
+// IsSubActive checks if Team's sub is in active state.
+func (t *Team) IsSubActive(env string) bool {
+	return models.IsSubActive(env, t.SubStatus)
+}
+
 // Filter is used for filtering team records.
 type Filter struct {
 	Username string // user name.

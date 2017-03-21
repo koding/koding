@@ -82,8 +82,16 @@ type Customer struct {
 }
 
 // IsSubActive checks if subscription is in valid state for operation
-func (g *Group) IsSubActive() bool {
-	return g.Payment.Subscription.Status.Active()
+// if env name is default, always responds true
+func (g *Group) IsSubActive(env string) bool {
+	return IsSubActive(env, g.Payment.Subscription.Status)
+}
+
+// IsSubActive implements the business logic for checking if a sub is active. We
+// allow everything for default env.
+func IsSubActive(env string, subStatus SubStatus) bool {
+	const defaultEnv = "default"
+	return env == defaultEnv || subStatus.Active()
 }
 
 // HasCountly checks if group has countly data.
