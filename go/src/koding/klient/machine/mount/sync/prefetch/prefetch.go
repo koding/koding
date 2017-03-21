@@ -1,36 +1,8 @@
 package prefetch
 
 import (
-	"errors"
-	"fmt"
-	"os/exec"
-
-	"bytes"
 	"koding/klient/machine/index"
 )
-
-var DefaultStrategy = Strategy{
-	"git": Git{},
-	"all": All{},
-}
-
-type Strategy map[string]Prefetcher
-
-func (s Strategy) Available() (available []string) {
-	for name, pref := range s {
-		if pref.Available() {
-			available = append(available, name)
-		}
-	}
-
-	return available
-}
-
-func (s Strategy) Select(available []string, idx index.Index) Prefetch {
-	return Prefetch{}
-}
-
-type Prefetch struct{}
 
 // Prefetcher defines a set of methods that are needed to safely prefetch
 // remote files.
@@ -53,68 +25,37 @@ type Prefetcher interface {
 	PostRun(wd string) error
 }
 
-// All prefetcher always downloads all files stored in index.
-type All struct{}
+// Options defines a set of options needed to select and build Prefetch object.
+type Options struct {
+	// SourcePath defines source path from which file(s) will be pulled.
+	SourcePath string `json:"sourcePath"`
 
-// Available always returns true since All prefetcher doesn't need any
-// additional third-party tools.
-func (All) Available() bool { return true }
+	// DestinationPath defines destination path to which file(s) will be pushed.
+	DestinationPath string `json:"destinationPath"`
 
-// Weight returns All prefetcher weight.
-func (All) Weight() int { return 0 }
+	// Username defines remote machine user name.
+	Username string `json:"username"`
 
-// Scan gets size and number of prefetched files.
-func (All) Scan(idx *index.Index) (suffix string, count, diskSize int64, err error) {
-	count, diskSize = int64(idx.CountAll(-1)), idx.DiskSizeAll(-1)
-	return
+	// Host defines the remote machine address.
+	Host string `json:"host"`
+
+	// SSHPort defines custom remote shell port.
+	SSHPort int `json:"sshPort"`
 }
 
-// PostRun is a no-op for All prefetcher.
-func (All) PostRun(_ string) error { return nil }
-
-// Git prefetcher uses git to reduce the amount of prefetched data. The strategy
-// it uses is:
-//
-//  - download contnt of .git directory from remote.
-//  - run `git reset --hard`
-//  - any upstaged changes on remote will be detected and synced later by mount
-//    synchronization mechanisms.
-//
-type Git struct{}
-
-// Available checks if git executable binary is available in user PATH.
-func (Git) Available() bool {
-	_, err := exec.LookPath("git")
-	return err == nil
-}
-
-// Weight returns Git prefetcher weight.
-func (Git) Weight() int { return 100 }
-
-// Scan gets size and number of prefetched files.
-func (Git) Scan(idx *index.Index) (suffix string, count, diskSize int64, err error) {
-	n, ok := idx.LookupAll(".git")
-	if !ok || !n.IsDir() {
-		return "", 0, 0, errors.New("remote directory is not a git repository")
-	}
-
-	return ".git/", int64(n.CountAll(-1)), n.DiskSizeAll(-1), nil
-}
-
-// PostRun runs git executable in order to restore downloaded state in working
+// Prefetch is used to initially prefetch files from remote machine to local
 // directory.
-func (Git) PostRun(wd string) error {
-	var (
-		buf = bytes.Buffer{}
-		cmd = exec.Command("git", "reset", "--hard")
-	)
+type Prefetch struct {
+	Options
 
-	cmd.Dir, cmd.Stderr = wd, &buf
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("git command exited with error: %v (%q)", err, buf.String())
-	}
+	// Strategy strategy stores the name of strategy used to prefetch files.
+	Strategy string `json:"strategy"`
 
-	return nil
+	// Count stores the amount of files which are going to be prefetched.
+	Count int64 `json:"count"`
+
+	// DiskSize stores the size of all fetched files.
+	DiskSize int64 `json:"diskSize"`
 }
 
 /*
