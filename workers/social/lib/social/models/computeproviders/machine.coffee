@@ -25,7 +25,7 @@ module.exports = class JMachine extends Module
       groups            : 'sparse'
       domain            : 'sparse'
       status            : 'sparse'
-      channelId         : 'unique'
+      channelId         : 'sparse'
 
     sharedEvents        :
       static            : [ ]
