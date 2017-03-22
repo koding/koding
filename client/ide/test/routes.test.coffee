@@ -51,11 +51,6 @@ describe 'IDE.routes', ->
 
     describe 'when machine, eg. /IDE/6075649037833338981 or /IDE/aws-vm-0', ->
 
-      it 'should loadCollaborativeIDE if machine label is all digits which we assume it is a channel id related with a collaboration session', ->
-
-        createSpyAndAssert routes, 'loadCollaborativeIDE', 'machine', ROUTE_PARAMS.collaboration
-
-
       it 'should fetch machine if machine label contains chars', ->
 
         createSpyAndAssert dataProvider, 'fetchMachine', 'machine', ROUTE_PARAMS.machine
@@ -100,42 +95,6 @@ describe 'IDE.routes', ->
       expect(fakeApp.amIHost).toBe yes
       expect(appManager.open).toHaveBeenCalled()
       expect(appManager.tell).toHaveBeenCalledWith 'IDE', 'createMachineStateModal', { state: 'NotFound' }
-
-
-  describe '.loadCollaborativeIDE', ->
-
-
-    it 'should validate the channel via socialapi.cacheable request', ->
-
-      mock.socialapi.cacheable.toReturnChannel()
-      expect.spyOn kd.singletons.socialapi, 'cacheable'
-
-      routes.loadCollaborativeIDE()
-
-      expect(kd.singletons.socialapi.cacheable).toHaveBeenCalled()
-
-
-    it 'should fetchMachineAndWorkspaceByChannelId to validate machine and workpsace belongs to given channelId', ->
-
-      mock.socialapi.cacheable.toReturnChannel()
-      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnMachineAndWorkspace()
-      expect.spyOn dataProvider, 'fetchMachineAndWorkspaceByChannelId'
-
-      routes.loadCollaborativeIDE()
-
-      expect(dataProvider.fetchMachineAndWorkspaceByChannelId).toHaveBeenCalled()
-
-
-    it 'should loadIDE if account found', ->
-
-      expect.spyOn routes, 'loadIDE'
-      mock.socialapi.cacheable.toReturnChannel()
-      mock.envDataProvider.fetchMachineAndWorkspaceByChannelId.toReturnMachineAndWorkspace()
-      mock.remote.api.JAccount.some.toReturnAccounts()
-
-      routes.loadCollaborativeIDE()
-
-      expect(routes.loadIDE).toHaveBeenCalledWith dataToLoadIDE
 
 
   describe '.loadIDE', ->

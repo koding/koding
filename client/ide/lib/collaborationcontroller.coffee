@@ -70,7 +70,7 @@ module.exports = CollaborationController =
 
   getSocialChannelId: ->
 
-    return @socialChannel?.id or @channelId or @getMachine().getChannelId()
+    return @socialChannel?.id or @channelId or @getMachine()?.getChannelId()
 
 
   unsetSocialChannel: ->
@@ -549,7 +549,7 @@ module.exports = CollaborationController =
 
     channelId = @getSocialChannelId()
 
-    unless @rtm and channelId
+    if not @rtm or not channelId
       kd.utils.killRepeat @pollInterval
       return
 

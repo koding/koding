@@ -92,7 +92,7 @@ loadTestIDE = ->
 
 routeToMachine = (options = {}) ->
 
-  cc = kd.singletons.computeController
+  { computeController: cc, socialapi, router } = kd.singletons
   { machine, slug, uid } = options
 
   if machine
@@ -110,54 +110,43 @@ routeToMachine = (options = {}) ->
           break  if machine.isMine()
         debug 'machine with slug', { slug, machine }
 
-      unless machine
+      if machine
+
+        # which means there is a collaboration session for this machine ~ GG
+        if machine.channelId and not machine.isPermanent()
+
+          socialapi.cacheable 'channel', machine.channelId, (err, channel) ->
+
+            query = { socialApiId: channel.creatorId }
+
+            remote.api.JAccount.some query, {}, (err, account) ->
+              if err or not account
+                console.warn 'Account not found'
+                return loadIDE { machine }
+
+              username  = account.first.profile.nickname
+              channelId = channel.id
+
+              return loadIDE { machine, username, channelId }
+
+        else
+          loadIDE { machine }
+
+      else
+
         [ machine ] = cc.storage.get 'machines'
+
         if machine
           if slug or uid
             showError 'Requested machine not found, first available machine is loaded instead.'
-          kd.getSingleton('router').handleRoute "/IDE/#{machine.slug}"
-          return
+          router.handleRoute "/IDE/#{machine.slug}"
+
+        else
+          router.handleRoute '/IDE'
 
       # if machine.isPermanent() or machine.meta?.oldOwner
       #   identifier = machine.uid
       # kd.getSingleton('router').handleRoute "/IDE/#{identifier}"
-
-      loadIDE { machine }
-
-
-loadCollaborativeIDE = (id) ->
-
-  { loadIDE } = module.exports
-
-  debug 'loadCollaborativeIDE called, loading normal IDE for now'
-  routeToMachine()
-
-  # kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
-
-  #   return routeToMachine()  if err
-
-  #   try
-
-  #     # FIXMEWS ~ GG
-  #     dataProvider.fetchMachineAndWorkspaceByChannelId id, (machine, workspace) ->
-  #       return routeToLatestWorkspace()  unless workspace
-
-  #       query = { socialApiId: channel.creatorId }
-
-  #       remote.api.JAccount.some query, {}, (err, account) ->
-  #         if err
-  #           routeToLatestWorkspace()
-  #           return throw new Error err
-
-  #         username  = account.first.profile.nickname
-  #         channelId = channel.id
-
-  #         return loadIDE { machine, workspace, username, channelId }
-
-  #   catch e
-
-  #     routeToLatestWorkspace()
-  #     return console.error e
 
 
 routeHandler = (type, info, state, path, ctx) ->
@@ -166,7 +155,7 @@ routeHandler = (type, info, state, path, ctx) ->
   # exported functions are not the same functions as the defined ones,
   # this is to make spies work in the future we hope to find a better way and
   # remove this imports. -- acet /cc usirin
-  { loadCollaborativeIDE, routeToMachine } = module.exports
+  { routeToMachine } = module.exports
 
   debug 'hit', type, info
 
@@ -177,12 +166,8 @@ routeHandler = (type, info, state, path, ctx) ->
     when 'machine'
 
       { machineLabel } = info.params
-      # routeToMachine machineLabel
 
-      # we assume that if machineLabel is all numbers it is the channelId - SY
-      if /^[0-9]+$/.test machineLabel
-        loadCollaborativeIDE machineLabel
-      else if machineLabel is 'test-machine'
+      if machineLabel is 'test-machine'
         routeToTestWorkspace()
       else
         slug = uid = machineLabel
@@ -190,6 +175,7 @@ routeHandler = (type, info, state, path, ctx) ->
 
     when 'workspace'
 
+      # for old links
       { machineLabel } = info.params
       kd.getSingleton('router').handleRoute "/IDE/#{machineLabel}"
 
@@ -200,7 +186,6 @@ module.exports = {
   loadIDENotFound
   loadIDE
   routeToMachine
-  loadCollaborativeIDE
   findInstance
   routeHandler
 
