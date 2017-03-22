@@ -247,6 +247,7 @@ func New(conf *Config) (*Kloud, error) {
 		transport.Log = sess.Log
 	}
 
+	kloud.Stack.Environment = conf.Environment
 	kloud.Stack.Endpoints = e
 	kloud.Stack.Userdata = sess.Userdata
 	kloud.Stack.DescribeFunc = provider.Desc

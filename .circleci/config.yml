@@ -127,7 +127,7 @@ jobs:
             - go-{{ .Branch }}
             - go-master
 
-      - run: go/build.sh
+      - run: env GOGC=10 go/build.sh
 
       - save_cache:
           key: go-{{ .Branch }}-{{ .Revision }}-{{ epoch }}

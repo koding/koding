@@ -8,10 +8,7 @@ import (
 	"testing"
 	"time"
 
-	mgo "gopkg.in/mgo.v2"
-
 	"github.com/koding/bongo"
-	"github.com/koding/cache"
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -83,16 +80,8 @@ func TestPresenceDailyVerifyRecord(t *testing.T) {
 					CreatedAt:     today,
 					paymentStatus: string(mongomodels.SubStatusActive),
 				}
-				key := getKey(ping, today)
-				_, err := pingCache.Get(key)
-				So(err, ShouldEqual, cache.ErrNotFound)
 
-				err = verifyRecord(ping, today)
-				So(err, ShouldBeNil)
-
-				// it should not be in cache
-				_, err = pingCache.Get(key)
-				So(err, ShouldEqual, cache.ErrNotFound)
+				So(verifyRecord(ping, today), ShouldBeNil)
 
 				// we should be able to get it from db
 				pd, err := getPresenceInfoFromDB(ping)
@@ -160,16 +149,8 @@ func TestPresenceDailyPing(t *testing.T) {
 					CreatedAt:     today,
 					paymentStatus: string(mongomodels.SubStatusActive),
 				}
-				key := getKey(ping, today)
-				_, err := pingCache.Get(key)
-				So(err, ShouldEqual, cache.ErrNotFound)
 
-				err = verifyRecord(ping, today)
-				So(err, ShouldBeNil)
-
-				// it should not be in cache
-				_, err = pingCache.Get(key)
-				So(err, ShouldEqual, cache.ErrNotFound)
+				So(verifyRecord(ping, today), ShouldBeNil)
 
 				// we should be able to get it from db
 				pd, err := getPresenceInfoFromDB(ping)
@@ -193,42 +174,13 @@ func TestPresenceCancelledStatus(t *testing.T) {
 					paymentStatus: "invalid",
 				}
 
-				err := verifyRecord(ping, today)
-				So(err, ShouldBeNil)
+				So(verifyRecord(ping, today), ShouldBeNil)
 
 				// we should be able to get it from db
 				pd, err := getPresenceInfoFromDB(ping)
 				So(err, ShouldBeNil)
 				So(pd, ShouldNotBeNil)
 				So(pd.IsProcessed, ShouldBeTrue)
-			})
-		})
-	})
-}
-
-func TestPresenceGetGroupPaymentStatusFromCache(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-		Convey("With non existing group", t, func() {
-			groupName := models.RandomGroupName()
-			Convey("should get err", func() {
-
-				status, err := getGroupPaymentStatusFromCache(groupName)
-				So(err, ShouldEqual, mgo.ErrNotFound)
-				So(status, ShouldBeEmpty)
-
-				Convey("With existing group", func() {
-					_, _, groupSlug := models.CreateRandomGroupDataWithChecks()
-
-					// make sure it is no in the cache
-					_, err = groupCache.Get(groupSlug)
-					So(err, ShouldEqual, cache.ErrNotFound)
-
-					Convey("should work properly with invalid payment status", func() {
-						status, err := getGroupPaymentStatusFromCache(groupSlug)
-						So(err, ShouldBeNil)
-						So(status, ShouldEqual, "invalid")
-					})
-				})
 			})
 		})
 	})

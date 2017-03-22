@@ -102,3 +102,5 @@ elektron/node_modules
 .env.sh
 .env.json
 website/apidocs/lang
+
+credential
