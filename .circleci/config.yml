@@ -23,6 +23,18 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: deploy
+          command: |
+            case "$CIRCLE_BRANCH" in
+              sandbox | latest | production) ;;
+              *) exit 0 ;;
+            esac
+
+            curl --user ${CIRCLE_API_TOKEN}: \
+                 --data build_parameters[CIRCLE_JOB]=deploy \
+                 https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/$CIRCLE_BRANCH
+
       - restore_cache:
           keys:
             - node_modules-{{ checksum "package.json" }}
@@ -203,3 +215,41 @@ jobs:
             [[ -n "$CODECOV_TOKEN" ]] && \
               bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
               exit 0
+
+  deploy:
+
+    docker:
+      - image: koding/circle@sha256:dec761b93b060282748019f40012988f4f4677f40827fd763579358f17e3c8ea
+
+    working_directory: ~/koding
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - node_modules-{{ checksum "package.json" }}
+      - restore_cache:
+          keys:
+            - client-node_modules-{{ checksum "client/package.json" }}
+      - restore_cache:
+          keys:
+            - landing-node_modules-{{ checksum "client/landing/package.json" }}
+
+      - run:
+          name: npm install
+          command: npm install --unsafe-perm
+
+      - run:
+          name: credentials
+          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
+
+      - run:
+          name: deploy
+          command: |
+            case "$CIRCLE_BRANCH" in
+              sandbox | latest | production) BRANCH=$CIRCLE_BRANCH ;;
+              *) BRANCH=sandbox ;;
+            esac
+
+            env BRANCH=$BRANCH scripts/ci/deploy
