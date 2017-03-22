@@ -95,10 +95,11 @@ func TestAddMount(t *testing.T) {
 
 	// Add testing mount.
 	addMountReq := &AddMountRequest{
-		MountRequest{
+		MountRequest: MountRequest{
 			ID:    id,
 			Mount: m,
 		},
+		Strategies: []string{},
 	}
 	addMountRes, err := g.AddMount(addMountReq)
 	if err != nil {
@@ -371,10 +372,11 @@ func TestUmount(t *testing.T) {
 func testAddMount(g *Group, id machine.ID, ms ...mount.Mount) (mountIDs mount.IDSlice, err error) {
 	for _, m := range ms {
 		req := &AddMountRequest{
-			MountRequest{
+			MountRequest: MountRequest{
 				ID:    id,
 				Mount: m,
 			},
+			Strategies: []string{},
 		}
 		res, err := g.AddMount(req)
 		if err != nil {

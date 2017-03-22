@@ -15,7 +15,7 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/notify"
-	"koding/klient/machine/transport/rsync"
+	"koding/klient/machine/mount/sync/prefetch"
 
 	"github.com/koding/logging"
 )
@@ -282,44 +282,30 @@ func (s *Sync) UpdateIndex() {
 	}
 }
 
-// FetchCmd creates a strategy with prefetch command to run.
-func (s *Sync) FetchCmd() (count, diskSize int64, cmd *rsync.Command, err error) {
+// Prefetch creates a strategy with prefetch command to run.
+func (s *Sync) Prefetch(av []string) (p prefetch.Prefetch, err error) {
 	spv := client.NewSupervised(s.opts.ClientFunc, 30*time.Second)
 	// Get remote username.
 	username, err := spv.CurrentUser()
 	if err != nil {
-		return 0, 0, nil, err
+		return p, err
 	}
 
 	// Get remote host and port.
 	host, port, err := s.opts.SSHFunc()
 	if err != nil {
-		return 0, 0, nil, err
+		return p, err
 	}
 
-	cmd = &rsync.Command{
-		Download:        true,
-		SourcePath:      s.m.RemotePath + "/",
-		DestinationPath: s.CacheDir() + "/",
+	opts := prefetch.Options{
+		SourcePath:      s.m.RemotePath,
+		DestinationPath: s.CacheDir(),
 		Username:        username,
 		Host:            host,
 		SSHPort:         port,
 	}
 
-	// Look for git VCS.
-	if n, ok := s.idx.LookupAll(".git"); ok && n.IsDir() {
-		// Download only git data.
-		cmd.SourcePath += ".git/"
-		cmd.DestinationPath += ".git/"
-
-		count = int64(n.CountAll(-1))
-		diskSize = n.DiskSizeAll(-1)
-	} else {
-		count = int64(s.idx.CountAll(-1))
-		diskSize = s.idx.DiskSizeAll(-1)
-	}
-
-	return count, diskSize, cmd, nil
+	return prefetch.DefaultStrategy.Select(opts, av, s.idx), nil
 }
 
 // Drop closes synced mount and cleans up all resources acquired by it.
