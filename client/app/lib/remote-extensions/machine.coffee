@@ -172,8 +172,15 @@ module.exports = class JMachine extends remote.api.JMachine
 
   getChannelId: -> @getAt 'channelId'
   setChannelId: (options, callback) ->
+    debug 'setChannelId', options
+    { storage } = kd.singletons.computeController
+
     super options, (err, machine) ->
       return callback err  if err
 
-      kd.singletons.computeController.storage.push 'machines', machine
+      storage.push 'machines', machine
+
+      unless options.channelId
+        delete (storage.get 'machines', '_id', machine._id).channelId
+
       callback err, machine

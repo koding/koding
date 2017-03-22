@@ -149,8 +149,7 @@ module.exports = class NFinderController extends KDViewController
 
   unmountMachine: (uid) ->
 
-    machineItem = @getMachineNode uid
-    return kd.warn 'No such Machine!'  unless machineItem
+    return  unless machineItem = @getMachineNode uid
 
     @stopWatching machineItem.data.path
     FSHelper.unregisterMachineFiles uid
