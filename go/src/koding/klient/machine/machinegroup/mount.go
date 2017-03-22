@@ -11,6 +11,7 @@ import (
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount/sync/prefetch"
 	"koding/klientctl/ssh"
 )
 
@@ -155,6 +156,10 @@ func userSSHPublicKey() (string, error) {
 // AddMountRequest defines machine group add mount request.
 type AddMountRequest struct {
 	MountRequest
+
+	// Strategies contains a set of prefetching strategies that can be used on
+	// local machine.
+	Strategies []string `json:"strategies"`
 }
 
 // AddMountResponse defines machine group add mount response.
@@ -162,26 +167,8 @@ type AddMountResponse struct {
 	// MountID is a unique identifier of created mount.
 	MountID mount.ID `json:"mountID"`
 
-	// Count stores the amount of files which are going to be prefetched.
-	Count int64 `json:"count"`
-
-	// DiskSize stores the size of all fetched files.
-	DiskSize int64 `json:"diskSize"`
-
-	// SourcePath defines source path from which file(s) will be pulled.
-	SourcePath string `json:"sourcePath"`
-
-	// DestinationPath defines destination path to which file(s) will be pushed.
-	DestinationPath string `json:"destinationPath"`
-
-	// Username defines remote machine user name.
-	Username string `json:"username"`
-
-	// Host defines the remote machine address.
-	Host string `json:"host"`
-
-	// SSHPort defines custom remote shell port.
-	SSHPort int `json:"sshPort"`
+	// Prefetch contains a command that can be run to prefetch mount files.
+	Prefetch prefetch.Prefetch `json:"prefetch"`
 }
 
 // AddMount fetches remote index, prepares mount cache, and runs mount sync in
@@ -229,23 +216,14 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 
 	g.log.Info("Successfully created mount %s for %s", mountID, req.Mount)
 
-	count, diskSize, cmd, err := sc.FetchCmd()
+	p, err := sc.Prefetch(req.Strategies)
 	if err != nil {
 		g.log.Error("Cannot prefetch mount data: %s", err)
-		return &AddMountResponse{
-			MountID: mountID,
-		}, nil
 	}
 
 	return &AddMountResponse{
-		MountID:         mountID,
-		Count:           count,
-		DiskSize:        diskSize,
-		SourcePath:      cmd.SourcePath,
-		DestinationPath: cmd.DestinationPath,
-		Username:        cmd.Username,
-		Host:            cmd.Host,
-		SSHPort:         cmd.SSHPort,
+		MountID:  mountID,
+		Prefetch: p,
 	}, nil
 }
 
