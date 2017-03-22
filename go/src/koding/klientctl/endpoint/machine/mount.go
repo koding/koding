@@ -1,23 +1,20 @@
 package machine
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/sync"
-	"koding/klient/machine/transport/rsync"
+	"koding/klient/machine/mount/sync/prefetch"
 
 	"github.com/dustin/go-humanize"
 	"github.com/koding/logging"
-	"github.com/mitchellh/ioprogress"
 )
 
 // MountOptions stores options for `machine mount` call.
@@ -100,6 +97,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 			ID:    idRes.ID,
 			Mount: m,
 		},
+		Strategies: prefetch.DefaultStrategy.Available(),
 	}
 	var addMountRes machinegroup.AddMountResponse
 
@@ -108,33 +106,12 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 
 	// Prefetch files.
-	if _, _, privPath, err := sshGetKeyPath(); err != nil {
+	_, _, privPath, err := sshGetKeyPath()
+	if err == nil {
+		err = addMountRes.Prefetch.Run(os.Stdout, prefetch.DefaultStrategy, privPath)
+	}
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot prefetch mount files: %s\n", err)
-	} else if addMountRes.SourcePath != "" && addMountRes.DestinationPath != "" {
-		cmd := &rsync.Command{
-			Download:        true,
-			SourcePath:      addMountRes.SourcePath,
-			DestinationPath: addMountRes.DestinationPath,
-			Username:        addMountRes.Username,
-			Host:            addMountRes.Host,
-			SSHPort:         addMountRes.SSHPort,
-			PrivateKeyPath:  privPath,
-			Progress:        drawProgress(os.Stdout, addMountRes.Count, addMountRes.DiskSize),
-		}
-
-		// Create initial progess report and run the command.
-		cmd.Progress(0, 0, 0, nil)
-		if err := cmd.Run(context.Background()); err != nil {
-			fmt.Fprintf(os.Stderr, "File prefetching interrupted: %s\n", err)
-		}
-
-		// Index needs to be updated after prefetching.
-		updateIndexReq := &machinegroup.UpdateIndexRequest{
-			MountID: addMountRes.MountID,
-		}
-		if err := c.klient().Call("machine.mount.updateIndex", updateIndexReq, nil); err != nil {
-			fmt.Fprintf(os.Stderr, "Cannot update mount index: %s\n", err)
-		}
 	}
 
 	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)
@@ -259,40 +236,6 @@ func removeContent(path string) error {
 
 		for _, name := range names {
 			os.RemoveAll(filepath.Join(path, name)) // Ignore errors.
-		}
-	}
-}
-
-func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, err error) {
-	const noop = 0
-
-	maxLength, speedLast := 0, int64(0)
-	return func(n, size, speed int64, err error) {
-		if err == io.EOF {
-			n, size, speed = nAll, sizeAll, speedLast
-		}
-
-		drawFunc := ioprogress.DrawTerminalf(w, func(_, _ int64) string {
-			line := fmt.Sprintf("Prefetching files: %.1f%% (%d/%d), %s/%s | %s/s",
-				float64(size)/float64(sizeAll)*100.0, // percentage status.
-				n,    // number of downloaded files.
-				nAll, // number of all files being downloaded.
-				humanize.IBytes(uint64(size)),    // size of downloaded files.
-				humanize.IBytes(uint64(sizeAll)), // total size.
-				humanize.IBytes(uint64(speed)),   // current downloading speed.
-			)
-
-			if len(line) < maxLength {
-				line = fmt.Sprintf("%s%s", line, strings.Repeat(" ", maxLength-len(line)))
-			}
-			maxLength, speedLast = len(line), speed
-
-			return line
-		})
-
-		drawFunc(noop, noop) // We are not using default values.
-		if err != nil {
-			drawFunc(-1, -1) // Finish drawing.
 		}
 	}
 }
