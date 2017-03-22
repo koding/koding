@@ -613,7 +613,7 @@ func (k *Klient) handleWithSub(method string, fn kite.HandlerFunc) {
 			return nil, err
 		}
 
-		if !team.IsSubActive(k.config.Environment) {
+		if !team.Paid {
 			k.log.Error("Method %q is blocked due to unpaid subscription for %s team.", method, team.Name)
 			return nil, errors.New("method is blocked")
 		}

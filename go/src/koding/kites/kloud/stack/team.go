@@ -67,6 +67,7 @@ func (k *Kloud) TeamWhoami(r *kite.Request) (interface{}, error) {
 			Slug:      group.Slug,
 			Privacy:   group.Privacy,
 			SubStatus: group.Payment.Subscription.Status,
+			Paid:      group.IsSubActive(k.Environment),
 		},
 	}, nil
 }
