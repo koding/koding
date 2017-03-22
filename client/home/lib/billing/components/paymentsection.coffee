@@ -18,7 +18,9 @@ module.exports = class PaymentSection extends React.Component
     super props
 
     @state =
+      hasSuccessModal: no
       hasCancelSubModal: no
+      isCanceling: no
 
 
   onSubmit: -> @_form.getWrappedInstance().submit()
@@ -40,9 +42,10 @@ module.exports = class PaymentSection extends React.Component
     @setState { hasCancelSubModal: no }
 
 
-  onCancelSubSuccess: ->
-    @setState { hasCancelSubModal: no }
-    @props.onCancelSubscription()
+  onCancelSubConfirm: ->
+    @setState { isCanceling: yes }
+    @props.onCancelSubscription().catch =>
+      @setState { isCanceling: no }
 
 
   onInviteMembers: ->
@@ -62,7 +65,7 @@ module.exports = class PaymentSection extends React.Component
       onResetForm, onCancelSubscription
       onMessageClose, onPaymentHistory } = @props
 
-    { hasSuccessModal, hasCancelSubModal, formVisible } = @state
+    { hasSuccessModal, hasCancelSubModal, formVisible, isCanceling } = @state
 
     buttonTitle = switch
       when submitting then 'SAVING...'
@@ -80,15 +83,18 @@ module.exports = class PaymentSection extends React.Component
         {message and
           <PaymentSectionMessage {...message} onCloseClick={onMessageClose} />}
 
-        <SubscriptionSuccessModal
-          isOpen={hasSuccessModal}
-          onCancel={=> @onSuccessModalClose()}
-          onInviteMembersClick={=> @onInviteMembers()} />
+        {hasSuccessModal and
+          <SubscriptionSuccessModal
+            isOpen={yes}
+            onCancel={=> @onSuccessModalClose()}
+            onInviteMembersClick={=> @onInviteMembers()} /> }
 
-        <CancelSubscriptionModal
-          isOpen={hasCancelSubModal}
-          onCancel={=> @onCancelSubCancel()}
-          onConfirm={=> @onCancelSubSuccess()} />
+        {hasCancelSubModal and
+          <CancelSubscriptionModal
+            isOpen={yes}
+            isCanceling={isCanceling}
+            onCancel={=> @onCancelSubCancel()}
+            onConfirm={=> @onCancelSubConfirm()} /> }
 
         {hasCard and
           <CardInfo

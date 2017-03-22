@@ -82,9 +82,9 @@ mapDispatchToProps = (dispatch) ->
       dispatch(resetForm(FORM_NAME))
     onCancelSubscription: ->
       dispatch(stripe.resetLastAction())
-      dispatch(subscription.remove()).then ->
-        dispatch(creditCard.remove()).then ->
-          location.reload()
+      dispatch(subscription.remove())
+        .then -> dispatch(creditCard.remove())
+        .then -> location.reload()
     onPaymentHistory: ->
       dispatch(stripe.resetLastAction())
       kd.singletons.router.handleRoute '/Home/payment-history'

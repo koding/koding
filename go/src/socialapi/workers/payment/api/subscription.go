@@ -6,7 +6,10 @@ import (
 	"socialapi/models"
 	"socialapi/workers/common/response"
 	"socialapi/workers/payment"
+	"socialapi/workers/presence"
+	"time"
 
+	"github.com/koding/bongo"
 	stripe "github.com/stripe/stripe-go"
 )
 
@@ -38,7 +41,18 @@ func CreateSubscription(u *url.URL, h http.Header, params *stripe.SubParams, con
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	return response.HandleResultAndError(
-		payment.EnsureSubscriptionForGroup(context.GroupName, params),
-	)
+	sub, err := payment.EnsureSubscriptionForGroup(context.GroupName, params)
+	if err != nil {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
+	}
+
+	ping := presence.Ping{
+		GroupName: context.GroupName,
+		AccountID: context.Client.Account.Id,
+		CreatedAt: time.Now().UTC(),
+	}
+	// send the ping request to the related worker
+	_ = bongo.B.PublishEvent(presence.EventName, ping) // best effort, nothing vital.
+
+	return response.NewOK(sub)
 }

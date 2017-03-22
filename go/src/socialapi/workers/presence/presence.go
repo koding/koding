@@ -13,20 +13,15 @@ import (
 	mgo "gopkg.in/mgo.v2"
 
 	"github.com/koding/bongo"
-	"github.com/koding/cache"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
-
-func init() {
-	pingCache.StartGC(time.Minute)
-	groupCache.StartGC(time.Minute)
-}
 
 const (
 	// EndpointPresencePing provides ping endpoint
 	EndpointPresencePing = "/presence/ping"
 
+	// EndpointPresenceListMembers lists the members that were active
 	EndpointPresenceListMembers = "/presence/listmembers"
 
 	// EndpointPresencePingPrivate provides private ping endpoint
@@ -36,14 +31,6 @@ const (
 const (
 	// EventName holds presence event name
 	EventName = "presence_ping"
-)
-
-var (
-	pingCache = cache.NewMemoryWithTTL(time.Hour)
-
-	// this may lead to max 5 mins of invalid tracking data if a group changes
-	// their sub status during that period
-	groupCache = cache.NewMemoryWithTTL(time.Minute * 5)
 )
 
 // Controller holds the basic context data for handlers
@@ -86,7 +73,7 @@ func (c *Controller) Ping(ping *Ping) error {
 		return nil
 	}
 
-	status, err := getGroupPaymentStatusFromCache(ping.GroupName)
+	status, err := getGroupPaymentStatus(ping.GroupName)
 	if err == mgo.ErrNotFound {
 		return nil // if group is not found in db, no need to process further
 	}
@@ -98,29 +85,7 @@ func (c *Controller) Ping(ping *Ping) error {
 	ping.paymentStatus = status
 
 	today := getTodayBeginningDate()
-	// we add date here to invalidate cache item(s) after date changes
-	key := getKey(ping, today)
-
-	// if we find item in the cache, that means we processed it previously
-	if _, err := pingCache.Get(key); err == nil {
-		return nil
-	}
-
-	if err := verifyRecord(ping, today); err != nil {
-		return err
-	}
-
-	return pingCache.Set(key, struct{}{})
-}
-
-func getKey(ping *Ping, today time.Time) string {
-	return fmt.Sprintf(
-		"%s_%d_%s_%d",
-		ping.GroupName,
-		ping.AccountID,
-		ping.paymentStatus,
-		today.Day(),
-	)
+	return verifyRecord(ping, today)
 }
 
 // verifyRecord checks if the daily occurrence is in the db, if not found creates
@@ -186,19 +151,7 @@ func insertPresenceInfoToDB(ping *Ping) error {
 	return p.Create()
 }
 
-func getGroupPaymentStatusFromCache(groupName string) (string, error) {
-	data, err := groupCache.Get(groupName)
-	if err != nil && err != cache.ErrNotFound {
-		return "", err
-	}
-
-	if err == nil {
-		status, ok := data.(string)
-		if ok {
-			return status, nil
-		}
-	}
-
+func getGroupPaymentStatus(groupName string) (string, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
 		return "", err
@@ -210,8 +163,5 @@ func getGroupPaymentStatusFromCache(groupName string) (string, error) {
 		status = "invalid"
 	}
 
-	if err := groupCache.Set(groupName, status); err != nil {
-		return "", err
-	}
 	return string(status), nil
 }

@@ -42,6 +42,7 @@ Modal.defaultProps =
   width: 'large'
   height: 'normal'
   showAlien: no
+  contentLabel: ''
 
 
 exports.Header = Modal.Header = ({ title }) ->
@@ -66,13 +67,19 @@ exports.Footer = Modal.Footer = (props) ->
   <div className={styles.footer}>
     <div className={styles.footerContainer}>
 
-      <Button type={secondaryButtonType} size={primaryButtonSize} onClick={onSecondaryButtonClick}>
-        {secondaryButtonTitle}
-      </Button>
+      <Button
+        disabled={props.disabled}
+        type={secondaryButtonType}
+        size={primaryButtonSize}
+        onClick={onSecondaryButtonClick}
+        children={secondaryButtonTitle} />
 
-      <Button type={primaryButtonType} size={secondaryButtonSize} onClick={onPrimaryButtonClick}>
-        {primaryButtonTitle}
-      </Button>
+      <Button
+        disabled={props.disabled}
+        type={primaryButtonType}
+        size={secondaryButtonSize}
+        onClick={onPrimaryButtonClick}
+        children={primaryButtonTitle} />
 
     </div>
   </div>

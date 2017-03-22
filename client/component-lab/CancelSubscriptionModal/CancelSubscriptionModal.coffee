@@ -7,7 +7,7 @@ styles = require './CancelSubscriptionModal.stylus'
 
 module.exports = CancelSubscriptionModal = (props) ->
 
-  { isOpen, onConfirm, onCancel } = props
+  { isCanceling, isOpen, onConfirm, onCancel } = props
 
   modalProps =
     showAlien: no
@@ -15,6 +15,10 @@ module.exports = CancelSubscriptionModal = (props) ->
     onRequstClose: onCancel
     width: 'xlarge'
     height: 'tall'
+
+  primaryTitle = if isCanceling
+  then 'Canceling...'
+  else 'Yes, Cancel Subscription'
 
   <Modal {...modalProps}>
     <Header title='Cancel Subscription' />
@@ -24,7 +28,9 @@ module.exports = CancelSubscriptionModal = (props) ->
       </div>
       <div>
         <Label size="large" type="danger">
-          <strong style={fontWeight: 'bold'}>You are about to cancel your team’s subscription</strong>
+          <strong style={fontWeight: 'bold'}>
+            You are about to cancel your team’s subscription
+          </strong>
         </Label>
       </div>
       <div style={lineHeight: '20px'}>
@@ -36,7 +42,8 @@ module.exports = CancelSubscriptionModal = (props) ->
       </div>
     </Content>
     <Footer
-      primaryButtonTitle='Yes, Cancel Subscription'
+      disabled={isCanceling}
+      primaryButtonTitle={primaryTitle}
       primaryButtonSize='medium'
       onPrimaryButtonClick={onConfirm}
       secondaryButtonTitle='Close'
