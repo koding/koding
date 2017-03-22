@@ -27,8 +27,9 @@ func (s Strategy) Available() (av []string) {
 		}
 		w := pref.Weight()
 
-		names := byWeight[w]
-		byWeight[w] = append(names, name)
+		names := append(byWeight[w], name)
+		sort.Strings(names)
+		byWeight[w] = names
 	}
 
 	// Get unique weights.
@@ -62,6 +63,7 @@ func (s Strategy) Select(opts Options, av []string, idx *index.Index) Prefetch {
 		}
 
 		if suffix, count, diskSize, err := pref.Scan(idx); err == nil {
+			p.Strategy = name
 			p.SourcePath += suffix
 			p.DestinationPath += suffix
 			p.Count, p.DiskSize = count, diskSize
