@@ -18,6 +18,7 @@ module.exports = class PaymentSection extends React.Component
     super props
 
     @state =
+      hasSuccessModal: no
       hasCancelSubModal: no
 
 
