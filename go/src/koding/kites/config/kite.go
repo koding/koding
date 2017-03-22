@@ -3,12 +3,16 @@ package config
 import (
 	"koding/httputil"
 
-	"github.com/igm/sockjs-go/sockjs"
 	"github.com/koding/kite/config"
 )
 
+// Disabling compression due to errors like:
+//
+//   readloop err: websocket: close 1002 (protocol error): unexpected reserved bits 0x40
+//
+
 func init() {
-	sockjs.WebSocketUpgrader.EnableCompression = true
+	// sockjs.WebSocketUpgrader.EnableCompression = true
 }
 
 // ReadKiteConfig reads new kite config by reading kite
@@ -22,7 +26,7 @@ func ReadKiteConfig(debug bool) (*config.Config, error) {
 		return nil, err
 	}
 
-	cfg.Websocket.EnableCompression = true
+	// cfg.Websocket.EnableCompression = true
 	cfg.Client = httputil.Client(debug)
 	cfg.XHR = httputil.ClientXHR(debug)
 	cfg.Transport = config.XHRPolling
@@ -34,7 +38,7 @@ func ReadKiteConfig(debug bool) (*config.Config, error) {
 // server and client connections for use with koding kites.
 func NewKiteConfig(debug bool) *config.Config {
 	cfg := config.New()
-	cfg.Websocket.EnableCompression = true
+	// cfg.Websocket.EnableCompression = true
 	cfg.Client = httputil.Client(debug)
 	cfg.XHR = httputil.ClientXHR(debug)
 	cfg.Transport = config.XHRPolling
