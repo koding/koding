@@ -42,6 +42,7 @@ Modal.defaultProps =
   width: 'large'
   height: 'normal'
   showAlien: no
+  contentLabel: ''
 
 
 exports.Header = Modal.Header = ({ title }) ->
