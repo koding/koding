@@ -2,6 +2,7 @@ package prefetch
 
 import (
 	"sort"
+	"strings"
 
 	"koding/klient/machine/index"
 )
@@ -54,6 +55,14 @@ func (s Strategy) Available() (av []string) {
 func (s Strategy) Select(opts Options, av []string, idx *index.Index) Prefetch {
 	p := Prefetch{
 		Options: opts,
+		WorkDir: strings.TrimRight(opts.DestinationPath, "/"),
+	}
+
+	if p.SourcePath != "" && !strings.HasSuffix(p.SourcePath, "/") {
+		p.SourcePath += "/"
+	}
+	if p.DestinationPath != "" && !strings.HasSuffix(p.DestinationPath, "/") {
+		p.DestinationPath += "/"
 	}
 
 	for _, name := range av {

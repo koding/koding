@@ -1,7 +1,16 @@
 package prefetch
 
 import (
+	"context"
+	"fmt"
+	"io"
+	"strings"
+
 	"koding/klient/machine/index"
+	"koding/klient/machine/transport/rsync"
+
+	"github.com/dustin/go-humanize"
+	"github.com/mitchellh/ioprogress"
 )
 
 // Prefetcher defines a set of methods that are needed to safely prefetch
@@ -48,6 +57,9 @@ type Options struct {
 type Prefetch struct {
 	Options
 
+	// WorkDir represents destination files working directory.
+	WorkDir string `json:"workDir"`
+
 	// Strategy strategy stores the name of strategy used to prefetch files.
 	Strategy string `json:"strategy"`
 
@@ -58,45 +70,44 @@ type Prefetch struct {
 	DiskSize int64 `json:"diskSize"`
 }
 
-/*
-// FetchCmd creates a strategy with prefetch command to run.
-func (s *Sync) FetchCmd() (count, diskSize int64, cmd *rsync.Command, err error) {
-	spv := client.NewSupervised(s.opts.ClientFunc, 30*time.Second)
-	// Get remote username.
-	username, err := spv.CurrentUser()
-	if err != nil {
-		return 0, 0, nil, err
+// Run ues rsync to prefetch files. It writes information about prefetching
+// progress to provided writer. Strategy is used to post run operations after
+// prefetching.
+func (p *Prefetch) Run(w io.Writer, s Strategy, privPath string) error {
+	if p.Strategy == "" {
+		fmt.Fprintf(w, "Prefetching is disabled, skipping.\n")
+		return nil
 	}
 
-	// Get remote host and port.
-	host, port, err := s.opts.SSHFunc()
-	if err != nil {
-		return 0, 0, nil, err
+	pref, ok := s[p.Strategy]
+	if !ok {
+		return fmt.Errorf("missing %s file prefetching strategy", p.Strategy)
 	}
 
-	cmd = &rsync.Command{
+	if p.SourcePath == "" || p.DestinationPath == "" {
+		return fmt.Errorf("missing prefetching paths")
+	}
+
+	fmt.Fprintf(w, "Using %s files strategy to prefetch initial mount data.\n", p.Strategy)
+
+	cmd := &rsync.Command{
 		Download:        true,
-		SourcePath:      s.m.RemotePath + "/",
-		DestinationPath: s.CacheDir() + "/",
-		Username:        username,
-		Host:            host,
-		SSHPort:         port,
+		SourcePath:      p.SourcePath,
+		DestinationPath: p.DestinationPath,
+		Username:        p.Username,
+		Host:            p.Host,
+		SSHPort:         p.SSHPort,
+		PrivateKeyPath:  privPath,
+		Progress:        drawProgress(w, p.Count, p.DiskSize),
 	}
 
-	// Look for git VCS.
-	if n, ok := s.idx.LookupAll(".git"); ok && n.IsDir() {
-		// Download only git data.
-		cmd.SourcePath += ".git/"
-		cmd.DestinationPath += ".git/"
-
-		count = int64(n.CountAll(-1))
-		diskSize = n.DiskSizeAll(-1)
-	} else {
-		count = int64(s.idx.CountAll(-1))
-		diskSize = s.idx.DiskSizeAll(-1)
+	// Create initial progess report and run the command.
+	cmd.Progress(0, 0, 0, nil)
+	if err := cmd.Run(context.Background()); err != nil {
+		return fmt.Errorf("file prefetching interrupted (%s)", err)
 	}
 
-	return count, diskSize, cmd, nil
+	return pref.PostRun(p.WorkDir)
 }
 
 func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, err error) {
@@ -132,4 +143,3 @@ func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, e
 		}
 	}
 }
-*/
