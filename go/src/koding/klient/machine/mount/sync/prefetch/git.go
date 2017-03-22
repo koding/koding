@@ -42,7 +42,7 @@ func (Git) Scan(idx *index.Index) (suffix string, count, diskSize int64, err err
 // directory.
 func (Git) PostRun(wd string) error {
 	var (
-		buf = bytes.Buffer{}
+		buf bytes.Buffer
 		cmd = exec.Command("git", "reset", "--hard")
 	)
 

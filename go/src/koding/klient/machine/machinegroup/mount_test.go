@@ -99,7 +99,6 @@ func TestAddMount(t *testing.T) {
 			ID:    id,
 			Mount: m,
 		},
-		Strategies: []string{},
 	}
 	addMountRes, err := g.AddMount(addMountReq)
 	if err != nil {
@@ -376,7 +375,6 @@ func testAddMount(g *Group, id machine.ID, ms ...mount.Mount) (mountIDs mount.ID
 				ID:    id,
 				Mount: m,
 			},
-			Strategies: []string{},
 		}
 		res, err := g.AddMount(req)
 		if err != nil {
