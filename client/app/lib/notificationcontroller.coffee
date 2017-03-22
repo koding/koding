@@ -10,6 +10,7 @@ KDObject           = kd.Object
 ContentModal = require 'app/components/contentModal'
 EnvironmentFlux = require 'app/flux/environment'
 
+actions = require 'app/flux/environment/actiontypes'
 remote_extensions  = require 'app/remote-extensions'
 
 
@@ -84,7 +85,7 @@ module.exports = class NotificationController extends KDObject
 
   setListeners: ->
 
-    { computeController } = kd.singletons
+    { computeController: { storage }, reactor } = kd.singletons
 
     @on 'GuestTimePeriodHasEnded', deleteUserCookie
 
@@ -118,14 +119,29 @@ module.exports = class NotificationController extends KDObject
       { appManager } = kd.singletons
 
       switch action
+
         when 'removed'
           EnvironmentFlux.actions.dispatchSharedVMInvitationRejected machineUId
           ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
-          ideInstance.showUserRemovedModal()  if ideInstance and permanent
+          ideInstance.showUserRemovedModal()  if ideInstance # and permanent
 
-      # FIXMERESET ~ GG
-      debug 'FIXMERESET', 'MachineListUpdated', data
-      # computeController.reset yes
+          machine = storage.get 'machines', 'uid', machineUId
+          storage.pop 'machines', machine
+
+          reactor.dispatch actions.SHARED_VM_INVITATION_REJECTED, machine._id
+
+        when 'added'
+          storage.fetch 'machines', 'uid', machineUId
+            .then (machine) ->
+              reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, [ machine ]
+              return machine
+
+            .catch (err) ->
+              kd.warn 'Failed to fetch machine', { err, machineUId }
+              return err
+
+      debug 'MachineListUpdated', data
+
 
     @on 'UsernameChanged', ({ username, oldUsername }) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
