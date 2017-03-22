@@ -77,19 +77,18 @@ module.exports = class Collaboration extends Base
     setUsers client, channelId, options, (err, machine) ->
       return callback err  if err
 
-      data =  { channelId, group: client?.context?.group }
-
+      data = { channelId, group: client?.context?.group }
       notifyByUsernames options.target, 'CollaborationInvitation', data
 
-      callback()
+      callback null, machine
 
 
   @kick = secure (client, channelId, target, callback) ->
 
-    asUser  = no
-    options = { target, asUser }
+    options = { target, asUser: no }
     setUsers client, channelId, options, (err, machine) ->
-      callback err, machine
+      return callback err  if err
+      callback null, machine
 
 
   setUsers = (client, channelId, options, callback) ->
@@ -101,4 +100,5 @@ module.exports = class Collaboration extends Base
       return callback new KodingError 'Machine not found'  unless machine
 
       machine.shareWith$ client, options, (err) ->
-        callback err, machine
+        return callback err  if err
+        JMachine.one { _id: machine._id }, callback

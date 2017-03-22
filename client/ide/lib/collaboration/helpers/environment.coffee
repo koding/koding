@@ -1,4 +1,5 @@
 _                           = require 'lodash'
+kd                          = require 'kd'
 async                       = require 'async'
 remote                      = require 'app/remote'
 socialHelpers               = require './social'
@@ -33,9 +34,11 @@ setMachineUser = (machine, usernames, share, callback) ->
   method = if share then 'add' else 'kick'
   channelId = machine.getChannelId()
 
+  remote.api.Collaboration[method] channelId, usernames, (err, _machine) ->
 
-  remote.api.Collaboration[method] channelId, usernames, (err) ->
     return callback err  if err
+
+    kd.singletons.computeController.storage.push 'machines', _machine
 
     kite   = machine.getBaseKite()
     method = if share then 'klientShare' else 'klientUnshare'
