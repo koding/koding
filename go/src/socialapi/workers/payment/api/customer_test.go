@@ -188,7 +188,8 @@ func TestInfoPlan(t *testing.T) {
 							err = json.Unmarshal(res, v)
 							So(err, ShouldBeNil)
 
-							So(v.ExpectedPlan.ID, ShouldEqual, planID)
+							// we use "in" here because presence request is not synchronous and might create issues
+							So(v.ExpectedPlan.ID, ShouldBeIn, []string{payment.Free, payment.Solo})
 						})
 					})
 				})
