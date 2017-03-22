@@ -112,10 +112,14 @@ routeToMachine = (options = {}) ->
 
       if machine
 
+        mine          = machine.isMine()
+        collaboration = machine.channelId? and not machine.isPermanent()
         # which means there is a collaboration session for this machine ~ GG
-        if machine.channelId and not machine.isPermanent()
+        if not mine and collaboration
 
           socialapi.cacheable 'channel', machine.channelId, (err, channel) ->
+
+            return loadIDE { machine }  if err or not channel
 
             query = { socialApiId: channel.creatorId }
 
