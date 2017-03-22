@@ -134,6 +134,7 @@ module.exports = class ComputeStorage extends kd.Object
 
     debug 'push', type, value
 
+    return  unless value
     return  if isGroupDisabled()
 
     debug 'before push', @storage
@@ -179,7 +180,7 @@ module.exports = class ComputeStorage extends kd.Object
     prePop?.call this, value
 
     @storage[type] = @storage[type].filter (item) ->
-      item._id isnt value
+      item[key] isnt value
 
     postPop?.call this, value
 
