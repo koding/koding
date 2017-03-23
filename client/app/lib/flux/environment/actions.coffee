@@ -145,12 +145,9 @@ rejectInvitation = (_machine) ->
 
     (callback) ->
 
-      if denyMachine
-        machine.deny (err) ->
-          showError err  if err
-          callback err
-      else
-        callback()
+      machine.deny (err) ->
+        showError err  if err
+        callback err
 
     (callback) ->
 

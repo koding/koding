@@ -148,12 +148,7 @@ module.exports = CollaborationController =
       machineUId : @getMachine().uid
     }
 
-    # Check collaboration sessions of participant.
-    # If participant has 2 or more active collaboration sessions, don't remove
-    # access from machine
-    # FIXMEWS ~ GG
-    # envHelpers.isUserStillParticipantOnMachine options, (status) =>
-    #   @removeParticipantFromMachine username  unless status
+    @removeParticipantFromMachine username
 
 
   # Remove leaved / kicked participants from the mounted machine
@@ -1100,16 +1095,16 @@ module.exports = CollaborationController =
 
   handleCollaborationEndedForParticipant: ->
 
-    # TODO: fix explicit state checks.
-    return  unless @stateMachine.state in ['Active', 'Ending']
+    return  unless @stateMachine?.state in ['Active', 'Ending']
+    return  unless machine = @getMachine()
 
     { reactor } = kd.singletons
 
-    machine = @getMachine()
-
     reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, machine._id
-    machine.setChannelId {}, (err) ->
-      console.warn 'Failed to set channelId', err  if err
+
+    if machine.isMine()
+      machine.setChannelId {}, (err) ->
+        console.warn 'Failed to set channelId', err  if err
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
