@@ -1,5 +1,6 @@
 # Koding
 
+[![Slack Status](http://cebeci.koding.com/slackin/badge.svg)](https://cebeci.koding.com/slackin/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/koding/koding.svg?maxAge=2592000)](https://hub.docker.com/r/koding/koding/)
 
 The Simplest Way to Manage Your Entire Dev Infrastructure!
