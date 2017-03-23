@@ -70,7 +70,7 @@ bootup = ->
 
   mainController.ready ->
     setupChatlio()
-    setupIntercom()
+    # setupIntercom()
 
 
   ###
