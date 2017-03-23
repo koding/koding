@@ -112,18 +112,17 @@ routeToMachine = (options = {}) ->
 
       if machine
 
-        mine          = machine.isMine()
-        collaboration = machine.channelId? and not machine.isPermanent()
-        # which means there is a collaboration session for this machine ~ GG
-        if not mine and collaboration
+        if machine.isShared()
 
           socialapi.cacheable 'channel', machine.channelId, (err, channel) ->
 
-            return loadIDE { machine }  if err or not channel
+            if err or not channel
+              return loadIDE { machine }
 
             query = { socialApiId: channel.creatorId }
 
             remote.api.JAccount.some query, {}, (err, account) ->
+
               if err or not account
                 console.warn 'Account not found'
                 return loadIDE { machine }
@@ -131,9 +130,10 @@ routeToMachine = (options = {}) ->
               username  = account.first.profile.nickname
               channelId = channel.id
 
-              return loadIDE { machine, username, channelId }
+              loadIDE { machine, username, channelId }
 
         else
+
           loadIDE { machine }
 
       else
@@ -142,11 +142,12 @@ routeToMachine = (options = {}) ->
 
         if machine
           if slug or uid
-            showError 'Requested machine not found, first available machine is loaded instead.'
+            showError 'Requested machine not found, first available
+                       machine is loaded instead.'
           router.handleRoute "/IDE/#{machine.slug}"
-
         else
           router.handleRoute '/IDE'
+
 
       # if machine.isPermanent() or machine.meta?.oldOwner
       #   identifier = machine.uid
