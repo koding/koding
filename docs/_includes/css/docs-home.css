@@ -192,11 +192,11 @@
   color: #727272;
   font-weight: 700;
   font-size: 17px;
-  padding-top: 38px;
   display: block;
   text-decoration: none;
   padding-bottom: 8px;
   line-height: 17px;
+  padding-top: 38px;
 }
 
 .docs__index__body__content ul.terraform-docs > li > a,

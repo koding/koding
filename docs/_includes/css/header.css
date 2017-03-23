@@ -416,6 +416,15 @@ body {
     font-weight: 600;
   } 
 
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub .terraform-docs li li li li a {
+    padding-left: 60px;
+  }
+
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub .terraform-docs li li li li li a {
+    padding-left: 80px;
+  }
+
   .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a.hovered {
     background-color: rgba(0, 0, 0, 0.05);
   }
@@ -487,6 +496,15 @@ body {
     font-weight: 500;
     font-size: 16px;
     padding: 11px 0 13px 54px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs li li li li a {
+    padding-left: 74px;
+  }
+
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs li li li li li a {
+    padding-left: 94px;
   }
 
   .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub {

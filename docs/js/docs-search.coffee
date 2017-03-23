@@ -6,7 +6,7 @@ do ->
   results = null
 
   docsSearchEl = $ ".docs__search"
-  item = false
+  item   = 0
   UP     = 38
   DOWN   = 40
   ENTER  = 13
@@ -16,29 +16,36 @@ do ->
     search.find(".docs__index__results__row").eq(pos).addClass("hovered")
 
   keyThroughPulldown = (keynum, search) ->
-    if item is false
 
-      item = 0
-      highlightRow search, item
-      return
-
-    if item isnt false 
-
-      if keynum is DOWN or keynum is UP
-        if keynum is DOWN
-          item++
-        else if keynum is UP
-          if item is 0
-            item = false
-          else
-            item--
-
+    switch keynum
+      when DOWN
+        item++
         highlightRow search, item
-        return
 
-      if keynum is ENTER
+      when UP
+        if item isnt 0
+          item--
+          highlightRow search, item
+
+      when ENTER
         search.find(".docs__index__results__row.hovered")[0].click()
-        return
+
+  createResultsRowsHeader = (item) ->
+    "<div class='docs__index__results__header'>#{item.title}</div>"
+
+  createResultsRows = (items) ->
+    items.map(createResultsRowTemplate).join("")
+
+  createResultsRowTemplate = (obj) ->
+
+    description = if obj.description then "<span class='results__row__description'>#{obj.description}</span>" else ""
+    url         = if obj.id then "/docs/#{obj.id}" else obj.url
+
+    "<a href='#{url}' class='docs__index__results__row'>
+      <span class='results__row__title'>#{obj.title}</span>
+      #{description}
+    </a>"
+
 
   docsSearchEl.find("input").keyup (e) ->
 
@@ -50,12 +57,10 @@ do ->
       return
 
     item = false
+    if results then results.remove()
 
     value = $.trim($(this).val())
-
-    if results then results.remove()
     $thisSearch.append "<div class='docs__index__results'></div>"
-
     results = $thisSearch.find ".docs__index__results"
 
     navDocs.forEach (doc) ->
@@ -64,21 +69,10 @@ do ->
         return obj.title.toLowerCase().indexOf(value) != -1
 
       if items.length
+        results.append createResultsRowsHeader doc
+        results.append createResultsRows items
 
-        results.append "<div class='docs__index__results__header'>#{doc.title}</div>"
-
-        items
-          .map (obj) ->
-            description = ""
-
-            if obj.description
-              description = "<div class='results__row__description'>#{obj.description}</div>"
-
-            url = if obj.id then "/docs/#{obj.id}" else obj.url
-
-            return "<a href='#{url}' class='docs__index__results__row'><span class='results__row__title'>#{obj.title}</span>#{description}</a>"
-          .forEach (obj) ->
-            results.append(obj)
+        results.find(".docs__index__results__row").first().addClass("hovered")
 
   $(document).click (event) ->
     if !$(event.target).closest(".docs__search").length && results

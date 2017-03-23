@@ -83,7 +83,7 @@
   navDocsSubEl.on('mouseover', 'a', function() {
 
     var navDocsSubLabel = $(this).closest('ul').siblings('a');
-    var matchingElement = navDocsSubEl.find("a:contains('"+ navDocsSubLabel.html() + "')");
+    var matchingElement = navDocsEl.find("a:contains('"+ navDocsSubLabel.html() + "')");
     matchingElement.addClass('hovered');
   });
 
