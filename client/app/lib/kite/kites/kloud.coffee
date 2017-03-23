@@ -140,7 +140,6 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
     klientKite.ping()
 
       .then (res) ->
-
         if res is 'pong'
           callback { State: Running, via: 'klient' }
         else

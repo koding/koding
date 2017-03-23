@@ -1296,20 +1296,6 @@ module.exports = CollaborationController =
     """
 
 
-  onWorkspaceChannelChanged: ->
-
-    return  unless @stateMachine
-
-    channelId = @getMachine().getChannelId()
-
-    if channelId and typeof channelId is 'string' and channelId.length
-      return  unless @stateMachine.state is 'NotStarted'
-      @stateMachine.transition 'Loading'
-
-    else if @stateMachine.state is 'Active'
-      @stateMachine.transition 'Ending'
-
-
   attendWorkspaceChannel: ->
 
     { notificationController } = kd.singletons

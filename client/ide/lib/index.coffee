@@ -212,24 +212,6 @@ module.exports = class IDEAppController extends AppController
         return res
 
 
-  # bindWorkspaceDataEvents: ->
-
-  #   @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
-
-  #   return  unless @workspaceData
-
-  #   unless 'function' is typeof @workspaceData.on
-  #     @workspaceData = remote.revive @workspaceData
-
-  #   @workspaceData.on 'update', (fields) =>
-
-  #     fields.forEach (field) =>
-
-  #       switch field
-  #         when 'channelId'
-  #           @emit 'WorkspaceChannelChanged'
-
-
   handleWindowFocus: (state) ->
 
     return  unless global.document.contains @getView().getElement()
