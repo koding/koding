@@ -155,8 +155,7 @@ func (kt *KiteTransport) kite() *kite.Kite {
 		return kt.k
 	}
 
-	kt.k = kite.New(config.Name, config.KiteVersion)
-	kt.k.Config = kt.kiteConfig()
+	kt.k = kite.NewWithConfig(config.Name, config.KiteVersion, kt.kiteConfig())
 	kt.k.Log = kt.log()
 
 	return kt.k
@@ -170,7 +169,6 @@ func (kt *KiteTransport) kiteConfig() *kitecfg.Config {
 	kt.kCfg = kt.konfig().KiteConfig()
 	kt.kCfg.KontrolURL = kt.konfig().Endpoints.Kontrol().Public.String()
 	kt.kCfg.Environment = config.Environment
-	kt.kCfg.Transport = kitecfg.XHRPolling
 
 	return kt.kCfg
 }

@@ -157,6 +157,7 @@ type Sync struct {
 	s Syncer          // object responsible for actual file synchronization.
 
 	idx *index.Index // known state of managed index.
+	iu  *IdxUpdate   // local index updater.
 }
 
 // NewSync creates a new sync instance for a given mount. It ensures basic mount
@@ -185,11 +186,17 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		return nil, err
 	}
 
+	// Path to index file.
+	idxPath := filepath.Join(s.opts.WorkDir, IndexFileName)
+
 	// Fetch remote index which will become managed one.
 	var err error
-	if s.idx, err = s.loadIdx(IndexFileName); err != nil {
+	if s.idx, err = s.loadIdx(idxPath); err != nil {
 		return nil, err
 	}
+
+	// Periodically flush memory index to disk.
+	s.iu = NewIdxUpdate(idxPath, s.idx.Clone(), 60*time.Second, s.log)
 
 	// Initialize skippers.
 	if err = s.sk.Initialize(s.CacheDir()); err != nil {
@@ -320,13 +327,12 @@ func (s *Sync) Close() error {
 		close(s.closeC)
 	})
 
-	return nonil(s.n.Close(), s.s.Close(), s.a.Close())
+	return nonil(s.n.Close(), s.s.Close(), s.a.Close(), s.iu.Close())
 }
 
 // loadIdx reads named index from synced working directory. If index file does
 // not exist, it will be downloaded from remote machine and saved.
-func (s *Sync) loadIdx(name string) (*index.Index, error) {
-	path := filepath.Join(s.opts.WorkDir, name)
+func (s *Sync) loadIdx(path string) (*index.Index, error) {
 	f, err := os.Open(path)
 	if os.IsNotExist(err) {
 		// Downloads remote index.
@@ -351,6 +357,7 @@ func (s *Sync) indexSync() IndexSyncFunc {
 
 	return func(c *index.Change) {
 		s.idx.Sync(cacheDir, c)
+		s.iu.Update(cacheDir, c)
 	}
 }
 

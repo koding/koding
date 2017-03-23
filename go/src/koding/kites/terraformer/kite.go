@@ -3,22 +3,20 @@ package terraformer
 import (
 	"errors"
 	"koding/artifact"
+	"koding/kites/config"
 
 	"github.com/koding/kite"
-	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/metrics"
 )
 
 // NewKite creates a new kite for serving terraformer
 func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
-	var err error
-	k := kite.New(Name, Version)
-	k.Config, err = kiteconfig.Get()
+	cfg, err := config.ReadKiteConfig(conf.Debug)
 	if err != nil {
 		return nil, err
 	}
 
-	k = setupKite(k, conf)
+	k := setupKite(kite.NewWithConfig(Name, Version, cfg), conf)
 
 	// handle current status of terraformer
 	k.PostHandleFunc(t.handleState)

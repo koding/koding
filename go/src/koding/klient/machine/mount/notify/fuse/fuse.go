@@ -223,7 +223,7 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		return err
 	}
 
-	entry := oldNd.Entry.Copy()
+	entry := oldNd.Entry.Clone()
 
 	fs.mu.Lock()
 	fs.inodes[fuseops.InodeID(entry.Inode())] = newPath

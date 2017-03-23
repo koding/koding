@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"koding/artifact"
-	"koding/httputil"
 	konfig "koding/kites/config"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
@@ -26,7 +25,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/koding/tunnel"
@@ -40,12 +38,11 @@ type ServerOptions struct {
 	SecretKey       string `json:"secretKey"`
 
 	// Server kite config.
-	Port        int            `json:"port" required:"true"`
-	Region      string         `json:"region" required:"true"`
-	Environment string         `json:"environment" required:"true"`
-	Config      *config.Config `json:"kiteConfig"`
-	RegisterURL string         `json:"registerURL"`
-	KontrolURL  string         `json:"kontrolURL"`
+	Port        int    `json:"port" required:"true"`
+	Region      string `json:"region" required:"true"`
+	Environment string `json:"environment" required:"true"`
+	RegisterURL string `json:"registerURL"`
+	KontrolURL  string `json:"kontrolURL"`
 
 	TCPRangeFrom int    `json:"tcpRangeFrom,omitempty"`
 	TCPRangeTo   int    `json:"tcpRangeTo,omitempty"`
@@ -820,38 +817,32 @@ func (s *Server) serverHandler() http.HandlerFunc {
 
 // NewServerKite creates a server kite for the given server.
 func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
-	k := kite.New(name, version)
-
-	if s.opts.Config == nil {
-		cfg, err := config.Get()
-		if err != nil {
-			return nil, err
-		}
-		s.opts.Config = cfg
+	cfg, err := konfig.ReadKiteConfig(s.opts.Debug)
+	if err != nil {
+		return nil, err
 	}
 
-	s.opts.Config.KontrolURL = s.opts.kontrolURL()
-	s.opts.Config.Transport = config.XHRPolling
+	k := kite.NewWithConfig(name, version, cfg)
+
+	k.Config.KontrolURL = s.opts.kontrolURL()
 
 	if s.opts.Port != 0 {
-		s.opts.Config.Port = s.opts.Port
+		k.Config.Port = s.opts.Port
 	}
 	if s.opts.Region != "" {
-		s.opts.Config.Region = s.opts.Region
+		k.Config.Region = s.opts.Region
 	}
 	if s.opts.Environment != "" {
-		s.opts.Config.Environment = s.opts.Environment
+		k.Config.Environment = s.opts.Environment
 	}
 	if s.opts.Test {
-		s.opts.Config.DisableAuthentication = true
+		k.Config.DisableAuthentication = true
 	}
 	if s.opts.Debug {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
 	k.Log = s.opts.Log
-	k.Config = s.opts.Config
-	k.ClientFunc = httputil.ClientFunc(s.opts.Debug)
 
 	if fn := s.metricsFunc(); fn != nil {
 		k.PreHandleFunc(fn)

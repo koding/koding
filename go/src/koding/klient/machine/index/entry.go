@@ -110,10 +110,10 @@ func NewEntryFile(path string) (*Entry, error) {
 	return NewEntryFileInfo(info), nil
 }
 
-// Copy returns a deep copy of the e value.
+// Clone returns a deep copy of the e value.
 //
 // RefCount field is ignored and set to 0.
-func (e *Entry) Copy() *Entry {
+func (e *Entry) Clone() *Entry {
 	return &Entry{
 		real: realEntry{
 			CTime: e.CTime(),

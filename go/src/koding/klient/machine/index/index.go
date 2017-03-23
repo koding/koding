@@ -99,6 +99,13 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	}
 }
 
+// Clone returns a deep copy of called index.
+func (idx *Index) Clone() *Index {
+	return &Index{
+		root: idx.root.Clone(),
+	}
+}
+
 // PromiseAdd adds a node under the given path marked as newly added.
 //
 // If mode is non-zero, the node's mode is overwritten with the value.

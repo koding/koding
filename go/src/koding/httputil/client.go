@@ -3,10 +3,9 @@ package httputil
 import (
 	"net"
 	"net/http"
-	"net/http/cookiejar"
 	"time"
 
-	"github.com/koding/kite/sockjsclient"
+	"github.com/koding/kite/config"
 	"github.com/koding/logging"
 )
 
@@ -18,7 +17,9 @@ type ClientConfig struct {
 	TLSHandshakeTimeout   time.Duration  // maximum time awaiting TLS handshake
 	ResponseHeaderTimeout time.Duration  // maximum time awaiting response headers
 	KeepAlive             time.Duration  // TCP KeepAlive interval for long-running connections
-	MaxIdleConnsPerHost   int            // maximum idle connections per host
+	MaxIdleConns          int            // maximum idle connections
+	IdleConnTimeout       time.Duration  // maximmum time an idle client will be kept in the pool
+	ExpectContinueTimeout time.Duration  // maximum time to wait for server's reply in case of 100
 	Jar                   http.CookieJar // a cookie jar for http.Client
 
 	// Dialer options.
@@ -43,75 +44,58 @@ func NewClient(cfg *ClientConfig) *http.Client {
 			Proxy: http.ProxyFromEnvironment,
 			ResponseHeaderTimeout: cfg.ResponseHeaderTimeout,
 			TLSHandshakeTimeout:   cfg.TLSHandshakeTimeout,
-			MaxIdleConnsPerHost:   cfg.MaxIdleConnsPerHost,
-			Dial:                  NewDialer(cfg).Dial,
+			MaxIdleConns:          cfg.MaxIdleConns,
+			DialContext:           NewDialer(cfg).DialContext,
 		},
 	}
 }
 
-var httpRestClient = NewClient(&ClientConfig{
-	DialTimeout:           10 * time.Second,
-	RoundTripTimeout:      60 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-})
+func New(timeout time.Duration, debug bool) *http.Client {
+	cfg := &ClientConfig{
+		DialTimeout:           10 * time.Second,
+		RoundTripTimeout:      timeout,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 60 * time.Second,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
+		Jar:                   config.CookieJar,
+		TraceLeakedConn:       debug,
+	}
 
-var httpRestDebugClient = NewClient(&ClientConfig{
-	DialTimeout:           10 * time.Second,
-	RoundTripTimeout:      60 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-	Log:                   logging.NewCustom("dialer", true),
-	TraceLeakedConn:       true,
-})
+	if debug {
+		cfg.Log = logging.NewCustom("httputil", true)
+	}
 
-// DefaultRestClient gives a global http.Client usable for performing short-lived
+	return NewClient(cfg)
+}
+
+var (
+	client         = New(60*time.Second, false) // AWS API, Softlayer API etc.
+	clientDebug    = New(60*time.Second, true)  // like above but with debug on
+	xhrClient      = New(0, false)              // kite XHR polling
+	xhrClientDebug = New(0, true)               // like above but with debug on
+)
+
+// Client gives a global http.Client usable for performing short-lived
 // REST requests.
 //
-// It it not usable for streaming APIs.
-func DefaultRestClient(debug bool) *http.Client {
+// It it not usable for kite XHR connections due to non-zero round-trip timeout.
+func Client(debug bool) *http.Client {
 	if debug {
-		return httpRestDebugClient
+		return clientDebug
 	}
 
-	return httpRestClient
+	return client
 }
 
-var jar, _ = cookiejar.New(nil)
-
-var httpStreamClient = NewClient(&ClientConfig{
-	DialTimeout:           10 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-	Jar:                   jar,
-})
-
-var httpStreamDebugClient = NewClient(&ClientConfig{
-	DialTimeout:           10 * time.Second,
-	TLSHandshakeTimeout:   10 * time.Second,
-	ResponseHeaderTimeout: 60 * time.Second,
-	KeepAlive:             30 * time.Second, // a default from http.DefaultTransport
-	Jar:                   jar,
-	Log:                   logging.NewCustom("dialer", true),
-	TraceLeakedConn:       true,
-})
-
-// DefaultStreamClient gives a global http.Client usable for performing long-lived
+// ClientXHR gives a global http.Client usable for performing long-lived
 // requests.
-func DefaultStreamClient(debug bool) *http.Client {
+func ClientXHR(debug bool) *http.Client {
 	if debug {
-		return httpStreamDebugClient
+		return xhrClientDebug
 	}
 
-	return httpStreamClient
-}
-
-// ClientFunc provides value for (*kite.Kite).ClientFunc field.
-func ClientFunc(debug bool) func(*sockjsclient.DialOptions) *http.Client {
-	return func(*sockjsclient.DialOptions) *http.Client {
-		return DefaultStreamClient(debug)
-	}
+	return xhrClient
 }
