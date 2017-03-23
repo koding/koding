@@ -223,6 +223,11 @@ func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	return <-done, nil
 }
 
+// MachineCpCommand copies file(s) from one machine to another.
+func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	return 1, errors.New("not implemented")
+}
+
 // getIdentifiers extracts identifiers and validate provided arguments.
 // TODO(ppknap): other CLI libraries like Cobra have this out of the box.
 func getIdentifiers(c *cli.Context) (idents []string, err error) {
