@@ -16,6 +16,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"runtime"
 
 	"koding/klientctl/auth"
@@ -41,6 +42,11 @@ var sudoRequiredFor = []string{
 	"stop",
 	"restart",
 	"update",
+}
+
+var signals = []os.Signal{
+	os.Interrupt,
+	os.Kill,
 }
 
 // log is used as a global loggger, for commands like ListCommand that
@@ -107,6 +113,16 @@ func run(args []string) {
 		os.Exit(10)
 	}
 
+	sig := make(chan os.Signal, 1)
+
+	go func() {
+		<-sig
+		ctlcli.Close()
+		os.Exit(1)
+	}()
+
+	signal.Notify(sig, signals...)
+
 	kloud.DefaultLog = log
 	testKloudHook(kloud.DefaultClient)
 	defer ctlcli.Close()
@@ -124,143 +140,206 @@ func run(args []string) {
 
 	app.Commands = []cli.Command{
 		{
-			Name:      "list",
-			ShortName: "ls",
-			Usage:     "List running machines for user.",
-			Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "json",
-					Usage: "Output in JSON format",
+			Name:  "compat",
+			Usage: "Compatibility commands for use with old mounts.",
+			Subcommands: []cli.Command{{
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List running machines for user.",
+				Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format",
+					},
+					cli.BoolFlag{
+						Name:  "all",
+						Usage: "Include machines that have been offline for more than 24h.",
+					},
 				},
-				cli.BoolFlag{
-					Name:  "all",
-					Usage: "Include machines that have been offline for more than 24h.",
-				},
-			},
-			Subcommands: []cli.Command{
-				{
-					Name:   "mounts",
-					Usage:  "List the mounted machines.",
-					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format",
+				Subcommands: []cli.Command{
+					{
+						Name:   "mounts",
+						Usage:  "List the mounted machines.",
+						Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format",
+							},
 						},
 					},
 				},
-			},
-		},
-		{
+			}, {
+				Name:        "mount",
+				ShortName:   "m",
+				Usage:       "Mount a remote folder to a local folder.",
+				Description: cmdDescriptions["compat-mount"],
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "remotepath, r",
+						Usage: "Full path of remote folder in machine to mount.",
+					},
+					cli.BoolFlag{
+						Name:  "oneway-sync, s",
+						Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
+					},
+					cli.IntFlag{
+						Name:  "oneway-interval",
+						Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
+						Value: 2,
+					},
+					cli.BoolFlag{
+						Name:  "fuse, f",
+						Usage: "Mount the remote folder via Fuse.",
+					},
+					cli.BoolFlag{
+						Name:  "noprefetch-meta, p",
+						Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
+					},
+					cli.BoolFlag{
+						Name:  "prefetch-all, a",
+						Usage: "For fuse: Prefetch all contents of the remote directory up front.",
+					},
+					cli.IntFlag{
+						Name:  "prefetch-interval",
+						Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
+					},
+					cli.BoolFlag{
+						Name:  "nowatch, w",
+						Usage: "For fuse: Disable watching for changes on remote machine.",
+					},
+					cli.BoolFlag{
+						Name:  "noignore, i",
+						Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
+					},
+					cli.BoolFlag{
+						Name:  "trace, t",
+						Usage: "Turn on trace logs.",
+					},
+				},
+				Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
+				BashComplete: ctlcli.FactoryCompletion(
+					MountCommandFactory, log, "mount",
+				),
+			}, {
+				Name:        "ssh",
+				ShortName:   "s",
+				Usage:       "SSH into the machine.",
+				Description: cmdDescriptions["ssh"],
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name: "debug",
+					},
+					cli.StringFlag{
+						Name:  "username",
+						Usage: "The username to ssh into on the remote machine.",
+					},
+				},
+				Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
+			}, {
+				Name:            "run",
+				Usage:           "Run command on remote or local machine.",
+				Description:     cmdDescriptions["run"],
+				Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
+				SkipFlagParsing: true,
+			}, {
+				Name:   "repair",
+				Usage:  "Repair the given mount",
+				Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
+			}, {
+				Name: "cp",
+				Usage: fmt.Sprintf(
+					"Copy a file from one one machine to another",
+				),
+				Description: cmdDescriptions["cp"],
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name: "debug",
+					},
+				},
+				Action: ctlcli.FactoryAction(
+					CpCommandFactory, log, "cp",
+				),
+				BashComplete: ctlcli.FactoryCompletion(
+					CpCommandFactory, log, "cp",
+				),
+			}, {
+				Name:        "unmount",
+				ShortName:   "u",
+				Usage:       "Unmount previously mounted machine.",
+				Description: cmdDescriptions["compat-unmount"],
+				Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
+			}, {
+				Name:        "remount",
+				ShortName:   "r",
+				Usage:       "Remount previously mounted machine using same settings.",
+				Description: cmdDescriptions["remount"],
+				Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
+			}},
+		}, {
+			Name:  "config",
+			Usage: "Manage tool configuration.",
+			Subcommands: []cli.Command{{
+				Name:   "show",
+				Usage:  "Show configuration.",
+				Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "defaults",
+						Usage: "Show also default configuration",
+					},
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List all available configurations.",
+				Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:   "use",
+				Usage:  "Change active configuration.",
+				Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
+			}, {
+				Name:   "set",
+				Usage:  "Set a value for the given key, overwriting default one.",
+				Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
+			}, {
+				Name:   "unset",
+				Usage:  "Unset the given key, restoring the defaut value.",
+				Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+			}, {
+				Name:   "reset",
+				Usage:  "Resets configuration to the default value fetched from Koding.",
+				Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force",
+						Usage: "Force retrieving configuration from Koding.",
+					},
+				},
+			}},
+		}, {
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
 			Description: cmdDescriptions["version"],
 			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
-		},
-		{
-			Name:        "mount",
-			ShortName:   "m",
-			Usage:       "Mount a remote folder to a local folder.",
-			Description: cmdDescriptions["mount"],
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "remotepath, r",
-					Usage: "Full path of remote folder in machine to mount.",
-				},
-				cli.BoolFlag{
-					Name:  "oneway-sync, s",
-					Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
-				},
-				cli.IntFlag{
-					Name:  "oneway-interval",
-					Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
-					Value: 2,
-				},
-				cli.BoolFlag{
-					Name:  "fuse, f",
-					Usage: "Mount the remote folder via Fuse.",
-				},
-				cli.BoolFlag{
-					Name:  "noprefetch-meta, p",
-					Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
-				},
-				cli.BoolFlag{
-					Name:  "prefetch-all, a",
-					Usage: "For fuse: Prefetch all contents of the remote directory up front.",
-				},
-				cli.IntFlag{
-					Name:  "prefetch-interval",
-					Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
-				},
-				cli.BoolFlag{
-					Name:  "nowatch, w",
-					Usage: "For fuse: Disable watching for changes on remote machine.",
-				},
-				cli.BoolFlag{
-					Name:  "noignore, i",
-					Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
-				},
-				cli.BoolFlag{
-					Name:  "trace, t",
-					Usage: "Turn on trace logs.",
-				},
-			},
-			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
-			BashComplete: ctlcli.FactoryCompletion(
-				MountCommandFactory, log, "mount",
-			),
-		},
-		{
-			Name:        "unmount",
-			ShortName:   "u",
-			Usage:       "Unmount previously mounted machine.",
-			Description: cmdDescriptions["unmount"],
-			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
-		},
-		{
-			Name:        "remount",
-			ShortName:   "r",
-			Usage:       "Remount previously mounted machine using same settings.",
-			Description: cmdDescriptions["remount"],
-			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
-		},
-		{
-			Name:        "ssh",
-			ShortName:   "s",
-			Usage:       "SSH into the machine.",
-			Description: cmdDescriptions["ssh"],
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-				cli.StringFlag{
-					Name:  "username",
-					Usage: "The username to ssh into on the remote machine.",
-				},
-			},
-			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
-		},
-		{
-			Name:            "run",
-			Usage:           "Run command on remote or local machine.",
-			Description:     cmdDescriptions["run"],
-			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
-			SkipFlagParsing: true,
-		},
-		{
-			Name:   "repair",
-			Usage:  "Repair the given mount",
-			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
-		},
-		{
+		}, {
 			Name:        "status",
 			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 			Description: cmdDescriptions["status"],
 			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
-		},
-		{
+		}, {
 			Name:        "update",
 			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
 			Description: cmdDescriptions["update"],
@@ -292,32 +371,27 @@ func run(args []string) {
 					Hidden: true,
 				},
 			},
-		},
-		{
+		}, {
 			Name:        "restart",
 			Usage:       fmt.Sprintf("Restart the %s.", config.KlientName),
 			Description: cmdDescriptions["restart"],
 			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
-		},
-		{
+		}, {
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s.", config.KlientName),
 			Description: cmdDescriptions["start"],
 			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
-		},
-		{
+		}, {
 			Name:        "stop",
 			Usage:       fmt.Sprintf("Stop the %s.", config.KlientName),
 			Description: cmdDescriptions["stop"],
 			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
-		},
-		{
+		}, {
 			Name:        "uninstall",
 			Usage:       fmt.Sprintf("Uninstall the %s.", config.KlientName),
 			Description: cmdDescriptions["uninstall"],
 			Action:      ExitWithMessage(UninstallCommand, log, "uninstall"),
-		},
-		{
+		}, {
 			Name:        "install",
 			Usage:       fmt.Sprintf("Install the %s.", config.KlientName),
 			Description: cmdDescriptions["install"],
@@ -328,14 +402,12 @@ func run(args []string) {
 				},
 			},
 			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
-		},
-		{
+		}, {
 			Name:     "metrics",
 			Usage:    fmt.Sprintf("Internal use only."),
 			HideHelp: true,
 			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
-		},
-		{
+		}, {
 			Name:        "autocompletion",
 			Usage:       "Enable autocompletion support for bash and fish shells",
 			Description: cmdDescriptions["autocompletion"],
@@ -359,26 +431,7 @@ func run(args []string) {
 			BashComplete: ctlcli.FactoryCompletion(
 				AutocompleteCommandFactory, log, "autocompletion",
 			),
-		},
-		{
-			Name: "cp",
-			Usage: fmt.Sprintf(
-				"Copy a file from one one machine to another",
-			),
-			Description: cmdDescriptions["cp"],
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-			},
-			Action: ctlcli.FactoryAction(
-				CpCommandFactory, log, "cp",
-			),
-			BashComplete: ctlcli.FactoryCompletion(
-				CpCommandFactory, log, "cp",
-			),
-		},
-		{
+		}, {
 			Name:  "log",
 			Usage: "Display logs.",
 			Flags: []cli.Flag{
@@ -390,8 +443,7 @@ func run(args []string) {
 				cli.IntFlag{Name: "lines, n"},
 			},
 			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
-		},
-		{
+		}, {
 			Name: "open",
 			Usage: fmt.Sprintf(
 				"Open the given file(s) on the Koding UI",
@@ -401,8 +453,81 @@ func run(args []string) {
 				cli.BoolFlag{Name: "debug"},
 			},
 			Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
+		}, {
+			Name:         "machine",
+			Usage:        "Manage remote machines.",
+			BashComplete: func(c *cli.Context) {},
+			Subcommands: []cli.Command{{
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List available machines.",
+				Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:      "ssh",
+				ShortName: "s",
+				Usage:     "SSH into provided remote machine.",
+				Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "username",
+						Usage: "Remote machine username.",
+					},
+				},
+			}, {
+				Name:        "mount",
+				Aliases:     []string{"m"},
+				Usage:       "Mount remote directory.",
+				Description: cmdDescriptions["mount"],
+				Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
+				Flags:       []cli.Flag{},
+				Subcommands: []cli.Command{{
+					Name:    "list",
+					Aliases: []string{"ls"},
+					Usage:   "List available mounts.",
+					Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "filter",
+							Usage: "Limits the output to a specific `<mount-id>`.",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}},
+			}, {
+				Name:        "umount",
+				ShortName:   "u",
+				Usage:       "Unmount remote directory.",
+				Description: cmdDescriptions["umount"],
+				Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
+				Flags:       []cli.Flag{},
+			}, {
+				Name:            "exec",
+				ShortName:       "e",
+				Description:     cmdDescriptions["exec"],
+				Usage:           "Run a command in a started machine.",
+				Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
+				SkipFlagParsing: true,
+			}},
 		},
 	}
+
+	// Alias commands.
+	app.Commands = append(app.Commands,
+		find(app.Commands, "machine", "list"),
+		find(app.Commands, "machine", "ssh"),
+		find(app.Commands, "machine", "mount"),
+		find(app.Commands, "machine", "umount"),
+		find(app.Commands, "machine", "exec"),
+	)
 
 	if experimental {
 		app.Commands = append(app.Commands,
@@ -437,58 +562,6 @@ func run(args []string) {
 					// command: kd auth register
 					auth.NewRegisterSubCommand(log),
 				},
-			},
-			cli.Command{
-				Name:  "config",
-				Usage: "Manage tool configuration.",
-				Subcommands: []cli.Command{{
-					Name:   "show",
-					Usage:  "Show configuration.",
-					Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "defaults",
-							Usage: "Show also default configuration",
-						},
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:      "list",
-					ShortName: "ls",
-					Usage:     "List all available configurations.",
-					Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:   "use",
-					Usage:  "Change active configuration.",
-					Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
-				}, {
-					Name:   "set",
-					Usage:  "Set a value for the given key, overwriting default one.",
-					Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
-				}, {
-					Name:   "unset",
-					Usage:  "Unset the given key, restoring the defaut value.",
-					Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
-				}, {
-					Name:   "reset",
-					Usage:  "Resets configuration to the default value fetched from Koding.",
-					Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "force",
-							Usage: "Force retrieving configuration from Koding.",
-						},
-					},
-				}},
 			},
 			cli.Command{
 				Name:      "credential",
@@ -558,64 +631,6 @@ func run(args []string) {
 							Usage: "Specify credential provider.",
 						},
 					},
-				}},
-			},
-			cli.Command{
-				Name:         "machine",
-				Usage:        "Manage remote machines.",
-				BashComplete: func(c *cli.Context) {},
-				Subcommands: []cli.Command{{
-					Name:      "list",
-					ShortName: "ls",
-					Usage:     "List available machines.",
-					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:      "ssh",
-					ShortName: "s",
-					Usage:     "SSH into provided remote machine.",
-					Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "username",
-							Usage: "Remote machine username.",
-						},
-					},
-				}, {
-					Name:        "mount",
-					Aliases:     []string{"m"},
-					Usage:       "",
-					Description: cmdDescriptions["mount-new"],
-					Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
-					Flags:       []cli.Flag{},
-					Subcommands: []cli.Command{{
-						Name:    "list",
-						Aliases: []string{"ls"},
-						Usage:   "List available mounts.",
-						Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
-						Flags: []cli.Flag{
-							cli.StringFlag{
-								Name:  "filter",
-								Usage: "Limits the output to a specific `<mount-id>`.",
-							},
-							cli.BoolFlag{
-								Name:  "json",
-								Usage: "Output in JSON format.",
-							},
-						},
-					}},
-				}, {
-					Name:        "umount",
-					ShortName:   "u",
-					Usage:       "Unmount remote directory.",
-					Description: cmdDescriptions["umount-new"],
-					Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
-					Flags:       []cli.Flag{},
 				}},
 			},
 			cli.Command{
@@ -759,4 +774,25 @@ func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string
 
 		return nil
 	}
+}
+
+func find(cmds cli.Commands, names ...string) cli.Command {
+	last := len(names) - 1
+
+	for _, name := range names[:last] {
+		for _, cmd := range cmds {
+			if cmd.Name == name {
+				cmds = cmd.Subcommands
+				break
+			}
+		}
+	}
+
+	for _, cmd := range cmds {
+		if cmd.Name == names[last] {
+			return cmd
+		}
+	}
+
+	return cli.Command{}
 }

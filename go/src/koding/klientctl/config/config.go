@@ -67,10 +67,12 @@ var (
 	SegmentKey = ""
 )
 
-var Konfig = configstore.Read(&config.Environments{
+var Environments = &config.Environments{
 	Env:       Environment,
 	KlientEnv: kd2klient(Environment),
-})
+}
+
+var Konfig = configstore.Read(Environments)
 
 func dirURL(s, env string) string {
 	u, err := url.Parse(s)

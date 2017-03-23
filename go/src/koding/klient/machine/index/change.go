@@ -14,7 +14,6 @@ const (
 	ChangeMetaAdd                           // a: File was added.
 	ChangeMetaRemove                        // d: File was removed.
 	ChangeMetaUpdate                        // u: File was updated.
-	ChangeMetaHuge                          // H: File size is above 4GB.
 )
 
 // Followed constants are helpers for ChangeMeta.Coalesce method.
@@ -109,7 +108,6 @@ var cmMapping = map[byte]ChangeMeta{
 	'a': ChangeMetaAdd,
 	'd': ChangeMetaRemove,
 	'u': ChangeMetaUpdate,
-	'H': ChangeMetaHuge,
 }
 
 // String implements fmt.Stringer interface and pretty prints stored change.
@@ -151,17 +149,57 @@ func Similar(a, b ChangeMeta) bool {
 	return (a^b)&cmAll == 0
 }
 
+// Priority describes change priority.
+type Priority uint64
+
+const (
+	PriorityLow    Priority = 1 << iota // --+: low change priority.
+	PriorityMedium                      // -++: medium change priority.
+	PriorityHigh                        // +++: high change priority.
+)
+
+// Coalesce coalesces two priorities. Always the higher priority is chosen.
+func (p *Priority) Coalesce(newer Priority) Priority {
+	for {
+		older := Priority(atomic.LoadUint64((*uint64)(p)))
+
+		if older > newer {
+			return older
+		}
+
+		if atomic.CompareAndSwapUint64((*uint64)(p), uint64(older), uint64(newer)) {
+			return older
+		}
+	}
+}
+
+// String implements fmt.Stringer interface and pretty prints stored priority.
+func (p *Priority) String() string {
+	switch cpy := Priority(atomic.LoadUint64((*uint64)(p))); {
+	case cpy&PriorityHigh != 0:
+		return "+++"
+	case cpy&PriorityMedium != 0:
+		return "-++"
+	case cpy&PriorityLow != 0:
+		return "--+"
+	default:
+		return "---"
+	}
+}
+
 // Change describes single file change.
 type Change struct {
 	path      string     // The relative path of the file.
 	createdAt int64      // Change creation time since EPOCH.
+	priority  Priority   // Change priority.
 	meta      ChangeMeta // The type of operation made on file entry.
 }
 
 // NewChange creates a new Change object.
-func NewChange(path string, meta ChangeMeta) *Change {
+func NewChange(path string, priority Priority, meta ChangeMeta) *Change {
 	return &Change{
 		path:      path,
+		priority:  priority,
 		meta:      meta,
 		createdAt: time.Now().UTC().UnixNano(),
 	}
@@ -180,6 +218,11 @@ func (c *Change) Meta() ChangeMeta {
 	return ChangeMeta(atomic.LoadUint64((*uint64)(&c.meta)))
 }
 
+// Priority returns change priority.
+func (c *Change) Priority() Priority {
+	return Priority(atomic.LoadUint64((*uint64)(&c.priority)))
+}
+
 // Coalesce merges two changes with the same path. If change paths are different
 // this method panics. Meta data will be updated according to ChangeMeta
 // coalescing rules. Higher creation time is always chosen. This method is
@@ -195,21 +238,22 @@ func (c *Change) Coalesce(newer *Change) *Change {
 
 	// Data races between change meta and made time doesn't matter since the
 	// time will end up being the lowest value.
-	old := &Change{
-		path: c.path,
-		meta: c.meta.Coalesce(newer.Meta()),
+	older := &Change{
+		path:     c.path,
+		meta:     c.meta.Coalesce(newer.Meta()),
+		priority: c.priority.Coalesce(newer.Priority()),
 	}
 
 	for {
-		old.createdAt = atomic.LoadInt64(&c.createdAt)
+		older.createdAt = atomic.LoadInt64(&c.createdAt)
 
 		newt := newer.CreatedAtUnixNano()
-		if newt <= old.createdAt {
-			return old
+		if newt <= older.createdAt {
+			return older
 		}
 
-		if atomic.CompareAndSwapInt64(&c.createdAt, old.createdAt, newt) {
-			return old
+		if atomic.CompareAndSwapInt64(&c.createdAt, older.createdAt, newt) {
+			return older
 		}
 	}
 }
@@ -217,7 +261,7 @@ func (c *Change) Coalesce(newer *Change) *Change {
 // String implements fmt.Stringer interface. It pretty prints stored change.
 func (c *Change) String() string {
 	age := time.Now().UTC().Sub(time.Unix(0, c.CreatedAtUnixNano()))
-	return c.meta.String() + " " + age.String() + " " + c.path
+	return c.meta.String() + " " + c.priority.String() + " " + age.String() + " " + c.path
 }
 
 // ChangeSlice stores multiple changes.

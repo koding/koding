@@ -28,7 +28,7 @@ func Compare(rootA, rootB string) (cs index.ChangeSlice, err error) {
 	mra := index.ChangeMetaAdd | index.ChangeMetaRemote
 	for _, c := range idx.Merge(rootB) {
 		if c.Meta()&mra == mra {
-			c = index.NewChange(c.Path(), index.ChangeMetaRemove)
+			c = index.NewChange(c.Path(), index.PriorityLow, index.ChangeMetaRemove)
 		}
 		cs = append(cs, c)
 	}

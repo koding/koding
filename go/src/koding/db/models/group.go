@@ -13,11 +13,16 @@ const (
 type SubStatus string
 
 const (
+	// SubStatusTrailing holds trailing subscription status
 	SubStatusTrailing SubStatus = "trialing"
-	SubStatusActive   SubStatus = "active"
-	SubStatusPastDue  SubStatus = "past_due"
+	// SubStatusActive holds active subscription status
+	SubStatusActive SubStatus = "active"
+	// SubStatusPastDue holds past_due subscription status
+	SubStatusPastDue SubStatus = "past_due"
+	// SubStatusCanceled holds canceled subscription status
 	SubStatusCanceled SubStatus = "canceled"
-	SubStatusUnpaid   SubStatus = "unpaid"
+	// SubStatusUnpaid holds unpaid subscription status
+	SubStatusUnpaid SubStatus = "unpaid"
 )
 
 // Active returns true when subscription is considered to be active.
@@ -43,12 +48,20 @@ type Group struct {
 	// channels
 	DefaultChannels []string `bson:"defaultChannels,omitempty" json:"defaultChannels"`
 	Payment         Payment  `bson:"payment" json:"payment"`
+	Countly         Countly  `bson:"countly" json:"countly"`
 }
 
 // Payment is general container for payment info
 type Payment struct {
 	Subscription Subscription
 	Customer     Customer
+}
+
+// Countly is general container for Countly info
+type Countly struct {
+	APIKey string `bson:"apiKey" json:"apiKey"`
+	AppKey string `bson:"appKey" json:"appKey"`
+	AppID  string `bson:"appId" json:"appId"`
 }
 
 // Subscription holds customer-plan subscription related info
@@ -69,6 +82,19 @@ type Customer struct {
 }
 
 // IsSubActive checks if subscription is in valid state for operation
-func (g *Group) IsSubActive() bool {
-	return g.Payment.Subscription.Status.Active()
+// if env name is default, always responds true
+func (g *Group) IsSubActive(env string) bool {
+	return IsSubActive(env, g.Payment.Subscription.Status)
+}
+
+// IsSubActive implements the business logic for checking if a sub is active. We
+// allow everything for default env.
+func IsSubActive(env string, subStatus SubStatus) bool {
+	const defaultEnv = "default"
+	return env == defaultEnv || subStatus.Active()
+}
+
+// HasCountly checks if group has countly data.
+func (g *Group) HasCountly() bool {
+	return g.Countly.APIKey != "" && g.Countly.AppKey != ""
 }

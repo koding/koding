@@ -198,6 +198,7 @@ func New(conf *Config) (*Kloud, error) {
 		Kite:           sess.Kite,
 		Userdata:       sess.Userdata,
 		Debug:          conf.DebugMode,
+		Environment:    conf.Environment,
 		KloudSecretKey: conf.KloudSecretKey,
 		CredStore:      credential.NewStore(storeOpts),
 		TunnelURL:      conf.TunnelURL,
@@ -246,6 +247,7 @@ func New(conf *Config) (*Kloud, error) {
 		transport.Log = sess.Log
 	}
 
+	kloud.Stack.Environment = conf.Environment
 	kloud.Stack.Endpoints = e
 	kloud.Stack.Userdata = sess.Userdata
 	kloud.Stack.DescribeFunc = provider.Desc

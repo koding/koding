@@ -7,7 +7,9 @@ import (
 )
 
 // MachineListRequest represents a request value for "machine.list" method.
-type MachineListRequest struct{}
+type MachineListRequest struct {
+	MachineID string `json:"machineID"`
+}
 
 // MachineListResponse represents a response value from "machine.list" method.
 type MachineListResponse struct {
@@ -24,6 +26,7 @@ func (k *Kloud) MachineList(r *kite.Request) (interface{}, error) {
 	// We need to keep machine owners as well as skip unapproved shared machines
 	// which shouldn't be visible until user approve them.
 	f := &machine.Filter{
+		ID:           req.MachineID,
 		Username:     r.Username,
 		Owners:       true,
 		OnlyApproved: true,

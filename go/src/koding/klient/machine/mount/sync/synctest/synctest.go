@@ -27,7 +27,7 @@ func SyncLocal(s msync.Syncer, rootA, rootB string, dir index.ChangeMeta) (conte
 
 	evs := make([]*msync.Event, 0, len(cs))
 	for _, c := range cs {
-		c = index.NewChange(c.Path(), c.Meta()|dir)
+		c = index.NewChange(c.Path(), c.Priority(), c.Meta()|dir)
 		evs = append(evs, msync.NewEvent(context.Background(), nil, c))
 	}
 

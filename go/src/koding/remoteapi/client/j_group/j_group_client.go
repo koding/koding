@@ -191,7 +191,7 @@ func (a *Client) PostRemoteAPIJGroupCreate(params *PostRemoteAPIJGroupCreatePara
 }
 
 /*
-PostRemoteAPIJGroupDestroyID post remote API j group destroy ID API
+PostRemoteAPIJGroupDestroyID Method JGroup.destroy
 */
 func (a *Client) PostRemoteAPIJGroupDestroyID(params *PostRemoteAPIJGroupDestroyIDParams) (*PostRemoteAPIJGroupDestroyIDOK, error) {
 	// TODO: Validate the params before sending
@@ -835,6 +835,37 @@ func (a *Client) PostRemoteAPIJGroupJoinID(params *PostRemoteAPIJGroupJoinIDPara
 }
 
 /*
+PostRemoteAPIJGroupJoinUser joinUser
+
+Joins user with given options to group either by logging in or converting
+them.
+*/
+func (a *Client) PostRemoteAPIJGroupJoinUser(params *PostRemoteAPIJGroupJoinUserParams) (*PostRemoteAPIJGroupJoinUserOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostRemoteAPIJGroupJoinUserParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PostRemoteAPIJGroupJoinUser",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JGroup.joinUser",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostRemoteAPIJGroupJoinUserReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*PostRemoteAPIJGroupJoinUserOK), nil
+
+}
+
+/*
 PostRemoteAPIJGroupKickMemberID post remote API j group kick member ID API
 */
 func (a *Client) PostRemoteAPIJGroupKickMemberID(params *PostRemoteAPIJGroupKickMemberIDParams) (*PostRemoteAPIJGroupKickMemberIDOK, error) {
@@ -1171,7 +1202,7 @@ func (a *Client) PostRemoteAPIJGroupToggleFeatureID(params *PostRemoteAPIJGroupT
 }
 
 /*
-PostRemoteAPIJGroupTransferOwnershipID post remote API j group transfer ownership ID API
+PostRemoteAPIJGroupTransferOwnershipID Method JGroup.transferOwnership
 */
 func (a *Client) PostRemoteAPIJGroupTransferOwnershipID(params *PostRemoteAPIJGroupTransferOwnershipIDParams) (*PostRemoteAPIJGroupTransferOwnershipIDOK, error) {
 	// TODO: Validate the params before sending

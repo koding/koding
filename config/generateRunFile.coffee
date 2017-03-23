@@ -339,7 +339,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function check_connectivity_countly() {
-      local HOST=$KONFIG_COUNTLY_HOST/countly/
+      local HOST=$KONFIG_COUNTLY_HOST/
       local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' $HOST)
 
       if [[ $? != 0 || $RESPONSE_CODE != 302 ]]; then
@@ -415,12 +415,19 @@ generateDev = (KONFIG, options) ->
     }
 
     function runCountlyDocker () {
-        docker run -d -p $KONFIG_COUNTLY_APIPORT:80 --env 'COUNTLY_PATH=/countly' --name=countly koding/countly-server:latest
+        docker run -d -p $KONFIG_COUNTLY_APIPORT:80 --env 'COUNTLY_PATH=/countly' --env 'COUNTLY_WITH_DEFAULT_DATA=1' --name=countly koding/countly-server:latest
         check_connectivity countly
+        dexec countly /opt/countly/bin/backup/run.sh
     }
 
     function runRedisDocker () {
         docker run -d -p $KONFIG_SERVICEHOST:6379:6379 --name=redis redis
+    }
+
+    # dexec executes a script in a given docker by its name
+    function dexec () {
+	    local id=`docker ps -all --quiet --filter name=$1`
+	    docker exec -i -t $id bash -l -c $2
     }
 
     function run_docker_wrapper () {

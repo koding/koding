@@ -8,8 +8,10 @@ import (
 
 	"koding/kites/config"
 	"koding/klient/machine"
+	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount/sync/prefetch"
 	"koding/klientctl/ssh"
 )
 
@@ -154,12 +156,19 @@ func userSSHPublicKey() (string, error) {
 // AddMountRequest defines machine group add mount request.
 type AddMountRequest struct {
 	MountRequest
+
+	// Strategies contains a set of prefetching strategies that can be used on
+	// local machine.
+	Strategies []string `json:"strategies"`
 }
 
 // AddMountResponse defines machine group add mount response.
 type AddMountResponse struct {
 	// MountID is a unique identifier of created mount.
 	MountID mount.ID `json:"mountID"`
+
+	// Prefetch contains a command that can be run to prefetch mount files.
+	Prefetch prefetch.Prefetch `json:"prefetch"`
 }
 
 // AddMount fetches remote index, prepares mount cache, and runs mount sync in
@@ -184,18 +193,63 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 		}
 	}()
 
+	addReq := &syncs.AddRequest{
+		MountID:       mountID,
+		Mount:         req.Mount,
+		NotifyBuilder: g.nb,
+		SyncBuilder:   g.sb,
+		ClientFunc:    g.dynamicClient(mountID),
+		SSHFunc:       g.dynamicSSH(req.ID),
+	}
+
 	// Start mount syncer.
-	dynSSH, dynClient := g.dynamicSSH(req.ID), g.dynamicClient(mountID)
-	if err = g.sync.Add(mountID, req.Mount, g.nb, g.sb, dynSSH, dynClient); err != nil {
+	if err = g.sync.Add(addReq); err != nil {
 		g.log.Error("Synchronization of %s mount failed: %s", mountID, err)
 		return nil, err
 	}
 
+	sc, err := g.sync.Sync(mountID)
+	if err != nil {
+		// Panic here since missing mount here should be impossible.
+		panic("mount " + req.Mount.String() + " doesn't exist")
+	}
+
 	g.log.Info("Successfully created mount %s for %s", mountID, req.Mount)
 
+	p, err := sc.Prefetch(req.Strategies)
+	if err != nil {
+		g.log.Error("Cannot prefetch mount data: %s", err)
+	}
+
 	return &AddMountResponse{
-		MountID: mountID,
+		MountID:  mountID,
+		Prefetch: p,
 	}, nil
+}
+
+// UpdateIndexRequest defines index update request.
+type UpdateIndexRequest struct {
+	// MountID stores the identifier of mount which index should be updated.
+	MountID mount.ID `json:"mountID,omitempty"`
+}
+
+// UpdateIndexResponse defines index update response.
+type UpdateIndexResponse struct{}
+
+// UpdateIndex forces mount index to rescan cache directory. This will update
+// index information about files that are already synced.
+func (g *Group) UpdateIndex(req *UpdateIndexRequest) (res *UpdateIndexResponse, err error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	sc, err := g.sync.Sync(req.MountID)
+	if err != nil {
+		return nil, errors.New("mount with ID: " + string(req.MountID) + " doesn't exist")
+	}
+	sc.UpdateIndex()
+
+	return &UpdateIndexResponse{}, nil
 }
 
 // ListMountRequest defines machine group mount list request.
@@ -247,19 +301,21 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 
 	// Get mount infos.
 	for mountID, mm := range mms {
-		info, err := g.sync.Info(mountID)
+		sc, err := g.sync.Sync(mountID)
 		alias := id2alias[mm.id]
 		if err != nil {
 			// Add mount to the list but log not synchronized mount.
 			res.Mounts[alias] = append(res.Mounts[alias], msync.Info{
-				ID:    mountID,
-				Mount: mm.m,
+				ID:      mountID,
+				Mount:   mm.m,
+				Queued:  -1,
+				Syncing: -1,
 			})
 			g.log.Warning("Mount %s for %s is not synchronized: %s", mountID, mm.m, err)
 			continue
 		}
 
-		res.Mounts[alias] = append(res.Mounts[alias], *info)
+		res.Mounts[alias] = append(res.Mounts[alias], *sc.Info())
 	}
 
 	return res, nil
@@ -358,16 +414,17 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 		}
 	}
 
+	// Get mount machine.
+	id, err := g.mount.MachineID(mountID)
+	if err != nil {
+		g.log.Error("Could not find mount with ID: %s", mountID)
+		return nil, err
+	}
+
 	// Stop mount synchronization routine.
 	if err := g.sync.Drop(mountID); err != nil {
 		g.log.Error("Cannot remove synced mount %s: %s", mountID, err)
 		return nil, err
-	}
-
-	// Get mount machine.
-	id, err := g.mount.MachineID(mountID)
-	if err != nil {
-		g.log.Error("Could not find machine ID for mount %s: %s", mountID, err)
 	}
 
 	var m mount.Mount

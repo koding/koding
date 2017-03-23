@@ -15,13 +15,12 @@ import (
 
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
-	"gopkg.in/mgo.v2/bson"
 )
 
 func TestPing(t *testing.T) {
 	Convey("Given testing user & group", t, func() {
 		withTestServer(t, func(endpoint string) {
-			withStubData(endpoint, func(username, groupName, sessionID string) {
+			models.WithStubData(func(username, groupName, sessionID string) {
 				Convey("We should be able to send the ping request to", func() {
 					externalURL := endpoint + presence.EndpointPresencePing
 					privateURL := endpoint + presence.EndpointPresencePingPrivate
@@ -54,7 +53,7 @@ func TestPing(t *testing.T) {
 func TestPingWithClient(t *testing.T) {
 	Convey("Given testing user & group", t, func() {
 		withTestServer(t, func(endpoint string) {
-			withStubData(endpoint, func(username, groupName, sessionID string) {
+			models.WithStubData(func(username, groupName, sessionID string) {
 				Convey("We should be able to send the ping request", func() {
 					Convey("with public client", func() {
 						c := client.NewPublic(endpoint)
@@ -75,21 +74,6 @@ func TestPingWithClient(t *testing.T) {
 
 //TODO(cihangir): below shamelessly copied from payment api tests with small
 //modifications, unify them.
-
-func withStubData(endpoint string, f func(username string, groupName string, sessionID string)) {
-	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
-
-	group, err := modelhelper.GetGroup(groupName)
-	tests.ResultedWithNoErrorCheck(group, err)
-
-	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
-	So(err, ShouldBeNil)
-
-	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
-	tests.ResultedWithNoErrorCheck(ses, err)
-
-	f(acc.Nick, groupName, ses.ClientId)
-}
 
 func withTestServer(t *testing.T, f func(url string)) {
 	const workerName = "pingtest"

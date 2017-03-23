@@ -106,6 +106,11 @@ elif [ "$1" == "socialapi" ]; then
 	export RUN_FLAGS=${RUN_FLAGS:-"-c=$KONFIG_SOCIALAPI_CONFIGFILEPATH"}
 
 	runAll $@
+# useful after a refactoring, just to see if there is any error
+elif [ "$1" == "compile" ]; then
+	shift
+	compile $@
+	clean $@
 else
 	runAll $@
 fi

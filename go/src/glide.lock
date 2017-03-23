@@ -304,7 +304,7 @@ imports:
 - name: github.com/gorilla/schema
   version: a30fc2876ba631a279fc9207eb889f33f6c52d9f
 - name: github.com/gorilla/websocket
-  version: a69d25be2fe2923a97c2af6849b2f52426f68fc0
+  version: b258b4fadb573ac412f187b9f31974ea99d32f50
 - name: github.com/gosimple/slug
   version: 8d258463b4459f161f51d6a357edacd3eef9d663
 - name: github.com/grafana/grafana
@@ -557,7 +557,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: 4e1bc06aecf5e401757e07aef8eb8fa723e6ab7d
+  version: 2c8b7e6356aeb55ffafa345708d3699149d6a207
   subpackages:
   - config
   - dnode
@@ -984,7 +984,7 @@ imports:
 - name: gopkg.in/fsnotify.v1
   version: a8a77c9133d2d6fd8334f3260d06f60e8d80a5fb
 - name: gopkg.in/igm/sockjs-go.v2
-  version: 05b5e3121f692bea77aeb1160e4e7881017dc093
+  version: c8cd214dfc5fc2aae33c123ae7bdee687436713a
   subpackages:
   - sockjs
 - name: gopkg.in/inf.v0

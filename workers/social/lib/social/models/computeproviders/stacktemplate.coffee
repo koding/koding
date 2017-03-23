@@ -165,6 +165,12 @@ module.exports = class JStackTemplate extends Module
         default       : -> {}
 
 
+  generateRawContentFrom = (template) ->
+
+    { jsonToYaml } = clientRequire 'app/lib/util/stacks/yamlutils'
+    return jsonToYaml template
+
+
   generateTemplateObject = (content, rawContent, details) ->
 
     crypto     = require 'crypto'
@@ -310,8 +316,15 @@ module.exports = class JStackTemplate extends Module
       originId     = delegate.getId()
       options      = { group, originId }
 
-      if not data.template or not data.rawContent
+      if not data.template
         return callback new KodingError 'Template content is required!'
+
+      if not data.rawContent
+        { err, content } = generateRawContentFrom data.template
+        if err
+          return callback new KodingError \
+            'Failed to parse template', 'ParseFailed', err.message
+        data.rawContent = content
 
       validateTemplateData data, options, (err, replacements) ->
         return callback err  if err

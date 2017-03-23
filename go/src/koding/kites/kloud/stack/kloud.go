@@ -116,6 +116,9 @@ type Kloud struct {
 
 	// Enable debug mode
 	Debug bool
+
+	// Environment is a kite environment that kloud runs in.
+	Environment string
 }
 
 // New creates a new Kloud instance without initializing the default providers.

@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 
-	"koding/klient/fs"
 	"koding/klient/machine/index"
+	"koding/klient/os"
 )
 
 // Client describes the operations that can be made on remote machine.
@@ -23,8 +23,11 @@ type Client interface {
 	// directory.
 	MountGetIndex(string) (*index.Index, error)
 
-	// DiskInfo gets basic information about volume pointed by provided path.
-	DiskInfo(string) (fs.DiskInfo, error)
+	// Exec runs a command on a remote machine.
+	Exec(*os.ExecRequest) (*os.ExecResponse, error)
+
+	// Kill terminates previously started command on a remote machine.
+	Kill(*os.KillRequest) (*os.KillResponse, error)
 
 	// Context returns client's Context.
 	Context() context.Context

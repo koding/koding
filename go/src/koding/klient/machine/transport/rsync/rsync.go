@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -113,6 +114,10 @@ func (c *Command) Run(ctx context.Context) error {
 
 		meta := c.Change.Meta()
 		c.Download = meta&index.ChangeMetaLocal == 0 && meta&index.ChangeMetaRemote != 0
+		if c.Download {
+			c.SourcePath, c.DestinationPath = c.DestinationPath, c.SourcePath
+		}
+
 		if meta&index.ChangeMetaRemove != 0 {
 			c.Cmd.Args = append(c.Cmd.Args, "--delete")
 		}
@@ -158,8 +163,16 @@ func (c *Command) Run(ctx context.Context) error {
 		return err
 	}
 
+	c.Cmd.Stderr = os.Stderr
+
 	c.scan(rc)
-	return c.Cmd.Wait()
+	if err = c.Cmd.Wait(); err != nil {
+		c.Progress(0, 0, 0, err)
+	} else {
+		c.Progress(0, 0, 0, io.EOF)
+	}
+
+	return err
 }
 
 var (
@@ -169,8 +182,6 @@ var (
 )
 
 func (c *Command) scan(r io.Reader) {
-	defer c.Progress(0, 0, 0, io.EOF)
-
 	var (
 		now           time.Time
 		n, size, part int64
@@ -203,7 +214,7 @@ func (c *Command) scan(r io.Reader) {
 
 		part = int64(p)
 
-		speed := int64(float64(part+size)/float64(time.Since(now)/time.Second) + 0.5)
+		speed := int64(float64(part+size)/(float64(time.Since(now))/float64(time.Second)) + 0.5)
 		c.Progress(n, part+size, speed, nil)
 	}
 }

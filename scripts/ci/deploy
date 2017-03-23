@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+declare \
+	ERR_MISOPT=1 ERR_DEP=2 \
+	ERR_CONFIG=3 ERR_REGION=4 ERR_ENVIRON=5 \
+	ERR_UNKNOWN=255
+
+function check_prog() {
+	if ! $(which $1 &>/dev/null); then
+		echo "error: $1 is not found"
+		exit $ERR_DEP
+	fi
+}
+
+check_prog git
+check_prog aws
+check_prog jq
+check_prog zip
+check_prog envsubst
+check_prog jo
+
+declare timestamp=$(date "+%Y-%m-%dT%H:%M:%S") \
+	revision=$(git rev-parse --short HEAD)
+
+echo $revision >VERSION
+
+declare branch=${BRANCH:-$(git rev-parse --abbrev HEAD)}
+declare config=$(jq --raw-output ".${branch}.config" scripts/ci/map.json)
+
+if [[ -z "$config" || "$config" == "null" ]]; then
+	echo "error: config could not be set"
+	exit $ERR_CONFIG
+fi
+
+./configure --without-envvar
+make -C client dist
+
+git clean --force -d -x client/
+
+declare regions=$(jq --raw-output ".${branch}.environments | keys | .[]" scripts/ci/map.json)
+
+if [[ -z "$regions" ]]; then
+	echo "error: no regions found"
+	exit $ERR_REGION
+fi
+
+for region in $(echo $regions); do
+	declare environments=$(jq --raw-output ".${branch}.environments[\"${region}\"] | .[]" scripts/ci/map.json)
+
+	if [[ -z "$environments" ]]; then
+		echo "error: no environment is found"
+		exit $ERR_ENVIRON
+	fi
+
+	while read -r environment; do
+		declare archive_name=$timestamp-$revision
+		declare version_label=$archive_name-$branch-$environment
+		declare archive_file=$version_label.zip
+
+		./configure \
+			--without-envvars \
+			--config $config \
+			--ebEnvName $environment
+
+		source .env.sh
+
+		zip --quiet --symlinks --recurse-paths $archive_file . \
+			--exclude .git/\* go/{bin/pkg}/\* node_modules/\* \*.zip
+
+		declare env_prefix=${environment^^}
+		env_prefix=${env_prefix//-/_}
+
+		declare env_aws_access_key_id=KONFIG_CI_${env_prefix}_AWS_ACCESS_KEY_ID \
+			env_aws_secret_access_key=KONFIG_CI_${env_prefix}_AWS_SECRET_ACCESS_KEY \
+			env_s3_bucket=KONFIG_CI_${env_prefix}_AWS_S3_BUCKET
+
+		export AWS_DEFAULT_REGION=$region \
+			AWS_ACCESS_KEY_ID=${!env_aws_access_key_id:-$KONFIG_CI_AWS_ACCESS_KEY_ID} \
+			AWS_SECRET_ACCESS_KEY=${!env_aws_secret_access_key:-$KONFIG_CI_AWS_SECRET_ACCESS_KEY}
+
+		declare bucket=${!env_s3_bucket:-$KONFIG_CI_AWS_S3_BUCKET}
+		bucket=$(echo $bucket | env region=$region envsubst)
+
+		aws s3 cp --acl private $archive_file s3://$bucket/
+
+		aws elasticbeanstalk create-application-version \
+			--application-name koding \
+			--version-label $version_label \
+			--source-bundle $(jo S3Bucket=$bucket S3Key=$archive_file)
+
+		aws elasticbeanstalk update-environment \
+			--environment-name $environment \
+			--version-label $version_label
+	done < <(echo "$environments")
+done
+
+exit 0

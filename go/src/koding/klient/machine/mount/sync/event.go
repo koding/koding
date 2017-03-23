@@ -99,6 +99,8 @@ func (e *Event) Done() {
 			e.parent.detach(e.change.Path(), e.id)
 		}
 		e.cancel()
+	} else if e.parent != nil {
+		e.parent.unsync()
 	}
 }
 

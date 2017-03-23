@@ -51,14 +51,8 @@ type JGroup struct {
 	// slug
 	Slug string `json:"slug,omitempty"`
 
-	// social Api announcement channel Id
-	SocialAPIAnnouncementChannelID string `json:"socialApiAnnouncementChannelId,omitempty"`
-
 	// social Api channel Id
 	SocialAPIChannelID string `json:"socialApiChannelId,omitempty"`
-
-	// social Api default channel Id
-	SocialAPIDefaultChannelID string `json:"socialApiDefaultChannelId,omitempty"`
 
 	// stack templates
 	StackTemplates []string `json:"stackTemplates"`

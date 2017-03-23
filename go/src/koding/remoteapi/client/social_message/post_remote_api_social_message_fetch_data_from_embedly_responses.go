@@ -49,7 +49,7 @@ func NewPostRemoteAPISocialMessageFetchDataFromEmbedlyOK() *PostRemoteAPISocialM
 
 /*PostRemoteAPISocialMessageFetchDataFromEmbedlyOK handles this case with default header values.
 
-Request processed successfully.
+Request processed successfully
 */
 type PostRemoteAPISocialMessageFetchDataFromEmbedlyOK struct {
 	Payload *models.DefaultResponse

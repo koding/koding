@@ -191,6 +191,34 @@ func (a *Client) PostRemoteAPIJAccountCount(params *PostRemoteAPIJAccountCountPa
 }
 
 /*
+PostRemoteAPIJAccountDestroyID Method JAccount.destroy
+*/
+func (a *Client) PostRemoteAPIJAccountDestroyID(params *PostRemoteAPIJAccountDestroyIDParams) (*PostRemoteAPIJAccountDestroyIDOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostRemoteAPIJAccountDestroyIDParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PostRemoteAPIJAccountDestroyID",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JAccount.destroy/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostRemoteAPIJAccountDestroyIDReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*PostRemoteAPIJAccountDestroyIDOK), nil
+
+}
+
+/*
 PostRemoteAPIJAccountExpireSubscriptionID post remote API j account expire subscription ID API
 */
 func (a *Client) PostRemoteAPIJAccountExpireSubscriptionID(params *PostRemoteAPIJAccountExpireSubscriptionIDParams) (*PostRemoteAPIJAccountExpireSubscriptionIDOK, error) {
@@ -467,34 +495,6 @@ func (a *Client) PostRemoteAPIJAccountFetchKitesID(params *PostRemoteAPIJAccount
 		return nil, err
 	}
 	return result.(*PostRemoteAPIJAccountFetchKitesIDOK), nil
-
-}
-
-/*
-PostRemoteAPIJAccountFetchMetaInformationID post remote API j account fetch meta information ID API
-*/
-func (a *Client) PostRemoteAPIJAccountFetchMetaInformationID(params *PostRemoteAPIJAccountFetchMetaInformationIDParams) (*PostRemoteAPIJAccountFetchMetaInformationIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchMetaInformationIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchMetaInformationID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JAccount.fetchMetaInformation/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchMetaInformationIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJAccountFetchMetaInformationIDOK), nil
 
 }
 

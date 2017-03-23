@@ -1,0 +1,37 @@
+{
+  "sandbox": {
+    "config": "sandbox",
+    "environments": {
+      "us-east-1": [
+        "koding-sandbox",
+        "koding-proxy-dev-us-e-1-v2"
+      ]
+    }
+  },
+  "latest": {
+    "config": "prod",
+    "environments": {
+      "us-east-1": [
+        "koding-latest"
+      ]
+    }
+  },
+  "production": {
+    "config": "prod",
+    "environments": {
+      "us-east-1": [
+        "koding-prod",
+        "koding-proxy-us-east-1"
+      ],
+      "us-west-2": [
+        "koding-proxy-us-west-2"
+      ],
+      "eu-west-1": [
+        "koding-proxy-eu-west-1"
+      ],
+      "ap-southeast-1": [
+        "koding-proxy-ap-s-e-1"
+      ]
+    }
+  }
+}

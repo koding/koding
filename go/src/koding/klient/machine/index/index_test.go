@@ -34,47 +34,47 @@ func TestIndex(t *testing.T) {
 		"add file": {
 			Op: indextest.WriteFile("d/test.bin", 40*1024),
 			Changes: index.ChangeSlice{
-				index.NewChange("d/test.bin", index.ChangeMetaAdd),
+				index.NewChange("d/test.bin", index.PriorityLow, index.ChangeMetaAdd),
 			},
 		},
 		"add dir": {
 			Op: indextest.AddDir("e"),
 			Changes: index.ChangeSlice{
-				index.NewChange("e", index.ChangeMetaAdd),
+				index.NewChange("e", index.PriorityLow, index.ChangeMetaAdd),
 			},
 		},
 		"remove file": {
 			Op: indextest.RmAllFile("c/cb.bin"),
 			Changes: index.ChangeSlice{
-				index.NewChange("c/cb.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
+				index.NewChange("c/cb.bin", index.PriorityLow, index.ChangeMetaRemote|index.ChangeMetaAdd),
 			},
 		},
 		"remove dir": {
 			Op: indextest.RmAllFile("c"),
 			Changes: index.ChangeSlice{
-				index.NewChange("c", index.ChangeMetaRemote|index.ChangeMetaAdd),
-				index.NewChange("c/ca.txt", index.ChangeMetaRemote|index.ChangeMetaAdd),
-				index.NewChange("c/cb.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
+				index.NewChange("c", index.PriorityLow, index.ChangeMetaRemote|index.ChangeMetaAdd),
+				index.NewChange("c/ca.txt", index.PriorityLow, index.ChangeMetaRemote|index.ChangeMetaAdd),
+				index.NewChange("c/cb.bin", index.PriorityLow, index.ChangeMetaRemote|index.ChangeMetaAdd),
 			},
 			Branch: "c/",
 		},
 		"rename file": {
 			Op: indextest.MvFile("b.bin", "c/cc.bin"),
 			Changes: index.ChangeSlice{
-				index.NewChange("b.bin", index.ChangeMetaRemote|index.ChangeMetaAdd),
-				index.NewChange("c/cc.bin", index.ChangeMetaAdd),
+				index.NewChange("b.bin", index.PriorityLow, index.ChangeMetaRemote|index.ChangeMetaAdd),
+				index.NewChange("c/cc.bin", index.PriorityLow, index.ChangeMetaAdd),
 			},
 		},
 		"write file": {
 			Op: indextest.WriteFile("b.bin", 1024),
 			Changes: index.ChangeSlice{
-				index.NewChange("b.bin", index.ChangeMetaUpdate),
+				index.NewChange("b.bin", index.PriorityMedium, index.ChangeMetaUpdate),
 			},
 		},
 		"chmod file": {
 			Op: indextest.ChmodFile("d/dc/dca.txt", 0600),
 			Changes: index.ChangeSlice{
-				index.NewChange("d/dc/dca.txt", index.ChangeMetaUpdate),
+				index.NewChange("d/dc/dca.txt", index.PriorityMedium, index.ChangeMetaUpdate),
 			},
 			Branch: "d/dc",
 		},
@@ -115,7 +115,10 @@ func TestIndex(t *testing.T) {
 					t.Errorf("want index.Change path = %q; got %q", tc.Path(), cs[i].Path())
 				}
 				if cm, tm := cs[i].Meta(), tc.Meta(); cm != tm {
-					t.Errorf("want index.Change meta = %s; got %v", tm.String(), cm.String())
+					t.Errorf("want index.Change meta = %s; got %s", tm.String(), cm.String())
+				}
+				if cp, tp := cs[i].Priority(), tc.Priority(); cp != tp {
+					t.Errorf("want index.Change priority = %s; got %s", tp.String(), cp.String())
 				}
 			}
 

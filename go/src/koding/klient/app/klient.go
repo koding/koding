@@ -326,7 +326,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		SyncBuilder:     rsync.Builder{},
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
-		WorkDir:         cfg.KodingCacheHome(),
+		WorkDir:         cfg.KodingMounts(),
 	}
 
 	machines, err := machinegroup.New(machinesOpts)
@@ -471,6 +471,8 @@ func (k *Klient) RegisterMethods() {
 	// klient os method(s)
 	k.handleWithSub("os.home", kos.Home)
 	k.handleWithSub("os.currentUsername", kos.CurrentUsername)
+	k.handleWithSub("os.exec", kos.Exec)
+	k.handleWithSub("os.kill", kos.Kill)
 
 	// Klient Info method(s)
 	k.handleWithSub("klient.info", info.Info)
@@ -519,8 +521,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
 	k.kite.HandleFunc("machine.mount.head", machinegroup.KiteHandlerHeadMount(k.machines))
 	k.kite.HandleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
+	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
+	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)
+	k.kite.HandleFunc("machine.kill", k.machines.HandleKill)
 
 	// Machine index handlers.
 	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
@@ -608,7 +613,7 @@ func (k *Klient) handleWithSub(method string, fn kite.HandlerFunc) {
 			return nil, err
 		}
 
-		if !team.SubStatus.Active() {
+		if !team.Paid {
 			k.log.Error("Method %q is blocked due to unpaid subscription for %s team.", method, team.Name)
 			return nil, errors.New("method is blocked")
 		}

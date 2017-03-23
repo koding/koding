@@ -11,7 +11,7 @@ import (
 	"github.com/koding/kite/dnode"
 )
 
-// Kite is the base struct containing the public fields. It is usually embeded
+// Kite is the base struct containing the public fields. It is usually embedded
 // in other structs, including the db model. The access model is in the form:
 // username.environment.name.version.region.hostname.id
 type Kite struct {
@@ -147,6 +147,13 @@ type GetKitesArgs struct {
 	Query         *KontrolQuery   `json:"query"`
 	WatchCallback dnode.Function  `json:"watchCallback"`
 	Who           json.RawMessage `json:"who"`
+}
+
+// GetTokenArgs is a request value for the "getToken" kontrol method.
+type GetTokenArgs struct {
+	KontrolQuery // kite to generate a token for
+
+	Force bool `json:"force"` // force creation of a new token
 }
 
 type WhoResult struct {

@@ -7,7 +7,13 @@ type Team struct {
 	Name      string           `json:"name"`         // Team name.
 	Slug      string           `json:"slug"`         // Team slug.
 	Privacy   string           `json:"privacy"`      // Whether team is public or private.
-	SubStatus models.SubStatus `json:"subscription"` // Subscription status.
+	SubStatus models.SubStatus `json:"subscription"` // Subscription status; deprecated - use Paid field instead.
+	Paid      bool             `json:"paid"`         // Whether team subscription is paid.
+}
+
+// IsSubActive checks if Team's sub is in active state.
+func (t *Team) IsSubActive(env string) bool {
+	return models.IsSubActive(env, t.SubStatus)
 }
 
 // Filter is used for filtering team records.

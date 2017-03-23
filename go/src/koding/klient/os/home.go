@@ -16,8 +16,10 @@ type HomeOptions struct {
 func Home(r *kite.Request) (interface{}, error) {
 	var opts HomeOptions
 
-	if err := r.Args.One().Unmarshal(&opts); err != nil {
-		return nil, err
+	if r.Args != nil {
+		if err := r.Args.One().Unmarshal(&opts); err != nil {
+			return nil, err
+		}
 	}
 
 	if opts.Username == "" {

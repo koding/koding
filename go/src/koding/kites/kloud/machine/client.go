@@ -35,6 +35,7 @@ type User struct {
 
 // Filter is used for filtering machine records.
 type Filter struct {
+	ID           string // machine ID
 	Username     string // user name.
 	Owners       bool   // keep machine owners.
 	OnlyApproved bool   // only approved machines.

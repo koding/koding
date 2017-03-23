@@ -44,10 +44,11 @@ type LoginOptions struct {
 	Token    string
 	Username string
 	Password string
+	Prefix   string
 }
 
 func (opts *LoginOptions) AskUserPass() (err error) {
-	opts.Username, err = helper.Ask("Username [%s]: ", config.CurrentUser.Username)
+	opts.Username, err = helper.Ask("%sUsername [%s]: ", opts.Prefix, config.CurrentUser.Username)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func (opts *LoginOptions) AskUserPass() (err error) {
 	}
 
 	for {
-		opts.Password, err = helper.AskSecret("Password [***]: ")
+		opts.Password, err = helper.AskSecret("%sPassword [***]: ", opts.Prefix)
 		if err != nil {
 			return err
 		}

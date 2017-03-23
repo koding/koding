@@ -2,14 +2,12 @@ package machine
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
 	"koding/klient/machine/machinegroup"
-	"koding/klientctl/klient"
 	"koding/klientctl/ssh"
 
 	"github.com/koding/logging"
@@ -23,32 +21,18 @@ type SSHOptions struct {
 }
 
 // SSH connects to remote machine using SSH protocol.
-func SSH(options *SSHOptions) error {
+func (c *Client) SSH(options *SSHOptions) error {
 	if options == nil {
 		return errors.New("invalid nil options")
 	}
 
-	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
-	k, err := klient.CreateKlientWithDefaultOpts()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating klient:", err)
-		return err
-	}
-
-	if err := k.Dial(); err != nil {
-		return err
-	}
-
 	// Translate identifier to machine ID.
-	idReq := machinegroup.IDRequest{
+	idReq := &machinegroup.IDRequest{
 		Identifier: options.Identifier,
 	}
-	idRaw, err := k.Tell("machine.id", idReq)
-	if err != nil {
-		return err
-	}
-	idRes := machinegroup.IDResponse{}
-	if err := idRaw.Unmarshal(&idRes); err != nil {
+	var idRes machinegroup.IDResponse
+
+	if err := c.klient().Call("machine.id", idReq, &idRes); err != nil {
 		return err
 	}
 
@@ -58,17 +42,14 @@ func SSH(options *SSHOptions) error {
 	}
 
 	// Add created key to authorized hosts on remote machine.
-	sshReq := machinegroup.SSHRequest{
+	sshReq := &machinegroup.SSHRequest{
 		ID:        idRes.ID,
 		Username:  options.Username,
 		PublicKey: pubKey,
 	}
-	sshRaw, err := k.Tell("machine.ssh", sshReq)
-	if err != nil {
-		return err
-	}
-	sshRes := machinegroup.SSHResponse{}
-	if err := sshRaw.Unmarshal(&sshRes); err != nil {
+	var sshRes machinegroup.SSHResponse
+
+	if err := c.klient().Call("machine.ssh", sshReq, &sshRes); err != nil {
 		return err
 	}
 
@@ -121,3 +102,6 @@ func sshGetKeyPath() (pubKey, pubPath, privPath string, err error) {
 
 	return pubKey, pubPath, privPath, nil
 }
+
+// SSH connects to remote machine using SSH protocol using DefaultClient.
+func SSH(opts *SSHOptions) error { return DefaultClient.SSH(opts) }

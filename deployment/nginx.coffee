@@ -174,7 +174,7 @@ createLocations = (KONFIG) ->
         cors = "add_header 'Access-Control-Allow-Origin' '*' always;"
       else if location.cors
         cors = """
-        if ($http_origin ~* (.*\.)*#{_.escapeRegExp KONFIG.domains.main}) {
+        if ($http_origin ~* (.*\\.)*#{_.escapeRegExp KONFIG.domains.main}) {
                 add_header Access-Control-Allow-Origin $http_origin always;
               }
         """

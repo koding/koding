@@ -11,8 +11,12 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 	"koding/klient/machine/mount/notify/silent"
-	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/discard"
+)
+
+var (
+	dynSSH    = func() (string, int, error) { return "", 0, nil }
+	dynClient = func() (client.Client, error) { return clienttest.NewClient(), nil }
 )
 
 func TestSyncsAdd(t *testing.T) {
@@ -23,19 +27,27 @@ func TestSyncsAdd(t *testing.T) {
 	defer clean()
 
 	// Create new supervisor.
-	mountID := mount.MakeID()
 	s, err := syncs.New(syncs.Options{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer s.Close()
 
-	dynSSH, dynClient := dynFunctions()
-	nb, sb := silent.Builder{}, discard.Builder{}
-	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err != nil {
+	var mountID = mount.MakeID()
+
+	addReq := &syncs.AddRequest{
+		MountID:       mountID,
+		Mount:         m,
+		NotifyBuilder: silent.Builder{},
+		SyncBuilder:   discard.Builder{},
+		ClientFunc:    dynClient,
+		SSHFunc:       dynSSH,
+	}
+
+	if err := s.Add(addReq); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err == nil {
+	if err := s.Add(addReq); err == nil {
 		t.Error("want err != nil; got nil")
 	}
 
@@ -54,16 +66,24 @@ func TestSyncsDrop(t *testing.T) {
 	defer clean()
 
 	// Create new sync.
-	mountID := mount.MakeID()
 	s, err := syncs.New(syncs.Options{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer s.Close()
 
-	dynSSH, dynClient := dynFunctions()
-	nb, sb := silent.Builder{}, discard.Builder{}
-	if err := s.Add(mountID, m, nb, sb, dynSSH, dynClient); err != nil {
+	var mountID = mount.MakeID()
+
+	addReq := &syncs.AddRequest{
+		MountID:       mountID,
+		Mount:         m,
+		NotifyBuilder: silent.Builder{},
+		SyncBuilder:   discard.Builder{},
+		ClientFunc:    dynClient,
+		SSHFunc:       dynSSH,
+	}
+
+	if err := s.Add(addReq); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -81,16 +101,4 @@ func TestSyncsDrop(t *testing.T) {
 	if _, err := os.Stat(mountWD); !os.IsNotExist(err) {
 		t.Errorf("want err = os.ErrNotExist; got %v", err)
 	}
-}
-
-func dynFunctions() (msync.DynamicSSHFunc, client.DynamicClientFunc) {
-	dynSSH := func() (string, int, error) {
-		return "", 0, nil
-	}
-
-	dynClient := func() (client.Client, error) {
-		return clienttest.NewClient(), nil
-	}
-
-	return dynSSH, dynClient
 }

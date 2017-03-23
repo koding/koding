@@ -2,8 +2,6 @@ package machine
 
 import (
 	"errors"
-	"fmt"
-	"os"
 	"sort"
 	"time"
 
@@ -12,48 +10,38 @@ import (
 	"koding/kites/kloud/stack"
 	kmachine "koding/klient/machine"
 	"koding/klient/machine/machinegroup"
-	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/klient"
 
 	"github.com/koding/logging"
 )
 
 // ListOptions stores options for `machine list` call.
 type ListOptions struct {
-	Log logging.Logger
+	MachineID string
+	Log       logging.Logger
 }
 
 // List retrieves user's machines from kloud.
-func List(options *ListOptions) ([]*Info, error) {
+func (c *Client) List(options *ListOptions) ([]*Info, error) {
 	if options == nil {
 		return nil, errors.New("invalid nil options")
 	}
 
-	var (
-		listReq = stack.MachineListRequest{}
-		listRes = stack.MachineListResponse{}
-	)
+	listReq := &stack.MachineListRequest{
+		MachineID: options.MachineID,
+	}
+	var listRes stack.MachineListResponse
 
 	// Get info from kloud.
-	if err := kloud.Call("machine.list", &listReq, &listRes); err != nil {
-		return nil, err
-	}
-
-	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
-	k, err := klient.CreateKlientWithDefaultOpts()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating klient:", err)
-		return nil, err
-	}
-
-	if err := k.Dial(); err != nil {
+	if err := c.kloud().Call("machine.list", listReq, &listRes); err != nil {
 		return nil, err
 	}
 
 	// Register machines to klient and get aliases.
-	createReq := machinegroup.CreateRequest{
+	createReq := &machinegroup.CreateRequest{
 		Addresses: make(map[kmachine.ID][]kmachine.Addr),
 	}
+	var createRes machinegroup.CreateResponse
+
 	for _, m := range listRes.Machines {
 		createReq.Addresses[kmachine.ID(m.ID)] = []kmachine.Addr{
 			{
@@ -73,12 +61,8 @@ func List(options *ListOptions) ([]*Info, error) {
 			},
 		}
 	}
-	createRaw, err := k.Tell("machine.create", createReq)
-	if err != nil {
-		return nil, err
-	}
-	createRes := machinegroup.CreateResponse{}
-	if err := createRaw.Unmarshal(&createRes); err != nil {
+
+	if err := c.klient().Call("machine.create", createReq, &createRes); err != nil {
 		return nil, err
 	}
 
@@ -159,3 +143,6 @@ var ms2State = map[machinestate.State]kmachine.State{
 func fromMachineStateString(raw string) kmachine.State {
 	return ms2State[machinestate.States[raw]]
 }
+
+// List retrieves user's machines from kloud using DefaultClient.
+func List(opts *ListOptions) ([]*Info, error) { return DefaultClient.List(opts) }

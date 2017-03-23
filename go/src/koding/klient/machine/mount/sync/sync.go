@@ -7,14 +7,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
-	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/notify"
+	"koding/klient/machine/mount/sync/prefetch"
 
 	"github.com/koding/logging"
 )
@@ -71,17 +72,17 @@ type Syncer interface {
 
 // Info stores information about current mount status.
 type Info struct {
-	ID    mount.ID    // Mount ID.
-	Mount mount.Mount // Mount paths stored in absolute form.
+	ID    mount.ID    `json:"id"`    // Mount ID.
+	Mount mount.Mount `json:"mount"` // Mount paths stored in absolute form.
 
-	Count    int // Number of synced files.
-	CountAll int // Number of all files handled by mount.
+	Count    int `json:"count"`    // Number of synced files.
+	CountAll int `json:"countAll"` // Number of all files handled by mount.
 
-	DiskSize    int64 // Total size of synced files.
-	DiskSizeAll int64 // Size of all files handled by mount.
+	DiskSize    int64 `json:"diskSize"`    // Total size of synced files.
+	DiskSizeAll int64 `json:"diskSizeAll"` // Size of all files handled by mount.
 
-	Queued  int // Number of files waiting for synchronization.
-	Syncing int // Number of files being synced.
+	Queued  int `json:"queued"`  // Number of files waiting for synchronization.
+	Syncing int `json:"syncing"` // Number of files being synced.
 }
 
 // Options are the options used to configure Sync object.
@@ -148,6 +149,10 @@ type Sync struct {
 
 	a *Anteroom // file system event consumer.
 
+	sk     Skipper       // local to remote file skippers.
+	once   sync.Once     // used for closing closeC chan.
+	closeC chan struct{} // closed when sync object is closed.
+
 	n notify.Notifier // object responsible for file system notifications.
 	s Syncer          // object responsible for actual file synchronization.
 
@@ -165,6 +170,8 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		opts:    opts,
 		mountID: mountID,
 		m:       m,
+		sk:      DefaultSkipper,
+		closeC:  make(chan struct{}),
 	}
 
 	if opts.Log != nil {
@@ -174,8 +181,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 	}
 
 	// Create directory structure if it doesn't exist.
-	cacheDir := filepath.Join(s.opts.WorkDir, "data")
-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+	if err := os.MkdirAll(s.CacheDir(), 0755); err != nil {
 		return nil, err
 	}
 
@@ -185,8 +191,10 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		return nil, err
 	}
 
-	// Check current state of synchronization and set promises.
-	s.idx.Merge(cacheDir)
+	// Initialize skippers.
+	if err = s.sk.Initialize(s.CacheDir()); err != nil {
+		s.log.Warning("File local filters were not initialized: %s", err)
+	}
 
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
@@ -196,8 +204,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 		MountID:  mountID,
 		Mount:    m,
 		Cache:    s.a,
-		CacheDir: cacheDir,
-		DiskInfo: s.diskInfo(),
+		CacheDir: s.CacheDir(),
 		Index:    s.idx,
 	})
 	if err != nil {
@@ -207,7 +214,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 	// Create file synchronization object.
 	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
 		Mount:         m,
-		CacheDir:      cacheDir,
+		CacheDir:      s.CacheDir(),
 		ClientFunc:    s.opts.ClientFunc,
 		SSHFunc:       s.opts.SSHFunc,
 		IndexSyncFunc: s.indexSync(),
@@ -221,12 +228,31 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 
 // Stream creates a stream of file synchronization jobs.
 func (s *Sync) Stream() <-chan Execer {
-	return s.s.ExecStream(s.a.Events())
+	evC := make(chan *Event)
+
+	go func() {
+		// Event loop will be closed once Anteroom is closed.
+		evSourceC := s.a.Events()
+		for ev := range evSourceC {
+			if s.sk.IsSkip(ev) {
+				ev.Done()
+				continue
+			}
+
+			select {
+			case evC <- ev:
+			case <-s.closeC:
+				return
+			}
+		}
+	}()
+
+	return s.s.ExecStream(evC)
 }
 
 // Info returns the current mount synchronization status.
 func (s *Sync) Info() *Info {
-	items, queued := s.a.Status()
+	items, synced := s.a.Status()
 
 	return &Info{
 		ID:          s.mountID,
@@ -236,8 +262,50 @@ func (s *Sync) Info() *Info {
 		DiskSize:    s.idx.DiskSize(-1),
 		DiskSizeAll: s.idx.DiskSizeAll(-1),
 		Queued:      items,
-		Syncing:     items - queued,
+		Syncing:     synced,
 	}
+}
+
+// CacheDir returns the name of mount cache directory.
+func (s *Sync) CacheDir() string {
+	return filepath.Join(s.opts.WorkDir, "data")
+}
+
+// UpdateIndex rescans the cache directory and sets all recorded changes to
+// managed index. This function allows to express the current state of
+// synchronized files inside index structure.
+func (s *Sync) UpdateIndex() {
+	cs := s.idx.Merge(s.CacheDir())
+
+	for i := range cs {
+		s.a.Commit(cs[i])
+	}
+}
+
+// Prefetch creates a strategy with prefetch command to run.
+func (s *Sync) Prefetch(av []string) (p prefetch.Prefetch, err error) {
+	spv := client.NewSupervised(s.opts.ClientFunc, 30*time.Second)
+	// Get remote username.
+	username, err := spv.CurrentUser()
+	if err != nil {
+		return p, err
+	}
+
+	// Get remote host and port.
+	host, port, err := s.opts.SSHFunc()
+	if err != nil {
+		return p, err
+	}
+
+	opts := prefetch.Options{
+		SourcePath:      s.m.RemotePath,
+		DestinationPath: s.CacheDir(),
+		Username:        username,
+		Host:            host,
+		SSHPort:         port,
+	}
+
+	return prefetch.DefaultStrategy.Select(opts, av, s.idx), nil
 }
 
 // Drop closes synced mount and cleans up all resources acquired by it.
@@ -248,6 +316,10 @@ func (s *Sync) Drop() error {
 
 // Close closes memory resources acquired by Sync object.
 func (s *Sync) Close() error {
+	s.once.Do(func() {
+		close(s.closeC)
+	})
+
 	return nonil(s.n.Close(), s.s.Close(), s.a.Close())
 }
 
@@ -272,19 +344,6 @@ func (s *Sync) loadIdx(name string) (*index.Index, error) {
 
 	idx := index.NewIndex()
 	return idx, json.NewDecoder(f).Decode(idx)
-}
-
-func (s *Sync) diskInfo() notify.DiskInfo {
-	const (
-		rt = 10 * time.Second // How long client should wait for valid connection.
-		ct = 5 * time.Minute  // How long client responses will be cached.
-	)
-
-	cached := client.NewCached(client.NewSupervised(s.opts.ClientFunc, rt), ct)
-
-	return func() (fs.DiskInfo, error) {
-		return cached.DiskInfo(s.m.RemotePath)
-	}
 }
 
 func (s *Sync) indexSync() IndexSyncFunc {

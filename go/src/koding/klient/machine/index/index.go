@@ -184,6 +184,14 @@ func (idx *Index) Lookup(name string) (*Node, bool) {
 	return idx.root.Lookup(name)
 }
 
+// LookupAll looks up a node by the given name. It doesn't ignore promised nodes.
+func (idx *Index) LookupAll(name string) (*Node, bool) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+
+	return idx.root.LookupAll(name)
+}
+
 // Merge calls MergeBranch on all nodes pointed by root path.
 func (idx *Index) Merge(root string) ChangeSlice {
 	return idx.MergeBranch(root, "")
@@ -215,7 +223,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 
 	rootBranch := filepath.Join(root, branch)
 	visited := map[string]struct{}{
-		rootBranch: struct{}{}, // Skip root.
+		rootBranch: {}, // Skip root.
 	}
 
 	if !ok {
@@ -233,7 +241,8 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			entry.SwapPromise(EntryPromiseVirtual, 0)
 			cs = append(cs, NewChange(
 				filepath.ToSlash(filepath.Join(branch, nameOS)),
-				ChangeMetaAdd|ChangeMetaRemote|markLargeMeta(entry.Size()),
+				PriorityLow,
+				ChangeMetaAdd|ChangeMetaRemote,
 			))
 			return
 		}
@@ -249,20 +258,24 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 		// set to source atime. That's why this is necessary.
 		if (mtime == info.ModTime().UnixNano() || mtime == atime(info)) && entry.Size() == info.Size() && mode == info.Mode() {
 			// Files are identical. Allow different ctimes.
+			entry.SwapPromise(0, EntryPromiseVirtual)
 			return
 		}
 
 		// Merge will not report directory updates because this means that file
 		// inside directory was added/removed and this file should be reported.
-		// Howewer we want to detect permission changes on all files.
+		// Howewer we want to detect permission changes in all files.
 		if mode.IsDir() && mode == info.Mode() {
+			entry.SwapPromise(0, EntryPromiseVirtual)
 			return
 		}
 
-		// Files differ.
+		// Files differ. However the local file is not virtual.
+		entry.SwapPromise(EntryPromiseUpdate, EntryPromiseVirtual)
 		cs = append(cs, NewChange(
 			filepath.ToSlash(filepath.Join(branch, nameOS)),
-			ChangeMetaUpdate|markLargeMeta(info.Size()),
+			PriorityMedium,
+			ChangeMetaUpdate,
 		))
 	})
 	idx.mu.RUnlock()
@@ -286,7 +299,8 @@ skipBranch:
 
 		cs = append(cs, NewChange(
 			filepath.ToSlash(name),
-			ChangeMetaAdd|markLargeMeta(info.Size()),
+			PriorityLow,
+			ChangeMetaAdd,
 		))
 
 		idx.mu.Lock()
@@ -306,15 +320,6 @@ skipBranch:
 	// Put sortest paths to the end.
 	sort.Sort(sort.Reverse(cs))
 	return cs
-}
-
-// markLargeMeta adds large file flag for files which size is over 4GiB.
-func markLargeMeta(n int64) ChangeMeta {
-	if n < 0 || (n>>32) == 0 {
-		return 0
-	}
-
-	return ChangeMetaHuge
 }
 
 // Sync modifies index according to provided change path. It checks the file

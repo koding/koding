@@ -29,6 +29,7 @@ func TestSyncNew(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer sA.Close()
+	sA.UpdateIndex()
 
 	// Check file structure.
 	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
@@ -54,6 +55,8 @@ func TestSyncNew(t *testing.T) {
 		CountAll:    2,
 		DiskSize:    info.DiskSize,
 		DiskSizeAll: info.DiskSizeAll,
+		Queued:      2,
+		Syncing:     info.Syncing,
 	}
 
 	if !reflect.DeepEqual(info, expected) {
@@ -74,6 +77,7 @@ func TestSyncNew(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer sB.Close()
+	sB.UpdateIndex()
 
 	if info = sB.Info(); info == nil {
 		t.Fatalf("want info != nil; got nil")
@@ -86,12 +90,9 @@ func TestSyncNew(t *testing.T) {
 		CountAll:    3,
 		DiskSize:    info.DiskSize,
 		DiskSizeAll: info.DiskSizeAll,
+		Queued:      3,
+		Syncing:     info.Syncing,
 	}
-
-	expected.Count = 2
-	expected.CountAll = 3
-	expected.DiskSize = info.DiskSize
-	expected.DiskSizeAll = info.DiskSizeAll
 
 	if !reflect.DeepEqual(info, expected) {
 		t.Errorf("want info = %#v; got %#v", expected, info)

@@ -14,7 +14,7 @@ var cmdDescriptions = map[string]string{
 		"<authToken>",
 		fmt.Sprintf("Install the %s. sudo is required.", config.KlientName),
 	),
-	"mount": fmtDesc(
+	"compat-mount": fmtDesc(
 		"[optional args] <alias:remote path> <local folder>",
 		fmt.Sprintf(`Mount folder from remote machine to local folder.
     Alias is the local identifer for machine in 'kd list'.
@@ -27,24 +27,35 @@ var cmdDescriptions = map[string]string{
     that does a lot of filesystem operations like git,
     use --oneway-sync.`),
 	),
-	"mount-new": fmtDesc(
+	"mount": fmtDesc(
 		"(<machine-identifier>:<remote-path> <local-path> | <command>) [<options>...]",
-		fmt.Sprintf(`Mount <remote-path> from remote machine to <local-path>.
+		`Mount <remote-path> from remote machine to <local-path>.
 
    With <machine-identifier> argument, kd machine mount identifies requested machine.
    Either machine ID, machine alias or IP can be used as identifier and all of them
    can by obtained by running "kd machine list" command.
 
-   <local-path> can be relative or absolute, if the folder does not exit, it will be created.`),
+   <local-path> can be relative or absolute, if the folder does not exit, it will be created.`,
+	),
+	"exec": fmtDesc(
+		"(<local-mount-path> | @<machine-id>) <command> [<args>...]",
+		`Run <command> on a remote machine specified by either @<machine-id> or <local-mount-path>.
+
+    If <local-mount-path> is provided, kd is going to look up a remote machine
+    by reading the remote source of the mount. The mount must be active and
+    the remote end on-line.
+
+    In order to run a <command> on a remote machine that has no local mounts,
+    use @<machine-id> argument instead.`,
 	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
 	),
-	"unmount": fmtDesc(
+	"compat-unmount": fmtDesc(
 		"<alias>",
 		"Unmount folder which was previously mounted.",
 	),
-	"umount-new": fmtDesc(
+	"umount": fmtDesc(
 		"<mount-id>",
 		"Unmount existing mount with given ID.",
 	),

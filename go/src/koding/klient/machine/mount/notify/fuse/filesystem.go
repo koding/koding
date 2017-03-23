@@ -35,8 +35,14 @@ type builder struct{}
 
 // Build implements the notify.Builder interface.
 func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
+	di, err := fs.Statfs(opts.CacheDir)
+	if err != nil {
+		return nil, err
+	}
+
 	o := &Opts{
 		Index:    opts.Index,
+		Disk:     di,
 		Cache:    opts.Cache,
 		CacheDir: opts.CacheDir,
 		Mount:    filepath.Base(opts.Mount.Path),
@@ -44,13 +50,6 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		// intentionally separate env to not enable fuse logging
 		// for regular kd debug
 		Debug: os.Getenv("KD_MOUNT_DEBUG") == "1",
-	}
-
-	// TODO(ppknap) get disk info from client.
-	if o.Disk == nil {
-		if di, err := fs.Statfs(opts.CacheDir); err == nil {
-			o.Disk = di
-		}
 	}
 
 	if err := o.Valid(); err != nil {
@@ -78,6 +77,9 @@ func (o *Opts) Valid() error {
 
 	if o.Index == nil {
 		return errors.New("index is nil")
+	}
+	if o.Disk == nil {
+		return errors.New("disk info is nil")
 	}
 	if o.Cache == nil {
 		return errors.New("cache is nil")
@@ -132,9 +134,16 @@ var _ fuseutil.FileSystem = (*Filesystem)(nil)
 
 // NewFilesystem creates new Filesystem value.
 func NewFilesystem(opts *Opts) (*Filesystem, error) {
-	if err := os.MkdirAll(opts.MountDir, 0755); err != nil {
+	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
+
+	// Best-effort attempt of unmounting already existing mount.
+	_ = Umount(opts.MountDir)
+
+	// Ignore mkdir errors since it can return `file exists` error. Other errors
+	// will cause FUSE backend fail.
+	_ = os.MkdirAll(opts.MountDir, 0755)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -148,9 +157,6 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		seqHandle: uint64(3),
 		handles:   make(map[fuseops.HandleID]*os.File),
 	}
-
-	// Best-effort attempt of unmounting already existing mount.
-	_ = Umount(fs.MountDir)
 
 	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
 	if err != nil {
@@ -325,7 +331,7 @@ func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, boo
 }
 
 func (fs *Filesystem) commit(rel string, meta index.ChangeMeta) stdcontext.Context {
-	return fs.Cache.Commit(index.NewChange(rel, meta))
+	return fs.Cache.Commit(index.NewChange(rel, index.PriorityHigh, meta))
 }
 
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {

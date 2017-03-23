@@ -9,10 +9,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
+	"koding/klient/os"
 )
 
 // Builder uses Server logic to build test clients.
@@ -134,18 +134,14 @@ func (c *Client) MountGetIndex(path string) (*index.Index, error) {
 	return index.NewIndexFiles(path)
 }
 
-// DiskInfo gets faked information about file-system.
-func (c *Client) DiskInfo(path string) (di fs.DiskInfo, err error) {
-	// TODO(ppknap): replace with non-faked data when we have platform
-	// independent logic for disk stat operation.
-	di = fs.DiskInfo{
-		BlockSize:   512,
-		BlocksTotal: 1e9,
-		BlocksFree:  9e8,
-		BlocksUsed:  1e9 - 9e8,
-	}
+// Exec mocks running process on a remote, always succeeds.
+func (c *Client) Exec(*os.ExecRequest) (*os.ExecResponse, error) {
+	return &os.ExecResponse{PID: 0xD}, nil
+}
 
-	return
+// Kill mocks remote process termination, always succeeds.
+func (c *Client) Kill(*os.KillRequest) (*os.KillResponse, error) {
+	return &os.KillResponse{}, nil
 }
 
 // SetContext sets provided context to test client.
