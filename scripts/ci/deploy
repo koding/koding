@@ -64,35 +64,37 @@ for region in $(echo $regions); do
 			--config $config \
 			--ebEnvName $environment
 
-		source .env.sh
+		(
+			source .env.sh
 
-		zip --quiet --symlinks --recurse-paths $archive_file . \
-			--exclude .git/\* go/{bin/pkg}/\* node_modules/\* \*.zip
+			zip --quiet --symlinks --recurse-paths $archive_file . \
+				--exclude .git/\* go/{bin/pkg}/\* node_modules/\* \*.zip
 
-		declare env_prefix=${environment^^}
-		env_prefix=${env_prefix//-/_}
+			declare env_prefix=${environment^^}
+			env_prefix=${env_prefix//-/_}
 
-		declare env_aws_access_key_id=KONFIG_CI_${env_prefix}_AWS_ACCESS_KEY_ID \
-			env_aws_secret_access_key=KONFIG_CI_${env_prefix}_AWS_SECRET_ACCESS_KEY \
-			env_s3_bucket=KONFIG_CI_${env_prefix}_AWS_S3_BUCKET
+			declare env_aws_access_key_id=KONFIG_CI_${env_prefix}_AWS_ACCESS_KEY_ID \
+				env_aws_secret_access_key=KONFIG_CI_${env_prefix}_AWS_SECRET_ACCESS_KEY \
+				env_s3_bucket=KONFIG_CI_${env_prefix}_AWS_S3_BUCKET
 
-		export AWS_DEFAULT_REGION=$region \
-			AWS_ACCESS_KEY_ID=${!env_aws_access_key_id:-$KONFIG_CI_AWS_ACCESS_KEY_ID} \
-			AWS_SECRET_ACCESS_KEY=${!env_aws_secret_access_key:-$KONFIG_CI_AWS_SECRET_ACCESS_KEY}
+			export AWS_DEFAULT_REGION=$region \
+				AWS_ACCESS_KEY_ID=${!env_aws_access_key_id:-$KONFIG_CI_AWS_ACCESS_KEY_ID} \
+				AWS_SECRET_ACCESS_KEY=${!env_aws_secret_access_key:-$KONFIG_CI_AWS_SECRET_ACCESS_KEY}
 
-		declare bucket=${!env_s3_bucket:-$KONFIG_CI_AWS_S3_BUCKET}
-		bucket=$(echo $bucket | env region=$region envsubst)
+			declare bucket=${!env_s3_bucket:-$KONFIG_CI_AWS_S3_BUCKET}
+			bucket=$(echo $bucket | env region=$region envsubst)
 
-		aws s3 cp --acl private $archive_file s3://$bucket/
+			aws s3 cp --acl private $archive_file s3://$bucket/
 
-		aws elasticbeanstalk create-application-version \
-			--application-name koding \
-			--version-label $version_label \
-			--source-bundle $(jo S3Bucket=$bucket S3Key=$archive_file)
+			aws elasticbeanstalk create-application-version \
+				--application-name koding \
+				--version-label $version_label \
+				--source-bundle $(jo S3Bucket=$bucket S3Key=$archive_file)
 
-		aws elasticbeanstalk update-environment \
-			--environment-name $environment \
-			--version-label $version_label
+			aws elasticbeanstalk update-environment \
+				--environment-name $environment \
+				--version-label $version_label
+		)
 	done < <(echo "$environments")
 done
 
