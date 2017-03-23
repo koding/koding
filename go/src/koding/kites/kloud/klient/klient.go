@@ -153,8 +153,6 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	}
 
 	remoteKite := kites[0]
-	remoteKite.ReadBufferSize = 512
-	remoteKite.WriteBufferSize = 512
 
 	err = remoteKite.DialTimeout(t)
 	if err != nil {

@@ -4,19 +4,19 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/common"
 	"log"
 	"net/http"
 	"time"
 
-	"gopkg.in/throttled/throttled.v2"
-	"gopkg.in/throttled/throttled.v2/store/memstore"
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
+	konfig "koding/kites/config"
 
 	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
 	"github.com/koding/metrics"
+	"gopkg.in/throttled/throttled.v2"
+	"gopkg.in/throttled/throttled.v2/store/memstore"
 )
 
 const Name = "kontrol"
@@ -35,7 +35,10 @@ func New(c *Config) *kontrol.Kontrol {
 		log.Fatalln(err.Error())
 	}
 
-	kiteConf := config.MustGet()
+	kiteConf, err := konfig.ReadKiteConfig(c.Debug)
+	if err != nil {
+		panic(err)
+	}
 
 	if c.Environment != "" {
 		kiteConf.Environment = c.Environment
