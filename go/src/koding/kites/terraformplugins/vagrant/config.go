@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	konfig "koding/kites/config"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/tools/util"
 
@@ -29,7 +30,7 @@ var (
 
 func newConfig() error {
 	var err error
-	config, err = kiteconfig.Get()
+	config, err = konfig.ReadKiteConfig(debug)
 	if err != nil {
 		return err
 	}
@@ -59,8 +60,7 @@ func NewClient() (*Client, error) {
 		return nil, err
 	}
 
-	k := kite.New(Name, Version)
-	k.Config = config.Copy()
+	k := kite.NewWithConfig(Name, Version, config)
 
 	if debug {
 		k.SetLogLevel(kite.DEBUG)

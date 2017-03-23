@@ -86,6 +86,27 @@ func (nd *Node) Del(path string) {
 	}
 }
 
+// Clone creates a deep copy of node.
+func (nd *Node) Clone() *Node {
+	cpy := &Node{
+		Sub: make(map[string]*Node, len(nd.Sub)),
+	}
+
+	for sub, node := range nd.Sub {
+		if node != nil {
+			cpy.Sub[sub] = node.Clone()
+		} else {
+			cpy.Sub[sub] = nil
+		}
+	}
+
+	if nd.Entry != nil {
+		cpy.Entry = nd.Entry.Clone()
+	}
+
+	return cpy
+}
+
 // PromiseAdd adds a node under the given path marked as newly added.
 //
 // If the node already exists, it'd be only marked with EntryPromiseAdd flag.

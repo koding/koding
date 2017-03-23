@@ -1,9 +1,11 @@
 package config
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
+	"io/ioutil"
 	"net/url"
 	"path"
 	"path/filepath"
@@ -155,10 +157,18 @@ func (k *Konfig) KodingPublic() *url.URL {
 }
 
 func (k *Konfig) buildKiteConfig() *konfig.Config {
-	if k.KiteKey != "" {
-		tok, err := jwt.ParseWithClaims(k.KiteKey, &kitekey.KiteClaims{}, kitekey.GetKontrolKey)
+	kiteKey := k.KiteKey
+
+	if kiteKey == "" && k.KiteKeyFile != "" {
+		if p, err := ioutil.ReadFile(k.KiteKeyFile); err == nil && len(p) != 0 {
+			kiteKey = string(bytes.TrimSpace(p))
+		}
+	}
+
+	if kiteKey != "" {
+		tok, err := jwt.ParseWithClaims(kiteKey, &kitekey.KiteClaims{}, kitekey.GetKontrolKey)
 		if err == nil {
-			cfg := &konfig.Config{}
+			cfg := NewKiteConfig(k.Debug)
 
 			if err = cfg.ReadToken(tok); err == nil {
 				return cfg
@@ -166,17 +176,11 @@ func (k *Konfig) buildKiteConfig() *konfig.Config {
 		}
 	}
 
-	if k.KiteKeyFile != "" {
-		if cfg, err := konfig.NewFromKiteKey(k.KiteKeyFile); err == nil {
-			return cfg
-		}
-	}
-
-	if cfg, err := konfig.Get(); err == nil {
+	if cfg, err := ReadKiteConfig(k.Debug); err == nil {
 		return cfg
 	}
 
-	return konfig.New()
+	return NewKiteConfig(k.Debug)
 }
 
 func NewKonfigURL(koding *url.URL) *Konfig {
