@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"os/exec"
@@ -50,22 +48,9 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
-	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol/onceevery"
 	kiteproto "github.com/koding/kite/protocol"
-	"github.com/koding/kite/sockjsclient"
 	"github.com/koding/logging"
-)
-
-const (
-	// The default timeout to use for Klient's http.Client
-	defaultXHRTimeout = 30 * time.Second
-)
-
-var (
-	// the implementation of New() doesn't have any error to be returned yet it
-	// returns, so it's totally safe to neglect the error
-	cookieJar, _ = cookiejar.New(nil)
 )
 
 // Klient is the central app which provides all available methods.
@@ -344,7 +329,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Client: c,
 	}
 
-	restClient := httputil.DefaultRestClient(konfig.Konfig.Debug)
+	restClient := httputil.Client(konfig.Konfig.Debug)
 	restClient.Transport = &api.Transport{
 		RoundTripper: restClient.Transport,
 		AuthFunc: (&apiutil.KloudAuth{
@@ -425,21 +410,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	kl.RegisterMethods()
 
 	return kl, nil
-}
-
-// An implementation of the kite xhr dialer that uses a set http timeout,
-// and not the zero timeout value that kite.Dial() will pass to DialOptions.
-//
-// https://github.com/koding/kite/blob/master/sockjsclient/xhr.go#L28
-func klientXHRClientFunc(opts *sockjsclient.DialOptions) *http.Client {
-	if opts.Timeout == 0 {
-		opts.Timeout = defaultXHRTimeout
-	}
-
-	return &http.Client{
-		Timeout: opts.Timeout,
-		Jar:     cookieJar,
-	}
 }
 
 // Kite returns the underlying Kite instance.
@@ -856,20 +826,16 @@ func (k *Klient) Close() {
 }
 
 func newKite(kconf *KlientConfig) *kite.Kite {
-	k := kite.New(kconf.Name, kconf.Version)
+	k := kite.NewWithConfig(kconf.Name, kconf.Version, konfig.Konfig.KiteConfig())
 
 	if kconf.Debug {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
-	k.Config = konfig.Konfig.KiteConfig()
 	k.Config.Port = kconf.Port
 	k.Config.Environment = kconf.Environment
 	k.Config.Region = kconf.Region
 	k.Id = k.Config.Id // always boot up with the same id in the kite.key
-	// Set klient to use XHR Polling, since Prod Koding only supports XHR
-	k.Config.Transport = config.XHRPolling
-	k.ClientFunc = klientXHRClientFunc
 
 	// replace kontrolURL if's being overidden
 	if kconf.KontrolURL != "" {

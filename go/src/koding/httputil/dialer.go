@@ -65,8 +65,8 @@ func (d *Dialer) tickInterval() time.Duration {
 }
 
 func (d *Dialer) maxIdle() int {
-	if d.opts.MaxIdleConnsPerHost != 0 {
-		return d.opts.MaxIdleConnsPerHost
+	if d.opts.MaxIdleConns != 0 {
+		return d.opts.MaxIdleConns
 	}
 
 	return http.DefaultMaxIdleConnsPerHost
@@ -120,7 +120,7 @@ func (d *Dialer) process() {
 		}
 		d.mu.Unlock()
 
-		counter := make(map[string]int, len(conns))
+		var n int
 		now := time.Now()
 
 		for i, c := range conns {
@@ -129,9 +129,9 @@ func (d *Dialer) process() {
 			d.log().Debug("(%d/%d) active connection: %s", i+1, len(conns), c.ShortString())
 
 			if dur := c.Since(now); dur > 10*time.Minute {
-				counter[c.addr]++
+				n++
 
-				if n := counter[c.addr]; n > d.maxIdle() {
+				if n > d.maxIdle() {
 					d.log().Error("(%d/%d - %d) leaked connection (idle for %s): %s", i+1, len(conns), n, dur, c)
 				} else {
 					d.log().Info("(%d/%d) idle connection (active %s ago): %s", i+1, len(conns), dur, c)

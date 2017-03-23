@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"koding/httputil"
 	cfg "koding/kites/config"
 
 	"github.com/cenkalti/backoff"
@@ -143,8 +142,7 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 	// kontrol will prevent the kite from updating it's keypair,
 	// when it changes in kontrol - the only fix is to restart
 	// kite process.
-	k := kite.New("tunnelclient", "0.0.1")
-	k.Config = optsCopy.Kite.Config.Copy()
+	k := kite.NewWithConfig("tunnelclient", "0.0.1", optsCopy.Kite.Config.Copy())
 	k.Config.Transport = config.WebSocket
 
 	c := &Client{
@@ -165,8 +163,6 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 			ServerAddr:  c.opts.LastVirtualHost,
 		}
 	}
-
-	c.kite.ClientFunc = httputil.ClientFunc(opts.Debug)
 
 	cfg := &tunnel.ClientConfig{
 		FetchIdentifier: c.fetchIdent,

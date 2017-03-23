@@ -142,12 +142,15 @@ type Config struct {
 //
 // If conf contains invalid or missing configuration, it return non-nil error.
 func New(conf *Config) (*Kloud, error) {
-	k := kite.New(stack.NAME, stack.VERSION)
-	k.Config = kiteconfig.MustGet()
+	cfg, err := config.ReadKiteConfig(conf.DebugMode)
+	if err != nil {
+		return nil, err
+	}
+
+	k := kite.NewWithConfig(stack.NAME, stack.VERSION, cfg)
 	k.Config.Port = conf.Port
 
-	k.ClientFunc = httputil.ClientFunc(conf.DebugMode)
-
+	// TODO(rjeczalik): add (*config.Config).Debug field
 	if conf.DebugMode {
 		k.SetLogLevel(kite.DEBUG)
 	}
@@ -176,7 +179,7 @@ func New(conf *Config) (*Kloud, error) {
 		"kloudSecret": conf.KloudSecretKey,
 	}
 
-	restClient := httputil.DefaultRestClient(conf.DebugMode)
+	restClient := httputil.Client(conf.DebugMode)
 
 	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
