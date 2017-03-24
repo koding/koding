@@ -118,7 +118,7 @@ loadStacks = (force = no) ->
 
     computeController.ready ->
 
-      stacks = computeController.storage.get 'stacks'
+      stacks = computeController.storage.stacks.get()
 
       reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
       resolve stacks

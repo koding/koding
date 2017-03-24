@@ -205,7 +205,7 @@ module.exports = class ComputeController extends KDController
   findStackFromRemoteData: (options) ->
 
     { commitId } = options
-    _stacks = @storage.get 'stacks'
+    _stacks = @storage.stacks.get()
     for stack in _stacks when _commitId = stack.config?.remoteDetails?.commitId
       return stack  if ///^#{commitId}///.test _commitId
 
@@ -223,15 +223,15 @@ module.exports = class ComputeController extends KDController
     return @storage.machines.get 'uid', machineUId
 
   findStackFromStackId: (stackId) ->
-    return @storage.get 'stacks', '_id', stackId
+    return @storage.stacks.get '_id', stackId
 
   findStackFromMachineId: (machineId) ->
-    for stack in @storage.get 'stacks'
+    for stack in @storage.stacks.get()
       for machine in stack.machines
         return stack  if machine._id is machineId
 
   findStackFromTemplateId: (baseStackId) ->
-    return @storage.get 'stacks', 'baseStackId', baseStackId
+    return @storage.stacks.get 'baseStackId', baseStackId
 
   findMachineFromQueryString: (queryString) ->
 
@@ -313,7 +313,7 @@ module.exports = class ComputeController extends KDController
       if template
         template.generateStack {}, handleStackCreate
       else if force or groupHasStacks = groupsController.currentGroupHasStack()
-        if groupHasStacks and not @storage.get 'stacks', 'config.groupStack', true
+        if groupHasStacks and not @storage.stacks.get 'config.groupStack', true
           remote.api.ComputeProvider.createGroupStack handleStackCreate
       else
         @emit 'StacksNotConfigured'
@@ -502,7 +502,7 @@ module.exports = class ComputeController extends KDController
 
     .then (res) =>
 
-      @storage.pop 'stacks', stackId
+      @storage.stacks.pop stackId
       actions.checkTeamStack stack._id
 
       @eventListener.addListener 'apply', stackId  if followEvents
@@ -647,8 +647,7 @@ module.exports = class ComputeController extends KDController
 
     if asStack
 
-      # this.storage.pop   'stacks', instanceId
-      this.storage.fetch 'stacks', '_id', instanceId, reset = yes
+      this.storage.stacks.fetch '_id', instanceId, reset = yes
         .then (stack) =>
           stack.machines.forEach (machine) =>
             @invalidateCache machine.getId()
@@ -685,7 +684,7 @@ module.exports = class ComputeController extends KDController
   checkStackRevisions: (stackTemplateId) ->
 
     # fetch all the stacks in cache
-    (@storage.get 'stacks').forEach (stack) =>
+    (@storage.stacks.get()).forEach (stack) =>
 
       # if a specific stackTemplateId provided then skip all others
       # otherwise check all of them one by one
@@ -737,7 +736,7 @@ module.exports = class ComputeController extends KDController
       reactor.dispatch 'UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
       SidebarFlux.actions.makeVisible 'draft', id
 
-    stacks = (@storage.get 'stacks').filter (stack) ->
+    stacks = (@storage.stacks.get()).filter (stack) ->
       stack.config?.clonedFrom is id
 
     stacks.forEach (stack) =>
@@ -754,7 +753,7 @@ module.exports = class ComputeController extends KDController
     if whoami()._id is stackTemplate.originId
       SidebarFlux.actions.makeVisible 'draft', stackTemplate._id
 
-    stacks = (@storage.get 'stacks').filter (stack) ->
+    stacks = (@storage.stacks.get()).filter (stack) ->
       stack.config?.clonedFrom is stackTemplate._id
 
     return  unless stacks.length
@@ -783,7 +782,7 @@ module.exports = class ComputeController extends KDController
     return  unless stackTemplates?.length
 
     # if so, this time check for existing stacks marked as groupStack
-    groupStacks = @storage.query 'stacks', 'config.groupStack', yes
+    groupStacks = @storage.stacks.query 'config.groupStack', yes
     if groupStacks.length is 0
       # if not found try to create the default stack
       @createDefaultStack { force: yes }
@@ -793,7 +792,7 @@ module.exports = class ComputeController extends KDController
 
   checkGroupStackRevisions: ->
 
-    return  if not (@storage.get 'stacks').length
+    return  if not (@storage.stacks.get()).length
 
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
@@ -803,7 +802,7 @@ module.exports = class ComputeController extends KDController
 
     existents = 0
     for stackTemplateId in stackTemplates
-      existentStacks = @storage.query 'stacks', 'baseStackId', stackTemplateId
+      existentStacks = @storage.stacks.query 'baseStackId', stackTemplateId
       existents += existentStacks.length
 
     if existents isnt stackTemplates.length
@@ -959,7 +958,7 @@ module.exports = class ComputeController extends KDController
   ###
   getGroupStack: ->
 
-    return null  if not (@storage.get 'stacks').length
+    return null  if not (@storage.stacks.get()).length
 
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
@@ -968,10 +967,10 @@ module.exports = class ComputeController extends KDController
     return null  if not stackTemplates?.length
 
     for stackTemplate in stackTemplates
-      for stack in (@storage.get 'stacks') when stack.baseStackId is stackTemplate
+      for stack in (@storage.stacks.get()) when stack.baseStackId is stackTemplate
         return stack
 
-    for stack in (@storage.get 'stacks') when stack.config?.groupStack
+    for stack in (@storage.stacks.get()) when stack.config?.groupStack
       return stack
 
     return null
@@ -1074,7 +1073,7 @@ module.exports = class ComputeController extends KDController
 
     if not stack
 
-      if not (@storage.get 'stacks').length
+      if not (@storage.stacks.get()).length
         new kd.NotificationView
           title   : "Couldn't find default stack"
           content : 'Please re-init manually'

@@ -517,7 +517,7 @@ module.exports = class StackEditorView extends kd.View
     @stackTemplateUpdateWarningView.destroy()
     @emit 'Reload'
     if update
-      for stack in cc.storage.get 'stacks'
+      for stack in cc.storage.stacks.get()
         if stack.baseStackId is @stackTemplate._id
           config = stack.config ?= {}
           config.needUpdate = no

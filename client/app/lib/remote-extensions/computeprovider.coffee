@@ -15,6 +15,6 @@ module.exports = class ComputeProvider extends remote.api.ComputeProvider
 
       { results: { machines }, stack } = newStack
       stack.machines = machines.map (m) -> m.obj
-      kd.singletons.computeController.storage.push 'stacks', stack
+      kd.singletons.computeController.storage.stacks.push stack
 
       callback null, newStack
