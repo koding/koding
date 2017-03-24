@@ -55,6 +55,6 @@ module.exports = class JStackTemplate extends remote.api.JStackTemplate
     super data, (err, updated) ->
 
       if not err and updated
-        kd.singletons.computeController.storage.push 'templates', updated
+        kd.singletons.computeController.storage.templates.push updated
 
       callback err, updated

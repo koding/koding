@@ -913,7 +913,7 @@ module.exports = class ComputeController extends KDController
 
   fetchStackTemplate: (id, callback = kd.noop) ->
 
-    @storage.fetch 'templates', id
+    @storage.templates.fetch id
       .then (template) ->
         callback null, template
       .catch callback
@@ -921,7 +921,7 @@ module.exports = class ComputeController extends KDController
 
   fetchStackTemplates: (callback) ->
 
-    if (templates = @storage.get 'templates').length
+    if (templates = @storage.templates.get()).length
       callback null, templates
 
     query   = { group: getGroup().slug }

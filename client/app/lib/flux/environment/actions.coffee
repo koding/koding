@@ -494,7 +494,7 @@ generateStack = (stackTemplateId) ->
 
   new Promise (resolve, reject) ->
 
-    stackTemplate = computeController.storage.get 'templates', '_id', stackTemplateId
+    stackTemplate = computeController.storage.templates.get '_id', stackTemplateId
     return reject new Error 'StackTemplate not found'  unless stackTemplate
 
     generateStackFromTemplate stackTemplate
