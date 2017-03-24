@@ -172,6 +172,7 @@ module.exports = class ComputeStorage extends kd.Object
 
     debug 'before pop', @storage
 
+    return  unless value
     return  unless Storage[type]
     { prePop, postPop } = Storage[type]
 

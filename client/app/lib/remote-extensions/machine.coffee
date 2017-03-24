@@ -162,7 +162,6 @@ module.exports = class JMachine extends remote.api.JMachine
   isMine      : -> @_ruleChecker ['owner']
   isApproved  : -> @isMine() or @_ruleChecker ['approved']
   isPermanent : -> @_ruleChecker ['permanent']
-  isShared    : -> not @isMine() and not @isPermanent() and @getChannelId()
   isManaged   : -> @provider is 'managed'
   isRunning   : -> @status?.state is JMachine.State.Running
   isStopped   : -> @status?.state is JMachine.State.Stopped
@@ -184,3 +183,15 @@ module.exports = class JMachine extends remote.api.JMachine
         delete (storage.get 'machines', '_id', machine._id).channelId
 
       callback err, machine
+
+
+  deny: (callback) ->
+
+    debug 'deny called'
+    { storage } = kd.singletons.computeController
+
+    super (err) =>
+      return callback err  if err
+
+      storage.pop 'machines', this
+      callback null
