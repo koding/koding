@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/ooyala/go-dogstatsd"
-	"github.com/rcrowley/go-metrics"
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
+	metrics "github.com/rcrowley/go-metrics"
 )
 
 type DogStatsD struct {

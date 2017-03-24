@@ -33,5 +33,11 @@ rm -rf vendor/github.com/jinzhu/gorm
 git clone git@github.com:koding/gorm vendor/github.com/jinzhu/gorm
 rm -rf vendor/github.com/jinzhu/gorm/.git
 
+
+# remove this when https://github.com/DataDog/datadog-go/pull/31 is merged.
+rm -rf vendor/github.com/DataDog/datadog-go
+git clone git@github.com:koding/datadog-go vendor/github.com/DataDog/datadog-go
+rm -rf vendor/github.com/DataDog/datadog-go/.git
+
 popd
 
