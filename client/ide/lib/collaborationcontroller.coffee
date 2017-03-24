@@ -1100,12 +1100,20 @@ module.exports = CollaborationController =
     return  unless @stateMachine?.state in ['Active', 'Ending']
     return  unless machine = @getMachine()
 
-    { reactor } = kd.singletons
-
+    { reactor, computeController } = kd.singletons
 
     if machine.isMine()
       machine.setChannelId {}, (err) ->
         console.warn 'Failed to set channelId', err  if err
+
+    else if not machine.isPermanent()
+      machine.deny (err) ->
+        console.warn 'Failed to deny machine', err  if err
+        reactor.dispatch \
+          actionTypes.INVITATION_REJECTED, machine._id
+
+    else
+      computeController.reloadIDE machine
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>

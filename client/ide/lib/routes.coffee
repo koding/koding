@@ -112,9 +112,9 @@ routeToMachine = (options = {}) ->
 
       if machine
 
-        if machine.isShared()
+        if channelId = machine.getChannelId()
 
-          socialapi.cacheable 'channel', machine.channelId, (err, channel) ->
+          socialapi.cacheable 'channel', channelId, (err, channel) ->
 
             if err or not channel
               return loadIDE { machine }
