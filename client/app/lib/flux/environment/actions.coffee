@@ -125,7 +125,7 @@ loadStacks = (force = no) ->
       _bindStackEvents()
 
 
-rejectInvitation = (_machine) ->
+leaveMachine = (_machine) ->
 
   { reactor, machineShareManager, appManager, computeController } = kd.singletons
 
@@ -178,16 +178,9 @@ rejectInvitation = (_machine) ->
 
       ideInstance?.quit()  if denyMachine
 
-      actionType = if _machine.get('type') is 'collaboration'
-      then 'COLLABORATION_INVITATION_REJECTED'
-      else 'SHARED_VM_INVITATION_REJECTED'
-
       machineId = machine.getId()
-      reactor.dispatch actions[actionType], machineId
+      reactor.dispatch actions.INVITATION_REJECTED, machineId
       computeController.storage.pop 'machines', machineId
-      reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, \
-        computeController.storage.get 'machines'
-
 
   ])
 
@@ -241,14 +234,9 @@ acceptInvitation = (_machine) ->
         reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
 
 
-dispatchCollaborationInvitationRejected = (id) ->
+dispatchInvitationRejected = (id) ->
 
-  kd.singletons.reactor.dispatch actions.COLLABORATION_INVITATION_REJECTED, id
-
-
-dispatchSharedVMInvitationRejected = (id) ->
-
-  kd.singletons.reactor.dispatch actions.SHARED_VM_INVITATION_REJECTED, id
+  kd.singletons.reactor.dispatch actions.INVITATION_REJECTED, id
 
 
 _getInvitationChannelId = ({ uid, invitation }, callback) ->
@@ -690,7 +678,7 @@ loadExpandedMachineLabel = (label) ->
 module.exports = {
   loadMachines
   loadStacks
-  rejectInvitation
+  leaveMachine
   acceptInvitation
   setSelectedMachineId
   setSelectedTemplateId
@@ -705,8 +693,7 @@ module.exports = {
   setActiveLeavingSharedMachineId
   reinitStackFromWidget
   setActiveStackId
-  dispatchCollaborationInvitationRejected
-  dispatchSharedVMInvitationRejected
+  dispatchInvitationRejected
   loadStackTemplates
   setMachineAlwaysOn
   setMachinePowerStatus

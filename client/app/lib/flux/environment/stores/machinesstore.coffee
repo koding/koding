@@ -20,8 +20,7 @@ module.exports = class MachinesStore extends KodingFluxStore
     @on actions.ADD_TEST_MACHINE, @set
 
     @on actions.INVITATION_ACCEPTED, @acceptInvitation
-    @on actions.SHARED_VM_INVITATION_REJECTED, @rejectInvitation
-    @on actions.COLLABORATION_INVITATION_REJECTED, @rejectInvitation
+    @on actions.INVITATION_REJECTED, @rejectInvitation
 
 
   load: (machines, jmachines) ->

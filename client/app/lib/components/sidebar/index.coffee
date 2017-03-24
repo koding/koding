@@ -72,8 +72,7 @@ module.exports = class Sidebar extends React.Component
           EnvironmentFlux.actions.setActiveInvitationMachineId { machine: null }
         else
           EnvironmentFlux.actions.setActiveLeavingSharedMachineId { id: null }
-          EnvironmentFlux.actions.dispatchCollaborationInvitationRejected options.machineId
-          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.uid
+          EnvironmentFlux.actions.dispatchInvitationRejected options.machineId
 
         EnvironmentFlux.actions.loadMachines()
 

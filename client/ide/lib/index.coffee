@@ -1765,7 +1765,7 @@ module.exports = class IDEAppController extends AppController
           callback : =>
 
             { reactor } = kd.singletons
-            reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine.getId()
+            reactor.dispatch actionTypes.INVITATION_REJECTED, @mountedMachine.getId()
 
             @modal.destroy()
             @quit()

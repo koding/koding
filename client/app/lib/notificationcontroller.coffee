@@ -121,14 +121,12 @@ module.exports = class NotificationController extends KDObject
       switch action
 
         when 'removed'
-          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected machineUId
-          ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
-          ideInstance.showUserRemovedModal()  if ideInstance # and permanent
+          if ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
+            ideInstance.showUserRemovedModal()
 
-          machine = storage.get 'machines', 'uid', machineUId
-          storage.pop 'machines', machine
-
-          reactor.dispatch actions.SHARED_VM_INVITATION_REJECTED, machine._id
+          if machine = storage.get 'machines', 'uid', machineUId
+            storage.pop 'machines', machine
+            reactor.dispatch actions.INVITATION_REJECTED, machine._id
 
         when 'added'
           storage.fetch 'machines', 'uid', machineUId

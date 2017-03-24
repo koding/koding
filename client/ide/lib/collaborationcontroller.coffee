@@ -561,6 +561,8 @@ module.exports = CollaborationController =
 
   handleBroadcastMessage: (data) ->
 
+    debug 'got broadcastMessage', data
+
     { origin, type, params } = data
 
     if origin is nick()
@@ -1100,7 +1102,6 @@ module.exports = CollaborationController =
 
     { reactor } = kd.singletons
 
-    reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, machine._id
 
     if machine.isMine()
       machine.setChannelId {}, (err) ->
