@@ -225,8 +225,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     debug 'invited widget is about to be rendered'
 
+    { setActiveInvitationMachineId } = actions
+
     <SharingMachineInvitationWidget
       key="InvitationWidget-#{@props.machine.get '_id'}"
+      onClose={-> setActiveInvitationMachineId { machine: null }}
       coordinates={@state.coordinates}
       machine={@props.machine} />
 
