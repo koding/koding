@@ -14,6 +14,7 @@ isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 
+debug = require('debug')('sidebaritem')
 
 require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
@@ -205,6 +206,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
   render: ->
 
     return null  unless @props.showInSidebar
+
+    debug 'isApproved', { id: @machine('_id'), isApproved: @machine('isApproved') }
 
     { status }  = @state
     activeClass = ''
