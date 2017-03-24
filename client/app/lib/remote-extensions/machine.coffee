@@ -161,7 +161,7 @@ module.exports = class JMachine extends remote.api.JMachine
 
   setApproved: ->
     for user in @users when user.id is globals.userId
-      user.isApproved = yes
+      user.approved = yes
 
 
   isMine      : -> @_ruleChecker ['owner']
