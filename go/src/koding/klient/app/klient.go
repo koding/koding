@@ -324,6 +324,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Type: "kiteKey",
 		Key:  k.Config.KiteKey,
 	}
+	c.Reconnect = true
 
 	kloud := &apiutil.LazyKite{
 		Client: c,
