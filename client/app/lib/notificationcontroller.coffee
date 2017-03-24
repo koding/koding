@@ -124,12 +124,12 @@ module.exports = class NotificationController extends KDObject
           if ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
             ideInstance.showUserRemovedModal()
 
-          if machine = storage.get 'machines', 'uid', machineUId
-            storage.pop 'machines', machine
+          if machine = storage.machines.get 'uid', machineUId
+            storage.machines.pop machine
             reactor.dispatch actions.INVITATION_REJECTED, machine._id
 
         when 'added'
-          storage.fetch 'machines', 'uid', machineUId
+          storage.machines.fetch 'uid', machineUId
             .then (machine) ->
               reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, [ machine ]
               return machine

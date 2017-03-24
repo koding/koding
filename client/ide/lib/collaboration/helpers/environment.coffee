@@ -38,7 +38,7 @@ setMachineUser = (machine, usernames, share, callback) ->
 
     return callback err  if err
 
-    kd.singletons.computeController.storage.push 'machines', _machine
+    kd.singletons.computeController.storage.machines.push _machine
 
     kite   = machine.getBaseKite()
     method = if share then 'klientShare' else 'klientUnshare'

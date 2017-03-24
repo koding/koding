@@ -44,14 +44,6 @@ module.exports = class ComputeStateChecker extends KDObject
     kd.utils.killWait @timer
 
 
-  addMachine: (machine) ->
-
-    for m in @storage.get('machines')
-      return  if machine.uid is m.uid
-
-    @storage.push { machine }
-
-
   ignore: (machineId) ->
 
     unless machineId in @ignoredMachines
@@ -65,7 +57,9 @@ module.exports = class ComputeStateChecker extends KDObject
 
   tick: (checkAll = no) ->
 
-    return  unless @storage.get('machines').length
+    machines = @storage.machines.get()
+
+    return  unless machines.length
     return  if @tickInProgress
     @tickInProgress = yes
 
@@ -73,7 +67,7 @@ module.exports = class ComputeStateChecker extends KDObject
 
     # kd.info "Checking all machine states..."  if checkAll
 
-    @storage.get('machines').forEach (machine) =>
+    machines.forEach (machine) =>
 
       machineId = machine._id
       currentState = machine.status.state

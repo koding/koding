@@ -1486,4 +1486,4 @@ module.exports = CollaborationController =
 
 
   getMachine: ->
-    kd.singletons.computeController.storage.get 'machines', 'uid', @mountedMachineUId
+    kd.singletons.computeController.storage.machines.get 'uid', @mountedMachineUId

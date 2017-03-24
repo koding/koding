@@ -102,11 +102,11 @@ routeToMachine = (options = {}) ->
     cc.ready ->
 
       if uid
-        machine = cc.storage.get 'machines', 'uid', uid
+        machine = cc.storage.machines.get 'uid', uid
         debug 'machine with uid', { uid, machine }
 
       if not machine and slug
-        for machine in cc.storage.query 'machines', 'slug', slug
+        for machine in cc.storage.machines.query 'slug', slug
           break  if machine.isMine()
         debug 'machine with slug', { slug, machine }
 
@@ -138,7 +138,7 @@ routeToMachine = (options = {}) ->
 
       else
 
-        [ machine ] = cc.storage.get 'machines'
+        [ machine ] = cc.storage.machines.get()
 
         if machine
           if slug or uid

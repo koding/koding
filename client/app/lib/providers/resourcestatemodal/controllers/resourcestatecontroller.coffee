@@ -89,7 +89,7 @@ module.exports = class ResourceStateController extends kd.Controller
     machine = @getData()
     { computeController: cc, router } = kd.singletons
 
-    machine = cc.storage.get 'machines', '_id', machine.getId()
+    machine = cc.storage.machines.get '_id', machine.getId()
     debug 'found machine', machine
 
     unless machine

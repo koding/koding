@@ -99,7 +99,7 @@ loadMachines = do (isPayloadUsed = no) -> ->
 
     computeController.ready ->
 
-      machines = computeController.storage.get 'machines'
+      machines = computeController.storage.machines.get()
 
       reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, machines
 
@@ -139,7 +139,7 @@ leaveMachine = (_machine) ->
     when 'collaboration'  then not isPermanent
 
   ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
-  machine = computeController.storage.get 'machines', 'uid', machineUId
+  machine = computeController.storage.machines.get 'uid', machineUId
 
   async.series([
 
@@ -180,7 +180,7 @@ leaveMachine = (_machine) ->
 
       machineId = machine.getId()
       reactor.dispatch actions.INVITATION_REJECTED, machineId
-      computeController.storage.pop 'machines', machineId
+      computeController.storage.machines.pop machineId
 
   ])
 
@@ -209,7 +209,7 @@ acceptInvitation = (_machine) ->
 
     kallback = (route, callback) ->
       # Fetch all machines
-      machine = computeController.storage.get 'machines', '_id', _machine.get('_id')
+      machine = computeController.storage.machines.get '_id', _machine.get('_id')
       machine.setApproved()
       callback()
       router.handleRoute route
@@ -243,7 +243,7 @@ dispatchInvitationRejected = (id) ->
 
 _getInvitationChannelId = ({ uid, invitation }, callback) ->
 
-  machine = kd.singletons.computeController.storage.get 'machines', 'uid', uid
+  machine = kd.singletons.computeController.storage.machines.get 'uid', uid
   callback if machine then machine.getChannelId() else null
 
 

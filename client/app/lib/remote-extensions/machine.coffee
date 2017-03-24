@@ -182,10 +182,10 @@ module.exports = class JMachine extends remote.api.JMachine
     super options, (err, machine) ->
       return callback err  if err
 
-      storage.push 'machines', machine
+      storage.machines.push machine
 
       unless options.channelId
-        delete (storage.get 'machines', '_id', machine._id).channelId
+        delete (storage.machines.get '_id', machine._id).channelId
 
       callback err, machine
 
@@ -198,5 +198,5 @@ module.exports = class JMachine extends remote.api.JMachine
     super (err) =>
       return callback err  if err
 
-      storage.pop 'machines', this
+      storage.machines.pop this
       callback null

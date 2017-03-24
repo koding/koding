@@ -105,7 +105,7 @@ module.exports = class ComputeController extends KDController
 
 
   checkMachines: ->
-    for machine in (@storage.get 'machines') when machine.isBuilt()
+    for machine in (@storage.machines.get()) when machine.isBuilt()
       @info machine
 
 
@@ -217,10 +217,10 @@ module.exports = class ComputeController extends KDController
 
 
   findMachineFromMachineId: (machineId) ->
-    return @storage.get 'machines', '_id', machineId
+    return @storage.machines.get '_id', machineId
 
   findMachineFromMachineUId: (machineUId) ->
-    return @storage.get 'machines', 'uid', machineUId
+    return @storage.machines.get 'uid', machineUId
 
   findStackFromStackId: (stackId) ->
     return @storage.get 'stacks', '_id', stackId
@@ -239,7 +239,7 @@ module.exports = class ComputeController extends KDController
 
     kiteIdOnly = "///////#{queryString.split('/').reverse()[0]}"
 
-    for machine in @storage.get 'machines'
+    for machine in @storage.machines.get()
       return machine  if machine.queryString in [queryString, kiteIdOnly]
 
 
@@ -273,7 +273,7 @@ module.exports = class ComputeController extends KDController
 
     kallback = (err, machine) =>
       return callback err  if err?
-      @storage.push 'machines', machine
+      @storage.machines.push machine
       callback null, machine
 
     runMiddlewares this, 'create', options, (err, newOptions) ->
@@ -370,7 +370,7 @@ module.exports = class ComputeController extends KDController
           return  if err
 
           @_clearTrialCounts machine
-          @storage.push 'machines', machine
+          @storage.machines.push machine
 
           { appManager } = kd.singletons
           ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
@@ -659,8 +659,7 @@ module.exports = class ComputeController extends KDController
 
     else
 
-      # this.storage.pop   'machines', instanceId
-      this.storage.fetch 'machines', '_id', instanceId, reset = yes
+      this.storage.machines.fetch '_id', instanceId, reset = yes
         .then (machine) =>
           @invalidateCache instanceId
           @emit "revive-#{instanceId}", machine
@@ -859,7 +858,7 @@ module.exports = class ComputeController extends KDController
     # This is for admins only
     return  unless groupsController.canEditGroup()
 
-    (@storage.get 'machines').forEach (machine) =>
+    (@storage.machines.get()).forEach (machine) =>
 
       { oldOwner, permissionUpdated } = machine.meta
 
