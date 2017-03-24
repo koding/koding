@@ -283,6 +283,7 @@ func (t *Tunnel) dialHostKite(addr string) (*kite.Client, error) {
 		Type: "kiteKey",
 		Key:  t.opts.Kite.Config.KiteKey,
 	}
+	client.Reconnect = true
 
 	if err := client.DialTimeout(7 * time.Second); err != nil {
 		return nil, err
