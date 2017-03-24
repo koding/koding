@@ -199,7 +199,7 @@ acceptInvitation = (_machine) ->
 
   debug 'acceptInvitation invitation', invitation
 
-  machine = remote.revive _machine.toJS()
+  machine = computeController.storage.machines.get '_id', _machine.get '_id'
 
   debug 'acceptInvitation machine', machine
 
