@@ -31,6 +31,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     activeMachine : EnvironmentFlux.getters.activeMachine
     activeLeavingMachine : EnvironmentFlux.getters.activeLeavingSharedMachineId
     activeInvitationMachineId : EnvironmentFlux.getters.activeInvitationMachineId
+    requiredInvitationMachine : EnvironmentFlux.getters.requiredInvitationMachine
 
 
   constructor: (props) ->
@@ -51,6 +52,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
   componentDidMount: ->
 
     { computeController } = kd.singletons
+    { setActiveInvitationMachineId } = actions
 
     # Shared/Collab or Managed machines does not have any stacks ~ GG
     if stackId = @props.stack?.get '_id'
@@ -61,6 +63,29 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     kd.utils.defer =>
       actions.setMachineListItem @machine('_id'), this
+
+      if @state.requiredInvitationMachine
+        if @state.requiredInvitationMachine.get('_id') is @machine '_id'
+          if @state.activeInvitationMachineId isnt @machine '_id'
+            # to show invitation widget for both on initial load and after a
+            # realtime event. This is probably an anti pattern, to do this in
+            # this component here. I will fix it with the restructure of
+            # sidebar. ~Umut
+            setActiveInvitationMachineId { machine: @props.machine }
+            @setCoordinates()
+
+      if @state.activeInvitationMachineId
+        @setCoordinates()
+
+
+  setCoordinates: ->
+
+    return  unless @refs.sidebarMachinesListItem
+
+    coordinates = getBoundingClientReact @refs.sidebarMachinesListItem
+
+    debug 'setcoordinates', coordinates
+    @setState { coordinates: coordinates }
 
 
   componentWillUnmount: ->
@@ -78,13 +103,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
       actions.unsetMachineListItem @machine('_id'), this
 
 
-  componentWillReceiveProps: ->
-
-    return  unless @refs.sidebarMachinesListItem
-
-    coordinates = getBoundingClientReact @refs.sidebarMachinesListItem
-    @setState { coordinates: coordinates }
-
+  componentWillReceiveProps: -> @setCoordinates()
 
   machine: (key) ->
 
@@ -194,8 +213,14 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderInvitationWidget: ->
 
+    debug 'machine id', @props.machine.get '_id'
+    debug 'invitaion id', @state.activeInvitationMachineId
+    debug 'coordinates', @state.coordinates
+
     return null  unless @state.coordinates
     return null  unless @props.machine.get('_id') is @state.activeInvitationMachineId
+
+    debug 'invited widget is about to be rendered'
 
     <SharingMachineInvitationWidget
       key="InvitationWidget-#{@props.machine.get '_id'}"
