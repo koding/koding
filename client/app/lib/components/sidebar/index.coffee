@@ -44,7 +44,6 @@ module.exports = class Sidebar extends React.Component
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
-      requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
       templates                    : EnvironmentFlux.getters.allStackTemplates
       selectedTemplateId           : EnvironmentFlux.getters.selectedTemplateId
@@ -57,7 +56,7 @@ module.exports = class Sidebar extends React.Component
 
     SidebarFlux.actions.loadVisibilityFilters().then =>
 
-      EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
+      EnvironmentFlux.actions.loadMachines()
       EnvironmentFlux.actions.loadStackTemplates()
       EnvironmentFlux.actions.loadStacks().then =>
         @setState { isLoading: no }
@@ -149,14 +148,6 @@ module.exports = class Sidebar extends React.Component
     MENU = new kd.ContextMenu menuOptions, menuItems
 
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
-
-
-  setActiveInvitationMachineId: ->
-
-    { setActiveInvitationMachineId } = EnvironmentFlux.actions
-
-    if @state.requiredInvitationMachine
-      setActiveInvitationMachineId { machine : @state.requiredInvitationMachine }
 
 
   prepareStacks:  ->
