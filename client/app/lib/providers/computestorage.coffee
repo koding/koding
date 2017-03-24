@@ -69,11 +69,6 @@ module.exports = class ComputeStorage extends kd.Object
   constructor: ->
     super
 
-    do @initialize
-
-
-  initialize: ->
-
     disabled = isGroupDisabled()
 
     @storage = new Object
@@ -86,6 +81,19 @@ module.exports = class ComputeStorage extends kd.Object
         @storage[type] = []
 
     debug 'storage initialized as', @storage
+
+    do @createHelpers
+
+
+  createHelpers: ->
+
+    helpers = ['get', 'set', 'query', 'fetch', 'push', 'pop', 'update']
+
+    (Object.keys Storage).forEach (store) =>
+      this[store] = {}
+      helpers.forEach (helper) =>
+        this[store][helper] = (rest...) =>
+          this[helper] store, rest...
 
     return this
 
