@@ -557,7 +557,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: c416e425dac9976e3ea746be0ca3a6b2872df0b0
+  version: 1ed804424233a8f6d7ec9fdef092b16200101617
   subpackages:
   - config
   - dnode
@@ -740,8 +740,8 @@ imports:
   version: b7940f209838f93dc7ab0d823145513c9660f22a
 - name: github.com/nu7hatch/gouuid
   version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
-- name: github.com/ooyala/go-dogstatsd
-  version: 23f2a1659b0203cd76910e56cd4e6394f14a5cbb
+- name: github.com/DataDog/datadog-go
+  version: 6fa3e39b86f8cbb638a971f2a90b9ebd98074c6b
 - name: github.com/op/go-logging
   version: a501b20b448435cb5117a49fbfda7ff64adeb2cd
 - name: github.com/opencontainers/runc
