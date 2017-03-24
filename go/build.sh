@@ -25,6 +25,7 @@ export COMMANDS=(
 	koding/kites/kloud/scripts/userdebug
 	koding/kites/kloud/scripts/sl
 	koding/klient
+	koding/klientctl
 	koding/scripts/multiec2ssh
 
 	socialapi/workers/api
