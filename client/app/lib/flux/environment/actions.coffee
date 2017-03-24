@@ -189,7 +189,8 @@ acceptInvitation = (_machine) ->
 
   debug 'acceptInvitation', _machine
 
-  { router, machineShareManager, socialapi, reactor } = kd.singletons
+  { router, machineShareManager
+    socialapi, reactor, computeController } = kd.singletons
 
   uid = _machine.get 'uid'
 
@@ -208,9 +209,10 @@ acceptInvitation = (_machine) ->
 
     kallback = (route, callback) ->
       # Fetch all machines
-      loadMachines().then ->
-        callback()
-        router.handleRoute route
+      machine = computeController.storage.get 'machines', '_id', _machine.get('_id')
+      machine.setApproved()
+      callback()
+      router.handleRoute route
 
     if invitation?.type is 'collaboration' or _machine.get('type') is 'collaboration'
       _getInvitationChannelId { uid, invitation }, (channelId) ->
