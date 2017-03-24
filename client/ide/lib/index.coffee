@@ -638,7 +638,6 @@ module.exports = class IDEAppController extends AppController
             @runOnboarding()
 
         @bindMachineEvents machineItem
-        # @bindWorkspaceDataEvents()
 
         adminMessage = new StackAdminMessageController {
           container
@@ -667,10 +666,17 @@ module.exports = class IDEAppController extends AppController
           @showStateMachineModal machineItem, event
 
         switch event.status
-          when Terminated then @handleMachineTerminated()
+          when Terminated, Terminating then @handleMachineTerminated()
 
 
   handleMachineTerminated: ->
+
+    { appManager, router } = kd.singletons
+    if appManager.frontApp is this
+      kd.utils.defer -> router.handleRoute '/IDE'
+
+    @quit reload = no
+
 
   showStateMachineModal: (machineItem, event) ->
 
@@ -1650,16 +1656,15 @@ module.exports = class IDEAppController extends AppController
       delete @modal
 
 
-  quit: (destroy = yes, stopCollaborationSession = yes) ->
+  quit: (reload = yes, stopCollaborationSession = yes) ->
 
     return  if @getView().isDestroyed
 
-    @emit 'IDEWillQuit'  if destroy
-
+    @emit 'IDEWillQuit'
     @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
+    @stopCollaborationSession()  if stopCollaborationSession
 
-    if destroy
-      @stopCollaborationSession()  if stopCollaborationSession
+    if reload
       kd.singletons.appManager.quit this, =>
         route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
         kd.singletons.router.handleRoute route
@@ -1667,7 +1672,7 @@ module.exports = class IDEAppController extends AppController
       @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
 
-  beforeQuit: -> @quit no
+  beforeQuit: -> @quit reload = no
 
 
   removeParticipantCursorWidget: (targetUser) ->

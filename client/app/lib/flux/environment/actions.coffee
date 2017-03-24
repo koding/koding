@@ -563,11 +563,10 @@ deleteStack = ({ stackTemplateId, stack }) ->
   computeController.ui.askFor 'deleteStack', {}, (status) ->
     return  unless status.confirmed
 
-    appManager.quitByName 'IDE', ->
-      computeController.destroyStack _stack, (err) ->
-        return  if showError err
-        reactor.dispatch actions.REMOVE_STACK, _stack._id
-      , followEvents = no
+    computeController.destroyStack _stack, (err) ->
+      return  if showError err
+      reactor.dispatch actions.REMOVE_STACK, _stack._id
+    , followEvents = no
 
 
 changeTemplateTitle = (id, value) ->

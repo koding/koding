@@ -482,6 +482,8 @@ module.exports = class ComputeController extends KDController
 
     return  unless stack
 
+    stack = @storage.stacks.get '_id', stack.getId()
+
     { state } = stack.status
 
     if state in [ 'Building', 'Destroying' ]
@@ -489,7 +491,7 @@ module.exports = class ComputeController extends KDController
         name    : 'InProgress'
         message : "This stack is currently #{state.toLowerCase()}."
 
-    if followEvents then stack.machines.forEach (machine) =>
+    stack.machines.forEach (machine) =>
 
       @eventListener.triggerState machine,
         status      : remote.api.JMachine.State.Terminating
