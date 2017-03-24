@@ -200,3 +200,16 @@ module.exports = class JMachine extends remote.api.JMachine
 
       storage.machines.pop this
       callback null
+
+
+  approve: (callback) ->
+
+    debug 'approve called'
+    { storage } = kd.singletons.computeController
+
+    super (err) =>
+      return callback err  if err
+
+      @setApproved()
+      storage.machines.push this
+      callback null

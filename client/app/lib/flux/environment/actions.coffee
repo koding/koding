@@ -209,8 +209,6 @@ acceptInvitation = (_machine) ->
 
     kallback = (route, callback) ->
       # Fetch all machines
-      machine = computeController.storage.machines.get '_id', _machine.get('_id')
-      machine.setApproved()
       callback()
       router.handleRoute route
 
