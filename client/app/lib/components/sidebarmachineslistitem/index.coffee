@@ -153,7 +153,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  unless @machine 'isApproved'
     return null  unless @state.activeLeavingMachine
 
+    { setActiveLeavingSharedMachineId } = actions
+
     <LeaveSharedMachineWidget
+      onClose={-> setActiveLeavingSharedMachineId null}
       coordinates={@state.coordinates}
       machine={@props.machine} />
 
