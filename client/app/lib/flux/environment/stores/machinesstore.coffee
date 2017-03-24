@@ -2,6 +2,7 @@ KodingFluxStore      = require 'app/flux/base/store'
 toImmutable          = require 'app/util/toImmutable'
 immutable            = require 'immutable'
 actions              = require '../actiontypes'
+globals              = require 'globals'
 
 module.exports = class MachinesStore extends KodingFluxStore
 
@@ -66,7 +67,15 @@ module.exports = class MachinesStore extends KodingFluxStore
 
   acceptInvitation: (machines, id ) ->
 
-    machines.setIn [id, 'isApproved'], yes
+    machine = machines.get id
+
+    machine = machine.update 'users', (users) ->
+      users.map (user) ->
+        if user.get('id') is globals.userId
+        then user.set 'approved', yes
+        else user
+
+    machines.set id, machine
 
 
   rejectInvitation: (machines, id) ->
