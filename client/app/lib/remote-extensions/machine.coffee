@@ -159,6 +159,11 @@ module.exports = class JMachine extends remote.api.JMachine
     return no
 
 
+  setApproved: ->
+    for user in @users when user.id is globals.userId
+      user.isApproved = yes
+
+
   isMine      : -> @_ruleChecker ['owner']
   isApproved  : -> @isMine() or @_ruleChecker ['approved']
   isPermanent : -> @_ruleChecker ['permanent']
