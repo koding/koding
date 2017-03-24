@@ -189,7 +189,8 @@ func NewWithoutHandlers(conf *config.Config, version string) *Kontrol {
 		conf.VerifyFunc = k.Verify
 	}
 
-	k.Kite = kite.NewWithConfig("kontrol", version, conf)
+	k.Kite = kite.New("kontrol", version)
+	k.Kite.Config = conf
 	k.log = k.Kite.Log
 
 	return k

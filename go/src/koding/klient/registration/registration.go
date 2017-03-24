@@ -65,6 +65,7 @@ func Register(koding *url.URL, username, token string, debug bool) error {
 	}
 
 	kontrol := k.NewClient(newKonfig.Endpoints.Kontrol().Public.String())
+
 	if err := kontrol.DialTimeout(30 * time.Second); err != nil {
 		return err
 	}

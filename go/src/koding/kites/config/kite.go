@@ -38,6 +38,7 @@ func ReadKiteConfig(debug bool) (*config.Config, error) {
 // server and client connections for use with koding kites.
 func NewKiteConfig(debug bool) *config.Config {
 	cfg := config.New()
+
 	// cfg.Websocket.EnableCompression = true
 	cfg.Client = httputil.Client(debug)
 	cfg.XHR = httputil.ClientXHR(debug)

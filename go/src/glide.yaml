@@ -229,7 +229,7 @@ import:
 - package: gopkg.in/alecthomas/kingpin.v3-unstable
 - package: github.com/juju/ratelimit
 - package: github.com/lann/builder
-- package: github.com/ooyala/go-dogstatsd
+- package: github.com/DataDog/datadog-go
 - package: github.com/pborman/uuid
 - package: gopkg.in/igm/sockjs-go.v2/sockjs
 - package: github.com/armon/go-radix
