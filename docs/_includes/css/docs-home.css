@@ -230,6 +230,10 @@
   right: 0;
 }
 
+.docs__index__body__content .docs__index__results__row {
+  padding: 14px 20px;
+}
+
 .docs__search input.expanded {
   width: 775px;
 }

@@ -11,7 +11,7 @@ redirect_from:
 {% include header.html with_signup_form='true' has_sticky_navigation='true'
 cssClass='light' %}
 
-<style type="text/css">{% include css/docs-home.css %}</style>
+<link rel="stylesheet" href="{{ site.url }}/css/docs-home.css">
 <script type="text/javascript">
   window.TERRAFORM_DOCS = [{% for p in site.pages %}{% if p.url contains "docs/terraform/" %}{ url: "{{ p.url }}", title: "{{ p.page_title }}", description: "{{ p.description | strip_newlines }}", sidebar_current: "{{ p.sidebar_current }}"},{% endif %}{% endfor %}''];
   TERRAFORM_DOCS.pop();
@@ -21,19 +21,17 @@ cssClass='light' %}
 
 {% include docs-svgs.html %}
 
-  <div class="docs__index__hero">
-    <div class="docs__index__title">Get developers up &amp; running on any project, from anywhere in just 5 minutes.</div>
+  <div class="DocsIndex-Hero">
+    <span>Get developers up &amp; running on any project, from anywhere in just 5 minutes.</span>
   </div>
-  <div class="docs__index">
-    <div class="docs__index__items">
-      {% include docs-indexitem.html data="product-walkthrough||product||Watch Product||See what Koding can do for your dev environments!" %}
+  <div class="DocsIndex-Featured">
+    {% include docs-indexitem.html data="product-walkthrough||product||Watch Product||See what Koding can do for your dev environments!" %}
 
-      {% include docs-indexitem.html data="creating-an-aws-stack||train||Train Yourself||New to cloud computing? Watch the curated videos." %}
+    {% include docs-indexitem.html data="creating-an-aws-stack||train||Train Yourself||New to cloud computing? Watch the curated videos." %}
 
-      {% include docs-indexitem.html data="connect-your-own-machine||blocks||Koding 101||New to Koding? Start from the basics." %}
+    {% include docs-indexitem.html data="connect-your-own-machine||blocks||Koding 101||New to Koding? Start from the basics." %}
 
-      {% include docs-indexitem.html data="how-to-share-your-vm-with-someone||collaborate||Collaborate||Want to work together? Invite your teammates." %}
-    </div>
+    {% include docs-indexitem.html data="how-to-share-your-vm-with-someone||collaborate||Collaborate||Want to work together? Invite your teammates." %}
   </div>
   <div class="docs__index__body">
     <div class="docs__index__body__content">

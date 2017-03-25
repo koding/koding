@@ -89,9 +89,6 @@ body {
 
 .Homepage-Header .spacer {
   flex-grow: 1;
-  /*border-left-width: 1px;*/
-  /*border-style: solid;*/
-  /*border-color: rgba(0,0,0,0.15);*/
 }
 
 .Homepage-Header .burger {
