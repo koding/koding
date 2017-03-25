@@ -66,7 +66,7 @@ module.exports = class ComputeController extends KDController
 
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
-      groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
+      groupsController.on 'StackTemplateChanged', (event) => @checkGroupStacks event?.contents
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
@@ -85,6 +85,7 @@ module.exports = class ComputeController extends KDController
         @emit 'ready'
 
         @checkGroupStackRevisions()
+        @checkGroupStacks()
 
         if groupsController.canEditGroup()
           @checkMachinePermissions()
@@ -482,7 +483,7 @@ module.exports = class ComputeController extends KDController
 
     return  unless stack
 
-    stack = @storage.stacks.get '_id', stack.getId()
+    stack = @storage.stacks.get '_id', stack._id
 
     { state } = stack.status
 
@@ -685,8 +686,12 @@ module.exports = class ComputeController extends KDController
 
   checkStackRevisions: (stackTemplateId) ->
 
+    debug 'checkStackRevisions', stackTemplateId
+
     # fetch all the stacks in cache
     (@storage.stacks.get()).forEach (stack) =>
+
+      debug 'checkStackRevisions checking:', stack
 
       # if a specific stackTemplateId provided then skip all others
       # otherwise check all of them one by one
@@ -696,8 +701,12 @@ module.exports = class ComputeController extends KDController
       # get current revision status for comparison
       { _revisionStatus } = stack
 
+      debug 'checkStackRevisions currentRevision:', _revisionStatus
+
       # check revision from JComputeStack.checkRevision
       stack.checkRevision (error, data) =>
+
+        debug 'checkStackRevisions checkRevision result', error, data
 
         data ?= {}
         { status, machineCount } = data
@@ -705,6 +714,7 @@ module.exports = class ComputeController extends KDController
 
         debug "revision info for stack #{stack.title}", status
         if not _revisionStatus or _revisionStatus.status isnt status
+          debug 'checkStackRevisions stack changed!', stack
           @emit 'StackRevisionChecked', stack
 
 
@@ -794,11 +804,15 @@ module.exports = class ComputeController extends KDController
 
   checkGroupStackRevisions: ->
 
+    debug 'checkGroupStackRevisions', @storage.stacks.get()
+
     return  if not (@storage.stacks.get()).length
 
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
     { stackTemplates }   = currentGroup
+
+    debug 'checkGroupStackRevisions on group:', stackTemplates
 
     return  if not stackTemplates?.length
 
@@ -806,6 +820,8 @@ module.exports = class ComputeController extends KDController
     for stackTemplateId in stackTemplates
       existentStacks = @storage.stacks.query 'baseStackId', stackTemplateId
       existents += existentStacks.length
+
+    debug 'checkGroupStackRevisions existents', existents, stackTemplates.length
 
     if existents isnt stackTemplates.length
     then @emit 'GroupStacksInconsistent'
