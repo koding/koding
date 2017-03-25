@@ -24,7 +24,7 @@ jobs:
       - checkout
 
       - run:
-          name: deploy
+          name: start a deploy job
           command: |
             case "$CIRCLE_BRANCH" in
               sandbox | latest | production) ;;
