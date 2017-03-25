@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -225,6 +226,19 @@ func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 
 // MachineCpCommand copies file(s) from one machine to another.
 func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	fmt.Println("Identifiers:", idents)
+	if len(idents) == 0 {
+		return 0, cli.ShowSubcommandHelp(c)
+	}
+	if err := identifiersLimit(idents, "argument", 2, 2); err != nil {
+		return 1, err
+	}
+	fmt.Println("Parsed")
+
 	return 1, errors.New("not implemented")
 }
 

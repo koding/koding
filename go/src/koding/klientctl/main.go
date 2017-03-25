@@ -521,6 +521,7 @@ func run(args []string) {
 				Usage:           "Copy a file from one one machine to another",
 				Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
 				SkipFlagParsing: true,
+				Flags:           []cli.Flag{},
 			}},
 		},
 	}
