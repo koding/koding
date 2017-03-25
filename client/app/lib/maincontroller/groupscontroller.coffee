@@ -1,3 +1,4 @@
+debug             = (require 'debug') 'groupscontroller'
 kd                = require 'kd'
 
 whoami            = require '../util/whoami'
@@ -72,7 +73,7 @@ module.exports = class GroupsController extends kd.Controller
 
     { realtime, socialapi } = kd.singletons
 
-    @fetchChannel group, (err, channel) ->
+    socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
       return callback err  if err
 
       socialapi.registerAndOpenChannel group, channel, (err, registeredChan) =>
@@ -193,6 +194,7 @@ module.exports = class GroupsController extends kd.Controller
 
         computeController.createDefaultStack { force: yes }
 
+        debug 'setDefaultTemplate sending notification', stackTemplate._id
         # Warn other group members about stack template update
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
