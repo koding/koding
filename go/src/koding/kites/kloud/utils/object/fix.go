@@ -14,6 +14,12 @@ import "fmt"
 //
 func FixYAML(v interface{}) interface{} {
 	switch v := v.(type) {
+	case map[string]interface{}:
+		for k, w := range v {
+			v[k] = FixYAML(w)
+		}
+
+		return v
 	case map[interface{}]interface{}:
 		fixedV := make(map[string]interface{}, len(v))
 

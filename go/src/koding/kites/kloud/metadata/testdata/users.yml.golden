@@ -1,0 +1,37 @@
+#cloud-config
+hostname: user
+output:
+  all: '| tee -a /var/log/cloud-init-output.log'
+runcmd:
+- /var/lib/koding/provision.sh
+users:
+- gecos: Koding
+  groups:
+  - sudo
+  lock_passwd: true
+  name: otheruser
+  shell: /bin/bash
+  sudo:
+  - ALL=(ALL) NOPASSWD:ALL
+- default
+- gecos: Koding
+  groups:
+  - sudo
+  lock_passwd: true
+  name: johndoe
+  shell: /bin/bash
+  sudo:
+  - ALL=(ALL) NOPASSWD:ALL
+write_files:
+- content: kitekey
+  path: /etc/kite/kite.key
+- content: metadata
+  path: /var/lib/koding/metadata.json
+  permissions: "0644"
+- content: userdata
+  encoding: b64
+  path: /var/lib/koding/user-data.sh
+  permissions: "0755"
+- content: provision
+  path: /var/lib/koding/provision.sh
+  permissions: "0755"
