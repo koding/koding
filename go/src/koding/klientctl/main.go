@@ -252,7 +252,7 @@ func run(args []string) {
 				Usage: fmt.Sprintf(
 					"Copy a file from one one machine to another",
 				),
-				Description: cmdDescriptions["cp"],
+				Description: cmdDescriptions["compat-cp"],
 				Flags: []cli.Flag{
 					cli.BoolFlag{
 						Name: "debug",
@@ -518,7 +518,7 @@ func run(args []string) {
 				SkipFlagParsing: true,
 			}, {
 				Name:            "cp",
-				Usage:           "Copy a file from one one machine to another",
+				Description:     cmdDescriptions["cp"],
 				Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
 				SkipFlagParsing: true,
 				Flags:           []cli.Flag{},
