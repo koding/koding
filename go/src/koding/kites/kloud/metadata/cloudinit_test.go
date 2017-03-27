@@ -3,6 +3,7 @@ package metadata_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -62,15 +63,8 @@ func TestCloudInit(t *testing.T) {
 	for yml, cas := range cases {
 		t.Run(filepath.Base(yml), func(t *testing.T) {
 			if *update {
-				ci, err := parseCloudInit(yml)
-				if err != nil {
-					t.Fatalf("ParseCloudInit()=%s", err)
-				}
-
-				metadata.Merge(testdata, ci)
-
-				if err := ioutil.WriteFile(yml+".golden", ci.Bytes(), 0644); err != nil {
-					t.Fatalf("WriteFile()=%s", err)
+				if err := updateGolden(yml); err != nil {
+					t.Fatal(err)
 				}
 
 				return
@@ -124,6 +118,21 @@ func equal(got, want metadata.CloudInit) error {
 
 	if bytes.Compare(pgot, pwant) != 0 {
 		return fmt.Errorf("got:\n%s\n\nwant:\n%s\n", pgot, pwant)
+	}
+
+	return nil
+}
+
+func updateGolden(yml string) error {
+	ci, err := parseCloudInit(yml)
+	if err != nil {
+		return errors.New("ParseCloudInit()=" + err.Error())
+	}
+
+	metadata.Merge(testdata, ci)
+
+	if err := ioutil.WriteFile(yml+".golden", ci.Bytes(), 0644); err != nil {
+		return errors.New("WriteFile()=" + err.Error())
 	}
 
 	return nil
