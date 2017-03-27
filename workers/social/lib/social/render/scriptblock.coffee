@@ -17,6 +17,7 @@ module.exports = (options = {}, callback) ->
   userStacks          = null
   userId              = null
   userEmail           = null
+  userStatus          = null
   roles               = null
   permissions         = null
   combinedStorage     = null
@@ -41,6 +42,7 @@ module.exports = (options = {}, callback) ->
     userStacks           = JSON.stringify userStacks, replacer
     userId               = JSON.stringify userId, replacer
     userEmail            = JSON.stringify userEmail, replacer
+    userStatus           = JSON.stringify userStatus, replacer
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
@@ -56,6 +58,7 @@ module.exports = (options = {}, callback) ->
         config: #{config},
         userId: #{userId},
         userEmail: #{userEmail},
+        userStatus: #{userStatus},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userStacks: #{userStacks},
@@ -141,8 +144,9 @@ module.exports = (options = {}, callback) ->
           return fin()
 
         if user
-          userId    = user.getId()
-          userEmail = user.getAt 'email'
+          userId     = user.getId()
+          userEmail  = user.getAt 'email'
+          userStatus = user.getAt 'status'
         else
           console.error '[scriptblock] user not found', err
 
