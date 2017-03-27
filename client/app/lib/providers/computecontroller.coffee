@@ -282,12 +282,17 @@ module.exports = class ComputeController extends KDController
 
   createDefaultStack: (options = {}, callback = kd.noop) ->
 
+    debug 'createDefaultStack called', options
+
     return  unless isLoggedIn()
 
     { force = no, template } = options
     { mainController, groupsController } = kd.singletons
 
     handleStackCreate = (err, newStack) =>
+
+      debug 'createDefaultStack got the new stack:', { err, newStack }
+
       return kd.warn err  if err
       return callback err  if err
       return kd.warn 'Stack data not found'  unless newStack
@@ -308,11 +313,16 @@ module.exports = class ComputeController extends KDController
     mainController.ready =>
 
       if template
+        debug 'createDefaultStack creating from template', template
         template.generateStack {}, handleStackCreate
       else if force or groupHasStacks = groupsController.currentGroupHasStack()
         if groupHasStacks and not @storage.stacks.get 'config.groupStack', true
+          debug 'createDefaultStack creating default group stack'
           remote.api.ComputeProvider.createGroupStack handleStackCreate
+        else
+          debug 'createDefaultStack this is an unknown case for me', groupHasStacks, force,
       else
+        debug 'createDefaultStack there is no stack configured yet'
         @emit 'StacksNotConfigured'
 
 
@@ -683,6 +693,7 @@ module.exports = class ComputeController extends KDController
   checkStackRevisions: (stackTemplateId) ->
 
     debug 'checkStackRevisions', stackTemplateId
+    found = no
 
     # fetch all the stacks in cache
     (@storage.stacks.get()).forEach (stack) =>
@@ -693,6 +704,8 @@ module.exports = class ComputeController extends KDController
       # otherwise check all of them one by one
       if stackTemplateId and stack.baseStackId isnt stackTemplateId
         return
+
+      found = yes
 
       # get current revision status for comparison
       { _revisionStatus } = stack
@@ -712,6 +725,9 @@ module.exports = class ComputeController extends KDController
         if not _revisionStatus or _revisionStatus.status isnt status
           debug 'checkStackRevisions stack changed!', stack
           @emit 'StackRevisionChecked', stack
+
+    if stackTemplateId and not found
+      @createDefaultStack()
 
 
   setStackTemplateAccessLevel: (template, type) ->
