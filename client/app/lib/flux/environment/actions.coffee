@@ -287,7 +287,7 @@ reinitStackFromWidget = (stack) ->
 
   new Promise (resolve, reject) ->
 
-    stack = if stack then stack.toJS() else computeController.getGroupStack()
+    stack = if stack then stack.toJS()
 
     computeController.reinitStack stack, (err) ->
       if err then reject(err) else resolve()

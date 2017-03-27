@@ -146,7 +146,9 @@ routeToMachine = (options = {}) ->
                        machine is loaded instead.'
           router.handleRoute "/IDE/#{machine.slug}"
         else
-          router.handleRoute '/IDE'
+          if router.currentPath is '/IDE'
+          then loadIDENotFound()
+          else router.handleRoute '/IDE'
 
 
       # if machine.isPermanent() or machine.meta?.oldOwner
