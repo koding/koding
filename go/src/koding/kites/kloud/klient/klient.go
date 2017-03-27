@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine/index"
 	"koding/klient/os"
 	"koding/klient/sshkeys"
@@ -366,6 +367,25 @@ func (k *Klient) CurrentUser() (string, error) {
 	}
 
 	return username, nil
+}
+
+// Abs returns absolute representation of given path.
+func (k *Klient) Abs(path string) (string, bool, bool, error) {
+	req := fs.AbsRequest{
+		Path: path,
+	}
+
+	raw, err := k.Client.TellWithTimeout("fs.abs", k.timeout(), req)
+	if err != nil {
+		return "", false, false, err
+	}
+
+	var res fs.AbsResponse
+	if err := raw.Unmarshal(&res); err != nil {
+		return "", false, false, err
+	}
+
+	return res.AbsPath, res.IsDir, res.Exist, nil
 }
 
 // SSHAddKeys adds SSH public keys to user's authorized_keys file.

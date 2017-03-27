@@ -485,6 +485,7 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("fs.copy", fs.Copy)
 	k.handleWithSub("fs.getDiskInfo", fs.GetDiskInfo)
 	k.handleWithSub("fs.getPathSize", fs.GetPathSize)
+	k.handleWithSub("fs.abs", fs.KiteHandlerAbs())
 
 	// Machine group handlers.
 	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))

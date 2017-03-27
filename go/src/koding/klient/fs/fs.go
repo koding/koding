@@ -18,8 +18,8 @@ type FS struct {
 	User *user.User // Filesystem user. If nil, config.CurrentUser will be used.
 }
 
-// Abs returns absolute representation of path. It converts tilde prefix to
-// user's home path, checks if path point to a directory, and if it exist.
+// Abs returns absolute representation of given path. It converts tilde prefix
+// to user's home path, checks if path point to a directory, and if it exist.
 func (fs *FS) Abs(path string) (string, bool, bool, error) {
 	const tilde = "~" + string(os.PathSeparator)
 
