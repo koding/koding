@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"koding/kites/kloud/metadata"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -31,13 +32,34 @@ func parseCloudInit(file string) (metadata.CloudInit, error) {
 }
 
 func TestCloudInit(t *testing.T) {
-	cases := map[string]string{
-		"testdata/ssh_authorized_keys.yml": "testdata/ssh_authorized_keys.yml.golden",
-		"testdata/users.yml":               "testdata/users.yml.golden",
-		"testdata/write_files.yml":         "testdata/write_files.yml.golden",
+	cases := map[string]struct {
+		golden   string
+		conflict []string
+	}{
+		"testdata/ssh_authorized_keys.yml": {
+			golden:   "testdata/ssh_authorized_keys.yml.golden",
+			conflict: nil,
+		},
+		"testdata/users.yml": {
+			golden:   "testdata/users.yml.golden",
+			conflict: nil,
+		},
+		"testdata/write_files.yml": {
+			golden:   "testdata/write_files.yml.golden",
+			conflict: nil,
+		},
+		"testdata/conflict_output.yml": {
+			conflict: []string{"output", "all"},
+		},
+		"testdata/conflict_users.yml": {
+			conflict: []string{"users", "1", "name"},
+		},
+		"testdata/conflict_write_files.yml": {
+			conflict: []string{"write_files", "1", "path"},
+		},
 	}
 
-	for yml, golden := range cases {
+	for yml, cas := range cases {
 		t.Run(filepath.Base(yml), func(t *testing.T) {
 			if *update {
 				ci, err := parseCloudInit(yml)
@@ -59,12 +81,28 @@ func TestCloudInit(t *testing.T) {
 				t.Fatalf("ParseCloudInit()=%s", err)
 			}
 
-			want, err := parseCloudInit(golden)
+			err = metadata.Merge(testdata, got)
+			if cas.conflict != nil {
+				me, ok := err.(*metadata.MergeError)
+				if !ok {
+					t.Fatalf("got %T, want %T", err, (*metadata.MergeError)(nil))
+				}
+
+				if !reflect.DeepEqual(me.Path, cas.conflict) {
+					t.Fatalf("got %v, want %v", me.Path, cas.conflict)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("Merge()=%s", err)
+			}
+
+			want, err := parseCloudInit(cas.golden)
 			if err != nil {
 				t.Fatalf("ParseCloudInit()=%s", err)
 			}
-
-			metadata.Merge(testdata, got)
 
 			if err := equal(got, want); err != nil {
 				t.Fatal(err)
