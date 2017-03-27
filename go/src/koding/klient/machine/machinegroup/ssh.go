@@ -7,10 +7,13 @@ import (
 	"sync"
 	"time"
 
+	"fmt"
+	"koding/kites/config"
 	"koding/kites/tunnelproxy/discover"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klientctl/ssh"
 )
 
 // SSHRequest defines machine group ssh info request.
@@ -62,6 +65,31 @@ func (g *Group) SSH(req *SSHRequest) (*SSHResponse, error) {
 		Host:     host,
 		Port:     port,
 	}, nil
+}
+
+// sshKey asynchronously adds local machine public key to remote machine.
+func (g *Group) sshKey(id machine.ID, timeout time.Duration) <-chan error {
+	internalC, errC := make(chan error, 1), make(chan error)
+	go func() {
+		pubKey, err := userSSHPublicKey()
+		if err != nil {
+			internalC <- err
+			return
+		}
+		_, err = g.ensureSSHPubKey(id, "", pubKey)
+		internalC <- err
+	}()
+
+	go func() {
+		select {
+		case <-time.After(timeout):
+			errC <- fmt.Errorf("cannot add SSH public key to remote machine: connection timeout")
+		case err := <-internalC:
+			errC <- err
+		}
+	}()
+
+	return errC
 }
 
 func (g *Group) ensureSSHPubKey(id machine.ID, username, pubKey string) (string, error) {
@@ -149,4 +177,31 @@ func (g *Group) dynamicSSH(id machine.ID) msync.DynamicSSHFunc {
 
 		return host, port, nil
 	}
+}
+
+// userSSHPublicKey gets the user's public SSH key content.
+func userSSHPublicKey() (string, error) {
+	path, err := ssh.GetKeyPath(config.CurrentUser.User)
+	if err != nil {
+		return "", err
+	}
+
+	pubKeyPath, privKeyPath, err := ssh.KeyPaths(path)
+	if err != nil {
+		return "", err
+	}
+
+	pubKey, err := ssh.PublicKey(pubKeyPath)
+	if err != nil && err != ssh.ErrPublicKeyNotFound {
+		return "", err
+	}
+
+	// Generate new key pair if it does not exist.
+	if err == ssh.ErrPublicKeyNotFound {
+		if pubKey, _, err = ssh.GenerateSaved(pubKeyPath, privKeyPath); err != nil {
+			return "", err
+		}
+	}
+
+	return pubKey, nil
 }

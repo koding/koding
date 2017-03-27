@@ -6,13 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"koding/kites/config"
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/prefetch"
-	"koding/klientctl/ssh"
 )
 
 // MountRequest defines machine group mount request.
@@ -68,30 +66,16 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 
 	// Add SSH public key to remote machine's authorized_keys file. This is
 	// needed for syncers that use SSH connections.
-	errC := make(chan error)
-	go func() {
-		pubKey, err := userSSHPublicKey()
-		if err != nil {
-			errC <- err
-			return
-		}
-		_, err = g.ensureSSHPubKey(req.ID, "", pubKey)
-		errC <- err
-	}()
+	errC := g.sshKey(req.ID, 30*time.Second)
 
 	absRemotePath, count, diskSize, err := c.MountHeadIndex(req.Mount.RemotePath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Wait for remote machine username.
-	select {
-	case <-time.After(30 * time.Second):
-		return nil, fmt.Errorf("cannot add SSH public keys for machine: %s", req.ID)
-	case err := <-errC:
-		if err != nil {
-			return nil, err
-		}
+	// Wait for remote machine SSH key upload.
+	if err := <-errC; err != nil {
+		return nil, err
 	}
 
 	res := &HeadMountResponse{
@@ -124,33 +108,6 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 	}
 
 	return res, nil
-}
-
-// userSSHPublicKey gets the user's public SSH key content.
-func userSSHPublicKey() (string, error) {
-	path, err := ssh.GetKeyPath(config.CurrentUser.User)
-	if err != nil {
-		return "", err
-	}
-
-	pubKeyPath, privKeyPath, err := ssh.KeyPaths(path)
-	if err != nil {
-		return "", err
-	}
-
-	pubKey, err := ssh.PublicKey(pubKeyPath)
-	if err != nil && err != ssh.ErrPublicKeyNotFound {
-		return "", err
-	}
-
-	// Generate new key pair if it does not exist.
-	if err == ssh.ErrPublicKeyNotFound {
-		if pubKey, _, err = ssh.GenerateSaved(pubKeyPath, privKeyPath); err != nil {
-			return "", err
-		}
-	}
-
-	return pubKey, nil
 }
 
 // AddMountRequest defines machine group add mount request.
