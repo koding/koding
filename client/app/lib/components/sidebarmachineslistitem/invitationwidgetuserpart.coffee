@@ -23,8 +23,12 @@ module.exports = class InvitationWidgetUserPart extends React.Component
 
       <ProfileLinkContainer origin={owner} className='SidebarWidget-UserDetail'>
         <ProfileText className='SidebarWidget-FullName' />
-        <div className='SidebarWidget-Nickname'>
-          @{owner}
-        </div>
+        <ProfileNick owner={owner} />
       </ProfileLinkContainer>
     </div>
+
+
+ProfileNick = ({owner}) ->
+  <div className='SidebarWidget-Nickname'>
+    @{owner}
+  </div>

@@ -1,7 +1,7 @@
+debug              = (require 'debug') 'app:notificationcontroller'
 kookies            = require 'kookies'
 getGroup           = require 'app/util/getGroup'
 whoami             = require 'app/util/whoami'
-envDataProvider    = require 'app/userenvironmentdataprovider'
 kd                 = require 'kd'
 articlize          = require 'indefinite-article'
 KDModalView        = kd.ModalView
@@ -10,6 +10,7 @@ KDObject           = kd.Object
 ContentModal = require 'app/components/contentModal'
 EnvironmentFlux = require 'app/flux/environment'
 
+actions = require 'app/flux/environment/actiontypes'
 remote_extensions  = require 'app/remote-extensions'
 
 
@@ -84,7 +85,7 @@ module.exports = class NotificationController extends KDObject
 
   setListeners: ->
 
-    { computeController } = kd.singletons
+    { computeController: { storage }, reactor } = kd.singletons
 
     @on 'GuestTimePeriodHasEnded', deleteUserCookie
 
@@ -115,14 +116,30 @@ module.exports = class NotificationController extends KDObject
     @on 'MachineListUpdated', (data = {}) ->
 
       { machineUId, action, permanent } = data
+      { appManager } = kd.singletons
 
       switch action
+
         when 'removed'
-          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected machineUId
-          if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent
+          if ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
             ideInstance.showUserRemovedModal()
 
-      computeController.reset yes
+          if machine = storage.machines.get 'uid', machineUId
+            storage.machines.pop machine
+            reactor.dispatch actions.INVITATION_REJECTED, machine._id
+
+        when 'added'
+          storage.machines.fetch 'uid', machineUId
+            .then (machine) ->
+              reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, [ machine ]
+              return machine
+
+            .catch (err) ->
+              kd.warn 'Failed to fetch machine', { err, machineUId }
+              return err
+
+      debug 'MachineListUpdated', data
+
 
     @on 'UsernameChanged', ({ username, oldUsername }) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)

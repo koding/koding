@@ -18,7 +18,7 @@ describe 'MachineFlowController', ->
 
   { COMPLETE_PROGRESS_VALUE } = constants
 
-  createMachine = (state) -> { status : { state }, jMachine : { _id : machineId } }
+  createMachine = (state) -> { status : { state }, _id : machineId }
 
 
   beforeEach ->

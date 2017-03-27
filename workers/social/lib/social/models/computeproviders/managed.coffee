@@ -93,9 +93,7 @@ module.exports = class Managed extends ProviderInterface
     }, (err) ->
 
       return callback err  if err
-
-      JWorkspace = require '../workspace'
-      JWorkspace.createDefault client, machine.uid, callback
+      callback null
 
 
   @remove = (client, options, callback) ->

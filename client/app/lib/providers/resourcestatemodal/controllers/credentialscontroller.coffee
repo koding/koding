@@ -18,27 +18,26 @@ module.exports = class CredentialsController extends kd.Controller
     queue = {
       credentials  : (next) -> helpers.loadCredentials stack, next
       requirements : (next) -> helpers.loadRequirements stack, next
-      kdCmd        : (next) -> helpers.getKDCmd next
     }
 
     async.parallel queue, (err, results) ->
       return  if showError err
 
-      { credentials, requirements, kdCmd } = results
-      callback credentials, requirements, kdCmd
+      { credentials, requirements } = results
+      callback credentials, requirements
 
 
   loadData: -> @fetchData @bound 'setup'
 
 
-  setup: (credentials, requirements, kdCmd) ->
+  setup: (credentials, requirements) ->
 
     stack = @getData()
     { container } = @getOptions()
 
     @credentialsPage = new CredentialsPageView {}, {
       stack
-      credentials  : _.extend { kdCmd }, credentials
+      credentials
       requirements
     }
     @errorPage = new CredentialsErrorPageView {}, { stack }
@@ -61,13 +60,13 @@ module.exports = class CredentialsController extends kd.Controller
       @_credentials[item.identifier] = item
 
 
-  refresh: (credentials, requirements, kdCmd) ->
+  refresh: (credentials, requirements) ->
 
     stack = @getData()
 
     @credentialsPage.setData {
       stack
-      credentials  : _.extend { kdCmd }, credentials
+      credentials
       requirements
     }
 
@@ -289,18 +288,6 @@ module.exports = class CredentialsController extends kd.Controller
       helpers._loadCredentials { provider, fields }, (err, items) ->
         return callback err  if err
         callback null, { items, provider, fields : requiredFields }
-
-
-    getKDCmd: (callback) ->
-
-      whoami().fetchOtaToken (err, token) ->
-        return callback err  if err
-
-        cmd = if globals.config.environment in ['dev', 'default', 'sandbox']
-        then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()}; curl -sL https://sandbox.kodi.ng/c/d/kd | bash -s #{token}"
-        else "curl -sL https://kodi.ng/c/p/kd | bash -s #{token}"
-
-        callback null, cmd
 
 
     createNewCredential: (provider, newData, callback) ->

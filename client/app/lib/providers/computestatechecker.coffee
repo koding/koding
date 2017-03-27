@@ -1,23 +1,31 @@
 kd = require 'kd'
 KDObject = kd.Object
-Machine = require './machine'
 globals = require 'globals'
 
 module.exports = class ComputeStateChecker extends KDObject
 
   constructor: (options = {}) ->
 
-    super
-      interval : options.interval ? 10000
+    options.interval ?= 10000
 
-    @machines        = []
+    super options
+
     @ignoredMachines = []
     @tickInProgress  = no
     @running         = no
     @timer           = null
 
+    @setStorage()
+
     kd.singletons.windowController.addFocusListener (state) =>
       if state then @start() else @stop()
+
+
+  setStorage: (storage) ->
+
+    storage ?= @getOption 'storage'
+    @storage = storage  if storage
+
 
   start: ->
 
@@ -36,14 +44,6 @@ module.exports = class ComputeStateChecker extends KDObject
     kd.utils.killWait @timer
 
 
-  addMachine: (machine) ->
-
-    for m in @machines
-      return  if machine.uid is m.uid
-
-    @machines.push machine
-
-
   ignore: (machineId) ->
 
     unless machineId in @ignoredMachines
@@ -57,7 +57,9 @@ module.exports = class ComputeStateChecker extends KDObject
 
   tick: (checkAll = no) ->
 
-    return  unless @machines.length
+    machines = @storage.machines.get()
+
+    return  unless machines.length
     return  if @tickInProgress
     @tickInProgress = yes
 
@@ -65,7 +67,7 @@ module.exports = class ComputeStateChecker extends KDObject
 
     # kd.info "Checking all machine states..."  if checkAll
 
-    @machines.forEach (machine) =>
+    machines.forEach (machine) =>
 
       machineId = machine._id
       currentState = machine.status.state
@@ -73,8 +75,7 @@ module.exports = class ComputeStateChecker extends KDObject
       if machineId in @ignoredMachines
         return
 
-      if currentState isnt Machine.State.Running \
-      and not machine.provider is 'managed'
+      if not machine.isRunning() and not machine.isManaged()
         return  if not checkAll
       else
         { klient }   = kontrol.kites

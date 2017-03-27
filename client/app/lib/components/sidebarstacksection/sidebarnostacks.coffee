@@ -1,33 +1,27 @@
 React = require 'app/react'
 Link  = require 'app/components/common/link'
-canCreateStacks = require 'app/util/canCreateStacks'
-isAdmin = require 'app/util/isAdmin'
 
 
 module.exports = class SidebarNoStacks extends React.Component
 
   renderMessage: ->
 
-    { teamStacks, privateStacks } = @props
+    { hasTemplate, hasPermission } = @props
 
-    if teamStacks or privateStacks
+    if hasTemplate
       <p>
-        Open your dashboard and add your stacks to sidebar to continue
+        Open your dashboard and add your stacks to sidebar to continue.
       </p>
-    else if canCreateStacks()
+    else if hasPermission
       <p>
-        Your stacks has not been
-        fully configured yet, please
-        finalize onboarding steps.
+        Your stacks has not been fully configured yet, please finalize
+        onboarding steps.
       </p>
     else
       <p>
-        Your stacks has not been
-        fully configured yet, please
-        wait until your admin sets
-        them up for you.
+        Your stacks has not been fully configured yet, please wait until your
+        admin sets them up for you.
       </p>
-
 
 
   render: ->

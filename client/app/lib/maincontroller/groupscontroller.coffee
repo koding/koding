@@ -1,3 +1,4 @@
+debug             = (require 'debug') 'groupscontroller'
 kd                = require 'kd'
 
 whoami            = require '../util/whoami'
@@ -69,6 +70,7 @@ module.exports = class GroupsController extends kd.Controller
         @emit event, rest...
 
   openSocialGroupChannel: (group, callback = -> ) ->
+
     { realtime, socialapi } = kd.singletons
 
     socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
@@ -190,9 +192,16 @@ module.exports = class GroupsController extends kd.Controller
         # since we will allow users to select one stacktemplate from
         # available stacktemplates list of group ~ GG
 
-        computeController.createDefaultStack yes
+        computeController.createDefaultStack { force: yes }
 
+        debug 'setDefaultTemplate sending notification', stackTemplate._id
         # Warn other group members about stack template update
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
         callback null
+
+  fetchChannel: (group, callback) ->
+    if channel = globals.channel
+      callback null, remote.revive channel
+    else
+      socialapi.channel.byId { id: group.socialApiChannelId }, callback

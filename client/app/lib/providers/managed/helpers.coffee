@@ -47,7 +47,7 @@ ensureManagedStack = (callback) ->
 
   title = 'Managed VMs'
 
-  for stack in computeController.stacks when stack.title is title
+  if stack = computeController.storage.stacks.get 'title', title
     return callback null, stack
 
   options = { title }

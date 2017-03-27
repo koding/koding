@@ -48,6 +48,5 @@
   "Tracker": "/tracker.coffee",
   "JUrlAlias": "/urlalias.coffee",
   "JUser": "/user/index.coffee",
-  "JVerificationToken": "/verificationtoken.coffee",
-  "JWorkspace": "/workspace.coffee"
+  "JVerificationToken": "/verificationtoken.coffee"
 }

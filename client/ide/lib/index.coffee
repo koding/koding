@@ -1,3 +1,4 @@
+debug                         = (require 'debug') 'ide'
 _                             = require 'lodash'
 kd                            = require 'kd'
 nick                          = require 'app/util/nick'
@@ -6,7 +7,6 @@ remote                        = require 'app/remote'
 actions                       = require 'app/flux/environment/actions'
 kookies                       = require 'kookies'
 Encoder                       = require 'htmlencode'
-Machine                       = require 'app/providers/machine'
 IDEView                       = require './views/tabview/ideview'
 FSHelper                      = require 'app/util/fs/fshelper'
 showError                     = require 'app/util/showError'
@@ -24,7 +24,6 @@ IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
 IDEContentSearch              = require './views/contentsearch/idecontentsearch'
 IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
-environmentDataProvider       = require 'app/userenvironmentdataprovider'
 CollaborationController       = require './collaborationcontroller'
 ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
@@ -42,10 +41,17 @@ module.exports = class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
 
-  {
-    Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
-    Starting, Building, Stopping, Rebooting, Terminating, Updating
-  } = Machine.State
+  NotInitialized = 'NotInitialized'  # Initial state, machine instance does not exists
+  Building       = 'Building'        # Build started machine instance is being created...
+  Starting       = 'Starting'        # Machine is booting...
+  Running        = 'Running'         # Machine is physically running
+  Stopping       = 'Stopping'        # Machine is turning off...
+  Stopped        = 'Stopped'         # Machine is turned off
+  Rebooting      = 'Rebooting'       # Machine is rebooting...
+  Terminating    = 'Terminating'     # Machine is being destroyed...
+  Terminated     = 'Terminated'      # Machine is destroyed, does not exist anymore
+  Updating       = 'Updating'        # Machine is being updated by provisioner
+  Unknown        = 'Unknown'         # Machine is in an unknown state
 
   { noop, warn } = kd
 
@@ -94,6 +100,9 @@ module.exports = class IDEAppController extends AppController
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
+    kd.utils.defer =>
+      debug 'IDE initialized', this
+
     appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app is this
@@ -122,10 +131,11 @@ module.exports = class IDEAppController extends AppController
 
     @on 'SnapshotUpdated', @bound 'saveLayoutSize'
 
+    # FIXMEWS ~ GG
     kd.singletons.notificationController.on 'WorkspaceRemoved', (data) =>
       { machineUId, slug } = data
 
-      if @mountedMachineUId is machineUId and slug is @workspaceData.slug
+      if @mountedMachineUId is machineUId # and slug is @workspaceData.slug
         @quit()
 
     @layoutManager.once 'LayoutSizesApplied', @bound 'doResize'
@@ -189,34 +199,17 @@ module.exports = class IDEAppController extends AppController
   ###
   bindKlientEvents: (machine) ->
 
-    kite = machine.getBaseKite()
-    kite.ready =>
-      kem = new KlientEventManager {}, machine
+    kem = new KlientEventManager {}, machine
 
-      if @klientOpenFilesSubscriberId?
-        kem.unsubscribe 'openFiles', @klientOpenFilesSubscriberId
+    if @klientOpenFilesSubscriberId?
+      kem.unsubscribe 'openFiles', @klientOpenFilesSubscriberId
 
-      kem
-        .subscribe 'openFiles', @bound 'handleKlientOpenFiles'
-        .then ({ id }) => @klientOpenFilesSubscriberId = id
-
-
-  bindWorkspaceDataEvents: ->
-
-    @on 'WorkspaceChannelChanged', @bound 'onWorkspaceChannelChanged'
-
-    return  unless @workspaceData
-
-    unless 'function' is typeof @workspaceData.on
-      @workspaceData = remote.revive @workspaceData
-
-    @workspaceData.on 'update', (fields) =>
-
-      fields.forEach (field) =>
-
-        switch field
-          when 'channelId'
-            @emit 'WorkspaceChannelChanged'
+    kem
+      .subscribe 'openFiles', @bound 'handleKlientOpenFiles'
+      .then (res) =>
+        { id } = res
+        @klientOpenFilesSubscriberId = id
+        return res
 
 
   handleWindowFocus: (state) ->
@@ -238,7 +231,10 @@ module.exports = class IDEAppController extends AppController
    *  data.
    * @param {Array<string>} eventData.files - A list of file paths
   ###
-  handleKlientOpenFiles: (eventData) -> @openFiles eventData.files
+  handleKlientOpenFiles: (eventData) ->
+
+    @openFiles eventData.files
+    return eventData
 
 
   isTabViewFocused: (tabView) ->
@@ -499,7 +495,7 @@ module.exports = class IDEAppController extends AppController
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
-    return  if machineData.uid isnt @workspaceData.machineUId
+    # return  if machineData.uid isnt @workspaceData.machineUId
 
     panel     = @workspace.getView()
     filesPane = panel.getPaneByName 'filesPane'
@@ -568,13 +564,13 @@ module.exports = class IDEAppController extends AppController
   setMountedMachine: (machine) ->
 
     @mountedMachine = machine
-    @emit 'MachineDidMount', machine, @workspaceData
+    @emit 'MachineDidMount', machine
 
 
   whenMachineReady: (callback) ->
 
     if @mountedMachine
-    then callback @mountedMachine, @workspaceData
+    then callback @mountedMachine
     else @once 'MachineDidMount', callback
 
 
@@ -586,13 +582,10 @@ module.exports = class IDEAppController extends AppController
     if @mountedMachine
       return callback null, @mountedMachine
 
-    environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
-
-      unless machine instanceof Machine
-        machine = new Machine { machine }
-
-      @setMountedMachine machine
-      callback null, machine
+    cc = kd.singletons.computeController
+    machine = cc.storage.machines.get 'uid', @mountedMachineUId
+    @setMountedMachine machine
+    callback null, machine
 
 
   showNoMachineState: ->
@@ -614,9 +607,6 @@ module.exports = class IDEAppController extends AppController
 
       unless machineItem
         return @showNoMachineState()
-
-      unless machineItem instanceof Machine
-        machineItem = new Machine { machine: machineItem }
 
       @setMountedMachine machineItem
       @prepareIDE withFakeViews
@@ -648,7 +638,6 @@ module.exports = class IDEAppController extends AppController
             @runOnboarding()
 
         @bindMachineEvents machineItem
-        @bindWorkspaceDataEvents()
 
         adminMessage = new StackAdminMessageController {
           container
@@ -659,14 +648,15 @@ module.exports = class IDEAppController extends AppController
       else
         return @showNoMachineState()
 
-    environmentDataProvider.fetchMachineByUId machineUId, (machineItem) ->
-      mount machineItem
-      done()
+    cc = kd.singletons.computeController
+    machine = cc.storage.machines.get 'uid', machineUId
+    mount machine
+    done()
 
 
   bindMachineEvents: (machineItem) ->
 
-    actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
+    actionRequiredStates = [Stopping, Stopped, Terminating, Terminated]
 
     kd.getSingleton 'computeController'
 
@@ -676,23 +666,16 @@ module.exports = class IDEAppController extends AppController
           @showStateMachineModal machineItem, event
 
         switch event.status
-          when Terminated then @handleMachineTerminated()
+          when Terminated, Terminating then @handleMachineTerminated()
 
 
   handleMachineTerminated: ->
 
+    { appManager, router } = kd.singletons
+    if appManager.frontApp is this
+      kd.utils.defer -> router.handleRoute '/IDE'
 
-  handleMachineReinit: ({ status }) ->
-
-    switch status
-      when 'Building'
-        environmentDataProvider.ensureDefaultWorkspace kd.noop
-      when 'Running'
-        id = @mountedMachine._id
-        { computeController } = kd.singletons
-
-        computeController.once "revive-#{id}", @lazyBound 'quit'
-        computeController.triggerReviveFor id
+    @quit reload = no
 
 
   showStateMachineModal: (machineItem, event) ->
@@ -823,14 +806,6 @@ module.exports = class IDEAppController extends AppController
 
 
   createNewTerminal: (options = {}) ->
-
-    { machine, path, resurrectSessions, command } = options
-
-    machine = @mountedMachine  unless machine instanceof Machine
-
-    if @workspaceData and not path
-      { rootPath, isDefault } = @workspaceData
-      options.path = rootPath  if rootPath and not isDefault
 
     @activeTabView.emit 'TerminalPaneRequested', options
 
@@ -995,9 +970,9 @@ module.exports = class IDEAppController extends AppController
   getWorkspaceStorageKey: (prefix) ->
 
     if prefix
-      return "#{prefix}.wss.#{@workspaceData.slug}"
+      return "#{prefix}.wss.#{@mountedMachine.uid}"
     else
-      return "wss.#{@workspaceData.slug}"
+      return "wss.#{@mountedMachine.uid}"
 
 
   registerPane: (pane) ->
@@ -1179,8 +1154,9 @@ module.exports = class IDEAppController extends AppController
 
     return @contentSearch.findInput.setFocus()  if @contentSearch
 
-    data = { machine: @mountedMachine, workspace: @workspaceData }
-    @contentSearch = new IDEContentSearch {}, data
+    data = { machine: @mountedMachine }
+    rootPath = '/' # FIXME ~ GG
+    @contentSearch = new IDEContentSearch { rootPath }, data
     @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
@@ -1252,17 +1228,23 @@ module.exports = class IDEAppController extends AppController
     { computeController } = kd.singletons
     { finderController }  = @finderPane
 
+    debug 'handleIDEBecameReady', { machine, initial }
+
     # when MachineStateModal calls this func, we need to rebind Klient.
     @bindKlientEvents machine
 
     machine.fetchInfo (err, info) =>
+      debug 'machine.fetchInfo res', { err, info }
       kd.warn '[IDE] Failed to fetch info', err  if err
-      rootPath = info?.home or @workspaceData?.rootPath or '/'
+      rootPath = info?.home or '/'
+      debug 'updating machine root as', @mountedMachine.uid, rootPath
       finderController.updateMachineRoot @mountedMachine.uid, rootPath
 
     machine.getBaseKite()?.fetchTerminalSessions?()
 
     @fetchSnapshot (snapshot) =>
+
+      debug 'snapshot fetched', snapshot
 
       unless @fakeViewsDestroyed
         @removeFakeViews()
@@ -1278,16 +1260,13 @@ module.exports = class IDEAppController extends AppController
         else
           @addInitialViews()  unless @initialViewsReady
 
-
-      { mainView }  = kd.singletons
-      data          = { machine, workspace: @workspaceData }
-
-      actions.setSelectedWorkspaceId @workspaceData._id
-
       if initial
         computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
 
+      debug 'firing ready event IDEReady'
       @emit 'IDEReady'
+
+    return null
 
 
   removeFakeViews: ->
@@ -1677,26 +1656,23 @@ module.exports = class IDEAppController extends AppController
       delete @modal
 
 
-  quit: (destroy = yes, stopCollaborationSession = yes) ->
+  quit: (reload = yes, stopCollaborationSession = yes) ->
 
     return  if @getView().isDestroyed
 
-    @emit 'IDEWillQuit'  if destroy
-
+    @emit 'IDEWillQuit'
     @mountedMachine?.getBaseKite(createIfNotExists = no).disconnect()
+    @stopCollaborationSession()  if stopCollaborationSession
 
-    if destroy
-      @stopCollaborationSession()  if stopCollaborationSession
+    if reload
       kd.singletons.appManager.quit this, =>
-        # fetch data to ensure target workspace is still exist
-        environmentDataProvider.fetch =>
-          route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
-          kd.singletons.router.handleRoute route
+        route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
+        kd.singletons.router.handleRoute route
 
       @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
 
-  beforeQuit: -> @quit no
+  beforeQuit: -> @quit reload = no
 
 
   removeParticipantCursorWidget: (targetUser) ->
@@ -1731,11 +1707,6 @@ module.exports = class IDEAppController extends AppController
     appView.unsetClass 'read-only'
     appView.off 'click', @bound 'readOnlyNotifierCallback_'
     @requestEditPermissionView?.destroy()
-
-
-  deleteWorkspaceRootFolder: (machineUId, rootPath) ->
-
-    @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath
 
 
   getActiveInstance: ->
@@ -1799,7 +1770,7 @@ module.exports = class IDEAppController extends AppController
           callback : =>
 
             { reactor } = kd.singletons
-            reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
+            reactor.dispatch actionTypes.INVITATION_REJECTED, @mountedMachine.getId()
 
             @modal.destroy()
             @quit()

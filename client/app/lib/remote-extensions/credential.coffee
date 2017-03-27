@@ -1,4 +1,4 @@
-debug = (require 'debug') 'remote:jcredential'
+debug = (require 'debug') 'remote:api:jcredential'
 remote = require('../remote')
 
 
@@ -7,10 +7,8 @@ module.exports = class JCredential extends remote.api.JCredential
 
   @some$ = (selector, options, callback) ->
 
-    debug 'some$ called', selector, options
-    JCredential.some selector, options, (err, res) ->
-      debug 'some$ returned', err, res
-      callback err, res
+    console.warn 'JCredential.some$ will be deprecated!'
+    JCredential.some selector, options, callback
 
 
   @create = (data, callback) ->
@@ -23,3 +21,8 @@ module.exports = class JCredential extends remote.api.JCredential
         sendDataDogEvent 'ApplicationError', { prefix: 'app-error' }
 
       callback err, credential
+
+
+  @one = ->
+    console.warn 'JCredential.one will be deprecated!'
+    super
