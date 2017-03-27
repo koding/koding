@@ -11,9 +11,10 @@ FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 showNotification     = require 'app/util/showNotification'
 isLoggedIn           = require 'app/util/isLoggedIn'
+isGroupDisabled      = require 'app/util/isGroupDisabled'
 actions              = require 'app/flux/environment/actions'
 
-remote               = require('../remote')
+remote               = require '../remote'
 KiteCache            = require '../kite/kitecache'
 ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
@@ -63,6 +64,8 @@ module.exports = class ComputeController extends KDController
     @_trials = {}
 
     mainController.ready =>
+
+      @bindPaymentEvents()
 
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
@@ -1239,3 +1242,15 @@ module.exports = class ComputeController extends KDController
       @reloadIDE stack.machines.first
 
     console.log '[Kloud:API]', change
+
+
+  # Follow Payment changes
+  bindPaymentEvents: ->
+
+    { groupsController } = kd.singletons
+
+    disabled = isGroupDisabled()
+
+    # /cc @cihangir: not sure if this is the right way to bind the event.
+    groupsController.on 'payment_status_changed', =>
+      @storage.initialize()
