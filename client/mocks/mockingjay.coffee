@@ -2,7 +2,6 @@ kd                        = require 'kd'
 expect                    = require 'expect'
 remote                    = require 'app/remote'
 FSFile                    = require 'app/util/fs/fsfile'
-Machine                   = require 'app/providers/machine'
 ideRoutes                 = require 'ide/routes.coffee'
 mockjgroup                = require './mock.jgroup'
 mockjstack                = require './mock.jstack'
@@ -31,7 +30,7 @@ teamSendInvites           = require './mock.teamSendInvites'
 team                      = require './mock.team'
 
 
-mockMachine = new Machine { machine: mockjmachine }
+mockMachine = remote.revive mockjmachine
 mockGroup   = remote.revive mockjgroup
 
 { socialapi, appManager } = kd.singletons
@@ -55,11 +54,6 @@ module.exports =
         expect.spyOn(dataProvider, 'fetchMachine').andCall (identifier, callback) ->
           callback null
 
-
-    ensureDefaultWorkspace: ->
-
-      expect.spyOn(dataProvider, 'ensureDefaultWorkspace').andCall (callback) ->
-        callback()
 
     fetch:
 
@@ -99,20 +93,6 @@ module.exports =
           shared        : []
           own           : [ item ]
         }
-
-
-    fetchWorkspaceByMachineUId:
-
-      toReturnWorkspace: ->
-
-        expect.spyOn(dataProvider, 'fetchWorkspaceByMachineUId').andCall (options, callback) ->
-          callback mockjworkspace
-
-
-      toReturnNull: ->
-
-        expect.spyOn(dataProvider, 'fetchWorkspaceByMachineUId').andCall (options, callback) ->
-          callback null
 
 
     findWorkspace:
@@ -183,25 +163,6 @@ module.exports =
 
 
   ideRoutes:
-
-    getLatestWorkspace:
-
-      toReturnWorkspace: ->
-
-        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall ->
-          return { workspaceSlug: 'foo-workspace', machineLabel: 'aws-vm-0' }
-
-
-      toReturnNull: ->
-
-        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall -> return null
-
-
-      toReturnWorkspaceWithChannelId: ->
-
-        expect.spyOn(ideRoutes, 'getLatestWorkspace').andCall ->
-          return { workspaceSlug: 'foo-workspace', channelId: '6075644514008039523', machineLabel: 'aws-vm-0' }
-
 
     findInstance:
 

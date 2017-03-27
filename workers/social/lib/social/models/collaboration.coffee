@@ -2,11 +2,11 @@
 
 google       = require 'googleapis'
 google_utils = require 'koding-googleapis'
+KodingError  = require '../error'
 
 { notifyByUsernames } = require './notify'
 
 JMachine   = require './computeproviders/machine'
-JWorkspace = require './workspace'
 
 
 module.exports = class Collaboration extends Base
@@ -15,7 +15,7 @@ module.exports = class Collaboration extends Base
   @set
     sharedMethods :
       static      :
-        stop      : (signature String, Object, Function)
+        stop      : (signature String, String, Function)
         add       : (signature String, Object, Function)
         kick      : (signature String, Object, Function)
 
@@ -39,10 +39,9 @@ module.exports = class Collaboration extends Base
     return google_utils.authenticated options, method
 
 
-  unshareMachine = (workspace, callback) ->
-    uid = workspace.machineUId
+  unshareMachine = (channelId, callback) ->
 
-    JMachine.one { uid }, (err, machine) ->
+    JMachine.one { channelId }, (err, machine) ->
       owner = null
 
       for user in machine.users when user.sudo and user.owner
@@ -52,7 +51,7 @@ module.exports = class Collaboration extends Base
       machine.update { $set: { users: [owner] } }, callback
 
 
-  @stop = secure authenticated (client, fileId, workspace, callback) ->
+  @stop = secure authenticated (client, fileId, channelId, callback) ->
 
     getRealtimeDocument fileId, (err, doc) ->
 
@@ -67,38 +66,39 @@ module.exports = class Collaboration extends Base
       { timeout } = KONFIG.collaboration
 
       if (Date.now() - lastSeen.getTime()) > timeout
-      then unshareMachine workspace, callback
+      then unshareMachine channelId, callback
       else callback 'host is alive'
 
 
-  @add = secure (client, workspaceId, target, callback) ->
+  @add = secure (client, channelId, target, callback) ->
 
     asUser  = yes
     options = { target, asUser }
-    setUsers client, workspaceId, options, (err, machine) ->
+    setUsers client, channelId, options, (err, machine) ->
       return callback err  if err
 
-      machineUId = machine.uid
-      data =  { machineUId, workspaceId, group: client?.context?.group }
-
+      data = { channelId, group: client?.context?.group }
       notifyByUsernames options.target, 'CollaborationInvitation', data
 
-      callback()
+      callback null, machine
 
 
-  @kick = secure (client, workspaceId, target, callback) ->
+  @kick = secure (client, channelId, target, callback) ->
 
-    asUser  = no
-    options = { target, asUser }
-    setUsers client, workspaceId, options, callback
+    options = { target, asUser: no }
+    setUsers client, channelId, options, (err, machine) ->
+      return callback err  if err
+      callback null, machine
 
 
-  setUsers = (client, workspaceId, options, callback) ->
+  setUsers = (client, channelId, options, callback) ->
 
-    JWorkspace.one { _id: workspaceId }, (err, workspace) ->
+    options.permanent = no
+    JMachine.one { channelId }, (err, machine) ->
 
       return callback err  if err
-      return callback 'Workspace is not found'  unless workspace
+      return callback new KodingError 'Machine not found'  unless machine
 
-      options.permanent = no
-      JMachine.shareByUId client, workspace.machineUId, options, callback
+      machine.shareWith$ client, options, (err) ->
+        return callback err  if err
+        JMachine.one { _id: machine._id }, callback

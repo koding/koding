@@ -1,3 +1,5 @@
+debug      = (require 'debug') 'kodingkite'
+
 kd         = require 'kd'
 kitejs     = require 'kite.js'
 Promise    = require 'bluebird'
@@ -132,15 +134,23 @@ module.exports = class KodingKite extends kd.Object
 
     name = @getOption 'name'
 
+    debug 'handleKiteError', err, args
+
     # In any case unset KiteCache if there is an authenticationError
     if err.type is 'authenticationError'
       KiteCache.unset name
 
     # If it was because token is expired try to recover it
-    if err.message is 'token is expired'
+    if err.message in ['token is expired', 'session is closed']
+      debug 'handleKiteError: a known error catched:', err.message, err
       return new Promise (resolve, reject) =>
-        @transport?.expireToken =>
-          resolve @transport.tell args...
+        if @transport
+          debug 'handleKiteError: transport found calling .expireToken', @transport.getToken()
+          @transport.expireToken =>
+            debug 'handleKiteError: expireToken returned', @transport.getToken()
+            resolve @transport.tell args...
+        else
+          reject()
 
     # If not and the kite is kloud, make sure it's destroyed
     else if name is 'kloud'

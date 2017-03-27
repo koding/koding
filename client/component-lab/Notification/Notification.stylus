@@ -38,13 +38,16 @@ $notifications-z-index      = 20000
   flex-direction                row
   box-sizing                    border-box
   .kd_notification_level
+    position                    relative
     flex                        0 0 50px
-    padding                     13px 0 0
     border-bottom-right-radius  0
     border-top-right-radius     0
     box-sizing                  border-box
     .kd_notification_icon
-      margin                    0 auto
+      position                  absolute
+      top                       50%
+      left                      50%
+      transform                 translate(-50%, -50%)
   &.kd_notification_success
     .kd_notification_level
       background-color          $primary-2
@@ -58,7 +61,7 @@ $notifications-z-index      = 20000
     .kd_notification_level
       background-color          $primary-1
   .kd_notification_content
-    padding                     17px 20px 17px 20px
+    padding                     20px
     line-height                 16px
     font-size                   14px
     color                       $additional-6-faded
@@ -106,6 +109,9 @@ $notifications-z-index      = 20000
         height                  calc(100% - 20px)
         background-color        $additional-5
         box-sizing              border-box
+
+      button:hover
+        text-decoration         none
 
   .kd_notification_multiple_actions
     width                       100%

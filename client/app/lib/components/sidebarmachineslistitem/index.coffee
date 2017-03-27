@@ -4,19 +4,17 @@ React                          = require 'app/react'
 ReactDOM                       = require 'react-dom'
 remote                         = require 'app/remote'
 actions                        = require 'app/flux/environment/actions'
-Machine                        = require 'app/providers/machine'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 EnvironmentFlux                = require 'app/flux/environment'
-AddWorkspaceView               = require './addworkspaceview'
 isMachineRunning               = require 'app/util/isMachineRunning'
 getBoundingClientReact         = require 'app/util/getBoundingClientReact'
 LeaveSharedMachineWidget       = require './leavesharedmachinewidget'
-SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 
+debug = require('debug')('sidebaritem')
 
 require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
@@ -27,65 +25,85 @@ module.exports = class SidebarMachinesListItem extends React.Component
   @defaultProps =
     stack                        : null
     showInSidebar                : yes
-    bindWorkspacesTitleClick     : yes
 
 
   getDataBindings: ->
     activeMachine : EnvironmentFlux.getters.activeMachine
     activeLeavingMachine : EnvironmentFlux.getters.activeLeavingSharedMachineId
     activeInvitationMachineId : EnvironmentFlux.getters.activeInvitationMachineId
+    requiredInvitationMachine : EnvironmentFlux.getters.requiredInvitationMachine
 
 
   constructor: (props) ->
 
     super
 
-    status = @machine ['status', 'state']
-
     @state =
-      collapsed: yes
+      percentage: 0
+      status: @machine ['status', 'state']
       showLeaveSharedMachineWidget : no
 
-    @listenMachineEvents()
 
+  onComputeEvent: ({ percentage = 0, status }) ->
 
-  listenMachineEvents: ->
-
-    machineId             = @machine('_id')
-    { computeController } = kd.singletons
-
-    computeController.on "start-#{machineId}", (event) =>
-      @setState { collapsed: no }  if event.percentage is 100
-
-    computeController.on "stop-#{machineId}", (event) =>
-      @setState { collapsed : yes }  unless event.percentage
-
-    if stackId = @props.stack?.get('_id')
-      computeController.on "apply-#{stackId}", (event) =>
-        { percentage, message } = event
-        if percentage is 100 and message is 'apply finished'
-          @setState { collapsed: no }
-
-
-  componentWillReceiveProps: ->
-
-    return  unless @refs.sidebarMachinesListItem
-
-    coordinates = getBoundingClientReact @refs.sidebarMachinesListItem
-    @setState { coordinates: coordinates }
+    @setState { percentage, status }
 
 
   componentDidMount: ->
 
+    { computeController } = kd.singletons
+    { setActiveInvitationMachineId } = actions
+
+    # Shared/Collab or Managed machines does not have any stacks ~ GG
+    if stackId = @props.stack?.get '_id'
+      computeController.on "apply-#{stackId}", @bound 'onComputeEvent'
+
+    machineId = @props.machine.get '_id'
+    computeController.on "public-#{machineId}", @bound 'onComputeEvent'
+
     kd.utils.defer =>
       actions.setMachineListItem @machine('_id'), this
+
+      if @state.requiredInvitationMachine
+        if @state.requiredInvitationMachine.get('_id') is @machine '_id'
+          if @state.activeInvitationMachineId isnt @machine '_id'
+            # to show invitation widget for both on initial load and after a
+            # realtime event. This is probably an anti pattern, to do this in
+            # this component here. I will fix it with the restructure of
+            # sidebar. ~Umut
+            setActiveInvitationMachineId { machine: @props.machine }
+            @setCoordinates()
+
+      if @state.activeInvitationMachineId
+        @setCoordinates()
+
+
+  setCoordinates: ->
+
+    return  unless @refs.sidebarMachinesListItem
+
+    coordinates = getBoundingClientReact @refs.sidebarMachinesListItem
+
+    debug 'setcoordinates', coordinates
+    @setState { coordinates: coordinates }
 
 
   componentWillUnmount: ->
 
+    { computeController } = kd.singletons
+
+    # Shared/Collab or Managed machines does not have any stacks ~ GG
+    if stackId = @props.stack?.get '_id'
+      computeController.off "apply-#{stackId}", @bound 'onComputeEvent'
+
+    machineId = @props.machine.get '_id'
+    computeController.off "public-#{machineId}", @bound 'onComputeEvent'
+
     kd.utils.defer =>
       actions.unsetMachineListItem @machine('_id'), this
 
+
+  componentWillReceiveProps: -> @setCoordinates()
 
   machine: (key) ->
 
@@ -115,27 +133,17 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderProgressbar: ->
 
-    status     = @machine ['status', 'state']
-    percentage = @machine('percentage') or 0
+    { percentage, status } = @state
+    { NotInitialized, Running, Stopped } = remote.api.JMachine.State
 
-    return null  if status in [Machine.State.NotInitialized, Machine.State.Stopped]
-    return null  if status is Machine.State.Running and percentage is 100
+    return null  if status in [NotInitialized, Stopped]
+    return null  if status is Running and percentage is 100
 
     fullClass  = if percentage is 100 then ' full' else ''
 
     <div className={"SidebarListItem-progressbar#{fullClass}"}>
       <cite style={width: "#{percentage}%"} />
     </div>
-
-
-  renderWorkspaces: ->
-
-    @machine('workspaces').toList().map (workspace) =>
-      <SidebarWorkspacesListItem
-        key={workspace.get '_id'}
-        machine={@props.machine}
-        workspace={workspace}
-        />
 
 
   renderLeaveSharedMachine: ->
@@ -145,7 +153,10 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  unless @machine 'isApproved'
     return null  unless @state.activeLeavingMachine
 
+    { setActiveLeavingSharedMachineId } = actions
+
     <LeaveSharedMachineWidget
+      onClose={-> setActiveLeavingSharedMachineId null}
       coordinates={@state.coordinates}
       machine={@props.machine} />
 
@@ -205,11 +216,20 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   renderInvitationWidget: ->
 
+    debug 'machine id', @props.machine.get '_id'
+    debug 'invitaion id', @state.activeInvitationMachineId
+    debug 'coordinates', @state.coordinates
+
     return null  unless @state.coordinates
     return null  unless @props.machine.get('_id') is @state.activeInvitationMachineId
 
+    debug 'invited widget is about to be rendered'
+
+    { setActiveInvitationMachineId } = actions
+
     <SharingMachineInvitationWidget
       key="InvitationWidget-#{@props.machine.get '_id'}"
+      onClose={-> setActiveInvitationMachineId { machine: null }}
       coordinates={@state.coordinates}
       machine={@props.machine} />
 
@@ -218,7 +238,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     return null  unless @props.showInSidebar
 
-    status      = @machine ['status', 'state']
+    debug 'isApproved', { id: @machine('_id'), isApproved: @machine('isApproved') }
+
+    { status }  = @state
     activeClass = ''
 
     if @state.activeMachine is @machine('_id')

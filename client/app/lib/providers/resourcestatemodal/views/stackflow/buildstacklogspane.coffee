@@ -18,5 +18,7 @@ module.exports = class BuildStackLogsPane extends AceView
 
     return  if text is @lastLine
 
-    @ace.editor.insert "#{if @lastLine then '\n' else ''}#{text}"
+    @ace.ready =>
+      @ace.editor.insert "#{if @lastLine then '\n' else ''}#{text}"
+
     @lastLine = text

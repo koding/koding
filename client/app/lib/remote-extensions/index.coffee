@@ -11,14 +11,15 @@ module.exports = RemoteExtensions =
 
   initialize: (remote) ->
 
-    @injectCacheOnAPI remote
+    remote.api.ComputeProvider = require './computeprovider'
+    remote.api.JStackTemplate  = require './stacktemplate'
+    remote.api.JComputeStack   = require './computestack'
+    remote.api.JCredential     = require './credential'
+    remote.api.JMachine        = require './machine'
+    remote.api.JAccount        = require './account'
+    remote.api.JGroup          = require './group'
 
-    remote.api.JStackTemplate = require './stacktemplate'
-    remote.api.JComputeStack  = require './computestack'
-    remote.api.JCredential    = require './credential'
-    remote.api.JMachine       = require './machine'
-    remote.api.JAccount       = require './account'
-    remote.api.JGroup         = require './group'
+    @injectCacheOnAPI remote
 
 
   injectCacheOnAPI: (remote) ->
@@ -51,7 +52,7 @@ module.exports = RemoteExtensions =
       # if originId is provided in the model
       # please be aware this will return false all the time
       # if model doesn't have originId field in its schema
-      remote.api[model]::isMine = -> @originId is whoami()._id
+      remote.api[model]::isMine ?= -> @originId is whoami()._id
 
 
   getCache: globals._getRemoteCache = -> REMOTE_CACHE

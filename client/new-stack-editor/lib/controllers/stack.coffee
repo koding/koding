@@ -48,5 +48,4 @@ module.exports = class StackController extends BaseController
         autohide : 1500
       }
 
-      kd.singletons.computeController.reset yes
       callback err, stack

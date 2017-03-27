@@ -1,23 +1,12 @@
 immutable = require 'immutable'
 machineRuleChecker = require 'app/util/machinerulechecker'
-getMachineOwner    = require 'app/util/getMachineOwner'
 getGroup           = require 'app/util/getGroup'
-
-{ allChannels }    = require 'app/flux/socialapi/getters'
 
 withEmptyMap       = (storeData) -> storeData or immutable.Map()
 
 StacksStore                       = ['StacksStore']
 MachinesStore                     = ['MachinesStore']
-WorkspacesStore                   = ['WorkspacesStore']
-MachinesWorkspacesStore           = ['MachinesWorkspacesStore']
-OwnMachinesStore                  = ['OwnMachinesStore']
-SharedMachinesStore               = ['SharedMachinesStore']
-CollaborationMachinesStore        = ['CollaborationMachinesStore']
-AddWorkspaceViewStore             = ['AddWorkspaceViewStore']
-ActiveWorkspaceStore              = ['ActiveWorkspaceStore']
 ActiveMachineStore                = ['ActiveMachineStore']
-DeleteWorkspaceWidgetStore        = ['DeleteWorkspaceWidgetStore']
 ConnectedManagedMachineStore      = ['ConnectedManagedMachineStore']
 sharedMachineListItems            = [['SharedMachineListItemsStore'], withEmptyMap]
 ActiveInvitationMachineIdStore    = ['ActiveInvitationMachineIdStore']
@@ -29,70 +18,41 @@ PrivateStackTemplatesStore        = ['PrivateStackTemplatesStore']
 SelectedTemplateIdStore           = ['SelectedTemplateIdStore']
 expandedMachineLabelStore         = ['ExpandedMachineLabelStore']
 
-
-workspacesWithChannels = [
-  WorkspacesStore
-  allChannels
-  (workspaces, channels) ->
-
-    workspaces.map (workspace) ->
-      if channelId = workspace.get('channelId')
-        workspace.set 'channel', channels.get(channelId)
-      else
-        workspace
-]
-
-machinesWithWorkspaces = [
-  MachinesStore
-  workspacesWithChannels
-  MachinesWorkspacesStore
-  (machines, workspaces, machinesWorkspaces) ->
-
-    machines.map (machine) ->
-      # if we use the `sharedUsers` prop, we will have to add 1 to include the
-      # real owner of the machine. `users` prop already includes owner.
-      userCount = ((machine.get('sharedUsers')?.size + 1) or machine.get('users')?.size)
-      machine
-        .set 'isShared', (userCount or 1) > 1
-        .set 'workspaces', machinesWorkspaces.get(machine.get '_id')?.map (workspaceId) ->
-          workspaces.get workspaceId
-]
-
 ownMachines = [
-  OwnMachinesStore
-  machinesWithWorkspaces
-  (own, machines) -> own.map (id) ->
-    machine = machines.get(id)
-    machine
-      .set 'type', 'own'
-      .set 'isApproved', yes
-      .set 'isManaged', machineRuleChecker machine, ['managed']
+  MachinesStore
+  (machines) ->
+    return machines
+      .filter (machine) -> machine.get('type') is 'own'
+      .map (machine) ->
+        machine
+          .set 'isApproved', yes
+          .set 'isManaged', machineRuleChecker machine, ['managed']
 ]
+
 
 sharedMachines = [
-  SharedMachinesStore
-  machinesWithWorkspaces
-  (shared, machines) -> shared.map (id) ->
-    machine = machines.get(id)
-    machine
-      .set 'type', 'shared'
-      .set 'owner', getMachineOwner machine
-      .set 'isApproved', machineRuleChecker machine, ['approved']
-      .set 'isPermanent', machineRuleChecker machine, ['permanent']
+  MachinesStore
+  (machines) ->
+    return machines
+      .filter (machine) -> machine.get('type') is 'shared'
+      .map (machine) ->
+        machine
+          .set 'isApproved', machineRuleChecker machine, ['approved']
+          .set 'isPermanent', machineRuleChecker machine, ['permanent']
 ]
 
+
 collaborationMachines = [
-  CollaborationMachinesStore
-  machinesWithWorkspaces
-  (collaboration, machines) ->
-    collaboration.map (id) ->
-      machine = machines.get(id)
-      machine
-        .set 'type', 'collaboration'
-        .set 'owner', getMachineOwner machine
-        .set 'isApproved', machineRuleChecker machine, ['approved']
-        .set 'isPermanent', machineRuleChecker machine, ['permanent']
+  MachinesStore
+  (machines) ->
+    return machines
+      .filter (machine) -> machine.get('type') is 'collaboration'
+      .map (machine) ->
+        machine
+          .set 'isApproved', machineRuleChecker machine, ['approved']
+          .set 'isPermanent', machineRuleChecker machine, ['permanent']
 ]
+
 
 requiredInvitationMachine = [
   sharedMachines
@@ -119,8 +79,8 @@ allStackTemplates = [
 stacks = [
   StacksStore
   allStackTemplates
-  machinesWithWorkspaces
-  (stacks, templates, machinesWorkspaces) ->
+  MachinesStore
+  (stacks, templates, machines) ->
     # Sort stacks by modifiedAt and type.
     stacks
 
@@ -138,16 +98,14 @@ stacks = [
           .set 'disabled', stack.getIn(['config', 'oldOwner'])?
           .set 'accessLevel', templates.getIn [stack.get('baseStackId'), 'accessLevel']
           .set 'baseTemplate', templates.get stack.get 'baseStackId'
-          .update 'machines', (machines) ->
-            machines
-              .filter (id) -> !!machinesWorkspaces.get(id)
+          .update 'machines', (_machines) ->
+            _machines
               .map (id) ->
-                machine = machinesWorkspaces.get(id)
+                machine = machines.get(id)
                 type    = if machine.getIn ['meta', 'oldOwner'] then 'reassigned' else 'own'
 
                 machine
                   .set 'type', type
-                  .set 'owner', getMachineOwner machine
                   .set 'isApproved', yes
 ]
 
@@ -217,13 +175,9 @@ module.exports = {
   sharedMachines
   collaborationMachines
   requiredInvitationMachine
-  machinesWithWorkspaces
   sharedMachineListItems
-  addWorkspaceView : AddWorkspaceViewStore
-  activeWorkspace : ActiveWorkspaceStore
   activeMachine : ActiveMachineStore
   activeStack : ActiveStackStore
-  deleteWorkspaceWidget : DeleteWorkspaceWidgetStore
   connectedManagedMachine : ConnectedManagedMachineStore
   activeInvitationMachineId: ActiveInvitationMachineIdStore
   activeLeavingSharedMachineId: ActiveLeavingSharedMachineIdStore
@@ -231,6 +185,7 @@ module.exports = {
   selectedTemplateId : SelectedTemplateIdStore
   teamStackTemplates
   privateStackTemplates
+  allMachines: MachinesStore
   allStackTemplates
   inUseTeamStackTemplates
   inUsePrivateStackTemplates

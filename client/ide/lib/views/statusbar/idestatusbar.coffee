@@ -320,7 +320,7 @@ module.exports = class IDEStatusBar extends kd.View
 
     if @amIHost_()
     then ide.showEndCollaborationModal()
-    else ide.handleParticipantLeaveAction nick()
+    else ide.handleParticipantLeaveAction()
 
 
   # Obviously hacky way to know the current user is host or not.

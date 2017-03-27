@@ -5,20 +5,21 @@ module.exports = (options = {}, callback) ->
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
   _         = require 'lodash'
-  SocialAccount = require '../models/socialapi/socialaccount'
+  SocialChannel = require '../models/socialapi/channel'
 
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= 'koding'
   options.client.connection    or= {}
 
-
   prefetchedFeeds     = null
   currentGroup        = null
   userMachines        = null
-  userWorkspaces      = null
-  userEnvironmentData = null
+  userStacks          = null
+# userEnvironmentData = null
   userId              = null
+  userEmail           = null
+  channel             = null
   roles               = null
   permissions         = null
   combinedStorage     = null
@@ -40,9 +41,11 @@ module.exports = (options = {}, callback) ->
     userAccount          = JSON.stringify delegate, replacer
     combinedStorage      = JSON.stringify combinedStorage, replacer
     userMachines         = JSON.stringify userMachines, replacer
-    userWorkspaces       = JSON.stringify userWorkspaces, replacer
-    userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
+    userStacks           = JSON.stringify userStacks, replacer
+  # userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
     userId               = JSON.stringify userId, replacer
+    userEmail            = JSON.stringify userEmail, replacer
+    channel              = JSON.stringify channel, replacer
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
@@ -56,16 +59,17 @@ module.exports = (options = {}, callback) ->
     <script>
       var _globals = {
         config: #{config},
+        channel: #{channel},
         userId: #{userId},
+        userEmail: #{userEmail},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
-        userWorkspaces: #{userWorkspaces},
+        userStacks: #{userStacks},
         combinedStorage: #{combinedStorage},
         userRoles: #{userRoles},
         userPermissions: #{userPermissions},
         currentGroup: #{currentGroup},
-        isLoggedInOnLoad: true,
-        userEnvironmentData: #{userEnvironmentData}
+        isLoggedInOnLoad: true
       };
     </script>
 
@@ -102,7 +106,14 @@ module.exports = (options = {}, callback) ->
 
         currentGroup = group  if group
 
-        fin()
+        if channelId = currentGroup.socialApiChannelId
+          SocialChannel.byId client, { id: channelId }, (err, _channel) ->
+            console.log err  if err
+            channel = _channel ? {}
+            fin()
+
+        else
+          fin()
 
     (fin) ->
       { delegate : account } = client.connection
@@ -118,17 +129,11 @@ module.exports = (options = {}, callback) ->
 
     (fin) ->
       { delegate : account } = client.connection
-      query = { accountId : account._id }
-      bongoModels.JCombinedAppStorage.one query, (err, storage) ->
+      storageInitialData = { appId: 'Koding', version: '1.0' }
+      account.fetchOrCreateAppStorage storageInitialData, (err, storage) ->
         console.log err  if err
         combinedStorage = storage ? {}
 
-        fin()
-
-    (fin) ->
-      bongoModels.JWorkspace.fetchByMachines$ client, (err, workspaces) ->
-        console.log err  if err
-        userWorkspaces = workspaces or []
         fin()
 
     (fin) ->
@@ -138,9 +143,15 @@ module.exports = (options = {}, callback) ->
         fin()
 
     (fin) ->
-      bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
-        userEnvironmentData = data
+      bongoModels.JComputeStack.some$ client, {}, (err, stacks) ->
+        console.log err  if err
+        userStacks = stacks or []
         fin()
+
+    # (fin) ->
+    #   bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
+    #     userEnvironmentData = data
+    #     fin()
 
     (fin) ->
       client.connection.delegate.fetchUser (err, user) ->
@@ -148,8 +159,12 @@ module.exports = (options = {}, callback) ->
           console.error '[scriptblock] user not found', err
           return fin()
 
-        if user then userId = user.getId()
-        else console.error '[scriptblock] user not found', err
+        if user
+          userId    = user.getId()
+          userEmail = user.getAt 'email'
+        else
+          console.error '[scriptblock] user not found', err
+
         fin()
 
   ]

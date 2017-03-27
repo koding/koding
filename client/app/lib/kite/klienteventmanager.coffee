@@ -20,9 +20,7 @@ module.exports = class KlientEventManager extends kd.Object
     unless machine
       throw new Error kd.err 'KlientEventManager requires a Machine'
 
-    @kite = machine.getBaseKite()
-
-    if @kite.isDisconnected
+    if @getKite().isDisconnected
       throw new Error 'KlientEventManager requires an active Kite connection'
 
     @subscribe eventName, callback  for eventName, callback of options
@@ -37,9 +35,13 @@ module.exports = class KlientEventManager extends kd.Object
   ###
   subscribe: (eventName, callback) ->
 
-    return @kite.clientSubscribe { eventName, onPublish: callback }
+    return @getKite().clientSubscribe { eventName, onPublish: callback }
 
 
   unsubscribe: (eventName, eventId) ->
 
-    return @kite.clientUnsubscribe { eventName, id: eventId }
+    return @getKite().clientUnsubscribe { eventName, id: eventId }
+
+
+  getKite: ->
+    @getData().getBaseKite()

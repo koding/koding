@@ -38,7 +38,7 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
           cssClass : 'solid medium'
           loader   : yes
           callback : =>
-            actions.rejectInvitation @props.machine
+            actions.leaveMachine @props.machine
             Tracker.track Tracker.VM_LEFT_SHARED
             @setState { isModalActive: yes }
             modal.destroy()
