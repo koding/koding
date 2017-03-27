@@ -13,7 +13,7 @@ type CpRequest struct {
 	ID machine.ID `json:"id"`
 
 	// Download is set to true when remote machine is a source of data.
-	Download string `json:"download"`
+	Download bool `json:"download"`
 
 	// SourcePath defines data source.
 	SourcePath string `json:"sourcePath"`

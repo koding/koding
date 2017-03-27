@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -239,7 +238,18 @@ func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error)
 	}
 	fmt.Println("Parsed")
 
-	return 1, errors.New("not implemented")
+	opts := &machine.CpOptions{
+		Download:   true,
+		Identifier: idents[0],
+		SourcePath: "source",
+		Log:        log.New("machine:cp"),
+	}
+
+	if err := machine.Cp(opts); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
 }
 
 // getIdentifiers extracts identifiers and validate provided arguments.
