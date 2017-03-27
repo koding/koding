@@ -13,6 +13,7 @@ type AbsRequest struct {
 type AbsResponse struct {
 	AbsPath string `json:"absPath"` // Absolute representation of requested path.
 	IsDir   bool   `json:"isDir"`   // Set to true when path is a directory.
+	Exist   bool   `json:"exist"`   // Set to true when path exists.
 }
 
 // Abs converts path to its absolute representation.
@@ -21,7 +22,7 @@ func Abs(req *AbsRequest) (*AbsResponse, error) {
 		return nil, errors.New("invalid empty request")
 	}
 
-	absPath, isDir, err := DefaultFS.Abs(req.Path)
+	absPath, isDir, exist, err := DefaultFS.Abs(req.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -29,5 +30,6 @@ func Abs(req *AbsRequest) (*AbsResponse, error) {
 	return &AbsResponse{
 		AbsPath: absPath,
 		IsDir:   isDir,
+		Exist:   exist,
 	}, nil
 }

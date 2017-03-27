@@ -19,8 +19,8 @@ type FS struct {
 }
 
 // Abs returns absolute representation of path. It converts tilde prefix to
-// user's home path. And checks if path point to a directory.
-func (fs *FS) Abs(path string) (string, bool, error) {
+// user's home path, checks if path point to a directory, and if it exist.
+func (fs *FS) Abs(path string) (string, bool, bool, error) {
 	const tilde = "~" + string(os.PathSeparator)
 
 	if strings.HasPrefix(path, tilde) {
@@ -29,16 +29,16 @@ func (fs *FS) Abs(path string) (string, bool, error) {
 
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		return "", false, fmt.Errorf("path %q format is invalid: %v", path, err)
+		return "", false, false, fmt.Errorf("path %q format is invalid: %v", path, err)
 	}
 
 	switch info, err := os.Stat(absPath); {
 	case os.IsNotExist(err):
-		return "", false, fmt.Errorf("file path %q does not exist", absPath)
+		return absPath, false, false, nil
 	case err != nil:
-		return "", false, fmt.Errorf("cannot stat path: %q", absPath)
+		return "", false, false, fmt.Errorf("cannot stat path: %q", absPath)
 	default:
-		return absPath, info.IsDir(), nil
+		return absPath, info.IsDir(), true, nil
 	}
 }
 
