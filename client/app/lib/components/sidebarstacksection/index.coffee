@@ -227,7 +227,7 @@ module.exports = class SidebarStackSection extends React.Component
 
   getStackUnreadCount: (stack = @props.stack) ->
 
-    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
+    (stack?.getIn [ '_revisionStatus', 'status', 'code' ]) or 0
 
 
   render: ->
