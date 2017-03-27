@@ -5,7 +5,6 @@ module.exports = (options = {}, callback) ->
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
   _         = require 'lodash'
-  SocialChannel = require '../models/socialapi/channel'
 
   options.client               or= {}
   options.client.context       or= {}
@@ -16,10 +15,9 @@ module.exports = (options = {}, callback) ->
   currentGroup        = null
   userMachines        = null
   userStacks          = null
-# userEnvironmentData = null
   userId              = null
   userEmail           = null
-  channel             = null
+  userStatus          = null
   roles               = null
   permissions         = null
   combinedStorage     = null
@@ -42,10 +40,9 @@ module.exports = (options = {}, callback) ->
     combinedStorage      = JSON.stringify combinedStorage, replacer
     userMachines         = JSON.stringify userMachines, replacer
     userStacks           = JSON.stringify userStacks, replacer
-  # userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
     userId               = JSON.stringify userId, replacer
     userEmail            = JSON.stringify userEmail, replacer
-    channel              = JSON.stringify channel, replacer
+    userStatus           = JSON.stringify userStatus, replacer
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
@@ -59,9 +56,9 @@ module.exports = (options = {}, callback) ->
     <script>
       var _globals = {
         config: #{config},
-        channel: #{channel},
         userId: #{userId},
         userEmail: #{userEmail},
+        userStatus: #{userStatus},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userStacks: #{userStacks},
@@ -105,15 +102,7 @@ module.exports = (options = {}, callback) ->
         console.log err  if err
 
         currentGroup = group  if group
-
-        if channelId = currentGroup.socialApiChannelId
-          SocialChannel.byId client, { id: channelId }, (err, _channel) ->
-            console.log err  if err
-            channel = _channel ? {}
-            fin()
-
-        else
-          fin()
+        fin()
 
     (fin) ->
       { delegate : account } = client.connection
@@ -148,11 +137,6 @@ module.exports = (options = {}, callback) ->
         userStacks = stacks or []
         fin()
 
-    # (fin) ->
-    #   bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
-    #     userEnvironmentData = data
-    #     fin()
-
     (fin) ->
       client.connection.delegate.fetchUser (err, user) ->
         if err
@@ -160,8 +144,9 @@ module.exports = (options = {}, callback) ->
           return fin()
 
         if user
-          userId    = user.getId()
-          userEmail = user.getAt 'email'
+          userId     = user.getId()
+          userEmail  = user.getAt 'email'
+          userStatus = user.getAt 'status'
         else
           console.error '[scriptblock] user not found', err
 

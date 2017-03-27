@@ -69,6 +69,11 @@ module.exports = class ComputeStorage extends kd.Object
   constructor: ->
     super
 
+    do @initialize
+
+
+  initialize: ->
+
     disabled = isGroupDisabled()
 
     @storage = new Object
