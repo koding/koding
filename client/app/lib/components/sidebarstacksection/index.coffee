@@ -13,6 +13,9 @@ remote = require 'app/remote'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { findDOMNode } = require 'react-dom'
 whoami = require 'app/util/whoami'
+
+debug = require('debug')('sidebar:stacksection')
+
 require './styl/sidebarstacksection.styl'
 require './styl/sidebarstackwidgets.styl'
 
@@ -43,6 +46,11 @@ module.exports = class SidebarStackSection extends React.Component
   componentWillReceiveProps: (nextProps) ->
 
     nextStackUnreadCount = @getStackUnreadCount nextProps.stack
+
+    debug 'will show widget or not',
+      currentUnreadCount: @getStackUnreadCount()
+      nextUnreadCount: nextStackUnreadCount
+
     @setState { showWidget : yes }  if nextStackUnreadCount > @getStackUnreadCount()
 
     @setCoordinates()
@@ -219,7 +227,7 @@ module.exports = class SidebarStackSection extends React.Component
 
   getStackUnreadCount: (stack = @props.stack) ->
 
-    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
+    (stack?.getIn [ '_revisionStatus', 'status', 'code' ]) or 0
 
 
   render: ->

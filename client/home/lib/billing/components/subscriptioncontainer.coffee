@@ -28,28 +28,10 @@ subscriptionTitle = createSelector(
 )
 
 
-accountUser = createSelector(
-  bongo.all('JUser')
-  bongo.byId('JAccount', whoami()._id)
-  (users, account) ->
-    return null  if not (account and users)
-
-    { nickname } = account.profile
-    [ userId ] = Object.keys(users).filter (id) -> users[id].username is nickname
-
-    return if userId then users[userId] else null
-)
-
-
-isEmailVerified = createSelector(
-  accountUser
-  (user) -> if user then user.status is 'confirmed' else no
-)
-
-
 mapStateToProps = (state) ->
 
-  { payment } = globals.currentGroup
+  { currentGroup, userStatus } = globals
+  { payment } = currentGroup
 
   title = if hasCreditCard(payment)
   then subscriptionTitle(state)
@@ -65,7 +47,7 @@ mapStateToProps = (state) ->
     freeCredit: customer.freeCredit(state)
     # TODO(umut): activate this when we have coupon support.
     isSurveyTaken: yes # !!customer.coupon(state)
-    isEmailVerified: isEmailVerified(state)
+    isEmailVerified: userStatus is 'confirmed'
     hasCreditCard: hasCreditCard(payment)
   }
 

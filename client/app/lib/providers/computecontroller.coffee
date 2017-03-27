@@ -11,9 +11,10 @@ FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 showNotification     = require 'app/util/showNotification'
 isLoggedIn           = require 'app/util/isLoggedIn'
+isGroupDisabled      = require 'app/util/isGroupDisabled'
 actions              = require 'app/flux/environment/actions'
 
-remote               = require('../remote')
+remote               = require '../remote'
 KiteCache            = require '../kite/kitecache'
 ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
@@ -64,33 +65,33 @@ module.exports = class ComputeController extends KDController
 
     mainController.ready =>
 
+      @bindPaymentEvents()
+
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
       groupsController.on 'StackTemplateChanged', (event) => @checkGroupStacks event?.contents
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
-      kd.singletons.mainController.ready =>
+      @eventListener      = new ComputeEventListener
+      @managedKiteChecker = new ManagedKiteChecker
+      @stateChecker       = new ComputeStateChecker { @storage }
+      @stateChecker.start()
 
-        @eventListener      = new ComputeEventListener
-        @managedKiteChecker = new ManagedKiteChecker
-        @stateChecker       = new ComputeStateChecker { @storage }
-        @stateChecker.start()
+      @createDefaultStack()
 
-        @createDefaultStack()
+      @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
 
-        @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
+      debug 'now ready'
+      @emit 'ready'
 
-        debug 'now ready'
-        @emit 'ready'
+      @checkGroupStackRevisions()
+      @checkGroupStacks()
 
-        @checkGroupStackRevisions()
-        @checkGroupStacks()
+      if groupsController.canEditGroup()
+        @checkMachinePermissions()
 
-        if groupsController.canEditGroup()
-          @checkMachinePermissions()
-
-        @checkMachines()
+      @checkMachines()
 
 
   # ComputeController internal helpers
@@ -108,11 +109,6 @@ module.exports = class ComputeController extends KDController
   checkMachines: ->
     for machine in (@storage.machines.get()) when machine.isBuilt()
       @info machine
-
-
-  reset: (render = no, callback = -> ) ->
-
-    throw new Error { message: 'Deprecated!' }
 
 
   _clearTrialCounts: (machine) ->
@@ -286,12 +282,17 @@ module.exports = class ComputeController extends KDController
 
   createDefaultStack: (options = {}, callback = kd.noop) ->
 
+    debug 'createDefaultStack called', options
+
     return  unless isLoggedIn()
 
     { force = no, template } = options
     { mainController, groupsController } = kd.singletons
 
     handleStackCreate = (err, newStack) =>
+
+      debug 'createDefaultStack got the new stack:', { err, newStack }
+
       return kd.warn err  if err
       return callback err  if err
       return kd.warn 'Stack data not found'  unless newStack
@@ -312,11 +313,16 @@ module.exports = class ComputeController extends KDController
     mainController.ready =>
 
       if template
+        debug 'createDefaultStack creating from template', template
         template.generateStack {}, handleStackCreate
       else if force or groupHasStacks = groupsController.currentGroupHasStack()
         if groupHasStacks and not @storage.stacks.get 'config.groupStack', true
+          debug 'createDefaultStack creating default group stack'
           remote.api.ComputeProvider.createGroupStack handleStackCreate
+        else
+          debug 'createDefaultStack this is an unknown case for me', groupHasStacks, force,
       else
+        debug 'createDefaultStack there is no stack configured yet'
         @emit 'StacksNotConfigured'
 
 
@@ -687,6 +693,7 @@ module.exports = class ComputeController extends KDController
   checkStackRevisions: (stackTemplateId) ->
 
     debug 'checkStackRevisions', stackTemplateId
+    found = no
 
     # fetch all the stacks in cache
     (@storage.stacks.get()).forEach (stack) =>
@@ -697,6 +704,8 @@ module.exports = class ComputeController extends KDController
       # otherwise check all of them one by one
       if stackTemplateId and stack.baseStackId isnt stackTemplateId
         return
+
+      found = yes
 
       # get current revision status for comparison
       { _revisionStatus } = stack
@@ -716,6 +725,9 @@ module.exports = class ComputeController extends KDController
         if not _revisionStatus or _revisionStatus.status isnt status
           debug 'checkStackRevisions stack changed!', stack
           @emit 'StackRevisionChecked', stack
+
+    if stackTemplateId and not found
+      @createDefaultStack()
 
 
   setStackTemplateAccessLevel: (template, type) ->
@@ -985,13 +997,12 @@ module.exports = class ComputeController extends KDController
     return null  if not stackTemplates?.length
 
     for stackTemplate in stackTemplates
-      for stack in (@storage.stacks.get()) when stack.baseStackId is stackTemplate
-        return stack
+      stack = @storage.stacks.get 'baseStackId', stackTemplate
+      break  if stack
 
-    for stack in (@storage.stacks.get()) when stack.config?.groupStack
-      return stack
+    stack ?= @storage.stacks.get 'config.groupStack', yes
 
-    return null
+    return stack
 
 
   reloadIDE: (machine) ->
@@ -1089,6 +1100,8 @@ module.exports = class ComputeController extends KDController
     stackProvided = stack?
     stack ?= @getGroupStack()
 
+    debug 'reinitStack called', stack, @getGroupStack()
+
     if not stack
 
       if not (@storage.stacks.get()).length
@@ -1112,22 +1125,32 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'reinitStack', {}, (status) =>
 
+      debug 'reinitStack question answered', status
+
       unless status.confirmed
         callback new Error 'Stack is not reinitialized'
         return
+
+      currentGroup = kd.singletons.groupsController.getCurrentGroup()
 
       notification = new kd.NotificationView
         title     : 'Reinitializing stack...'
         duration  : 5000
 
+      debug 'reinitStack fetching base stackTemplate'
+
       @fetchBaseStackTemplate stack, (err, template) =>
+
+        debug 'reinitStack base stackTemplate', err, template
 
         if err or not template
           console.warn 'The base template of the stack has been removed:', stack.baseStackId
 
-        groupStack = stack.config?.groupStack
+        debug 'reinitStack going to destroy old stack', stack
 
         @destroyStack stack, (err) =>
+
+          debug 'reinitStack destroy old stack result', err
 
           if err
             notification.destroy()
@@ -1142,9 +1165,11 @@ module.exports = class ComputeController extends KDController
           }
           new kd.NotificationView { title : 'Stack reinitialized' }
 
-          if template and stackProvided
+          if template and stackProvided and template._id not in currentGroup.stackTemplates
+            debug 'reinitStack will generate new stack', { template,  }
             @createDefaultStack { force: no, template }, callback
           else
+            debug 'reinitStack will generate group default stack'
             @createDefaultStack {}, callback
 
         , followEvents = no
@@ -1241,3 +1266,15 @@ module.exports = class ComputeController extends KDController
       @reloadIDE stack.machines.first
 
     console.log '[Kloud:API]', change
+
+
+  # Follow Payment changes
+  bindPaymentEvents: ->
+
+    { groupsController } = kd.singletons
+
+    disabled = isGroupDisabled()
+
+    # /cc @cihangir: not sure if this is the right way to bind the event.
+    groupsController.on 'payment_status_changed', =>
+      @storage.initialize()
