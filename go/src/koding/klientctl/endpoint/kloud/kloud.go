@@ -190,6 +190,7 @@ func (kt *KiteTransport) client() (*kite.Client, error) {
 
 func (kt *KiteTransport) newClient(url string) (*kite.Client, error) {
 	k := kt.kite().NewClient(url)
+	k.Reconnect = true
 
 	if err := k.DialTimeout(kt.dialTimeout()); err != nil {
 		return nil, err
