@@ -22,43 +22,43 @@ import (
 type Command struct {
 	// Download indicates the direction of changes. If set to true, source path
 	// defines remote machine.
-	Download bool
+	Download bool `json:"download"`
 
 	// SourcePath defines source path from which file(s) will be pulled.
 	// This field is required.
-	SourcePath string
+	SourcePath string `json:"sourcePath"`
 
 	// DestinationPath defines destination path to which file(s) will be pushed.
 	// This field is required.
-	DestinationPath string
+	DestinationPath string `json:"destinationPath"`
 
 	// Cmd defines command to run. If nil, default rsync command will be used.
-	Cmd *exec.Cmd
+	Cmd *exec.Cmd `json:"-"`
 
 	// Username defines remote machine user name. If not set, localhost transfer
 	// will be used.
-	Username string
+	Username string `json:"username"`
 
 	// Host defines the remote machine address. If not set, localhost transfer
 	// will be used.
-	Host string
+	Host string `json:"host"`
 
 	// PrivateKeyPath if set, SSH remote shell will be used as a data transport.
-	PrivateKeyPath string
+	PrivateKeyPath string `json:"privateKeyPath"`
 
 	// SSHPort defines custom remote shell port. If not set, default will be used.
-	SSHPort int
+	SSHPort int `json:"sshPort"`
 
 	// Progress if set, rsync will be run in recursive and verbose mode. The
 	// current status of downloading will be periodically sent to provided
 	// progress callback function. io.EOF error is sent to the callback when
 	// downloading is complete.
-	Progress func(n, size, speed int64, err error)
+	Progress func(n, size, speed int64, err error) `json:"-"`
 
 	// Change if set, joins change name to source and destination paths and
 	// uses provided metadata to set rsync arguments that allow to sync the
 	// change.
-	Change *index.Change
+	Change *index.Change `json:"change,omitempty"`
 }
 
 // valid checks if command fields are valid.

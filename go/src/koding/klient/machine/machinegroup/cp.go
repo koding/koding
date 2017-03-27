@@ -42,10 +42,18 @@ func (g *Group) Cp(req *CpRequest) (*CpResponse, error) {
 	// needed for rsync SSH connection.
 	errC := g.sshKey(req.ID, 30*time.Second)
 
-	// absRemotePath, count, diskSize, err := c.MountHeadIndex(req.Mount.RemotePath)
+	c, err := g.client.Client(req.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Enable after deploy.
+	// absRemotePath, isDir, exist, err := c.Abs(req.DestinationPath)
 	// if err != nil {
 	// 	return nil, err
 	// }
+	// _ = isDir
+	// _ = exist
 
 	// Wait for remote machine SSH key upload.
 	if err := <-errC; err != nil {
@@ -53,7 +61,7 @@ func (g *Group) Cp(req *CpRequest) (*CpResponse, error) {
 	}
 
 	res := &CpResponse{
-		AbsRemotePath: "Path",
+		AbsRemotePath: absRemotePath,
 		Test:          "This is a test",
 	}
 

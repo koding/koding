@@ -239,10 +239,11 @@ func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error)
 	fmt.Println("Parsed")
 
 	opts := &machine.CpOptions{
-		Download:   true,
-		Identifier: idents[0],
-		SourcePath: "source",
-		Log:        log.New("machine:cp"),
+		Download:        true,
+		Identifier:      idents[0],
+		SourcePath:      "source",
+		DestinationPath: "~/",
+		Log:             log.New("machine:cp"),
 	}
 
 	if err := machine.Cp(opts); err != nil {
