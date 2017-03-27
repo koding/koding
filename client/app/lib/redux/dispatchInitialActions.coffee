@@ -26,12 +26,6 @@ loadGroup = ({ dispatch, getState }) ->
     bongo: (remote) -> Promise.resolve(remote.revive globals.currentGroup)
   }
 
-loadUserDetails = ({ dispatch, getState }) ->
-  dispatch {
-    types: [BONGO_LOAD.BEGIN, BONGO_LOAD.SUCCESS, BONGO_LOAD.FAIL]
-    bongo: (remote) -> remote.api.JUser.fetchUser()
-  }
-
 ensureGroupPayment = ->
 
   if groupPayment = globals.currentGroup.payment
@@ -59,7 +53,6 @@ module.exports = dispatchInitialActions = (store) ->
 
   promise = loadAccount(store)
     .then -> loadGroup(store)
-  # .then -> loadUserDetails(store)
     .then -> ensureGroupPayment()
     .then -> ensureCreditCard(store)
     .then -> loadPaymentDetails(store)
