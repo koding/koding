@@ -1,4 +1,5 @@
 _                           = require 'lodash'
+kd                          = require 'kd'
 async                       = require 'async'
 remote                      = require 'app/remote'
 socialHelpers               = require './social'
@@ -15,22 +16,8 @@ detachSocialChannel = (workspaceData, callback) ->
 
   { _id } = workspaceData
   options = { $unset: { channelId: 1 } }
-  remote.api.JWorkspace.update _id, options, (err) ->
-    return callback err  if err
-
-    workspaceData.channelId = null
-    callback null
-
-
-###*
- * Updates workspace with given id, with the options passed.
- *
- * @param {object} workspaceData
- * @param {object=} options
-###
-updateWorkspace = (workspaceData, options = {}) ->
-
-  remote.api.JWorkspace.update workspaceData._id, { $set : options }
+  # TODOWS ~ GG - Unset channelId on JMachine
+  callback null
 
 
 ###*
@@ -42,12 +29,16 @@ updateWorkspace = (workspaceData, options = {}) ->
  * @param {boolean} share
  * @param {function(err: object)}
 ###
-setMachineUser = (machine, workspace, usernames, share, callback) ->
+setMachineUser = (machine, usernames, share, callback) ->
 
   method = if share then 'add' else 'kick'
+  channelId = machine.getChannelId()
 
-  remote.api.Collaboration[method] workspace.getId(), usernames, (err) ->
+  remote.api.Collaboration[method] channelId, usernames, (err, _machine) ->
+
     return callback err  if err
+
+    kd.singletons.computeController.storage.machines.push _machine
 
     kite   = machine.getBaseKite()
     method = if share then 'klientShare' else 'klientUnshare'
@@ -89,38 +80,38 @@ fetchMissingParticipants = (machine, usernames, callback) ->
     .catch callback
 
 
-isUserStillParticipantOnMachine = (options, callback) ->
+# isUserStillParticipantOnMachine = (options, callback) ->
 
-  { username, machineUId } = options
+#   { username, machineUId } = options
 
-  remote.cacheable username, (err, accounts) ->
+#   remote.cacheable username, (err, accounts) ->
 
-    return callback no  if err
-    return callback no  unless accounts.length
+#     return callback no  if err
+#     return callback no  unless accounts.length
 
-    { socialApiId } = accounts.first
+#     { socialApiId } = accounts.first
 
-    userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) ->
+#     # FIXMEWS ~ GG
+#     userEnvironmentDataProvider.fetchWorkspacesByMachineUId machineUId, (workspaces) ->
 
-      workspaces = workspaces.filter (w) -> w  if w.channelId
+#       workspaces = workspaces.filter (w) -> w  if w.channelId
 
-      socialHelpers.fetchParticipantsCollaborationChannels socialApiId, (err, channels) ->
+#       socialHelpers.fetchParticipantsCollaborationChannels socialApiId, (err, channels) ->
 
-        return callback no  if err
+#         return callback no  if err
 
-        anyActiveSession = no
+#         anyActiveSession = no
 
-        workspaces.forEach (w) ->
-          channel = _.find channels, { _id : w.channelId }
-          anyActiveSession = yes  if channel
+#         workspaces.forEach (w) ->
+#           channel = _.find channels, { _id : w.channelId }
+#           anyActiveSession = yes  if channel
 
-        callback anyActiveSession
+#         callback anyActiveSession
 
 
 module.exports = {
   detachSocialChannel
-  updateWorkspace
   setMachineUser
   fetchMissingParticipants
-  isUserStillParticipantOnMachine
+  # isUserStillParticipantOnMachine
 }

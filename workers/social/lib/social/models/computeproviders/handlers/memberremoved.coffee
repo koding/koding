@@ -63,19 +63,6 @@ setOwnerOfMachine = (machine, { account, user, oldOwner, group }) ->
       log 'Failed to set oldOwner of machine:', err  if err
 
 
-  # Update workspace ownerships
-  JWorkspace = require '../../workspace'
-  JWorkspace.update
-    machineUId    : machine.uid
-  ,
-    $set          :
-      originId    : account.getId()
-  ,
-    multi         : yes
-  , (err) ->
-    log 'Failed to change ownership of workspace:', err  if err
-
-
 
 updateMachineUsers = ({ machines, user, requester, reason }) ->
 

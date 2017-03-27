@@ -10,7 +10,7 @@ searchForSharing = (query, machineId) ->
 
   kd.singletons.search.searchAccounts query
     .then (items) ->
-      machines    = kd.singletons.reactor.evaluate EnvironmentFlux.getters.machinesWithWorkspaces
+      machines    = kd.singletons.reactor.evaluate EnvironmentFlux.getters.allMachines
       sharedUsers = machines.getIn [ machineId, 'sharedUsers' ]
       if sharedUsers?.size > 0
         items = items.filter (item) ->

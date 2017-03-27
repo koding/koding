@@ -10,7 +10,6 @@
 async           = require 'async'
 Managed         = require './managed'
 JMachine        = require './machine'
-JWorkspace      = require '../workspace'
 ComputeProvider = require './computeprovider'
 
 # this function will be called once before running any test
@@ -133,16 +132,6 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
               expect(machine.domain).to.be.equal options.postCreateOptions.ipAddress
               expect(machine.ipAddress).to.be.equal options.postCreateOptions.ipAddress
               expect(machine.queryString).to.be.equal options.postCreateOptions.queryString
-              next()
-
-          (next) ->
-            # expecting workspace to be crated
-            JWorkspace.one { _id : workspace._id }, (err, workspace_) ->
-              expect(err).to.not.exist
-              expect(workspace_).to.exist
-              expect(workspace_.isDefault).to.be.truthy
-              expect(workspace_.machineUId).to.be.equal machine.uid
-              expect(workspace_.originId.toString()).to.be.equal account._id.toString()
               next()
 
         ]

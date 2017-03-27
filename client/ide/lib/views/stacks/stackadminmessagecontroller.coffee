@@ -21,7 +21,7 @@ module.exports = class StackAdminMessageController extends kd.Controller
     return  unless machine
 
     { computeController } = kd.singletons
-    computeController.fetchStacks =>
+    computeController.ready =>
       stack = computeController.findStackFromMachineId machine._id
       return  unless stack
       return  unless adminMessage = stack.config?.adminMessage

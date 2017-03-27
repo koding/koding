@@ -375,9 +375,10 @@ module.exports = class StackEditorView extends kd.View
       placeholder: generatedStackTemplateTitle
       bind: 'keyup'
 
-      keyup: (e) ->
+      keyup: _.debounce (e) ->
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
+      , 100
 
     @titleTabHandle = new kd.TabHandleView
       cssClass : 'stack-template'
@@ -516,7 +517,7 @@ module.exports = class StackEditorView extends kd.View
     @stackTemplateUpdateWarningView.destroy()
     @emit 'Reload'
     if update
-      for stack in cc.stacks
+      for stack in cc.storage.stacks.get()
         if stack.baseStackId is @stackTemplate._id
           config = stack.config ?= {}
           config.needUpdate = no
@@ -745,16 +746,13 @@ module.exports = class StackEditorView extends kd.View
         # since this is an existing stack, show renit buttons and update
         # sidebar no matter what.
         @afterProcessTemplate 'reinit'
-        computeController.checkGroupStacks()
 
       else
         # admin is creating a new stack
         if isAdmin()
           @afterProcessTemplate 'maketeamdefault'
           @afterProcessTemplate 'initialize'
-          if hasGroupTemplates
-            computeController.checkGroupStacks()
-          else
+          unless hasGroupTemplates
             @handleSetDefaultTemplate =>
               @outputView.add '''
                 Your stack script is saved successfully and all your new team
@@ -764,12 +762,11 @@ module.exports = class StackEditorView extends kd.View
 
                 You can now close this window or continue working with your stack.
               '''
-            computeController.checkGroupStacks()
         # member is creating a new stack
         else
           @afterProcessTemplate 'initialize'
-          computeController.checkGroupStacks()
 
+      computeController.checkGroupStacks stackTemplate._id
       callback null, stackTemplate
 
 
@@ -1089,8 +1086,7 @@ module.exports = class StackEditorView extends kd.View
 
       @outputView.add 'Stack is generated successfully. You can now build it.'
 
-      computeController.reset yes, ->
-        kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.slug}"
+      kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.slug}"
       @emit 'Reload'
 
 

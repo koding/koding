@@ -2,6 +2,7 @@ KodingFluxStore      = require 'app/flux/base/store'
 toImmutable          = require 'app/util/toImmutable'
 immutable            = require 'immutable'
 actions              = require '../actiontypes'
+globals              = require 'globals'
 
 module.exports = class MachinesStore extends KodingFluxStore
 
@@ -13,27 +14,35 @@ module.exports = class MachinesStore extends KodingFluxStore
 
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
     @on actions.MACHINE_UPDATED, @updateMachine
-    @on actions.INVITATION_ACCEPTED, @acceptInvitation
     @on actions.SET_MACHINE_ALWAYS_ON_BEGIN, @setAlwaysOnBegin
     @on actions.SET_MACHINE_ALWAYS_ON_SUCCESS, @setAlwaysOnSuccess
     @on actions.SET_MACHINE_ALWAYS_ON_FAIL, @setAlwaysOnFail
     @on actions.LOAD_MACHINE_SHARED_USERS, @loadSharedUsers
-    @on actions.SHARED_VM_INVITATION_REJECTED, @removeSharedUser
     @on actions.ADD_TEST_MACHINE, @set
 
+    @on actions.INVITATION_ACCEPTED, @acceptInvitation
+    @on actions.INVITATION_REJECTED, @rejectInvitation
 
 
-  load: (machines, { own, shared, collaboration }) ->
-
-    envData = own.concat shared.concat collaboration
+  load: (machines, jmachines) ->
 
     machines.withMutations (machines) ->
-      envData.forEach ({ machine, workspaces }) ->
+      jmachines.forEach (machine) ->
         machine.hasOldOwner = machine.meta?.oldOwner?
 
-        _machine = toImmutable machine
+        if machine.isMine()
+          type = 'own'
+        else if machine.isPermanent()
+          type = 'shared'
+        else
+          type = 'collaboration'
 
-        if m = machines.get(machine._id)
+        _machine = toImmutable machine
+        _machine = _machine
+          .set 'type', type
+          .set 'owner', machine.getOwner()
+
+        if m = machines.get machine._id
           if sharedUsers = m.get 'sharedUsers'
             _machine = _machine.set 'sharedUsers', sharedUsers
 
@@ -58,7 +67,22 @@ module.exports = class MachinesStore extends KodingFluxStore
 
   acceptInvitation: (machines, id ) ->
 
-    machines.setIn [id, 'isApproved'], yes
+    machine = machines.get id
+
+    machine = machine.update 'users', (users) ->
+      users.map (user) ->
+        if user.get('id') is globals.userId
+        then user.set 'approved', yes
+        else user
+
+    machines.set id, machine
+
+
+  rejectInvitation: (machines, id) ->
+
+    return machines  unless machines.has id
+
+    return machines.remove id
 
 
   setAlwaysOnBegin: (machines, { id, state }) ->
@@ -87,4 +111,5 @@ module.exports = class MachinesStore extends KodingFluxStore
 
     machines.setIn [id, 'sharedUsers'], toImmutable users
 
-  set: (machines, machine) -> machines.set machine._id, toImmutable machine
+  set: (machines, machine) ->
+    machines.set machine._id, toImmutable(machine).set('type', 'own')

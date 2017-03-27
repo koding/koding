@@ -26,7 +26,6 @@ module.exports = class ComputeProvider extends Base
   { permit } = require '../group/permissionset'
 
   JMachine       = require './machine'
-  JWorkspace     = require '../workspace'
 
   @COUNTER_TYPE  = {
     stacks       : 'member_stacks'
@@ -305,17 +304,7 @@ module.exports = class ComputeProvider extends Base
           create = (machineInfo) ->
             ComputeProvider.create client, machineInfo, (err, machine) ->
               results.machines.push { err, obj: machine }
-
-              return next()  unless machine
-
-              # Create default workspace for the machine
-              JWorkspace.createDefault client, machine.uid, (err) ->
-
-                if err
-                  console.log \
-                    'Failed to create default workspace', machine.uid, err
-
-                next()
+              next()
 
           # This is optional, since for koding group for example
           # we don't want to add our admins into users machines ~ GG
@@ -650,7 +639,7 @@ module.exports = class ComputeProvider extends Base
     ], callback
 
 
-  @fetchGroupResources = (group, selector, options, callback) ->
+  @fetchGroupResources = (client, group, selector, options, callback) ->
 
     selector ?= {}
     selector.$and ?= []
@@ -668,7 +657,7 @@ module.exports = class ComputeProvider extends Base
           if stacks?.length > 0
             reviveQueue = []
             stacks.forEach (stack) ->
-              reviveQueue.push (next) -> stack.revive next
+              reviveQueue.push (next) -> stack.revive client, next
             async.parallel reviveQueue, -> next null, stacks
           else
             next null, []
