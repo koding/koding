@@ -111,11 +111,6 @@ module.exports = class ComputeController extends KDController
       @info machine
 
 
-  reset: (render = no, callback = -> ) ->
-
-    throw new Error { message: 'Deprecated!' }
-
-
   _clearTrialCounts: (machine) ->
     @_trials[machine.uid] = {}
 
