@@ -997,13 +997,12 @@ module.exports = class ComputeController extends KDController
     return null  if not stackTemplates?.length
 
     for stackTemplate in stackTemplates
-      for stack in (@storage.stacks.get()) when stack.baseStackId is stackTemplate
-        return stack
+      stack = @storage.stacks.get 'baseStackId', stackTemplate
+      break  if stack
 
-    for stack in (@storage.stacks.get()) when stack.config?.groupStack
-      return stack
+    stack ?= @storage.stacks.get 'config.groupStack', yes
 
-    return null
+    return stack
 
 
   reloadIDE: (machine) ->
@@ -1101,6 +1100,8 @@ module.exports = class ComputeController extends KDController
     stackProvided = stack?
     stack ?= @getGroupStack()
 
+    debug 'reinitStack called', stack, @getGroupStack()
+
     if not stack
 
       if not (@storage.stacks.get()).length
@@ -1124,22 +1125,32 @@ module.exports = class ComputeController extends KDController
 
     @ui.askFor 'reinitStack', {}, (status) =>
 
+      debug 'reinitStack question answered', status
+
       unless status.confirmed
         callback new Error 'Stack is not reinitialized'
         return
+
+      currentGroup = kd.singletons.groupsController.getCurrentGroup()
 
       notification = new kd.NotificationView
         title     : 'Reinitializing stack...'
         duration  : 5000
 
+      debug 'reinitStack fetching base stackTemplate'
+
       @fetchBaseStackTemplate stack, (err, template) =>
+
+        debug 'reinitStack base stackTemplate', err, template
 
         if err or not template
           console.warn 'The base template of the stack has been removed:', stack.baseStackId
 
-        groupStack = stack.config?.groupStack
+        debug 'reinitStack going to destroy old stack', stack
 
         @destroyStack stack, (err) =>
+
+          debug 'reinitStack destroy old stack result', err
 
           if err
             notification.destroy()
@@ -1154,9 +1165,11 @@ module.exports = class ComputeController extends KDController
           }
           new kd.NotificationView { title : 'Stack reinitialized' }
 
-          if template and stackProvided
+          if template and stackProvided and template._id not in currentGroup.stackTemplates
+            debug 'reinitStack will generate new stack', { template,  }
             @createDefaultStack { force: no, template }, callback
           else
+            debug 'reinitStack will generate group default stack'
             @createDefaultStack {}, callback
 
         , followEvents = no
