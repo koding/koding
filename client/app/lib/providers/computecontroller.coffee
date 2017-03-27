@@ -70,27 +70,25 @@ module.exports = class ComputeController extends KDController
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
-      kd.singletons.mainController.ready =>
+      @eventListener      = new ComputeEventListener
+      @managedKiteChecker = new ManagedKiteChecker
+      @stateChecker       = new ComputeStateChecker { @storage }
+      @stateChecker.start()
 
-        @eventListener      = new ComputeEventListener
-        @managedKiteChecker = new ManagedKiteChecker
-        @stateChecker       = new ComputeStateChecker { @storage }
-        @stateChecker.start()
+      @createDefaultStack()
 
-        @createDefaultStack()
+      @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
 
-        @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
+      debug 'now ready'
+      @emit 'ready'
 
-        debug 'now ready'
-        @emit 'ready'
+      @checkGroupStackRevisions()
+      @checkGroupStacks()
 
-        @checkGroupStackRevisions()
-        @checkGroupStacks()
+      if groupsController.canEditGroup()
+        @checkMachinePermissions()
 
-        if groupsController.canEditGroup()
-          @checkMachinePermissions()
-
-        @checkMachines()
+      @checkMachines()
 
 
   # ComputeController internal helpers
