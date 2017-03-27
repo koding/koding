@@ -1166,7 +1166,7 @@ module.exports = class ComputeController extends KDController
           new kd.NotificationView { title : 'Stack reinitialized' }
 
           if template and stackProvided and template._id not in currentGroup.stackTemplates
-            debug 'reinitStack will generate new stack', { template,  }
+            debug 'reinitStack will generate new stack', { template }
             @createDefaultStack { force: no, template }, callback
           else
             debug 'reinitStack will generate group default stack'
