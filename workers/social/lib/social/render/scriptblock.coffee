@@ -16,7 +16,6 @@ module.exports = (options = {}, callback) ->
   currentGroup        = null
   userMachines        = null
   userStacks          = null
-# userEnvironmentData = null
   userId              = null
   userEmail           = null
   channel             = null
@@ -42,7 +41,6 @@ module.exports = (options = {}, callback) ->
     combinedStorage      = JSON.stringify combinedStorage, replacer
     userMachines         = JSON.stringify userMachines, replacer
     userStacks           = JSON.stringify userStacks, replacer
-  # userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
     userId               = JSON.stringify userId, replacer
     userEmail            = JSON.stringify userEmail, replacer
     channel              = JSON.stringify channel, replacer
@@ -147,11 +145,6 @@ module.exports = (options = {}, callback) ->
         console.log err  if err
         userStacks = stacks or []
         fin()
-
-    # (fin) ->
-    #   bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
-    #     userEnvironmentData = data
-    #     fin()
 
     (fin) ->
       client.connection.delegate.fetchUser (err, user) ->
