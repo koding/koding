@@ -5,7 +5,6 @@ module.exports = (options = {}, callback) ->
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
   _         = require 'lodash'
-  SocialChannel = require '../models/socialapi/channel'
 
   options.client               or= {}
   options.client.context       or= {}
@@ -18,7 +17,6 @@ module.exports = (options = {}, callback) ->
   userStacks          = null
   userId              = null
   userEmail           = null
-  channel             = null
   roles               = null
   permissions         = null
   combinedStorage     = null
@@ -43,7 +41,6 @@ module.exports = (options = {}, callback) ->
     userStacks           = JSON.stringify userStacks, replacer
     userId               = JSON.stringify userId, replacer
     userEmail            = JSON.stringify userEmail, replacer
-    channel              = JSON.stringify channel, replacer
 
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
@@ -57,7 +54,6 @@ module.exports = (options = {}, callback) ->
     <script>
       var _globals = {
         config: #{config},
-        channel: #{channel},
         userId: #{userId},
         userEmail: #{userEmail},
         userAccount: #{userAccount},
@@ -103,15 +99,7 @@ module.exports = (options = {}, callback) ->
         console.log err  if err
 
         currentGroup = group  if group
-
-        if channelId = currentGroup.socialApiChannelId
-          SocialChannel.byId client, { id: channelId }, (err, _channel) ->
-            console.log err  if err
-            channel = _channel ? {}
-            fin()
-
-        else
-          fin()
+        fin()
 
     (fin) ->
       { delegate : account } = client.connection

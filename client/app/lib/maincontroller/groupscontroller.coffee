@@ -199,9 +199,3 @@ module.exports = class GroupsController extends kd.Controller
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 
         callback null
-
-  fetchChannel: (group, callback) ->
-    if channel = globals.channel
-      callback null, remote.revive channel
-    else
-      socialapi.channel.byId { id: group.socialApiChannelId }, callback
