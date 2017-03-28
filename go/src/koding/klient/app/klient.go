@@ -777,7 +777,7 @@ func (k *Klient) Run() {
 
 	// TODO(rjeczalik): Enable after TMS-848.
 	if k.autoupdateEnabled() {
-		go k.updater.Run()
+		//go k.updater.Run()
 	} else {
 		k.log.Warning("autoupdate is disabled")
 	}

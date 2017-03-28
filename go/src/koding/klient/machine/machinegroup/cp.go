@@ -47,13 +47,12 @@ func (g *Group) Cp(req *CpRequest) (*CpResponse, error) {
 		return nil, err
 	}
 
-	// Enable after deploy.
-	// absRemotePath, isDir, exist, err := c.Abs(req.DestinationPath)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// _ = isDir
-	// _ = exist
+	absRemotePath, isDir, exist, err := c.Abs(req.DestinationPath)
+	if err != nil {
+		return nil, err
+	}
+	_ = isDir
+	_ = exist
 
 	// Wait for remote machine SSH key upload.
 	if err := <-errC; err != nil {

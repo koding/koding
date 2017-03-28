@@ -229,20 +229,23 @@ func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error)
 	if err != nil {
 		return 1, err
 	}
-	fmt.Println("Identifiers:", idents)
+
 	if len(idents) == 0 {
 		return 0, cli.ShowSubcommandHelp(c)
 	}
 	if err := identifiersLimit(idents, "argument", 2, 2); err != nil {
 		return 1, err
 	}
-	fmt.Println("Parsed")
+	download, ident, source, dest, err := cpAddress(idents)
+	if err != nil {
+		return 1, err
+	}
 
 	opts := &machine.CpOptions{
-		Download:        true,
-		Identifier:      idents[0],
-		SourcePath:      "source",
-		DestinationPath: "~/",
+		Download:        download,
+		Identifier:      ident,
+		SourcePath:      source,
+		DestinationPath: dest,
 		Log:             log.New("machine:cp"),
 	}
 
@@ -297,7 +300,7 @@ func identifiersLimit(idents []string, kind string, min, max int) error {
 // mountAddress checks if provided identifiers are valid from the mount
 // perspective. The identifiers should satisfy the following format:
 //
-//  [ID|Alias|IP]:remote_directory/path local_directory/path
+//  (ID|Alias|IP):remote_directory/path local_directory/path
 //
 func mountAddress(idents []string) (ident, remotePath, path string, err error) {
 	if len(idents) != 2 {
@@ -314,6 +317,40 @@ func mountAddress(idents []string) (ident, remotePath, path string, err error) {
 	}
 
 	return remote[0], remote[1], path, nil
+}
+
+// cpAddress checks if provided identifiers are valid from the cp command
+// perspective. The identifiers should satisfy the following format:
+//
+//  [(ID|Alias|IP):]source_directory/path [(ID|Alias|IP):]remote_directory/path
+//
+func cpAddress(idents []string) (download bool, ident, source, dest string, err error) {
+	if len(idents) != 2 {
+		err = fmt.Errorf("invalid number of arguments: %s", strings.Join(idents, ", "))
+		return
+	}
+
+	srcs, dsts := strings.Split(idents[0], ":"), strings.Split(idents[1], ":")
+	switch srcl, dstl := len(srcs), len(dsts); {
+	case srcl == 1 && dstl == 1 || srcl >= 2 && dstl >= 2:
+		err = fmt.Errorf("invalid address format: %s %s", idents[0], idents[1])
+		return
+	case srcl == 2 && dstl == 1:
+		if dest, err = filepath.Abs(dsts[0]); err != nil {
+			err = fmt.Errorf("invalid format of local path %q: %s", dsts[0], err)
+			return
+		}
+		ident, source = srcs[0], srcs[1]
+		download = true
+	case srcl == 1 && dstl == 2: // upload.
+		if source, err = filepath.Abs(srcs[0]); err != nil {
+			err = fmt.Errorf("invalid format of local path %q: %s", srcs[0], err)
+			return
+		}
+		ident, dest = dsts[0], dsts[1]
+	}
+
+	return
 }
 
 func tabListFormatter(w io.Writer, infos []*machine.Info) {
