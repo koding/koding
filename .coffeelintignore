@@ -11,6 +11,7 @@ client/app/lib/providers/computeeventlistener.coffee
 client/app/lib/providers/computehelpers.coffee
 client/app/lib/providers/computestatechecker.coffee
 client/app/lib/providers/environmentsmachinestatemodal.coffee
+client/app/lib/providers/connectcompute.coffee
 client/app/lib/react
 client/app/lib/routehandler.coffee
 client/app/lib/shortcuts/accounteditshortcutsrow.coffee
