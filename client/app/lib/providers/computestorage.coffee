@@ -23,10 +23,6 @@ module.exports = class ComputeStorage extends kd.Object
         machines.map (machine) ->
           if machine.ಠ_ಠ then machine else remote.revive machine
 
-      postPush: -> @emit 'change'
-      postPop: -> @emit 'change'
-
-
     stacks       :
       collection : 'JComputeStack'
       payload    : 'userStacks'
@@ -35,7 +31,6 @@ module.exports = class ComputeStorage extends kd.Object
           @pop 'machines', '_id', machine._id  for machine in cached.machines
 
       postPop    : (stackId) ->
-        @emit 'change'
         { reactor } = kd.singletons
         reactor.dispatch actions.REMOVE_STACK, stackId
 
@@ -43,7 +38,6 @@ module.exports = class ComputeStorage extends kd.Object
         @push 'machines', machine  for machine in stack.machines
 
       postPush   : (stack) ->
-        @emit 'change'
         { reactor } = kd.singletons
         reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, stack.machines
         reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, [ stack ]
@@ -68,14 +62,8 @@ module.exports = class ComputeStorage extends kd.Object
       prePush    : (template) ->
         template.on 'update', kd.noop
 
-      postPush: -> @emit 'change'
-      postPop: -> @emit 'change'
-
     credentials  :
       collection : 'JCredential'
-
-      postPush: -> @emit 'change'
-      postPop: -> @emit 'change'
 
 
   constructor: ->
@@ -185,6 +173,10 @@ module.exports = class ComputeStorage extends kd.Object
 
     postPush?.call this, value
 
+    @emit 'change', @storage
+    @emit "change:#{type}", { operation: 'push', value }
+
+
     return value
 
 
@@ -209,6 +201,9 @@ module.exports = class ComputeStorage extends kd.Object
       item[key] isnt value
 
     postPop?.call this, value
+
+    @emit 'change', @storage
+    @emit "change:#{type}", { operation: 'pop', value }
 
     debug 'after pop', @storage
 
@@ -257,5 +252,4 @@ module.exports = class ComputeStorage extends kd.Object
     for item, index in (@get type)
       if item._id is key
         _.extend @storage[type][index], value
-        @emit 'change'
         return @storage[type][index]
