@@ -8,14 +8,14 @@ makeSingular = (plural) -> plural.slice 0, -1
 
 makeState = (config, props) ->
 
-  unless config.require
+  unless config.storage
     console.warning \
-      'You need to specify the requirements via `require` config option.'
+      'You need to specify the requirements via `storage` config option.'
     return {}
 
   { storage } = kd.singletons.computeController
 
-  state = config.require.reduce (acc, pluralName) ->
+  state = config.storage.reduce (acc, pluralName) ->
     singularName = makeSingular pluralName
     # if we pass stackId, machineId or templateId our wrapped component will
     # receive a prop named stack, machine, template.
