@@ -222,3 +222,38 @@ module.exports = class JMachine extends remote.api.JMachine
       @setApproved()
       storage.machines.push this
       callback null
+
+
+  getType: ->
+
+    { Own, Shared, Reassigned, Collaboration } = JMachine.Type
+
+    switch
+      when @isMine()      then Own
+      when @isPermanent() then Shared
+      when @getOldOwner() then Reassigned
+      else Collaboration
+
+
+  getTitle: ->
+
+    { Shared, Reassigned, Collaboration } = JMachine.Type
+
+    switch @getType()
+      when Shared, Collaboration then "#{@label} (#{@getOwner()})"
+      when Reassigned then "#{@label} (#{@getOldOwner()})"
+      else @label
+
+
+  getIDELink: ->
+
+    { Own, Shared, Reassigned, Collaboration } = JMachine.Type
+
+    switch @getType()
+      when Own then "/IDE/#{@slug or @label}"
+      when Collaboration then "/IDE/#{@getChannelId()}"
+      when Shared, Reassigned then "/IDE/#{@uid}"
+      else ''
+
+
+  getDashboardLink: -> "/Home/stacks/virtual-machines/#{@getId()}"
