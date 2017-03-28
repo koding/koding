@@ -1,6 +1,6 @@
 fs                     = require 'fs'
 { isAllowed, isProxy } = require './grouptoenvmapping'
-
+{ createCountlyNginxServer } = require './countly/generateConfig'
 _ = require 'lodash'
 
 createUpstreams = (KONFIG) ->
@@ -357,6 +357,8 @@ module.exports.create = (KONFIG, environment) ->
     }
 
     #{createRedirections(KONFIG)}
+
+    #{createCountlyNginxServer(KONFIG)}
 
   # close http
   }
