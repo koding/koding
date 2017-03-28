@@ -173,9 +173,8 @@ module.exports = class ComputeStorage extends kd.Object
 
     postPush?.call this, value
 
-    @emit 'change', @storage
+    @emit 'change', { operation: 'push', type, value }
     @emit "change:#{type}", { operation: 'push', value }
-
 
     return value
 
@@ -202,7 +201,7 @@ module.exports = class ComputeStorage extends kd.Object
 
     postPop?.call this, value
 
-    @emit 'change', @storage
+    @emit 'change', { operation: 'pop', type, value }
     @emit "change:#{type}", { operation: 'pop', value }
 
     debug 'after pop', @storage
