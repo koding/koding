@@ -47,13 +47,17 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
       return shallowCompare this, nextProps, nextState
 
 
+    onStorageUpdate: ->
+
+      @setState makeState config, @props
+
+
     componentDidMount: ->
 
       { computeController } = kd.singletons
       { controllerEvents } = config
 
-      computeController.storage.on 'change', =>
-        @setState makeState config, @props
+      computeController.storage.on 'change', @bound 'onStorageUpdate'
 
       Object.keys(controllerEvents).forEach (resource) =>
         return  unless resourceId = @props["#{resource}Id"]
@@ -73,6 +77,8 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
     componentWillUnmount: ->
 
       { computeController } = kd.singletons
+
+      computeController.storage.off 'change', @bound 'onStorageUpdate'
 
       Object.keys(@events).forEach (eventId) =>
         computeController.off eventId, @events[eventId]
