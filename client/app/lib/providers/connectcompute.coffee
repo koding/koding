@@ -8,7 +8,10 @@ makeSingular = (plural) -> plural.slice 0, -1
 
 makeState = (config, props) ->
 
-  return {}  unless config.require
+  unless config.require
+    console.warning \
+      'You need to specify the requirements via `require` config option.'
+    return {}
 
   { storage } = kd.singletons.computeController
 
