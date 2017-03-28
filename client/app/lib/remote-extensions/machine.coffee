@@ -36,6 +36,15 @@ module.exports = class JMachine extends remote.api.JMachine
                       # needs to be resolved manually
   }
 
+  @Type = {
+
+    Own: 'own'
+    Collaboration: 'collaboration'
+    Shared: 'shared'
+    Reassigned: 'reassigned'
+
+  }
+
   stop: ->
     kd.singletons.computeController.stop this
 
