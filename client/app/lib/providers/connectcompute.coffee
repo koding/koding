@@ -9,7 +9,7 @@ makeSingular = (plural) -> plural.slice 0, -1
 makeState = (config, props) ->
 
   unless config.storage
-    console.warning \
+    console.warn \
       'You need to specify the requirements via `storage` config option.'
     return {}
 
