@@ -61,14 +61,14 @@
       width: 100%;
     }
     &:after {
-      content: '•••';
+      content: '\25CF\25CF\25CF';
       position: absolute;
       color: #CECECE;
       top: -2px;
       left: 6px;
-      font-size: 28px;
-      letter-spacing: vpx;
-      line-height: 18px;
+      font-size: 13px;
+      letter-spacing: 2px;
+      line-height: 22px;
     }
     &.vision {
       background-image: url('/assets/img/landing/home/thumb-vision.png');
