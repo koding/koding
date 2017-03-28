@@ -1,8 +1,32 @@
 React = require 'app/react'
 kd = require 'kd'
+shallowCompare = require 'react-addons-shallow-compare'
 
 # FIXME: so naive, but works for now.
 makeSingular = (plural) -> plural.slice 0, -1
+
+
+makeState = (config, props) ->
+
+  return {}  unless config.require
+
+  { storage } = kd.singletons.computeController
+
+  state = config.require.reduce (acc, pluralName) ->
+    singularName = makeSingular pluralName
+    # if we pass stackId, machineId or templateId our wrapped component will
+    # receive a prop named stack, machine, template.
+    if resourceId = props["#{singularName}Id"]
+      acc[singularName] = storage.get(pluralName, '_id', resourceId)
+
+    # no matter what, return the full resource just incase the component
+    # wants to use all items for some calculation.
+    acc[pluralName] = storage.get(pluralName)
+
+    return acc
+  , {}
+
+  return Object.assign({}, state, props)
 
 
 module.exports = connectCompute = (config) -> (WrappedComponent) ->
@@ -15,29 +39,21 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
       @handlers = null
       @events = {}
 
-      { storage } = kd.singletons.computeController
+      @state = makeState config, props
 
-      state = config.require.reduce (acc, pluralName) ->
-        singularName = makeSingular pluralName
-        # if we pass stackId, machineId or templateId our wrapped component will
-        # receive a prop named stack, machine, template.
-        if resourceId = props["#{singularName}Id"]
-          acc[singularName] = storage.get(pluralName, '_id', resourceId)
 
-        # no matter what, return the full resource just incase the component
-        # wants to use all items for some calculation.
-        acc[pluralName] = storage.get(pluralName)
+    shouldComponentUpdate: (nextProps, nextState) ->
 
-        return acc
+      return shallowCompare this, nextProps, nextState
 
-      , {}
-
-      @state = Object.assign(state, props)
 
     componentDidMount: ->
 
       { computeController } = kd.singletons
       { controllerEvents } = config
+
+      computeController.storage.on 'change', =>
+        @setState makeState config, @props
 
       Object.keys(controllerEvents).forEach (resource) =>
         return  unless resourceId = @props["#{resource}Id"]
@@ -52,6 +68,7 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
             @setState newState
 
           computeController.on eventId, @events[eventId]
+
 
     componentWillUnmount: ->
 
