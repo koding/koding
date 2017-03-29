@@ -969,7 +969,7 @@ module.exports = class ComputeController extends KDController
   fetchStackTemplates: (callback) ->
 
     if (templates = @storage.templates.get()).length
-      callback null, templates
+      return callback null, templates
 
     query   = { group: getGroup().slug }
     options = { limit: 60 }
