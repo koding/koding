@@ -564,7 +564,7 @@ module.exports = class IDEAppController extends AppController
   setMountedMachine: (machine) ->
 
     @mountedMachine = machine
-    @emit 'MachineDidMount', machine
+    @emit 'MachineDidMount', machine  if machine
 
 
   whenMachineReady: (callback) ->
@@ -903,7 +903,7 @@ module.exports = class IDEAppController extends AppController
 
       delete @generatedPanes[pane.view.hash]
 
-      if session = pane.view.remote?.session
+      if not @isDisabled() and session = pane.view.remote?.session
         # we need to check against kite existence because while a machine
         # is getting destroyed/stopped/reinitialized we are invalidating it's
         # kite instance to make sure every call is stopped. ~ GG
@@ -922,10 +922,12 @@ module.exports = class IDEAppController extends AppController
     ideView.on 'NewEditorPaneCreated', (pane) =>
       @emit 'EditorPaneDidOpen', pane
 
+  isDisabled: ->
+    @isDestroyed or not @mountedMachine or not @isMachineRunning()
 
   writeSnapshot: ->
 
-    return  if @isDestroyed or not @isMachineRunning() or @silent
+    return  if @isDisabled() or @silent
 
     key   = @getWorkspaceStorageKey nick()
     value = @getWorkspaceSnapshot()
@@ -947,6 +949,8 @@ module.exports = class IDEAppController extends AppController
 
   saveLayoutSize: ->
 
+    return  if @isDisabled()
+
     username  = nick()
     key       = @getWorkspaceStorageKey "#{username}-LayoutSize"
     value     = @getLayoutSizeData()
@@ -962,6 +966,8 @@ module.exports = class IDEAppController extends AppController
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
+
+    return  if @isDisabled()
 
     key = @getWorkspaceStorageKey username
     @mountedMachine.getBaseKite().storageDelete key
@@ -1767,6 +1773,8 @@ module.exports = class IDEAppController extends AppController
 
   showUserRemovedModal: ->
 
+    return  unless @mountedMachine
+
     options        =
       title        : 'Machine access revoked'
       content      : '<p>Your access to this machine has been removed by its owner.</p>'
@@ -1807,7 +1815,7 @@ module.exports = class IDEAppController extends AppController
 
   fetchFromKiteStorage: (callback, prefix) ->
 
-    if not @mountedMachine or not @mountedMachine.isRunning()
+    if @isDisabled()
       return callback null
 
     handleError = (err) ->
