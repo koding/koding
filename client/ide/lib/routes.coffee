@@ -141,14 +141,11 @@ routeToMachine = (options = {}) ->
         [ machine ] = cc.storage.machines.get()
 
         if machine
-          if slug or uid
-            showError 'Requested machine not found, first available
-                       machine is loaded instead.'
           router.handleRoute "/IDE/#{machine.slug}"
+        else if router.currentPath is '/IDE'
+          loadIDENotFound()
         else
-          if router.currentPath is '/IDE'
-          then loadIDENotFound()
-          else router.handleRoute '/IDE'
+          router.handleRoute '/IDE'
 
 
       # if machine.isPermanent() or machine.meta?.oldOwner
