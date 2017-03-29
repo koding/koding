@@ -1237,8 +1237,9 @@ module.exports = class ComputeController extends KDController
 
       if result
         description = '''<p>
-          There is a stack generated from this template by another team member. Deleting it can break their stack.
-          Do you still want to delete this stack template?</p>
+          There is a stack generated from this template by another team member.
+          Deleting it can break their stack.</p>
+          <p>Do you still want to delete this stack template?</p>
         '''
 
       modal = new ContentModal
