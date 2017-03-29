@@ -55,6 +55,10 @@ _bindStackEvents = ->
 
 _bindTemplateEvents = (stackTemplate) ->
 
+  unless stackTemplate
+    console.warn 'null data passed to _bindTemplateEvents!'
+    return
+
   { reactor, computeController } = kd.singletons
 
   { _id: id } = stackTemplate
@@ -526,13 +530,14 @@ disconnectMachine = (machine) ->
 
 removeStackTemplate = (stackTemplate) ->
 
-  { reactor, groupsController } = kd.singletons
+  { reactor, groupsController, computeController } = kd.singletons
 
   currentGroup = groupsController.getCurrentGroup()
 
   return new Promise (resolve, reject) ->
     reactor.dispatch actions.REMOVE_STACK_TEMPLATE_BEGIN, { stackTemplate }
     stackTemplate.delete (err) ->
+
       if err
         reactor.dispatch actions.REMOVE_STACK_TEMPLATE_FAIL, { stackTemplate, err }
         reject err
@@ -540,6 +545,8 @@ removeStackTemplate = (stackTemplate) ->
 
       if stackTemplate.accessLevel is 'group'
         currentGroup.sendNotification 'GroupStackTemplateRemoved', stackTemplate._id
+
+      computeController.storage.templates.pop stackTemplate
 
       reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id: stackTemplate._id }
       resolve()

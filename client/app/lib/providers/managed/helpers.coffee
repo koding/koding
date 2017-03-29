@@ -68,7 +68,15 @@ createMachine = (kite, callback) ->
       ipAddress   : kite.ipAddress
       label       : kite.kite.hostname
       stack       : stack._id
-    }, callback
+    }, (err, machine) ->
+      return callback err  if err
+
+      if machine
+        stack.machines.push machine
+        computeController.storage.machines.push machine
+        computeController.storage.stacks.push stack
+
+      callback null, machine
 
 
 updateMachineData = ({ machine, kite }, callback) ->
