@@ -116,9 +116,10 @@ func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) cli.
 		}
 
 		Close()
-		ExitFunc(exit)
-
-		return nil
+		if exit == 0 {
+			return nil
+		}
+		return fmt.Errorf("exit code: %d", exit)
 	}
 }
 

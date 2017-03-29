@@ -758,9 +758,30 @@ func run(args []string) {
 		)
 	}
 
+	app.Commands = wrapActions(app.Commands)
 	app.Run(args)
 }
 
+func wrapActions(commands []cli.Command) []cli.Command {
+	for i, command := range commands {
+		if command.Action != nil {
+			commands[i].Action = createActionFunc(command.Action.(cli.ActionFunc))
+		}
+		if len(command.Subcommands) > 0 {
+			commands[i].Subcommands = wrapActions(command.Subcommands)
+		}
+	}
+	return commands
+}
+
+func createActionFunc(action cli.ActionFunc) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		// do things before for c.Command.FullName()
+		err := action(c)
+		// do things after for the command.
+		return err
+	}
+}
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a
 // codegansta/cli friendly command Action.
 func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) cli.ActionFunc {
