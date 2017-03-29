@@ -118,13 +118,8 @@ module.exports = class NotificationController extends KDObject
       { stackId } = data
 
       storage.stacks.fetch '_id', stackId
-        .then (stack) ->
-          Promise.all stack.machines.map (machineId) ->
-            storage.machines.fetch '_id', machineId
-          .then (machines) -> { stack, machines }
-
-        .then ({ stack, machines }) =>
-          @emit 'DisabledUserStackAdded', { stack, machines }
+        .then (stack) => @emit 'DisabledUserStackAdded', { stack }
+        .catch (err) -> debug 'failed to fetch stack', stackId
 
 
       debug 'StackOwnerUpdated', data
