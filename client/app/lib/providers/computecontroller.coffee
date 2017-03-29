@@ -868,10 +868,10 @@ module.exports = class ComputeController extends KDController
 
       if state.dontAskAgain is yes
 
-        ignoredMachines = @storage.getValue('ignoredMachines') ? {}
+        ignoredMachines = @appStorage.getValue('ignoredMachines') ? {}
         ignoredMachines[machine.uid] = yes
 
-        @storage.setValue 'ignoredMachines', ignoredMachines
+        @appStorage.setValue 'ignoredMachines', ignoredMachines
 
         new kd.NotificationView
           title    : "We won't bother you again for this machine"
