@@ -104,8 +104,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Clone'
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'cloning'  if err
-
-          EnvironmentFlux.actions.cloneStackTemplate template
+          EnvironmentFlux.actions.cloneStackTemplate template  if template
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs'
         firstMachineId = stack.get('machines').first.get '_id'
@@ -117,17 +116,18 @@ module.exports = class SidebarStackSection extends React.Component
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'making team default'  if err
 
-          computeController.makeTeamDefault template  unless err
+          computeController.makeTeamDefault template  if template
       when 'Share With Team'
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'sharing'  if err
-
-          computeController.setStackTemplateAccessLevel template, 'group'
+          if template
+            computeController.setStackTemplateAccessLevel template, 'group'
       when 'Make Private'
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'cloning'  if err
 
-          computeController.setStackTemplateAccessLevel template, 'private'
+          if template
+            computeController.setStackTemplateAccessLevel template, 'private'
 
 
 
