@@ -134,15 +134,11 @@ loadStacks = (force = no) ->
 
 leaveMachine = (_machine) ->
 
-  machineUId = _machine.get 'uid'
-  isApproved  = _machine.get 'isApproved'
-  isPermanent = _machine.get 'isPermanent'
-  denyMachine = switch _machine.get 'type'
-    when 'shared'         then isPermanent
-    when 'collaboration'  then not isPermanent
+  { reactor, appManager, computeController } = kd.singletons
 
+  machineUId  = _machine.get 'uid'
   ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
-  machine = computeController.storage.machines.get 'uid', machineUId
+  machine     = computeController.storage.machines.get 'uid', machineUId
 
   async.series([
 
@@ -154,32 +150,7 @@ leaveMachine = (_machine) ->
 
     (callback) ->
 
-      return callback()  unless _machine.get('type') is 'collaboration'
-
-      # Do not call social api from here if there is an ide app instance.
-      # Because it will be called it in next queue item by "quit()" method instead of this queue.
-      # You can check "stopCollaborationSession" method of collaborationcontroller.coffee
-      # ~TURUNC
-      return callback()  if ideInstance and denyMachine
-
-      { channel } = kd.singletons.socialapi
-      channelId   = machine.getChannelId()
-
-      channel.byId { id: channelId }, (err, socialChannel) ->
-        if err
-          showError err
-          return callback err
-
-        isApproved = socialChannel.isParticipant
-        method     = if isApproved then 'leave' else 'rejectInvite'
-
-        channel[method] { channelId }, (err) ->
-          showError err  if err
-          callback()
-
-    (callback) ->
-
-      ideInstance?.quit()  if denyMachine
+      ideInstance?.quit reload = no
 
       machineId = machine.getId()
       reactor.dispatch actions.INVITATION_REJECTED, machineId

@@ -1665,11 +1665,19 @@ module.exports = class IDEAppController extends AppController
     @stopCollaborationSession()  if stopCollaborationSession
 
     if reload
+
       kd.singletons.appManager.quit this, =>
         route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
         kd.singletons.router.handleRoute route
 
-      @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
+    else
+
+      @cleanupCollaboration()
+      @setMountedMachine null
+      kd.singletons.router.handleRoute '/IDE'
+
+    @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
+
 
 
   beforeQuit: -> @quit reload = no
