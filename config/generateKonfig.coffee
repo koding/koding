@@ -127,6 +127,7 @@ module.exports = (options, credentials) ->
 
     terraformerSecretKey: credentials.terraformer.secretKey
 
+  credentials.countly.host = 'http://dev.koding.com:32768/countly' if options.countlyPath
 
   marketingPagesURL = 'http://www.koding.com'
 
