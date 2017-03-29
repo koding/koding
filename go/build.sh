@@ -7,7 +7,7 @@ export GOBIN=${GOBIN:-${GOPATH}/bin}
 export KODING_REPO=$(git rev-parse --show-toplevel)
 export KODING_GIT_VERSION=$(git rev-parse --short HEAD || cat ./VERSION || cat ../VERSION || cat ../../../VERSION || echo "0")
 export KODING_VERSION=${KODING_VERSION:-$KODING_GIT_VERSION}
-export KODING_LDFLAGS="-X koding/artifact.VERSION=${KODING_VERSION} -X main.GitCommit=${KODING_VERSION}"
+export KODING_LDFLAGS="-X koding/artifact.VERSION=${KODING_VERSION} -X main.GitCommit=${KODING_VERSION} -s"
 export KODING_TAGS=""
 
 koding-go-install() {
