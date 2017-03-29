@@ -55,6 +55,10 @@ _bindStackEvents = ->
 
 _bindTemplateEvents = (stackTemplate) ->
 
+  unless stackTemplate
+    console.warn 'null data passed to _bindTemplateEvents!'
+    return
+
   { reactor, computeController } = kd.singletons
 
   { _id: id } = stackTemplate
