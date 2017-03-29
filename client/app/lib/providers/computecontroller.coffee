@@ -360,14 +360,19 @@ module.exports = class ComputeController extends KDController
 
   destroy: (machine, force) ->
 
+    stack = @findStackFromMachineId machine._id
+
     destroy = (machine) =>
 
-      baseKite = machine.getBaseKite( no )
-      if machine?.provider is 'managed' and baseKite.klientDisable?
-      then baseKite.klientDisable().finally -> baseKite.disconnect()
-      else baseKite.disconnect()
+      baseKite = machine.getBaseKite no
 
-      if machine?.provider is 'managed'
+      if machine.isManaged()
+
+        baseKite.klientDisable?()
+          .catch (err) ->
+            console.warn 'klient.disabled failed:', err
+          .finally ->
+            baseKite.disconnect()
 
         options     =
           machineId : machine._id
@@ -377,13 +382,19 @@ module.exports = class ComputeController extends KDController
           return  if err
 
           @_clearTrialCounts machine
-          @storage.machines.push machine
+
+          @storage.machines.pop machine
+          stack.machines = stack.machines.filter (m) -> m._id isnt machine._id
+          @storage.stacks.push stack
 
           { appManager } = kd.singletons
           ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
-          ideApp?.quit()
+          ideApp?.quit reload = no
 
         return
+
+      else
+        baseKite.disconnect()
 
       @eventListener.triggerState machine,
         status      : remote.api.JMachine.State.Terminating
