@@ -113,7 +113,24 @@ module.exports = class NotificationController extends KDObject
           EnvironmentFlux.actions.loadMachineSharedUsers machineId
 
 
-    @on 'MachineListUpdated', (data = {}) ->
+    @on 'StackOwnerUpdated', (data = {}) =>
+
+      { stackId } = data
+
+      storage.stacks.fetch '_id', stackId
+        .then (stack) ->
+          Promise.all stack.machines.map (machineId) ->
+            storage.machines.fetch '_id', machineId
+          .then (machines) -> { stack, machines }
+
+        .then ({ stack, machines }) =>
+          @emit 'DisabledUserStackAdded', { stack, machines }
+
+
+      debug 'StackOwnerUpdated', data
+
+
+    @on 'MachineListUpdated', (data = {}) =>
 
       { machineUId, action, permanent } = data
       { appManager } = kd.singletons
