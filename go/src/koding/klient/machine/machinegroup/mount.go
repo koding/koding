@@ -66,7 +66,7 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 
 	// Add SSH public key to remote machine's authorized_keys file. This is
 	// needed for syncers that use SSH connections.
-	errC := g.sshKey(req.ID, 30*time.Second)
+	ruC := g.sshKey(req.ID, 30*time.Second)
 
 	absRemotePath, count, diskSize, err := c.MountHeadIndex(req.Mount.RemotePath)
 	if err != nil {
@@ -74,8 +74,8 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 	}
 
 	// Wait for remote machine SSH key upload.
-	if err := <-errC; err != nil {
-		return nil, err
+	if ru := <-ruC; ru.Err != nil {
+		return nil, ru.Err
 	}
 
 	res := &HeadMountResponse{

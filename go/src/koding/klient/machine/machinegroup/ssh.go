@@ -67,29 +67,44 @@ func (g *Group) SSH(req *SSHRequest) (*SSHResponse, error) {
 	}, nil
 }
 
+// remoteUser stores remote user name or error if username is not available.
+type remoteUser struct {
+	Username string
+	Err      error
+}
+
 // sshKey asynchronously adds local machine public key to remote machine.
-func (g *Group) sshKey(id machine.ID, timeout time.Duration) <-chan error {
-	internalC, errC := make(chan error, 1), make(chan error)
+func (g *Group) sshKey(id machine.ID, timeout time.Duration) <-chan remoteUser {
+	internalC, ruC := make(chan remoteUser, 1), make(chan remoteUser, 1)
 	go func() {
 		pubKey, err := userSSHPublicKey()
 		if err != nil {
-			internalC <- err
+			internalC <- remoteUser{
+				Username: "",
+				Err:      err,
+			}
 			return
 		}
-		_, err = g.ensureSSHPubKey(id, "", pubKey)
-		internalC <- err
+		username, err := g.ensureSSHPubKey(id, "", pubKey)
+		internalC <- remoteUser{
+			Username: username,
+			Err:      err,
+		}
 	}()
 
 	go func() {
 		select {
 		case <-time.After(timeout):
-			errC <- fmt.Errorf("cannot add SSH public key to remote machine: connection timeout")
-		case err := <-internalC:
-			errC <- err
+			ruC <- remoteUser{
+				Username: "",
+				Err:      fmt.Errorf("cannot add SSH public key to remote machine: connection timeout"),
+			}
+		case ru := <-internalC:
+			ruC <- ru
 		}
 	}()
 
-	return errC
+	return ruC
 }
 
 func (g *Group) ensureSSHPubKey(id machine.ID, username, pubKey string) (string, error) {

@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -50,7 +51,15 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 
 	fmt.Fprintf(os.Stderr, "Response remote: %#v\n", cpRes)
 
-	return nil
+	// Add private path to command.
+	_, _, privPath, err := sshGetKeyPath()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Cannot copy requested data: %s\n", err)
+		return err
+	}
+	cpRes.Command.PrivateKeyPath = privPath
+
+	return cpRes.Command.Run(context.Background())
 }
 
 // Cp transfers file(s) between remote and local machine using DefaultClient.
