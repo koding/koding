@@ -88,8 +88,10 @@ module.exports = class Sidebar extends React.Component
       when 'Edit', 'View Stack' then router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id)
-          .then ({ template }) ->
+          .then ({ template, stack }) ->
             appManager.tell 'Stackeditor', 'reloadEditor', template._id
+            if machine = stack.results?.machines?[0]?.obj
+              kd.singletons.computeController.reloadIDE machine
           .catch (err) ->
             showError err
 
