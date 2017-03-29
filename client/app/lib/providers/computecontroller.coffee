@@ -56,7 +56,8 @@ module.exports = class ComputeController extends KDController
 
     super
 
-    { mainController, groupsController, router } = kd.singletons
+    { mainController, groupsController, router
+      appStorageController, notificationController } = kd.singletons
 
     @ui = ComputeController_UI
     @storage = new ComputeStorage
@@ -87,6 +88,11 @@ module.exports = class ComputeController extends KDController
 
       @checkGroupStackRevisions()
       @checkGroupStacks()
+
+      kd.singletons.notificationController.on 'DisabledUserStackAdded', (data) =>
+        debug 'disabled user stack added', data
+        if groupsController.canEditGroup()
+          @checkMachinePermissions()
 
       if groupsController.canEditGroup()
         @checkMachinePermissions()
