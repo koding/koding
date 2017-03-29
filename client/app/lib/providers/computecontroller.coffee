@@ -865,6 +865,14 @@ module.exports = class ComputeController extends KDController
     else @emit 'GroupStacksConsistent'
 
 
+  ignoreMachine: (machine) ->
+
+    ignoredMachines = @appStorage.getValue('ignoredMachines') ? {}
+    ignoredMachines[machine.uid] = yes
+
+    @appStorage.setValue 'ignoredMachines', ignoredMachines
+
+
   fixMachinePermissions: (machine, dontAskAgain = no) ->
 
     { groupsController } = kd.singletons
@@ -876,10 +884,7 @@ module.exports = class ComputeController extends KDController
 
       if state.dontAskAgain is yes
 
-        ignoredMachines = @appStorage.getValue('ignoredMachines') ? {}
-        ignoredMachines[machine.uid] = yes
-
-        @appStorage.setValue 'ignoredMachines', ignoredMachines
+        @ignoreMachine machine
 
         new kd.NotificationView
           title    : "We won't bother you again for this machine"
@@ -899,8 +904,9 @@ module.exports = class ComputeController extends KDController
       kloud.addAdmin { machineId: machine._id }
         .finally ->
           notification.destroy()
-        .then (shared) ->
+        .then (shared) =>
           debug 'fixed permissions', shared
+          @ignoreMachine machine
           new kd.NotificationView { title: 'Permissions fixed' }
         .catch (err) ->
           showError err
