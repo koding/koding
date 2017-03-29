@@ -128,10 +128,16 @@ module.exports = class NotificationController extends KDObject
             storage.machines.pop machine
             reactor.dispatch actions.INVITATION_REJECTED, machine._id
 
+          @emit 'MachineShare:Removed', { machine }
+
         when 'added'
           storage.machines.fetch 'uid', machineUId
             .then (machine) ->
               reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, [ machine ]
+              return machine
+
+            .then (machine) =>
+              @emit 'MachineShare:Added', { machine }
               return machine
 
             .catch (err) ->
