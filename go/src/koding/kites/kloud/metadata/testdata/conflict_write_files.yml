@@ -1,0 +1,6 @@
+#cloud-config
+hostname: user
+write_files:
+- content: metadata
+  path: /var/lib/koding/metadata.json
+  permissions: "0644"

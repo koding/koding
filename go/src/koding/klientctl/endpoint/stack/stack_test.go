@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"koding/klientctl/endpoint/stack"
+	"koding/kites/kloud/utils/object"
 	"koding/klientctl/endpoint/stack/stackfixture"
 
 	"github.com/hashicorp/hcl"
@@ -26,7 +26,7 @@ func TestFixHCL(t *testing.T) {
 		t.Fatal("expected HCL-encoded stack to not unmarshal cleanly")
 	}
 
-	stack.FixHCL(vHCL)
+	object.FixHCL(vHCL)
 
 	if !reflect.DeepEqual(vHCL, stackfixture.Stack) {
 		t.Fatalf("got %+v, want %+v", vHCL, stackfixture.Stack)
@@ -99,7 +99,7 @@ func TestFixYAML(t *testing.T) {
 		cas := cas
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			got := stack.FixYAML(cas.yaml)
+			got := object.FixYAML(cas.yaml)
 
 			if !reflect.DeepEqual(got, cas.want) {
 				t.Fatalf("got %#v, want %#v", got, cas.want)
