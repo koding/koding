@@ -57,6 +57,7 @@
     "pluralize": "3.1.0",
     "raf": "3.3.0",
     "react": "15.4.2",
+    "react-addons-shallow-compare": "15.4.2",
     "react-autocomplete": "1.4.0",
     "react-dom": "15.4.2",
     "react-flexbox-grid": "0.10.2",

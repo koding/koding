@@ -1,5 +1,6 @@
 fs            = require 'fs'
 { isAllowed } = require './grouptoenvmapping'
+{ generateCountlySupervisord } = require './countly/generateConfig'
 
 generateMainConf = ->
 
@@ -132,5 +133,6 @@ module.exports.create = (KONFIG) ->
 
   { memmon } = KONFIG.supervisord
   conf += generateMemmonSection memmon  if memmon
+  conf += generateCountlySupervisord KONFIG
 
   return conf

@@ -1,0 +1,11 @@
+#cloud-config
+hostname: user
+users:
+- gecos: Koding
+  groups:
+  - sudo
+  lock_passwd: true
+  name: johndoe
+  shell: /bin/bash
+  sudo:
+  - ALL=(ALL) NOPASSWD:ALL

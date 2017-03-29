@@ -229,7 +229,6 @@ module.exports = (options, credentials) ->
     linkedin                      : credentials.linkedin
     datadog                       : credentials.datadog
     github                        : credentials.github
-    gitlab                        : gitlab
     facebook                      : credentials.facebook
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3
@@ -246,6 +245,7 @@ module.exports = (options, credentials) ->
     clearbit                      : credentials.clearbit
     wufoo                         : credentials.wufoo
 
+    gitlab                        : gitlab
     regions                       : regions
     tunnelproxymanager            : tunnelproxymanager
     tunnelserver                  : tunnelserver
@@ -273,4 +273,5 @@ module.exports = (options, credentials) ->
     ci  : credentials.ci
     test: credentials.test
 
+  KONFIG.countlyPath = options.countlyPath if options.countlyPath
   return KONFIG

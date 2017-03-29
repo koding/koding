@@ -74,7 +74,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
             setActiveInvitationMachineId { machine: @props.machine }
             @setCoordinates()
 
-      if @state.activeInvitationMachineId
+      if @state.activeInvitationMachineId or @machine('provider') is 'managed'
         @setCoordinates()
 
 

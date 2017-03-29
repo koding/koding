@@ -8,6 +8,7 @@ import (
 
 	"koding/kites/kloud/stack"
 	kloudstack "koding/kites/kloud/stack"
+	"koding/kites/kloud/utils/object"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/team"
@@ -131,7 +132,7 @@ func (c *Client) jsonReencode(data []byte) ([]byte, error) {
 	var hclv interface{}
 
 	if err := hcl.Unmarshal(data, &hclv); err == nil {
-		fixHCL(hclv)
+		object.FixHCL(hclv)
 
 		return jsonMarshal(hclv)
 	}
@@ -139,7 +140,7 @@ func (c *Client) jsonReencode(data []byte) ([]byte, error) {
 	var ymlv interface{}
 
 	if err := yaml.Unmarshal(data, &ymlv); err == nil {
-		return jsonMarshal(fixYAML(ymlv))
+		return jsonMarshal(object.FixYAML(ymlv))
 	}
 
 	return nil, errors.New("unknown encoding")
@@ -160,90 +161,4 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-// fixYAML is a best-effort of fixing representation of
-// YAML-encoded value, so it can be marshaled to a valid JSON.
-//
-// YAML creates types like map[interface{}]interface{}, which are
-// not a valid JSON types.
-//
-// Related issue:
-//
-//   https://github.com/go-yaml/yaml/issues/139
-//
-func fixYAML(v interface{}) interface{} {
-	switch v := v.(type) {
-	case map[interface{}]interface{}:
-		fixedV := make(map[string]interface{}, len(v))
-
-		for k, v := range v {
-			fixedV[fmt.Sprintf("%v", k)] = fixYAML(v)
-		}
-
-		return fixedV
-	case []interface{}:
-		fixedV := make([]interface{}, len(v))
-
-		for i := range v {
-			fixedV[i] = fixYAML(v[i])
-		}
-
-		return fixedV
-	default:
-		return v
-	}
-}
-
-// fixHCL is a best-effort method to "fix" value representation of
-// HCL-encoded value, so it can be marshaled to a valid JSON.
-//
-// hcl.Unmarshal encodes each object as []map[string]interface{},
-// and kloud expects JSON objects to not be wrapped in a 1-element
-// slice.
-//
-// This function converts []map[string]interface{} to map[string]interface{}
-// if length of the slice is 1.
-//
-// BUG(rjeczalik): This is going to break templates, which have legit
-// 1-element []map[string]interface{} values.
-func fixHCL(v interface{}) {
-	cur, ok := v.(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	stack := []map[string]interface{}{cur}
-
-	for len(stack) != 0 {
-		cur, stack = stack[0], stack[1:]
-
-		for key, val := range cur {
-			switch val := val.(type) {
-			case []map[string]interface{}:
-				if len(val) == 1 {
-					cur[key] = val[0]
-				}
-
-				for _, val := range val {
-					stack = append(stack, val)
-				}
-			case []interface{}:
-				if len(val) == 1 {
-					if vval, ok := val[0].(map[string]interface{}); ok {
-						cur[key] = vval
-					}
-				}
-
-				for _, val := range val {
-					if vval, ok := val.(map[string]interface{}); ok {
-						stack = append(stack, vval)
-					}
-				}
-
-			case map[string]interface{}:
-				stack = append(stack, val)
-			}
-		}
-	}
 }

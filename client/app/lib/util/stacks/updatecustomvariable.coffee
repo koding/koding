@@ -30,7 +30,7 @@ createAndUpdate = (options, callback) ->
 
   { provider, title, meta, stackTemplate } = options
 
-  if not meta or (Object.keys meta).length is 1
+  if not meta or (Object.keys meta).length <= 1
     return callback null
 
   { JCredential } = remote.api
