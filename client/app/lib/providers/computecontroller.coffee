@@ -56,8 +56,7 @@ module.exports = class ComputeController extends KDController
 
     super
 
-    { mainController, groupsController, router
-      appStorageController, notificationController } = kd.singletons
+    { mainController, groupsController, router } = kd.singletons
 
     @ui = ComputeController_UI
     @storage = new ComputeStorage
@@ -65,6 +64,7 @@ module.exports = class ComputeController extends KDController
     @_trials = {}
 
     mainController.ready =>
+      { appStorageController, notificationController } = kd.singletons
 
       @bindPaymentEvents()
 
@@ -81,23 +81,22 @@ module.exports = class ComputeController extends KDController
 
       @createDefaultStack()
 
-      @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
+      @appStorage = appStorageController.storage 'Compute', '0.0.1'
 
       debug 'now ready'
       @emit 'ready'
 
       @checkGroupStackRevisions()
       @checkGroupStacks()
-
-      kd.singletons.notificationController.on 'DisabledUserStackAdded', (data) =>
-        debug 'disabled user stack added', data
-        if groupsController.canEditGroup()
-          @checkMachinePermissions()
+      @checkMachines()
 
       if groupsController.canEditGroup()
-        @checkMachinePermissions()
 
-      @checkMachines()
+        notificationController.on 'DisabledUserStackAdded', (data) =>
+          debug 'disabled user stack added', data
+          @checkMachinePermissions()
+
+        @checkMachinePermissions()
 
 
   # ComputeController internal helpers
@@ -752,6 +751,7 @@ module.exports = class ComputeController extends KDController
 
 
   sharedStackTemplateAccessLevel: (params) ->
+
     { reactor } = kd.singletons
     { contents: { id: _id, change: { $set: { accessLevel } } } } = params
 
@@ -760,6 +760,10 @@ module.exports = class ComputeController extends KDController
       return kd.NotificationView { title: 'Error occurred' }  if err
 
       reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
+
+      stackTemplate.setAt 'accessLevel', accessLevel
+
+      debug 'stack template access level is set', accessLevel
 
       if accessLevel is 'group'
         new kd.NotificationView { title : 'Stack Template is Shared With Team' }
@@ -772,6 +776,8 @@ module.exports = class ComputeController extends KDController
   removeRevisionFromUnSharedStackTemplate: (id, stackTemplate) ->
 
     { reactor } = kd.singletons
+
+    debug 'remove revision', { id, accessLevel: stackTemplate.accessLevel }
 
     if stackTemplate
       reactor.dispatch 'UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
@@ -789,6 +795,8 @@ module.exports = class ComputeController extends KDController
   checkRevisionFromOriginalStackTemplate: (stackTemplate) ->
 
     { reactor } = kd.singletons
+
+    debug 'check revision', { accessLevel: stackTemplate.accessLevel }
 
     reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
     if whoami()._id is stackTemplate.originId
@@ -892,6 +900,7 @@ module.exports = class ComputeController extends KDController
         .finally ->
           notification.destroy()
         .then (shared) ->
+          debug 'fixed permissions', shared
           new kd.NotificationView { title: 'Permissions fixed' }
         .catch (err) ->
           showError err
