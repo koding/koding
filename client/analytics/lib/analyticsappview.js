@@ -13,6 +13,6 @@ export default class AnalyticsAppView extends JView {
 
   pistachio () {
     // return 'sinan\'s analytics'
-    return '<iframe src="http://192.168.59.103:32768/countly" frameborder="0"></iframe>'
+    return '<iframe src="http://dev.koding.com:8090/countly" frameborder="0" width="100%" height="100%" border="0"></iframe>'
   }
 }
