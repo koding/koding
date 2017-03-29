@@ -765,11 +765,11 @@ module.exports = class ComputeController extends KDController
         new kd.NotificationView { title : 'Stack Template is Shared With Team' }
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
-        @removeRevisonFromUnSharedStackTemplate _id, stackTemplate
+        @removeRevisionFromUnSharedStackTemplate _id, stackTemplate
         new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
-  removeRevisonFromUnSharedStackTemplate: (id, stackTemplate) ->
+  removeRevisionFromUnSharedStackTemplate: (id, stackTemplate) ->
 
     { reactor } = kd.singletons
 
