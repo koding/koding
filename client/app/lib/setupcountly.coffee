@@ -7,9 +7,7 @@ bootCountly = (appKey) ->
   c.q = []
   c.app_key = appKey
   c.url = '/countly'
-  # track sessions automatically
   c.q.push ['track_sessions']
-  #track sessions automatically
   c.q.push ['track_pageview']
 
   window.Countly = c
