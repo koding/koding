@@ -40,18 +40,22 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
 
       @handlers = null
       @events = {}
+      @_mounted = no
 
       @state = makeState config, props
 
 
-
-
     onStorageUpdate: ->
+
+      return  unless @_mounted
+
 
       @setState makeState config, @props
 
 
     componentDidMount: ->
+
+      @_mounted = yes
 
       { computeController } = kd.singletons
       { controllerEvents } = config
@@ -74,6 +78,8 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
 
 
     componentWillUnmount: ->
+
+      @_mounted = no
 
       { computeController } = kd.singletons
 
