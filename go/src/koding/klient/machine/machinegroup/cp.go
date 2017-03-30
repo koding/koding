@@ -60,7 +60,7 @@ func (g *Group) Cp(req *CpRequest) (*CpResponse, error) {
 	_ = isDir
 
 	// We cannot download file/dir that doesn't exist.
-	if !exist {
+	if !exist && req.Download {
 		return nil, fmt.Errorf("remote source %q does not exist", absRemotePath)
 	}
 

@@ -62,6 +62,8 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 
 	ctx := context.Background()
 
+	fmt.Fprintf(os.Stdout, "Checking transfer size...\n")
+
 	if n, size, err := cmd.DryRun(ctx); err != nil {
 		fmt.Fprintf(os.Stdout, "Copying files: remaining time is unknown\n")
 	} else {
