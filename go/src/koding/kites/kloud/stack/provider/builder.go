@@ -31,6 +31,8 @@ type KodingMeta struct {
 	Slug       string `hcl:"group_slug"`
 	StackID    string `hcl:"stack_id"`
 	TemplateID string `hcl:"template_id"`
+	KlientURL  string `hcl:"klient_url"`
+	ScreenURL  string `hcl:"screen_url"`
 }
 
 // CustomMeta represents private variables injected into Terraform template.

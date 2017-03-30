@@ -194,7 +194,7 @@ func NewCloudInit(cfg *CloudConfig) CloudInit {
 		"users": []interface{}{
 			"default",
 			map[string]interface{}{
-				"name":        cfg.Username,
+				"name":        "${var.koding_account_profile_nickname}",
 				"lock_passwd": bool(true),
 				"gecos":       "Koding",
 				"groups": []interface{}{
