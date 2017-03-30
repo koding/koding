@@ -1,6 +1,8 @@
 React = require 'app/react'
 kd = require 'kd'
 
+debug = require('debug')('compute:connect')
+
 # FIXME: so naive, but works for now.
 makeSingular = (plural) -> plural.slice 0, -1
 
@@ -49,6 +51,7 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
 
       return  unless @_mounted
 
+      debug 'onStorageUpdate'
 
       @setState makeState config, @props
 
@@ -87,6 +90,8 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
       { computeController } = kd.singletons
 
       computeController.storage.off 'change', @bound 'onStorageUpdate'
+
+      debug 'componentWillUnmount'
 
       Object.keys(@events).forEach (eventId) =>
         computeController.off eventId, @events[eventId]
