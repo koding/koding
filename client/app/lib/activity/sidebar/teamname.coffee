@@ -1,6 +1,5 @@
 kd    = require 'kd'
 JView = require '../../jview'
-kookies = require 'kookies'
 showError = require 'app/util/showError'
 whoami = require 'app/util/whoami'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
@@ -8,6 +7,7 @@ ChangeTeamView = require 'app/changeteam'
 JCustomHTMLView  = require 'app/jcustomhtmlview'
 globals = require 'globals'
 intercomSupport = require 'app/util/intercomSupport'
+getCurrentGroup = require 'app/util/getGroup'
 ACCOUNT_MENU  = null
 
 
@@ -102,7 +102,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
       'Change Team' : { callback }
     }
 
-    menuItems.Analytics = { callback }  if kookies.get 'countly-enabled'
+    menuItems.Analytics = { callback }  if getCurrentGroup().countly?.appKey
 
     intercomSupport (isSupported) =>
       menuItems['Support'] = if isSupported then { callback }
