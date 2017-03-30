@@ -58,9 +58,12 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
       @_mounted = yes
 
       { computeController } = kd.singletons
-      { controllerEvents } = config
 
       computeController.storage.on 'change', @bound 'onStorageUpdate'
+
+      { controllerEvents } = config
+
+      return  unless controllerEvents
 
       Object.keys(controllerEvents).forEach (resource) =>
         return  unless resourceId = @props["#{resource}Id"]
