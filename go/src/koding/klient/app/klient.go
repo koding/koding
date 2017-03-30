@@ -485,6 +485,7 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("fs.copy", fs.Copy)
 	k.handleWithSub("fs.getDiskInfo", fs.GetDiskInfo)
 	k.handleWithSub("fs.getPathSize", fs.GetPathSize)
+	k.handleWithSub("fs.abs", fs.KiteHandlerAbs())
 
 	// Machine group handlers.
 	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
@@ -495,6 +496,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
+	k.kite.HandleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))
 	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)
 	k.kite.HandleFunc("machine.kill", k.machines.HandleKill)
 

@@ -68,6 +68,11 @@ func currentUser(c Client, interval time.Duration) func() (string, error) {
 	}
 }
 
+// Abs calls registered Client's Abs method without any cache.
+func (c *Cached) Abs(path string) (string, bool, bool, error) {
+	return c.c.Abs(path)
+}
+
 // SSHAddKeys calls registered Client's SSHAddKeys method and caches its result
 // for the specified interval. It doesn't cache results from disconnected
 // client. If call arguments change, the cache will be invalidated.

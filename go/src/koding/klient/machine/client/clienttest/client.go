@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
@@ -106,6 +107,11 @@ func (c *Client) CurrentUser() (string, error) {
 	}
 
 	return u.Username, nil
+}
+
+// Abs returns absolute representation of given path.
+func (c *Client) Abs(path string) (string, bool, bool, error) {
+	return fs.DefaultFS.Abs(path)
 }
 
 // SSHAddKeys is a no-op method and always returns nil.

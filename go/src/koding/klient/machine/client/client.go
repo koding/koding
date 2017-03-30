@@ -12,6 +12,9 @@ type Client interface {
 	// CurrentUser returns remote machine current username.
 	CurrentUser() (string, error)
 
+	// Abs returns absolute representation of given path.
+	Abs(string) (string, bool, bool, error)
+
 	// SSHAddKeys adds SSH public keys to user's authorized_keys file.
 	SSHAddKeys(string, ...string) error
 
