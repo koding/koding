@@ -375,17 +375,12 @@ func (k *Klient) Abs(path string) (string, bool, bool, error) {
 		Path: path,
 	}
 
-	raw, err := k.Client.TellWithTimeout("fs.abs", k.timeout(), req)
-	if err != nil {
+	var resp fs.AbsResponse
+	if err := k.call("fs.abs", req, &resp); err != nil {
 		return "", false, false, err
 	}
 
-	var res fs.AbsResponse
-	if err := raw.Unmarshal(&res); err != nil {
-		return "", false, false, err
-	}
-
-	return res.AbsPath, res.IsDir, res.Exist, nil
+	return resp.AbsPath, resp.IsDir, resp.Exist, nil
 }
 
 // SSHAddKeys adds SSH public keys to user's authorized_keys file.
