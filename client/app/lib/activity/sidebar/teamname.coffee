@@ -1,5 +1,6 @@
 kd    = require 'kd'
 JView = require '../../jview'
+kookies = require 'kookies'
 showError = require 'app/util/showError'
 whoami = require 'app/util/whoami'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
@@ -101,6 +102,8 @@ module.exports = class TeamName extends kd.CustomHTMLView
       'Change Team' : { callback }
     }
 
+    menuItems.Analytics = { callback }  if kookies.get 'countly-enabled'
+
     intercomSupport (isSupported) =>
       menuItems['Support'] = if isSupported then { callback }
       else { callback: @bound 'mailToSupport' }
@@ -126,6 +129,11 @@ module.exports = class TeamName extends kd.CustomHTMLView
   handleDashboard: ->
 
     kd.singletons.router.handleRoute '/Home/stacks'
+
+
+  handleAnalytics: ->
+
+    kd.singletons.router.handleRoute '/Analytics'
 
 
   handleLogout: ->
