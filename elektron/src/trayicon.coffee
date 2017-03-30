@@ -159,11 +159,11 @@ module.exports = class KodingTray
     return  unless selectedDir
 
     [ mountTo ] = selectedDir
-    remotePath  = "--remotepath /home/#{machine.hostname}"
+    remotePath  = ":/home/#{machine.username}"
 
     @setMenu 'Mount in progress...', yes
 
-    @kd "mount #{machine.vmName} #{mountTo} #{remotePath}", (err, res) =>
+    @kd "mount #{machine.alias}#{remotePath} #{mountTo}", (err, res) =>
 
       if err
         @setMenu 'Mount failed', yes
@@ -175,11 +175,11 @@ module.exports = class KodingTray
       console.log 'Mount:', err, res
 
 
-  handleUnmount: (machine) -> =>
+  handleUnmount: (mountId) -> =>
 
     @setMenu 'Unmount in progress...', yes
 
-    @kd "unmount #{machine.vmName}", (err, res) =>
+    @kd "umount #{mountId}", (err, res) =>
 
       if err
         @setMenu 'Unmount failed', yes
@@ -210,8 +210,16 @@ module.exports = class KodingTray
         callback null, stdout
 
 
+  # Mounts Fetcher
+  loadMounts: (callback) ->
+
+    @setMenu 'Fetching mounts...'
+
+    @kd 'mount list --json', callback
+
+
   # Machine Fetcher
-  loadMachineMenu: (show) ->
+  loadMachineMenu: (show) -> @loadMounts (err, mounts) =>
 
     @setMenu 'Fetching machines...'
 
@@ -253,18 +261,18 @@ module.exports = class KodingTray
           ]
         }
 
-        if machine.mountedPaths.length > 0
+        if machineMounts = mounts[machine.alias]
           # assuming that there is currently one mount point per machine
-          [ mount ] = machine.mountedPaths
+          [ mount ] = machineMounts
           actions   = [
             label : 'Open folder'
-            click : handleOpen "file:///#{mount}"
+            click : handleOpen "file:///#{mount.mount.path}"
           ,
             label : 'Unmount'
-            click : @handleUnmount machine
+            click : @handleUnmount mount.id
           ]
           item.submenu.push
-            label   : mount
+            label   : mount.mount.path
             submenu : actions
         else
           item.submenu.push
