@@ -492,6 +492,18 @@ module.exports = class IDEAppController extends AppController
       @openFile { file, contents, switchIfOpen: yes }
 
 
+  updateMachineRoot: ->
+
+    { finderController } = @finderPane
+
+    @mountedMachine.fetchInfo (err, info) =>
+      debug 'machine.fetchInfo res', { err, info }
+      kd.warn '[IDE] Failed to fetch info', err  if err
+      rootPath = info?.home or '/'
+      debug 'updating machine root as', @mountedMachine.uid, rootPath
+      finderController.updateMachineRoot @mountedMachine.uid, rootPath
+
+
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
@@ -500,8 +512,9 @@ module.exports = class IDEAppController extends AppController
     panel     = @workspace.getView()
     filesPane = panel.getPaneByName 'filesPane'
 
-    @workspace.ready ->
+    @workspace.ready =>
       filesPane.emit 'MachineMountRequested', machineData
+      @updateMachineRoot()
 
 
   unmountMachine: (machineData) ->
@@ -623,6 +636,7 @@ module.exports = class IDEAppController extends AppController
           @prepareCollaboration()
           @bindKlientEvents machineItem
           @runOnboarding()
+
         else
           unless @machineStateModal
 
@@ -1232,19 +1246,12 @@ module.exports = class IDEAppController extends AppController
   handleIDEBecameReady: (machine, initial = no) ->
 
     { computeController } = kd.singletons
-    { finderController }  = @finderPane
 
     debug 'handleIDEBecameReady', { machine, initial }
 
     # when MachineStateModal calls this func, we need to rebind Klient.
     @bindKlientEvents machine
-
-    machine.fetchInfo (err, info) =>
-      debug 'machine.fetchInfo res', { err, info }
-      kd.warn '[IDE] Failed to fetch info', err  if err
-      rootPath = info?.home or '/'
-      debug 'updating machine root as', @mountedMachine.uid, rootPath
-      finderController.updateMachineRoot @mountedMachine.uid, rootPath
+    @updateMachineRoot()
 
     machine.getBaseKite()?.fetchTerminalSessions?()
 
