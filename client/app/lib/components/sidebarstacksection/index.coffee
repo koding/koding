@@ -150,48 +150,63 @@ module.exports = class SidebarStackSection extends React.Component
     return  if MENU
 
     callback = @bound 'onMenuItemClick'
-
     menuItems = {}
-    template = @props.template
 
-    { originId, accessLevel } = template.toJS()  if template
+    { template, stack } = @props
+    { storage } = kd.singletons.computeController
+
+    template = template.toJS()
+    stack = stack.toJS()
+    account = whoami()
+
+    isMyTemplate = template?.originId is account._id
+
+    debug 'accessLevel', template.accessLevel
 
     if @getStackUnreadCount()
       menuItems['Update'] = { callback }
 
-    if @props.stack.getIn ['config', 'remoteDetails', 'originalUrl']
+    if stack.config?.remoteDetails?.originalUrl?
       menuItems['Open on GitLab'] = { callback }
 
-    managedVM = @props.stack.get('title').indexOf('Managed VMs') > -1
-
-    if managedVM
+    if stack.title.indexOf('Managed VMs') > -1
       menuItems['VMs'] = { callback }
-    else if @props.stack.get 'disabled'
+
+    else if stack.disabled
       # because of disabled stack's baseTemplate came undefined
       # no need to show Edit, Clone, Reinitialize options
-      ['VMs', 'Destroy VMs'].forEach (name) ->
-        menuItems[name] = { callback }
+      ['VMs', 'Destroy VMs'].forEach (name) -> menuItems[name] = { callback }
+
     else
-      if isAdmin() or (template and whoami()._id is originId)
+
+      if isAdmin() or isMyTemplate
         menuItems['Edit'] = { callback }
-        menuItems['Clone'] = { callback }  if canCreateStacks()
+
+        if canCreateStacks()
+          menuItems['Clone'] = { callback }
+
       else
         menuItems['View Stack'] = { callback }
+
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
-      if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
+
+      if isAdmin() and not isDefaultTeamStack stack.baseStackId
         menuItems['Make Team Default'] = { callback }
 
-      if template and whoami()._id is originId and not isDefaultTeamStack @props.stack.get 'baseStackId'
-        menuItems['Share With Team'] = { callback }  if accessLevel is 'private'
-        menuItems['Make Private'] = { callback }  if accessLevel is 'group'
+      if isMyTemplate and not isDefaultTeamStack stack.baseStackId
+
+        if template.accessLevel is 'private'
+          menuItems['Share With Team'] = { callback }
+
+        if template.accessLevel is 'group'
+          menuItems['Make Private'] = { callback }
+
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
     menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
-
     MENU = new kd.ContextMenu menuOptions, menuItems
-
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
 
 

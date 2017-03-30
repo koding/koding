@@ -492,6 +492,18 @@ module.exports = class IDEAppController extends AppController
       @openFile { file, contents, switchIfOpen: yes }
 
 
+  updateMachineRoot: ->
+
+    { finderController } = @finderPane
+
+    @mountedMachine.fetchInfo (err, info) =>
+      debug 'machine.fetchInfo res', { err, info }
+      kd.warn '[IDE] Failed to fetch info', err  if err
+      rootPath = info?.home or '/'
+      debug 'updating machine root as', @mountedMachine.uid, rootPath
+      finderController.updateMachineRoot @mountedMachine.uid, rootPath
+
+
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
@@ -500,8 +512,9 @@ module.exports = class IDEAppController extends AppController
     panel     = @workspace.getView()
     filesPane = panel.getPaneByName 'filesPane'
 
-    @workspace.ready ->
+    @workspace.ready =>
       filesPane.emit 'MachineMountRequested', machineData
+      @updateMachineRoot()
 
 
   unmountMachine: (machineData) ->
@@ -564,7 +577,7 @@ module.exports = class IDEAppController extends AppController
   setMountedMachine: (machine) ->
 
     @mountedMachine = machine
-    @emit 'MachineDidMount', machine
+    @emit 'MachineDidMount', machine  if machine
 
 
   whenMachineReady: (callback) ->
@@ -623,6 +636,7 @@ module.exports = class IDEAppController extends AppController
           @prepareCollaboration()
           @bindKlientEvents machineItem
           @runOnboarding()
+
         else
           unless @machineStateModal
 
@@ -903,7 +917,7 @@ module.exports = class IDEAppController extends AppController
 
       delete @generatedPanes[pane.view.hash]
 
-      if session = pane.view.remote?.session
+      if not @isDisabled() and session = pane.view.remote?.session
         # we need to check against kite existence because while a machine
         # is getting destroyed/stopped/reinitialized we are invalidating it's
         # kite instance to make sure every call is stopped. ~ GG
@@ -922,10 +936,12 @@ module.exports = class IDEAppController extends AppController
     ideView.on 'NewEditorPaneCreated', (pane) =>
       @emit 'EditorPaneDidOpen', pane
 
+  isDisabled: ->
+    @isDestroyed or not @mountedMachine or not @isMachineRunning()
 
   writeSnapshot: ->
 
-    return  if @isDestroyed or not @isMachineRunning() or @silent
+    return  if @isDisabled() or @silent
 
     key   = @getWorkspaceStorageKey nick()
     value = @getWorkspaceSnapshot()
@@ -947,6 +963,8 @@ module.exports = class IDEAppController extends AppController
 
   saveLayoutSize: ->
 
+    return  if @isDisabled()
+
     username  = nick()
     key       = @getWorkspaceStorageKey "#{username}-LayoutSize"
     value     = @getLayoutSizeData()
@@ -962,6 +980,8 @@ module.exports = class IDEAppController extends AppController
 
 
   removeWorkspaceSnapshot: (username = nick()) ->
+
+    return  if @isDisabled()
 
     key = @getWorkspaceStorageKey username
     @mountedMachine.getBaseKite().storageDelete key
@@ -1226,19 +1246,12 @@ module.exports = class IDEAppController extends AppController
   handleIDEBecameReady: (machine, initial = no) ->
 
     { computeController } = kd.singletons
-    { finderController }  = @finderPane
 
     debug 'handleIDEBecameReady', { machine, initial }
 
     # when MachineStateModal calls this func, we need to rebind Klient.
     @bindKlientEvents machine
-
-    machine.fetchInfo (err, info) =>
-      debug 'machine.fetchInfo res', { err, info }
-      kd.warn '[IDE] Failed to fetch info', err  if err
-      rootPath = info?.home or '/'
-      debug 'updating machine root as', @mountedMachine.uid, rootPath
-      finderController.updateMachineRoot @mountedMachine.uid, rootPath
+    @updateMachineRoot()
 
     machine.getBaseKite()?.fetchTerminalSessions?()
 
@@ -1665,11 +1678,19 @@ module.exports = class IDEAppController extends AppController
     @stopCollaborationSession()  if stopCollaborationSession
 
     if reload
+
       kd.singletons.appManager.quit this, =>
         route = if @mountedMachine then "/IDE/#{@mountedMachine.slug}" else '/IDE'
         kd.singletons.router.handleRoute route
 
-      @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
+    else
+
+      @cleanupCollaboration()
+      @setMountedMachine null
+      kd.singletons.router.handleRoute '/IDE'
+
+    @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
+
 
 
   beforeQuit: -> @quit reload = no
@@ -1759,6 +1780,8 @@ module.exports = class IDEAppController extends AppController
 
   showUserRemovedModal: ->
 
+    return  unless @mountedMachine
+
     options        =
       title        : 'Machine access revoked'
       content      : '<p>Your access to this machine has been removed by its owner.</p>'
@@ -1799,7 +1822,7 @@ module.exports = class IDEAppController extends AppController
 
   fetchFromKiteStorage: (callback, prefix) ->
 
-    if not @mountedMachine or not @mountedMachine.isRunning()
+    if @isDisabled()
       return callback null
 
     handleError = (err) ->

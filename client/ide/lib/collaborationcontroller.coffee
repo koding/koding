@@ -1154,18 +1154,17 @@ module.exports = CollaborationController =
 
     @unsetSocialChannel()
 
-    # TODO: remove Active session from here,
-    # we will deffo need a leaving state.
-    return  unless @stateMachine.state in ['Ending', 'Active']
+    if @rtm
 
-    @rtm.once 'RealtimeManagerWillDispose', =>
-      kd.utils.killRepeat @pingInterval
+      @rtm.once 'RealtimeManagerWillDispose', =>
+        kd.utils.killRepeat @pingInterval
 
-    @rtm.once 'RealtimeManagerDidDispose', =>
-      @rtm = null
-      delete @stateMachine
+      @rtm.once 'RealtimeManagerDidDispose', =>
+        @rtm = null
+        delete @stateMachine
 
-    @rtm.dispose()
+      @rtm.dispose()
+
     @emit 'CollaborationDidCleanup'
 
 

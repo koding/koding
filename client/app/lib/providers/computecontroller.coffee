@@ -64,6 +64,7 @@ module.exports = class ComputeController extends KDController
     @_trials = {}
 
     mainController.ready =>
+      { appStorageController, notificationController } = kd.singletons
 
       @bindPaymentEvents()
 
@@ -80,18 +81,22 @@ module.exports = class ComputeController extends KDController
 
       @createDefaultStack()
 
-      @appStorage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
+      @appStorage = appStorageController.storage 'Compute', '0.0.1'
 
       debug 'now ready'
       @emit 'ready'
 
       @checkGroupStackRevisions()
       @checkGroupStacks()
+      @checkMachines()
 
       if groupsController.canEditGroup()
-        @checkMachinePermissions()
 
-      @checkMachines()
+        notificationController.on 'DisabledUserStackAdded', (data) =>
+          debug 'disabled user stack added', data
+          @checkMachinePermissions()
+
+        @checkMachinePermissions()
 
 
   # ComputeController internal helpers
@@ -511,6 +516,7 @@ module.exports = class ComputeController extends KDController
 
     stack.machines.forEach (machine) =>
 
+      @storage.machines.pop machine
       @eventListener.triggerState machine,
         status      : remote.api.JMachine.State.Terminating
         percentage  : 0
@@ -540,6 +546,10 @@ module.exports = class ComputeController extends KDController
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
     .catch (err) ->
+
+      stack.machines.forEach (machine) =>
+        @storage.machines.push machine
+
       console.error 'Destroy stack failed:', err
       callback err
 
@@ -746,6 +756,7 @@ module.exports = class ComputeController extends KDController
 
 
   sharedStackTemplateAccessLevel: (params) ->
+
     { reactor } = kd.singletons
     { contents: { id: _id, change: { $set: { accessLevel } } } } = params
 
@@ -755,17 +766,23 @@ module.exports = class ComputeController extends KDController
 
       reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
 
+      stackTemplate.setAt 'accessLevel', accessLevel
+
+      debug 'stack template access level is set', accessLevel
+
       if accessLevel is 'group'
         new kd.NotificationView { title : 'Stack Template is Shared With Team' }
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
-        @removeRevisonFromUnSharedStackTemplate _id, stackTemplate
+        @removeRevisionFromUnSharedStackTemplate _id, stackTemplate
         new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
-  removeRevisonFromUnSharedStackTemplate: (id, stackTemplate) ->
+  removeRevisionFromUnSharedStackTemplate: (id, stackTemplate) ->
 
     { reactor } = kd.singletons
+
+    debug 'remove revision', { id, accessLevel: stackTemplate.accessLevel }
 
     if stackTemplate
       reactor.dispatch 'UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
@@ -783,6 +800,8 @@ module.exports = class ComputeController extends KDController
   checkRevisionFromOriginalStackTemplate: (stackTemplate) ->
 
     { reactor } = kd.singletons
+
+    debug 'check revision', { accessLevel: stackTemplate.accessLevel }
 
     reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
     if whoami()._id is stackTemplate.originId
@@ -851,6 +870,14 @@ module.exports = class ComputeController extends KDController
     else @emit 'GroupStacksConsistent'
 
 
+  ignoreMachine: (machine) ->
+
+    ignoredMachines = @appStorage.getValue('ignoredMachines') ? {}
+    ignoredMachines[machine.uid] = yes
+
+    @appStorage.setValue 'ignoredMachines', ignoredMachines
+
+
   fixMachinePermissions: (machine, dontAskAgain = no) ->
 
     { groupsController } = kd.singletons
@@ -862,10 +889,7 @@ module.exports = class ComputeController extends KDController
 
       if state.dontAskAgain is yes
 
-        ignoredMachines = @storage.getValue('ignoredMachines') ? {}
-        ignoredMachines[machine.uid] = yes
-
-        @storage.setValue 'ignoredMachines', ignoredMachines
+        @ignoreMachine machine
 
         new kd.NotificationView
           title    : "We won't bother you again for this machine"
@@ -885,7 +909,9 @@ module.exports = class ComputeController extends KDController
       kloud.addAdmin { machineId: machine._id }
         .finally ->
           notification.destroy()
-        .then (shared) ->
+        .then (shared) =>
+          debug 'fixed permissions', shared
+          @ignoreMachine machine
           new kd.NotificationView { title: 'Permissions fixed' }
         .catch (err) ->
           showError err
@@ -963,7 +989,7 @@ module.exports = class ComputeController extends KDController
   fetchStackTemplates: (callback) ->
 
     if (templates = @storage.templates.get()).length
-      callback null, templates
+      return callback null, templates
 
     query   = { group: getGroup().slug }
     options = { limit: 60 }

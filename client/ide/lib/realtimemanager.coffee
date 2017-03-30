@@ -89,7 +89,9 @@ module.exports = class RealtimeManager extends KDObject
 
     fileId = options.id
 
-    return throw new Error 'fileId is required'  unless fileId
+    unless fileId
+      console.warn 'fileId is required'
+      return
 
     gapi.client.drive.files.get({ fileId }).execute (file) =>
       @emit 'FileFetched', file
