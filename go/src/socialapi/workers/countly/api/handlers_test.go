@@ -32,13 +32,13 @@ func TestCreateApp(t *testing.T) {
 
 					var keys map[string]string
 					So(json.Unmarshal(res, &keys), ShouldBeNil)
-					So(len(keys), ShouldEqual, 2)
+					So(len(keys), ShouldEqual, 3)
 
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 
 					// check if we stored keys properly.
-					So(group.Countly.APPKey, ShouldEqual, keys["appKey"])
+					So(group.Countly.AppKey, ShouldEqual, keys["appKey"])
 					So(group.Countly.APIKey, ShouldEqual, keys["apiKey"])
 
 					Convey("endpoint should be idempotent", func() {
@@ -48,7 +48,7 @@ func TestCreateApp(t *testing.T) {
 
 						var keys2 map[string]string
 						So(json.Unmarshal(res, &keys2), ShouldBeNil)
-						So(len(keys2), ShouldEqual, 2)
+						So(len(keys2), ShouldEqual, 3)
 
 						So(keys["appKey"], ShouldEqual, keys2["appKey"])
 						So(keys["apiKey"], ShouldEqual, keys2["apiKey"])
