@@ -25,7 +25,6 @@ bootCountly = (appKey) ->
 
 module.exports = ->
   getCurrentGroup = require 'app/util/getGroup'
-  console.log 'dfsddfsddfsddfsddfsddfsddfsddfsd'
   group = getCurrentGroup()
   return  unless group.countly?.appKey
   bootCountly group.countly?.appKey
