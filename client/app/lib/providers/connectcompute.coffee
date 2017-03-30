@@ -1,6 +1,5 @@
 React = require 'app/react'
 kd = require 'kd'
-shallowCompare = require 'react-addons-shallow-compare'
 
 # FIXME: so naive, but works for now.
 makeSingular = (plural) -> plural.slice 0, -1
@@ -45,9 +44,6 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
       @state = makeState config, props
 
 
-    shouldComponentUpdate: (nextProps, nextState) ->
-
-      return shallowCompare this, nextProps, nextState
 
 
     onStorageUpdate: ->
