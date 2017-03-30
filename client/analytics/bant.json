@@ -1,6 +1,6 @@
 {
   "name": "analytics",
-  "main": "./lib/index.coffee",
+  "main": "./lib/index.js",
   "routes": {
     "/Analytics": "analytics"
   },
