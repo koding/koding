@@ -134,19 +134,11 @@ loadStacks = (force = no) ->
 
 leaveMachine = (_machine) ->
 
-  { reactor, machineShareManager, appManager, computeController } = kd.singletons
+  { reactor, appManager, computeController } = kd.singletons
 
-  machineUId = _machine.get 'uid'
-  machineShareManager.unset machineUId
-
-  isApproved  = _machine.get 'isApproved'
-  isPermanent = _machine.get 'isPermanent'
-  denyMachine = switch _machine.get 'type'
-    when 'shared'         then isPermanent
-    when 'collaboration'  then not isPermanent
-
+  machineUId  = _machine.get 'uid'
   ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
-  machine = computeController.storage.machines.get 'uid', machineUId
+  machine     = computeController.storage.machines.get 'uid', machineUId
 
   async.series([
 
@@ -158,32 +150,7 @@ leaveMachine = (_machine) ->
 
     (callback) ->
 
-      return callback()  unless _machine.get('type') is 'collaboration'
-
-      # Do not call social api from here if there is an ide app instance.
-      # Because it will be called it in next queue item by "quit()" method instead of this queue.
-      # You can check "stopCollaborationSession" method of collaborationcontroller.coffee
-      # ~TURUNC
-      return callback()  if ideInstance and denyMachine
-
-      { channel } = kd.singletons.socialapi
-      channelId   = machine.getChannelId()
-
-      channel.byId { id: channelId }, (err, socialChannel) ->
-        if err
-          showError err
-          return callback err
-
-        isApproved = socialChannel.isParticipant
-        method     = if isApproved then 'leave' else 'rejectInvite'
-
-        channel[method] { channelId }, (err) ->
-          showError err  if err
-          callback()
-
-    (callback) ->
-
-      ideInstance?.quit()  if denyMachine
+      ideInstance?.quit reload = no
 
       machineId = machine.getId()
       reactor.dispatch actions.INVITATION_REJECTED, machineId
@@ -196,16 +163,9 @@ acceptInvitation = (_machine) ->
 
   debug 'acceptInvitation', _machine
 
-  { router, machineShareManager
-    socialapi, reactor, computeController } = kd.singletons
+  { router, socialapi, reactor, computeController } = kd.singletons
 
-  uid = _machine.get 'uid'
-
-  invitation = machineShareManager.get uid
-  machineShareManager.unset uid
-
-  debug 'acceptInvitation invitation', invitation
-
+  uid     = _machine.get 'uid'
   machine = computeController.storage.machines.get '_id', _machine.get '_id'
 
   debug 'acceptInvitation machine', machine
@@ -219,8 +179,8 @@ acceptInvitation = (_machine) ->
       callback()
       router.handleRoute route
 
-    if invitation?.type is 'collaboration' or _machine.get('type') is 'collaboration'
-      _getInvitationChannelId { uid, invitation }, (channelId) ->
+    if _machine.get('type') is 'collaboration'
+      _getInvitationChannelId { uid }, (channelId) ->
 
         unless channelId
           return showError 'Session is invalid or ended by host'
@@ -246,7 +206,7 @@ dispatchInvitationRejected = (id) ->
   kd.singletons.reactor.dispatch actions.INVITATION_REJECTED, id
 
 
-_getInvitationChannelId = ({ uid, invitation }, callback) ->
+_getInvitationChannelId = ({ uid }, callback) ->
 
   machine = kd.singletons.computeController.storage.machines.get 'uid', uid
   callback if machine then machine.getChannelId() else null

@@ -30,7 +30,6 @@ SearchController       = require './searchcontroller'
 SocialApiController    = require './socialapicontroller'
 PageTitleController    = require './pagetitlecontroller'
 ShortcutsController    = require './shortcutscontroller'
-MachineShareManager    = require './machinesharemanager'
 KodingFluxReactor      = require './flux/base/reactor'
 bowser                 = require 'bowser'
 fetchChatlioKey        = require 'app/util/fetchChatlioKey'
@@ -96,7 +95,6 @@ module.exports = class MainController extends kd.Controller
     kd.registerSingleton 'pageTitle',                 new PageTitleController
     kd.registerSingleton 'shortcuts',     shortcuts = new ShortcutsController
     kd.registerSingleton 'onboarding',                new OnboardingController
-    kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor
 
     kd.registerSingleton 'notificationViewController', new NotificationViewController
