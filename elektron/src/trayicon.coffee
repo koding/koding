@@ -14,12 +14,15 @@ CHECK_TIMER    = 120                 # every 2 min.
 
 # Helpers
 
-parseTeam  = (teams) ->
+Status      =
+  Connected : 3
+  Online    : 2
+  Offline   : 1
 
-  [ team ] = teams
-  team     = team.toLowerCase()
-  prefix   = if team is 'koding' then '' else "#{team}."
-  teamUrl  = "https://#{prefix}koding.com"
+parseTeam  = (machine) ->
+
+  { team } = machine
+  teamUrl  = "https://#{team}.koding.com"
 
   return { team, teamUrl }
 
@@ -212,34 +215,39 @@ module.exports = class KodingTray
 
     @setMenu 'Fetching machines...'
 
-    @kd 'list --json', (err, result) =>
+    @kd 'machine list --json', (err, result) =>
 
       return  if @setFailed err
 
       menu = []
 
-      result = result.filter (machine) -> machine.machineStatus isnt 1
+      # show only connected machines for now
+      result = result.filter (machine) ->
+        machine.status.state is Status.Connected
 
       result.forEach (machine) =>
-        # { team, teamUrl } = parseTeam machine.teams
-        label = "(#{machine.vmName})"
-        label = "#{machine.machineLabel} #{label}"  if machine.machineLabel
+
+        { team, teamUrl } = parseTeam machine
+
+        alias   = "(#{machine.alias})"
+        label   = "#{machine.label} #{alias}"
+
         item    = {
           label   : label
           submenu : [
-          #   label : "Open #{team}"
-          #   click : handleOpen teamUrl
-          # ,
-          #   type  : 'separator'
-          # ,
+            label : "Open #{team}"
+            click : handleOpen teamUrl
+          ,
+            type  : 'separator'
+          ,
             label : "Open #{machine.ip}"
             click : handleOpen "http://#{machine.ip}"
-          # ,
-          #   label : 'Open IDE'
-          #   click : handleOpen "#{teamUrl}/IDE/#{machine.machineLabel}/my-workspace"
+          ,
+            label : 'Open IDE'
+            click : handleOpen "#{teamUrl}/IDE/#{machine.label}"
           ,
             label : 'Open Terminal'
-            click : handleOpen "kd ssh #{machine.vmName}", 'terminal'
+            click : handleOpen "kd ssh #{machine.alias}", 'terminal'
           ,
             type  : 'separator'
           ]
