@@ -1,0 +1,116 @@
+$transGreen = rgba(26, 175, 93, .25)
+$transRed   = rgba(233, 72, 53, .25)
+
+.SidebarMachinesListItem--MainLink
+  antialiased()
+  borderBox()
+  color                     $gray-14
+  display                   block
+  font-size                 $fs-regular
+  font-weight               $fw-regular
+  line-height               16px
+  noTextDeco()
+  margin-bottom             8px
+  padding                   0px 8px 0px 19px
+  opacity                   1
+  rel()
+  size                      221px 20px
+  text-decoration           none
+
+  &.active
+    color                   #FFF
+
+  &:hover > .MachineSettings
+    opacity                 1
+
+  .SidebarListItem-title
+    height                  18px
+    max-width               180px
+    dIBlock()
+    ellipsis()
+    kalc                    width, (100% \- 25px)
+    vertical-align          top
+
+.SidebarMachinesListItem
+  rel()
+
+  &.active
+    .SidebarMachinesListItem--MainLink
+      color                 #E1E1E1 !important
+
+  &.unread
+    .MachineSettings
+      right                 35px
+
+  .SidebarListItem-icon
+    abs                     50% 0 0 0px
+    bg                      color transparent
+    border                  3px solid $gray-14
+    borderBox()
+    display                 block
+    rounded                 3px
+    size                    13px 13px
+    vendor                  transform, translateY(-50%)
+  &.Unknown
+  &.Stopped
+  &.NotInitialized
+    .SidebarListItem-icon
+      border-color          $gray-14
+  &.Running
+  &.Starting
+    .SidebarListItem-icon
+      border-color          $green
+  &.Building
+  &.Rebooting
+    .SidebarListItem-icon
+      border-color          $yellow
+  &.Stopping
+  &.Terminating
+  &.Terminated
+    .SidebarListItem-icon
+      border-color          $red
+
+  &.Starting
+    .SidebarListItem-progressbar
+      bg                    color $transGreen
+
+  &.Stopping
+    .SidebarListItem-progressbar
+      bg                    color $transRed
+      > cite
+        bg                  color $red
+
+
+.SidebarListItem-progressbar
+  abs                       0 0 -5px 19px
+  background                none
+  bg                        color transparent
+  border                    none
+  height                    3px
+  kalc                      width, (100% \- 19px)
+  overflow                  hidden
+  rounded                   2px
+  vendor                    transition, color .1s ease
+  &.full
+    > cite
+      margin-left           100%
+
+  > cite
+    bg                      color $green
+    border                  none
+    display                 block
+    height                  100%
+    max-width               100%
+    rounded                 2px
+    shadow                  none
+    vendor                  transition, width .1s ease .05s\,\
+                                        margin .3s ease
+
+
+
+.MachineSettings
+  abs                       2px -5px 0 0
+  opacity                   0
+  r-sprite                  app vm_settings_icon
+  right                     2px
+  vendor                    transition, opacity .1s .1s ease

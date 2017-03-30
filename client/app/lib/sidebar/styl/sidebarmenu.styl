@@ -1,0 +1,58 @@
+.SidebarMenu.kdcontextmenu
+  .kdlistview-contextmenu.default
+    width                   228px
+    border-top              6px solid #D8D8D8
+    rounded                 0
+    padding                 0
+
+  .kdlistitemview-contextitem.default
+    bg                      color, #FBFBFB
+    color                   #2B2B2B
+    rounded                 0
+    border-bottom           1px solid #EEEEEE
+    height                  48px
+    line-height             20px
+    font-weight             300
+    font-size               14px
+    padding                 14px 25px
+    text-shadow             none
+    borderBox()
+
+    &:first-of-type
+      rounded               0
+
+    &:last-of-type
+      rounded               0
+      border-bottom         none
+
+    &:hover
+      bg                    color, #F3F3F3
+      color                 #4BAF60
+
+  .kdlistitemview-contextitem.custom-view
+    bg                      color, #FBFBFB
+    min-height              80px
+    max-height              auto
+    color                   #2B2B2B
+    rounded                 0
+    border-bottom           1px solid #EEEEEE
+    line-height             20px
+    font-weight             300
+    font-size               14px
+    padding                 14px 25px
+    borderBox()
+
+    .HomeAppView-Nav--avatar-wrapper
+      display               flex
+      cursor                pointer
+      .HomeAppView-Nav--fullname-role
+        flex                1 0 auto
+        margin-left         8px
+        word-wrap           break-word
+      .HomeAppView-Nav--fullname
+        max-width           150px
+      .HomeAppView-Nav--avatar
+        background none
+        rel()
+      .HomeAppView-Nav--role
+        color               #727272

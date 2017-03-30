@@ -1,0 +1,263 @@
+debug = require('debug')('sidebar:ownedresourcelist')
+kd = require 'kd'
+cx = require 'classnames'
+React = require 'app/react'
+
+{ findDOMNode } = require 'react-dom'
+
+whoami = require 'app/util/whoami'
+isAdmin = require 'app/util/isAdmin'
+canCreateStacks = require 'app/util/canCreateStacks'
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
+
+List = require 'app/components/list'
+Link = require 'app/components/common/link'
+
+SidebarMachineItem = require 'app/components/sidebarmachineslistitem'
+OwnedResourceHeader = require './ownedresourceheader'
+
+MENU = null
+
+module.exports = class OwnedResourcesList extends React.Component
+
+  constructor: (props) ->
+    super props
+
+    @headers = []
+
+  getSectionCount: -> @props.resources.length
+
+
+  getRowCount: (sectionIndex) ->
+
+    resource = @props.resources[sectionIndex]
+
+    return resource.stack?.machines?.length or 0
+
+
+  onHeaderTitleClick: ({ template }) ->
+
+    kd.singletons.router.handleRoute "/Stack-Editor/#{template.getId()}"
+
+
+  onHeaderMenuItemClick: (resource, item) ->
+
+    MENU.destroy()
+
+    { appManager, router, linkController, computeController } = kd.singletons
+
+    { stack, template } = resource
+    { title } = item.getData()
+
+    templateId = template.getId()
+
+    switch title
+
+      when 'Edit', 'View Stack'
+        router.handleRoute "/Stack-Editor/#{templateId}"
+
+      when 'Initialize'
+        template.generateStack { verify: yes }, (err, stack) =>
+          return @onMenuItemClickError 'initializing', templateId  if err
+          router.handleRoute "/Stack-Editor/#{templateId}"
+          appManager.tell 'Stackeditor', 'reloadEditor', templateId
+          if machine = stack.results?.machines?[0]?.obj
+            computeController.reloadIDE machine
+
+      when 'Reinitialize', 'Update'
+        computeController.reinitStack stack, (err) =>
+          return @onMenuItemClickError 'reinitializing', templateId  if err
+          appManager.tell 'Stackeditor', 'reloadEditor', templateId
+
+      when 'Clone'
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'cloning'  if err
+          template.clone (err, template) =>
+            return @onMenuItemClickError 'cloning'  if err
+            router.handleRoute "/Stack-Editor/#{templateId}"
+
+      when 'Destroy VMs'
+        computeController.ui.askFor 'deleteStack', {}, (status) =>
+          return  unless status.confirmed
+          computeController.destroyStack stack, (err) =>
+            return @onMenuItemClickError 'destroying'  if err
+          , followEvents = no
+
+      when 'Delete'
+        computeController.deleteStackTemplate template
+
+      when 'VMs'
+        firstMachineId = stack.machines.first.getId()
+        router.handleRoute "/Home/stacks/virtual-machines/#{firstMachineId}"
+
+      when 'Open on GitLab'
+        { originalUrl } = stack.config.remoteDetails
+        linkController.openOrFocus originalUrl
+
+      when 'Make Team Default'
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'making team default'  if err
+          if template
+            computeController.makeTeamDefault template
+
+      when 'Share With Team'
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'sharing'  if err
+          if template
+            computeController.setStackTemplateAccessLevel template, 'group'
+
+      when 'Make Private'
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'cloning'  if err
+          if template
+            computeController.setStackTemplateAccessLevel template, 'private'
+
+
+  onHeaderMenuClick: (sectionIndex, resource) ->
+
+    return  if MENU
+
+    if resource.stack
+    then @onStackMenuIconClick sectionIndex, resource
+    else @onDraftMenuIconClick sectionIndex, resource
+
+
+  onStackMenuIconClick: (sectionIndex, resource) ->
+
+    callback = @lazyBound 'onHeaderMenuItemClick', resource
+    menuItems = {}
+    { stack, template } = resource
+
+    isMyTemplate = template?.originId is whoami()._id
+
+    debug 'accessLevel', template.accessLevel
+
+    if !!resource.unreadCount
+      menuItems['Update'] = { callback }
+
+    if stack.config?.remoteDetails?.originalUrl?
+      menuItems['Open on GitLab'] = { callback }
+
+    if stack.title.indexOf('Managed VMs') > -1
+      menuItems['VMs'] = { callback }
+
+    else if stack.disabled
+      # because of disabled stack's baseTemplate came undefined
+      # no need to show Edit, Clone, Reinitialize options
+      ['VMs', 'Destroy VMs'].forEach (name) -> menuItems[name] = { callback }
+
+    else
+
+      if isAdmin() or isMyTemplate
+        menuItems['Edit'] = { callback }
+
+        if canCreateStacks()
+          menuItems['Clone'] = { callback }
+
+      else
+        menuItems['View Stack'] = { callback }
+
+      ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
+        menuItems[name] = { callback }
+
+      if isAdmin() and not isDefaultTeamStack stack.baseStackId
+        menuItems['Make Team Default'] = { callback }
+
+      if isMyTemplate and not isDefaultTeamStack stack.baseStackId
+
+        if template.accessLevel is 'private'
+          menuItems['Share With Team'] = { callback }
+
+        if template.accessLevel is 'group'
+          menuItems['Make Private'] = { callback }
+
+
+    { top } = findDOMNode(@headers[sectionIndex]).getBoundingClientRect()
+
+    menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
+    MENU = new kd.ContextMenu menuOptions, menuItems
+    MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
+
+
+  onDraftMenuIconClick: (sectionIndex, resource) ->
+
+    callback = @lazyBound 'onHeaderMenuItemClick', resource
+    menuItems = {}
+    { template } = resource
+
+    if template.config?.remoteDetails?.originalUrl
+      menuItems['Open on GitLab'] = { callback }
+
+    if template.isMine()
+    then menuItems['Edit'] = { callback }
+    else menuItems['View Stack'] = { callback }
+
+    if canCreateStacks() or isAdmin()
+      menuItems['Clone'] = { callback }
+
+
+    if template.machines.length
+      if isAdmin()
+        menuItems['Make Team Default'] = { callback }
+
+      if template.isMine()
+        if template.accessLevel is 'private'
+        then menuItems['Share With Team'] = { callback }
+        else menuItems['Make Private'] = { callback }
+
+    menuItems['Initialize'] = { callback }
+    menuItems['Delete'] = { callback }
+
+    { top } = findDOMNode(@headers[sectionIndex]).getBoundingClientRect()
+
+    menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
+    MENU = new kd.ContextMenu menuOptions, menuItems
+    MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
+
+
+  renderSectionHeaderAtIndex: (sectionIndex) ->
+
+    resource = @props.resources[sectionIndex]
+
+    { template, unreadCount } = resource
+
+    <OwnedResourceHeader
+      ref={(header) => @headers[sectionIndex] = header}
+      title={template.title}
+      onTitleClick={@lazyBound 'onHeaderTitleClick', resource}
+      onMenuIconClick={@lazyBound 'onHeaderMenuClick', sectionIndex, resource}
+      unreadCount={unreadCount} />
+
+
+  renderRowAtIndex: (sectionIndex, rowIndex) ->
+
+    unless stack = @props.resources[sectionIndex].stack
+      return null
+
+    machine = stack.machines[rowIndex]
+
+    <SidebarMachineItem
+      machineId={machine.getId()}
+      stackId={stack.getId()} />
+
+
+  render: ->
+
+    <div className='SidebarTeamSection'>
+      <SectionHeader children='STACKS' />
+      <List
+        sectionClassName='SidebarSection SidebarStackSection'
+        rowClassName='SidebarSection-body'
+        numberOfSections={@bound 'getSectionCount'}
+        renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
+        numberOfRowsInSection={@bound 'getRowCount'}
+        renderRowAtIndex={@bound 'renderRowAtIndex'}
+      />
+    </div>
+
+
+SectionHeader = ({ children }) ->
+
+  <Link className='SidebarSection-headerTitle' href='/Home/stacks'>
+    STACKS
+  </Link>
