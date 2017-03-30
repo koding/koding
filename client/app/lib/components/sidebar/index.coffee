@@ -126,8 +126,10 @@ module.exports = class Sidebar extends React.Component
 
     if draft.getIn ['config', 'remoteDetails', 'originalUrl']
       menuItems['Open on GitLab'] = { callback }
+
     if whoami()._id is draft.get 'originId'
       menuItems['Edit'] = { callback }
+
     else
       menuItems['View Stack'] = { callback }
 

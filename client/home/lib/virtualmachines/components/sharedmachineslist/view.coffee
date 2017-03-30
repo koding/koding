@@ -7,13 +7,6 @@ MachineItem     = require '../machineslist/listitem'
 
 module.exports = class SharedMachinesListView extends React.Component
 
-  # render: ->
-
-  #   <List
-  #     stacks={stacks}
-  #     shouldRenderDetails={no} />
-
-
   numberOfSections: -> 1
 
 

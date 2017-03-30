@@ -161,11 +161,15 @@ module.exports = class NFinderController extends KDViewController
 
     return kd.warn 'Machine uid and new path required!'  unless uid or path
 
+    machineRoots = (@appStorage.getValue 'machineRoots') or {}
+
+    if machineRoots[uid] is path
+      return callback?()
+
+    machineRoots[uid] = path
+
     @unmountMachine uid
     callback?()
-
-    machineRoots = (@appStorage.getValue 'machineRoots') or {}
-    machineRoots[uid] = path
 
     if @getOptions().useStorage
       @appStorage.setValue 'machineRoots', machineRoots

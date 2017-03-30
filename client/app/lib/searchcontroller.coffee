@@ -165,7 +165,8 @@ module.exports = class SearchController extends KDObject
     { showCurrentUser } = opts
     delete opts.showCurrentUser
 
-    return @searchAccountsMongo seed, { showCurrentUser }  if @ready and not @algolia
+    if @ready # and not @algolia # FIXME ~ US
+      return @searchAccountsMongo seed, { showCurrentUser }
 
     @search 'accounts', seed, opts
       .then (data) ->
