@@ -70,6 +70,7 @@ bootup = ->
 
   mainController.ready ->
     setupChatlio()
+    require('./setupCountly')()
     # setupIntercom()
 
 
