@@ -33,6 +33,14 @@ func (s *groupCache) BySlug(slug string) (*mongomodels.Group, error) {
 		}
 	}
 
+	return s.Refresh(slug)
+}
+
+func (s *groupCache) SetToCache(group *mongomodels.Group) error {
+	return s.slug.Set(group.Slug, group)
+}
+
+func (s *groupCache) Refresh(slug string) (*mongomodels.Group, error) {
 	group, err := modelhelper.GetGroup(slug)
 	if err != nil {
 		return nil, err
@@ -43,8 +51,4 @@ func (s *groupCache) BySlug(slug string) (*mongomodels.Group, error) {
 	}
 
 	return group, nil
-}
-
-func (s *groupCache) SetToCache(group *mongomodels.Group) error {
-	return s.slug.Set(group.Slug, group)
 }
