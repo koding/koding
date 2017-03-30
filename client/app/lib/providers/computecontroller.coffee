@@ -516,6 +516,7 @@ module.exports = class ComputeController extends KDController
 
     stack.machines.forEach (machine) =>
 
+      @storage.machines.pop machine
       @eventListener.triggerState machine,
         status      : remote.api.JMachine.State.Terminating
         percentage  : 0
@@ -545,6 +546,10 @@ module.exports = class ComputeController extends KDController
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
     .catch (err) ->
+
+      stack.machines.forEach (machine) =>
+        @storage.machines.push machine
+
       console.error 'Destroy stack failed:', err
       callback err
 
