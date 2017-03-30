@@ -29,8 +29,8 @@
   },
   "homepage": "https://github.com/koding/koding#readme",
   "devDependencies": {
-    "coffee-script": "^1.11.1",
-    "electron": "^1.4.15",
-    "electron-packager": "^8.5.2"
+    "coffee-script": "^1.12.4",
+    "electron": "^1.6.2",
+    "electron-packager": "^8.6.0"
   }
 }
