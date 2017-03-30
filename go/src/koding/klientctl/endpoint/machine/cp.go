@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"koding/klient/machine/machinegroup"
+	"koding/klient/machine/transport/rsync"
 
 	"github.com/koding/logging"
 )
@@ -49,17 +50,25 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 		return err
 	}
 
-	fmt.Fprintf(os.Stderr, "Response remote: %#v\n", cpRes)
-
 	// Add private path to command.
 	_, _, privPath, err := sshGetKeyPath()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot copy requested data: %s\n", err)
 		return err
 	}
-	cpRes.Command.PrivateKeyPath = privPath
 
-	return cpRes.Command.Run(context.Background())
+	cmd := cpRes.Command
+	cmd.PrivateKeyPath = privPath
+
+	ctx := context.Background()
+
+	if n, size, err := cmd.DryRun(ctx); err != nil {
+		fmt.Fprintf(os.Stdout, "Copying files: remaining time is unknown\n")
+	} else {
+		cpRes.Command.Progress = rsync.Progress(os.Stdout, n, size)
+	}
+
+	return cpRes.Command.Run(ctx)
 }
 
 // Cp transfers file(s) between remote and local machine using DefaultClient.

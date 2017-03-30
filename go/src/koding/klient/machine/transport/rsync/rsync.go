@@ -77,8 +77,47 @@ func (c *Command) valid() error {
 	return nil
 }
 
+// DryRun copies command and runs it in dry mode - no copying is performed. This
+// method is useful when one need to check the amount and size of transferred
+// files.
+func (c *Command) DryRun(ctx context.Context) (n, size int64, err error) {
+	copy := *c
+
+	// Dissable progress bar.
+	var found = false
+	copy.Progress = func(nAll, sizeAll, _ int64, err error) {
+		if err == nil {
+			n, size, found = nAll, sizeAll, true
+		}
+	}
+
+	// Shallow copy since Cmd can be used only once.
+	if copy.Cmd == nil {
+		copy.Cmd = exec.CommandContext(ctx, "rsync")
+	} else {
+		copyCmd := *c.Cmd
+		copy.Cmd = &copyCmd
+	}
+
+	copy.Cmd.Args = append(copy.Cmd.Args, "--dry-run")
+	if err := copy.run(ctx, copy.dryscan); err != nil {
+		return 0, 0, err
+	}
+
+	if !found {
+		return 0, 0, errors.New("data size and number was not found")
+	}
+
+	return n, size, nil
+}
+
 // Run starts new rsync process. And waits for it to complete.
 func (c *Command) Run(ctx context.Context) error {
+	return c.run(ctx, c.scan)
+}
+
+// Run starts new rsync process. And waits for it to complete.
+func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 	if err := c.valid(); err != nil {
 		return err
 	}
@@ -165,7 +204,7 @@ func (c *Command) Run(ctx context.Context) error {
 
 	c.Cmd.Stderr = os.Stderr
 
-	c.scan(rc)
+	scan(rc)
 	if err = c.Cmd.Wait(); err != nil {
 		c.Progress(0, 0, 0, err)
 	} else {
@@ -179,7 +218,34 @@ var (
 	rmComma = strings.NewReplacer(",", "")
 	bitRe   = regexp.MustCompile(`^[.><ch*].......... .`)
 	sizeRe  = regexp.MustCompile(`^\s*([\d,]+)\s+\d+%.*$`)
+	totalRe = regexp.MustCompile(`^[^\d]*([\d,]+).*DRY\sRUN.*$`)
 )
+
+func (c *Command) dryscan(r io.Reader) {
+	var n int64
+
+	scanner := bufio.NewScanner(r)
+	scanner.Split(scanNonControl)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if bitRe.MatchString(line) {
+			n++
+			continue
+		}
+
+		ms := totalRe.FindStringSubmatch(line)
+		if len(ms) < 2 {
+			continue
+		}
+		rmComma.Replace(ms[1])
+		size, err := strconv.Atoi(rmComma.Replace(ms[1]))
+		if err != nil {
+			continue
+		}
+
+		c.Progress(n, int64(size), 0, nil)
+	}
+}
 
 func (c *Command) scan(r io.Reader) {
 	var (
