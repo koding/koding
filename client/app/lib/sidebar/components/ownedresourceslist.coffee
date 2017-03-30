@@ -13,7 +13,7 @@ isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 List = require 'app/components/list'
 Link = require 'app/components/common/link'
 
-SidebarMachineItem = require 'app/components/sidebarmachineslistitem'
+SidebarMachineItem = require './machineitemcontainer'
 OwnedResourceHeader = require './ownedresourceheader'
 
 MENU = null
