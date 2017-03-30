@@ -113,6 +113,9 @@ module.exports = class ComputeStorage extends kd.Object
 
     @storage[type] = data
 
+    @emit 'change', { operation: 'set', type, data }
+    @emit "change:#{type}", { operation: 'set', data }
+
     return this
 
 
