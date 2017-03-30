@@ -2,12 +2,12 @@ package machinegroup
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"sync"
 	"time"
 
-	"fmt"
 	"koding/kites/config"
 	"koding/kites/tunnelproxy/discover"
 	"koding/klient/machine"

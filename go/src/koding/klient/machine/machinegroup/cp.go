@@ -53,11 +53,10 @@ func (g *Group) Cp(req *CpRequest) (*CpResponse, error) {
 		return nil, err
 	}
 
-	absRemotePath, isDir, exist, err := c.Abs(remotePath)
+	absRemotePath, _, exist, err := c.Abs(remotePath)
 	if err != nil {
 		return nil, err
 	}
-	_ = isDir
 
 	// We cannot download file/dir that doesn't exist.
 	if !exist && req.Download {
