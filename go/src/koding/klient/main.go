@@ -66,6 +66,10 @@ var (
 	// Metadata flags.
 	flagMetadata     = f.String("metadata", "", "Base64-encoded Koding metadata")
 	flagMetadataFile = f.String("metadata-file", "", "Koding metadata file")
+
+	// Machine proxy flags
+	// flagK8sProxy 	= f.Bool("k8s-proxy", false, "Proxy commands to machines via Kubernetes")
+	// flagDockerProxy	= f.Bool("docker-proxy", false, "Proxy commands to machines via Docker")
 )
 
 func defaultNoTunnel() bool {
@@ -149,6 +153,7 @@ func realMain() int {
 		LogUploadInterval: *flagLogUploadInterval,
 		Metadata:          *flagMetadata,
 		MetadataFile:      *flagMetadataFile,
+		// MachineProxy:      *flagMachineProxy,
 	}
 
 	if err := handleMetadata(conf); err != nil {

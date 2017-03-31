@@ -1,0 +1,3 @@
+# Ignore everything in go/ because we will mount src/ when we run
+# our koding/go development container.
+*
