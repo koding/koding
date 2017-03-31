@@ -229,11 +229,11 @@ module.exports = class OwnedResourcesList extends React.Component
 
     resource = @props.resources[sectionIndex]
 
-    { template, unreadCount } = resource
+    { template, stack, unreadCount } = resource
 
     <OwnedResourceHeader
       ref={(header) => @headers[sectionIndex] = header}
-      title={template.title}
+      title={template?.title or stack?.title}
       onTitleClick={@lazyBound 'onHeaderTitleClick', resource}
       onMenuIconClick={@lazyBound 'onHeaderMenuClick', sectionIndex, resource}
       unreadCount={unreadCount} />
@@ -254,7 +254,7 @@ module.exports = class OwnedResourcesList extends React.Component
   render: ->
 
     <div className='SidebarTeamSection'>
-      <SectionHeader children='STACKS' />
+      <SectionHeader />
       <List
         sectionClassName='SidebarSection SidebarStackSection'
         rowClassName='SidebarSection-body'
