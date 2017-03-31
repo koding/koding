@@ -83,6 +83,11 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
           computeController.on eventId, @events[eventId]
 
 
+    componentWillReceiveProps: (nextProps, nextState) ->
+
+      @setState makeState config, nextProps
+
+
     componentWillUnmount: ->
 
       @_mounted = no
