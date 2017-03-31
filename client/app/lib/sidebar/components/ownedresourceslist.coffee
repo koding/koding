@@ -98,19 +98,19 @@ module.exports = class OwnedResourcesList extends React.Component
         linkController.openOrFocus originalUrl
 
       when 'Make Team Default'
-        computeController.fetchStackTemplate templateId, (err, template) =>
+        computeController.fetchStackTemplate template.getId(), (err, template) =>
           return @onMenuItemClickError 'making team default'  if err
           if template
             computeController.makeTeamDefault template
 
       when 'Share With Team'
-        computeController.fetchStackTemplate templateId, (err, template) =>
+        computeController.fetchStackTemplate template.getId(), (err, template) =>
           return @onMenuItemClickError 'sharing'  if err
           if template
             computeController.setStackTemplateAccessLevel template, 'group'
 
       when 'Make Private'
-        computeController.fetchStackTemplate templateId, (err, template) =>
+        computeController.fetchStackTemplate template.getId(), (err, template) =>
           return @onMenuItemClickError 'cloning'  if err
           if template
             computeController.setStackTemplateAccessLevel template, 'private'
