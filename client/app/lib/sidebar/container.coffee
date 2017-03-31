@@ -50,9 +50,15 @@ calculateOwnedResources = (props, state) ->
 
 calculateSharedResources = (props, state) ->
 
-  debug 'calculateSharedResources', { props, state }
+  debug 'start calculating shared resources', { props, state }
 
-  return []
+  resources =
+    permanent: props.machines.filter (m) -> m.getType() is 'shared'
+    collaboration: props.machines.filter (m) -> m.getType() is 'collaboration'
+
+  debug 'shared resources are calculated', resources
+
+  return resources
 
 
 module.exports = class SidebarContainer extends React.Component
