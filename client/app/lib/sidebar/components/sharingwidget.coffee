@@ -1,3 +1,4 @@
+kd = require 'kd'
 React = require 'app/react'
 cx = require 'classnames'
 
@@ -12,7 +13,11 @@ SidebarWidgetTitle = require './widgettitle'
 
 module.exports = SharingWidget = ({ machine, coordinates }) ->
 
-  <SidebarWidget onClose={onClose} coordinates>
+  text = if machine.getType() is Machine.Type.Collaboration
+  then 'wants to collaborate with you on their VM.'
+  else 'wants to share their VM with you'
+
+  <SidebarWidget onClose={onClose} coordinates={coordinates}>
 
     <SidebarWidgetUser owner={machine.getOwner()} />
     <SidebarWidgetTitle children={text} />
@@ -24,6 +29,7 @@ module.exports = SharingWidget = ({ machine, coordinates }) ->
 
   </SidebarWidget>
 
+
 Buttons = ({ children }) ->
 
   <div className='button-wrapper'>{children}</div>
@@ -31,11 +37,9 @@ Buttons = ({ children }) ->
 
 Button = ({ type, children, onClick }) ->
 
-  <button
-    onClick={onClick}
-    className={cx 'kdbutton', 'GenericButton', type}
-    children={children}
-  />
+  <button onClick={onClick} className={cx 'kdbutton', 'GenericButton', type}>
+    <span children={type.toUpperCase()} />
+  </button>
 
 
 onReject = (machine) ->
