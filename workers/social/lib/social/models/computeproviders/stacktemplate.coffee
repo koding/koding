@@ -723,7 +723,22 @@ module.exports = class JStackTemplate extends Module
     success: (client, options, callback) ->
 
       [ options, callback ] = [ callback, options ]  unless callback
-      options          ?= {}
+      options ?= {}
+
+      { connection: { delegate }, context: { group } } = client
+
+      hasAccess = yes
+
+      if @getAt('accessLevel') is 'private'
+        if @getAt('originId') isnt delegate.getId()
+          hasAccess = no
+
+      else if @getAt('accessLevel') is 'group'
+        if @getAt('group') isnt group
+          hasAccess = no
+
+      unless hasAccess
+        return callback new KodingError 'Access denied'
 
       cloneData         =
         slug            : @getAt 'slug'
