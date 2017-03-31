@@ -28,8 +28,6 @@
   "JName": "/name.coffee",
   "OAuth": "/oauth.coffee",
   "JPasswordRecovery": "/passwordrecovery.coffee",
-  "JProxyFilter": "/proxy/index.coffee",
-  "JProxyRestriction": "/proxy/restriction.coffee",
   "JEarnedReward": "/rewards/earnedreward.coffee",
   "JReward": "/rewards/index.coffee",
   "JRewardCampaign": "/rewards/rewardcampaign.coffee",
