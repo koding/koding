@@ -12,7 +12,9 @@ module.exports = class SidebarResources extends React.Component
 
   @propTypes =
     owned: React.PropTypes.array
-    shared: React.PropTypes.array
+    shared: React.PropTypes.shape
+      permanent: React.PropTypes.array
+      collaboration: React.PropTypes.array
     disabled: React.PropTypes.bool
     hasTemplate: React.PropTypes.bool
     canCreateStacks: React.PropTypes.bool
@@ -23,14 +25,12 @@ module.exports = class SidebarResources extends React.Component
     # owned resources is always rendered, even with no items (with empty
     # message), but shared resources will be shown only if there is at least 1
     # shared resource.
-    if @props.shared.length then 2 else 1
+    { shared: { permanent, collaboration } } = @props
+
+    return if permanent.length or collaboration.length then 2 else 1
 
 
-  getRowCount: (sectionIndex) ->
-
-    section = sections[sectionIndex]
-
-    return if @props[section].length then 1 else 0
+  getRowCount: (sectionIndex) -> 1
 
 
   renderEmptySectionAtIndex: (sectionIndex) ->
@@ -48,6 +48,8 @@ module.exports = class SidebarResources extends React.Component
   renderRowAtIndex: (sectionIndex) ->
 
     { owned, shared } = @props
+
+    console.log '>>>>>>>', sectionIndex, sections[sectionIndex]
 
     switch sections[sectionIndex]
       when 'owned'
