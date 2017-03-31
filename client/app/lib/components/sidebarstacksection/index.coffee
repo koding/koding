@@ -155,13 +155,7 @@ module.exports = class SidebarStackSection extends React.Component
     { template, stack } = @props
     { storage } = kd.singletons.computeController
 
-    template = template.toJS()
     stack = stack.toJS()
-    account = whoami()
-
-    isMyTemplate = template?.originId is account._id
-
-    debug 'accessLevel', template.accessLevel
 
     if @getStackUnreadCount()
       menuItems['Update'] = { callback }
@@ -178,6 +172,13 @@ module.exports = class SidebarStackSection extends React.Component
       ['VMs', 'Destroy VMs'].forEach (name) -> menuItems[name] = { callback }
 
     else
+
+      template = template.toJS()
+      account = whoami()
+
+      isMyTemplate = template?.originId is account._id
+
+      debug 'accessLevel', template.accessLevel
 
       if isAdmin() or isMyTemplate
         menuItems['Edit'] = { callback }
