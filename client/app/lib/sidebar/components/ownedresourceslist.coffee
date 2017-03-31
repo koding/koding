@@ -137,9 +137,6 @@ module.exports = class OwnedResourcesList extends React.Component
     menuItems = {}
     { stack, template } = resource
 
-    isMyTemplate = template?.originId is whoami()._id
-
-    debug 'accessLevel', template.accessLevel
 
     if !!resource.unreadCount
       menuItems['Update'] = { callback }
@@ -156,6 +153,10 @@ module.exports = class OwnedResourcesList extends React.Component
       ['VMs', 'Destroy VMs'].forEach (name) -> menuItems[name] = { callback }
 
     else
+
+      isMyTemplate = template?.originId is whoami()._id
+
+      debug 'accessLevel', template.accessLevel
 
       if isAdmin() or isMyTemplate
         menuItems['Edit'] = { callback }
