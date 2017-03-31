@@ -1,3 +1,4 @@
+debug = require('debug')('sidebar:controller')
 kd = require 'kd'
 EnvironmentFlux = require 'app/flux/environment'
 remote = require 'app/remote'
@@ -19,6 +20,7 @@ module.exports = class SidebarController extends kd.Controller
       stacks: {}
       drafts: {}
 
+    @managed = {}
 
     @bindNotificationHandlers()
     @setStateFromStorage()
@@ -96,12 +98,11 @@ module.exports = class SidebarController extends kd.Controller
 
 
   setVisibility: (type, id, state) ->
+
     fetchVisibility()
       .then (filters) =>
         filters[type][id] = state
         return filters
-
-
 
     new Promise (resolve) ->
       appStorageController.storage('Sidebar')
@@ -110,12 +111,35 @@ module.exports = class SidebarController extends kd.Controller
           resolve filters
 
 
+  addManaged: (id) ->
+
+    debug 'add managed vm', { id }
+
+    @managed[id] = id
+    @emit 'change'
+
+
+  removeManaged: (id) ->
+
+    debug 'remove managed vm', { id }
+
+    delete @managed[id]
+    @emit 'change'
+
+
+  getManaged: ->
+
+    first = Object.keys(@managed)?.first
+
+    if first then first else null
+
 
   getState: (selector = identity) ->
     return selector {
       selected: @selected
       leavingId: @leavingId
       invitedId: @invitedId
+      managedId: @getManaged()
     }
 
 
