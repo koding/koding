@@ -37,13 +37,17 @@ calculateOwnedResources = (props, state) ->
     then stacks.map (stack) -> { stack, template, unreadCount: 0 }
     else [{ stack: null, template, unreadCount: 0 }]
 
-
   debug 'resources are calculated before flatten', resources
 
   # now let's flatten them to have a single array
   resources = flatten(resources).sort ({ stack }) -> if stack then -1 else 1
 
-  debug 'resources are calculated', resources
+  [ managedStack ] = props.stacks.filter (s) -> s.title.indexOf('Managed VMs') > -1
+
+  if managedStack
+    resources.push { stack: managedStack, template: null, unreadCount: 0 }
+
+  debug 'owned resources are calculated', resources
 
   return resources
 
