@@ -8,7 +8,7 @@ ManagedMachineWidget = require './managedmachinewidget'
 
 module.exports = SidebarMachineItem = (props) ->
 
-  { leaving, selected, hasSettings, hasProgress, invited
+  { leaving, selected, hasSettings, hasProgress, invited, managed
     status, percentage, coordinates, machine
     itemDidMount, onSettingsClick, onMachineClick } = props
 
@@ -16,6 +16,7 @@ module.exports = SidebarMachineItem = (props) ->
 
     <MachineLink itemDidMount={itemDidMount} onClick={onMachineClick}>
       <Icon status={status} />
+
       <Title machine={machine} />
 
       {hasProgress and
@@ -39,7 +40,7 @@ module.exports = SidebarMachineItem = (props) ->
         coordinates={coordinates}
         machine={machine} /> }
 
-    {machine.isManaged() and
+    {managed and
       <ManagedMachineWidget
         machine={machine}
         coordinates={coordinates} /> }

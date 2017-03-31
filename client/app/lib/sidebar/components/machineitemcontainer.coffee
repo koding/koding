@@ -42,7 +42,7 @@ module.exports = connector class MachineItemContainer extends React.Component
 
 
   # converts state from sidebar to the state of this view.
-  transformSidebarState: ({ selected, invitedId, leavingId }) ->
+  transformSidebarState: ({ selected, invitedId, leavingId, managedId }) ->
 
     { machine } = @props
     newState = {}
@@ -56,6 +56,7 @@ module.exports = connector class MachineItemContainer extends React.Component
       selected: selected.machineId is machine.getId()
       invited: invitedId is machine.getId()
       leaving: leavingId is machine.getId()
+      managed: managedId is machine.getId()
 
     if @item and (newState.leaving or newState.invited)
       rect = findDOMNode(@item).getBoundingClientRect()
@@ -110,7 +111,7 @@ module.exports = connector class MachineItemContainer extends React.Component
     # these are coming from connectCompute HOC.
     { machine, status, percentage } = @props
 
-    { selected, invited, leaving, coordinates } = @state
+    { selected, invited, leaving, managed, coordinates } = @state
 
     <MachineItem itemDidMount={(item) => @item = item}
 
@@ -124,6 +125,7 @@ module.exports = connector class MachineItemContainer extends React.Component
       selected={selected}
       invited={invited}
       leaving={leaving}
+      managed={managed}
       coordinates={coordinates}
 
       onSettingsClick={@bound 'onSettingsClick'}
