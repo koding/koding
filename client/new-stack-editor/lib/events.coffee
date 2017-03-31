@@ -5,6 +5,7 @@ module.exports = do ->
   events = [
     'CredentialChangesRevertRequested'
     'CredentialChangesSaveRequested'
+    'TemplateTitleChangeRequested'
     'CredentialSelectionChanged'
     'CredentialFilterChanged'
     'SelectedProviderChanged'

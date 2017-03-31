@@ -84,14 +84,15 @@ module.exports = class StackEditor extends kd.View
 
     @controllers = {}
 
+    @controllers.logs = new LogsController
+      shared   :
+        editor : @logs
+
     @controllers.editor = new EditorController
       shared   :
         editor : @editor
         readme : @readme
-
-    @controllers.logs = new LogsController
-      shared   :
-        editor : @logs
+        logs   : @controllers.logs
 
     @controllers.variables = new VariablesController
       shared   :
@@ -152,6 +153,8 @@ module.exports = class StackEditor extends kd.View
         @sideView.toggle rest...
       when Events.HideWarning
         @toolbar.banner.emit Events.Banner.Close
+      when Events.TemplateTitleChangeRequested
+        @controllers.editor.updateTitle rest...
 
 
   setData: (data, reset = no) ->
