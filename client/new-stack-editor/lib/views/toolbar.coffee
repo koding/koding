@@ -46,6 +46,12 @@ module.exports = class Toolbar extends JView
 
     debug 'handling banner message', data.message, data.action
 
+    if data.showlogs
+      data.action   ?=
+        title : 'Show Logs'
+        event : Events.Menu.Logs
+      data.autohide ?= 2500
+
     @banner.setData data
     @banner.show()
     @setClass 'has-message'
