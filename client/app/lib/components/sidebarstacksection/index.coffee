@@ -137,8 +137,13 @@ module.exports = class SidebarStackSection extends React.Component
 
   onTitleClick: (event) ->
 
+    { router } = kd.singletons
+
+    if @props.stack.get('title').indexOf('Managed VMs') > -1
+      return router.handleRoute '/Home/stacks/virtual-machines#connected-machines'
+
     id = @props.stack.get 'baseStackId'
-    kd.singletons.router.handleRoute "/Stack-Editor/#{id}"
+    router.handleRoute "/Stack-Editor/#{id}"
 
 
   onMenuIconClick: (event) ->
@@ -155,13 +160,7 @@ module.exports = class SidebarStackSection extends React.Component
     { template, stack } = @props
     { storage } = kd.singletons.computeController
 
-    template = template.toJS()
     stack = stack.toJS()
-    account = whoami()
-
-    isMyTemplate = template?.originId is account._id
-
-    debug 'accessLevel', template.accessLevel
 
     if @getStackUnreadCount()
       menuItems['Update'] = { callback }
@@ -178,6 +177,13 @@ module.exports = class SidebarStackSection extends React.Component
       ['VMs', 'Destroy VMs'].forEach (name) -> menuItems[name] = { callback }
 
     else
+
+      template = template.toJS()
+      account = whoami()
+
+      isMyTemplate = template?.originId is account._id
+
+      debug 'accessLevel', template.accessLevel
 
       if isAdmin() or isMyTemplate
         menuItems['Edit'] = { callback }
