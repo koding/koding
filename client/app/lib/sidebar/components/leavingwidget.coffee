@@ -7,6 +7,7 @@ actions = require 'app/flux/environment/actions'
 
 SidebarWidget = require './widget'
 SidebarWidgetUser = require './widgetuser'
+SidebarWidgetTitle = require './widgettitle'
 
 
 module.exports = class LeavingWidget extends React.Component
