@@ -83,7 +83,12 @@ module.exports = (KONFIG, options, credentials) ->
         locations       : [
           {
             location    : '/countly/'
-            proxyPass   : "#{credentials.countly.host}"
+            proxyPass   : "#{credentials.countly.host}/"
+            extraParams : [
+              'proxy_hide_header X-Frame-Options;'
+              'proxy_hide_header X-XSS-Protection;'
+              'proxy_hide_header Strict-Transport-Security;'
+            ]
           }
         ]
 

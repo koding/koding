@@ -14,12 +14,15 @@ CHECK_TIMER    = 120                 # every 2 min.
 
 # Helpers
 
-parseTeam  = (teams) ->
+Status      =
+  Connected : 3
+  Online    : 2
+  Offline   : 1
 
-  [ team ] = teams
-  team     = team.toLowerCase()
-  prefix   = if team is 'koding' then '' else "#{team}."
-  teamUrl  = "https://#{prefix}koding.com"
+parseTeam  = (machine) ->
+
+  { team } = machine
+  teamUrl  = "https://#{team}.koding.com"
 
   return { team, teamUrl }
 
@@ -122,15 +125,15 @@ module.exports = class KodingTray
         keys.map (key) =>
           return  if key is 'latest'
           teamName = @_previousTeams[key]
-          return { label: teamName, click: -> @_mainWindow.loadURL "https://#{key}.koding.com" }
+          return { label: teamName, click: => @_mainWindow.loadURL "https://#{key}.koding.com" }
         .filter(Boolean)
 
       submenu or= []
 
       submenu = submenu.concat [
         { type: 'separator', visible: !!submenu.length }
-        { label: 'Login to Another Team', click: -> @_mainWindow.loadURL 'https://koding.com/Teams' }
-        { label: 'Create a Team', click: -> @_mainWindow.loadURL 'https://koding.com/Teams/Create' }
+        { label: 'Login to Another Team', click: => @_mainWindow.loadURL 'https://koding.com/Teams' }
+        { label: 'Create a Team', click: => @_mainWindow.loadURL 'https://koding.com/Teams/Create' }
       ]
 
       menu.unshift { label: 'Your Teams', submenu }
@@ -156,11 +159,11 @@ module.exports = class KodingTray
     return  unless selectedDir
 
     [ mountTo ] = selectedDir
-    remotePath  = "--remotepath /home/#{machine.hostname}"
+    remotePath  = ":/home/#{machine.username}"
 
     @setMenu 'Mount in progress...', yes
 
-    @kd "mount #{machine.vmName} #{mountTo} #{remotePath}", (err, res) =>
+    @kd "mount #{machine.alias}#{remotePath} #{mountTo}", (err, res) =>
 
       if err
         @setMenu 'Mount failed', yes
@@ -172,11 +175,11 @@ module.exports = class KodingTray
       console.log 'Mount:', err, res
 
 
-  handleUnmount: (machine) -> =>
+  handleUnmount: (mountId) -> =>
 
     @setMenu 'Unmount in progress...', yes
 
-    @kd "unmount #{machine.vmName}", (err, res) =>
+    @kd "umount #{mountId}", (err, res) =>
 
       if err
         @setMenu 'Unmount failed', yes
@@ -207,56 +210,69 @@ module.exports = class KodingTray
         callback null, stdout
 
 
+  # Mounts Fetcher
+  loadMounts: (callback) ->
+
+    @setMenu 'Fetching mounts...'
+
+    @kd 'mount list --json', callback
+
+
   # Machine Fetcher
-  loadMachineMenu: (show) ->
+  loadMachineMenu: (show) -> @loadMounts (err, mounts) =>
 
     @setMenu 'Fetching machines...'
 
-    @kd 'list --json', (err, result) =>
+    @kd 'machine list --json', (err, result) =>
 
       return  if @setFailed err
 
       menu = []
 
-      result = result.filter (machine) -> machine.machineStatus isnt 1
+      # show only connected machines for now
+      result = result.filter (machine) ->
+        machine.status.state is Status.Connected
 
       result.forEach (machine) =>
-        # { team, teamUrl } = parseTeam machine.teams
-        label = "(#{machine.vmName})"
-        label = "#{machine.machineLabel} #{label}"  if machine.machineLabel
+
+        { team, teamUrl } = parseTeam machine
+
+        alias   = "(#{machine.alias})"
+        label   = "#{machine.label} #{alias}"
+
         item    = {
           label   : label
           submenu : [
-          #   label : "Open #{team}"
-          #   click : handleOpen teamUrl
-          # ,
-          #   type  : 'separator'
-          # ,
+            label : "Open #{team}"
+            click : handleOpen teamUrl
+          ,
+            type  : 'separator'
+          ,
             label : "Open #{machine.ip}"
             click : handleOpen "http://#{machine.ip}"
-          # ,
-          #   label : 'Open IDE'
-          #   click : handleOpen "#{teamUrl}/IDE/#{machine.machineLabel}/my-workspace"
+          ,
+            label : 'Open IDE'
+            click : handleOpen "#{teamUrl}/IDE/#{machine.label}"
           ,
             label : 'Open Terminal'
-            click : handleOpen "kd ssh #{machine.vmName}", 'terminal'
+            click : handleOpen "kd ssh #{machine.alias}", 'terminal'
           ,
             type  : 'separator'
           ]
         }
 
-        if machine.mountedPaths.length > 0
+        if machineMounts = mounts[machine.alias]
           # assuming that there is currently one mount point per machine
-          [ mount ] = machine.mountedPaths
+          [ mount ] = machineMounts
           actions   = [
             label : 'Open folder'
-            click : handleOpen "file:///#{mount}"
+            click : handleOpen "file:///#{mount.mount.path}"
           ,
             label : 'Unmount'
-            click : @handleUnmount machine
+            click : @handleUnmount mount.id
           ]
           item.submenu.push
-            label   : mount
+            label   : mount.mount.path
             submenu : actions
         else
           item.submenu.push

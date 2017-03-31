@@ -276,6 +276,7 @@ module.exports = class JGroup extends Module
       # Api usage can be disabled or enabled for the group
       isApiEnabled : Boolean
       payment      : Object
+      countly      : Object
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'

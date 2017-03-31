@@ -41,6 +41,11 @@ func (c *Counter) CurrentUser() (string, error) {
 	return "", invCounter(atomic.AddInt64(&c.curr, 1))
 }
 
+// Abs increases function call counter and returns it as an error.
+func (c *Counter) Abs(_ string) (string, bool, bool, error) {
+	return "", false, false, invCounter(atomic.AddInt64(&c.curr, 1))
+}
+
 // SSHAddKeys increases function call counter and returns it as an error.
 func (c *Counter) SSHAddKeys(_ string, _ ...string) error {
 	return invCounter(atomic.AddInt64(&c.curr, 1))
