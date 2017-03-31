@@ -538,6 +538,171 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
             expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
             done()
 
+
+    describe 'should support different access levels', ->
+
+      describe 'when accessLevel is private', ->
+
+        it 'should deny cloning by other users in same group', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+            groupSlug = client.context.group
+
+            withConvertedUser { groupSlug }, (data) ->
+
+              { client } = data
+              stackTemplate.clone client, (err, clonedTemplate) ->
+                expect(err).to.exist
+                expect(clonedTemplate).to.not.exist
+                done()
+
+        it 'should deny cloning by other users in different groups', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+            groupSlug = generateRandomString()
+
+            withConvertedUser { groupSlug }, (data) ->
+
+              { client } = data
+              stackTemplate.clone client, (err, clonedTemplate) ->
+                expect(err).to.exist
+                expect(clonedTemplate).to.not.exist
+                done()
+
+        it 'should allow cloning by owner', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+
+            stackTemplate.clone client, (err, clonedTemplate) ->
+              expect(err)                              .to.not.exist
+              expect(clonedTemplate)                   .to.exist
+              expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+              expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+              expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+              done()
+
+
+      describe 'when accessLevel is group', ->
+
+        it 'should allow cloning by other users in same group', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+
+            stackTemplate.setAccess client, 'group', (err) ->
+              expect(err).to.not.exist
+
+              groupSlug = client.context.group
+              withConvertedUser { groupSlug }, (data) ->
+
+                { client } = data
+
+                stackTemplate.clone client, (err, clonedTemplate) ->
+                  expect(err)                              .to.not.exist
+                  expect(clonedTemplate)                   .to.exist
+                  expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+                  expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+                  expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+                  done()
+
+        it 'should deny cloning by other users in different groups', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+
+            stackTemplate.setAccess client, 'group', (err) ->
+              expect(err).to.not.exist
+
+              groupSlug = generateRandomString()
+              withConvertedUser { groupSlug }, (data) ->
+
+                { client } = data
+
+                stackTemplate.clone client, (err, clonedTemplate) ->
+                  expect(err).to.exist
+                  expect(clonedTemplate).to.not.exist
+                  done()
+
+        it 'should allow cloning by owner', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+
+            stackTemplate.setAccess client, 'group', (err) ->
+              expect(err).to.not.exist
+
+              stackTemplate.clone client, (err, clonedTemplate) ->
+                expect(err)                              .to.not.exist
+                expect(clonedTemplate)                   .to.exist
+                expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+                expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+                expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+                done()
+
+      describe 'when accessLevel is public', ->
+
+        it 'should allow cloning by other users in same group', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+
+            stackTemplate.setAccess client, 'public', (err) ->
+              expect(err).to.not.exist
+
+              groupSlug = client.context.group
+              withConvertedUser { groupSlug }, (data) ->
+
+                { client } = data
+
+                stackTemplate.clone client, (err, clonedTemplate) ->
+                  expect(err)                              .to.not.exist
+                  expect(clonedTemplate)                   .to.exist
+                  expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+                  expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+                  expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+                  done()
+
+        it 'should allow cloning by other users in different groups', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+
+            stackTemplate.setAccess client, 'public', (err) ->
+              expect(err).to.not.exist
+
+              groupSlug = generateRandomString()
+              withConvertedUser { groupSlug, createGroup: yes }, (data) ->
+
+                { client } = data
+
+                stackTemplate.clone client, (err, clonedTemplate) ->
+                  expect(err)                              .to.not.exist
+                  expect(clonedTemplate)                   .to.exist
+                  expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+                  expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+                  expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+                  done()
+
+        it 'should allow cloning by owner', (done) ->
+
+          withConvertedUserAndStackTemplate (data) ->
+            { client, stackTemplate } = data
+
+            stackTemplate.setAccess client, 'public', (err) ->
+              expect(err).to.not.exist
+
+              stackTemplate.clone client, (err, clonedTemplate) ->
+                expect(err)                              .to.not.exist
+                expect(clonedTemplate)                   .to.exist
+                expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+                expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+                expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+                done()
+
+
 beforeTests()
 
 runTests()
