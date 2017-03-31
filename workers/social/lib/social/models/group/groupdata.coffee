@@ -1,6 +1,9 @@
-{ Module } = require 'jraphical'
+# coffeelint: disable=duplicate_key
 
-module.exports = class JGroupData extends Module
+{ secure, signature, Base, JsPath:{ getAt } } = Bongo
+module.exports = class JGroupData extends Base
+  JPermissionSet = require './permissionset'
+  { permit }     = JPermissionSet
 
   @set
     indexes       :
@@ -15,5 +18,70 @@ module.exports = class JGroupData extends Module
         type      : String
         validate  : require('../name').validateName
         set       : (value) -> value.toLowerCase()
-
       data        : Object
+    sharedMethods :
+      static      :
+        fetchByKey: [
+          (signature Object, Function)
+          (signature Object, String, Function)
+        ]
+
+  @create = (slug, callback) ->
+    data = new JGroupData { slug }
+    data.save (err) ->
+      return callback err  if err
+      callback null, data
+
+  # fetchByKey fetches given path from GroupData if only they are available
+  # within the group.
+  @fetchByKey = secure (client, path, callback) ->
+    # for more granular control, specify each sub key as well.
+    availableKeys = [ 'countly' ]
+
+    if availableKeys.indexOf(path) is -1
+      return callback new Error 'path is forbidden'
+
+    slug = client.context.group
+    JGroupData.fetchDataAt slug, path, callback
+
+  @fetchData: (slug, callback) ->
+    return callback new Error 'slug is required' unless slug
+
+    @one { slug }, (err, data) ->
+      return callback err  if err
+      return callback null, data if data
+
+      JGroupData.create slug, callback
+
+  @fetchDataAt: (slug, path, callback) ->
+    return callback new Error 'slug is required' unless slug
+
+    opts = {}
+    opts[path] = 1 if path
+
+    @one { slug }, opts, (err, data) ->
+      return callback err  if err
+      return callback null, getAt data, path
+
+  # see docs on JGroup::modifyData
+  modifyData : (slug, data, callback) ->
+    return callback new Error 'slug is required' unless slug
+
+    # it's only allowed to change followings
+    whitelist  = ['github.organizationToken' ]
+
+    # handle $set and $unset cases in one
+    operation  = { $set: {}, $unset: {} }
+    for item in whitelist
+      key = "data.#{item}"
+      if data[item]?
+      then operation.$set[key]   = data[item]
+      else operation.$unset[key] = data[item]
+
+    JGroupData.fetchData slug, (err, data) ->
+      return callback err  if err
+
+      data.update operation, (err) ->
+        callback err
+
+
