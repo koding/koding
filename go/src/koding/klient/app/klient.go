@@ -38,6 +38,7 @@ import (
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/sync/rsync"
 	kos "koding/klient/os"
+	"koding/klient/proxy"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
@@ -433,6 +434,10 @@ func (k *Klient) Kite() *kite.Kite {
 
 // RegisterMethods registers all public available methods
 func (k *Klient) RegisterMethods() {
+
+	// TODO (acbodine): Make this pass in var to dictate which proxy type is returned.
+	p := proxy.MakeProxy()
+
 	// don't allow anyone to call a method if we are during an update.
 	k.kite.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
 		// Koding (kloud) connects to much, don't display it.
@@ -486,7 +491,8 @@ func (k *Klient) RegisterMethods() {
 	// Filesystem
 	k.handleWithSub("fs.readDirectory", fs.ReadDirectory)
 	k.handleWithSub("fs.glob", fs.Glob)
-	k.handleWithSub("fs.readFile", fs.ReadFile)
+	k.handleWithSub("fs.readFile", p.ReadFile)
+	// k.handleWithSub("fs.readFile", fs.ReadFile)
 	k.handleWithSub("fs.writeFile", fs.WriteFile)
 	k.handleWithSub("fs.uniquePath", fs.UniquePath)
 	k.handleWithSub("fs.getInfo", fs.GetInfo)
