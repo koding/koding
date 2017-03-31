@@ -93,7 +93,7 @@ func TestGet(t *testing.T) {
 	}
 
 	// finding multi level non existing
-	data, err = testData.Get("key2.subkey3")
+	_, err = testData.Get("key2.subkey3")
 	if err != ErrDataKeyNotExists {
 		t.Fatalf("testData.Get(key2.subkey2) = error %v: got: %v", err, ErrDataKeyNotExists)
 	}
