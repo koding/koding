@@ -757,37 +757,44 @@ module.exports = class JStackTemplate extends Module
         JStackTemplate.create client, cloneData, callback
 
 
-  build: secure (client, payload, callback) ->
+  build: permit
 
-    unless @getAt 'config.verified'
-      return callback new KodingError 'Stack needs to be verified first'
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
 
-    # TODO: GitHub Payload specific updates, this can be moved some other
-    # place as a middleware ~GG
-    options = {}
-    if payload?.after
-      options.title = "#{@getAt 'title'} - #{payload.after[..10]}"
-      if payload.repository?.url?
-        options.description = \
-          "Auto build for #{payload.repository.url}@#{payload.after}"
+    success: (client, payload, callback) ->
 
-    @clone client, options, (err, clonedTemplate) ->
-      return callback err  if err
-      unless clonedTemplate
-        return callback new KodingError 'Failed to clone template'
+      unless @getAt 'config.verified'
+        return callback new KodingError 'Stack needs to be verified first'
 
-      clonedTemplate.generateStack client, {}, (err, res) ->
+      # TODO: GitHub Payload specific updates, this can be moved some other
+      # place as a middleware ~GG
+      options = {}
+      if payload?.after
+        options.title = "#{@getAt 'title'} - #{payload.after[..10]}"
+        if payload.repository?.url?
+          options.description = \
+            "Auto build for #{payload.repository.url}@#{payload.after}"
+
+      @clone client, options, (err, clonedTemplate) ->
         return callback err  if err
-        unless res.stack
-          return callback new KodingError 'Failed to generate stack'
+        unless clonedTemplate
+          return callback new KodingError 'Failed to clone template'
 
-        { stack: generatedStack } = res
-        stackId = generatedStack.getId()
-        provider = (generatedStack.getAt 'config.requiredProviders')[0]
-        variables = flattenPayload payload
+        clonedTemplate.generateStack client, {}, (err, res) ->
+          return callback err  if err
+          unless res.stack
+            return callback new KodingError 'Failed to generate stack'
 
-        Kloud = require './kloud'
-        Kloud.buildStack client, { stackId, provider, variables }, callback
+          { stack: generatedStack } = res
+          stackId = generatedStack.getId()
+          provider = (generatedStack.getAt 'config.requiredProviders')[0]
+          variables = flattenPayload payload
+
+          Kloud = require './kloud'
+          Kloud.buildStack client, { stackId, provider, variables }, callback
 
 
   verify$: permit
