@@ -25,6 +25,12 @@ module.exports = class OwnedResourcesList extends React.Component
 
     @headers = []
 
+
+  onMenuItemClickError: (name) ->
+
+    new kd.NotificationView { title: "Error occured while #{name} template" }
+
+
   getSectionCount: -> @props.resources.length
 
 
