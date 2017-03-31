@@ -1,5 +1,3 @@
-# coffeelint: disable=duplicate_key
-
 { secure, signature, Base, JsPath:{ getAt } } = Bongo
 module.exports = class JGroupData extends Base
   JPermissionSet = require './permissionset'
@@ -83,5 +81,3 @@ module.exports = class JGroupData extends Base
 
       data.update operation, (err) ->
         callback err
-
-
