@@ -73,15 +73,21 @@ module.exports = class SidebarContainer extends React.Component
     @state =
       ownedResources: calculateOwnedResources @props
       sharedResources: calculateSharedResources @props
+      loading: yes
 
 
   componentDidMount: ->
 
     { computeController, mainController } = kd.singletons
 
-    SidebarFlux.actions.loadVisibilityFilters().then ->
-      mainController.ready ->
-        computeController.fetchStackTemplates kd.noop
+    SidebarFlux.actions.loadVisibilityFilters().then =>
+      mainController.ready =>
+        computeController.fetchStackTemplates =>
+          @setState
+            ownedResources: calculateOwnedResources @props, @state
+            sharedResources: calculateSharedResources @props, @state
+          , =>
+            @setState { loading: no }
 
 
   componentWillReceiveProps: (nextProps, nextState) ->
@@ -97,10 +103,11 @@ module.exports = class SidebarContainer extends React.Component
 
     <Scroller className={curry 'activity-sidebar', @props.className}>
 
-      <SidebarResources
-        disabled={isGroupDisabled()}
-        owned={@state.ownedResources}
-        shared={@state.sharedResources} />
+      {not @state.loading and
+        <SidebarResources
+          disabled={isGroupDisabled()}
+          owned={@state.ownedResources}
+          shared={@state.sharedResources} /> }
 
       <SidebarFooterLogo
         src={DEFAULT_LOGOPATH} />
