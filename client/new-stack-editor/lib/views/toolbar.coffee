@@ -1,10 +1,13 @@
 debug = (require 'debug') 'nse:toolbar'
 
+_
 kd = require 'kd'
 JView = require 'app/jview'
 
 Events = require '../events'
 Banner = require './banner'
+
+EnvironmentFlux = require 'app/flux/environment'
 
 
 module.exports = class Toolbar extends JView
@@ -26,6 +29,16 @@ module.exports = class Toolbar extends JView
       disabled     : yes
       attributes   :
         spellcheck : no
+
+      callback     : (value) =>
+        debug 'hit enter on title input', value
+        @emit Events.Action, Events.TemplateTitleChangeRequested, value
+        kd.utils.defer @templateTitle.bound 'makeDisabled'
+
+      keyup        : _.debounce (e) ->
+        EnvironmentFlux.actions
+          .changeTemplateTitle @getData()._id, e.target.value
+      , 100
 
     @actionButton = new kd.ButtonView
       cssClass : 'action-button solid green compact'
@@ -49,7 +62,13 @@ module.exports = class Toolbar extends JView
     @banner.on Events.Banner.Close, =>
       @unsetClass 'has-message'
       kd.utils.wait 500, @banner.bound 'hide'
+
     @forwardEvent @banner, Events.Action
+
+    @on Events.Action, (event) =>
+      if event is Events.Menu.Rename
+        @templateTitle.makeEnabled()
+        @templateTitle.setFocus()
 
 
   setTitle: (data) ->
