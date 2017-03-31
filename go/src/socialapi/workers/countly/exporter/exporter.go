@@ -65,14 +65,14 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 			return nil
 		}
 
-		res, err := api.NewCountlyAPI(config.MustGet()).CreateCountlyApp(slug)
+		if _, err := api.NewCountlyAPI(config.MustGet()).CreateApp(slug); err != nil {
+			return err
+		}
+
+		group, err = c.groupCache.Refresh(slug)
 		if err != nil {
 			return err
 		}
-		// we persist in API call but here we have the old group, so update it
-		group.Countly.AppKey = res.AppKey
-		group.Countly.AppID = res.AppID
-		group.Countly.APIKey = res.APIKey
 	}
 
 	events := []client.Event{{
