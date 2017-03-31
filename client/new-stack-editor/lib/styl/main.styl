@@ -83,14 +83,24 @@ $stack-border-width         = 2px
     .kdbutton.expand
       abs                   13px, 120px !important
 
-    h3
+    .title-input
+      padding               0
+      width                 auto
+
+      font-size             13px
+      line-height           14px
+      background            none
+      border                none
+      color                 #eee
+
       display               inline-block
       margin-left           10px
       max-width             calc(100% - 360px)
-      text-overflow         ellipsis
-      overflow              hidden
-      white-space           nowrap
       vertical-align        middle
+
+      &:hover, &:focus
+        border              none
+        box-shadow          none
 
     cite.stack
       fa                    server

@@ -17,6 +17,16 @@ module.exports = class Toolbar extends JView
 
     super options, data
 
+    @templateTitle = new kd.HitEnterInputView
+      type         : 'text'
+      autogrow     : yes
+      cssClass     : 'title-input'
+      placeholder  : ''
+      defaultValue : ''
+      disabled     : yes
+      attributes   :
+        spellcheck : no
+
     @actionButton = new kd.ButtonView
       cssClass : 'action-button solid green compact'
       title    : 'Initialize'
@@ -40,6 +50,17 @@ module.exports = class Toolbar extends JView
       @unsetClass 'has-message'
       kd.utils.wait 500, @banner.bound 'hide'
     @forwardEvent @banner, Events.Action
+
+
+  setTitle: (data) ->
+
+    @templateTitle.setData data
+
+    { title } = data
+    @templateTitle.setPlaceholder title
+    @templateTitle.setValue title
+
+    @templateTitle.resize()
 
 
   setBanner: (data) ->
@@ -78,6 +99,9 @@ module.exports = class Toolbar extends JView
     if data._initial
       credentials = '-'
       accessLevel = '-'
+
+    else
+      @setTitle data
 
     super { _id, accessLevel, credentials, title }
 
@@ -128,7 +152,7 @@ module.exports = class Toolbar extends JView
   pistachio: ->
 
     '''
-    {cite.stack{}} {h3{#(title)}} {{> @menuIcon}}
+    {cite.stack{}} {{> @templateTitle}} {{> @menuIcon}}
     {.tag.level{#(accessLevel)}} {div.tag.credential{#(credentials)}} {cite.credential{}}
     {div.controls{> @expandButton}} {{> @actionButton}}
     {{> @banner}}
