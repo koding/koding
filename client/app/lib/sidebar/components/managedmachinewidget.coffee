@@ -1,9 +1,6 @@
 kd = require 'kd'
 React = require 'app/react'
 SidebarWidget = require './widget'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin = require 'app/flux/base/reactormixin'
-actions = require 'app/flux/environment/actions'
 
 
 PROVIDERS         =
@@ -23,35 +20,19 @@ module.exports = class ManagedMachineWidget extends React.Component
   @defaultProps =
     className : 'ConnectedManagedVm sidebar-info-modal'
 
-  getDataBindings: ->
-    connectedManagedMachine: EnvironmentFlux.getters.connectedManagedMachine
-
-
   onClose: ->
 
-    kd.utils.defer =>
-      actions.hideManagedMachineAddedModal @props.machine.get '_id'
+    kd.singletons.sidebar.removeManaged @props.machine.getId()
 
 
-  handleButtonClick: ->
+  onButtonClick: ->
 
-    { router } = kd.singletons
-    currentPath = router.getCurrentPath()
-    newPath = "/IDE/#{@props.machine.slug}"
+    kd.singletons.router.handleRoute newPath
 
     @onClose()
-    router.handleRoute newPath  unless newPath is currentPath
 
 
   render: ->
-
-    connectedMachine = @state.connectedManagedMachine.get @props.machine.get('_id')
-
-    return null  unless connectedMachine
-
-    provider = if PROVIDERS[connectedMachine.providerName]
-    then connectedMachine.providerName
-    else 'UnknownProvider'
 
     <SidebarWidget {...@props} onClose={@bound 'onClose'}>
 
@@ -72,13 +53,10 @@ module.exports = class ManagedMachineWidget extends React.Component
 
           <button
             className='GenericButton'
-            onClick={@bound 'handleButtonClick'}
+            onClick={@bound 'onButtonClick'}
             children='START CODING' />
 
         </div>
       </div>
 
     </SidebarWidget>
-
-
-ManagedMachineWidget.include [KDReactorMixin]
