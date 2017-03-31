@@ -251,7 +251,7 @@ module.exports = class JMachine extends remote.api.JMachine
 
     switch @getType()
       when Own then "/IDE/#{@slug or @label}"
-      when Collaboration then "/IDE/#{@getChannelId()}"
+      when Collaboration then "/IDE/#{@uid}"
       when Shared, Reassigned then "/IDE/#{@uid}"
       else ''
 
