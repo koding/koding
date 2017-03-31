@@ -49,32 +49,30 @@ module.exports = class OwnedResourcesList extends React.Component
     { stack, template } = resource
     { title } = item.getData()
 
-    templateId = template.getId()
-
     switch title
 
       when 'Edit', 'View Stack'
-        router.handleRoute "/Stack-Editor/#{templateId}"
+        router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Initialize'
         template.generateStack { verify: yes }, (err, stack) =>
-          return @onMenuItemClickError 'initializing', templateId  if err
-          router.handleRoute "/Stack-Editor/#{templateId}"
-          appManager.tell 'Stackeditor', 'reloadEditor', templateId
+          return @onMenuItemClickError 'initializing', template.getId()  if err
+          router.handleRoute "/Stack-Editor/#{template.getId()}"
+          appManager.tell 'Stackeditor', 'reloadEditor', template.getId()
           if machine = stack.results?.machines?[0]?.obj
             computeController.reloadIDE machine
 
       when 'Reinitialize', 'Update'
         computeController.reinitStack stack, (err) =>
-          return @onMenuItemClickError 'reinitializing', templateId  if err
-          appManager.tell 'Stackeditor', 'reloadEditor', templateId
+          return @onMenuItemClickError 'reinitializing', template.getId()  if err
+          appManager.tell 'Stackeditor', 'reloadEditor', template.getId()
 
       when 'Clone'
-        computeController.fetchStackTemplate templateId, (err, template) =>
+        computeController.fetchStackTemplate template.getId(), (err, template) =>
           return @onMenuItemClickError 'cloning'  if err
           template.clone (err, template) =>
             return @onMenuItemClickError 'cloning'  if err
-            router.handleRoute "/Stack-Editor/#{templateId}"
+            router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Destroy VMs'
         computeController.ui.askFor 'deleteStack', {}, (status) =>
