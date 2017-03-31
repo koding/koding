@@ -41,12 +41,12 @@ var cmdDescriptions = map[string]string{
 		"(<local-mount-path> | @<machine-id>) <command> [<args>...]",
 		`Run <command> on a remote machine specified by either @<machine-id> or <local-mount-path>.
 
-    If <local-mount-path> is provided, kd is going to look up a remote machine
-    by reading the remote source of the mount. The mount must be active and
-    the remote end on-line.
+   If <local-mount-path> is provided, kd is going to look up a remote machine
+   by reading the remote source of the mount. The mount must be active and
+   the remote end on-line.
 
-    In order to run a <command> on a remote machine that has no local mounts,
-    use @<machine-id> argument instead.`,
+   In order to run a <command> on a remote machine that has no local mounts,
+   use @<machine-id> argument instead.`,
 	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
@@ -107,7 +107,7 @@ var cmdDescriptions = map[string]string{
 		"[optional args] <machineName> <remote-to-local|local-to-remote>",
 		"Manually sync a OneWaySync Mount, in either direction.",
 	),
-	"cp": fmtDesc(
+	"compat-cp": fmtDesc(
 		"[optional args] <source> <destination>",
 		`Copy a file from the source to the destination, either remote to local or local
 to remote.
@@ -119,6 +119,15 @@ machineName:path/to/file syntax. Example:
   kd cp apple:sourceFile ./destinationFile
 
 `,
+	),
+	"cp": fmtDesc(
+		"[<machine-identifier>:]<source-path> [<machine-identifier>:]<destination-path>",
+		`Copy file(s) from <source-path> to the <destination-path>.
+
+   Either <source-path> or <destination-path> must contain <machine-identifier>. Thus,
+   it's not possible to copy files between two remote machines.
+
+   If <destination-path> doesn't exist, it will be created.`,
 	),
 	"open": fmtDesc(
 		"[optional args] <file1> [file2] [file3]",

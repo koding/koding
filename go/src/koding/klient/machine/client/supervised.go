@@ -43,6 +43,19 @@ func (s *Supervised) CurrentUser() (user string, err error) {
 	return
 }
 
+// Abs calls registered Client's Abs method and returns its result if it's not
+// produced by Disconnected client. If it is, this function will wait until
+// valid client is available or timeout is reached.
+func (s *Supervised) Abs(path string) (absPath string, isDir, exist bool, err error) {
+	fn := func(c Client) error {
+		absPath, isDir, exist, err = c.Abs(path)
+		return err
+	}
+
+	err = s.call(fn)
+	return
+}
+
 // SSHAddKeys calls registered Client's SSHAddKeys method and returns its result
 // if it's not produced by Disconnected client. If it is, this function will
 // wait until valid client is available or timeout is reached.

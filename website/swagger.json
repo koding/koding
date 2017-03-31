@@ -938,6 +938,9 @@
         },
         "payment": {
           "type": "object"
+        },
+        "countly": {
+          "type": "object"
         }
       }
     },

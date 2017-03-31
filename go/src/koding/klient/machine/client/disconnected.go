@@ -52,6 +52,11 @@ func (*Disconnected) CurrentUser() (string, error) {
 	return "", ErrDisconnected
 }
 
+// Abs always returns ErrDisconnected error.
+func (*Disconnected) Abs(_ string) (string, bool, bool, error) {
+	return "", false, false, ErrDisconnected
+}
+
 // SSHAddKeys always returns ErrDisconnected error.
 func (*Disconnected) SSHAddKeys(_ string, _ ...string) error {
 	return ErrDisconnected

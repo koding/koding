@@ -64,6 +64,11 @@ func (kc *kiteClient) CurrentUser() (string, error) {
 	return kc.get().CurrentUser()
 }
 
+// Abs returns absolute representation of given path.
+func (kc *kiteClient) Abs(path string) (string, bool, bool, error) {
+	return kc.get().Abs(path)
+}
+
 // SSHAddKeys adds SSH public keys to user's authorized_keys file.
 func (kc *kiteClient) SSHAddKeys(username string, keys ...string) error {
 	return kc.get().SSHAddKeys(username, keys...)

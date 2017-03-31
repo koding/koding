@@ -3,12 +3,9 @@ package index
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
-	"koding/kites/config"
+	"koding/klient/fs"
 )
 
 // Request defines cached index operations that are requested from
@@ -74,29 +71,17 @@ func Get(req *Request) (*GetResponse, error) {
 	}, nil
 }
 
-// preparePath performs basic checks and makes a given path usable for local
-// file system.
 func preparePath(path string) (string, error) {
-	const tilde = "~" + string(os.PathSeparator)
-
-	switch isAbs := filepath.IsAbs(path); {
-	case isAbs:
-	case !isAbs && len(path) > 1 && path[:2] == tilde:
-		path = strings.Replace(path, "~", config.CurrentUser.HomeDir, 1)
-	default:
-		return "", fmt.Errorf("remote path format is invalid: %s", path)
+	absPath, isDir, exist, err := fs.DefaultFS.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	if !exist {
+		return "", fmt.Errorf("remote path %s does not exist", absPath)
+	}
+	if !isDir {
+		return "", fmt.Errorf("remote path %s is not a directory", absPath)
 	}
 
-	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return "", fmt.Errorf("remote path %s does not exist", path)
-	} else if err != nil {
-		return "", fmt.Errorf("cannot stat remote path: %s", err)
-	}
-
-	if !info.IsDir() {
-		return "", errors.New("remote path is not a directory")
-	}
-
-	return path, nil
+	return absPath, nil
 }

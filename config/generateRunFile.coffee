@@ -462,7 +462,7 @@ generateDev = (KONFIG, options) ->
       restoredefaultmongodump
       restoreredis
       restorerabbitmq
-      if [ -n $KONFIG_COUNTLYPATH ]; then
+      if [ ! -z $KONFIG_COUNTLYPATH ]; then
         $KONFIG_PROJECTROOT/deployment/countly/preparecountly.sh
       else
         restorecountly
