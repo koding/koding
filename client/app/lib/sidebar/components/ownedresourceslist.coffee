@@ -35,9 +35,14 @@ module.exports = class OwnedResourcesList extends React.Component
     return resource.stack?.machines?.length or 0
 
 
-  onHeaderTitleClick: ({ template }) ->
+  onHeaderTitleClick: ({ template, stack }) ->
 
-    kd.singletons.router.handleRoute "/Stack-Editor/#{template.getId()}"
+    { router } = kd.singletons
+
+    if stack?.title.indexOf('Managed VMs') > -1
+      return router.handleRoute '/Home/stacks/virtual-machines#connected-machines'
+
+    router.handleRoute "/Stack-Editor/#{template.getId()}"
 
 
   onHeaderMenuItemClick: (resource, item) ->
