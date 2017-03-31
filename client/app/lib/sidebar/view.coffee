@@ -7,7 +7,7 @@ connectCompute = require 'app/providers/connectcompute'
 Container = require './container'
 
 ConnectedContainer = connectCompute({
-  storage: ['stacks', 'templates']
+  storage: ['stacks', 'templates', 'machines']
 })(Container)
 
 module.exports = class SidebarView extends ReactView
