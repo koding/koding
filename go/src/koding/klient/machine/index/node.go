@@ -398,6 +398,8 @@ func split(path string) (string, string) {
 	return path, ""
 }
 
+var _ json.Unmarshaler = (*Node)(nil)
+
 // UnmarshalJSON satisfies json.Unmarshaler interface. It initializes empty sub
 // map when it's omitted in serialized data.
 //
