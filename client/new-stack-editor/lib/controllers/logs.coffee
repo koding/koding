@@ -77,10 +77,7 @@ module.exports = class LogsController extends BaseController
 
     @emit Events.WarnUser, {
       message : 'An error ocurred please check logs.'
-      action  :
-        title : 'Show Logs'
-        event : Events.Menu.Logs
-      autohide: if @editor.isClosed() then no else 1500
+      showlogs: yes
     }
 
     if err.name is 'Internal'

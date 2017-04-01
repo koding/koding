@@ -45,7 +45,7 @@ module.exports = class StackEditorAppController extends AppController
     super options, data
 
     @templates = {}
-    @mainView.addSubView @stackEditor = new StackEditor
+    @mainView.addSubView @stackEditor = new StackEditor { cssClass: 'initial' }
 
     @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
 
@@ -59,6 +59,8 @@ module.exports = class StackEditorAppController extends AppController
       return callback { message: 'No template provided' }
 
     @fetchStackTemplate templateId, (err, template) =>
+
+      @stackEditor.unsetClass 'initial'
 
       if err
         showError err

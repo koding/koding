@@ -5,6 +5,7 @@ module.exports = do ->
   events = [
     'CredentialChangesRevertRequested'
     'CredentialChangesSaveRequested'
+    'TemplateTitleChangeRequested'
     'CredentialSelectionChanged'
     'CredentialFilterChanged'
     'SelectedProviderChanged'
@@ -16,6 +17,7 @@ module.exports = do ->
     'LazyLoadFinished'
     'LazyLoadStarted'
     'ToggleSideView'
+    'LoadClonedFrom'
     'ShowSideView'
     'HideWarning'
     'WarnUser'

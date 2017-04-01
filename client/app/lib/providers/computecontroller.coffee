@@ -996,7 +996,10 @@ module.exports = class ComputeController extends KDController
 
     remote.api.JStackTemplate.some query, options, (err, templates) =>
       return callback err  if err
-      @storage.set 'templates', templates
+
+      for template in templates
+        @storage.templates.push template
+
       callback null, templates
 
 
