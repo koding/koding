@@ -1,6 +1,7 @@
 debug = (require 'debug') 'nse:toolbar'
 
-_
+$ = require 'jquery'
+_ = require 'lodash'
 kd = require 'kd'
 JView = require 'app/jview'
 
@@ -82,6 +83,24 @@ module.exports = class Toolbar extends JView
     @templateTitle.resize()
 
 
+  getCloneTitle: (clonedFrom) ->
+
+    cc = kd.singletons.computeController
+    (cc.storage.templates.get clonedFrom)?.title ? clonedFrom
+
+
+  setCloneData: (data) ->
+
+    if clonedFrom = data.config.clonedFrom
+      @setClass 'clone'
+      title = @getCloneTitle clonedFrom
+      return "Clone of #{title}"
+
+    else
+      @unsetClass 'clone'
+      return 'n/a'
+
+
   setBanner: (data) ->
 
     debug 'handling banner message', data.message, data.action
@@ -99,8 +118,14 @@ module.exports = class Toolbar extends JView
 
   click: (event) ->
 
-    if event.target.classList.contains 'credential'
+    target = $(event.target)
+
+    if target.is '.tag.credential'
       @emit Events.Action, Events.ToggleSideView, 'credentials'
+      kd.utils.stopDOMEvent event
+
+    else if target.is '.tag.clone'
+      @emit Events.Action, Events.LoadClonedFrom
       kd.utils.stopDOMEvent event
 
 
@@ -118,11 +143,13 @@ module.exports = class Toolbar extends JView
     if data._initial
       credentials = '-'
       accessLevel = '-'
+      clonedFrom  = '-'
 
     else
       @setTitle data
+      clonedFrom = @setCloneData data
 
-    super { _id, accessLevel, credentials, title }
+    super { _id, accessLevel, credentials, title, clonedFrom }
 
 
   handleMenu: (event) ->
@@ -172,7 +199,9 @@ module.exports = class Toolbar extends JView
 
     '''
     {cite.stack{}} {{> @templateTitle}} {{> @menuIcon}}
-    {.tag.level{#(accessLevel)}} {div.tag.credential{#(credentials)}} {cite.credential{}}
+    {.tag.level{#(accessLevel)}}
+    {div.tag.credential{#(credentials)}} {cite.credential{}}
+    {div.tag.clone{#(clonedFrom)}}
     {div.controls{> @expandButton}} {{> @actionButton}}
     {{> @banner}}
     '''

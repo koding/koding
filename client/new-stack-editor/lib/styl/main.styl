@@ -125,6 +125,9 @@ $stack-border-width         = 2px
         background          #727272
         cursor              default
 
+      &.clone
+        display             none
+
     cite.credential
       fa                    cog
       margin-left           -10px
@@ -176,10 +179,13 @@ $stack-border-width         = 2px
       .tag.credential
         vendor              animation, shake .6s
 
+    &.clone
+      .tag.clone
+        display             inline-block
+
     &.has-message
       height                80px
       min-height            80px !important
-
 
   .content
     background              $stack-bg-color
