@@ -730,8 +730,7 @@ module.exports = class JStackTemplate extends Module
       hasAccess = yes
 
       if @getAt('accessLevel') is 'private'
-        if @getAt('originId') isnt delegate.getId()
-          hasAccess = no
+        hasAccess = delegate.getId().equals @getAt('originId')
 
       else if @getAt('accessLevel') is 'group'
         if @getAt('group') isnt group
