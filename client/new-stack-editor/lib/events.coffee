@@ -17,6 +17,7 @@ module.exports = do ->
     'LazyLoadFinished'
     'LazyLoadStarted'
     'ToggleSideView'
+    'LoadClonedFrom'
     'ShowSideView'
     'HideWarning'
     'WarnUser'

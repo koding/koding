@@ -139,6 +139,8 @@ module.exports = class StackEditor extends kd.View
 
   handleActions: (event, rest...) ->
 
+    { router } = kd.singletons
+
     switch event
       when Events.Menu.Logs
         @logs.unsetClass 'shake'
@@ -155,6 +157,9 @@ module.exports = class StackEditor extends kd.View
         @toolbar.banner.emit Events.Banner.Close
       when Events.TemplateTitleChangeRequested
         @controllers.editor.updateTitle rest...
+      when Events.LoadClonedFrom
+        { config: { clonedFrom } } = @getData()
+        router.handleRoute "/Stack-Editor/#{clonedFrom}"
 
 
   setData: (data, reset = no) ->
