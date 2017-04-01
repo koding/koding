@@ -51,6 +51,22 @@ func (c *Client) CreateUser(u *User) (*User, error) {
 	return v, nil
 }
 
+// Users holds response type for GetAllUsers request.
+type Users map[string]User
+
+// GetAllUsers gets all the users that are in Countly.
+func (c *Client) GetAllUsers() (Users, error) {
+	values := url.Values{}
+	values.Add("api_key", c.token)
+
+	v := new(Users)
+	err := c.do("GET", "/o/users/all", values, &v)
+	if err != nil {
+		return nil, err
+	}
+	return *v, nil
+}
+
 // Valid checks if user instance is valid for operations.
 func (u *User) Valid() error {
 	if u.FullName == "" {

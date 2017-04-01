@@ -83,14 +83,24 @@ $stack-border-width         = 2px
     .kdbutton.expand
       abs                   13px, 120px !important
 
-    h3
+    .title-input
+      padding               0
+      width                 auto
+
+      font-size             13px
+      line-height           14px
+      background            none
+      border                none
+      color                 #eee
+
       display               inline-block
       margin-left           10px
       max-width             calc(100% - 360px)
-      text-overflow         ellipsis
-      overflow              hidden
-      white-space           nowrap
       vertical-align        middle
+
+      &:hover, &:focus
+        border              none
+        box-shadow          none
 
     cite.stack
       fa                    server
@@ -114,6 +124,9 @@ $stack-border-width         = 2px
       &.level
         background          #727272
         cursor              default
+
+      &.clone
+        display             none
 
     cite.credential
       fa                    cog
@@ -166,10 +179,13 @@ $stack-border-width         = 2px
       .tag.credential
         vendor              animation, shake .6s
 
+    &.clone
+      .tag.clone
+        display             inline-block
+
     &.has-message
       height                80px
       min-height            80px !important
-
 
   .content
     background              $stack-bg-color
@@ -182,6 +198,13 @@ $stack-border-width         = 2px
     border-left             $stack-border-width solid $stack-border-color
     border-right            $stack-border-width solid $stack-border-color
     borderBox()
+    .toolbar, .content, .statusbar
+      opacity               1
+
+  .initial
+    .mainview
+      .toolbar, .content, .statusbar
+        opacity             0
 
   .statusbar
     background              $stack-border-color !important
