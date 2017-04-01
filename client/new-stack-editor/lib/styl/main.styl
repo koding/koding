@@ -192,6 +192,13 @@ $stack-border-width         = 2px
     border-left             $stack-border-width solid $stack-border-color
     border-right            $stack-border-width solid $stack-border-color
     borderBox()
+    .toolbar, .content, .statusbar
+      opacity               1
+
+  .initial
+    .mainview
+      .toolbar, .content, .statusbar
+        opacity             0
 
   .statusbar
     background              $stack-border-color !important
