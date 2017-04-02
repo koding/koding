@@ -256,6 +256,11 @@ func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error)
 	return 0, nil
 }
 
+// MachineInspectMountCommand allows to inspect internal mount status.
+func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	return 1, fmt.Errorf("not implemented")
+}
+
 // getIdentifiers extracts identifiers and validate provided arguments.
 // TODO(ppknap): other CLI libraries like Cobra have this out of the box.
 func getIdentifiers(c *cli.Context) (idents []string, err error) {
