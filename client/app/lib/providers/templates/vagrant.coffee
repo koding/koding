@@ -30,7 +30,7 @@ resource:
       # define your vm specs here, 2 cpus, 2GB of memory etc.
       cpus: '${var.userInput_cpus}'
       memory: '${var.userInput_memory}'
-      # select your image (optional) eg. ubuntu/trusty64 (it should be based on ubuntu 14.04)
+      # select your image (defaults to ubuntu/trusty64)
       box: '${var.userInput_box}'
       user_data: |-
         # let's create a file on your root folder:
