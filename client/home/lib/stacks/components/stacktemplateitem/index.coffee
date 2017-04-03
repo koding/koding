@@ -25,23 +25,23 @@ module.exports = class StackTemplateItem extends React.Component
 
   componentWillReceiveProps: (nextProps) ->
 
-    nextStackUnreadCount = @getStackUnreadCount nextProps.stack
-    @setState { showWidget : yes }  if nextStackUnreadCount > @getStackUnreadCount()
+    if @props.stack?.getUnreadCount() < nextProps.stack?.getUnreadCount()
+      @setState { showWidget: yes }
 
     @setCoordinates()
 
 
   componentDidMount: ->
 
-    $('.kdscrollview').on 'scroll', @bound 'scrollOnPage'
+    $('.kdscrollview').on 'scroll', @bound 'onScrollPage'
     @setCoordinates()
 
 
   componentWillUnmount: ->
-    $('.kdscrollview').off 'scroll', @bound 'scrollOnPage'
+    $('.kdscrollview').off 'scroll', @bound 'onScrollPage'
 
 
-  scrollOnPage: -> _.debounce =>
+  onScrollPage: -> _.debounce =>
     @setState({ showWidget: no })
   , 500, { leading: yes, trailing: no }
 
@@ -56,38 +56,29 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar, onCloneFromDashboard, template } = @props
+    { onAddToSidebar, onRemoveFromSidebar,
+      isVisibleOnSidebar, onCloneFromDashboard, template } = @props
 
-    if onCloneFromDashboard and template.get('originId') isnt whoami()._id
-      <a href="#" className="HomeAppView--button primary" onClick={onCloneFromDashboard}>CLONE STACK</a>
+    if onCloneFromDashboard and not template.isMine()
+      <ItemLink
+        onClick={onCloneFromDashboard}
+        title='CLONE STACK' />
+
+    else if isVisibleOnSidebar
+      <ItemLink
+        onClick={onRemoveFromSidebar}
+        title='REMOVE FROM SIDEBAR' />
     else
-
-      if isVisibleOnSidebar
-        <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
-      else
-        <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
-
-
-  renderCloneButton: ->
-
-    { template, onCloneFromDashboard } = @props
-    return  if template.get('accessLevel') is 'private'
-    return  if template.get('originId') is whoami()._id
-
-
-
-  getStackUnreadCount: (stack = @props.stack) ->
-
-    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
+      <ItemLink
+        onClick={onAddToSidebar}
+        title='ADD TO SIDEBAR' />
 
 
   renderUnreadCount: ->
 
-    return null  unless @getStackUnreadCount()
+    return null  unless count = @props.stack?.getUnreadCount()
 
-    <UnreadCount
-      count={@getStackUnreadCount()}
-      onClick={@bound 'handleUnreadCountClick'} />
+    <UnreadCount count={count} onClick={@bound 'handleUnreadCountClick'} />
 
 
   handleUnreadCountClick: ->
@@ -105,7 +96,7 @@ module.exports = class StackTemplateItem extends React.Component
 
     { coordinates, showWidget } = @state
 
-    return null  unless @getStackUnreadCount()
+    return null  unless @props.stack?.getUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
     coordinates.top = coordinates.top - 160
@@ -119,30 +110,33 @@ module.exports = class StackTemplateItem extends React.Component
       onClose={@bound 'onWidgetClose'}
     />
 
+
   renderDisabledStack: (stack, onOpen) ->
 
     <div className='HomeAppViewListItem StackTemplateItem'>
       <a
         ref='stackTemplateItem'
         className='HomeAppViewListItem-label disabled'
-        onClick={onOpen}>
-        { makeTitle { stack } }
-      </a>
+        onClick={onOpen}
+        children={makeTitle({ stack })} />
+
       <div className='HomeAppViewListItem-description disabled'>
-        Last updated <TimeAgo from={stack.getIn ['meta', 'modifiedAt']} />
+        Last Updated <TimeAgo from={stack.meta.modifiedAt}
       </div>
+
       <div className='HomeAppViewListItem-SecondaryContainer'>
         {@renderButton()}
       </div>
     </div>
 
+
   renderTags: ->
 
     { template, onCloneFromDashboard } = @props
 
-    if isDefaultTeamStack template.get '_id'
+    if isDefaultTeamStack template.getId()
       <div className='tag default'>DEFAULT</div>
-    else if onCloneFromDashboard and template.get('accessLevel') is 'group'
+    else if onCloneFromDashboard and template.accessLevel is 'group'
       <div className='tag shared'>SHARED</div>
     else
       null
@@ -152,10 +146,13 @@ module.exports = class StackTemplateItem extends React.Component
 
     { template, stack, onOpen } = @props
 
-    return @renderDisabledStack(stack, onOpen)  if stack?.get 'disabled'
-    return null  unless template
+    if stack?.disabled
+      return renderDisabledStack stack, onOpen
 
-    editorUrl = "/Stack-Editor/#{template.get '_id'}"
+    if not template
+      return null
+
+    editorUrl = "/Stack-Editor/#{template.getId()}"
 
     <div className='HomeAppViewListItem StackTemplateItem'>
       <div className='HomeAppViewListItem-label--wrapper'>
@@ -163,15 +160,15 @@ module.exports = class StackTemplateItem extends React.Component
           ref='stackTemplateItem'
           href={editorUrl}
           className='HomeAppViewListItem-label'
-          onClick={onOpen}>
-          { makeTitle { template, stack } }
+          onClick={onOpen}
+          children={ makeTitle { template, stack } }>
         </a>
         {@renderUnreadCount()}
         {@renderTags()}
       </div>
       {@renderStackUpdatedWidget()}
       <div className='HomeAppViewListItem-description'>
-        Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
+        Last updated <TimeAgo from={template.meta.modifiedAt} />
       </div>
       <div className='HomeAppViewListItem-SecondaryContainer'>
         {@renderButton()}
@@ -181,10 +178,19 @@ module.exports = class StackTemplateItem extends React.Component
 
 makeTitle = ({ template, stack }) ->
 
-  title = _.unescape template?.get 'title'
+  title = _.unescape template?.title
 
   return title  unless stack
-  if stack.getIn(['config', 'oldOwner'])
+
+  if stack.getOldOwner()
     title = stack.get 'title'
 
   return "#{title}"
+
+
+ItemLink = ({ onClick, title }) ->
+  <a
+    href="#"
+    className="HomeAppView--button primary"
+    onClick={onClick}
+    children={title} />
