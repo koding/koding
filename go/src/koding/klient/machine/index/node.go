@@ -1,6 +1,7 @@
 package index
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +16,7 @@ import (
 // Lookup, Count methods. Deleting such nodes is a nop.
 // This is how Node implements shallow delete.
 type Node struct {
-	Sub   map[string]*Node `json:"d,omitempty"`
+	Sub   map[string]*Node `json:"d"`
 	Entry *Entry           `json:"e,omitempty"`
 }
 
@@ -395,4 +396,26 @@ func split(path string) (string, string) {
 	}
 
 	return path, ""
+}
+
+var _ json.Unmarshaler = (*Node)(nil)
+
+// UnmarshalJSON satisfies json.Unmarshaler interface. It initializes empty sub
+// map when it's omitted in serialized data.
+//
+// Note: this is a fixing function that was created due to `omitempty` tag
+// in Node's sub field.
+func (nd *Node) UnmarshalJSON(data []byte) error {
+	type tmp Node
+
+	tnd := tmp{}
+	if err := json.Unmarshal(data, &tnd); err != nil {
+		return err
+	}
+
+	if *nd = Node(tnd); nd.Sub == nil {
+		nd.Sub = make(map[string]*Node)
+	}
+
+	return nil
 }

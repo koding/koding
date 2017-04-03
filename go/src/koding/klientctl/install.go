@@ -17,7 +17,6 @@ import (
 	"koding/kites/config/configstore"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
-	"koding/klientctl/metrics"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -153,14 +152,6 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		log.Info("Installation created log file at %q", LogFilePath)
 	}
 
-	// Track all failed installations.
-	defer func() {
-		if err != nil {
-			log.Error(err.Error())
-			metrics.TrackInstallFailed(err.Error(), config.VersionNum())
-		}
-	}()
-
 	authToken := c.Args().Get(0)
 
 	// We need to check if the authToken is somehow empty, because klient
@@ -284,9 +275,6 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
 	_ = uploader.FixPerms()
-
-	// track metrics
-	metrics.TrackInstall(config.VersionNum())
 
 	fmt.Printf("\n\nSuccessfully installed and started the %s!\n", config.KlientName)
 
