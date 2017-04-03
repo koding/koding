@@ -22,21 +22,8 @@ require './styl/sidebarstackwidgets.styl'
 require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
 
-
-
-calculateSharedResources = (props, state) ->
-
-  debug 'start calculating shared resources', { props, state }
-
-  resources =
-    permanent: props.machines.filter (m) -> m.getType() is 'shared'
-    collaboration: props.machines.filter (m) -> m.getType() is 'collaboration'
-
-  debug 'shared resources are calculated', resources
-
-  return resources
-
 calculateOwnedResources = require 'app/util/calculateOwnedResources'
+calculateSharedResources = require 'app/util/calculateSharedResources'
 
 module.exports = class SidebarContainer extends React.Component
 
