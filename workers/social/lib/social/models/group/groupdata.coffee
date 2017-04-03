@@ -1,7 +1,10 @@
-{ secure, signature, Base, JsPath:{ getAt } } = Bongo
+{ secure, signature, Base, JsPath:{ getAt } } = require 'bongo'
+
 module.exports = class JGroupData extends Base
   JPermissionSet = require './permissionset'
   { permit }     = JPermissionSet
+
+  @share()
 
   @set
     indexes       :
@@ -32,6 +35,11 @@ module.exports = class JGroupData extends Base
 
   # fetchByKey fetches given path from GroupData if only they are available
   # within the group.
+  #
+  # @param {String} path
+  #   Provide the path you would like to fetch.
+  #
+  # @return {Object} persisted value.
   @fetchByKey = secure (client, path, callback) ->
     # for more granular control, specify each sub key as well.
     availableKeys = [ 'countly' ]

@@ -794,20 +794,6 @@
         }
       }
     },
-    "JGroupData": {
-      "type": "object",
-      "properties": {
-        "_id": {
-          "type": "string"
-        },
-        "slug": {
-          "type": "string"
-        },
-        "data": {
-          "type": "object"
-        }
-      }
-    },
     "JGroupLimit": {
       "type": "object",
       "properties": {
@@ -6657,6 +6643,36 @@
         }
       }
     },
+    "/remote.api/JGroupData.fetchByKey": {
+      "post": {
+        "tags": [
+          "JGroupData"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Request processed successfully",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JGroup.one": {
       "post": {
         "tags": [
@@ -8080,7 +8096,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "Method JGroup.fetchDataAt",
+        "description": "",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
