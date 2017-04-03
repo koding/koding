@@ -7,6 +7,7 @@ ChangeTeamView = require 'app/changeteam'
 JCustomHTMLView  = require 'app/jcustomhtmlview'
 globals = require 'globals'
 intercomSupport = require 'app/util/intercomSupport'
+getCurrentGroup = require 'app/util/getGroup'
 ACCOUNT_MENU  = null
 
 
@@ -101,6 +102,8 @@ module.exports = class TeamName extends kd.CustomHTMLView
       'Change Team' : { callback }
     }
 
+    menuItems.Analytics = { callback }  if getCurrentGroup().countly?.appKey
+
     intercomSupport (isSupported) =>
       menuItems['Support'] = if isSupported then { callback }
       else { callback: @bound 'mailToSupport' }
@@ -126,6 +129,11 @@ module.exports = class TeamName extends kd.CustomHTMLView
   handleDashboard: ->
 
     kd.singletons.router.handleRoute '/Home/stacks'
+
+
+  handleAnalytics: ->
+
+    kd.singletons.router.handleRoute '/Analytics'
 
 
   handleLogout: ->
