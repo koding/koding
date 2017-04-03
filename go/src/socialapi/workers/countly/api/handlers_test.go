@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"encoding/json"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
@@ -29,17 +28,16 @@ func TestCreateApp(t *testing.T) {
 					res, err := rest.DoRequestWithAuth("GET", initURL, nil, sessionID)
 					So(err, ShouldBeNil)
 					So(res, ShouldNotBeNil)
-
 					var keys map[string]string
 					So(json.Unmarshal(res, &keys), ShouldBeNil)
 					So(len(keys), ShouldEqual, 3)
 
-					group, err := modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
+					countly, err := api.FetchCountlyInfo(groupName)
+					tests.ResultedWithNoErrorCheck(countly, err)
 
 					// check if we stored keys properly.
-					So(group.Countly.AppKey, ShouldEqual, keys["appKey"])
-					So(group.Countly.APIKey, ShouldEqual, keys["apiKey"])
+					So(countly.AppKey, ShouldEqual, keys["appKey"])
+					So(countly.APIKey, ShouldEqual, keys["apiKey"])
 
 					Convey("endpoint should be idempotent", func() {
 						res, err := rest.DoRequestWithAuth("GET", initURL, nil, sessionID)

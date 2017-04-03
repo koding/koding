@@ -14,7 +14,6 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/runner"
-	"gopkg.in/mgo.v2/bson"
 )
 
 // CountlyAPI is a wrapper struct for api handlers.
@@ -53,21 +52,12 @@ func (c *CountlyAPI) Init(u *url.URL, h http.Header, _ interface{}, context *mod
 	return response.NewOK(res)
 }
 
-// CreateCountlyApp creates an app for given group.
+// CreateApp creates an app for given group.
 func (c *CountlyAPI) CreateApp(slug string) (*mongomodels.Countly, error) {
-	group, err := modelhelper.GetGroup(slug)
-	if err != nil {
-		return nil, err
-	}
-
 	// make this call idempotent
-	if group.HasCountly() {
-		return &mongomodels.Countly{
-			AppID:  group.Countly.AppID,
-			AppKey: group.Countly.AppKey,
-			APIKey: group.Countly.APIKey,
-			UserID: group.Countly.UserID,
-		}, nil
+	countlyInfo, err := FetchCountlyInfo(slug)
+	if err == nil {
+		return countlyInfo, nil
 	}
 
 	app, err := c.client.CreateApp(&client.App{
@@ -91,7 +81,8 @@ func (c *CountlyAPI) CreateApp(slug string) (*mongomodels.Countly, error) {
 		APIKey: user.APIKey,
 		UserID: user.ID,
 	}
-	if err := persist(group.Id, res); err != nil {
+
+	if err := modelhelper.UpsertGroupData(slug, "countly", res); err != nil {
 		return nil, err
 	}
 
@@ -134,16 +125,16 @@ func (c *CountlyAPI) EnsureUser(slug, appID string) (*client.User, error) {
 	return nil, errors.New("user not found")
 }
 
-func persist(id bson.ObjectId, res *mongomodels.Countly) error {
-	return modelhelper.UpdateGroupPartial(
-		modelhelper.Selector{"_id": id},
-		modelhelper.Selector{
-			"$set": modelhelper.Selector{
-				"countly.apiKey": res.APIKey,
-				"countly.appKey": res.AppKey,
-				"countly.appId":  res.AppID,
-				"countly.userId": res.UserID,
-			},
-		},
-	)
+// FetchCountlyInfo gets the countly data for a given group
+func FetchCountlyInfo(slug string) (*mongomodels.Countly, error) {
+	type countly struct {
+		Data struct {
+			Countly *mongomodels.Countly
+		}
+	}
+	res := &countly{}
+	if err := modelhelper.GetGroupDataPath(slug, "countly", res); err != nil {
+		return nil, err
+	}
+	return res.Data.Countly, nil
 }
