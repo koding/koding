@@ -3,7 +3,7 @@ package terminal
 import (
 	"bytes"
 	"crypto/rand"
-	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -18,7 +18,7 @@ import (
 const (
 	sessionPrefix      = "koding"
 	defaultShell       = "/bin/bash"
-	randomStringLength = 24 // 144 bit base64 encoded
+	randomStringLength = 24 // 144 bit hex encoded
 )
 
 var defaultScreenPath = "/usr/bin/screen"
@@ -145,12 +145,12 @@ func screenSessions(username string) []string {
 
 	// We need to use ls here, because /var/run/screen mount is only
 	// visible from inside of container. Errors are ignored.
-	out, err := exec.Command("ls", "/var/run/screen/S-"+username).Output()
+	stdout, stderr, err := run("ls", "/var/run/screen/S-"+username)
 	if err != nil {
-		log.Printf("terminal: listing sessions failed: %s", err)
+		log.Printf("terminal: listing sessions failed: %s:\n%s\n", err, stderr)
 	}
 
-	shellOut := string(bytes.TrimSpace(out))
+	shellOut := string(bytes.TrimSpace(stdout))
 	if shellOut == "" {
 		return []string{}
 	}
@@ -192,29 +192,43 @@ func killSessions(username string) error {
 
 // killSession kills the given SessionID
 func killSession(session string) error {
-	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill").Output()
+	stdout, stderr, err := run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill")
 	if err != nil {
-		return commandError("screen kill failed", err, out)
+		return commandError("screen kill failed", err, stdout, stderr)
 	}
 
 	return nil
 }
 
 func renameSession(oldName, newName string) error {
-	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", sessionPrefix+"."+newName).Output()
+	stdout, stderr, err := run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", sessionPrefix+"."+newName)
 	if err != nil {
-		return commandError("screen renaming failed", err, out)
+		return commandError("screen renaming failed", err, stdout, stderr)
 	}
 
 	return nil
 }
 
-func commandError(message string, err error, out []byte) error {
-	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
+func commandError(message string, err error, stdout, stderr []byte) error {
+	return fmt.Errorf("%s\n%s\n%s\n%s\n", message, err, stdout, stderr)
+}
+
+func run(cmd string, args ...string) (stdout, stderr []byte, err error) {
+	var bufout, buferr bytes.Buffer
+
+	c := exec.Command(cmd, args...)
+	c.Stdout = &bufout
+	c.Stderr = &buferr
+
+	if err := c.Run(); err != nil {
+		return nil, buferr.Bytes(), err
+	}
+
+	return bufout.Bytes(), nil, nil
 }
 
 func randomString() string {
-	r := make([]byte, randomStringLength*6/8)
-	rand.Read(r)
-	return base64.URLEncoding.EncodeToString(r)
+	p := make([]byte, randomStringLength/2+1)
+	rand.Read(p)
+	return hex.EncodeToString(p)[:randomStringLength]
 }

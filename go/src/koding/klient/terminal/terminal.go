@@ -243,7 +243,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	if os.Geteuid() == 0 {
 		args = []string{"-i", command.Name}
 	} else {
-		args = []string{"-i", "-u", "#" + user.Uid, "--", command.Name}
+		args = []string{"-i", "-u", user.Username, "--", command.Name}
 	}
 
 	// check if we have custom screenrc path and there is a file for it. If yes
@@ -266,15 +266,18 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	// For test use this, sudo is not going to work
 	// cmd := exec.Command(command.Name, command.Args...)
 
+	var stderr bytes.Buffer
+
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
 	cmd.Stdin = server.pty.Slave
 	cmd.Stdout = server.pty.Slave
 	cmd.Dir = user.HomeDir
-	// cmd.Stderr = server.pty.Slave
+	cmd.Stderr = &stderr
 
 	// Open in background, this is needed otherwise the process will be killed
 	// if you hit close on the client side.
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
+
 	err = cmd.Start()
 	if err != nil {
 		fmt.Println("could not start", err)
@@ -284,7 +287,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	go func() {
 		err := cmd.Wait()
 		if err != nil {
-			fmt.Println("cmd.wait err", err)
+			fmt.Printf("cmd.wait error: %s: %s\n", err, &stderr)
 		}
 
 		server.pty.Slave.Close()
