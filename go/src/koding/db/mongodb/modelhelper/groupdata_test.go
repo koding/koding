@@ -8,7 +8,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func TestGroupDataUpsert(t *testing.T) {
+func TestGroupData(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
 
@@ -45,18 +45,32 @@ func TestGroupDataUpsert(t *testing.T) {
 		t.Fatalf("UpsertGroupData() = %v, want %v", err, nil)
 	}
 
-	gd, err = modelhelper.GetGroupData(slug)
+	gdp, err := modelhelper.GetGroupDataPath(slug, "testData.key2")
 	if err != nil {
-		t.Fatalf("GetGroupData(slug) = %v, want %v", err, nil)
+		t.Fatalf("GetGroupDataPath() = %v, want %v", err, nil)
 	}
 
-	res, err = gd.Data.GetString("testData.key2.subkey2")
+	res, err = gdp.Data.GetString("testData.key2.subkey2")
 	if err != nil {
 		t.Fatalf("data.Get(testData.key2.subkey2) = %v, want %v", err, nil)
 	}
 
 	if res != updateVal {
 		t.Fatalf("res = %v, want %v", res, updateVal)
+	}
+
+	hasGDP, err := modelhelper.HasGroupDataPath(slug, "testData.key2.subkey2")
+	if err != nil {
+		t.Fatalf("HasGroupDataPath() = %v, want %v", err, nil)
+	}
+
+	if !hasGDP {
+		t.Fatalf("hasGDP should be true got false")
+	}
+
+	hasGDP, err = modelhelper.HasGroupDataPath(slug, "testData.key2.nonexistent")
+	if err == nil {
+		t.Fatalf("HasGroupDataPath() = %v, want errPathNotSet", err)
 	}
 
 	// check if other keys are still existent
