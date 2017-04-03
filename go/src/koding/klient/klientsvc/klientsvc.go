@@ -17,10 +17,12 @@ import (
 
 // DefaultService is a default klient service
 // deployed within Koding.
-var DefaultService = &Service{
-	InstallDir: "/opt/kite/klient",
-	KlientBin:  os.Args[0],
-	Username:   config.CurrentUser.Username,
+func DefaultService() *Service {
+	return &Service{
+		InstallDir: "/opt/kite/klient",
+		KlientBin:  os.Args[0],
+		Username:   config.CurrentUser.Username,
+	}
 }
 
 // Service is a klient-specific wrapper for
@@ -120,6 +122,7 @@ func (s *Service) config() *service.Config {
 			"After":         "network.target",
 			"RequiredStart": "$network",
 			"LogFile":       true,
+			"User":          s.Username,
 			"Environment": map[string]string{
 				"USERNAME": s.Username,
 			},
@@ -129,22 +132,22 @@ func (s *Service) config() *service.Config {
 
 // Install installs the DefaultService.
 func Install() error {
-	return DefaultService.Install()
+	return DefaultService().Install()
 }
 
 // Start starts the DefaultService.
 func Start() error {
-	return DefaultService.Start()
+	return DefaultService().Start()
 }
 
 // Stop stops the DefaultService.
 func Stop() error {
-	return DefaultService.Stop()
+	return DefaultService().Stop()
 }
 
 // Uninstall uninstalls the DefaultService.
 func Uninstall() error {
-	return DefaultService.Uninstall()
+	return DefaultService().Uninstall()
 }
 
 type nopService struct{}
