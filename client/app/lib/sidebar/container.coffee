@@ -23,34 +23,6 @@ require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
 
 
-calculateOwnedResources = (props, state) ->
-
-  debug 'start calculating own resources', { props, state }
-
-  # first get the stacks created from individual templates
-  # we are gonna have an array like this:
-  resources = props.templates.map (template) ->
-    stacks = props.stacks.filter (stack) -> stack.baseStackId is template.getId()
-
-    # FIXME: find a way to inject unreadCounts here. ~Umut
-    if stacks.length
-    then stacks.map (stack) -> { stack, template, unreadCount: 0 }
-    else [{ stack: null, template, unreadCount: 0 }]
-
-  debug 'resources are calculated before flatten', resources
-
-  # now let's flatten them to have a single array
-  resources = flatten(resources).sort ({ stack }) -> if stack then -1 else 1
-
-  [ managedStack ] = props.stacks.filter (s) -> s.title.indexOf('Managed VMs') > -1
-
-  if managedStack
-    resources.push { stack: managedStack, template: null, unreadCount: 0 }
-
-  debug 'owned resources are calculated', resources
-
-  return resources
-
 
 calculateSharedResources = (props, state) ->
 
@@ -64,6 +36,7 @@ calculateSharedResources = (props, state) ->
 
   return resources
 
+calculateOwnedResources = require 'app/util/calculateOwnedResources'
 
 module.exports = class SidebarContainer extends React.Component
 
