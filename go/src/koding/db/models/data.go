@@ -8,7 +8,7 @@ import (
 type Data map[string]interface{}
 
 // GetString returns value as string with given key
-func (d *Data) GetString(key string) (string, error) {
+func (d Data) GetString(key string) (string, error) {
 	dt, err := d.Get(key)
 	if err != nil {
 		return "", err
@@ -23,7 +23,7 @@ func (d *Data) GetString(key string) (string, error) {
 }
 
 // GetData returns value as models.Data with given key
-func (d *Data) GetData(key string) (*Data, error) {
+func (d Data) GetData(key string) (*Data, error) {
 	dt, err := d.Get(key)
 	if err != nil {
 		return nil, err
@@ -38,12 +38,8 @@ func (d *Data) GetData(key string) (*Data, error) {
 }
 
 // Get returns value with given key
-func (d *Data) Get(key string) (interface{}, error) {
-	if d == nil {
-		return "", ErrDataKeyNotExists
-	}
-
-	dt, ok := findPath(*d, strings.Split(key, ".")...)
+func (d Data) Get(key string) (interface{}, error) {
+	dt, ok := findPath(d, strings.Split(key, ".")...)
 	if !ok {
 		return "", ErrDataKeyNotExists
 	}

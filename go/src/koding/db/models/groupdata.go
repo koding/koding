@@ -6,5 +6,5 @@ import "gopkg.in/mgo.v2/bson"
 type GroupData struct {
 	ID   bson.ObjectId `json:"_id" bson:"_id"`
 	Slug string        `json:"slug" bson:"slug"`
-	Data *Data         `json:"data,omitempty" bson:"data,omitempty"`
+	Data Data          `json:"data,omitempty" bson:"data,omitempty"`
 }
