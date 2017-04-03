@@ -14,33 +14,31 @@ const GroupDataColl = "jGroupDatas"
 var errPathNotSet = errors.New("path is not set")
 
 // GetGroupData fetches the group data from db.
-func GetGroupData(slug string) (*models.GroupData, error) {
-	gd := new(models.GroupData)
-
+func GetGroupData(slug string, gd interface{}) error {
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"slug": slug}).One(&gd)
+		return c.Find(bson.M{"slug": slug}).One(gd)
 	}
 
-	return gd, Mongo.Run(GroupDataColl, query)
+	return Mongo.Run(GroupDataColl, query)
 }
 
 // GetGroupDataPath fetches the group data from db but only the given path.
-func GetGroupDataPath(slug, path string) (*models.GroupData, error) {
+func GetGroupDataPath(slug, path string, gd interface{}) error {
 	if path == "" {
-		return nil, errPathNotSet
+		return errPathNotSet
 	}
 
-	gd := new(models.GroupData)
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"slug": slug}).Select(bson.M{"data." + path: 1}).One(&gd)
+		return c.Find(bson.M{"slug": slug}).Select(bson.M{"data." + path: 1}).One(gd)
 	}
 
-	return gd, Mongo.Run(GroupDataColl, query)
+	return Mongo.Run(GroupDataColl, query)
 }
 
 // HasGroupDataPath checks if the given path has data or not.
 func HasGroupDataPath(slug, path string) (bool, error) {
-	gdp, err := GetGroupDataPath(slug, path)
+	gdp := &models.GroupData{}
+	err := GetGroupDataPath(slug, path, &gdp)
 	if err != nil {
 		return false, err
 	}

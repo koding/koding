@@ -1,6 +1,7 @@
 package modelhelper_test
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
 	"testing"
@@ -26,8 +27,8 @@ func TestGroupData(t *testing.T) {
 		t.Fatalf("UpsertGroupData() = %v, want %v", err, nil)
 	}
 
-	gd, err := modelhelper.GetGroupData(slug)
-	if err != nil {
+	gd := &models.GroupData{}
+	if err := modelhelper.GetGroupData(slug, gd); err != nil {
 		t.Fatalf("GetGroupData(slug) = %v, want %v", err, nil)
 	}
 
@@ -45,8 +46,8 @@ func TestGroupData(t *testing.T) {
 		t.Fatalf("UpsertGroupData() = %v, want %v", err, nil)
 	}
 
-	gdp, err := modelhelper.GetGroupDataPath(slug, "testData.key2")
-	if err != nil {
+	gdp := &models.GroupData{}
+	if err := modelhelper.GetGroupDataPath(slug, "testData.key2", gdp); err != nil {
 		t.Fatalf("GetGroupDataPath() = %v, want %v", err, nil)
 	}
 
