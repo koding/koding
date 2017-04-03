@@ -1,22 +1,28 @@
+debug = require('debug')('dashboard:privatestacks')
 kd = require 'kd'
 React = require 'app/react'
 
 List = require 'app/components/list'
 StackTemplateItem = require '../stacktemplateitem'
 
+calculateOwnedResources = require 'app/util/calculateOwnedResources'
 
 module.exports = class PrivateStacksListView extends React.Component
 
-  onAddToSidebar: (stack) -> @props.onAddToSidebar stack.get '_id'
+  getResources: ->
 
+    resources = (@props.resources or []).filter (resource) ->
+      resource.stack and resource.template?.accessLevel is 'private'
 
-  onRemoveFromSidebar: (stack) -> @props.onRemoveFromSidebar stack.get '_id'
+    debug 'resources requested', resources
+
+    return resources
 
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.stacks?.size or 0
+  numberOfRowsInSection: -> @getResources().length
 
 
   renderSectionHeaderAtIndex: -> null
@@ -24,21 +30,23 @@ module.exports = class PrivateStacksListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    stack = @props.stacks.toList().get(rowIndex)
-    template = @props.templates.get stack.get 'baseStackId'
+    { sidebar } = kd.singletons
 
-    onAddToSidebar = @lazyBound 'onAddToSidebar', stack
-    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', stack
+    resource = @getResources()[rowIndex]
 
-    isVisible = !!@props.sidebarStacks.get(stack.get '_id')
+    { stack, template } = resource
+
+    isVisible = if stack
+    then sidebar.isVisible 'stack', stack.getId()
+    else sidebar.isVisible 'draft', template.getId()
 
     <StackTemplateItem
       isVisibleOnSidebar={isVisible}
+      stack={stack}
       template={template}
       onOpen={@props.onOpenItem}
-      onAddToSidebar={onAddToSidebar}
-      onRemoveFromSidebar={onRemoveFromSidebar}
-      stack={stack}
+      onAddToSidebar={@props.onAddToSidebar.bind null, resource}
+      onRemoveFromSidebar={@props.onRemoveFromSidebar.bind null, resource}
     />
 
 
