@@ -5,6 +5,11 @@ remote = require 'app/remote'
 
 module.exports = class SidebarController extends kd.Controller
 
+  @FilterType = {
+    Hidden: 'hidden'
+    Visible: 'visible'
+  }
+
   constructor: (options = {}) ->
 
     super options
@@ -22,8 +27,10 @@ module.exports = class SidebarController extends kd.Controller
 
     @managed = {}
 
+    # kd.singletons.mainController.ready =>
     @bindNotificationHandlers()
     @setStateFromStorage()
+    @loadVisibilityFilters()
 
 
   bindNotificationHandlers: ->
@@ -94,21 +101,60 @@ module.exports = class SidebarController extends kd.Controller
 
   loadVisibilityFilters: ->
 
-    fetchVisibility().then (filters) => @setVisibility filters
+    fetchVisibility().then (filters) =>
+      if filters
+        @visibility = filters
+        @emit 'change'
 
 
-  setVisibility: (type, id, state) ->
+  saveVisibility: (type, id, state) ->
 
     fetchVisibility()
-      .then (filters) =>
+      .then (filters) ->
         filters[type][id] = state
         return filters
 
-    new Promise (resolve) ->
-      appStorageController.storage('Sidebar')
-        .fetchValue 'visibility', (filters) =>
-          @setVisibilityFilters filters
-          resolve filters
+      .then (filters) ->
+        return saveVisibility(filters)
+
+      .then (filters) =>
+        @visibility = filters
+        return filters
+
+      .then (filters) =>
+        @emit 'change'
+        return filters
+
+
+  makeVisible: (type, id) ->
+
+    debug 'make visible', { type, id }
+
+    { FilterType } = SidebarController
+
+    @saveVisibility type, id, FilterType.Visible
+
+
+  makeHidden: (type, id) ->
+
+    debug 'make hidden', { type, id }
+
+    { FilterType } = SidebarController
+
+    @saveVisibility type, id, FilterType.Hidden
+
+
+  isVisible: (type, id) ->
+
+    { FilterType } = SidebarController
+
+    isVisible = if visibility = @visibility[type]?[id]?
+    then visibility is SidebarController.FilterType
+    else yes
+
+    debug 'is visible', isVisible
+
+    return isVisible
 
 
   addManaged: (id) ->
