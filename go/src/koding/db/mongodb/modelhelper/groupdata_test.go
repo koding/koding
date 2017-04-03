@@ -68,8 +68,7 @@ func TestGroupData(t *testing.T) {
 		t.Fatalf("hasGDP should be true got false")
 	}
 
-	hasGDP, err = modelhelper.HasGroupDataPath(slug, "testData.key2.nonexistent")
-	if err == nil {
+	if _, err := modelhelper.HasGroupDataPath(slug, "testData.key2.nonexistent"); err == nil {
 		t.Fatalf("HasGroupDataPath() = %v, want errPathNotSet", err)
 	}
 
