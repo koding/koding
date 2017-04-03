@@ -43,7 +43,3 @@ chmod +x /opt/kite/klient/klient
 chown -R "$${KODING_USERNAME}:$${KODING_USERNAME}" /opt/kite/klient
 
 /opt/kite/klient/klient -metadata-user "$${KODING_USERNAME}" -metadata-file /var/lib/koding/metadata.json run
-
-if [[ -x /var/lib/koding/user-data.sh ]]; then
-	/var/lib/koding/user-data.sh
-fi

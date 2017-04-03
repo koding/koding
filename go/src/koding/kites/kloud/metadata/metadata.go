@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"koding/kites/config"
@@ -11,7 +12,7 @@ import (
 
 // TODO(rjeczalik): make it configurable
 var (
-	DefaultEntrypoingBaseURL = "https://koding-klient.s3.amazonaws.com/entrypoint"
+	DefaultEntrypointBaseURL = "https://koding-klient.s3.amazonaws.com/entrypoint"
 	DefaultScreenURL         = "https://koding-dl.s3.amazonaws.com/screen.tar.gz"
 	DefaultCertURL           = "https://koding-dl.s3.amazonaws.com/ca-certificates.crt.gz"
 )
@@ -63,6 +64,8 @@ func New(cfg *Config) (CloudInit, error) {
 	return ci, nil
 }
 
+// TODO(rjeczalik): refactor to a separate function in kites/config
+// and use in marathon as well.
 func newMetadata(cfg *Config) ([]byte, error) {
 	konfig := &config.Konfig{
 		Endpoints: cfg.Konfig.Endpoints,
@@ -79,5 +82,14 @@ func newMetadata(cfg *Config) ([]byte, error) {
 		},
 	}
 
-	return json.Marshal(m)
+	var buf bytes.Buffer
+
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+
+	if err := enc.Encode(m); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }

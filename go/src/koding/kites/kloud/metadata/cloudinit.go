@@ -238,7 +238,7 @@ func NewCloudInit(cfg *CloudConfig) CloudInit {
 // If p does not look like cloud-init content,
 // the function returns the ErrNotCloudInit error.
 func ParseCloudInit(p []byte) (CloudInit, error) {
-	if !bytes.HasPrefix(p, header) {
+	if !bytes.HasPrefix(bytes.TrimSpace(p), header) {
 		return nil, ErrNotCloudInit
 	}
 

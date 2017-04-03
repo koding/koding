@@ -3,7 +3,8 @@ package provider
 import (
 	"fmt"
 
-	"koding/kites/kloud/userdata"
+	"koding/kites/kloud/metadata"
+	"koding/kites/kloud/stack"
 )
 
 // Userdata describes generic stack data required
@@ -46,26 +47,24 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) (*Use
 
 	field := bs.Provider.userdata()
 
-	bs.Builder.InterpolateField(vm, name, field)
-
-	// this part will be the same for all machines
-	userCfg := &userdata.CloudInitConfig{
-		Username: bs.Req.Username,
-		Groups:   []string{"sudo"},
-		Hostname: bs.Req.Username, // no typo here. hostname = username
-		KiteKey:  "${lookup(var." + ud.KiteKeyName + ", count.index)}",
+	cfg := &metadata.Config{
+		Konfig:  stack.Konfig,
+		KiteKey: "${lookup(var." + ud.KiteKeyName + ", count.index)}",
+		Debug:   ud.Debug,
 	}
 
 	if s, ok := vm[field].(string); ok {
-		userCfg.UserData = s
+		cfg.Userdata = s
 	}
 
-	userdata, err := bs.Session.Userdata.Create(userCfg)
+	ci, err := metadata.New(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	vm[field] = string(userdata)
+	vm[field] = ci.String()
+
+	bs.Builder.InterpolateField(vm, name, field)
 
 	// create independent kiteKey for each machine and create a Terraform
 	// lookup map, which is used in conjunction with the `count.index`.
