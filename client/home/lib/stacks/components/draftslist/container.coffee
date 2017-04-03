@@ -6,38 +6,69 @@ remote = require 'app/remote'
 View = require './view'
 SidebarFlux = require 'app/flux/sidebar'
 
+calculateOwnedResources = require 'app/util/calculateOwnedResources'
+
 module.exports = class DraftsListContainer extends React.Component
 
-  getDataBindings: ->
-    return {
-      templates: EnvironmentFlux.getters.draftStackTemplates
-      sidebarDrafts: SidebarFlux.getters.sidebarDrafts
-    }
+  constructor: (props) ->
+    super props
+
+    @state =
+      resources: calculateOwnedResources @props
+      loading: yes
 
 
-  onAddToSidebar: (stackTemplateId) ->
+  componentDidMount: ->
 
-    SidebarFlux.actions.makeVisible 'draft', stackTemplateId
+    { computeController, mainController } = kd.singletons
+
+    mainController.ready =>
+      computeController.fetchStackTemplates =>
+        @setState {
+          resources: calculateOwnedResources @props, @state
+        }, => @setState { loading: no }
 
 
-  onRemoveFromSidebar: (stackTemplateId) ->
+  componentWillReceiveProps: (nextProps, nextState) ->
 
-    SidebarFlux.actions.makeHidden 'draft', stackTemplateId
+    @setState
+      resources: calculateOwnedResources nextProps, nextState
 
-  onCloneFromDashboard: (stackTemplate) ->
 
-    EnvironmentFlux.actions.cloneStackTemplate remote.revive stackTemplate.toJS()
+  onAddToSidebar: (resource) ->
+
+    { sidebar } = kd.singletons
+
+    sidebar.makeVisible 'draft', resource.template.getId()
+
+
+  onRemoveFromSidebar: ({ template }) ->
+
+    { sidebar } = kd.singletons
+
+    sidebar.makeHidden 'draft', template.getId()
+
+
+  onCloneFromDashboard: ({ template }) ->
+
+    { router } = kd.singletons
+
+    console.trace()
+
+    template.clone (err, template) =>
+      if err
+        return new kd.NotificationView
+          title: "Error occured while cloning template"
+
+      router.handleRoute "/Stack-Editor/#{template.getId()}"
 
 
   render: ->
     <View
-      templates={@state.templates}
+      resources={@state.resources}
       sidebarDrafts={@state.sidebarDrafts}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
       onCloneFromDashboard={@bound 'onCloneFromDashboard'}
     />
-
-
-DraftsListContainer.include [KDReactorMixin]

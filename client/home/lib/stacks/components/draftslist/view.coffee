@@ -1,3 +1,4 @@
+debug = require('debug')('dashboard:draftslist')
 kd = require 'kd'
 React = require 'app/react'
 
@@ -6,6 +7,15 @@ StackTemplateItem = require '../stacktemplateitem'
 
 
 module.exports = class DraftsListView extends React.Component
+
+  getResources: ->
+
+    resources = (@props.resources or []).filter (resource) -> not resource.stack
+
+    debug 'resources requested', resources
+
+    return resources
+
 
   onAddToSidebar: (template) -> @props.onAddToSidebar template.get '_id'
 
@@ -19,7 +29,7 @@ module.exports = class DraftsListView extends React.Component
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.templates?.size or 0
+  numberOfRowsInSection: -> @getResources().length
 
 
   renderSectionHeaderAtIndex: -> null
@@ -27,23 +37,24 @@ module.exports = class DraftsListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    template = @props.templates.toList().get(rowIndex)
-    onAddToSidebar = @lazyBound 'onAddToSidebar', template
-    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', template
-    onCloneHandler = @lazyBound 'onCloneHandler', template
-    isVisible = @props.sidebarDrafts.get template.get('_id')
+    { sidebar } = kd.singletons
+    { template } = resource = @getResources()[rowIndex]
 
     <StackTemplateItem
-      isVisibleOnSidebar={isVisible}
+      isVisibleOnSidebar={sidebar.isVisible 'draft', template.getId()}
       template={template}
       onOpen={@props.onOpenItem}
-      onAddToSidebar={onAddToSidebar}
-      onRemoveFromSidebar={onRemoveFromSidebar}
-      onCloneFromDashboard={onCloneHandler}
+      onAddToSidebar={=> @props.onAddToSidebar resource}
+      onRemoveFromSidebar={=> @props.onRemoveFromSidebar resource}
+      onCloneFromDashboard={=> @props.onCloneFromDashboard resource}
     />
 
 
-  renderEmptySectionAtIndex: -> <div>You don't have any draft stack templates.</div>
+  renderEmptySectionAtIndex: ->
+
+    children = "You don't have any draft stack templates."
+
+    <div>{children}</div>
 
 
   render: ->
