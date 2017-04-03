@@ -16,20 +16,13 @@ func TestBlockUser(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
 
-	username, blockedReason := "testuser", "testing"
-
-	user := &models.User{
-		Name: username, ObjectId: bson.NewObjectId(), Status: models.UserBlocked,
-	}
-
-	defer func() {
-		modelhelper.RemoveUser(username)
-	}()
-
-	err := modelhelper.CreateUser(user)
+	user, _, err := modeltesthelper.CreateUser(bson.NewObjectId().Hex())
 	if err != nil {
 		t.Error(err)
 	}
+	username, blockedReason := user.Name, "testing"
+
+	defer modelhelper.RemoveUser(username)
 
 	err = modelhelper.BlockUser(username, blockedReason, 1*time.Hour)
 	if err != nil {
@@ -67,12 +60,8 @@ func TestRemoveUser(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
 
-	username := "testuser"
-	user := &models.User{
-		Name: username, ObjectId: bson.NewObjectId(),
-	}
-
-	err := modelhelper.CreateUser(user)
+	username := bson.NewObjectId().Hex()
+	_, _, err := modeltesthelper.CreateUser(username)
 	if err != nil {
 		t.Error(err)
 	}
@@ -94,13 +83,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 
 	id := bson.NewObjectId()
 	username := id.Hex()
-	user := &models.User{
-		ObjectId: id,
-		Name:     username,
-		Email:    username + "@" + username + ".com",
-	}
-
-	err := modelhelper.CreateUser(user)
+	_, _, err := modeltesthelper.CreateUser(username)
 	if err != nil {
 		t.Error(err)
 	}
@@ -118,13 +101,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 
 	id2 := bson.NewObjectId()
 	username2 := id2.Hex()
-	user2 := &models.User{
-		ObjectId: id2,
-		Name:     username2,
-		Email:    username2 + "@" + username2 + ".com",
-	}
-
-	err = modelhelper.CreateUser(user2)
+	_, _, err = modeltesthelper.CreateUser(username2)
 	if err != nil {
 		t.Error(err)
 	}
