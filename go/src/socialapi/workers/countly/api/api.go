@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/utils"
 	"net/http"
@@ -21,14 +22,6 @@ type CountlyAPI struct {
 	client      *client.Client
 	log         logging.Logger
 	globalOwner string
-}
-
-// CreateAppResponse holds the response for create app request return params.
-type CreateAppResponse struct {
-	AppID  string `json:"appId"`
-	AppKey string `json:"appKey"`
-	APIKey string `json:"apiKey"`
-	UserID string `json:"-"`
 }
 
 // NewCountlyAPI creates api handler functions for countly
@@ -60,8 +53,8 @@ func (c *CountlyAPI) Init(u *url.URL, h http.Header, _ interface{}, context *mod
 	return response.NewOK(res)
 }
 
-// CreateApp creates an app for given group.
-func (c *CountlyAPI) CreateApp(slug string) (*CreateAppResponse, error) {
+// CreateCountlyApp creates an app for given group.
+func (c *CountlyAPI) CreateApp(slug string) (*mongomodels.Countly, error) {
 	group, err := modelhelper.GetGroup(slug)
 	if err != nil {
 		return nil, err
@@ -69,7 +62,7 @@ func (c *CountlyAPI) CreateApp(slug string) (*CreateAppResponse, error) {
 
 	// make this call idempotent
 	if group.HasCountly() {
-		return &CreateAppResponse{
+		return &mongomodels.Countly{
 			AppID:  group.Countly.AppID,
 			AppKey: group.Countly.AppKey,
 			APIKey: group.Countly.APIKey,
@@ -92,7 +85,7 @@ func (c *CountlyAPI) CreateApp(slug string) (*CreateAppResponse, error) {
 	}
 	c.log.Debug("created user for %q group: %+v", slug, user)
 
-	res := &CreateAppResponse{
+	res := &mongomodels.Countly{
 		AppID:  app.ID,
 		AppKey: app.Key,
 		APIKey: user.APIKey,
@@ -141,7 +134,7 @@ func (c *CountlyAPI) EnsureUser(slug, appID string) (*client.User, error) {
 	return nil, errors.New("user not found")
 }
 
-func persist(id bson.ObjectId, res *CreateAppResponse) error {
+func persist(id bson.ObjectId, res *mongomodels.Countly) error {
 	return modelhelper.UpdateGroupPartial(
 		modelhelper.Selector{"_id": id},
 		modelhelper.Selector{
