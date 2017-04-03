@@ -5,20 +5,19 @@ import "testing"
 var (
 	existingKey, existingVal = "key1", "val1"
 	nonExistingKey           = "key-non-existing"
-	testDataMap              = map[string]interface{}{
+	testData                 = Data{
 		existingKey: existingVal,
-		"key2": map[string]interface{}{
+		"key2": Data{
 			"subkey2": "val2",
 		},
 		"key3": "val3",
 		"key4": 4,
 	}
-	testData = Data(testDataMap)
 )
 
-func TestFindPath(t *testing.T) {
+func TestDataFindPath(t *testing.T) {
 	// finding existing key
-	d, ok := findPath([]string{existingKey}, testDataMap)
+	d, ok := findPath(testData, existingKey)
 	if !ok {
 		t.Fatalf("existingKey: %v should be found", existingKey)
 	}
@@ -29,7 +28,7 @@ func TestFindPath(t *testing.T) {
 	}
 
 	// finding non existing key
-	d, ok = findPath([]string{nonExistingKey}, testDataMap)
+	d, ok = findPath(testData, nonExistingKey)
 	if ok {
 		t.Fatalf("%v should not be found", nonExistingKey)
 	}
@@ -38,7 +37,7 @@ func TestFindPath(t *testing.T) {
 	}
 
 	// finding multi level existing
-	d, ok = findPath([]string{"key2", "subkey2"}, testDataMap)
+	d, ok = findPath(testData, []string{"key2", "subkey2"}...)
 	if !ok {
 		t.Fatalf(" %v should be found", "key2.subkey2")
 	}
@@ -49,7 +48,7 @@ func TestFindPath(t *testing.T) {
 	}
 
 	// finding multi level non existing
-	d, ok = findPath([]string{"key2", "subKey3"}, testDataMap)
+	d, ok = findPath(testData, []string{"key2", "subKey3"}...)
 	if ok {
 		t.Fatalf(" %v should not be found", "key2.subKey3")
 	}
@@ -58,7 +57,7 @@ func TestFindPath(t *testing.T) {
 	}
 }
 
-func TestGet(t *testing.T) {
+func TestDataGet(t *testing.T) {
 	// finding existing key
 	data, err := testData.Get(existingKey)
 	if err != nil {
@@ -99,7 +98,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
-func TestGetString(t *testing.T) {
+func TestDataGetString(t *testing.T) {
 	data, err := testData.GetString(existingKey)
 	if err != nil {
 		t.Fatalf("testData.GetString() = error %v: got: %v", err, nil)

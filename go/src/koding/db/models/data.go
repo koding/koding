@@ -43,7 +43,7 @@ func (d *Data) Get(key string) (interface{}, error) {
 		return "", ErrDataKeyNotExists
 	}
 
-	dt, ok := findPath(strings.Split(key, "."), *d)
+	dt, ok := findPath(*d, strings.Split(key, ".")...)
 	if !ok {
 		return "", ErrDataKeyNotExists
 	}
@@ -51,7 +51,7 @@ func (d *Data) Get(key string) (interface{}, error) {
 	return dt, nil
 }
 
-func findPath(path []string, data Data) (interface{}, bool) {
+func findPath(data Data, path ...string) (interface{}, bool) {
 	if len(path) == 0 {
 		return nil, false
 	}
@@ -70,5 +70,5 @@ func findPath(path []string, data Data) (interface{}, bool) {
 		return nil, false
 	}
 
-	return findPath(path[1:], next)
+	return findPath(next, path[1:]...)
 }
