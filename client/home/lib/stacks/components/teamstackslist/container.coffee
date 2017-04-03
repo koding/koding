@@ -1,35 +1,60 @@
 kd              = require 'kd'
 React           = require 'app/react'
 EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
-SidebarFlux = require 'app/flux/sidebar'
 
+calculateOwnedResources = require 'app/util/calculateOwnedResources'
 
 module.exports = class TeamStacksListContainer extends React.Component
 
-  getDataBindings: ->
-    return {
-      stacks: EnvironmentFlux.getters.teamStacks
-      templates: EnvironmentFlux.getters.inUseTeamStackTemplates
-      sidebarStacks: SidebarFlux.getters.sidebarStacks
-    }
+  constructor: (props) ->
+    super props
+
+    @state =
+      resources: calculateOwnedResources @props
+      loading: yes
 
 
-  onAddToSidebar: (stackId) -> SidebarFlux.actions.makeVisible 'stack', stackId
+  componentDidMount: ->
+
+    { computeController, mainController } = kd.singletons
+
+    mainController.ready =>
+      computeController.fetchStackTemplates =>
+        @setState {
+          resources: calculateOwnedResources @props, @state
+        }, => @setState { loading: no }
 
 
-  onRemoveFromSidebar: (stackId) -> SidebarFlux.actions.makeHidden 'stack', stackId
+  componentWillReceiveProps: (nextProps, nextState) ->
+
+    @setState
+      resources: calculateOwnedResources nextProps, nextState
+
+
+  onAddToSidebar: ({ template, stack }) ->
+
+    { sidebar } = kd.singletons
+
+    if stack
+    then sidebar.setVisible 'stack', stack.getId()
+    else sidebar.setVisible 'draft', template.getId()
+
+
+  onRemoveFromSidebar: ({ template, stack }) ->
+
+    { sidebar } = kd.singletons
+
+    if stack
+    then sidebar.setHidden 'stack', stack.getId()
+    else sidebar.setHidden 'draft', template.getId()
 
 
   render: ->
+
     <View
-      stacks={@state.stacks}
-      templates={@state.templates}
-      sidebarStacks={@state.sidebarStacks}
+      resources={@state.resources}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
     />
-
-TeamStacksListContainer.include [KDReactorMixin]
