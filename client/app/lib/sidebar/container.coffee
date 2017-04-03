@@ -40,14 +40,12 @@ module.exports = class SidebarContainer extends React.Component
 
     { computeController, mainController } = kd.singletons
 
-    SidebarFlux.actions.loadVisibilityFilters().then =>
-      mainController.ready =>
-        computeController.fetchStackTemplates =>
-          @setState
-            ownedResources: calculateOwnedResources @props, @state
-            sharedResources: calculateSharedResources @props, @state
-          , =>
-            @setState { loading: no }
+    mainController.ready =>
+      computeController.fetchStackTemplates =>
+        @setState {
+          ownedResources: calculateOwnedResources @props, @state
+          sharedResources: calculateSharedResources @props, @state
+        }, => @setState { loading: no }
 
 
   componentWillReceiveProps: (nextProps, nextState) ->
