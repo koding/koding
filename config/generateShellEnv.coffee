@@ -18,4 +18,12 @@ module.exports.create = (KONFIG, options = {}) ->
   add 'GOPATH', '$KONFIG_PROJECTROOT/go'
   add 'GOBIN', '$GOPATH/bin'
 
+  return env unless options.countlyPath
+
+  # add this env vars if only countlyPath is set.
+  add 'COUNTLY_PATH', '/countly'
+  add 'COUNTLY_MONGODB_HOST', '$KONFIG_SERVICEHOST'
+  add 'COUNTLY_MONGODB_DB', 'countly'
+  add 'COUNTLY_MONGODB_PORT', '27017'
+
   return env

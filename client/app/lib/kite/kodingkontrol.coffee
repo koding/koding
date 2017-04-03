@@ -97,10 +97,15 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
     @queryKites args
       .then (result) =>
+
         if query? and result.kites.length > 0
           KiteCache.cache query, result.kites.first
 
         callback null, @createKites result.kites
+
+        return result
+
+    return null
 
 
   queryKites: Promise.promisify (args, callback) ->
@@ -166,8 +171,6 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   createKite: (options, query) ->
 
-    cc = kd.singletons.computeController
-
     { kite } = options
     kiteName = kite.name
 
@@ -191,6 +194,8 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         kite.options.autoReconnect = no
         KiteCache.unset query
 
+        cc = kd.singletons.computeController
+
         if kiteInstance = @kites[kiteName]?['singleton']
           { waitingPromises } = kiteInstance
           delete @kites[kiteName]['singleton']
@@ -213,16 +218,17 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   followConnectionStates: (kite, machineUId) ->
 
-    # Machine.uid is kite correlation name
-    cc = kd.singletons.computeController
+    kd.singletons.mainController.ready ->
+      # Machine.uid is kite correlation name
+      cc = kd.singletons.computeController
 
-    emit = (status) ->
-      if cc.findMachineFromMachineUId(machineUId)?.isRunning()
-        cc.emit "#{status}-#{machineUId}"
+      emit = (status) ->
+        if cc.findMachineFromMachineUId(machineUId)?.isRunning?()
+          cc.emit "#{status}-#{machineUId}"
 
-    kite.on 'open',      -> emit 'connected'
-    kite.on 'close',     -> emit 'disconnected'
-    kite.on 'reconnect', -> emit 'reconnecting'
+      kite.on 'open',      -> emit 'connected'
+      kite.on 'close',     -> emit 'disconnected'
+      kite.on 'reconnect', -> emit 'reconnecting'
 
 
   getKite: (options = {}) ->
@@ -265,23 +271,27 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
                 throw err
           )
 
+    query ?= { name, region, username, version, environment }
     # Query kontrol
-    @fetchKite
-      query : query ? { name, region, username, version, environment }
+    @fetchKite { query }
 
-    # Connect to kite
-    .then(kite.bound 'setTransport')
+      # Connect to kite
+      .then (transport) ->
 
-    # Report error
-    .catch (err) =>
+        kite.setTransport transport
+        return transport
 
-      kd.warn '[KodingKontrol] ', err
+      # Report error
+      .catch (err) =>
 
-      # Instead parsing message we need to define a code or different
-      # name for `No kite found` error in kite.js ~ FIXME GG
-      if err and err.name is 'KiteError' and /^No kite found/.test err.message
-        @setCachedKite name, correlationName
-        kite.invalid = err
+        kd.warn '[KodingKontrol] ', err
 
+        # Instead parsing message we need to define a code or different
+        # name for `No kite found` error in kite.js ~ FIXME GG
+        if err and err.name is 'KiteError' and /^No kite found/.test err.message
+          @setCachedKite name, correlationName
+          kite.invalid = err
+
+        return err
 
     return kite

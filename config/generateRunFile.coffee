@@ -462,7 +462,11 @@ generateDev = (KONFIG, options) ->
       restoredefaultmongodump
       restoreredis
       restorerabbitmq
-      restorecountly
+      if [ ! -z $KONFIG_COUNTLYPATH ]; then
+        $KONFIG_PROJECTROOT/deployment/countly/preparecountly.sh
+      else
+        restorecountly
+      fi
       restoredefaultpostgresdump
 
       echo "#---> CLEARING ALGOLIA INDEXES: <---#"

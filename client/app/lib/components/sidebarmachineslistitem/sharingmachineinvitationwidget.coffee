@@ -11,7 +11,7 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
   onRejectClicked: ->
 
     actions.setActiveInvitationMachineId { machine: null }
-    actions.rejectInvitation @props.machine
+    actions.leaveMachine @props.machine
     Tracker.track Tracker.VM_REJECTED_SHARED
 
 

@@ -1,6 +1,7 @@
 kd = require 'kd'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 showNotification = require './showNotification'
+Encoder = require 'htmlencode'
 
 fn = (err) ->
   return no  unless err
@@ -26,7 +27,7 @@ fn = (err) ->
 
 
   notification.type               = 'caution'
-  notification.content            = message
+  notification.content            = Encoder.htmlDecode message
   notification.primaryButtonTitle = 'OK'
 
   showNotification notification

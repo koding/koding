@@ -324,6 +324,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Type: "kiteKey",
 		Key:  k.Config.KiteKey,
 	}
+	c.Reconnect = true
 
 	kloud := &apiutil.LazyKite{
 		Client: c,
@@ -484,6 +485,7 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("fs.copy", fs.Copy)
 	k.handleWithSub("fs.getDiskInfo", fs.GetDiskInfo)
 	k.handleWithSub("fs.getPathSize", fs.GetPathSize)
+	k.handleWithSub("fs.abs", fs.KiteHandlerAbs())
 
 	// Machine group handlers.
 	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
@@ -494,6 +496,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
+	k.kite.HandleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))
 	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)
 	k.kite.HandleFunc("machine.kill", k.machines.HandleKill)
 
@@ -583,7 +586,9 @@ func (k *Klient) handleWithSub(method string, fn kite.HandlerFunc) {
 			return nil, err
 		}
 
-		if !team.Paid {
+		// TODO(rjeczalik): enable after rolling out kloud support first
+		// if !team.Paid {
+		if !team.IsSubActive(k.config.Environment) {
 			k.log.Error("Method %q is blocked due to unpaid subscription for %s team.", method, team.Name)
 			return nil, errors.New("method is blocked")
 		}

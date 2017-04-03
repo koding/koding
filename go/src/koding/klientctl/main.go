@@ -252,7 +252,7 @@ func run(args []string) {
 				Usage: fmt.Sprintf(
 					"Copy a file from one one machine to another",
 				),
-				Description: cmdDescriptions["cp"],
+				Description: cmdDescriptions["compat-cp"],
 				Flags: []cli.Flag{
 					cli.BoolFlag{
 						Name: "debug",
@@ -403,11 +403,6 @@ func run(args []string) {
 			},
 			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
 		}, {
-			Name:     "metrics",
-			Usage:    fmt.Sprintf("Internal use only."),
-			HideHelp: true,
-			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
-		}, {
 			Name:        "autocompletion",
 			Usage:       "Enable autocompletion support for bash and fish shells",
 			Description: cmdDescriptions["autocompletion"],
@@ -516,6 +511,12 @@ func run(args []string) {
 				Usage:           "Run a command in a started machine.",
 				Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
 				SkipFlagParsing: true,
+			}, {
+				Name:            "cp",
+				Description:     cmdDescriptions["cp"],
+				Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
+				SkipFlagParsing: true,
+				Flags:           []cli.Flag{},
 			}},
 		},
 	}
@@ -527,6 +528,7 @@ func run(args []string) {
 		find(app.Commands, "machine", "mount"),
 		find(app.Commands, "machine", "umount"),
 		find(app.Commands, "machine", "exec"),
+		find(app.Commands, "machine", "cp"),
 	)
 
 	if experimental {
@@ -758,9 +760,30 @@ func run(args []string) {
 		)
 	}
 
+	app.Commands = wrapActions(app.Commands)
 	app.Run(args)
 }
 
+func wrapActions(commands []cli.Command) []cli.Command {
+	for i, command := range commands {
+		if command.Action != nil {
+			commands[i].Action = createActionFunc(command.Action.(cli.ActionFunc))
+		}
+		if len(command.Subcommands) > 0 {
+			commands[i].Subcommands = wrapActions(command.Subcommands)
+		}
+	}
+	return commands
+}
+
+func createActionFunc(action cli.ActionFunc) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		// do things before for c.Command.FullName()
+		err := action(c)
+		// do things after for the command.
+		return err
+	}
+}
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a
 // codegansta/cli friendly command Action.
 func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) cli.ActionFunc {

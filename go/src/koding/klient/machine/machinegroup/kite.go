@@ -188,6 +188,27 @@ func KiteHandlerUmount(g *Group) kite.HandlerFunc {
 	}
 }
 
+// KiteHandlerCp creates a kite handler function that, when called, invokes
+// machine group Cp method.
+func KiteHandlerCp(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &CpRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.Cp(req)
+		if err != nil {
+			return nil, newError(err)
+		}
+
+		return res, nil
+	}
+}
+
 // HandleExec is a handler for "machine.exec" kite requests.
 func (g *Group) HandleExec(r *kite.Request) (interface{}, error) {
 	var req ExecRequest

@@ -7,6 +7,6 @@ module.exports = class ProfileLinkContainer extends React.Component
   @include [ProfileFetcherMixin]
 
   render: ->
-    <ProfileLink account={@state.account} {...@props}>
+    <ProfileLink {...@props}>
       {@renderChildren()}
     </ProfileLink>

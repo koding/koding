@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/koding/logging"
 
 	"koding/klientctl/config"
-	"koding/klientctl/metrics"
 	"koding/klientctl/shortcut"
 	"koding/klientctl/ssh"
 
@@ -45,48 +43,28 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 		default:
 			fmt.Println(GenericInternalError)
 		}
-
-		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 		return 1
 	}
-
-	now := time.Now()
-
-	// track metrics
-	go func() {
-		metrics.TrackSSH(mountName, config.VersionNum())
-	}()
 
 	err = cmd.Run(mountName)
 	switch err {
 	case nil:
-		metrics.TrackSSHEnd(mountName, "", -now.Sub(now).Minutes(), config.VersionNum())
 		return 0
 	case ssh.ErrMachineNotFound:
 		fmt.Println(MachineNotFound)
 	case ssh.ErrCannotFindUser:
 		fmt.Println(CannotFindSSHUser)
-		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case ssh.ErrFailedToGetSSHKey:
 		fmt.Println(FailedGetSSHKey)
-		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case ssh.ErrMachineNotValidYet:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(MachineNotValidYet))
-		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case ssh.ErrRemoteDialingFailed:
 		fmt.Println(defaultHealthChecker.CheckAllFailureOrMessagef(FailedDialingRemote))
-		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	case shortcut.ErrMachineNotFound:
 		fmt.Println(MachineNotFound)
-		metrics.TrackSSHFailed(mountName, err.Error(), config.VersionNum())
 	}
 
 	log.Error("SSHCommand.Run returned err:%s", err)
-
-	// ssh returns `exit status 255` on disconnection; so we also send how long
-	// session has been running for to indicate if ssh was successful at least
-	// once and the failed due to disconnection
-	metrics.TrackSSHEnd(mountName, err.Error(), -now.Sub(now).Minutes(), config.VersionNum())
 
 	return 1
 }

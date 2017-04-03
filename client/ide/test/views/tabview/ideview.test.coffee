@@ -57,7 +57,6 @@ createEditorPane = (paneClass) ->
 createTerminalPane = (options = {}) ->
 
   app = new AppController { name: "FooApp#{Date.now()}" }
-  app.workspaceData = { rootPath: '/root/path' }
 
   mock.appManager.getFrontApp.toReturnPassedParam app
 

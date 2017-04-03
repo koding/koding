@@ -3,13 +3,13 @@ kd = require 'kd'
 Link = require 'app/components/common/link'
 React = require 'app/react'
 Scroller = require 'app/components/scroller'
+showError = require 'app/util/showError'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
 SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
 SidebarStackSection = require 'app/components/sidebarstacksection'
 SidebarStackHeaderSection = require 'app/components/sidebarstacksection/sidebarstackheadersection'
 SidebarSharedMachinesSection = require 'app/components/sidebarsharedmachinessection'
-SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
 SidebarGroupDisabled = require './groupdisabled'
 isGroupDisabled = require 'app/util/isGroupDisabled'
@@ -41,31 +41,25 @@ module.exports = class Sidebar extends React.Component
     return {
       stacks                       : SidebarFlux.getters.sidebarStacks
       drafts                       : SidebarFlux.getters.sidebarDrafts
-      teamStackTemplates           : EnvironmentFlux.getters.teamStackTemplates
-      privateStackTemplates        : EnvironmentFlux.getters.privateStackTemplates
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
-      requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
-      allStackTemplates            : EnvironmentFlux.getters.allStackTemplates
-      team                         : TeamFlux.getters.team
+      templates                    : EnvironmentFlux.getters.allStackTemplates
       selectedTemplateId           : EnvironmentFlux.getters.selectedTemplateId
     }
 
 
-  componentWillMount: ->
+  componentDidMount: ->
 
     TeamFlux.actions.loadTeam()
 
     SidebarFlux.actions.loadVisibilityFilters().then =>
+
+      EnvironmentFlux.actions.loadMachines()
+      EnvironmentFlux.actions.loadStackTemplates()
       EnvironmentFlux.actions.loadStacks().then =>
         @setState { isLoading: no }
-
-      EnvironmentFlux.actions.loadMachines().then @bound 'setActiveInvitationMachineId'
-
-      EnvironmentFlux.actions.loadTeamStackTemplates()
-      EnvironmentFlux.actions.loadPrivateStackTemplates()
 
     # These listeners needs to be listen those events only once ~ GG
     kd.singletons.notificationController
@@ -77,8 +71,7 @@ module.exports = class Sidebar extends React.Component
           EnvironmentFlux.actions.setActiveInvitationMachineId { machine: null }
         else
           EnvironmentFlux.actions.setActiveLeavingSharedMachineId { id: null }
-          EnvironmentFlux.actions.dispatchCollaborationInvitationRejected options.machineId
-          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.uid
+          EnvironmentFlux.actions.dispatchInvitationRejected options.machineId
 
         EnvironmentFlux.actions.loadMachines()
 
@@ -94,8 +87,14 @@ module.exports = class Sidebar extends React.Component
     switch title
       when 'Edit', 'View Stack' then router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
-        EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
-          appManager.tell 'Stackeditor', 'reloadEditor', template._id
+        EnvironmentFlux.actions.generateStack(id)
+          .then ({ template, stack }) ->
+            appManager.tell 'Stackeditor', 'reloadEditor', template._id
+            if machine = stack.results?.machines?[0]?.obj
+              kd.singletons.computeController.reloadIDE machine
+          .catch (err) ->
+            showError err
+
       when 'Clone'
         EnvironmentFlux.actions.cloneStackTemplate remote.revive draft.toJS()
       when 'Open on GitLab'
@@ -127,8 +126,10 @@ module.exports = class Sidebar extends React.Component
 
     if draft.getIn ['config', 'remoteDetails', 'originalUrl']
       menuItems['Open on GitLab'] = { callback }
+
     if whoami()._id is draft.get 'originId'
       menuItems['Edit'] = { callback }
+
     else
       menuItems['View Stack'] = { callback }
 
@@ -151,14 +152,6 @@ module.exports = class Sidebar extends React.Component
     MENU = new kd.ContextMenu menuOptions, menuItems
 
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
-
-
-  setActiveInvitationMachineId: ->
-
-    { setActiveInvitationMachineId } = EnvironmentFlux.actions
-
-    if @state.requiredInvitationMachine
-      setActiveInvitationMachineId { machine : @state.requiredInvitationMachine }
 
 
   prepareStacks:  ->
@@ -188,7 +181,7 @@ module.exports = class Sidebar extends React.Component
 
   renderStack: (stack) ->
 
-    template = @state.allStackTemplates.get stack.get 'baseStackId'
+    template = @state.templates.get stack.get 'baseStackId'
 
     <SidebarStackSection
       key={stack.get '_id'}
@@ -234,8 +227,8 @@ module.exports = class Sidebar extends React.Component
       <div/>
     else
       <SidebarNoStacks
-        teamStacks={@state.teamStackTemplates.size}
-        privateStacks={@state.privateStackTemplates.size} />
+        hasPermission={canCreateStacks()}
+        hasTemplate={@state.templates.size > 0} />
 
 
   renderDifferentStackResources: ->

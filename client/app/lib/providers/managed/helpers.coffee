@@ -47,7 +47,7 @@ ensureManagedStack = (callback) ->
 
   title = 'Managed VMs'
 
-  for stack in computeController.stacks when stack.title is title
+  if stack = computeController.storage.stacks.get 'title', title
     return callback null, stack
 
   options = { title }
@@ -68,7 +68,15 @@ createMachine = (kite, callback) ->
       ipAddress   : kite.ipAddress
       label       : kite.kite.hostname
       stack       : stack._id
-    }, callback
+    }, (err, machine) ->
+      return callback err  if err
+
+      if machine
+        stack.machines.push machine
+        computeController.storage.machines.push machine
+        computeController.storage.stacks.push stack
+
+      callback null, machine
 
 
 updateMachineData = ({ machine, kite }, callback) ->

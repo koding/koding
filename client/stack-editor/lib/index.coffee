@@ -6,7 +6,7 @@ showError = require 'app/util/showError'
 OnboardingView = require './onboarding/onboardingview'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
-isClonedTemplate = require 'app/util/isclonedtemplate'
+fetchOriginTemplate = require 'app/util/fetchorigintemplate'
 
 do require './routehandler'
 require 'stack-editor/styl'
@@ -52,9 +52,11 @@ module.exports = class StackEditorAppController extends AppController
         return  @showView { _id: stackTemplateId }
 
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
-        if err
+
+        if err or not stackTemplate
           kd.singletons.router.handleRoute '/IDE'
           return showError err
+
         editor = @showView stackTemplate
         # If selected template is deleted, then redirect them to ide.
         # TODO: show an information modal to the user if he/she is admin. ~Umut
@@ -64,14 +66,15 @@ module.exports = class StackEditorAppController extends AppController
           @removeEditor stackTemplate._id
           kd.singletons.router.handleRoute '/IDE'
 
-        isClonedTemplate stackTemplate, (originalTemplate) ->
-          if originalTemplate
-            editor.addClonedFrom originalTemplate
-            originalTemplate.on 'update', ->
-              if stackTemplate.config.clonedSum isnt originalTemplate.template.sum
-                return editor.addCloneUpdateView originalTemplate
+        fetchOriginTemplate stackTemplate, (err, originalTemplate) ->
+          return  if err or not originalTemplate
+
+          editor.addClonedFrom originalTemplate
+          originalTemplate.on 'update', ->
             if stackTemplate.config.clonedSum isnt originalTemplate.template.sum
-              editor.addCloneUpdateView originalTemplate
+              return editor.addCloneUpdateView originalTemplate
+          if stackTemplate.config.clonedSum isnt originalTemplate.template.sum
+            editor.addCloneUpdateView originalTemplate
 
     else
       @showView()

@@ -3,7 +3,6 @@ KDViewController             = kd.ViewController
 KDCustomScrollView           = kd.CustomScrollView
 
 isGuest                      = require 'app/util/isGuest'
-Machine                      = require 'app/providers/machine'
 FSHelper                     = require 'app/util/fs/fshelper'
 showError                    = require 'app/util/showError'
 
@@ -69,7 +68,7 @@ module.exports = class NFinderController extends KDViewController
         @unmountMachine machineId
 
       computeController.on 'MachineStarted', ({ machineId }) =>
-        computeController.fetchMachine machineId, (err, machine) =>
+        computeController.fetchMachine { _id: machineId }, (err, machine) =>
           @mountMachine machine  unless err
 
 
@@ -100,10 +99,6 @@ module.exports = class NFinderController extends KDViewController
     unless machine
       kd.warn '[Finder][mountMachine] Machine not provided!'
       return
-
-    unless machine instanceof Machine
-      kd.warn '[Finder][mountMachine] Not a Machine instance!'
-      machine = new Machine { machine }
 
     unless machine.isRunning()
       return kd.warn "[Finder][mountMachine] Machine '#{machine.getName()}'
@@ -154,8 +149,7 @@ module.exports = class NFinderController extends KDViewController
 
   unmountMachine: (uid) ->
 
-    machineItem = @getMachineNode uid
-    return kd.warn 'No such Machine!'  unless machineItem
+    return  unless machineItem = @getMachineNode uid
 
     @stopWatching machineItem.data.path
     FSHelper.unregisterMachineFiles uid
@@ -167,18 +161,22 @@ module.exports = class NFinderController extends KDViewController
 
     return kd.warn 'Machine uid and new path required!'  unless uid or path
 
+    machineRoots = (@appStorage.getValue 'machineRoots') or {}
+
+    if machineRoots[uid] is path
+      return callback?()
+
+    machineRoots[uid] = path
+
     @unmountMachine uid
     callback?()
-
-    machineRoots = (@appStorage.getValue 'machineRoots') or {}
-    machineRoots[uid] = path
 
     if @getOptions().useStorage
       @appStorage.setValue 'machineRoots', machineRoots
 
     { computeController } = kd.singletons
 
-    computeController.fetchMachine uid, (err, machine) =>
+    computeController.fetchMachine { uid }, (err, machine) =>
       return showError err  if err
       @mountMachine machine
 

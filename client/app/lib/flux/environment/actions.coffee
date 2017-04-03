@@ -1,3 +1,4 @@
+debug = (require 'debug') 'environment:actions'
 _ = require 'lodash'
 kd = require 'kd'
 async = require 'async'
@@ -11,47 +12,27 @@ showError = require 'app/util/showError'
 toImmutable = require 'app/util/toImmutable'
 getGroup = require 'app/util/getGroup'
 whoami = require 'app/util/whoami'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 globals = require 'globals'
-Machine = require 'app/providers/machine'
-providersParser = require 'app/util/stacks/providersparser'
-requirementsParser = require 'app/util/stacks/requirementsparser'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
 $ = require 'jquery'
 canCreateStacks = require 'app/util/canCreateStacks'
 _eventsCache = { machine: {}, stack: no }
 
-_bindMachineEvents = (environmentData) ->
 
-  { reactor, computeController } = kd.singletons
+_bindMachineEvents = (machine) ->
 
-  machines = reactor.evaluate getters.machinesWithWorkspaces
+  return  unless id = machine?._id
 
-  computeController.ready ->
+  { computeController, reactor } = kd.singletons
 
-    machines.map (machine, id) ->
-      return  if _eventsCache.machine[id]
+  if handler = _eventsCache.machine[id]
+    return computeController.off "revive-#{id}", handler
 
-      _eventsCache.machine[id] = yes
+  _eventsCache.machine[id] = handler = (newMachine) ->
+    reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
 
-      publicHandler = (event) ->
-        reactor.dispatch actions.MACHINE_UPDATED, { id, event }
-      computeController.off "public-#{id}", publicHandler
-      computeController.on  "public-#{id}", publicHandler
-
-      reviveHandler = (newMachine) ->
-        return loadMachines()  unless newMachine
-        reactor.dispatch actions.MACHINE_UPDATED, { id, machine: newMachine }
-      computeController.off "revive-#{id}", reviveHandler
-      computeController.on  "revive-#{id}", reviveHandler
-
-      if stack = computeController.findStackFromMachineId id
-        applyHandler = (event) ->
-          reactor.dispatch actions.MACHINE_UPDATED, { id, event }
-
-        computeController.off "apply-#{stack._id}", applyHandler
-        computeController.on  "apply-#{stack._id}", applyHandler
+  computeController.on "revive-#{id}", handler
 
 
 _bindStackEvents = ->
@@ -62,31 +43,31 @@ _bindStackEvents = ->
 
   { reactor, computeController } = kd.singletons
 
-  computeController.ready ->
+  computeController.on 'StackRevisionChecked', (stack) ->
+    reactor.dispatch actions.STACK_UPDATED, stack
 
-    computeController.on 'StackRevisionChecked', (stack) ->
-      return  if _revisionStatus?.error? and not stack._revisionStatus.status
+  computeController.on 'GroupStacksInconsistent', ->
+    reactor.dispatch actions.GROUP_STACKS_INCONSISTENT
 
-      loadMachines().then ->
-        reactor.dispatch actions.STACK_UPDATED, stack
-
-    computeController.on 'GroupStacksInconsistent', ->
-      reactor.dispatch actions.GROUP_STACKS_INCONSISTENT
-
-    computeController.on 'GroupStacksConsistent', ->
-      reactor.dispatch actions.GROUP_STACKS_CONSISTENT
-
-    computeController.checkGroupStacks()
+  computeController.on 'GroupStacksConsistent', ->
+    reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
 
 _bindTemplateEvents = (stackTemplate) ->
+
+  unless stackTemplate
+    console.warn 'null data passed to _bindTemplateEvents!'
+    return
 
   { reactor, computeController } = kd.singletons
 
   { _id: id } = stackTemplate
 
   stackTemplate.on 'update', ->
-    computeController.checkRevisionFromOriginalStackTemplate stackTemplate
+    debug 'stack template updated', stackTemplate
+    if stackTemplate.accessLevel is 'group'
+      computeController.checkRevisionFromOriginalStackTemplate stackTemplate
+
   stackTemplate.on 'deleteInstance', ->
     reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id }
 
@@ -109,7 +90,7 @@ handleSharedMachineInvitation = (sharedMachine) ->
 
 fetchMachineByUId = (machineUId, callback) ->
 
-  remote.api.JMachine.one machineUId, (err, machine) ->
+  remote.api.JMachine.one { uid: machineUId }, (err, machine) ->
     if err
       showError err
     else if machine?
@@ -118,36 +99,20 @@ fetchMachineByUId = (machineUId, callback) ->
 
 loadMachines = do (isPayloadUsed = no) -> ->
 
-  { reactor } = kd.singletons
-
+  { reactor, computeController } = kd.singletons
   reactor.dispatch actions.LOAD_USER_ENVIRONMENT_BEGIN
 
   new Promise (resolve, reject) ->
 
-    kallback = (err, data) ->
-      if err
-        reactor.dispatch actions.LOAD_USER_ENVIRONMENT_FAIL, { err }
-        reject err
-      else
-        reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, data
-        resolve data
-        _bindMachineEvents data
+    computeController.ready ->
 
-    if environmentDataProvider.hasData() and not isPayloadUsed
-      isPayloadUsed   = yes
-      environmentData = environmentDataProvider.get()
+      machines = computeController.storage.machines.get()
 
-      # If there are any collaboration machines, fetch all machines data from server.
-      # Because `_globals` doesn't give workspace data of collaboration machines.
-      # Ping @senthil for the best solution.
-      if environmentData.collaboration.length
-        return environmentDataProvider.fetch (data) -> kallback null, data
+      reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, machines
 
-      return kd.utils.defer ->
-        environmentDataProvider.revive()
-        kallback null, environmentData
+      machines.forEach _bindMachineEvents
 
-    environmentDataProvider.fetch (data) -> kallback null, data
+      resolve machines
 
 
 loadStacks = (force = no) ->
@@ -158,196 +123,93 @@ loadStacks = (force = no) ->
 
   new Promise (resolve, reject) ->
 
-    computeController.fetchStacks (err, stacks) ->
-      if err
-        reactor.dispatch actions.LOAD_USER_STACKS_FAIL, { err }
-        reject err
-      else
-        stacks.map (stack) ->
-          stack.title = Encoder.htmlDecode stack.title
-        reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
-        resolve stacks
-        _bindStackEvents()
-    , force
+    computeController.ready ->
+
+      stacks = computeController.storage.stacks.get()
+
+      reactor.dispatch actions.LOAD_USER_STACKS_SUCCESS, stacks
+      resolve stacks
+      _bindStackEvents()
 
 
-rejectInvitation = (machine) ->
+leaveMachine = (_machine) ->
 
-  kd.singletons.machineShareManager.unset machine.get 'uid'
+  { reactor, appManager, computeController } = kd.singletons
 
-  isApproved      = machine.get 'isApproved'
-  isPermanent     = machine.get 'isPermanent'
-  denyMachine     = switch machine.get 'type'
-    when 'shared'         then isPermanent
-    when 'collaboration'  then not isPermanent
-
-  ideApp = environmentDataProvider.getIDEFromUId machine.get('uid')
+  machineUId  = _machine.get 'uid'
+  ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
+  machine     = computeController.storage.machines.get 'uid', machineUId
 
   async.series([
-    (callback) ->
-
-      if denyMachine
-        remote.revive(machine.toJS()).deny (err) ->
-          showError err  if err
-          callback err
-      else
-        callback()
 
     (callback) ->
 
-      return callback()  unless machine.get('type') is 'collaboration'
-
-      # Do not call social api from here if there is an ide app instance.
-      # Because it will be called it in next queue item by "quit()" method instead of this queue.
-      # You can check "stopCollaborationSession" method of collaborationcontroller.coffee
-      # ~TURUNC
-      return callback()  if ideApp and denyMachine
-
-      { channel } = kd.singletons.socialapi
-      workspace   = machine.get('workspaces').first()
-      channelId   = workspace.get 'channelId'
-
-      channel.byId { id: channelId }, (err, socialChannel) ->
-        if err
-          showError err
-          return callback err
-
-        isApproved = socialChannel.isParticipant
-        method     = if isApproved then 'leave' else 'rejectInvite'
-
-        channel[method] { channelId }, (err) ->
-          showError err  if err
-          callback()
+      machine.deny (err) ->
+        showError err  if err
+        callback err
 
     (callback) ->
 
-      { reactor } = kd.singletons
-      workspaces  = machine.get('workspaces')
+      ideInstance?.quit reload = no
 
-      workspaces.map (workspace) ->
-        reactor.dispatch actions.WORKSPACE_DELETED, {
-          workspaceId : workspace.get '_id'
-          machineId   : machine.get '_id'
-        }
-
-      callback()
-
-    (callback) ->
-
-      ideApp?.quit()  if denyMachine
-
-      actionType = if machine.get('type') is 'collaboration'
-      then 'COLLABORATION_INVITATION_REJECTED'
-      else 'SHARED_VM_INVITATION_REJECTED'
-
-      kd.singletons.reactor.dispatch actions[actionType], machine.get '_id'
-      kd.singletons.computeController.reset callback
+      machineId = machine.getId()
+      reactor.dispatch actions.INVITATION_REJECTED, machineId
+      computeController.storage.machines.pop machineId
 
   ])
 
 
-acceptInvitation = (machine) ->
+acceptInvitation = (_machine) ->
 
-  { router, machineShareManager, socialapi, reactor } = kd.singletons
+  debug 'acceptInvitation', _machine
 
-  uid = machine.get 'uid'
+  { router, socialapi, reactor, computeController } = kd.singletons
 
-  invitation  = machineShareManager.get uid
-  machineShareManager.unset uid
+  uid     = _machine.get 'uid'
+  machine = computeController.storage.machines.get '_id', _machine.get '_id'
 
-  jMachine    = remote.revive machine.toJS()
+  debug 'acceptInvitation machine', machine
 
-  jMachine.approve (err) ->
+  machine.approve (err) ->
 
     return showError err  if err
 
     kallback = (route, callback) ->
       # Fetch all machines
-      loadMachines().then ->
-        callback()
-        router.handleRoute route
+      callback()
+      router.handleRoute route
 
-    if invitation?.type is 'collaboration' or machine.get('type') is 'collaboration'
-      _getInvitationChannelId { uid, invitation }, (channelId) ->
+    if _machine.get('type') is 'collaboration'
+      _getInvitationChannelId { uid }, (channelId) ->
+
+        unless channelId
+          return showError 'Session is invalid or ended by host'
+
         require('app/flux/socialapi/actions/channel').loadChannel(channelId).then ({ channel }) ->
           if channel.isParticipant
-            return kallback "/IDE/#{channelId}", ->
-              reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+            return kallback "/IDE/#{uid}", ->
+              reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
 
           socialapi.channel.acceptInvite { channelId }, (err) ->
             return showError err  if err
 
-            kallback "/IDE/#{channelId}", ->
-              reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+            kallback "/IDE/#{uid}", ->
+              reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
+
     else
-      kallback "/IDE/#{machine.get 'uid'}", ->
-        reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
+      kallback "/IDE/#{uid}", ->
+        reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
 
 
-dispatchCollaborationInvitationRejected = (id) ->
+dispatchInvitationRejected = (id) ->
 
-  kd.singletons.reactor.dispatch actions.COLLABORATION_INVITATION_REJECTED, id
-
-
-dispatchSharedVMInvitationRejected = (id) ->
-
-  kd.singletons.reactor.dispatch actions.SHARED_VM_INVITATION_REJECTED, id
+  kd.singletons.reactor.dispatch actions.INVITATION_REJECTED, id
 
 
-_getInvitationChannelId = ({ uid, invitation }, callback) ->
+_getInvitationChannelId = ({ uid }, callback) ->
 
-  environmentDataProvider.fetchMachineByUId uid, (machine, workspaces) ->
-    for workspace in workspaces
-
-      if invitation?.workspaceId is workspace.getId()
-        callback workspace.channelId
-        break
-      else if not invitation and workspace.channelId
-        callback workspace.channelId
-        break
-
-
-showAddWorkspaceView = (machineId) ->
-
-  kd.singletons.reactor.dispatch actions.SHOW_ADD_WORKSPACE_VIEW, machineId
-
-
-hideAddWorkspaceView = (machineId) ->
-
-  kd.singletons.reactor.dispatch actions.HIDE_ADD_WORKSPACE_VIEW, machineId
-
-
-deleteWorkspace = (params) ->
-
-  { machine, workspace, deleteRelatedFiles }  = params
-  { router, appManager, reactor }             = kd.singletons
-  { machineUId, rootPath, machineLabel, _id } = workspace.toJS()
-
-  new Promise (resolve, reject) ->
-
-    remote.api.JWorkspace.deleteById _id, (err) ->
-
-      if err
-        reactor.dispatch actions.WORKSPACE_DELETED_FAIL
-        reject err
-        return
-
-      if deleteRelatedFiles
-        methodName = 'deleteWorkspaceRootFolder'
-        ideApp = environmentDataProvider.getIDEFromUId machineUId
-        ideApp?[methodName] machineUId, rootPath
-
-      reactor.dispatch actions.WORKSPACE_DELETED, {
-        workspaceId : _id
-        machineId   : machine.get '_id'
-      }
-
-      resolve()
-
-
-setSelectedWorkspaceId = (workspaceId) ->
-
-  kd.singletons.reactor.dispatch actions.WORKSPACE_SELECTED, workspaceId
+  machine = kd.singletons.computeController.storage.machines.get 'uid', uid
+  callback if machine then machine.getChannelId() else null
 
 
 setSelectedMachineId = (machineId) ->
@@ -366,16 +228,6 @@ setActiveStackId = (stackId) ->
     kd.singletons.reactor.dispatch actions.STACK_IS_ACTIVE, stackId
 
 
-showDeleteWorkspaceWidget = (workspaceId) ->
-
-  kd.singletons.reactor.dispatch actions.SHOW_DELETE_WORKSPACE_WIDGET, workspaceId
-
-
-hideDeleteWorkspaceWidget = ->
-
-  kd.singletons.reactor.dispatch actions.HIDE_DELETE_WORKSPACE_WIDGET
-
-
 showManagedMachineAddedModal = (info, id) ->
 
   kd.singletons.reactor.dispatch actions.SHOW_MANAGED_MACHINE_ADDED_MODAL, {
@@ -389,12 +241,9 @@ hideManagedMachineAddedModal = (id) ->
   kd.singletons.reactor.dispatch actions.HIDE_MANAGED_MACHINE_ADDED_MODAL, { id }
 
 
-reinitStack = (stackId) ->
+checkTeamStack = (stackId) ->
 
   { reactor } = kd.singletons
-
-  reactor.dispatch actions.REMOVE_STACK, stackId
-
   if reactor.evaluate ['DifferentStackResourcesStore']
     reactor.dispatch actions.GROUP_STACKS_CONSISTENT
 
@@ -405,15 +254,10 @@ reinitStackFromWidget = (stack) ->
 
   new Promise (resolve, reject) ->
 
-    stack = if stack then stack.toJS() else computeController.getGroupStack()
+    stack = if stack then stack.toJS()
 
     computeController.reinitStack stack, (err) ->
       if err then reject(err) else resolve()
-
-
-createWorkspace = (machine, workspace) ->
-
-  kd.singletons.reactor.dispatch actions.WORKSPACE_CREATED, { machine, workspace }
 
 
 setMachineListItem = (id, machineListItem) ->
@@ -452,42 +296,25 @@ setActiveLeavingSharedMachineId = (id) ->
   reactor.dispatch actions.SET_ACTIVE_LEAVING_SHARED_MACHINE_ID, { id }
 
 
-loadTeamStackTemplates = ->
+loadStackTemplates = ->
 
   { reactor } = kd.singletons
 
-  query = { group: getGroup().slug }
+  reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_BEGIN,    {}
+  reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_BEGIN, {}
 
-  reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_BEGIN, { query }
-
-  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
-
-    if err
-      return reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL, { query, err }
-
-    templates = templates.filter (t) -> t.accessLevel is 'group'
-
-    reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS, { query, templates }
-
-    templates.forEach (template) -> _bindTemplateEvents template
-
-
-loadPrivateStackTemplates = ->
-
-  { reactor } = kd.singletons
-
-  query = { group: getGroup().slug, originId: whoami()._id }
-
-  reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_BEGIN, { query }
-
-  remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
+  kd.singletons.computeController.fetchStackTemplates (err, templates) ->
 
     if err
-      return reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { query, err }
+      reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_FAIL,    { err }
+      reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { err }
+      return
 
-    templates = templates.filter (t) -> t.accessLevel is 'private'
+    teamTemplates    = templates.filter (t) -> t.accessLevel is 'group'
+    privateTemplates = templates.filter (t) -> (t.originId is whoami()._id) and (t.accessLevel is 'private')
 
-    reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { query, templates }
+    reactor.dispatch actions.LOAD_TEAM_STACK_TEMPLATES_SUCCESS,    { templates: teamTemplates }
+    reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_SUCCESS, { templates: privateTemplates }
 
     templates.forEach (template) -> _bindTemplateEvents template
 
@@ -631,21 +458,13 @@ generateStack = (stackTemplateId) ->
   { computeController } = kd.singletons
 
   new Promise (resolve, reject) ->
-    computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
-      return reject(err)  if err
 
-      generateStackFromTemplate stackTemplate
-        .then ({ stack, template }) ->
-          { results : { machines } } = stack
-          [ machine ] = machines
-          computeController.reset yes, ->
-            computeController.reloadIDE machine.obj.slug
-            new kd.NotificationView { title: 'Stack generated successfully' }
-            resolve({ stack, template })
-        .catch (err) ->
-          showError err
-          reject(err)
+    stackTemplate = computeController.storage.templates.get '_id', stackTemplateId
+    return reject new Error 'StackTemplate not found'  unless stackTemplate
 
+    generateStackFromTemplate stackTemplate
+      .then resolve
+      .catch reject
 
 generateStackFromTemplate = (template) ->
 
@@ -655,7 +474,7 @@ generateStackFromTemplate = (template) ->
 
     reactor.dispatch actions.GENERATE_STACK_BEGIN, { template }
 
-    template.generateStack {}, (err, stack) ->
+    template.generateStack { verify: yes }, (err, stack) ->
       if err
         reactor.dispatch actions.GENERATE_STACK_FAIL, { template, err }
         reject err
@@ -674,13 +493,14 @@ disconnectMachine = (machine) ->
 
 removeStackTemplate = (stackTemplate) ->
 
-  { reactor, groupsController } = kd.singletons
+  { reactor, groupsController, computeController } = kd.singletons
 
   currentGroup = groupsController.getCurrentGroup()
 
   return new Promise (resolve, reject) ->
     reactor.dispatch actions.REMOVE_STACK_TEMPLATE_BEGIN, { stackTemplate }
     stackTemplate.delete (err) ->
+
       if err
         reactor.dispatch actions.REMOVE_STACK_TEMPLATE_FAIL, { stackTemplate, err }
         reject err
@@ -688,6 +508,8 @@ removeStackTemplate = (stackTemplate) ->
 
       if stackTemplate.accessLevel is 'group'
         currentGroup.sendNotification 'GroupStackTemplateRemoved', stackTemplate._id
+
+      computeController.storage.templates.pop stackTemplate
 
       reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id: stackTemplate._id }
       resolve()
@@ -711,19 +533,10 @@ deleteStack = ({ stackTemplateId, stack }) ->
   computeController.ui.askFor 'deleteStack', {}, (status) ->
     return  unless status.confirmed
 
-    appManager.quitByName 'IDE', ->
-      computeController.destroyStack _stack, (err) ->
-        return  if showError err
-
-        reactor.dispatch actions.REMOVE_STACK, _stack._id
-
-        computeController
-          .reset yes
-          .once 'RenderStacks', ->
-            loadTeamStackTemplates()  unless teamStackTemplatesStore.size
-            router.handleRoute '/IDE'
-
-      , followEvents = no
+    computeController.destroyStack _stack, (err) ->
+      return  if showError err
+      reactor.dispatch actions.REMOVE_STACK, _stack._id
+    , followEvents = no
 
 
 changeTemplateTitle = (id, value) ->
@@ -742,7 +555,7 @@ loadMachineSharedUsers = (machineId) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  machine.jMachine.reviveUsers { permanentOnly : yes }, (err, users = []) ->
+  machine.reviveUsers { permanentOnly : yes }, (err, users = []) ->
     reactor.dispatch actions.LOAD_MACHINE_SHARED_USERS, { id : machineId, users }
 
 
@@ -802,6 +615,7 @@ setLabel = (machineUId, label) ->
   new Promise (resolve, reject) ->
     fetchMachineByUId machineUId, (machine) ->
       machine.setLabel label, (err, newLabel) ->
+        # FIXME this shouldn't be necessary
         computeController.triggerReviveFor machine._id
         return reject err  if err
         resolve newLabel
@@ -833,20 +647,13 @@ loadExpandedMachineLabel = (label) ->
 module.exports = {
   loadMachines
   loadStacks
-  rejectInvitation
+  leaveMachine
   acceptInvitation
-  showAddWorkspaceView
-  hideAddWorkspaceView
-  deleteWorkspace
-  setSelectedWorkspaceId
   setSelectedMachineId
   setSelectedTemplateId
-  showDeleteWorkspaceWidget
-  hideDeleteWorkspaceWidget
   showManagedMachineAddedModal
   hideManagedMachineAddedModal
-  reinitStack
-  createWorkspace
+  checkTeamStack
   setMachineListItem
   unsetMachineListItem
   handleMemberWarning
@@ -855,10 +662,8 @@ module.exports = {
   setActiveLeavingSharedMachineId
   reinitStackFromWidget
   setActiveStackId
-  dispatchCollaborationInvitationRejected
-  dispatchSharedVMInvitationRejected
-  loadTeamStackTemplates
-  loadPrivateStackTemplates
+  dispatchInvitationRejected
+  loadStackTemplates
   setMachineAlwaysOn
   setMachinePowerStatus
   createStackTemplate

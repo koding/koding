@@ -2,7 +2,6 @@ _       = require 'lodash'
 kd      = require 'kd'
 globals = require 'globals'
 remote  = require 'app/remote'
-Machine = require 'app/providers/machine'
 async   = require 'async'
 
 runMiddlewares = require 'app/util/runMiddlewares'
@@ -19,25 +18,18 @@ module.exports =
     ]
 
 
-  fetch: (callback, ensureDefaultWorkspace = no) ->
+  fetch: (callback) ->
 
-    remote.api.Sidebar.fetchEnvironment (err, data) =>
-      return new KDNotificationView { title : "Couldn't fetch your VMs" }  if err
-
-      data = @setDefaults_ data
-      globals.userEnvironmentData = data
-
-      if ensureDefaultWorkspace
-      then @ensureDefaultWorkspace -> callback data
-      else callback data
+    callback do @setDefaults_
 
 
-  addTestMachine: (machine, workspaces) ->
-    @_testMachine = { machine, workspaces }
+  addTestMachine: (machine) ->
+    @_testMachine = { machine }
     @revive()
 
 
   get: ->
+    console.trace()
     return @setDefaults_ globals.userEnvironmentData
 
 
@@ -106,40 +98,7 @@ module.exports =
     @getAllMachines().filter(predicate)[0]
 
 
-  fetchMachine: (identifier, callback) ->
-
-    @fetchMachineBySlug identifier, (machine) =>
-      return callback new Machine { machine }  if machine
-
-      @fetchMachineByLabel identifier, (machine) =>
-        return  callback new Machine { machine }  if machine
-
-        @fetchMachineByUId identifier, (machine) ->
-          machine = if machine then new Machine { machine } else null
-
-          callback machine
-
-
-  fetchWorkspaceByMachineUId: (options, callback) ->
-
-    { machineUId, workspaceSlug } = options
-
-    data      = @getAllMachines()
-    workspace = null
-
-    for obj in data
-      m = obj.machine
-
-      if m.uid is machineUId
-        for ws in obj.workspaces when ws.slug is workspaceSlug
-          workspace = ws
-          break
-
-        break
-
-    callback remote.revive workspace
-
-
+  # FIXMEWS ~ GG
   fetchWorkspacesByMachineUId: (machineUId, callback) ->
 
     for obj in @getAllMachines()
@@ -183,21 +142,7 @@ module.exports =
     @machineFetcher_ '_id', id, callback
 
 
-  fetchMachineAndWorkspaceByChannelId: (channelId, callback) ->
-
-    machine   = null
-    workspace = null
-    data      = @getAllMachines()
-
-    for obj in data
-      for ws in obj.workspaces
-        if ws.channelId is channelId
-          machine   = obj.machine
-          workspace = ws
-
-    callback machine, workspace
-
-
+  # FIXMEWS ~ GG
   findWorkspace: (machineLabel, workspaceSlug, channelId) ->
 
     for item in @getAllMachines()
@@ -218,61 +163,6 @@ module.exports =
           return workspace
 
 
-  getIDEFromUId: (uid) ->
-
-    { IDE } = kd.singletons.appManager.appControllers
-
-    return null  unless IDE
-
-    for i in IDE.instances when i.mountedMachineUId is uid
-      instance = i
-      break
-
-    return instance
-
-
-  createDefaultWorkspace: do (inProgress = {}) -> (machine, callback) ->
-
-    if callbacks = inProgress[machine.uid]
-      return callbacks.push callback
-    else
-      callbacks = inProgress[machine.uid] = [callback]
-
-    remote.api.JWorkspace.createDefault machine.uid, (err, workspace) ->
-
-      if err
-        console.error 'User Environment Data Provider:', JSON.stringify err
-
-      delete inProgress[machine.uid]
-
-      callbacks.forEach (callback) ->
-
-        callback err, workspace
-
-
-  ensureDefaultWorkspace: (callback) ->
-
-    data = @get()
-
-    queue = @getMyMachines().concat @getSharedMachines()
-
-      .map ({ machine, workspaces }) => (fin) =>
-
-        kd.utils.defer =>
-
-          for workspace in workspaces when workspace.isDefault
-            return fin()
-
-          @createDefaultWorkspace machine, (err, workspace) ->
-
-            return fin()  if err
-
-            workspaces.push workspace  if workspace
-            fin()
-
-    async.parallel queue, callback
-
-
   removeCollaborationMachine: (machine) ->
 
     @removeMachine 'collaboration', machine
@@ -285,11 +175,4 @@ module.exports =
     for item, index in envData when item.machine.uid is machine.uid
       envData.splice index, 1
       kd.utils.defer => @fetch kd.noop
-      return
-
-
-  clearWorkspaces: (machine) ->
-
-    for item in @getAllMachines() when item.machine.uid is machine.uid
-      item.workspaces.splice 0
       return

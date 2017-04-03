@@ -276,6 +276,7 @@ module.exports = class JGroup extends Module
       # Api usage can be disabled or enabled for the group
       isApiEnabled : Boolean
       payment      : Object
+      countly      : Object
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
@@ -1007,7 +1008,7 @@ module.exports = class JGroup extends Module
         delete selector.searchFor
 
       ComputeProvider = require '../computeproviders/computeprovider'
-      ComputeProvider.fetchGroupResources this, selector, options, callback
+      ComputeProvider.fetchGroupResources client, this, selector, options, callback
 
 
   # this method contains copy/pasted code from jAccount.findSuggestions method.

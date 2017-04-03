@@ -1,9 +1,9 @@
+debug = (require 'debug') 'resourcestatemodal:controller'
 kd = require 'kd'
 PageContainer = require '../views/pagecontainer'
 StackFlowController = require './stackflowcontroller'
 MachineFlowController = require './machineflowcontroller'
 NoStackPageView = require '../views/nostackpageview'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 module.exports = class ResourceStateController extends kd.Controller
 
@@ -22,7 +22,7 @@ module.exports = class ResourceStateController extends kd.Controller
 
     { computeController } = kd.singletons
     computeController.ready =>
-      machineId = machine.jMachine._id
+      machineId = machine.getId()
       stack     = computeController.findStackFromMachineId machineId
       return kd.log 'ResourceStateController: stack not found!'  unless stack
 
@@ -84,15 +84,23 @@ module.exports = class ResourceStateController extends kd.Controller
 
   onResourceBecameRunning: (reason) ->
 
+    debug 'onResourceBecameRunning', reason
+
     machine = @getData()
-    { appManager } = kd.singletons
+    { computeController: cc, router } = kd.singletons
 
-    environmentDataProvider.fetchMachine machine.uid, (_machine) =>
-      return appManager.tell 'IDE', 'quit'  unless _machine
+    machine = cc.storage.machines.get '_id', machine.getId()
+    debug 'found machine', machine
 
-      initial = reason is 'BuildCompleted'
-      @emit 'IDEBecameReady', _machine, initial
-      @emit 'ClosingRequested'  unless reason
+    unless machine
+      router.handleRoute '/IDE'
+      return
+
+    initial = reason is 'BuildCompleted'
+    @emit 'IDEBecameReady', machine, initial
+    @emit 'ClosingRequested'  unless reason
+
+    return machine
 
 
   destroy: ->

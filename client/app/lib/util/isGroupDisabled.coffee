@@ -1,3 +1,4 @@
+getGroup = require './getGroup'
 getGroupStatus = require './getGroupStatus'
 
 { Status } = require 'app/redux/modules/payment/constants'
@@ -10,6 +11,7 @@ allowedStatuses = [
 
 module.exports = isGroupDisabled = (group) ->
 
+  group ?= getGroup()
   status = getGroupStatus group
 
   isAllowed = status and status in allowedStatuses

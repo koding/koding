@@ -1,10 +1,14 @@
 debug = (require 'debug') 'nse:toolbar'
 
+$ = require 'jquery'
+_ = require 'lodash'
 kd = require 'kd'
 JView = require 'app/jview'
 
 Events = require '../events'
 Banner = require './banner'
+
+EnvironmentFlux = require 'app/flux/environment'
 
 
 module.exports = class Toolbar extends JView
@@ -16,6 +20,26 @@ module.exports = class Toolbar extends JView
     data ?= { title: '', accessLevel: 'private', _initial: yes }
 
     super options, data
+
+    @templateTitle = new kd.HitEnterInputView
+      type         : 'text'
+      autogrow     : yes
+      cssClass     : 'title-input'
+      placeholder  : ''
+      defaultValue : ''
+      disabled     : yes
+      attributes   :
+        spellcheck : no
+
+      callback     : (value) =>
+        debug 'hit enter on title input', value
+        @emit Events.Action, Events.TemplateTitleChangeRequested, value
+        kd.utils.defer @templateTitle.bound 'makeDisabled'
+
+      keyup        : _.debounce (e) ->
+        EnvironmentFlux.actions
+          .changeTemplateTitle @getData()._id, e.target.value
+      , 100
 
     @actionButton = new kd.ButtonView
       cssClass : 'action-button solid green compact'
@@ -39,12 +63,53 @@ module.exports = class Toolbar extends JView
     @banner.on Events.Banner.Close, =>
       @unsetClass 'has-message'
       kd.utils.wait 500, @banner.bound 'hide'
+
     @forwardEvent @banner, Events.Action
+
+    @on Events.Action, (event) =>
+      if event is Events.Menu.Rename
+        @templateTitle.makeEnabled()
+        @templateTitle.setFocus()
+
+
+  setTitle: (data) ->
+
+    @templateTitle.setData data
+
+    { title } = data
+    @templateTitle.setPlaceholder title
+    @templateTitle.setValue title
+
+    @templateTitle.resize()
+
+
+  getCloneTitle: (clonedFrom) ->
+
+    cc = kd.singletons.computeController
+    (cc.storage.templates.get clonedFrom)?.title ? clonedFrom
+
+
+  setCloneData: (data) ->
+
+    if clonedFrom = data.config.clonedFrom
+      @setClass 'clone'
+      title = @getCloneTitle clonedFrom
+      return "Clone of #{title}"
+
+    else
+      @unsetClass 'clone'
+      return 'n/a'
 
 
   setBanner: (data) ->
 
     debug 'handling banner message', data.message, data.action
+
+    if data.showlogs
+      data.action   ?=
+        title : 'Show Logs'
+        event : Events.Menu.Logs
+      data.autohide ?= 2500
 
     @banner.setData data
     @banner.show()
@@ -53,8 +118,14 @@ module.exports = class Toolbar extends JView
 
   click: (event) ->
 
-    if event.target.classList.contains 'credential'
+    target = $(event.target)
+
+    if target.is '.tag.credential'
       @emit Events.Action, Events.ToggleSideView, 'credentials'
+      kd.utils.stopDOMEvent event
+
+    else if target.is '.tag.clone'
+      @emit Events.Action, Events.LoadClonedFrom
       kd.utils.stopDOMEvent event
 
 
@@ -72,8 +143,13 @@ module.exports = class Toolbar extends JView
     if data._initial
       credentials = '-'
       accessLevel = '-'
+      clonedFrom  = '-'
 
-    super { _id, accessLevel, credentials, title }
+    else
+      @setTitle data
+      clonedFrom = @setCloneData data
+
+    super { _id, accessLevel, credentials, title, clonedFrom }
 
 
   handleMenu: (event) ->
@@ -122,8 +198,10 @@ module.exports = class Toolbar extends JView
   pistachio: ->
 
     '''
-    {cite.stack{}} {h3{#(title)}} {{> @menuIcon}}
-    {.tag.level{#(accessLevel)}} {div.tag.credential{#(credentials)}} {cite.credential{}}
+    {cite.stack{}} {{> @templateTitle}} {{> @menuIcon}}
+    {.tag.level{#(accessLevel)}}
+    {div.tag.credential{#(credentials)}} {cite.credential{}}
+    {div.tag.clone{#(clonedFrom)}}
     {div.controls{> @expandButton}} {{> @actionButton}}
     {{> @banner}}
     '''

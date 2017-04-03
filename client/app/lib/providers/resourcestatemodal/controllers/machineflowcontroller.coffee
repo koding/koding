@@ -24,7 +24,7 @@ module.exports = class MachineFlowController extends kd.Controller
   loadData: ->
 
     machine   = @getData()
-    machineId = machine.jMachine._id
+    machineId = machine.getId()
 
     { computeController } = kd.singletons
 
@@ -51,7 +51,7 @@ module.exports = class MachineFlowController extends kd.Controller
   bindToKloudEvents: ->
 
     machine   = @getData()
-    machineId = machine.jMachine._id
+    machineId = machine.getId()
 
     { computeController } = kd.singletons
     { eventListener }     = computeController
@@ -94,7 +94,7 @@ module.exports = class MachineFlowController extends kd.Controller
 
     machine = @getData()
 
-    return  unless helpers.isTargetEvent event, machine.jMachine
+    return  unless helpers.isTargetEvent event, machine
 
     [ @prevState, @state ] = [ @state, status ]
 
@@ -183,7 +183,7 @@ module.exports = class MachineFlowController extends kd.Controller
   startMachine: ->
 
     machine   = @getData()
-    machineId = machine.jMachine._id
+    machineId = machine.getId()
 
     { computeController } = kd.singletons
 
@@ -201,7 +201,7 @@ module.exports = class MachineFlowController extends kd.Controller
   stopMachine: ->
 
     machine   = @getData()
-    machineId = machine.jMachine._id
+    machineId = machine.getId()
 
     { computeController } = kd.singletons
 
@@ -226,7 +226,7 @@ module.exports = class MachineFlowController extends kd.Controller
   destroy: ->
 
     machine   = @getData()
-    machineId = machine.jMachine._id
+    machineId = machine.getId()
 
     { computeController } = kd.singletons
     computeController.off "start-#{machineId}", @bound 'updateStatus'

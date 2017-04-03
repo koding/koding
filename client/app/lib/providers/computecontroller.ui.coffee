@@ -17,7 +17,7 @@ showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
 applyMarkdown        = require 'app/util/applyMarkdown'
 doXhrRequest         = require 'app/util/doXhrRequest'
-ContentModal = require 'app/components/contentModal'
+ContentModal         = require 'app/components/contentModal'
 
 MissingDataView      = require './missingdataview'
 
@@ -270,9 +270,9 @@ module.exports = class ComputeControllerUI
 
     { force, machine, dontAskAgain } = options
 
-    machine               ?= {}
-    { provider, jMachine } = machine
-    machineName            = machine.getName?() ? 'a machine'
+    machine     ?= {}
+    { provider } = machine
+    machineName  = machine.getName?() ? 'a machine'
 
     return callback()  if force
 
@@ -300,7 +300,7 @@ module.exports = class ComputeControllerUI
           title        : "Permission fix required for #{machineName}"
           message      : "
             <p>You don't have access to this Machine (<strong>#{machineName}</strong>).
-            It belonged to <strong>@#{jMachine?.meta?.oldOwner}</strong></p>
+            It belonged to <strong>@#{machine.meta?.oldOwner}</strong></p>
 
             <p>This is because you removed this user from your team.
             You need to fix permissions to proceed.</p>
@@ -332,7 +332,6 @@ module.exports = class ComputeControllerUI
             <p>Terminating this VM will destroy all of its:</p>
               <br/>
               <li> files and data </li>
-              <li> workspaces </li>
               <li> running services </li>
               <li> settings </li>
               <li> custom domains (if any) </li>
@@ -488,52 +487,6 @@ module.exports = class ComputeControllerUI
         content       : message
         duration      : 0
         closeManually : no
-
-
-  @showBuildScriptEditorModal = (machine) ->
-
-    return  unless machine?
-
-    ComputeHelpers = require './computehelpers'
-    ComputeHelpers.reviveProvisioner machine, (err, provisioner) ->
-
-      return  if showError err
-
-      modal   = new EditorModal
-
-        editor              :
-          title             : 'Build Script Editor'
-          content           : provisioner?.content?.script or ''
-          saveMessage       : 'Build script saved'
-          saveFailedMessage : "Couldn't save build script"
-
-          saveCallback      : (script, modal) ->
-
-            if isMine provisioner
-
-              provisioner.update { content: { script } }, (err, res) ->
-                modal.emit if err then 'SaveFailed' else 'Saved'
-
-            else
-
-              { JProvisioner } = remote.api
-              JProvisioner.create
-                type    : 'shell'
-                content : { script }
-              , (err, newProvisioner) ->
-
-                return  if showError err
-
-                machine.jMachine.setProvisioner newProvisioner.slug, (err) ->
-                  modal.emit if err then 'SaveFailed' else 'Saved'
-
-                  unless showError err
-                    machine.provisioners = [ newProvisioner.slug ]
-                    provisioner          = newProvisioner
-
-                    showInlineInformation provisioner, modal
-
-      showInlineInformation provisioner, modal
 
 
   @showCredentialDetails = (options = {}, callback = kd.noop) ->

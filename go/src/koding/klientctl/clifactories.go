@@ -14,7 +14,6 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/logcmd"
-	"koding/klientctl/metrics"
 	"koding/klientctl/open"
 	"koding/klientctl/remount"
 	"koding/klientctl/repair"
@@ -110,10 +109,6 @@ func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ct
 		// the future, once it has proper access to a config package
 		ServiceConstructor: func() (service.Service, error) { return newService(nil) },
 	}
-}
-
-func MetricsCommandFactory(c *cli.Context, log logging.Logger, cmdName string) int {
-	return metrics.MetricsCommand(c, log, ConfigFolder)
 }
 
 func RemountCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {

@@ -1,6 +1,7 @@
 kd = require 'kd'
 JView = require 'app/jview'
 CredentialForm = require './credentialform'
+getKdCmd = require 'app/util/getKdCmd'
 copyToClipboard = require 'app/util/copyToClipboard'
 getCopyToClipboardShortcut = require 'app/util/getCopyToClipboardShortcut'
 
@@ -8,19 +9,22 @@ module.exports = class KDCredentialForm extends CredentialForm
 
   getScrollableContent: ->
 
-    { kdCmd } = @getData()
-    codeBlock = new kd.CustomHTMLView
-      tagName  : 'code'
-      cssClass : 'block'
-      partial  : """
-        <div>#{kdCmd}</div>
+    @codeBlock = new JView
+      tagName   : 'code'
+      cssClass  : 'block'
+      pistachio : """
+        {{#(kdCmd)}}
         <cite>#{getCopyToClipboardShortcut()}</cite>
       """
       click    : ->
-        copyToClipboard @getElement().querySelector 'div'
+        copyToClipboard @getElement().querySelector 'span'
+    , {
+      initial  : yes
+      kdCmd    : 'Generating install url...'
+    }
 
     return new JView {
-      pistachioParams : { codeBlock, form : @form }
+      pistachioParams : { @codeBlock, @form }
       pistachio       : '''
         <article>
           <p>
@@ -36,3 +40,11 @@ module.exports = class KDCredentialForm extends CredentialForm
         {{> form}}
       '''
     }
+
+  onCreateNew: ->
+
+    if @codeBlock.getData().initial
+      getKdCmd (err, kdCmd) =>
+        @codeBlock.setData { kdCmd, initial: no }  unless err
+
+    super

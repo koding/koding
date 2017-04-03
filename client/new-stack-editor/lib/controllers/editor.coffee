@@ -71,3 +71,20 @@ module.exports = class EditorController extends BaseController
     return if convertedDoc.err
     then [ 'Failed to convert YAML to JSON, fix the document and try again.' ]
     else [ null, convertedDoc ]
+
+
+  updateTitle: (title) ->
+
+    @getData().update { title }, (err, updatedTemplate) =>
+
+      if err
+        @logs.handleError err
+        options    =
+          message  : 'Failed to update title! Check logs for more information.'
+          showlogs : yes
+      else
+        options    =
+          message  : 'Template title updated successfully!'
+          autohide : 1500
+
+      @emit Events.WarnUser, options

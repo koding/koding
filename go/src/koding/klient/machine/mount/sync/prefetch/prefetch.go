@@ -4,13 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strings"
 
 	"koding/klient/machine/index"
 	"koding/klient/machine/transport/rsync"
-
-	"github.com/dustin/go-humanize"
-	"github.com/mitchellh/ioprogress"
 )
 
 // Prefetcher defines a set of methods that are needed to safely prefetch
@@ -98,7 +94,7 @@ func (p *Prefetch) Run(w io.Writer, s Strategy, privPath string) error {
 		Host:            p.Host,
 		SSHPort:         p.SSHPort,
 		PrivateKeyPath:  privPath,
-		Progress:        drawProgress(w, p.Count, p.DiskSize),
+		Progress:        rsync.Progress(w, p.Count, p.DiskSize),
 	}
 
 	// Create initial progess report and run the command.
@@ -108,38 +104,4 @@ func (p *Prefetch) Run(w io.Writer, s Strategy, privPath string) error {
 	}
 
 	return pref.PostRun(p.WorkDir)
-}
-
-func drawProgress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, err error) {
-	const noop = 0
-
-	maxLength, speedLast := 0, int64(0)
-	return func(n, size, speed int64, err error) {
-		if err == io.EOF {
-			n, size, speed = nAll, sizeAll, speedLast
-		}
-
-		drawFunc := ioprogress.DrawTerminalf(w, func(_, _ int64) string {
-			line := fmt.Sprintf("Prefetching files: %.1f%% (%d/%d), %s/%s | %s/s",
-				float64(size)/float64(sizeAll)*100.0, // percentage status.
-				n,    // number of downloaded files.
-				nAll, // number of all files being downloaded.
-				humanize.IBytes(uint64(size)),    // size of downloaded files.
-				humanize.IBytes(uint64(sizeAll)), // total size.
-				humanize.IBytes(uint64(speed)),   // current downloading speed.
-			)
-
-			if len(line) < maxLength {
-				line = fmt.Sprintf("%s%s", line, strings.Repeat(" ", maxLength-len(line)))
-			}
-			maxLength, speedLast = len(line), speed
-
-			return line
-		})
-
-		drawFunc(noop, noop) // We are not using default values.
-		if err != nil {
-			drawFunc(-1, -1) // Finish drawing.
-		}
-	}
 }

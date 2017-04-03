@@ -13,6 +13,9 @@ remote = require 'app/remote'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { findDOMNode } = require 'react-dom'
 whoami = require 'app/util/whoami'
+
+debug = require('debug')('sidebar:stacksection')
+
 require './styl/sidebarstacksection.styl'
 require './styl/sidebarstackwidgets.styl'
 
@@ -43,6 +46,11 @@ module.exports = class SidebarStackSection extends React.Component
   componentWillReceiveProps: (nextProps) ->
 
     nextStackUnreadCount = @getStackUnreadCount nextProps.stack
+
+    debug 'will show widget or not',
+      currentUnreadCount: @getStackUnreadCount()
+      nextUnreadCount: nextStackUnreadCount
+
     @setState { showWidget : yes }  if nextStackUnreadCount > @getStackUnreadCount()
 
     @setCoordinates()
@@ -96,8 +104,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Clone'
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'cloning'  if err
-
-          EnvironmentFlux.actions.cloneStackTemplate template
+          EnvironmentFlux.actions.cloneStackTemplate template  if template
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs'
         firstMachineId = stack.get('machines').first.get '_id'
@@ -109,17 +116,18 @@ module.exports = class SidebarStackSection extends React.Component
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'making team default'  if err
 
-          computeController.makeTeamDefault template  unless err
+          computeController.makeTeamDefault template  if template
       when 'Share With Team'
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'sharing'  if err
-
-          computeController.setStackTemplateAccessLevel template, 'group'
+          if template
+            computeController.setStackTemplateAccessLevel template, 'group'
       when 'Make Private'
         computeController.fetchStackTemplate templateId, (err, template) =>
           return @onMenuItemClickError 'cloning'  if err
 
-          computeController.setStackTemplateAccessLevel template, 'private'
+          if template
+            computeController.setStackTemplateAccessLevel template, 'private'
 
 
 
@@ -129,8 +137,13 @@ module.exports = class SidebarStackSection extends React.Component
 
   onTitleClick: (event) ->
 
+    { router } = kd.singletons
+
+    if @props.stack.get('title').indexOf('Managed VMs') > -1
+      return router.handleRoute '/Home/stacks/virtual-machines#connected-machines'
+
     id = @props.stack.get 'baseStackId'
-    kd.singletons.router.handleRoute "/Stack-Editor/#{id}"
+    router.handleRoute "/Stack-Editor/#{id}"
 
 
   onMenuIconClick: (event) ->
@@ -142,48 +155,64 @@ module.exports = class SidebarStackSection extends React.Component
     return  if MENU
 
     callback = @bound 'onMenuItemClick'
-
     menuItems = {}
-    template = @props.template
 
-    { originId, accessLevel } = template.toJS()  if template
+    { template, stack } = @props
+    { storage } = kd.singletons.computeController
+
+    stack = stack.toJS()
 
     if @getStackUnreadCount()
       menuItems['Update'] = { callback }
 
-    if @props.stack.getIn ['config', 'remoteDetails', 'originalUrl']
+    if stack.config?.remoteDetails?.originalUrl?
       menuItems['Open on GitLab'] = { callback }
 
-    managedVM = @props.stack.get('title').indexOf('Managed VMs') > -1
-
-    if managedVM
+    if stack.title.indexOf('Managed VMs') > -1
       menuItems['VMs'] = { callback }
-    else if @props.stack.get 'disabled'
+
+    else if stack.disabled
       # because of disabled stack's baseTemplate came undefined
       # no need to show Edit, Clone, Reinitialize options
-      ['VMs', 'Destroy VMs'].forEach (name) ->
-        menuItems[name] = { callback }
+      ['VMs', 'Destroy VMs'].forEach (name) -> menuItems[name] = { callback }
+
     else
-      if isAdmin() or (template and whoami()._id is originId)
+
+      template = template.toJS()
+      account = whoami()
+
+      isMyTemplate = template?.originId is account._id
+
+      debug 'accessLevel', template.accessLevel
+
+      if isAdmin() or isMyTemplate
         menuItems['Edit'] = { callback }
-        menuItems['Clone'] = { callback }  if canCreateStacks()
+
+        if canCreateStacks()
+          menuItems['Clone'] = { callback }
+
       else
         menuItems['View Stack'] = { callback }
+
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
-      if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
+
+      if isAdmin() and not isDefaultTeamStack stack.baseStackId
         menuItems['Make Team Default'] = { callback }
 
-      if template and whoami()._id is originId and not isDefaultTeamStack @props.stack.get 'baseStackId'
-        menuItems['Share With Team'] = { callback }  if accessLevel is 'private'
-        menuItems['Make Private'] = { callback }  if accessLevel is 'group'
+      if isMyTemplate and not isDefaultTeamStack stack.baseStackId
+
+        if template.accessLevel is 'private'
+          menuItems['Share With Team'] = { callback }
+
+        if template.accessLevel is 'group'
+          menuItems['Make Private'] = { callback }
+
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
     menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
-
     MENU = new kd.ContextMenu menuOptions, menuItems
-
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
 
 
@@ -219,7 +248,7 @@ module.exports = class SidebarStackSection extends React.Component
 
   getStackUnreadCount: (stack = @props.stack) ->
 
-    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
+    (stack?.getIn [ '_revisionStatus', 'status', 'code' ]) or 0
 
 
   render: ->

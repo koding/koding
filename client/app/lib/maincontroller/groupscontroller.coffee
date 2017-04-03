@@ -1,3 +1,4 @@
+debug             = (require 'debug') 'groupscontroller'
 kd                = require 'kd'
 
 whoami            = require '../util/whoami'
@@ -69,6 +70,7 @@ module.exports = class GroupsController extends kd.Controller
         @emit event, rest...
 
   openSocialGroupChannel: (group, callback = -> ) ->
+
     { realtime, socialapi } = kd.singletons
 
     socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
@@ -171,15 +173,17 @@ module.exports = class GroupsController extends kd.Controller
       return callback 'Setting stack template for koding is disabled'
 
     # Share given stacktemplate with group first
-    stackTemplate.setAccess 'group', (err) ->
+    stackTemplate.setAccess 'group', (err) =>
       return callback err  if err
 
       # Modify group data to use this stackTemplate as default
       # TMS-1919: Needs to be changed to update stackTemplates list
       # instead of setting it as is for the given stacktemplate ~ GG
 
-      currentGroup.modify { stackTemplates: [ stackTemplate._id ] }, (err) ->
+      currentGroup.modify { stackTemplates: [ stackTemplate._id ] }, (err) =>
         return callback err  if err
+
+        @getCurrentGroup().setAt 'stackTemplates', [ stackTemplate._id ]
 
         new kd.NotificationView
           title : "Team (#{slug}) stack has been saved!"
@@ -190,8 +194,9 @@ module.exports = class GroupsController extends kd.Controller
         # since we will allow users to select one stacktemplate from
         # available stacktemplates list of group ~ GG
 
-        computeController.createDefaultStack yes
+        computeController.createDefaultStack { force: yes }
 
+        debug 'setDefaultTemplate sending notification', stackTemplate._id
         # Warn other group members about stack template update
         currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
 

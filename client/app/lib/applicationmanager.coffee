@@ -420,11 +420,12 @@ class ApplicationManager extends KDObject
       duration : 5000
 
 
-  # deprecate these
+  getInstance: (app, key, value) ->
 
-  # fetchStorage: (appId, version, callback) ->
-  #   # warn "System still trying to access application storage for #{appId}"
-  #   KD.whoami().fetchAppStorage { appId, version }, (error, storage) =>
-  #     unless storage
-  #       storage = { appId,version,bucket:{} } # creating a fake storage
-  #     callback error, storage
+    if not appController = kd.singletons.appManager.appControllers[app]
+      return null
+
+    for instance in appController.instances
+      return instance  if instance and instance[key] is value
+
+    return null

@@ -1,3 +1,4 @@
+debug                         = (require 'debug') 'ide:collaborationcontroller'
 _                             = require 'lodash'
 kd                            = require 'kd'
 FSFile                        = require 'app/util/fs/fsfile'
@@ -11,7 +12,6 @@ realtimeHelpers               = require './collaboration/helpers/realtime'
 socialHelpers                 = require './collaboration/helpers/social'
 envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
-environmentDataProvider       = require 'app/userenvironmentdataprovider'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
@@ -33,18 +33,20 @@ module.exports = CollaborationController =
   # social related
 
   setSocialChannel: (channel) ->
+
     @socialChannel = channel
     @bindSocialChannelEvents()
+    machine = @getMachine()
 
-    { reactor } = kd.singletons
+    return  unless machine.isMine()
 
-    reactor.dispatch actionTypes.UPDATE_WORKSPACE_CHANNEL_ID, {
-      workspaceId : @workspaceData._id
-      channelId   : @getSocialChannelId()
-    }
+    machine.setChannelId { channelId: channel.id }, (err) ->
+      console.warn 'Failed to set channelId', err  if err
 
 
   fetchSocialChannel: (callback) ->
+
+    debug 'fetchSocialChannel', @socialChannel
 
     if @socialChannel
       return callback null, @socialChannel
@@ -52,7 +54,14 @@ module.exports = CollaborationController =
     unless id = @getSocialChannelId()
       return callback()
 
+    machine = @getMachine()
+
     socialHelpers.fetchChannel id, (err, channel) =>
+
+      # if channel couldn't fetch clear channel id from machine ~ GG
+      if err and machine.getChannelId()
+        return machine.setChannelId {}, -> callback err
+
       return callback err  if err
 
       @setSocialChannel channel
@@ -61,22 +70,12 @@ module.exports = CollaborationController =
 
   getSocialChannelId: ->
 
-    return @socialChannel?.id or @channelId or @workspaceData.channelId
+    return @socialChannel?.id or @channelId or @getMachine()?.getChannelId()
 
 
   unsetSocialChannel: ->
 
     @channelId = @socialChannel = null
-
-
-  deletePrivateMessage: (callback = kd.noop) ->
-
-    socialHelpers.destroyChannel @socialChannel, (err) =>
-      return callback err  if err
-
-      envHelpers.detachSocialChannel @workspaceData, (err) =>
-        return callback err  if err
-        @unsetSocialChannel()
 
 
   # FIXME: This method is called more than once. It should cache the result and
@@ -146,14 +145,10 @@ module.exports = CollaborationController =
 
     options = {
       username
-      machineUId : @mountedMachineUId
+      machineUId : @getMachine().uid
     }
 
-    # Check collaboration sessions of participant.
-    # If participant has 2 or more active collaboration sessions, don't remove
-    # access from machine
-    envHelpers.isUserStillParticipantOnMachine options, (status) =>
-      @removeParticipantFromMachine username  unless status
+    @removeParticipantFromMachine username
 
 
   # Remove leaved / kicked participants from the mounted machine
@@ -242,7 +237,7 @@ module.exports = CollaborationController =
 
   listenKlientKite: ->
 
-    kite = @mountedMachine.getBaseKite()
+    kite = @getMachine().getBaseKite()
 
     kite.once 'close', =>
       kite.ping()
@@ -402,6 +397,8 @@ module.exports = CollaborationController =
 
   participantAdded: (participant) ->
 
+    debug 'participantAdded', participant
+
     socialHelpers.fetchAccount participant, (err, account) =>
 
       return throwError err  if err
@@ -517,7 +514,7 @@ module.exports = CollaborationController =
 
   sendPing: ->
 
-    { channelId } = @workspaceData
+    channelId = @getMachine().getChannelId()
 
     doXhrRequest
       endPoint : '/api/social/collaboration/ping'
@@ -547,7 +544,7 @@ module.exports = CollaborationController =
 
     channelId = @getSocialChannelId()
 
-    unless @rtm and channelId
+    if not @rtm or not channelId
       kd.utils.killRepeat @pollInterval
       return
 
@@ -563,6 +560,8 @@ module.exports = CollaborationController =
 
 
   handleBroadcastMessage: (data) ->
+
+    debug 'got broadcastMessage', data
 
     { origin, type, params } = data
 
@@ -651,9 +650,10 @@ module.exports = CollaborationController =
 
   handleSharedMachine: ->
 
-    @unmountMachine @mountedMachine
-    @mountedMachine.getBaseKite().reconnect()
-    @mountMachine @mountedMachine
+    machine = @getMachine()
+    @unmountMachine machine
+    machine.getBaseKite().reconnect()
+    @mountMachine machine
 
 
   ###*
@@ -709,9 +709,11 @@ module.exports = CollaborationController =
 
   onCollaborationInitial: ->
 
-    if @mountedMachine.isMine()
+    machine = @getMachine()
+
+    if machine.isMine()
       @showShareButton()
-    else if @mountedMachine.isPermanent()
+    else if machine.isPermanent()
       @attendWorkspaceChannel()
 
     kd.utils.defer => @stateMachine.transition 'Loading'
@@ -729,12 +731,12 @@ module.exports = CollaborationController =
 
   checkSessionActivity: (callbacks, showSessionModal = yes) ->
 
-    { channelId } = @workspaceData
-    machine       = @mountedMachine
+    machine   = @getMachine()
+    channelId = machine.getChannelId()
 
     callMethod = (name, args...) -> callbacks[name] args...
 
-    unless @workspaceData.channelId
+    unless channelId
       return callMethod 'notStarted'
 
     checkRealtimeSession = (channel) =>
@@ -750,8 +752,11 @@ module.exports = CollaborationController =
         @showSessionStartingModal()
 
     @fetchSocialChannel (err, channel) =>
+
+      debug 'checkSessionActivity', err, channel
+
       if err
-        throwError err
+        throwError err  unless err.error is 'koding.NotFoundError'
         return callMethod 'notStarted'
 
       @updateSessionStartingProgress 20
@@ -772,8 +777,10 @@ module.exports = CollaborationController =
     @statusBar.emit 'CollaborationEnded'
     @destroySessionStartingModal()
 
-    owned = @mountedMachine.isMine()
-    approved = @mountedMachine.isApproved()
+    machine = @getMachine()
+
+    owned = machine.isMine()
+    approved = machine.isApproved()
 
     if (not owned) and approved
       @statusBar.share?.hide()
@@ -788,11 +795,8 @@ module.exports = CollaborationController =
 
       @setSocialChannel channel
 
-      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
-        .then =>
-          @workspaceData.channelId = channel.id
-          callbacks.success()
-        .error (err) -> callbacks.error err
+      callbacks.success()
+
 
 
   onCollaborationErrorCreating: ->
@@ -971,17 +975,30 @@ module.exports = CollaborationController =
 
     channel = @socialChannel
 
+    debug 'bindAutoInviteHandlers', channel
+
     mainController.ready ->
       notificationController.on 'notificationFromOtherAccount', (notification) ->
+
+        debug 'got notification', notification
+
         switch notification.action
+
           when 'COLLABORATION_REQUEST'
 
-            return if notification.channelId isnt channel.id
+            debug 'COLLABORATION_REQUEST', notification.channelId, channel.id
+
+            return  if notification.channelId isnt channel.id
 
             { channelId, senderUserId, senderAccountId, sender } = notification
             accountIds = [senderAccountId]
 
+            debug 'calling socialapi', { channelId, accountIds }
+
             socialapi.channel.addParticipants { channelId, accountIds }, (err) ->
+
+              debug 'got response from socialapi', err
+
               return throwError err  if err
 
 
@@ -1032,15 +1049,15 @@ module.exports = CollaborationController =
       socialHelpers.destroyChannel @socialChannel, (err) ->
         throwError err  if err
 
-      envHelpers.detachSocialChannel @workspaceData, (err) ->
-        throwError err  if err
-
       callback()
 
 
   clearParticipantsSnapshot: ->
 
-    { users } = @mountedMachine.data
+    machine = @getMachine()
+    debug 'clearParticipantsSnapshot', machine
+
+    { users } = machine
 
     @listChatParticipants (accounts) =>
       accounts.forEach (account) =>
@@ -1080,16 +1097,23 @@ module.exports = CollaborationController =
 
   handleCollaborationEndedForParticipant: ->
 
-    # TODO: fix explicit state checks.
-    return  unless @stateMachine.state in ['Active', 'Ending']
+    return  unless @stateMachine?.state in ['Active', 'Ending']
+    return  unless machine = @getMachine()
 
-    { reactor } = kd.singletons
+    { reactor, computeController } = kd.singletons
 
-    reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
-    reactor.dispatch actionTypes.WORKSPACE_DELETED, {
-      workspaceId : @workspaceData._id
-      machineId   : @mountedMachine._id
-    }
+    if machine.isMine()
+      machine.setChannelId {}, (err) ->
+        console.warn 'Failed to set channelId', err  if err
+
+    else if not machine.isPermanent()
+      machine.deny (err) ->
+        console.warn 'Failed to deny machine', err  if err
+        reactor.dispatch \
+          actionTypes.INVITATION_REJECTED, machine._id
+
+    else
+      computeController.reloadIDE machine
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
@@ -1098,7 +1122,7 @@ module.exports = CollaborationController =
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       method = switch
-        when @mountedMachine.isPermanent() then 'prepareCollaboration'
+        when machine.isPermanent() then 'prepareCollaboration'
         else 'quit'
 
       kd.utils.defer @bound method
@@ -1130,42 +1154,28 @@ module.exports = CollaborationController =
 
     @unsetSocialChannel()
 
-    # TODO: remove Active session from here,
-    # we will deffo need a leaving state.
-    return  unless @stateMachine.state in ['Ending', 'Active']
+    if @rtm
 
-    @rtm.once 'RealtimeManagerWillDispose', =>
-      kd.utils.killRepeat @pingInterval
+      @rtm.once 'RealtimeManagerWillDispose', =>
+        kd.utils.killRepeat @pingInterval
 
-    @rtm.once 'RealtimeManagerDidDispose', =>
-      @rtm = null
-      delete @stateMachine
+      @rtm.once 'RealtimeManagerDidDispose', =>
+        @rtm = null
+        delete @stateMachine
 
-    @rtm.dispose()
+      @rtm.dispose()
+
     @emit 'CollaborationDidCleanup'
 
 
   # environment related
 
 
-  removeMachineNode: ->
-
-    { activitySidebar } = kd.singletons.mainView
-
-    machineBox = activitySidebar.getMachineBoxByMachineUId @mountedMachineUId
-
-    if machineBox?.listController.getItemCount() > 1
-      machineBox.removeWorkspace @workspaceData.getId()
-    else
-      activitySidebar.removeMachineNode @mountedMachine
-      environmentDataProvider.removeCollaborationMachine @mountedMachine
-
-
   ensureMachineShare: (usernames, callback) ->
 
     { fetchMissingParticipants } = envHelpers
 
-    fetchMissingParticipants @mountedMachine, usernames, (err, missing) =>
+    fetchMissingParticipants @getMachine(), usernames, (err, missing) =>
       return callback err  if err
 
       @setMachineUser missing, yes, callback
@@ -1173,22 +1183,30 @@ module.exports = CollaborationController =
 
   setMachineSharingStatus: (status, callback) ->
 
-    getUsernames = (accounts) ->
+    machine = @getMachine()
 
-      accounts
-        .map ({ profile: { nickname } }) -> nickname
-        .filter (nickname) -> nickname isnt nick()
+    getUsernames = ->
+      machine.getAt 'users'
+        .filter ({ permanent, owner }) -> not permanent and not owner
+        .map    ({ username }) -> username
 
     if @amIHost
-      @listChatParticipants (accounts) =>
-        usernames = getUsernames accounts
-        @setMachineUser usernames, status, callback
+      usernames = getUsernames()
+
+      debug 'setMachineSharingStatus', usernames
+      debug 'setMachineUser calling', usernames, status
+
+      @setMachineUser usernames, status, callback
+
     else
       @setMachineUser [nick()], status, callback
 
 
   setMachineUser: (usernames, share = yes, callback = kd.noop) ->
 
+    machine = @getMachine()
+
+    debug 'setMachineUser', { usernames, share, machine }
     # TODO: needs an investigation here.
     # if this usernames length check would be done
     # via helper method, the broadcastMessage
@@ -1197,7 +1215,9 @@ module.exports = CollaborationController =
 
     { setMachineUser } = envHelpers
 
-    setMachineUser @mountedMachine, @workspaceData, usernames, share, (err) =>
+    setMachineUser machine, usernames, share, (err) =>
+      debug 'setMachineUser result', err
+
       return callback err  if err
 
       @emit 'SetMachineUser', usernames, share
@@ -1279,27 +1299,13 @@ module.exports = CollaborationController =
     """
 
 
-  onWorkspaceChannelChanged: ->
-
-    return  unless @stateMachine
-
-    { channelId } = @workspaceData
-
-    if channelId and typeof channelId is 'string' and channelId.length
-      return  unless @stateMachine.state is 'NotStarted'
-      @stateMachine.transition 'Loading'
-
-    else if @stateMachine.state is 'Active'
-      @stateMachine.transition 'Ending'
-
-
   attendWorkspaceChannel: ->
 
     { notificationController } = kd.singletons
 
     notificationController.on 'AddedToChannel', (update) =>
 
-      { channelId } = @workspaceData
+      channelId = @getMachine().getChannelId()
 
       return  unless update.channel.id is channelId
 
@@ -1476,3 +1482,7 @@ module.exports = CollaborationController =
     for participant in participants
       map = @rtm.getFromModel "#{participant.nickname}WatchMap"
       map[method] nickname, nickname
+
+
+  getMachine: ->
+    kd.singletons.computeController.storage.machines.get 'uid', @mountedMachineUId

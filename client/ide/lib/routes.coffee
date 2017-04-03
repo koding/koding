@@ -1,45 +1,11 @@
+debug           = (require 'debug') 'ide:routes'
+
 kd              = require 'kd'
 nick            = require 'app/util/nick'
+showError       = require 'app/util/showError'
 remote          = require 'app/remote'
 actions         = require 'app/flux/environment/actions'
-Machine         = require 'app/providers/machine'
 lazyrouter      = require 'app/lazyrouter'
-dataProvider    = require 'app/userenvironmentdataprovider'
-
-
-selectWorkspaceOnSidebar = (data) ->
-
-  return no  unless data
-
-  { machine, workspace } = data
-
-  return no if not machine or not workspace
-
-  actions.setSelectedWorkspaceId workspace._id
-
-  storage = kd.singletons.localStorageController.storage 'IDE'
-
-  workspaceData    =
-    machineLabel   : machine.slug or machine.label
-    workspaceSlug  : workspace.slug
-    channelId      : workspace.channelId
-
-  storage.setValue 'LatestWorkspace', workspaceData
-  storage.setValue "LatestWorkspace_#{machine.uid}", workspaceData
-
-
-getLatestWorkspace = (machine) ->
-
-  storage   = kd.getSingleton('localStorageController').storage 'IDE'
-  if machine
-    workspace = storage.getValue "LatestWorkspace_#{machine.uid}"
-
-  return no  unless workspace
-
-  { machineLabel, workspaceSlug, channelId } = workspace
-
-  if dataProvider.findWorkspace machineLabel, workspaceSlug, channelId
-    return workspace
 
 
 loadIDENotFound = ->
@@ -52,14 +18,20 @@ loadIDENotFound = ->
 
 loadIDE = (data, done = kd.noop) ->
 
-  { machine, workspace, username, channelId, showInstance = yes } = data
+  debug 'loadIDE called with', data
+
+  { machine, username, channelId, showInstance = yes } = data
+
+  unless machine
+    debug 'loadIDE no machine found'
+    loadIDENotFound()
+    return
 
   if showInstance
 
-    selectWorkspaceOnSidebar data
     actions.setSelectedMachineId machine._id
 
-    actions.setSelectedTemplateId if machine.data?.generatedFrom?
+    actions.setSelectedTemplateId  if machine.data?.generatedFrom?
     then machine.data.generatedFrom.templateId
     else null
 
@@ -70,7 +42,6 @@ loadIDE = (data, done = kd.noop) ->
   callback   = ->
     appManager.open 'IDE', { forceNew: yes, showInstance }, (app) ->
       app.mountedMachineUId   = machineUId
-      app.workspaceData       = workspace
 
       if username and username isnt nick()
         app.isInSession       = yes
@@ -86,153 +57,100 @@ loadIDE = (data, done = kd.noop) ->
 
   return callback()  unless ideApps?.instances
 
-  ideInstance = findInstance machine, workspace
+  ideInstance = findInstance machine
 
   if ideInstance and showInstance
     appManager.showInstance ideInstance
-    selectWorkspaceOnSidebar data # should not be required
   else
     callback()
 
 
-findInstance = (machine, workspace) ->
+findInstance = (machine) ->
 
-  ideApps       = kd.singletons.appManager.appControllers.IDE
-  machineUId    = machine.uid
-  workspaceId   = workspace?.getId()
-  workspaceSlug = workspace?.slug
+  { instances } = kd.singletons.appManager.appControllers.IDE
 
-  for instance in ideApps.instances
-    isSameMachine   = instance.mountedMachineUId is machineUId
-    isSameWorkspace = workspace and instance.workspaceData?.getId() is workspaceId
-
-    if isSameMachine
-      if isSameWorkspace then ideInstance = instance
-      # should not be the case anymore since 'my-workspace' deprecated.
-      else if workspaceSlug is 'my-workspace'
-        if instance.workspaceData?.isDefault
-          ideInstance = instance
+  for instance in instances when instance.mountedMachineUId is machine.uid
+    ideInstance = instance
 
   return ideInstance
 
 
 routeToTestWorkspace = ->
 
-  kd.singletons.router.handleRoute '/IDE/test-machine/test-workspace'
+  kd.singletons.router.handleRoute '/IDE/test-machine'
 
 
 loadTestIDE = ->
 
-  { workspaces } = machine = require('mocks/mockmanagedmachine')()
+  machine = require('mocks/mockmanagedmachine')()
   machine = remote.revive machine
-  workspace = remote.revive workspaces[0]
 
   require('app/util/createTestMachine')().then ->
-    loadIDE { machine, workspace, username: nick }, ->
-      require('ide/test/browser').prepare(machine, workspace)
+    loadIDE { machine, username: nick() }, ->
+      require('ide/test/browser').prepare(machine)
 
 
-routeToFallback = ->
+routeToMachine = (options = {}) ->
 
-  { routeToMachineWorkspace, loadIDENotFound } = module.exports
+  { computeController: cc, socialapi, router } = kd.singletons
+  { machine, slug, uid } = options
 
-  machines = dataProvider.getMyMachines()
-  [ obj ]  = machines
+  if machine
+    loadIDE { machine }
 
-  if obj?.machine # `?` intentionally. there might be no machine.
-    routeToMachineWorkspace obj.machine
   else
-    loadIDENotFound()
+    cc.ready ->
 
+      if uid
+        machine = cc.storage.machines.get 'uid', uid
+        debug 'machine with uid', { uid, machine }
 
-routeToMachineWorkspace = (machine) ->
+      if not machine and slug
+        for machine in cc.storage.machines.query 'slug', slug
+          break  if machine.isMine()
+        debug 'machine with slug', { slug, machine }
 
-  { getLatestWorkspace } = module.exports
+      if machine
 
-  latestWorkspace = getLatestWorkspace machine
+        if channelId = machine.getChannelId()
 
-  unless machine instanceof Machine
-    machine = new Machine { machine }
+          socialapi.cacheable 'channel', channelId, (err, channel) ->
 
-  if latestWorkspace
-  then { workspaceSlug } = latestWorkspace
-  else workspaceSlug     = 'my-workspace'
+            if err or not channel
+              return loadIDE { machine }
 
-  identifier = machine.slug
+            query = { socialApiId: channel.creatorId }
 
-  if machine.isPermanent() or machine.jMachine.meta?.oldOwner
-    identifier = machine.uid
+            remote.api.JAccount.some query, {}, (err, account) ->
 
-  kd.getSingleton('router').handleRoute "/IDE/#{identifier}/#{workspaceSlug}"
+              if err or not account
+                console.warn 'Account not found'
+                return loadIDE { machine }
 
+              username  = account.first.profile.nickname
+              channelId = channel.id
 
-routeToLatestWorkspace = ->
+              loadIDE { machine, username, channelId }
 
-  { getLatestWorkspace, routeToFallback, routeToMachineWorkspace } = module.exports
+        else
 
-  router          = kd.getSingleton 'router'
-  latestWorkspace = getLatestWorkspace()
+          loadIDE { machine }
 
-  return routeToFallback()  unless latestWorkspace
-
-  { machineLabel, workspaceSlug, channelId } = latestWorkspace
-
-  if channelId
-    kd.singletons.socialapi.cacheable 'channel', channelId, (err, channel) ->
-
-      if err
-        storage = kd.singletons.localStorageController.storage 'IDE'
-        storage.unsetKey 'LatestWorkspace'
-        return routeToFallback()
-
-      dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) ->
-        if machine and ws then router.handleRoute "/IDE/#{channelId}"
-        else routeToFallback()
-
-  else if machineLabel and workspaceSlug
-    dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) ->
-      if machine and workspace
-        actions.setSelectedWorkspaceId workspace._id
-        router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
-      else if machine
-        routeToMachineWorkspace machine
       else
-        routeToFallback()
 
-  # I think we should add an else case here to call routeToFallback because if
-  # we don't have channelId, machineLabel and workspaceSlug at the same time
-  # we will probably end up with a WSOD. // acet
+        [ machine ] = cc.storage.machines.get()
+
+        if machine
+          router.handleRoute "/IDE/#{machine.slug}"
+        else if router.currentPath is '/IDE'
+          loadIDENotFound()
+        else
+          router.handleRoute '/IDE'
 
 
-loadCollaborativeIDE = (id) ->
-
-  { routeToLatestWorkspace, loadIDE } = module.exports
-
-  kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
-
-    return routeToLatestWorkspace()  if err
-
-    try
-
-      dataProvider.fetchMachineAndWorkspaceByChannelId id, (machine, workspace) ->
-        return routeToLatestWorkspace()  unless workspace
-
-        query = { socialApiId: channel.creatorId }
-
-        remote.api.JAccount.some query, {}, (err, account) ->
-          if err
-            routeToLatestWorkspace()
-            return throw new Error err
-
-          username  = account.first.profile.nickname
-          channelId = channel.id
-
-          return loadIDE { machine, workspace, username, channelId }
-
-    catch e
-
-      routeToLatestWorkspace()
-      return console.error e
+      # if machine.isPermanent() or machine.meta?.oldOwner
+      #   identifier = machine.uid
+      # kd.getSingleton('router').handleRoute "/IDE/#{identifier}"
 
 
 routeHandler = (type, info, state, path, ctx) ->
@@ -241,58 +159,37 @@ routeHandler = (type, info, state, path, ctx) ->
   # exported functions are not the same functions as the defined ones,
   # this is to make spies work in the future we hope to find a better way and
   # remove this imports. -- acet /cc usirin
-  { routeToLatestWorkspace, loadCollaborativeIDE, routeToMachineWorkspace, loadIDE } = module.exports
+  { routeToMachine } = module.exports
+
+  debug 'hit', type, info
 
   switch type
 
-    when 'home' then routeToLatestWorkspace()
+    when 'home' then routeToMachine()
 
     when 'machine'
+
       { machineLabel } = info.params
 
-      # we assume that if machineLabel is all numbers it is the channelId - SY
-      if /^[0-9]+$/.test machineLabel
-        loadCollaborativeIDE machineLabel
-      else if machineLabel is 'test-machine'
+      if machineLabel is 'test-machine'
         routeToTestWorkspace()
       else
-        dataProvider.fetchMachine machineLabel, (machine) ->
-          if machine then routeToMachineWorkspace machine
-          else routeToLatestWorkspace()
+        slug = uid = machineLabel
+        routeToMachine { slug, uid }
 
     when 'workspace'
-      { params } = info
 
-      if params.workspaceSlug is 'test-workspace'
-        return loadTestIDE()
+      # for old links
+      { machineLabel } = info.params
+      kd.getSingleton('router').handleRoute "/IDE/#{machineLabel}"
 
-      dataProvider.fetchMachine params.machineLabel, (machine) ->
-
-        dataProvider.ensureDefaultWorkspace ->
-
-          if machine
-            username = machine.getOwner()
-            data = { machineUId: machine.uid, workspaceSlug: params.workspaceSlug }
-
-            dataProvider.fetchWorkspaceByMachineUId data, (workspace) ->
-              if workspace then loadIDE { machine, workspace, username }
-              else
-                routeToMachineWorkspace machine
-
-          else
-            routeToLatestWorkspace()
 
 
 module.exports = {
 
-  selectWorkspaceOnSidebar
-  getLatestWorkspace
   loadIDENotFound
   loadIDE
-  routeToFallback
-  routeToMachineWorkspace
-  routeToLatestWorkspace
-  loadCollaborativeIDE
+  routeToMachine
   findInstance
   routeHandler
 

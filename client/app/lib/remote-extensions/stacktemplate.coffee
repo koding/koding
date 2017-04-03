@@ -1,3 +1,6 @@
+debug  = (require 'debug') 'remote:api:jstacktemplate'
+
+kd = require 'kd'
 remote = require('../remote')
 
 module.exports = class JStackTemplate extends remote.api.JStackTemplate
@@ -19,3 +22,39 @@ module.exports = class JStackTemplate extends remote.api.JStackTemplate
       providers = providers.concat provider
 
     return providers
+
+
+  generateStack: (options, callback) ->
+
+    debug 'generateStack called', options
+
+    super options, (err, newStack) ->
+
+      debug 'generateStack res:', err, newStack
+      return callback err  if err
+
+      { results: { machines }, stack } = newStack
+      stack.machines = machines.map (m) -> m.obj
+      kd.singletons.computeController.storage.stacks.push stack
+
+      callback null, newStack
+
+
+  @one = ->
+    debug 'JStackTemplate.one will be deprecated!'
+    super
+
+
+  @some = ->
+    debug 'JStackTemplate.some will be deprecated!'
+    super
+
+
+  update: (data, callback) ->
+
+    super data, (err, updated) ->
+
+      if not err and updated
+        kd.singletons.computeController.storage.templates.push updated
+
+      callback err, updated

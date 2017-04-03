@@ -48,7 +48,7 @@ class IDEFileFinder extends KDCustomHTMLView
     return @clearSearch()  if text is ''
 
     appManager      = kd.getSingleton 'appManager'
-    rootPath        = appManager.getFrontApp().workspaceData.rootPath or "/home/#{nick()}/"
+    rootPath        = "/home/#{nick()}/"
     command         = "find '#{rootPath}' -type f -iname '*#{Encoder.XSSEncode text}*' -not -path '*/.*'"
     @isSearchActive = yes
     @lastTerm       = text

@@ -21,6 +21,7 @@ checkOwnership = (machine, user) ->
 setOwnerOfStack = (stack, newOwner, oldOwner, group) ->
 
   newOwnerId = newOwner.getId()
+  stackId = stack.getId()
 
   stack.unuseStackTemplate (err) ->
     log 'Failed to mark as unused stack:', err  if err
@@ -33,7 +34,7 @@ setOwnerOfStack = (stack, newOwner, oldOwner, group) ->
     }, (err) ->
       if err
       then log 'Failed to change ownership of stack:', err
-      else newOwner.sendNotification 'MachineListUpdated', { group }
+      else newOwner.sendNotification 'StackOwnerUpdated', { group, stackId }
 
 
 updateStacks = ({ reason, stacks, oldOwner, requester, group }) ->
@@ -61,19 +62,6 @@ setOwnerOfMachine = (machine, { account, user, oldOwner, group }) ->
       }
     }, (err) ->
       log 'Failed to set oldOwner of machine:', err  if err
-
-
-  # Update workspace ownerships
-  JWorkspace = require '../../workspace'
-  JWorkspace.update
-    machineUId    : machine.uid
-  ,
-    $set          :
-      originId    : account.getId()
-  ,
-    multi         : yes
-  , (err) ->
-    log 'Failed to change ownership of workspace:', err  if err
 
 
 

@@ -25,6 +25,7 @@ module.exports = class JMachine extends Module
       groups            : 'sparse'
       domain            : 'sparse'
       status            : 'sparse'
+      channelId         : 'sparse'
 
     sharedEvents        :
       static            : [ ]
@@ -33,7 +34,7 @@ module.exports = class JMachine extends Module
     sharedMethods       :
       static            :
         one             :
-          (signature String, Function)
+          (signature Object, Function)
         some            :
           (signature Object, Function)
       instance          :
@@ -52,6 +53,8 @@ module.exports = class JMachine extends Module
         share           :
           (signature Object, Function)
         unshare         :
+          (signature Object, Function)
+        setChannelId    :
           (signature Object, Function)
 
         # Disabled for now ~ GG
@@ -139,6 +142,9 @@ module.exports = class JMachine extends Module
       generatedFrom     :
         templateId      : ObjectId
         revision        : String
+
+      channelId         :
+        type            : String
 
 
   # Helpers
@@ -494,9 +500,10 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, machineId, callback) ->
+    , (client, query, callback) ->
 
-      selector = @getSelectorFor client, { machineId }
+      { _id, uid } = query
+      selector = @getSelectorFor client, { machineId: _id ? uid }
 
       JMachine.one selector, (err, machine) ->
         callback err, machine
@@ -767,3 +774,40 @@ module.exports = class JMachine extends Module
       machine.shareWith$ client, options, (err) ->
 
         callback err, machine
+
+
+  setChannelId: permit 'set label',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldLockProcess    : yes
+      shouldReviveProvider : no
+
+    , (client, options, callback) ->
+
+      { channelId } = options
+      { r: { user } } = client
+
+      # Only an owner of this machine can modify it
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
+
+      if channelId
+
+        if typeof channelId isnt 'string' or channelId.length > 20
+          return callback new KodingError 'Invalid ChannelID provided'
+
+        @update { $set: { channelId } }, (err) =>
+          return callback err  if err
+          return callback null, this
+
+      else
+
+        @update { $unset: { channelId: 1 } }, (err) =>
+          return callback err  if err
+
+          delete this.data.channelId
+          delete this.channelId
+
+          return callback null, this
