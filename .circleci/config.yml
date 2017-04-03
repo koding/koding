@@ -171,12 +171,12 @@ jobs:
             koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
 
       - run:
-          name: test mongo models
-          command: ./run exec go test koding/db/mongodb/modelhelper
-
-      - run:
           name: run database migration
           command: ./run migrations up
+
+      - run:
+          name: test mongo models
+          command: ./run exec go test koding/db/mongodb/modelhelper
 
       - run:
           name: run

@@ -51,33 +51,13 @@ func (c cleaner) clean() {
 func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *models.Account, func()) {
 	var c cleaner
 
-	user := &models.User{
-		ObjectId: bson.NewObjectId(),
-		Name:     "testuser",
-	}
-
-	if err := modelhelper.CreateUser(user); err != nil {
+	user, account, err := modeltesthelper.CreateUser(bson.NewObjectId().Hex())
+	if err != nil {
 		c.clean()
 		t.Fatalf("error creating user: %s", err)
 	}
 
 	c.add(user)
-
-	account := &models.Account{
-		Id: bson.NewObjectId(),
-		Profile: models.AccountProfile{
-			Nickname:  user.Name,
-			FirstName: bson.NewObjectId().Hex(),
-			LastName:  bson.NewObjectId().Hex(),
-		},
-		Type: "registered",
-	}
-
-	if err := modelhelper.CreateAccount(account); err != nil {
-		c.clean()
-		t.Fatalf("error creating account: %s", err)
-	}
-
 	c.add(account)
 
 	group, err := createGroup()

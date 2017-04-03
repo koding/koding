@@ -110,12 +110,11 @@ func TestGetMachinesByUsernameAndProvider(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
 
-	user := &models.User{Name: "testuser", ObjectId: bson.NewObjectId()}
-	defer modelhelper.RemoveUser(user.Name)
-
-	if err := modelhelper.CreateUser(user); err != nil {
+	user, _, err := modeltesthelper.CreateUser(bson.NewObjectId().Hex())
+	if err != nil {
 		t.Error(err)
 	}
+	defer modelhelper.RemoveUser(user.Name)
 
 	// koding provider machine
 	m1 := &models.Machine{
