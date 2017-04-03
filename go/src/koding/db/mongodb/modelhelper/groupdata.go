@@ -1,8 +1,8 @@
 package modelhelper
 
 import (
+	"errors"
 	"koding/db/models"
-	"strings"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -29,14 +29,17 @@ func GetGroupData(slug string) (*models.GroupData, error) {
 
 // UpsertGroupData creates or updates GroupData.
 func UpsertGroupData(slug, path string, data interface{}) error {
+	if path == "" {
+		return errors.New("path is not set")
+	}
+
 	// Insert with internally created id.
 	op := func(c *mgo.Collection) error {
-		mpath := PreparePath(path, data)
 		_, err := c.Upsert(
 			bson.M{"slug": slug},
 			bson.M{
 				"$set": bson.M{
-					"data": mpath,
+					"data." + path: data,
 				},
 			},
 		)
@@ -44,21 +47,4 @@ func UpsertGroupData(slug, path string, data interface{}) error {
 	}
 
 	return Mongo.Run(GroupDataColl, op)
-}
-
-// PreparePath walks recursively according to given path and puts the data down
-// in end of the path.
-func PreparePath(path string, data interface{}) bson.M {
-	paths := strings.Split(path, ".")
-	res := bson.M{}
-	for i := len(paths) - 1; i >= 0; i-- {
-		lpath := paths[i]
-		if i == len(paths)-1 {
-			res = bson.M{lpath: data}
-		} else {
-			res = bson.M{lpath: res}
-		}
-	}
-
-	return res
 }

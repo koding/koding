@@ -1,10 +1,8 @@
 package modelhelper_test
 
 import (
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
-	"reflect"
 	"testing"
 
 	"gopkg.in/mgo.v2/bson"
@@ -62,25 +60,12 @@ func TestGroupDataUpsert(t *testing.T) {
 	}
 
 	// check if other keys are still existent
-	_, err = gd.Data.GetString("testData.key3")
-	if err != models.ErrDataKeyNotExists {
+	testDataVal3, err := gd.Data.GetString("testData.key3")
+	if err != nil {
 		t.Fatalf("data.Get(testData.key3) = %v, want %v", err, nil)
 	}
-}
 
-func TestPreparePath(t *testing.T) {
-	path := "key1.key2.key3"
-	data := "val"
-	res := bson.M{
-		"key1": bson.M{
-			"key2": bson.M{
-				"key3": "val",
-			},
-		},
-	}
-
-	mpath := modelhelper.PreparePath(path, data)
-	if !reflect.DeepEqual(res, mpath) {
-		t.Fatalf("mpath: %v, want %v", mpath, res)
+	if testDataVal3 != "val3" {
+		t.Fatalf("testDataVal3 = %v, want %v", testDataVal3, "val3")
 	}
 }
