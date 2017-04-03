@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -59,6 +58,10 @@ type Command struct {
 	// uses provided metadata to set rsync arguments that allow to sync the
 	// change.
 	Change *index.Change `json:"change,omitempty"`
+
+	// Output specifies an optional writer which, if set, will receive rsync
+	// command output.
+	Output io.Writer `json:"-"`
 }
 
 // valid checks if command fields are valid.
@@ -187,7 +190,9 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 		c.Cmd.Args = append(c.Cmd.Args, c.SourcePath, c.DestinationPath)
 	}
 
+	c.Cmd.Stderr = noNilMultiWriter(c.Cmd.Stderr, c.Output)
 	if c.Progress == nil {
+		c.Cmd.Stdout = noNilMultiWriter(c.Cmd.Stdout, c.Output)
 		return c.Cmd.Run()
 	}
 
@@ -198,13 +203,16 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 	}
 	defer rc.Close()
 
+	var r io.Reader = rc
+	if c.Output != nil {
+		r = io.TeeReader(rc, c.Output)
+	}
+
 	if err := c.Cmd.Start(); err != nil {
 		return err
 	}
 
-	c.Cmd.Stderr = os.Stderr
-
-	scan(rc)
+	scan(r)
 	if err = c.Cmd.Wait(); err != nil {
 		c.Progress(0, 0, 0, err)
 	} else {
@@ -308,4 +316,21 @@ func dropCR(data []byte) []byte {
 		return data[0 : len(data)-1]
 	}
 	return data
+}
+
+// noNilMultiWriter creates a multi writer from provided non-nil writers. If
+// all writers are nil, this function will return nil writer.
+func noNilMultiWriter(ws ...io.Writer) io.Writer {
+	var writers []io.Writer
+	for _, w := range ws {
+		if w != nil {
+			writers = append(writers, w)
+		}
+	}
+
+	if len(writers) == 0 {
+		return nil
+	}
+
+	return io.MultiWriter(writers...)
 }
