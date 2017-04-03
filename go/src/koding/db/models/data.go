@@ -22,6 +22,21 @@ func (d *Data) GetString(key string) (string, error) {
 	return s, nil
 }
 
+// GetData returns value as models.Data with given key
+func (d *Data) GetData(key string) (*Data, error) {
+	dt, err := d.Get(key)
+	if err != nil {
+		return nil, err
+	}
+
+	s, ok := dt.(*Data)
+	if !ok {
+		return nil, ErrDataInvalidType
+	}
+
+	return s, nil
+}
+
 // Get returns value with given key
 func (d *Data) Get(key string) (interface{}, error) {
 	if d == nil {
