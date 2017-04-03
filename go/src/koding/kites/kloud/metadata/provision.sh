@@ -16,8 +16,8 @@ echo "127.0.0.1 $${KODING_USERNAME}" >> /etc/hosts
 
 mkdir -p /opt/kite/klient
 
-wget "$${KLIENT_URL}" --retry-connrefused --tries 5 -O /tmp/klient.gz
-wget "$${SCREEN_URL}" --retry-connrefused --tries 5 -O /tmp/screen.tar.gz
+curl --location --silent --show-error --retry 5 "$${KLIENT_URL}" --output /tmp/klient.gz
+curl --location --silent --show-error --retry 5 "$${SCREEN_URL}" --output /tmp/screen.tar.gz
 
 tar -C / -xf /tmp/screen.tar.gz
 
