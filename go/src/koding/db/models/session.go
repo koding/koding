@@ -24,5 +24,5 @@ type Session struct {
 	SessionBegan  time.Time     `bson:"sessionBegan"`
 	LastAccess    time.Time     `bson:"lastAccess"`
 	Impersonating bool          `bson:"impersonating"`
-	SessionData   *Data         `bson:"sessionData,omitempty" json:"sessionData,omitempty"`
+	SessionData   Data          `bson:"sessionData,omitempty" json:"sessionData,omitempty"`
 }
