@@ -403,11 +403,6 @@ func run(args []string) {
 			},
 			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
 		}, {
-			Name:     "metrics",
-			Usage:    fmt.Sprintf("Internal use only."),
-			HideHelp: true,
-			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
-		}, {
 			Name:        "autocompletion",
 			Usage:       "Enable autocompletion support for bash and fish shells",
 			Description: cmdDescriptions["autocompletion"],

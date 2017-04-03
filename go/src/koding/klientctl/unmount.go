@@ -9,11 +9,9 @@ import (
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 	"koding/klient/remote/restypes"
-	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
-	"koding/klientctl/metrics"
 	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
@@ -290,9 +288,6 @@ func (c *UnmountCommand) Unmount(name, path string) error {
 	if _, err := c.Klient.Tell("remote.unmountFolder", req); err != nil {
 		return err
 	}
-
-	// track metrics
-	metrics.TrackUnmount(name, config.VersionNum())
 
 	return nil
 }
