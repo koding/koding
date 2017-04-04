@@ -10,6 +10,7 @@ import (
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/prefetch"
+	"koding/klient/machine/mount/sync/history"
 )
 
 // MountRequest defines machine group mount request.
@@ -361,13 +362,9 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 	}
 
 	// Get mount ID from identifier.
-	mountID, err := mount.IDFromString(req.Identifier)
+	mountID, err := g.getMountID(req.Identifier)
 	if err != nil {
-		absPath, e := filepath.Abs(req.Identifier)
-		if mountID, err = g.mount.Path(absPath); e != nil || err != nil {
-			g.log.Error("Cannot found mount with identifier: %s", req.Identifier)
-			return nil, fmt.Errorf("unknown mount: %q", req.Identifier)
-		}
+		return nil, err
 	}
 
 	// Get mount machine.
@@ -401,4 +398,60 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 		MountID: mountID,
 		Mount:   m,
 	}, nil
+}
+
+// InspectMountRequest defines machine group mount inspect request.
+type InspectMountRequest struct {
+	// Identifier is a string that identifiers requested mount. It can be either
+	// mount ID or local path which is going to be inspected.
+	Identifier string `json:"identifier"`
+
+	// Sync indicates whether inspect should attach sync history or not.
+	Sync bool `json:"sync"`
+}
+
+// InspectMountResponse defines machine group mount inspect response.
+type InspectMountResponse struct {
+	// History contains information about recently synchronized files.
+	History []*history.Record `json:"history"`
+}
+
+// InspectMount gets detailed information about mount current state.
+func (g *Group) InspectMount(req *InspectMountRequest) (*InspectMountResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	// Get mount ID from identifier.
+	mountID, err := g.getMountID(req.Identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &InspectMountResponse{}
+	if req.Sync {
+		if sc, err := g.sync.Sync(mountID); err == nil {
+			if res.History, err = sc.History(); err != nil {
+				g.log.Error("Cannot get mount %s syncing history: %s", mountID, err)
+			}
+		} else {
+			g.log.Warning("Mount %s is not synchronized: %s", mountID, err)
+		}
+	}
+
+	return res, nil
+}
+
+// getMountID looks up and converts provided identifier to mount ID.
+func (g *Group) getMountID(identifier string) (mount.ID, error) {
+	mountID, err := mount.IDFromString(identifier)
+	if err != nil {
+		absPath, e := filepath.Abs(identifier)
+		if mountID, err = g.mount.Path(absPath); e != nil || err != nil {
+			g.log.Error("Cannot found mount with identifier: %s", identifier)
+			return "", fmt.Errorf("unknown mount: %q", identifier)
+		}
+	}
+
+	return mountID, err
 }
