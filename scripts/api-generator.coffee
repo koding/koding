@@ -18,6 +18,13 @@ swagger =
     license:
       name: 'Apache 2.0'
       url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+  securityDefinitions:
+    Bearer:
+      type: 'apiKey'
+      name: 'Authorization'
+      in: 'header'
+
   tags: [
     {
       name: 'system'
@@ -200,6 +207,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
         tags: [ name ]
         consumes: [ 'application/json' ]
         parameters: parameters ? []
+        security: [ { Bearer: [] } ]
         description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
@@ -238,6 +246,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
     paths["/remote.api/#{name}.#{method}/{id}"] =
       post:
         tags: [ name ]
+        security: [ { Bearer: [] } ]
         consumes: [ 'application/json' ]
         description: docs[name]['instance'][method]?.description ? ''
         parameters: parameters
