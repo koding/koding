@@ -35,7 +35,7 @@ makeState = (config, props) ->
 
 module.exports = connectCompute = (config) -> (WrappedComponent) ->
 
-  class ConnectedCompute extends React.Component
+  class ConnectCompute extends React.Component
 
     constructor: (props) ->
       super props
@@ -104,3 +104,10 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
 
     render: ->
       <WrappedComponent {...@state} />
+
+  name = \
+    WrappedComponent.displayName or WrappedComponent.name or 'Component'
+
+  ConnectCompute.displayName = "ConnectCompute(#{name})"
+
+  return ConnectCompute
