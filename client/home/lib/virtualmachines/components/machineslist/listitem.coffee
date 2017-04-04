@@ -1,14 +1,18 @@
 kd = require 'kd'
 React = require 'app/react'
 MachineDetails = require './machinedetails'
-immutable = require 'immutable'
-KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
+KDReactorMixin  = require 'app/flux/base/reactormixin'
+
+Machine = require 'app/remote-extensions/machine'
+ComputeStack = require 'app/remote-extensions/computestack'
+
+
 module.exports = class MachinesListItem extends React.Component
 
   @propTypes =
-    machine                : React.PropTypes.instanceOf(immutable.Map).isRequired
-    stack                  : React.PropTypes.instanceOf(immutable.Map).isRequired
+    machine                : React.PropTypes.instanceOf Machine
+    stack                  : React.PropTypes.instanceOf ComputeStack
     shouldRenderDetails    : React.PropTypes.bool
     shouldRenderSpecs      : React.PropTypes.bool
     shouldRenderPower      : React.PropTypes.bool
@@ -50,7 +54,8 @@ module.exports = class MachinesListItem extends React.Component
   renderMachineDetails: ->
 
     return null  unless @props.shouldRenderDetails
-    return null  unless @props.machine.get('_id') is @state.activeMachine
+    return null  unless @props.machine.getId() is @state.activeMachine
+
     <main className="MachinesListItem-machineDetails">
       <MachineDetails
         machine={@props.machine}
@@ -72,17 +77,23 @@ module.exports = class MachinesListItem extends React.Component
 
   toggle: (event) ->
 
-    if @state.activeMachine is @props.machine.get '_id'
-      return kd.singletons.router.handleRoute "/Home/stacks/virtual-machines"
+    { router } = kd.singletons
 
-    kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@props.machine.get '_id'}"
+    if @state.activeMachine is @props.machine.getId()
+      return router.handleRoute "/Home/stacks/virtual-machines"
+
+    router.handleRoute @props.machine.getDashboardLink()
 
 
   renderIpAddress: ->
 
-    hasIp = @props.machine.get 'ipAddress'
-    ip    = hasIp or '0.0.0.0'
-    title = if hasIp then ip else 'Actual IP address will appear here when this VM is powered on.'
+    { ipAddress } = @props.machine
+
+    ip = ipAddress or '0.0.0.0'
+
+    title = if ipAddress then ip else '''
+      Actual IP address will appear here when this VM is powered on.
+      '''
 
     <div className="MachinesListItem-hostName">
       <div title={title} className='ip-address'>{ip}</div>
@@ -93,55 +104,60 @@ module.exports = class MachinesListItem extends React.Component
 
     return null  unless @props.shouldRenderDetails
 
-    expanded = if @props.machine.get('_id') is @state.activeMachine
+    expanded = if @props.machine.getId() is @state.activeMachine
     then ' expanded'
     else ''
 
     <div className="MachinesListItem-detailToggle#{expanded}">
-      <button className='MachinesListItem-detailToggleButton' onClick={@bound 'toggle'}></button>
+      <button
+        className='MachinesListItem-detailToggleButton'
+        onClick={@bound 'toggle'} />
     </div>
+
 
   renderProgressbar: ->
 
-    return unless  @props.machine
+    return  unless @props.percentage
 
-    status     = @props.machine.getIn ['status', 'state']
-    percentage = @props.machine.get('percentage') or 0
+    { status, percentage = 0 } = @props
 
     return null  if status in ['NotInitialized', 'Stopped']
     return null  if status is 'Running' and percentage is 100
 
-    fullClass  = if percentage is 100 then ' full' else ''
+    fullClass = if percentage is 100 then ' full' else ''
 
     <div className={"SidebarListItem-progressbar#{fullClass}"}>
       <cite style={width: "#{percentage}%"} />
     </div>
 
 
-
   renderStackTitle: ->
 
     <div className="MachinesListItem-stackLabel">
-      <a title={@props.stack.get 'title'} href="#" className="HomeAppView--button primary">
-        {@props.stack.get 'title'}
+      <a title={@props.stack.title} href="#" className="HomeAppView--button primary">
+        {@props.stack.title}
       </a>
     </div>
 
 
   render: ->
 
-    expanded = if @props.machine.get('_id') is @state.activeMachine
+    unless @props.machine
+      return null
+
+    expanded = if @props.machine.getId() is @state.activeMachine
     then ' expanded'
     else ''
+
     machineName = @state.expandedMachineLabel if expanded
 
     <div className="MachinesListItem#{expanded}">
       <header className='MachinesListItem-header'>
         <div
-          className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
+          className="MachinesListItem-machineLabel #{@props.status}"
           onClick={@bound 'toggle'}>
-          <div title={machineName or @props.machine.get 'label'} className='label'>
-            {machineName or @props.machine.get 'label'}
+          <div title={machineName or @props.machine.label} className='label'>
+            {machineName or @props.machine.label}
           </div>
           {@renderProgressbar()}
         </div>
@@ -151,5 +167,6 @@ module.exports = class MachinesListItem extends React.Component
       </header>
       {@renderMachineDetails()}
     </div>
+
 
 MachinesListItem.include [KDReactorMixin]
