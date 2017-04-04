@@ -102,6 +102,7 @@ module.exports = class SidebarController extends kd.Controller
   loadVisibilityFilters: ->
 
     fetchVisibility().then (filters) =>
+      debug 'visibility filters fetched', filters
       if filters
         @visibility = filters
         @emit 'change'
@@ -109,7 +110,7 @@ module.exports = class SidebarController extends kd.Controller
 
   saveVisibility: (type, id, state) ->
 
-    fetchVisibility()
+    Promise.resolve @visibility
       .then (filters) ->
         filters[type][id] = state
         return filters
