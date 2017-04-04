@@ -23,114 +23,118 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJProxyRestrictionClear post remote API j proxy restriction clear API
+JProxyRestrictionClear j proxy restriction clear API
 */
-func (a *Client) PostRemoteAPIJProxyRestrictionClear(params *PostRemoteAPIJProxyRestrictionClearParams) (*PostRemoteAPIJProxyRestrictionClearOK, error) {
+func (a *Client) JProxyRestrictionClear(params *JProxyRestrictionClearParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyRestrictionClearOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyRestrictionClearParams()
+		params = NewJProxyRestrictionClearParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyRestrictionClear",
+		ID:                 "JProxyRestriction.clear",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyRestriction.clear",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyRestrictionClearReader{formats: a.formats},
+		Reader:             &JProxyRestrictionClearReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyRestrictionClearOK), nil
+	return result.(*JProxyRestrictionClearOK), nil
 
 }
 
 /*
-PostRemoteAPIJProxyRestrictionCreate post remote API j proxy restriction create API
+JProxyRestrictionCreate j proxy restriction create API
 */
-func (a *Client) PostRemoteAPIJProxyRestrictionCreate(params *PostRemoteAPIJProxyRestrictionCreateParams) (*PostRemoteAPIJProxyRestrictionCreateOK, error) {
+func (a *Client) JProxyRestrictionCreate(params *JProxyRestrictionCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyRestrictionCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyRestrictionCreateParams()
+		params = NewJProxyRestrictionCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyRestrictionCreate",
+		ID:                 "JProxyRestriction.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyRestriction.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyRestrictionCreateReader{formats: a.formats},
+		Reader:             &JProxyRestrictionCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyRestrictionCreateOK), nil
+	return result.(*JProxyRestrictionCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJProxyRestrictionRemove post remote API j proxy restriction remove API
+JProxyRestrictionRemove j proxy restriction remove API
 */
-func (a *Client) PostRemoteAPIJProxyRestrictionRemove(params *PostRemoteAPIJProxyRestrictionRemoveParams) (*PostRemoteAPIJProxyRestrictionRemoveOK, error) {
+func (a *Client) JProxyRestrictionRemove(params *JProxyRestrictionRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyRestrictionRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyRestrictionRemoveParams()
+		params = NewJProxyRestrictionRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyRestrictionRemove",
+		ID:                 "JProxyRestriction.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyRestriction.remove",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyRestrictionRemoveReader{formats: a.formats},
+		Reader:             &JProxyRestrictionRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyRestrictionRemoveOK), nil
+	return result.(*JProxyRestrictionRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIJProxyRestrictionSome post remote API j proxy restriction some API
+JProxyRestrictionSome j proxy restriction some API
 */
-func (a *Client) PostRemoteAPIJProxyRestrictionSome(params *PostRemoteAPIJProxyRestrictionSomeParams) (*PostRemoteAPIJProxyRestrictionSomeOK, error) {
+func (a *Client) JProxyRestrictionSome(params *JProxyRestrictionSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyRestrictionSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyRestrictionSomeParams()
+		params = NewJProxyRestrictionSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyRestrictionSome",
+		ID:                 "JProxyRestriction.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyRestriction.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyRestrictionSomeReader{formats: a.formats},
+		Reader:             &JProxyRestrictionSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyRestrictionSomeOK), nil
+	return result.(*JProxyRestrictionSomeOK), nil
 
 }
 

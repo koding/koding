@@ -23,366 +23,379 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJStackTemplateBuildID post remote API j stack template build ID API
+JStackTemplateBuild j stack template build API
 */
-func (a *Client) PostRemoteAPIJStackTemplateBuildID(params *PostRemoteAPIJStackTemplateBuildIDParams) (*PostRemoteAPIJStackTemplateBuildIDOK, error) {
+func (a *Client) JStackTemplateBuild(params *JStackTemplateBuildParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateBuildOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateBuildIDParams()
+		params = NewJStackTemplateBuildParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateBuildID",
+		ID:                 "JStackTemplate.build",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.build/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateBuildIDReader{formats: a.formats},
+		Reader:             &JStackTemplateBuildReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateBuildIDOK), nil
+	return result.(*JStackTemplateBuildOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateCloneID post remote API j stack template clone ID API
+JStackTemplateClone j stack template clone API
 */
-func (a *Client) PostRemoteAPIJStackTemplateCloneID(params *PostRemoteAPIJStackTemplateCloneIDParams) (*PostRemoteAPIJStackTemplateCloneIDOK, error) {
+func (a *Client) JStackTemplateClone(params *JStackTemplateCloneParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateCloneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateCloneIDParams()
+		params = NewJStackTemplateCloneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateCloneID",
+		ID:                 "JStackTemplate.clone",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.clone/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateCloneIDReader{formats: a.formats},
+		Reader:             &JStackTemplateCloneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateCloneIDOK), nil
+	return result.(*JStackTemplateCloneOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateCreate creates a JStackTemplate with requested content
+JStackTemplateCreate creates a JStackTemplate with requested content
 */
-func (a *Client) PostRemoteAPIJStackTemplateCreate(params *PostRemoteAPIJStackTemplateCreateParams) (*PostRemoteAPIJStackTemplateCreateOK, error) {
+func (a *Client) JStackTemplateCreate(params *JStackTemplateCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateCreateParams()
+		params = NewJStackTemplateCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateCreate",
+		ID:                 "JStackTemplate.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateCreateReader{formats: a.formats},
+		Reader:             &JStackTemplateCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateCreateOK), nil
+	return result.(*JStackTemplateCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateDeleteID post remote API j stack template delete ID API
+JStackTemplateDelete j stack template delete API
 */
-func (a *Client) PostRemoteAPIJStackTemplateDeleteID(params *PostRemoteAPIJStackTemplateDeleteIDParams) (*PostRemoteAPIJStackTemplateDeleteIDOK, error) {
+func (a *Client) JStackTemplateDelete(params *JStackTemplateDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateDeleteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateDeleteIDParams()
+		params = NewJStackTemplateDeleteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateDeleteID",
+		ID:                 "JStackTemplate.delete",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.delete/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateDeleteIDReader{formats: a.formats},
+		Reader:             &JStackTemplateDeleteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateDeleteIDOK), nil
+	return result.(*JStackTemplateDeleteOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateForceStacksToReinitID post remote API j stack template force stacks to reinit ID API
+JStackTemplateForceStacksToReinit j stack template force stacks to reinit API
 */
-func (a *Client) PostRemoteAPIJStackTemplateForceStacksToReinitID(params *PostRemoteAPIJStackTemplateForceStacksToReinitIDParams) (*PostRemoteAPIJStackTemplateForceStacksToReinitIDOK, error) {
+func (a *Client) JStackTemplateForceStacksToReinit(params *JStackTemplateForceStacksToReinitParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateForceStacksToReinitOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateForceStacksToReinitIDParams()
+		params = NewJStackTemplateForceStacksToReinitParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateForceStacksToReinitID",
+		ID:                 "JStackTemplate.forceStacksToReinit",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.forceStacksToReinit/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateForceStacksToReinitIDReader{formats: a.formats},
+		Reader:             &JStackTemplateForceStacksToReinitReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateForceStacksToReinitIDOK), nil
+	return result.(*JStackTemplateForceStacksToReinitOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateGenerateStackID post remote API j stack template generate stack ID API
+JStackTemplateGenerateStack j stack template generate stack API
 */
-func (a *Client) PostRemoteAPIJStackTemplateGenerateStackID(params *PostRemoteAPIJStackTemplateGenerateStackIDParams) (*PostRemoteAPIJStackTemplateGenerateStackIDOK, error) {
+func (a *Client) JStackTemplateGenerateStack(params *JStackTemplateGenerateStackParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateGenerateStackOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateGenerateStackIDParams()
+		params = NewJStackTemplateGenerateStackParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateGenerateStackID",
+		ID:                 "JStackTemplate.generateStack",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.generateStack/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateGenerateStackIDReader{formats: a.formats},
+		Reader:             &JStackTemplateGenerateStackReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateGenerateStackIDOK), nil
+	return result.(*JStackTemplateGenerateStackOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateHasStacksID post remote API j stack template has stacks ID API
+JStackTemplateHasStacks j stack template has stacks API
 */
-func (a *Client) PostRemoteAPIJStackTemplateHasStacksID(params *PostRemoteAPIJStackTemplateHasStacksIDParams) (*PostRemoteAPIJStackTemplateHasStacksIDOK, error) {
+func (a *Client) JStackTemplateHasStacks(params *JStackTemplateHasStacksParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateHasStacksOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateHasStacksIDParams()
+		params = NewJStackTemplateHasStacksParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateHasStacksID",
+		ID:                 "JStackTemplate.hasStacks",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.hasStacks/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateHasStacksIDReader{formats: a.formats},
+		Reader:             &JStackTemplateHasStacksReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateHasStacksIDOK), nil
+	return result.(*JStackTemplateHasStacksOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateOne post remote API j stack template one API
+JStackTemplateOne j stack template one API
 */
-func (a *Client) PostRemoteAPIJStackTemplateOne(params *PostRemoteAPIJStackTemplateOneParams) (*PostRemoteAPIJStackTemplateOneOK, error) {
+func (a *Client) JStackTemplateOne(params *JStackTemplateOneParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateOneParams()
+		params = NewJStackTemplateOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateOne",
+		ID:                 "JStackTemplate.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateOneReader{formats: a.formats},
+		Reader:             &JStackTemplateOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateOneOK), nil
+	return result.(*JStackTemplateOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateSamples returns sample stack template for given provider
+JStackTemplateSamples returns sample stack template for given provider
 */
-func (a *Client) PostRemoteAPIJStackTemplateSamples(params *PostRemoteAPIJStackTemplateSamplesParams) (*PostRemoteAPIJStackTemplateSamplesOK, error) {
+func (a *Client) JStackTemplateSamples(params *JStackTemplateSamplesParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateSamplesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateSamplesParams()
+		params = NewJStackTemplateSamplesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateSamples",
+		ID:                 "JStackTemplate.samples",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.samples",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateSamplesReader{formats: a.formats},
+		Reader:             &JStackTemplateSamplesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateSamplesOK), nil
+	return result.(*JStackTemplateSamplesOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateSetAccessID post remote API j stack template set access ID API
+JStackTemplateSetAccess j stack template set access API
 */
-func (a *Client) PostRemoteAPIJStackTemplateSetAccessID(params *PostRemoteAPIJStackTemplateSetAccessIDParams) (*PostRemoteAPIJStackTemplateSetAccessIDOK, error) {
+func (a *Client) JStackTemplateSetAccess(params *JStackTemplateSetAccessParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateSetAccessOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateSetAccessIDParams()
+		params = NewJStackTemplateSetAccessParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateSetAccessID",
+		ID:                 "JStackTemplate.setAccess",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.setAccess/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateSetAccessIDReader{formats: a.formats},
+		Reader:             &JStackTemplateSetAccessReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateSetAccessIDOK), nil
+	return result.(*JStackTemplateSetAccessOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateSome post remote API j stack template some API
+JStackTemplateSome j stack template some API
 */
-func (a *Client) PostRemoteAPIJStackTemplateSome(params *PostRemoteAPIJStackTemplateSomeParams) (*PostRemoteAPIJStackTemplateSomeOK, error) {
+func (a *Client) JStackTemplateSome(params *JStackTemplateSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateSomeParams()
+		params = NewJStackTemplateSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateSome",
+		ID:                 "JStackTemplate.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateSomeReader{formats: a.formats},
+		Reader:             &JStackTemplateSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateSomeOK), nil
+	return result.(*JStackTemplateSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateUpdateID post remote API j stack template update ID API
+JStackTemplateUpdate j stack template update API
 */
-func (a *Client) PostRemoteAPIJStackTemplateUpdateID(params *PostRemoteAPIJStackTemplateUpdateIDParams) (*PostRemoteAPIJStackTemplateUpdateIDOK, error) {
+func (a *Client) JStackTemplateUpdate(params *JStackTemplateUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateUpdateIDParams()
+		params = NewJStackTemplateUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateUpdateID",
+		ID:                 "JStackTemplate.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.update/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateUpdateIDReader{formats: a.formats},
+		Reader:             &JStackTemplateUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateUpdateIDOK), nil
+	return result.(*JStackTemplateUpdateOK), nil
 
 }
 
 /*
-PostRemoteAPIJStackTemplateVerifyID Method JStackTemplate.verify
+JStackTemplateVerify Method JStackTemplate.verify
 */
-func (a *Client) PostRemoteAPIJStackTemplateVerifyID(params *PostRemoteAPIJStackTemplateVerifyIDParams) (*PostRemoteAPIJStackTemplateVerifyIDOK, error) {
+func (a *Client) JStackTemplateVerify(params *JStackTemplateVerifyParams, authInfo runtime.ClientAuthInfoWriter) (*JStackTemplateVerifyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJStackTemplateVerifyIDParams()
+		params = NewJStackTemplateVerifyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJStackTemplateVerifyID",
+		ID:                 "JStackTemplate.verify",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JStackTemplate.verify/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJStackTemplateVerifyIDReader{formats: a.formats},
+		Reader:             &JStackTemplateVerifyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJStackTemplateVerifyIDOK), nil
+	return result.(*JStackTemplateVerifyOK), nil
 
 }
 

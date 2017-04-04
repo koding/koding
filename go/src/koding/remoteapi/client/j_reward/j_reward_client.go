@@ -23,114 +23,118 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJRewardAddCustomReward post remote API j reward add custom reward API
+JRewardAddCustomReward j reward add custom reward API
 */
-func (a *Client) PostRemoteAPIJRewardAddCustomReward(params *PostRemoteAPIJRewardAddCustomRewardParams) (*PostRemoteAPIJRewardAddCustomRewardOK, error) {
+func (a *Client) JRewardAddCustomReward(params *JRewardAddCustomRewardParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardAddCustomRewardOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardAddCustomRewardParams()
+		params = NewJRewardAddCustomRewardParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardAddCustomReward",
+		ID:                 "JReward.addCustomReward",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JReward.addCustomReward",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardAddCustomRewardReader{formats: a.formats},
+		Reader:             &JRewardAddCustomRewardReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardAddCustomRewardOK), nil
+	return result.(*JRewardAddCustomRewardOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardFetchCustomData post remote API j reward fetch custom data API
+JRewardFetchCustomData j reward fetch custom data API
 */
-func (a *Client) PostRemoteAPIJRewardFetchCustomData(params *PostRemoteAPIJRewardFetchCustomDataParams) (*PostRemoteAPIJRewardFetchCustomDataOK, error) {
+func (a *Client) JRewardFetchCustomData(params *JRewardFetchCustomDataParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardFetchCustomDataOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardFetchCustomDataParams()
+		params = NewJRewardFetchCustomDataParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardFetchCustomData",
+		ID:                 "JReward.fetchCustomData",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JReward.fetchCustomData",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardFetchCustomDataReader{formats: a.formats},
+		Reader:             &JRewardFetchCustomDataReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardFetchCustomDataOK), nil
+	return result.(*JRewardFetchCustomDataOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardFetchEarnedAmount Method JReward.fetchEarnedAmount
+JRewardFetchEarnedAmount Method JReward.fetchEarnedAmount
 */
-func (a *Client) PostRemoteAPIJRewardFetchEarnedAmount(params *PostRemoteAPIJRewardFetchEarnedAmountParams) (*PostRemoteAPIJRewardFetchEarnedAmountOK, error) {
+func (a *Client) JRewardFetchEarnedAmount(params *JRewardFetchEarnedAmountParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardFetchEarnedAmountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardFetchEarnedAmountParams()
+		params = NewJRewardFetchEarnedAmountParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardFetchEarnedAmount",
+		ID:                 "JReward.fetchEarnedAmount",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JReward.fetchEarnedAmount",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardFetchEarnedAmountReader{formats: a.formats},
+		Reader:             &JRewardFetchEarnedAmountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardFetchEarnedAmountOK), nil
+	return result.(*JRewardFetchEarnedAmountOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardSome post remote API j reward some API
+JRewardSome j reward some API
 */
-func (a *Client) PostRemoteAPIJRewardSome(params *PostRemoteAPIJRewardSomeParams) (*PostRemoteAPIJRewardSomeOK, error) {
+func (a *Client) JRewardSome(params *JRewardSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardSomeParams()
+		params = NewJRewardSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardSome",
+		ID:                 "JReward.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JReward.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardSomeReader{formats: a.formats},
+		Reader:             &JRewardSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardSomeOK), nil
+	return result.(*JRewardSomeOK), nil
 
 }
 

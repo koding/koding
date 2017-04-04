@@ -23,786 +23,814 @@ type Client struct {
 }
 
 /*
-PostRemoteAPISocialChannelAcceptInvite post remote API social channel accept invite API
+SocialChannelAcceptInvite social channel accept invite API
 */
-func (a *Client) PostRemoteAPISocialChannelAcceptInvite(params *PostRemoteAPISocialChannelAcceptInviteParams) (*PostRemoteAPISocialChannelAcceptInviteOK, error) {
+func (a *Client) SocialChannelAcceptInvite(params *SocialChannelAcceptInviteParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelAcceptInviteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelAcceptInviteParams()
+		params = NewSocialChannelAcceptInviteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelAcceptInvite",
+		ID:                 "SocialChannel.acceptInvite",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.acceptInvite",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelAcceptInviteReader{formats: a.formats},
+		Reader:             &SocialChannelAcceptInviteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelAcceptInviteOK), nil
+	return result.(*SocialChannelAcceptInviteOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelAddParticipants post remote API social channel add participants API
+SocialChannelAddParticipants social channel add participants API
 */
-func (a *Client) PostRemoteAPISocialChannelAddParticipants(params *PostRemoteAPISocialChannelAddParticipantsParams) (*PostRemoteAPISocialChannelAddParticipantsOK, error) {
+func (a *Client) SocialChannelAddParticipants(params *SocialChannelAddParticipantsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelAddParticipantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelAddParticipantsParams()
+		params = NewSocialChannelAddParticipantsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelAddParticipants",
+		ID:                 "SocialChannel.addParticipants",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.addParticipants",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelAddParticipantsReader{formats: a.formats},
+		Reader:             &SocialChannelAddParticipantsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelAddParticipantsOK), nil
+	return result.(*SocialChannelAddParticipantsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelByID post remote API social channel by ID API
+SocialChannelByID social channel by Id API
 */
-func (a *Client) PostRemoteAPISocialChannelByID(params *PostRemoteAPISocialChannelByIDParams) (*PostRemoteAPISocialChannelByIDOK, error) {
+func (a *Client) SocialChannelByID(params *SocialChannelByIDParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelByIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelByIDParams()
+		params = NewSocialChannelByIDParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelByID",
+		ID:                 "SocialChannel.byId",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.byId",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelByIDReader{formats: a.formats},
+		Reader:             &SocialChannelByIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelByIDOK), nil
+	return result.(*SocialChannelByIDOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelByName post remote API social channel by name API
+SocialChannelByName social channel by name API
 */
-func (a *Client) PostRemoteAPISocialChannelByName(params *PostRemoteAPISocialChannelByNameParams) (*PostRemoteAPISocialChannelByNameOK, error) {
+func (a *Client) SocialChannelByName(params *SocialChannelByNameParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelByNameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelByNameParams()
+		params = NewSocialChannelByNameParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelByName",
+		ID:                 "SocialChannel.byName",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.byName",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelByNameReader{formats: a.formats},
+		Reader:             &SocialChannelByNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelByNameOK), nil
+	return result.(*SocialChannelByNameOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelCreate post remote API social channel create API
+SocialChannelCreate social channel create API
 */
-func (a *Client) PostRemoteAPISocialChannelCreate(params *PostRemoteAPISocialChannelCreateParams) (*PostRemoteAPISocialChannelCreateOK, error) {
+func (a *Client) SocialChannelCreate(params *SocialChannelCreateParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelCreateParams()
+		params = NewSocialChannelCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelCreate",
+		ID:                 "SocialChannel.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelCreateReader{formats: a.formats},
+		Reader:             &SocialChannelCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelCreateOK), nil
+	return result.(*SocialChannelCreateOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelCreateChannelWithParticipants post remote API social channel create channel with participants API
+SocialChannelCreateChannelWithParticipants social channel create channel with participants API
 */
-func (a *Client) PostRemoteAPISocialChannelCreateChannelWithParticipants(params *PostRemoteAPISocialChannelCreateChannelWithParticipantsParams) (*PostRemoteAPISocialChannelCreateChannelWithParticipantsOK, error) {
+func (a *Client) SocialChannelCreateChannelWithParticipants(params *SocialChannelCreateChannelWithParticipantsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelCreateChannelWithParticipantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelCreateChannelWithParticipantsParams()
+		params = NewSocialChannelCreateChannelWithParticipantsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelCreateChannelWithParticipants",
+		ID:                 "SocialChannel.createChannelWithParticipants",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.createChannelWithParticipants",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelCreateChannelWithParticipantsReader{formats: a.formats},
+		Reader:             &SocialChannelCreateChannelWithParticipantsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelCreateChannelWithParticipantsOK), nil
+	return result.(*SocialChannelCreateChannelWithParticipantsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelDelete post remote API social channel delete API
+SocialChannelDelete social channel delete API
 */
-func (a *Client) PostRemoteAPISocialChannelDelete(params *PostRemoteAPISocialChannelDeleteParams) (*PostRemoteAPISocialChannelDeleteOK, error) {
+func (a *Client) SocialChannelDelete(params *SocialChannelDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelDeleteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelDeleteParams()
+		params = NewSocialChannelDeleteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelDelete",
+		ID:                 "SocialChannel.delete",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.delete",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelDeleteReader{formats: a.formats},
+		Reader:             &SocialChannelDeleteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelDeleteOK), nil
+	return result.(*SocialChannelDeleteOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchActivities post remote API social channel fetch activities API
+SocialChannelFetchActivities social channel fetch activities API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchActivities(params *PostRemoteAPISocialChannelFetchActivitiesParams) (*PostRemoteAPISocialChannelFetchActivitiesOK, error) {
+func (a *Client) SocialChannelFetchActivities(params *SocialChannelFetchActivitiesParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchActivitiesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchActivitiesParams()
+		params = NewSocialChannelFetchActivitiesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchActivities",
+		ID:                 "SocialChannel.fetchActivities",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchActivities",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchActivitiesReader{formats: a.formats},
+		Reader:             &SocialChannelFetchActivitiesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchActivitiesOK), nil
+	return result.(*SocialChannelFetchActivitiesOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchActivityCount Method SocialChannel.fetchActivityCount
+SocialChannelFetchActivityCount Method SocialChannel.fetchActivityCount
 */
-func (a *Client) PostRemoteAPISocialChannelFetchActivityCount(params *PostRemoteAPISocialChannelFetchActivityCountParams) (*PostRemoteAPISocialChannelFetchActivityCountOK, error) {
+func (a *Client) SocialChannelFetchActivityCount(params *SocialChannelFetchActivityCountParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchActivityCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchActivityCountParams()
+		params = NewSocialChannelFetchActivityCountParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchActivityCount",
+		ID:                 "SocialChannel.fetchActivityCount",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchActivityCount",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchActivityCountReader{formats: a.formats},
+		Reader:             &SocialChannelFetchActivityCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchActivityCountOK), nil
+	return result.(*SocialChannelFetchActivityCountOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchChannels post remote API social channel fetch channels API
+SocialChannelFetchChannels social channel fetch channels API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchChannels(params *PostRemoteAPISocialChannelFetchChannelsParams) (*PostRemoteAPISocialChannelFetchChannelsOK, error) {
+func (a *Client) SocialChannelFetchChannels(params *SocialChannelFetchChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchChannelsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchChannelsParams()
+		params = NewSocialChannelFetchChannelsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchChannels",
+		ID:                 "SocialChannel.fetchChannels",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchChannels",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchChannelsReader{formats: a.formats},
+		Reader:             &SocialChannelFetchChannelsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchChannelsOK), nil
+	return result.(*SocialChannelFetchChannelsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchFollowedChannelCount post remote API social channel fetch followed channel count API
+SocialChannelFetchFollowedChannelCount social channel fetch followed channel count API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchFollowedChannelCount(params *PostRemoteAPISocialChannelFetchFollowedChannelCountParams) (*PostRemoteAPISocialChannelFetchFollowedChannelCountOK, error) {
+func (a *Client) SocialChannelFetchFollowedChannelCount(params *SocialChannelFetchFollowedChannelCountParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchFollowedChannelCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchFollowedChannelCountParams()
+		params = NewSocialChannelFetchFollowedChannelCountParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchFollowedChannelCount",
+		ID:                 "SocialChannel.fetchFollowedChannelCount",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchFollowedChannelCount",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchFollowedChannelCountReader{formats: a.formats},
+		Reader:             &SocialChannelFetchFollowedChannelCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchFollowedChannelCountOK), nil
+	return result.(*SocialChannelFetchFollowedChannelCountOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchFollowedChannels post remote API social channel fetch followed channels API
+SocialChannelFetchFollowedChannels social channel fetch followed channels API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchFollowedChannels(params *PostRemoteAPISocialChannelFetchFollowedChannelsParams) (*PostRemoteAPISocialChannelFetchFollowedChannelsOK, error) {
+func (a *Client) SocialChannelFetchFollowedChannels(params *SocialChannelFetchFollowedChannelsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchFollowedChannelsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchFollowedChannelsParams()
+		params = NewSocialChannelFetchFollowedChannelsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchFollowedChannels",
+		ID:                 "SocialChannel.fetchFollowedChannels",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchFollowedChannels",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchFollowedChannelsReader{formats: a.formats},
+		Reader:             &SocialChannelFetchFollowedChannelsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchFollowedChannelsOK), nil
+	return result.(*SocialChannelFetchFollowedChannelsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchParticipants post remote API social channel fetch participants API
+SocialChannelFetchParticipants social channel fetch participants API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchParticipants(params *PostRemoteAPISocialChannelFetchParticipantsParams) (*PostRemoteAPISocialChannelFetchParticipantsOK, error) {
+func (a *Client) SocialChannelFetchParticipants(params *SocialChannelFetchParticipantsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchParticipantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchParticipantsParams()
+		params = NewSocialChannelFetchParticipantsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchParticipants",
+		ID:                 "SocialChannel.fetchParticipants",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchParticipants",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchParticipantsReader{formats: a.formats},
+		Reader:             &SocialChannelFetchParticipantsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchParticipantsOK), nil
+	return result.(*SocialChannelFetchParticipantsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchPinnedMessages post remote API social channel fetch pinned messages API
+SocialChannelFetchPinnedMessages social channel fetch pinned messages API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchPinnedMessages(params *PostRemoteAPISocialChannelFetchPinnedMessagesParams) (*PostRemoteAPISocialChannelFetchPinnedMessagesOK, error) {
+func (a *Client) SocialChannelFetchPinnedMessages(params *SocialChannelFetchPinnedMessagesParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchPinnedMessagesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchPinnedMessagesParams()
+		params = NewSocialChannelFetchPinnedMessagesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchPinnedMessages",
+		ID:                 "SocialChannel.fetchPinnedMessages",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchPinnedMessages",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchPinnedMessagesReader{formats: a.formats},
+		Reader:             &SocialChannelFetchPinnedMessagesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchPinnedMessagesOK), nil
+	return result.(*SocialChannelFetchPinnedMessagesOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchPopularPosts post remote API social channel fetch popular posts API
+SocialChannelFetchPopularPosts social channel fetch popular posts API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchPopularPosts(params *PostRemoteAPISocialChannelFetchPopularPostsParams) (*PostRemoteAPISocialChannelFetchPopularPostsOK, error) {
+func (a *Client) SocialChannelFetchPopularPosts(params *SocialChannelFetchPopularPostsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchPopularPostsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchPopularPostsParams()
+		params = NewSocialChannelFetchPopularPostsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchPopularPosts",
+		ID:                 "SocialChannel.fetchPopularPosts",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchPopularPosts",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchPopularPostsReader{formats: a.formats},
+		Reader:             &SocialChannelFetchPopularPostsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchPopularPostsOK), nil
+	return result.(*SocialChannelFetchPopularPostsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchPopularTopics post remote API social channel fetch popular topics API
+SocialChannelFetchPopularTopics social channel fetch popular topics API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchPopularTopics(params *PostRemoteAPISocialChannelFetchPopularTopicsParams) (*PostRemoteAPISocialChannelFetchPopularTopicsOK, error) {
+func (a *Client) SocialChannelFetchPopularTopics(params *SocialChannelFetchPopularTopicsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchPopularTopicsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchPopularTopicsParams()
+		params = NewSocialChannelFetchPopularTopicsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchPopularTopics",
+		ID:                 "SocialChannel.fetchPopularTopics",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchPopularTopics",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchPopularTopicsReader{formats: a.formats},
+		Reader:             &SocialChannelFetchPopularTopicsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchPopularTopicsOK), nil
+	return result.(*SocialChannelFetchPopularTopicsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchProfileFeed post remote API social channel fetch profile feed API
+SocialChannelFetchProfileFeed social channel fetch profile feed API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchProfileFeed(params *PostRemoteAPISocialChannelFetchProfileFeedParams) (*PostRemoteAPISocialChannelFetchProfileFeedOK, error) {
+func (a *Client) SocialChannelFetchProfileFeed(params *SocialChannelFetchProfileFeedParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchProfileFeedOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchProfileFeedParams()
+		params = NewSocialChannelFetchProfileFeedParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchProfileFeed",
+		ID:                 "SocialChannel.fetchProfileFeed",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchProfileFeed",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchProfileFeedReader{formats: a.formats},
+		Reader:             &SocialChannelFetchProfileFeedReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchProfileFeedOK), nil
+	return result.(*SocialChannelFetchProfileFeedOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelFetchProfileFeedCount post remote API social channel fetch profile feed count API
+SocialChannelFetchProfileFeedCount social channel fetch profile feed count API
 */
-func (a *Client) PostRemoteAPISocialChannelFetchProfileFeedCount(params *PostRemoteAPISocialChannelFetchProfileFeedCountParams) (*PostRemoteAPISocialChannelFetchProfileFeedCountOK, error) {
+func (a *Client) SocialChannelFetchProfileFeedCount(params *SocialChannelFetchProfileFeedCountParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelFetchProfileFeedCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelFetchProfileFeedCountParams()
+		params = NewSocialChannelFetchProfileFeedCountParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelFetchProfileFeedCount",
+		ID:                 "SocialChannel.fetchProfileFeedCount",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.fetchProfileFeedCount",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelFetchProfileFeedCountReader{formats: a.formats},
+		Reader:             &SocialChannelFetchProfileFeedCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelFetchProfileFeedCountOK), nil
+	return result.(*SocialChannelFetchProfileFeedCountOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelGlancePinnedPost post remote API social channel glance pinned post API
+SocialChannelGlancePinnedPost social channel glance pinned post API
 */
-func (a *Client) PostRemoteAPISocialChannelGlancePinnedPost(params *PostRemoteAPISocialChannelGlancePinnedPostParams) (*PostRemoteAPISocialChannelGlancePinnedPostOK, error) {
+func (a *Client) SocialChannelGlancePinnedPost(params *SocialChannelGlancePinnedPostParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelGlancePinnedPostOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelGlancePinnedPostParams()
+		params = NewSocialChannelGlancePinnedPostParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelGlancePinnedPost",
+		ID:                 "SocialChannel.glancePinnedPost",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.glancePinnedPost",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelGlancePinnedPostReader{formats: a.formats},
+		Reader:             &SocialChannelGlancePinnedPostReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelGlancePinnedPostOK), nil
+	return result.(*SocialChannelGlancePinnedPostOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelLeave post remote API social channel leave API
+SocialChannelLeave social channel leave API
 */
-func (a *Client) PostRemoteAPISocialChannelLeave(params *PostRemoteAPISocialChannelLeaveParams) (*PostRemoteAPISocialChannelLeaveOK, error) {
+func (a *Client) SocialChannelLeave(params *SocialChannelLeaveParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelLeaveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelLeaveParams()
+		params = NewSocialChannelLeaveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelLeave",
+		ID:                 "SocialChannel.leave",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.leave",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelLeaveReader{formats: a.formats},
+		Reader:             &SocialChannelLeaveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelLeaveOK), nil
+	return result.(*SocialChannelLeaveOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelListParticipants post remote API social channel list participants API
+SocialChannelListParticipants social channel list participants API
 */
-func (a *Client) PostRemoteAPISocialChannelListParticipants(params *PostRemoteAPISocialChannelListParticipantsParams) (*PostRemoteAPISocialChannelListParticipantsOK, error) {
+func (a *Client) SocialChannelListParticipants(params *SocialChannelListParticipantsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelListParticipantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelListParticipantsParams()
+		params = NewSocialChannelListParticipantsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelListParticipants",
+		ID:                 "SocialChannel.listParticipants",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.listParticipants",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelListParticipantsReader{formats: a.formats},
+		Reader:             &SocialChannelListParticipantsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelListParticipantsOK), nil
+	return result.(*SocialChannelListParticipantsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelPinMessage post remote API social channel pin message API
+SocialChannelPinMessage social channel pin message API
 */
-func (a *Client) PostRemoteAPISocialChannelPinMessage(params *PostRemoteAPISocialChannelPinMessageParams) (*PostRemoteAPISocialChannelPinMessageOK, error) {
+func (a *Client) SocialChannelPinMessage(params *SocialChannelPinMessageParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelPinMessageOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelPinMessageParams()
+		params = NewSocialChannelPinMessageParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelPinMessage",
+		ID:                 "SocialChannel.pinMessage",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.pinMessage",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelPinMessageReader{formats: a.formats},
+		Reader:             &SocialChannelPinMessageReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelPinMessageOK), nil
+	return result.(*SocialChannelPinMessageOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelRejectInvite post remote API social channel reject invite API
+SocialChannelRejectInvite social channel reject invite API
 */
-func (a *Client) PostRemoteAPISocialChannelRejectInvite(params *PostRemoteAPISocialChannelRejectInviteParams) (*PostRemoteAPISocialChannelRejectInviteOK, error) {
+func (a *Client) SocialChannelRejectInvite(params *SocialChannelRejectInviteParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelRejectInviteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelRejectInviteParams()
+		params = NewSocialChannelRejectInviteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelRejectInvite",
+		ID:                 "SocialChannel.rejectInvite",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.rejectInvite",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelRejectInviteReader{formats: a.formats},
+		Reader:             &SocialChannelRejectInviteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelRejectInviteOK), nil
+	return result.(*SocialChannelRejectInviteOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelRemoveParticipants post remote API social channel remove participants API
+SocialChannelRemoveParticipants social channel remove participants API
 */
-func (a *Client) PostRemoteAPISocialChannelRemoveParticipants(params *PostRemoteAPISocialChannelRemoveParticipantsParams) (*PostRemoteAPISocialChannelRemoveParticipantsOK, error) {
+func (a *Client) SocialChannelRemoveParticipants(params *SocialChannelRemoveParticipantsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelRemoveParticipantsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelRemoveParticipantsParams()
+		params = NewSocialChannelRemoveParticipantsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelRemoveParticipants",
+		ID:                 "SocialChannel.removeParticipants",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.removeParticipants",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelRemoveParticipantsReader{formats: a.formats},
+		Reader:             &SocialChannelRemoveParticipantsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelRemoveParticipantsOK), nil
+	return result.(*SocialChannelRemoveParticipantsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelSearchTopics post remote API social channel search topics API
+SocialChannelSearchTopics social channel search topics API
 */
-func (a *Client) PostRemoteAPISocialChannelSearchTopics(params *PostRemoteAPISocialChannelSearchTopicsParams) (*PostRemoteAPISocialChannelSearchTopicsOK, error) {
+func (a *Client) SocialChannelSearchTopics(params *SocialChannelSearchTopicsParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelSearchTopicsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelSearchTopicsParams()
+		params = NewSocialChannelSearchTopicsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelSearchTopics",
+		ID:                 "SocialChannel.searchTopics",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.searchTopics",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelSearchTopicsReader{formats: a.formats},
+		Reader:             &SocialChannelSearchTopicsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelSearchTopicsOK), nil
+	return result.(*SocialChannelSearchTopicsOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelUnpinMessage post remote API social channel unpin message API
+SocialChannelUnpinMessage social channel unpin message API
 */
-func (a *Client) PostRemoteAPISocialChannelUnpinMessage(params *PostRemoteAPISocialChannelUnpinMessageParams) (*PostRemoteAPISocialChannelUnpinMessageOK, error) {
+func (a *Client) SocialChannelUnpinMessage(params *SocialChannelUnpinMessageParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelUnpinMessageOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelUnpinMessageParams()
+		params = NewSocialChannelUnpinMessageParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelUnpinMessage",
+		ID:                 "SocialChannel.unpinMessage",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.unpinMessage",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelUnpinMessageReader{formats: a.formats},
+		Reader:             &SocialChannelUnpinMessageReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelUnpinMessageOK), nil
+	return result.(*SocialChannelUnpinMessageOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelUpdate post remote API social channel update API
+SocialChannelUpdate social channel update API
 */
-func (a *Client) PostRemoteAPISocialChannelUpdate(params *PostRemoteAPISocialChannelUpdateParams) (*PostRemoteAPISocialChannelUpdateOK, error) {
+func (a *Client) SocialChannelUpdate(params *SocialChannelUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelUpdateParams()
+		params = NewSocialChannelUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelUpdate",
+		ID:                 "SocialChannel.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.update",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelUpdateReader{formats: a.formats},
+		Reader:             &SocialChannelUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelUpdateOK), nil
+	return result.(*SocialChannelUpdateOK), nil
 
 }
 
 /*
-PostRemoteAPISocialChannelUpdateLastSeenTime post remote API social channel update last seen time API
+SocialChannelUpdateLastSeenTime social channel update last seen time API
 */
-func (a *Client) PostRemoteAPISocialChannelUpdateLastSeenTime(params *PostRemoteAPISocialChannelUpdateLastSeenTimeParams) (*PostRemoteAPISocialChannelUpdateLastSeenTimeOK, error) {
+func (a *Client) SocialChannelUpdateLastSeenTime(params *SocialChannelUpdateLastSeenTimeParams, authInfo runtime.ClientAuthInfoWriter) (*SocialChannelUpdateLastSeenTimeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialChannelUpdateLastSeenTimeParams()
+		params = NewSocialChannelUpdateLastSeenTimeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialChannelUpdateLastSeenTime",
+		ID:                 "SocialChannel.updateLastSeenTime",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialChannel.updateLastSeenTime",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialChannelUpdateLastSeenTimeReader{formats: a.formats},
+		Reader:             &SocialChannelUpdateLastSeenTimeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialChannelUpdateLastSeenTimeOK), nil
+	return result.(*SocialChannelUpdateLastSeenTimeOK), nil
 
 }
 

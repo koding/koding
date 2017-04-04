@@ -23,114 +23,118 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJProxyFilterCreate post remote API j proxy filter create API
+JProxyFilterCreate j proxy filter create API
 */
-func (a *Client) PostRemoteAPIJProxyFilterCreate(params *PostRemoteAPIJProxyFilterCreateParams) (*PostRemoteAPIJProxyFilterCreateOK, error) {
+func (a *Client) JProxyFilterCreate(params *JProxyFilterCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyFilterCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyFilterCreateParams()
+		params = NewJProxyFilterCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyFilterCreate",
+		ID:                 "JProxyFilter.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyFilter.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyFilterCreateReader{formats: a.formats},
+		Reader:             &JProxyFilterCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyFilterCreateOK), nil
+	return result.(*JProxyFilterCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJProxyFilterRemoveID post remote API j proxy filter remove ID API
+JProxyFilterRemove j proxy filter remove API
 */
-func (a *Client) PostRemoteAPIJProxyFilterRemoveID(params *PostRemoteAPIJProxyFilterRemoveIDParams) (*PostRemoteAPIJProxyFilterRemoveIDOK, error) {
+func (a *Client) JProxyFilterRemove(params *JProxyFilterRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyFilterRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyFilterRemoveIDParams()
+		params = NewJProxyFilterRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyFilterRemoveID",
+		ID:                 "JProxyFilter.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyFilter.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyFilterRemoveIDReader{formats: a.formats},
+		Reader:             &JProxyFilterRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyFilterRemoveIDOK), nil
+	return result.(*JProxyFilterRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIJProxyFilterSome post remote API j proxy filter some API
+JProxyFilterSome j proxy filter some API
 */
-func (a *Client) PostRemoteAPIJProxyFilterSome(params *PostRemoteAPIJProxyFilterSomeParams) (*PostRemoteAPIJProxyFilterSomeOK, error) {
+func (a *Client) JProxyFilterSome(params *JProxyFilterSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyFilterSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyFilterSomeParams()
+		params = NewJProxyFilterSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyFilterSome",
+		ID:                 "JProxyFilter.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyFilter.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyFilterSomeReader{formats: a.formats},
+		Reader:             &JProxyFilterSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyFilterSomeOK), nil
+	return result.(*JProxyFilterSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJProxyFilterUpdateID post remote API j proxy filter update ID API
+JProxyFilterUpdate j proxy filter update API
 */
-func (a *Client) PostRemoteAPIJProxyFilterUpdateID(params *PostRemoteAPIJProxyFilterUpdateIDParams) (*PostRemoteAPIJProxyFilterUpdateIDOK, error) {
+func (a *Client) JProxyFilterUpdate(params *JProxyFilterUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*JProxyFilterUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProxyFilterUpdateIDParams()
+		params = NewJProxyFilterUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProxyFilterUpdateID",
+		ID:                 "JProxyFilter.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProxyFilter.update/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProxyFilterUpdateIDReader{formats: a.formats},
+		Reader:             &JProxyFilterUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProxyFilterUpdateIDOK), nil
+	return result.(*JProxyFilterUpdateOK), nil
 
 }
 

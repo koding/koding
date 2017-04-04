@@ -23,282 +23,321 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJMachineApproveID post remote API j machine approve ID API
+JMachineApprove j machine approve API
 */
-func (a *Client) PostRemoteAPIJMachineApproveID(params *PostRemoteAPIJMachineApproveIDParams) (*PostRemoteAPIJMachineApproveIDOK, error) {
+func (a *Client) JMachineApprove(params *JMachineApproveParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineApproveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineApproveIDParams()
+		params = NewJMachineApproveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineApproveID",
+		ID:                 "JMachine.approve",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.approve/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineApproveIDReader{formats: a.formats},
+		Reader:             &JMachineApproveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineApproveIDOK), nil
+	return result.(*JMachineApproveOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineDenyID post remote API j machine deny ID API
+JMachineDeny j machine deny API
 */
-func (a *Client) PostRemoteAPIJMachineDenyID(params *PostRemoteAPIJMachineDenyIDParams) (*PostRemoteAPIJMachineDenyIDOK, error) {
+func (a *Client) JMachineDeny(params *JMachineDenyParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineDenyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineDenyIDParams()
+		params = NewJMachineDenyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineDenyID",
+		ID:                 "JMachine.deny",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.deny/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineDenyIDReader{formats: a.formats},
+		Reader:             &JMachineDenyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineDenyIDOK), nil
+	return result.(*JMachineDenyOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineOne post remote API j machine one API
+JMachineOne j machine one API
 */
-func (a *Client) PostRemoteAPIJMachineOne(params *PostRemoteAPIJMachineOneParams) (*PostRemoteAPIJMachineOneOK, error) {
+func (a *Client) JMachineOne(params *JMachineOneParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineOneParams()
+		params = NewJMachineOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineOne",
+		ID:                 "JMachine.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineOneReader{formats: a.formats},
+		Reader:             &JMachineOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineOneOK), nil
+	return result.(*JMachineOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineReviveUsersID post remote API j machine revive users ID API
+JMachineReviveUsers j machine revive users API
 */
-func (a *Client) PostRemoteAPIJMachineReviveUsersID(params *PostRemoteAPIJMachineReviveUsersIDParams) (*PostRemoteAPIJMachineReviveUsersIDOK, error) {
+func (a *Client) JMachineReviveUsers(params *JMachineReviveUsersParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineReviveUsersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineReviveUsersIDParams()
+		params = NewJMachineReviveUsersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineReviveUsersID",
+		ID:                 "JMachine.reviveUsers",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.reviveUsers/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineReviveUsersIDReader{formats: a.formats},
+		Reader:             &JMachineReviveUsersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineReviveUsersIDOK), nil
+	return result.(*JMachineReviveUsersOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineSetLabelID post remote API j machine set label ID API
+JMachineSetChannelID j machine set channel Id API
 */
-func (a *Client) PostRemoteAPIJMachineSetLabelID(params *PostRemoteAPIJMachineSetLabelIDParams) (*PostRemoteAPIJMachineSetLabelIDOK, error) {
+func (a *Client) JMachineSetChannelID(params *JMachineSetChannelIDParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineSetChannelIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineSetLabelIDParams()
+		params = NewJMachineSetChannelIDParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineSetLabelID",
+		ID:                 "JMachine.setChannelId",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JMachine.setChannelId/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &JMachineSetChannelIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*JMachineSetChannelIDOK), nil
+
+}
+
+/*
+JMachineSetLabel j machine set label API
+*/
+func (a *Client) JMachineSetLabel(params *JMachineSetLabelParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineSetLabelOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewJMachineSetLabelParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "JMachine.setLabel",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.setLabel/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineSetLabelIDReader{formats: a.formats},
+		Reader:             &JMachineSetLabelReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineSetLabelIDOK), nil
+	return result.(*JMachineSetLabelOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineSetProvisionerID post remote API j machine set provisioner ID API
+JMachineSetProvisioner j machine set provisioner API
 */
-func (a *Client) PostRemoteAPIJMachineSetProvisionerID(params *PostRemoteAPIJMachineSetProvisionerIDParams) (*PostRemoteAPIJMachineSetProvisionerIDOK, error) {
+func (a *Client) JMachineSetProvisioner(params *JMachineSetProvisionerParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineSetProvisionerOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineSetProvisionerIDParams()
+		params = NewJMachineSetProvisionerParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineSetProvisionerID",
+		ID:                 "JMachine.setProvisioner",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.setProvisioner/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineSetProvisionerIDReader{formats: a.formats},
+		Reader:             &JMachineSetProvisionerReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineSetProvisionerIDOK), nil
+	return result.(*JMachineSetProvisionerOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineShareID post remote API j machine share ID API
+JMachineShare j machine share API
 */
-func (a *Client) PostRemoteAPIJMachineShareID(params *PostRemoteAPIJMachineShareIDParams) (*PostRemoteAPIJMachineShareIDOK, error) {
+func (a *Client) JMachineShare(params *JMachineShareParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineShareOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineShareIDParams()
+		params = NewJMachineShareParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineShareID",
+		ID:                 "JMachine.share",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.share/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineShareIDReader{formats: a.formats},
+		Reader:             &JMachineShareReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineShareIDOK), nil
+	return result.(*JMachineShareOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineShareWithID Method JMachine.shareWith
+JMachineShareWith Method JMachine.shareWith
 */
-func (a *Client) PostRemoteAPIJMachineShareWithID(params *PostRemoteAPIJMachineShareWithIDParams) (*PostRemoteAPIJMachineShareWithIDOK, error) {
+func (a *Client) JMachineShareWith(params *JMachineShareWithParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineShareWithOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineShareWithIDParams()
+		params = NewJMachineShareWithParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineShareWithID",
+		ID:                 "JMachine.shareWith",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.shareWith/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineShareWithIDReader{formats: a.formats},
+		Reader:             &JMachineShareWithReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineShareWithIDOK), nil
+	return result.(*JMachineShareWithOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineSome post remote API j machine some API
+JMachineSome j machine some API
 */
-func (a *Client) PostRemoteAPIJMachineSome(params *PostRemoteAPIJMachineSomeParams) (*PostRemoteAPIJMachineSomeOK, error) {
+func (a *Client) JMachineSome(params *JMachineSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineSomeParams()
+		params = NewJMachineSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineSome",
+		ID:                 "JMachine.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineSomeReader{formats: a.formats},
+		Reader:             &JMachineSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineSomeOK), nil
+	return result.(*JMachineSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJMachineUnshareID post remote API j machine unshare ID API
+JMachineUnshare j machine unshare API
 */
-func (a *Client) PostRemoteAPIJMachineUnshareID(params *PostRemoteAPIJMachineUnshareIDParams) (*PostRemoteAPIJMachineUnshareIDOK, error) {
+func (a *Client) JMachineUnshare(params *JMachineUnshareParams, authInfo runtime.ClientAuthInfoWriter) (*JMachineUnshareOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJMachineUnshareIDParams()
+		params = NewJMachineUnshareParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJMachineUnshareID",
+		ID:                 "JMachine.unshare",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JMachine.unshare/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJMachineUnshareIDReader{formats: a.formats},
+		Reader:             &JMachineUnshareReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJMachineUnshareIDOK), nil
+	return result.(*JMachineUnshareOK), nil
 
 }
 

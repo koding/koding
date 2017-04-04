@@ -23,142 +23,147 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJPasswordRecoveryFetchRegistrationDetails Method JPasswordRecovery.fetchRegistrationDetails
+JPasswordRecoveryFetchRegistrationDetails Method JPasswordRecovery.fetchRegistrationDetails
 */
-func (a *Client) PostRemoteAPIJPasswordRecoveryFetchRegistrationDetails(params *PostRemoteAPIJPasswordRecoveryFetchRegistrationDetailsParams) (*PostRemoteAPIJPasswordRecoveryFetchRegistrationDetailsOK, error) {
+func (a *Client) JPasswordRecoveryFetchRegistrationDetails(params *JPasswordRecoveryFetchRegistrationDetailsParams, authInfo runtime.ClientAuthInfoWriter) (*JPasswordRecoveryFetchRegistrationDetailsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJPasswordRecoveryFetchRegistrationDetailsParams()
+		params = NewJPasswordRecoveryFetchRegistrationDetailsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJPasswordRecoveryFetchRegistrationDetails",
+		ID:                 "JPasswordRecovery.fetchRegistrationDetails",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JPasswordRecovery.fetchRegistrationDetails",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJPasswordRecoveryFetchRegistrationDetailsReader{formats: a.formats},
+		Reader:             &JPasswordRecoveryFetchRegistrationDetailsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJPasswordRecoveryFetchRegistrationDetailsOK), nil
+	return result.(*JPasswordRecoveryFetchRegistrationDetailsOK), nil
 
 }
 
 /*
-PostRemoteAPIJPasswordRecoveryRecoverPassword post remote API j password recovery recover password API
+JPasswordRecoveryRecoverPassword j password recovery recover password API
 */
-func (a *Client) PostRemoteAPIJPasswordRecoveryRecoverPassword(params *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams) (*PostRemoteAPIJPasswordRecoveryRecoverPasswordOK, error) {
+func (a *Client) JPasswordRecoveryRecoverPassword(params *JPasswordRecoveryRecoverPasswordParams, authInfo runtime.ClientAuthInfoWriter) (*JPasswordRecoveryRecoverPasswordOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJPasswordRecoveryRecoverPasswordParams()
+		params = NewJPasswordRecoveryRecoverPasswordParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJPasswordRecoveryRecoverPassword",
+		ID:                 "JPasswordRecovery.recoverPassword",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JPasswordRecovery.recoverPassword",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJPasswordRecoveryRecoverPasswordReader{formats: a.formats},
+		Reader:             &JPasswordRecoveryRecoverPasswordReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJPasswordRecoveryRecoverPasswordOK), nil
+	return result.(*JPasswordRecoveryRecoverPasswordOK), nil
 
 }
 
 /*
-PostRemoteAPIJPasswordRecoveryResendVerification post remote API j password recovery resend verification API
+JPasswordRecoveryResendVerification j password recovery resend verification API
 */
-func (a *Client) PostRemoteAPIJPasswordRecoveryResendVerification(params *PostRemoteAPIJPasswordRecoveryResendVerificationParams) (*PostRemoteAPIJPasswordRecoveryResendVerificationOK, error) {
+func (a *Client) JPasswordRecoveryResendVerification(params *JPasswordRecoveryResendVerificationParams, authInfo runtime.ClientAuthInfoWriter) (*JPasswordRecoveryResendVerificationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJPasswordRecoveryResendVerificationParams()
+		params = NewJPasswordRecoveryResendVerificationParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJPasswordRecoveryResendVerification",
+		ID:                 "JPasswordRecovery.resendVerification",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JPasswordRecovery.resendVerification",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJPasswordRecoveryResendVerificationReader{formats: a.formats},
+		Reader:             &JPasswordRecoveryResendVerificationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJPasswordRecoveryResendVerificationOK), nil
+	return result.(*JPasswordRecoveryResendVerificationOK), nil
 
 }
 
 /*
-PostRemoteAPIJPasswordRecoveryResetPassword Method JPasswordRecovery.resetPassword
+JPasswordRecoveryResetPassword Method JPasswordRecovery.resetPassword
 */
-func (a *Client) PostRemoteAPIJPasswordRecoveryResetPassword(params *PostRemoteAPIJPasswordRecoveryResetPasswordParams) (*PostRemoteAPIJPasswordRecoveryResetPasswordOK, error) {
+func (a *Client) JPasswordRecoveryResetPassword(params *JPasswordRecoveryResetPasswordParams, authInfo runtime.ClientAuthInfoWriter) (*JPasswordRecoveryResetPasswordOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJPasswordRecoveryResetPasswordParams()
+		params = NewJPasswordRecoveryResetPasswordParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJPasswordRecoveryResetPassword",
+		ID:                 "JPasswordRecovery.resetPassword",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JPasswordRecovery.resetPassword",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJPasswordRecoveryResetPasswordReader{formats: a.formats},
+		Reader:             &JPasswordRecoveryResetPasswordReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJPasswordRecoveryResetPasswordOK), nil
+	return result.(*JPasswordRecoveryResetPasswordOK), nil
 
 }
 
 /*
-PostRemoteAPIJPasswordRecoveryValidate Method JPasswordRecovery.validate
+JPasswordRecoveryValidate Method JPasswordRecovery.validate
 */
-func (a *Client) PostRemoteAPIJPasswordRecoveryValidate(params *PostRemoteAPIJPasswordRecoveryValidateParams) (*PostRemoteAPIJPasswordRecoveryValidateOK, error) {
+func (a *Client) JPasswordRecoveryValidate(params *JPasswordRecoveryValidateParams, authInfo runtime.ClientAuthInfoWriter) (*JPasswordRecoveryValidateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJPasswordRecoveryValidateParams()
+		params = NewJPasswordRecoveryValidateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJPasswordRecoveryValidate",
+		ID:                 "JPasswordRecovery.validate",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JPasswordRecovery.validate",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJPasswordRecoveryValidateReader{formats: a.formats},
+		Reader:             &JPasswordRecoveryValidateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJPasswordRecoveryValidateOK), nil
+	return result.(*JPasswordRecoveryValidateOK), nil
 
 }
 

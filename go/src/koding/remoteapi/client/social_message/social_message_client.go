@@ -23,506 +23,524 @@ type Client struct {
 }
 
 /*
-PostRemoteAPISocialMessageByID post remote API social message by ID API
+SocialMessageByID social message by Id API
 */
-func (a *Client) PostRemoteAPISocialMessageByID(params *PostRemoteAPISocialMessageByIDParams) (*PostRemoteAPISocialMessageByIDOK, error) {
+func (a *Client) SocialMessageByID(params *SocialMessageByIDParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageByIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageByIDParams()
+		params = NewSocialMessageByIDParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageByID",
+		ID:                 "SocialMessage.byId",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.byId",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageByIDReader{formats: a.formats},
+		Reader:             &SocialMessageByIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageByIDOK), nil
+	return result.(*SocialMessageByIDOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageBySlug post remote API social message by slug API
+SocialMessageBySlug social message by slug API
 */
-func (a *Client) PostRemoteAPISocialMessageBySlug(params *PostRemoteAPISocialMessageBySlugParams) (*PostRemoteAPISocialMessageBySlugOK, error) {
+func (a *Client) SocialMessageBySlug(params *SocialMessageBySlugParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageBySlugOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageBySlugParams()
+		params = NewSocialMessageBySlugParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageBySlug",
+		ID:                 "SocialMessage.bySlug",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.bySlug",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageBySlugReader{formats: a.formats},
+		Reader:             &SocialMessageBySlugReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageBySlugOK), nil
+	return result.(*SocialMessageBySlugOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageDelete post remote API social message delete API
+SocialMessageDelete social message delete API
 */
-func (a *Client) PostRemoteAPISocialMessageDelete(params *PostRemoteAPISocialMessageDeleteParams) (*PostRemoteAPISocialMessageDeleteOK, error) {
+func (a *Client) SocialMessageDelete(params *SocialMessageDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageDeleteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageDeleteParams()
+		params = NewSocialMessageDeleteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageDelete",
+		ID:                 "SocialMessage.delete",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.delete",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageDeleteReader{formats: a.formats},
+		Reader:             &SocialMessageDeleteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageDeleteOK), nil
+	return result.(*SocialMessageDeleteOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageEdit post remote API social message edit API
+SocialMessageEdit social message edit API
 */
-func (a *Client) PostRemoteAPISocialMessageEdit(params *PostRemoteAPISocialMessageEditParams) (*PostRemoteAPISocialMessageEditOK, error) {
+func (a *Client) SocialMessageEdit(params *SocialMessageEditParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageEditOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageEditParams()
+		params = NewSocialMessageEditParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageEdit",
+		ID:                 "SocialMessage.edit",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.edit",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageEditReader{formats: a.formats},
+		Reader:             &SocialMessageEditReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageEditOK), nil
+	return result.(*SocialMessageEditOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageFetch post remote API social message fetch API
+SocialMessageFetch social message fetch API
 */
-func (a *Client) PostRemoteAPISocialMessageFetch(params *PostRemoteAPISocialMessageFetchParams) (*PostRemoteAPISocialMessageFetchOK, error) {
+func (a *Client) SocialMessageFetch(params *SocialMessageFetchParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageFetchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageFetchParams()
+		params = NewSocialMessageFetchParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageFetch",
+		ID:                 "SocialMessage.fetch",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.fetch",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageFetchReader{formats: a.formats},
+		Reader:             &SocialMessageFetchReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageFetchOK), nil
+	return result.(*SocialMessageFetchOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageFetchDataFromEmbedly Method SocialMessage.fetchDataFromEmbedly
+SocialMessageFetchDataFromEmbedly Method SocialMessage.fetchDataFromEmbedly
 */
-func (a *Client) PostRemoteAPISocialMessageFetchDataFromEmbedly(params *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams) (*PostRemoteAPISocialMessageFetchDataFromEmbedlyOK, error) {
+func (a *Client) SocialMessageFetchDataFromEmbedly(params *SocialMessageFetchDataFromEmbedlyParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageFetchDataFromEmbedlyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageFetchDataFromEmbedlyParams()
+		params = NewSocialMessageFetchDataFromEmbedlyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageFetchDataFromEmbedly",
+		ID:                 "SocialMessage.fetchDataFromEmbedly",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.fetchDataFromEmbedly",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageFetchDataFromEmbedlyReader{formats: a.formats},
+		Reader:             &SocialMessageFetchDataFromEmbedlyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageFetchDataFromEmbedlyOK), nil
+	return result.(*SocialMessageFetchDataFromEmbedlyOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageFetchPrivateMessageCount post remote API social message fetch private message count API
+SocialMessageFetchPrivateMessageCount social message fetch private message count API
 */
-func (a *Client) PostRemoteAPISocialMessageFetchPrivateMessageCount(params *PostRemoteAPISocialMessageFetchPrivateMessageCountParams) (*PostRemoteAPISocialMessageFetchPrivateMessageCountOK, error) {
+func (a *Client) SocialMessageFetchPrivateMessageCount(params *SocialMessageFetchPrivateMessageCountParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageFetchPrivateMessageCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageFetchPrivateMessageCountParams()
+		params = NewSocialMessageFetchPrivateMessageCountParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageFetchPrivateMessageCount",
+		ID:                 "SocialMessage.fetchPrivateMessageCount",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.fetchPrivateMessageCount",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageFetchPrivateMessageCountReader{formats: a.formats},
+		Reader:             &SocialMessageFetchPrivateMessageCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageFetchPrivateMessageCountOK), nil
+	return result.(*SocialMessageFetchPrivateMessageCountOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageFetchPrivateMessages post remote API social message fetch private messages API
+SocialMessageFetchPrivateMessages social message fetch private messages API
 */
-func (a *Client) PostRemoteAPISocialMessageFetchPrivateMessages(params *PostRemoteAPISocialMessageFetchPrivateMessagesParams) (*PostRemoteAPISocialMessageFetchPrivateMessagesOK, error) {
+func (a *Client) SocialMessageFetchPrivateMessages(params *SocialMessageFetchPrivateMessagesParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageFetchPrivateMessagesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageFetchPrivateMessagesParams()
+		params = NewSocialMessageFetchPrivateMessagesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageFetchPrivateMessages",
+		ID:                 "SocialMessage.fetchPrivateMessages",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.fetchPrivateMessages",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageFetchPrivateMessagesReader{formats: a.formats},
+		Reader:             &SocialMessageFetchPrivateMessagesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageFetchPrivateMessagesOK), nil
+	return result.(*SocialMessageFetchPrivateMessagesOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageInitPrivateMessage post remote API social message init private message API
+SocialMessageInitPrivateMessage social message init private message API
 */
-func (a *Client) PostRemoteAPISocialMessageInitPrivateMessage(params *PostRemoteAPISocialMessageInitPrivateMessageParams) (*PostRemoteAPISocialMessageInitPrivateMessageOK, error) {
+func (a *Client) SocialMessageInitPrivateMessage(params *SocialMessageInitPrivateMessageParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageInitPrivateMessageOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageInitPrivateMessageParams()
+		params = NewSocialMessageInitPrivateMessageParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageInitPrivateMessage",
+		ID:                 "SocialMessage.initPrivateMessage",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.initPrivateMessage",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageInitPrivateMessageReader{formats: a.formats},
+		Reader:             &SocialMessageInitPrivateMessageReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageInitPrivateMessageOK), nil
+	return result.(*SocialMessageInitPrivateMessageOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageLike post remote API social message like API
+SocialMessageLike social message like API
 */
-func (a *Client) PostRemoteAPISocialMessageLike(params *PostRemoteAPISocialMessageLikeParams) (*PostRemoteAPISocialMessageLikeOK, error) {
+func (a *Client) SocialMessageLike(params *SocialMessageLikeParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageLikeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageLikeParams()
+		params = NewSocialMessageLikeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageLike",
+		ID:                 "SocialMessage.like",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.like",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageLikeReader{formats: a.formats},
+		Reader:             &SocialMessageLikeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageLikeOK), nil
+	return result.(*SocialMessageLikeOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageListLikers post remote API social message list likers API
+SocialMessageListLikers social message list likers API
 */
-func (a *Client) PostRemoteAPISocialMessageListLikers(params *PostRemoteAPISocialMessageListLikersParams) (*PostRemoteAPISocialMessageListLikersOK, error) {
+func (a *Client) SocialMessageListLikers(params *SocialMessageListLikersParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageListLikersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageListLikersParams()
+		params = NewSocialMessageListLikersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageListLikers",
+		ID:                 "SocialMessage.listLikers",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.listLikers",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageListLikersReader{formats: a.formats},
+		Reader:             &SocialMessageListLikersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageListLikersOK), nil
+	return result.(*SocialMessageListLikersOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageListReplies post remote API social message list replies API
+SocialMessageListReplies social message list replies API
 */
-func (a *Client) PostRemoteAPISocialMessageListReplies(params *PostRemoteAPISocialMessageListRepliesParams) (*PostRemoteAPISocialMessageListRepliesOK, error) {
+func (a *Client) SocialMessageListReplies(params *SocialMessageListRepliesParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageListRepliesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageListRepliesParams()
+		params = NewSocialMessageListRepliesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageListReplies",
+		ID:                 "SocialMessage.listReplies",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.listReplies",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageListRepliesReader{formats: a.formats},
+		Reader:             &SocialMessageListRepliesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageListRepliesOK), nil
+	return result.(*SocialMessageListRepliesOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessagePaymentSubscribe post remote API social message payment subscribe API
+SocialMessagePaymentSubscribe social message payment subscribe API
 */
-func (a *Client) PostRemoteAPISocialMessagePaymentSubscribe(params *PostRemoteAPISocialMessagePaymentSubscribeParams) (*PostRemoteAPISocialMessagePaymentSubscribeOK, error) {
+func (a *Client) SocialMessagePaymentSubscribe(params *SocialMessagePaymentSubscribeParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessagePaymentSubscribeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessagePaymentSubscribeParams()
+		params = NewSocialMessagePaymentSubscribeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessagePaymentSubscribe",
+		ID:                 "SocialMessage.paymentSubscribe",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.paymentSubscribe",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessagePaymentSubscribeReader{formats: a.formats},
+		Reader:             &SocialMessagePaymentSubscribeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessagePaymentSubscribeOK), nil
+	return result.(*SocialMessagePaymentSubscribeOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessagePost post remote API social message post API
+SocialMessagePost social message post API
 */
-func (a *Client) PostRemoteAPISocialMessagePost(params *PostRemoteAPISocialMessagePostParams) (*PostRemoteAPISocialMessagePostOK, error) {
+func (a *Client) SocialMessagePost(params *SocialMessagePostParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessagePostOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessagePostParams()
+		params = NewSocialMessagePostParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessagePost",
+		ID:                 "SocialMessage.post",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.post",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessagePostReader{formats: a.formats},
+		Reader:             &SocialMessagePostReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessagePostOK), nil
+	return result.(*SocialMessagePostOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageReply post remote API social message reply API
+SocialMessageReply social message reply API
 */
-func (a *Client) PostRemoteAPISocialMessageReply(params *PostRemoteAPISocialMessageReplyParams) (*PostRemoteAPISocialMessageReplyOK, error) {
+func (a *Client) SocialMessageReply(params *SocialMessageReplyParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageReplyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageReplyParams()
+		params = NewSocialMessageReplyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageReply",
+		ID:                 "SocialMessage.reply",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.reply",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageReplyReader{formats: a.formats},
+		Reader:             &SocialMessageReplyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageReplyOK), nil
+	return result.(*SocialMessageReplyOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageSearch post remote API social message search API
+SocialMessageSearch social message search API
 */
-func (a *Client) PostRemoteAPISocialMessageSearch(params *PostRemoteAPISocialMessageSearchParams) (*PostRemoteAPISocialMessageSearchOK, error) {
+func (a *Client) SocialMessageSearch(params *SocialMessageSearchParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageSearchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageSearchParams()
+		params = NewSocialMessageSearchParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageSearch",
+		ID:                 "SocialMessage.search",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.search",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageSearchReader{formats: a.formats},
+		Reader:             &SocialMessageSearchReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageSearchOK), nil
+	return result.(*SocialMessageSearchOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageSendPrivateMessage post remote API social message send private message API
+SocialMessageSendPrivateMessage social message send private message API
 */
-func (a *Client) PostRemoteAPISocialMessageSendPrivateMessage(params *PostRemoteAPISocialMessageSendPrivateMessageParams) (*PostRemoteAPISocialMessageSendPrivateMessageOK, error) {
+func (a *Client) SocialMessageSendPrivateMessage(params *SocialMessageSendPrivateMessageParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageSendPrivateMessageOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageSendPrivateMessageParams()
+		params = NewSocialMessageSendPrivateMessageParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageSendPrivateMessage",
+		ID:                 "SocialMessage.sendPrivateMessage",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.sendPrivateMessage",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageSendPrivateMessageReader{formats: a.formats},
+		Reader:             &SocialMessageSendPrivateMessageReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageSendPrivateMessageOK), nil
+	return result.(*SocialMessageSendPrivateMessageOK), nil
 
 }
 
 /*
-PostRemoteAPISocialMessageUnlike post remote API social message unlike API
+SocialMessageUnlike social message unlike API
 */
-func (a *Client) PostRemoteAPISocialMessageUnlike(params *PostRemoteAPISocialMessageUnlikeParams) (*PostRemoteAPISocialMessageUnlikeOK, error) {
+func (a *Client) SocialMessageUnlike(params *SocialMessageUnlikeParams, authInfo runtime.ClientAuthInfoWriter) (*SocialMessageUnlikeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialMessageUnlikeParams()
+		params = NewSocialMessageUnlikeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialMessageUnlike",
+		ID:                 "SocialMessage.unlike",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialMessage.unlike",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialMessageUnlikeReader{formats: a.formats},
+		Reader:             &SocialMessageUnlikeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialMessageUnlikeOK), nil
+	return result.(*SocialMessageUnlikeOK), nil
 
 }
 

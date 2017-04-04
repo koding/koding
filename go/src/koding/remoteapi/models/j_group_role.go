@@ -16,7 +16,7 @@ type JGroupRole struct {
 	// id
 	ID string `json:"_id,omitempty"`
 
-	// is configurable
+	// is configureable
 	IsConfigureable string `json:"isConfigureable,omitempty"`
 
 	// is default

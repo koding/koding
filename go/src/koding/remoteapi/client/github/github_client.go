@@ -23,30 +23,31 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIGithubAPI post remote API github API API
+GithubAPI github api API
 */
-func (a *Client) PostRemoteAPIGithubAPI(params *PostRemoteAPIGithubAPIParams) (*PostRemoteAPIGithubAPIOK, error) {
+func (a *Client) GithubAPI(params *GithubAPIParams, authInfo runtime.ClientAuthInfoWriter) (*GithubAPIOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIGithubAPIParams()
+		params = NewGithubAPIParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIGithubAPI",
+		ID:                 "Github.api",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Github.api",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIGithubAPIReader{formats: a.formats},
+		Reader:             &GithubAPIReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIGithubAPIOK), nil
+	return result.(*GithubAPIOK), nil
 
 }
 

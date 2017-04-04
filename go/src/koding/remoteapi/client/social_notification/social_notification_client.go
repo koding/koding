@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPISocialNotificationFetch post remote API social notification fetch API
+SocialNotificationFetch social notification fetch API
 */
-func (a *Client) PostRemoteAPISocialNotificationFetch(params *PostRemoteAPISocialNotificationFetchParams) (*PostRemoteAPISocialNotificationFetchOK, error) {
+func (a *Client) SocialNotificationFetch(params *SocialNotificationFetchParams, authInfo runtime.ClientAuthInfoWriter) (*SocialNotificationFetchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialNotificationFetchParams()
+		params = NewSocialNotificationFetchParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialNotificationFetch",
+		ID:                 "SocialNotification.fetch",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialNotification.fetch",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialNotificationFetchReader{formats: a.formats},
+		Reader:             &SocialNotificationFetchReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialNotificationFetchOK), nil
+	return result.(*SocialNotificationFetchOK), nil
 
 }
 
 /*
-PostRemoteAPISocialNotificationGlance post remote API social notification glance API
+SocialNotificationGlance social notification glance API
 */
-func (a *Client) PostRemoteAPISocialNotificationGlance(params *PostRemoteAPISocialNotificationGlanceParams) (*PostRemoteAPISocialNotificationGlanceOK, error) {
+func (a *Client) SocialNotificationGlance(params *SocialNotificationGlanceParams, authInfo runtime.ClientAuthInfoWriter) (*SocialNotificationGlanceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISocialNotificationGlanceParams()
+		params = NewSocialNotificationGlanceParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISocialNotificationGlance",
+		ID:                 "SocialNotification.glance",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SocialNotification.glance",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISocialNotificationGlanceReader{formats: a.formats},
+		Reader:             &SocialNotificationGlanceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISocialNotificationGlanceOK), nil
+	return result.(*SocialNotificationGlanceOK), nil
 
 }
 

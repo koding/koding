@@ -23,226 +23,234 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJInvitationAcceptID Method JInvitation.accept
+JInvitationAccept Method JInvitation.accept
 */
-func (a *Client) PostRemoteAPIJInvitationAcceptID(params *PostRemoteAPIJInvitationAcceptIDParams) (*PostRemoteAPIJInvitationAcceptIDOK, error) {
+func (a *Client) JInvitationAccept(params *JInvitationAcceptParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationAcceptOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationAcceptIDParams()
+		params = NewJInvitationAcceptParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationAcceptID",
+		ID:                 "JInvitation.accept",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.accept/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationAcceptIDReader{formats: a.formats},
+		Reader:             &JInvitationAcceptReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationAcceptIDOK), nil
+	return result.(*JInvitationAcceptOK), nil
 
 }
 
 /*
-PostRemoteAPIJInvitationByCode byCode fetches an invitation by its code
+JInvitationByCode byCode fetches an invitation by its code
 */
-func (a *Client) PostRemoteAPIJInvitationByCode(params *PostRemoteAPIJInvitationByCodeParams) (*PostRemoteAPIJInvitationByCodeOK, error) {
+func (a *Client) JInvitationByCode(params *JInvitationByCodeParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationByCodeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationByCodeParams()
+		params = NewJInvitationByCodeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationByCode",
+		ID:                 "JInvitation.byCode",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.byCode",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationByCodeReader{formats: a.formats},
+		Reader:             &JInvitationByCodeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationByCodeOK), nil
+	return result.(*JInvitationByCodeOK), nil
 
 }
 
 /*
-PostRemoteAPIJInvitationCreate post remote API j invitation create API
+JInvitationCreate j invitation create API
 */
-func (a *Client) PostRemoteAPIJInvitationCreate(params *PostRemoteAPIJInvitationCreateParams) (*PostRemoteAPIJInvitationCreateOK, error) {
+func (a *Client) JInvitationCreate(params *JInvitationCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationCreateParams()
+		params = NewJInvitationCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationCreate",
+		ID:                 "JInvitation.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationCreateReader{formats: a.formats},
+		Reader:             &JInvitationCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationCreateOK), nil
+	return result.(*JInvitationCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJInvitationRemoveID post remote API j invitation remove ID API
+JInvitationRemove j invitation remove API
 */
-func (a *Client) PostRemoteAPIJInvitationRemoveID(params *PostRemoteAPIJInvitationRemoveIDParams) (*PostRemoteAPIJInvitationRemoveIDOK, error) {
+func (a *Client) JInvitationRemove(params *JInvitationRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationRemoveIDParams()
+		params = NewJInvitationRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationRemoveID",
+		ID:                 "JInvitation.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationRemoveIDReader{formats: a.formats},
+		Reader:             &JInvitationRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationRemoveIDOK), nil
+	return result.(*JInvitationRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIJInvitationRevokeInvitation post remote API j invitation revoke invitation API
+JInvitationRevokeInvitation j invitation revoke invitation API
 */
-func (a *Client) PostRemoteAPIJInvitationRevokeInvitation(params *PostRemoteAPIJInvitationRevokeInvitationParams) (*PostRemoteAPIJInvitationRevokeInvitationOK, error) {
+func (a *Client) JInvitationRevokeInvitation(params *JInvitationRevokeInvitationParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationRevokeInvitationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationRevokeInvitationParams()
+		params = NewJInvitationRevokeInvitationParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationRevokeInvitation",
+		ID:                 "JInvitation.revokeInvitation",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.revokeInvitation",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationRevokeInvitationReader{formats: a.formats},
+		Reader:             &JInvitationRevokeInvitationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationRevokeInvitationOK), nil
+	return result.(*JInvitationRevokeInvitationOK), nil
 
 }
 
 /*
-PostRemoteAPIJInvitationSearch post remote API j invitation search API
+JInvitationSearch j invitation search API
 */
-func (a *Client) PostRemoteAPIJInvitationSearch(params *PostRemoteAPIJInvitationSearchParams) (*PostRemoteAPIJInvitationSearchOK, error) {
+func (a *Client) JInvitationSearch(params *JInvitationSearchParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationSearchOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationSearchParams()
+		params = NewJInvitationSearchParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationSearch",
+		ID:                 "JInvitation.search",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.search",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationSearchReader{formats: a.formats},
+		Reader:             &JInvitationSearchReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationSearchOK), nil
+	return result.(*JInvitationSearchOK), nil
 
 }
 
 /*
-PostRemoteAPIJInvitationSendInvitationByCode post remote API j invitation send invitation by code API
+JInvitationSendInvitationByCode j invitation send invitation by code API
 */
-func (a *Client) PostRemoteAPIJInvitationSendInvitationByCode(params *PostRemoteAPIJInvitationSendInvitationByCodeParams) (*PostRemoteAPIJInvitationSendInvitationByCodeOK, error) {
+func (a *Client) JInvitationSendInvitationByCode(params *JInvitationSendInvitationByCodeParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationSendInvitationByCodeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationSendInvitationByCodeParams()
+		params = NewJInvitationSendInvitationByCodeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationSendInvitationByCode",
+		ID:                 "JInvitation.sendInvitationByCode",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.sendInvitationByCode",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationSendInvitationByCodeReader{formats: a.formats},
+		Reader:             &JInvitationSendInvitationByCodeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationSendInvitationByCodeOK), nil
+	return result.(*JInvitationSendInvitationByCodeOK), nil
 
 }
 
 /*
-PostRemoteAPIJInvitationSome post remote API j invitation some API
+JInvitationSome j invitation some API
 */
-func (a *Client) PostRemoteAPIJInvitationSome(params *PostRemoteAPIJInvitationSomeParams) (*PostRemoteAPIJInvitationSomeOK, error) {
+func (a *Client) JInvitationSome(params *JInvitationSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JInvitationSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJInvitationSomeParams()
+		params = NewJInvitationSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJInvitationSome",
+		ID:                 "JInvitation.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JInvitation.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJInvitationSomeReader{formats: a.formats},
+		Reader:             &JInvitationSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJInvitationSomeOK), nil
+	return result.(*JInvitationSomeOK), nil
 
 }
 

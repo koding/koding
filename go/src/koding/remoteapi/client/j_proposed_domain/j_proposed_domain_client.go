@@ -23,226 +23,234 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJProposedDomainActivateDomainID post remote API j proposed domain activate domain ID API
+JProposedDomainActivateDomain j proposed domain activate domain API
 */
-func (a *Client) PostRemoteAPIJProposedDomainActivateDomainID(params *PostRemoteAPIJProposedDomainActivateDomainIDParams) (*PostRemoteAPIJProposedDomainActivateDomainIDOK, error) {
+func (a *Client) JProposedDomainActivateDomain(params *JProposedDomainActivateDomainParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainActivateDomainOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainActivateDomainIDParams()
+		params = NewJProposedDomainActivateDomainParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainActivateDomainID",
+		ID:                 "JProposedDomain.activateDomain",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.activateDomain/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainActivateDomainIDReader{formats: a.formats},
+		Reader:             &JProposedDomainActivateDomainReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainActivateDomainIDOK), nil
+	return result.(*JProposedDomainActivateDomainOK), nil
 
 }
 
 /*
-PostRemoteAPIJProposedDomainBindMachineID Method JProposedDomain.bindMachine
+JProposedDomainBindMachine Method JProposedDomain.bindMachine
 */
-func (a *Client) PostRemoteAPIJProposedDomainBindMachineID(params *PostRemoteAPIJProposedDomainBindMachineIDParams) (*PostRemoteAPIJProposedDomainBindMachineIDOK, error) {
+func (a *Client) JProposedDomainBindMachine(params *JProposedDomainBindMachineParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainBindMachineOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainBindMachineIDParams()
+		params = NewJProposedDomainBindMachineParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainBindMachineID",
+		ID:                 "JProposedDomain.bindMachine",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.bindMachine/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainBindMachineIDReader{formats: a.formats},
+		Reader:             &JProposedDomainBindMachineReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainBindMachineIDOK), nil
+	return result.(*JProposedDomainBindMachineOK), nil
 
 }
 
 /*
-PostRemoteAPIJProposedDomainCreateDomain Method JProposedDomain.createDomain
+JProposedDomainCreateDomain Method JProposedDomain.createDomain
 */
-func (a *Client) PostRemoteAPIJProposedDomainCreateDomain(params *PostRemoteAPIJProposedDomainCreateDomainParams) (*PostRemoteAPIJProposedDomainCreateDomainOK, error) {
+func (a *Client) JProposedDomainCreateDomain(params *JProposedDomainCreateDomainParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainCreateDomainOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainCreateDomainParams()
+		params = NewJProposedDomainCreateDomainParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainCreateDomain",
+		ID:                 "JProposedDomain.createDomain",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.createDomain",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainCreateDomainReader{formats: a.formats},
+		Reader:             &JProposedDomainCreateDomainReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainCreateDomainOK), nil
+	return result.(*JProposedDomainCreateDomainOK), nil
 
 }
 
 /*
-PostRemoteAPIJProposedDomainDeactivateDomainID post remote API j proposed domain deactivate domain ID API
+JProposedDomainDeactivateDomain j proposed domain deactivate domain API
 */
-func (a *Client) PostRemoteAPIJProposedDomainDeactivateDomainID(params *PostRemoteAPIJProposedDomainDeactivateDomainIDParams) (*PostRemoteAPIJProposedDomainDeactivateDomainIDOK, error) {
+func (a *Client) JProposedDomainDeactivateDomain(params *JProposedDomainDeactivateDomainParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainDeactivateDomainOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainDeactivateDomainIDParams()
+		params = NewJProposedDomainDeactivateDomainParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainDeactivateDomainID",
+		ID:                 "JProposedDomain.deactivateDomain",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.deactivateDomain/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainDeactivateDomainIDReader{formats: a.formats},
+		Reader:             &JProposedDomainDeactivateDomainReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainDeactivateDomainIDOK), nil
+	return result.(*JProposedDomainDeactivateDomainOK), nil
 
 }
 
 /*
-PostRemoteAPIJProposedDomainFetchDomains post remote API j proposed domain fetch domains API
+JProposedDomainFetchDomains j proposed domain fetch domains API
 */
-func (a *Client) PostRemoteAPIJProposedDomainFetchDomains(params *PostRemoteAPIJProposedDomainFetchDomainsParams) (*PostRemoteAPIJProposedDomainFetchDomainsOK, error) {
+func (a *Client) JProposedDomainFetchDomains(params *JProposedDomainFetchDomainsParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainFetchDomainsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainFetchDomainsParams()
+		params = NewJProposedDomainFetchDomainsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainFetchDomains",
+		ID:                 "JProposedDomain.fetchDomains",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.fetchDomains",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainFetchDomainsReader{formats: a.formats},
+		Reader:             &JProposedDomainFetchDomainsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainFetchDomainsOK), nil
+	return result.(*JProposedDomainFetchDomainsOK), nil
 
 }
 
 /*
-PostRemoteAPIJProposedDomainOne post remote API j proposed domain one API
+JProposedDomainOne j proposed domain one API
 */
-func (a *Client) PostRemoteAPIJProposedDomainOne(params *PostRemoteAPIJProposedDomainOneParams) (*PostRemoteAPIJProposedDomainOneOK, error) {
+func (a *Client) JProposedDomainOne(params *JProposedDomainOneParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainOneParams()
+		params = NewJProposedDomainOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainOne",
+		ID:                 "JProposedDomain.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainOneReader{formats: a.formats},
+		Reader:             &JProposedDomainOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainOneOK), nil
+	return result.(*JProposedDomainOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJProposedDomainRemoveID post remote API j proposed domain remove ID API
+JProposedDomainRemove j proposed domain remove API
 */
-func (a *Client) PostRemoteAPIJProposedDomainRemoveID(params *PostRemoteAPIJProposedDomainRemoveIDParams) (*PostRemoteAPIJProposedDomainRemoveIDOK, error) {
+func (a *Client) JProposedDomainRemove(params *JProposedDomainRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainRemoveIDParams()
+		params = NewJProposedDomainRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainRemoveID",
+		ID:                 "JProposedDomain.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainRemoveIDReader{formats: a.formats},
+		Reader:             &JProposedDomainRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainRemoveIDOK), nil
+	return result.(*JProposedDomainRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIJProposedDomainUnbindMachineID Method JProposedDomain.unbindMachine
+JProposedDomainUnbindMachine Method JProposedDomain.unbindMachine
 */
-func (a *Client) PostRemoteAPIJProposedDomainUnbindMachineID(params *PostRemoteAPIJProposedDomainUnbindMachineIDParams) (*PostRemoteAPIJProposedDomainUnbindMachineIDOK, error) {
+func (a *Client) JProposedDomainUnbindMachine(params *JProposedDomainUnbindMachineParams, authInfo runtime.ClientAuthInfoWriter) (*JProposedDomainUnbindMachineOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProposedDomainUnbindMachineIDParams()
+		params = NewJProposedDomainUnbindMachineParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProposedDomainUnbindMachineID",
+		ID:                 "JProposedDomain.unbindMachine",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProposedDomain.unbindMachine/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProposedDomainUnbindMachineIDReader{formats: a.formats},
+		Reader:             &JProposedDomainUnbindMachineReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProposedDomainUnbindMachineIDOK), nil
+	return result.(*JProposedDomainUnbindMachineOK), nil
 
 }
 
