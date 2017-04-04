@@ -19,7 +19,9 @@ mkdir -p /opt/kite/klient
 curl --location --silent --show-error --retry 5 "$${KLIENT_URL}" --output /tmp/klient.gz
 curl --location --silent --show-error --retry 5 "$${SCREEN_URL}" --output /tmp/screen.tar.gz
 
-touch /var/log/klient.log
+touch /var/log/klient.log \
+      /var/log/cloud-init-output.log
+
 tar -C / -xf /tmp/screen.tar.gz
 
 # TODO(rjeczalik): Move the below to klient (altogether with installing screen).
@@ -49,7 +51,11 @@ fi
 
 gzip --decompress --force --stdout /tmp/klient.gz > /opt/kite/klient/klient
 chmod +x /opt/kite/klient/klient
-chown -R "$${KODING_USERNAME}:$${KODING_USERNAME}" /opt/kite/klient
-chown "$${KODING_USERNAME}:$${KODING_USERNAME}" /var/log/klient.log /var/run/screen
+
+chown -R "$${KODING_USERNAME}:$${KODING_USERNAME}" \
+	/opt/kite/klient \
+	/var/log/klient.log \
+	/var/run/screen \
+	/var/log/cloud-init-output.log
 
 /opt/kite/klient/klient -metadata-user "$${KODING_USERNAME}" -metadata-file /var/lib/koding/metadata.json run
