@@ -7,38 +7,32 @@ import (
 	"koding/kites/kloud/stack"
 )
 
-// Userdata describes generic stack data required
-// to deploy and run a klient service.
-type Userdata struct {
-	Count       int            `json:"count" hcl:"count"` // number of instances
-	Debug       bool           `json:"debug" hcl:"debug"` // whether start klient in debug mode
-	KiteKeyName string         `json:"-" hcl:"-"`         // variable name of kitekey list
-	KiteKeys    map[int]string `json:"-" hcl:"-"`         // kite keys
-}
-
 // BuildUserdata builds a Userdata value for the given named vm.
 //
 // The vm is a Terraform resource value.
-func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) (*Userdata, error) {
-	ud := &Userdata{
-		Count:       1,
-		KiteKeyName: "kitekeys_" + name,
-	}
+func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error {
+	count := 1
+	t := bs.Builder.Template
 
 	if n, ok := vm["count"].(int); ok && n > 1 {
-		ud.Count = n
+		count = n
 	}
 
-	ud.KiteKeys = make(map[int]string, ud.Count)
+	kiteKeyName := "kitekeys_" + name
+	kiteKeys := make(map[int]string, count)
+	useEmbedded := 0
 
-	if b, ok := vm["debug"].(bool); ok {
-		ud.Debug = b
-		delete(vm, "debug")
+	if b, ok := vm["koding_use_embedded"].(bool); ok && b {
+		useEmbedded = 1
 	}
+	t.Variable["koding_use_embedded"] = map[string]interface{}{
+		"default": useEmbedded,
+	}
+	delete(vm, "koding_use_embedded")
 
 	var labels []string
-	if ud.Count > 1 {
-		for i := 0; i < ud.Count; i++ {
+	if count > 1 {
+		for i := 0; i < count; i++ {
 			labels = append(labels, fmt.Sprintf("%s.%d", name, i))
 		}
 	} else {
@@ -49,8 +43,13 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) (*Use
 
 	cfg := &metadata.Config{
 		Konfig:  stack.Konfig,
-		KiteKey: "${lookup(var." + ud.KiteKeyName + ", count.index)}",
-		Debug:   ud.Debug,
+		KiteKey: "${lookup(var." + kiteKeyName + ", count.index)}",
+	}
+
+	if b, ok := vm["koding_debug"].(bool); ok {
+		cfg.Debug = b
+		bs.Debug = b
+		delete(vm, "koding_debug")
 	}
 
 	if s, ok := vm[field].(string); ok {
@@ -59,7 +58,7 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) (*Use
 
 	ci, err := metadata.New(cfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	vm[field] = ci.String()
@@ -71,11 +70,15 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) (*Use
 	for i, label := range labels {
 		kiteKey, err := bs.BuildKiteKey(label, bs.Req.Username)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		ud.KiteKeys[i] = kiteKey
+		kiteKeys[i] = kiteKey
 	}
 
-	return ud, nil
+	t.Variable[kiteKeyName] = map[string]interface{}{
+		"default": kiteKeys,
+	}
+
+	return nil
 }

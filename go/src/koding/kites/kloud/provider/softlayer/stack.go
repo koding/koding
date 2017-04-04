@@ -113,21 +113,6 @@ func (s *Stack) injectBootstrap(b *Bootstrap, guest map[string]interface{}) erro
 	return nil
 }
 
-// injectKiteKeys creates a kite key for each virtual guest, and sets up
-// the runtime injection of said key using cloud-init/user_data
-func (s *Stack) injectKiteKeys(name string, guest map[string]interface{}) error {
-	ub, err := s.BuildUserdata(name, guest)
-	if err != nil {
-		return err
-	}
-
-	s.Builder.Template.Variable[ub.KiteKeyName] = map[string]interface{}{
-		"default": ub.KiteKeys,
-	}
-
-	return nil
-}
-
 // ApplyTemplate injects bootstrap resources into a SoftLayer stack,
 // and is responsible for ensuring each new Softlayer instance will
 // connect to Koding upon start.
@@ -160,7 +145,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			return nil, err
 		}
 
-		if err := s.injectKiteKeys(name, guest); err != nil {
+		if err := s.BuildUserdata(name, guest); err != nil {
 			return nil, err
 		}
 	}
