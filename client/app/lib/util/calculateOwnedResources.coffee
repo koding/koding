@@ -28,7 +28,7 @@ module.exports = calculateOwnedResources = (props, state) ->
     s.title.indexOf('Managed VMs') > -1
 
   # and finally show managed machines on bottom.
-  if managedStack
+  if managedStack and managedStack.machines?.length
     resources.push { stack: managedStack, template: null, unreadCount: 0 }
 
   debug 'owned resources are calculated', resources
