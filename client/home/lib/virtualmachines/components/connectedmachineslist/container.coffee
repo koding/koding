@@ -1,32 +1,56 @@
-kd              = require 'kd'
-React           = require 'app/react'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-View            = require './view'
+debug = require('debug')('dashboard:managedvmslist')
+kd = require 'kd'
+React = require 'app/react'
+View = require './view'
 
-module.exports = class ConnectedMachinesListContainer extends React.Component
+connectCompute = require 'app/providers/connectcompute'
 
-  getDataBindings: ->
-    return {
-      stacks: EnvironmentFlux.getters.stacks
-    }
+computeConnector = connectCompute({
+  storage: ['stacks']
+})
+
+module.exports = computeConnector class ConnectedMachinesListContainer extends React.Component
+
+  onDetailOpen: (machine) ->
+
+    debug 'detail is opened', { machine }
+
+    machine.reviveUsers { permanentOnly: yes }
+
+    # EnvironmentFlux.actions.loadMachineSharedUsers machineId
 
 
-  onDetailOpen: (machineId) -> EnvironmentFlux.actions.loadMachineSharedUsers machineId
+  onSharedWithUser: (machine, nickname) ->
+
+    debug 'shared with user', { machine, nickname }
+
+    machine.shareUser nickname
+
+    # EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
 
 
-  onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
+  onUnsharedWithUser: (machine, nickname) ->
+
+    debug 'unshared with user', { machine, nickname }
+
+    machine.unshareUser nickname
+
+    # EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
 
 
-  onUnsharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
+  onDisconnectVM: (machine) ->
 
+    debug 'machine needs to disconnect', { machine }
 
-  onDisconnectVM: (machine) -> EnvironmentFlux.actions.disconnectMachine machine
+    kd.singletons.computeController.destroy machine
+
+    # EnvironmentFlux.actions.disconnectMachine machine
 
 
   render: ->
 
-    stacks = @state.stacks?.toList().filter (s) -> s.get('title').toLowerCase() is 'managed vms'
+    stacks = @props.stacks?.filter (stack) ->
+      stack.title.toLowerCase() is 'managed vms'
 
     <View stacks={stacks}
       onDisconnectVM={@bound 'onDisconnectVM'}
@@ -34,6 +58,3 @@ module.exports = class ConnectedMachinesListContainer extends React.Component
       onSharedWithUser={@bound 'onSharedWithUser'}
       onUnsharedWithUser={@bound 'onUnsharedWithUser'}
     />
-
-
-ConnectedMachinesListContainer.include [KDReactorMixin]
