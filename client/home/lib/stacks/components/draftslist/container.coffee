@@ -10,36 +10,11 @@ calculateOwnedResources = require 'app/util/calculateOwnedResources'
 
 module.exports = class DraftsListContainer extends React.Component
 
-  constructor: (props) ->
-    super props
-
-    @state =
-      resources: calculateOwnedResources @props
-      loading: yes
-
-
-  componentDidMount: ->
-
-    { computeController, mainController } = kd.singletons
-
-    mainController.ready =>
-      computeController.fetchStackTemplates =>
-        @setState {
-          resources: calculateOwnedResources @props, @state
-        }, => @setState { loading: no }
-
-
-  componentWillReceiveProps: (nextProps, nextState) ->
-
-    @setState
-      resources: calculateOwnedResources nextProps, nextState
-
-
-  onAddToSidebar: (resource) ->
+  onAddToSidebar: ({ template }) ->
 
     { sidebar } = kd.singletons
 
-    sidebar.makeVisible 'draft', resource.template.getId()
+    sidebar.makeVisible 'draft', template.getId()
 
 
   onRemoveFromSidebar: ({ template }) ->
@@ -53,8 +28,6 @@ module.exports = class DraftsListContainer extends React.Component
 
     { router } = kd.singletons
 
-    console.trace()
-
     template.clone (err, template) =>
       if err
         return new kd.NotificationView
@@ -65,8 +38,7 @@ module.exports = class DraftsListContainer extends React.Component
 
   render: ->
     <View
-      resources={@state.resources}
-      sidebarDrafts={@state.sidebarDrafts}
+      resources={@props.resources}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
