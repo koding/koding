@@ -40,6 +40,7 @@ sidebarConnector = connectSidebar({
       }
 
     { selected, invitedId, leavingId, managedId } = sidebarState
+
     debug 'sidebar update', {
       machineId: machine.getId(), selected, invitedId, leavingId
     }
@@ -61,16 +62,29 @@ module.exports = computeConnector sidebarConnector class MachineItemContainer ex
 
     super props
 
+    @state = { coordinates: {} }
+
     @item = null
+
+
+  componentDidMount: ->
+
+    if @item and (@props.leaving or @props.invited or @props.managed)
+      kd.utils.defer =>
+        rect = findDOMNode(@item).getBoundingClientRect()
+
+        @setState
+          coordinates: { top: rect.top, left: rect.width + rect.left }
 
 
   componentWillReceiveProps: (nextProps) ->
 
-    if @item and (nextProps.leaving or nextProps.invited or nextProps.manage)
-      rect = findDOMNode(@item).getBoundingClientRect()
+    if @item and (nextProps.leaving or nextProps.invited or nextProps.managed)
+      kd.utils.defer =>
+        rect = findDOMNode(@item).getBoundingClientRect()
 
-      @setState
-        coordinates: { top: rect.top, left: rect.width + rect.left }
+        @setState
+          coordinates: { top: rect.top, left: rect.width + rect.left }
 
 
   onMachineClick: (event) ->
@@ -95,7 +109,9 @@ module.exports = computeConnector sidebarConnector class MachineItemContainer ex
   render: ->
 
     { machine, status, percentage
-      selected, invited, leaving, managed, coordinates } = @props
+      selected, invited, leaving, managed } = @props
+
+    { coordinates } = @state
 
     <MachineItem itemDidMount={(item) => @item = item}
 
