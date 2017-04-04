@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"koding/klient/machine/index"
-	"koding/klient/machine/mount/sync/prefetch"
+	"koding/klient/machine/mount/prefetch"
 )
 
 func TestStrategy(t *testing.T) {

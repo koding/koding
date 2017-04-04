@@ -9,8 +9,7 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
-	msync "koding/klient/machine/mount/sync"
-	"koding/klient/machine/mount/sync/prefetch"
+	"koding/klient/machine/mount/prefetch"
 )
 
 // MountRequest defines machine group mount request.
@@ -223,7 +222,7 @@ type ListMountRequest struct {
 type ListMountResponse struct {
 	// Mounts is a map that contains machine aliases as keys and created mount
 	// infos which store the current synchronization status of mount.
-	Mounts map[string][]msync.Info `json:"mounts"`
+	Mounts map[string][]mount.Info `json:"mounts"`
 }
 
 // ListMount checks the status of mounts and returns their infos. This function
@@ -236,7 +235,7 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 	}
 
 	res := &ListMountResponse{
-		Mounts: make(map[string][]msync.Info),
+		Mounts: make(map[string][]mount.Info),
 	}
 
 	// Get machine aliases.
@@ -262,7 +261,7 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 		alias := id2alias[mm.id]
 		if err != nil {
 			// Add mount to the list but log not synchronized mount.
-			res.Mounts[alias] = append(res.Mounts[alias], msync.Info{
+			res.Mounts[alias] = append(res.Mounts[alias], mount.Info{
 				ID:      mountID,
 				Mount:   mm.m,
 				Queued:  -1,

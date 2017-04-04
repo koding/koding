@@ -1,4 +1,4 @@
-package sync_test
+package mount_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/mount"
 	msync "koding/klient/machine/mount/sync"
 )
 
@@ -15,47 +16,47 @@ func TestIsSkip(t *testing.T) {
 	ctx := context.Background()
 	tests := map[string]struct {
 		Ev     *msync.Event
-		Sk     msync.Skipper
+		Sk     mount.Skipper
 		IsSkip bool
 	}{
 		"directory itself": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash", index.PriorityMedium, 0)),
-			Sk:     msync.DirectorySkip(".Trash"),
+			Sk:     mount.DirectorySkip(".Trash"),
 			IsSkip: true,
 		},
 		"file inside directory": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash/file.txt", index.PriorityMedium, 0)),
-			Sk:     msync.DirectorySkip(".Trash"),
+			Sk:     mount.DirectorySkip(".Trash"),
 			IsSkip: true,
 		},
 		"similar prefix": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trasher/file.txt", index.PriorityMedium, 0)),
-			Sk:     msync.DirectorySkip(".Trash"),
+			Sk:     mount.DirectorySkip(".Trash"),
 			IsSkip: false,
 		},
 		"in the middle": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange("aa/.Trasher/file.txt", index.PriorityMedium, 0)),
-			Sk:     msync.DirectorySkip(".Trash"),
+			Sk:     mount.DirectorySkip(".Trash"),
 			IsSkip: false,
 		},
 		"path suffix equal": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".git/index.lock", index.PriorityMedium, 0)),
-			Sk:     msync.PathSuffixSkip(".git/index.lock"),
+			Sk:     mount.PathSuffixSkip(".git/index.lock"),
 			IsSkip: true,
 		},
 		"path suffix": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/.git/index.lock", index.PriorityMedium, 0)),
-			Sk:     msync.PathSuffixSkip(".git/index.lock"),
+			Sk:     mount.PathSuffixSkip(".git/index.lock"),
 			IsSkip: true,
 		},
 		"path suffix part": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/troll.git/index.lock", index.PriorityMedium, 0)),
-			Sk:     msync.PathSuffixSkip(".git/index.lock"),
+			Sk:     mount.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
 		"path suffix too short": {
 			Ev:     msync.NewEvent(ctx, nil, index.NewChange("git/index.lock", index.PriorityMedium, 0)),
-			Sk:     msync.PathSuffixSkip(".git/index.lock"),
+			Sk:     mount.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
 	}
@@ -80,7 +81,7 @@ func TestDirectorySkip(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	var (
-		ds = msync.DirectorySkip("dir")
+		ds = mount.DirectorySkip("dir")
 	)
 
 	if err := ds.Initialize(tmpDir); err != nil {

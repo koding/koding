@@ -1,4 +1,4 @@
-package sync
+package mount_test
 
 import (
 	"context"
@@ -7,10 +7,12 @@ import (
 	"testing"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/mount"
+	msync "koding/klient/machine/mount/sync"
 )
 
 func TestQueue(t *testing.T) {
-	q := NewQueue()
+	q := mount.NewQueue()
 	if ev := q.Pop(); ev != nil {
 		t.Errorf("want ev = nil; got %v", ev)
 	}
@@ -19,7 +21,7 @@ func TestQueue(t *testing.T) {
 	}
 
 	c := index.NewChange(".", index.PriorityMedium, 0)
-	q.Push(NewEvent(context.Background(), nil, c))
+	q.Push(msync.NewEvent(context.Background(), nil, c))
 	if s := q.Size(); s != 1 {
 		t.Errorf("want size = 1; got %d", s)
 	}
@@ -41,8 +43,8 @@ func TestQueueConcurrent(t *testing.T) {
 		mu  sync.Mutex
 		got = make(map[uint64]struct{})
 		wg  sync.WaitGroup
-		evC = make(chan *Event)
-		q   = NewQueue()
+		evC = make(chan *msync.Event)
+		q   = mount.NewQueue()
 	)
 
 	wg.Add(workersN)
@@ -65,7 +67,7 @@ func TestQueueConcurrent(t *testing.T) {
 	send := make(map[uint64]struct{})
 	for i := 0; i < eventsN; i++ {
 		c := index.NewChange(".", index.PriorityMedium, 0)
-		ev := NewEvent(context.Background(), nil, c)
+		ev := msync.NewEvent(context.Background(), nil, c)
 		send[ev.ID()] = struct{}{}
 		evC <- ev
 	}

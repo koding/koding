@@ -5,14 +5,14 @@ import (
 	"io"
 
 	"koding/klient/machine/index"
-	"koding/klient/machine/mount"
 )
 
 // BuildOpts represents the context that can be used by external notifiers to
 // build their own type.
 type BuildOpts struct {
-	MountID mount.ID    // identifier of synced mount.
-	Mount   mount.Mount // single mount with absolute paths.
+	ID         string // identifier of synced mount.
+	Path       string // Mount point.
+	RemotePath string // Remote directory path.
 
 	Cache    Cache  // index file system change consumer.
 	CacheDir string // absolute path to locally cached files.

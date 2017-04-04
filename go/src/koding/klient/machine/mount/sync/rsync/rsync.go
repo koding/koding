@@ -95,7 +95,7 @@ func NewRsync(opts *msync.BuildOpts) (*Rsync, error) {
 	}
 
 	return &Rsync{
-		remote:      opts.Mount.RemotePath,
+		remote:      opts.RemoteDir,
 		local:       opts.CacheDir,
 		privKeyPath: privKeyPath,
 		username:    username,

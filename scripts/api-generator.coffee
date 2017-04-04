@@ -18,6 +18,13 @@ swagger =
     license:
       name: 'Apache 2.0'
       url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+  securityDefinitions:
+    Bearer:
+      type: 'apiKey'
+      name: 'Authorization'
+      in: 'header'
+
   tags: [
     {
       name: 'system'
@@ -175,7 +182,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
       examples = docs[name]['static'][method]?.examples ? []
       if (returns = docs[name]['static'][method]?.returns) and Object.keys(returns).length
         response =
-          description: returns.description
+          description: returns.description ? 'Request processed successfully'
           schema: { $ref: "#/definitions/#{returns.type}" }
 
       for example in examples
@@ -199,7 +206,9 @@ generateMethodPaths = (model, definitions, paths, docs) ->
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
+        operationId: "#{name}.#{method}"
         parameters: parameters ? []
+        security: [ { Bearer: [] } ]
         description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
@@ -213,7 +222,8 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.instance
 
-    parameters = [ { $ref: '#/parameters/instanceParam' }, { $ref: '#/parameters/bodyParam' } ]
+    hasCustomParams = no
+    parameters = [{ $ref: '#/parameters/instanceParam' }]
     response = { description: 'OK', schema }
     if returns = docs[name]['instance'][method]?.returns
       if Object.keys(returns).length and swagger.definitions[returns.type]
@@ -232,12 +242,18 @@ generateMethodPaths = (model, definitions, paths, docs) ->
             required: true
             description: 'body of the request'
           }
+          hasCustomParams = yes
         else if example.title is 'return'
           response.schema = example.schema
+
+    unless hasCustomParams
+      parameters.push { $ref: '#/parameters/bodyParam' }
 
     paths["/remote.api/#{name}.#{method}/{id}"] =
       post:
         tags: [ name ]
+        operationId: "#{name}.#{method}"
+        security: [ { Bearer: [] } ]
         consumes: [ 'application/json' ]
         description: docs[name]['instance'][method]?.description ? ''
         parameters: parameters
