@@ -14,6 +14,7 @@ import (
 	"koding/klient/machine/mount/notify"
 	"koding/klient/machine/mount/prefetch"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount/sync/history"
 
 	"github.com/koding/logging"
 )
@@ -171,7 +172,7 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 	}
 
 	// Create file synchronization object.
-	s.s, err = opts.SyncBuilder.Build(&msync.BuildOpts{
+	syncer, err := opts.SyncBuilder.Build(&msync.BuildOpts{
 		RemoteDir:     m.RemotePath,
 		CacheDir:      s.CacheDir(),
 		ClientFunc:    s.opts.ClientFunc,
@@ -181,6 +182,9 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 	if err != nil {
 		return nil, nonil(err, s.n.Close(), s.a.Close(), s.iu.Close())
 	}
+
+	// Enable syncing history for all mounts.
+	s.s = history.NewHistory(syncer, 100)
 
 	return s, nil
 }
@@ -223,6 +227,15 @@ func (s *Sync) Info() *Info {
 		Queued:      items,
 		Syncing:     synced,
 	}
+}
+
+// History gets recent history of synchronized files.
+func (s *Sync) History() ([]*history.Record, error) {
+	if h, ok := s.s.(*history.History); ok {
+		return h.Get(), nil
+	}
+
+	return nil, errors.New("synchronization history in unavailable")
 }
 
 // CacheDir returns the name of mount cache directory.
