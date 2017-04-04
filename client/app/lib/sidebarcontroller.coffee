@@ -203,6 +203,8 @@ saveVisibility = (filters) ->
 
   { appStorageController } = kd.singletons
 
+  debug 'save visibility', filters
+
   new Promise (resolve) ->
     appStorageController.storage('Sidebar').setValue 'visibility', filters, ->
-      resolve filters
+      fetchVisibility().then resolve
