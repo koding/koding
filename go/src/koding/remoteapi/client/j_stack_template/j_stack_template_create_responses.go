@@ -52,7 +52,7 @@ func NewJStackTemplateCreateOK() *JStackTemplateCreateOK {
 created JStackTemplate instance
 */
 type JStackTemplateCreateOK struct {
-	Payload *models.JStackTemplate
+	Payload *models.DefaultResponse
 }
 
 func (o *JStackTemplateCreateOK) Error() string {
@@ -61,7 +61,7 @@ func (o *JStackTemplateCreateOK) Error() string {
 
 func (o *JStackTemplateCreateOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JStackTemplate)
+	o.Payload = new(models.DefaultResponse)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
