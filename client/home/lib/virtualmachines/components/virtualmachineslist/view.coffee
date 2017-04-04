@@ -1,7 +1,7 @@
 kd              = require 'kd'
 React           = require 'app/react'
 List            = require 'app/components/list'
-MachineItem     = require '../machineslist/listitem'
+MachineItemContainer = require '../machineslist/listitemcontainer'
 
 
 module.exports = class VirtualMachinesListView extends React.Component
@@ -21,63 +21,57 @@ module.exports = class VirtualMachinesListView extends React.Component
     onCancelSharing     : kd.noop
 
 
-  getStacks: ->
-
-    @props.stacks.filter (stack) -> stack.get('title').toLowerCase() isnt 'managed vms'
-
-
   onChangeAlwaysOn: (machine, state) ->
 
-    @props.onChangeAlwaysOn machine.get('_id'), state
+    @props.onChangeAlwaysOn machine, state
 
 
   onChangePowerStatus: (machine, shouldStart) ->
 
-    @props.onChangePowerStatus machine.get('_id'), shouldStart
+    @props.onChangePowerStatus machine, shouldStart
 
 
   onChangeSharingStatus: (machine, shouldShare) ->
 
     return  if shouldShare
 
-    @props.onCancelSharing machine.get('_id')
+    @props.onCancelSharing machine
 
 
   onSharedWithUser: (machine, nickname) ->
 
-    @props.onSharedWithUser machine.get('_id'), nickname
+    @props.onSharedWithUser machine, nickname
 
 
   onUnsharedWithUser: (machine, nickname) ->
 
-    @props.onUnsharedWithUser machine.get('_id'), nickname
+    @props.onUnsharedWithUser machine, nickname
 
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @getStacks().size
-
-
-
-  renderSectionHeaderAtIndex: -> null
+  numberOfRowsInSection: -> @props.stacks?.length or 0
 
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    stack = @getStacks().toList().get rowIndex
 
-    stack.get 'machines'
-      .sort (a, b) -> a.get('label').localeCompare(b.get('label')) # Sorting from a to z
+    stack = @props.stacks[rowIndex]
+
+    stack.machines
+      .sort (a, b) -> a.label.localeCompare b.label
       .map (machine) =>
-        <MachineItem
-          key={machine.get '_id'} stack={stack} machine={machine}
+        <MachineItemContainer
+          key={machine.getId()}
+          stackId={stack.getId()}
+          machineId={machine.getId()}
           shouldRenderDetails={yes}
           shouldRenderSpecs={yes}
           shouldRenderPower={yes}
-          shouldRenderAlwaysOn={not stack.get 'disabled'}
-          shouldRenderSharing={not stack.get 'disabled'}
-          shouldRenderEditName={not stack.get 'disabled'}
+          shouldRenderAlwaysOn={not stack.disabled}
+          shouldRenderSharing={not stack.disabled}
+          shouldRenderEditName={not stack.disabled}
           onChangeAlwaysOn={@lazyBound 'onChangeAlwaysOn', machine}
           onChangePowerStatus={@lazyBound 'onChangePowerStatus', machine}
           onSharedWithUser={@lazyBound 'onSharedWithUser', machine}
@@ -94,7 +88,6 @@ module.exports = class VirtualMachinesListView extends React.Component
     <List
       numberOfSections={@bound 'numberOfSections'}
       numberOfRowsInSection={@bound 'numberOfRowsInSection'}
-      renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
       sectionClassName='HomeAppViewVMSection'

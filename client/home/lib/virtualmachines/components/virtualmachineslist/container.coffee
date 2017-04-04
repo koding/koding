@@ -1,45 +1,59 @@
-kd              = require 'kd'
-React           = require 'app/react'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-View            = require './view'
+debug = require('debug')('dashboard:vmlist')
+kd = require 'kd'
+React = require 'app/react'
+View = require './view'
+
+connectCompute = require 'app/providers/connectcompute'
+
+computeConnector = connectCompute({
+  storage: ['stacks']
+})
+
+module.exports = computeConnector class VirtualMachinesListContainer extends React.Component
+
+  onChangeAlwaysOn: (machine, state) ->
+
+    debug 'change always on', { machine, state }
+
+    kd.singletons.computeController.setAlwaysOn machine, state
 
 
-module.exports = class VirtualMachinesListContainer extends React.Component
+  onChangePowerStatus: (machine, shouldStart) ->
 
-  getDataBindings: ->
-    return {
-      stacks: EnvironmentFlux.getters.stacks
-    }
+    debug 'change power status', { machine, shouldStart }
 
-
-  onChangeAlwaysOn: (machineId, state) -> EnvironmentFlux.actions.setMachineAlwaysOn machineId, state
+    if shouldStart then machine.start() else machine.stop()
 
 
-  onChangePowerStatus: (machineId, shouldStart) -> EnvironmentFlux.actions.setMachinePowerStatus machineId, shouldStart
+  onCancelSharing: (machine) ->
+    debug 'cancel sharing', { machine }
+
+    machine.unshareAllUsers()
 
 
-  onCancelSharing: (machineId) ->
+  onSharedWithUser: (machine, nickname) ->
+    debug 'shared with user', { machine, nickname }
+    # EnvironmentFlux.actions.shareMachineWithUser machine, nickname
 
-    EnvironmentFlux.actions.unshareMachineWithAllUsers machineId
+    machine.shareUser nickname
 
 
-  onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
+  onUnsharedWithUser: (machine, nickname) ->
+    debug 'unshared with user', { machine, nickname }
+    # EnvironmentFlux.actions.unshareMachineWithUser machine, nickname
 
-
-  onUnsharedWithUser: (machineId, nickname) ->
-
-    EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
+    machine.unshareUser nickname
 
 
   render: ->
-    <View stacks={@state.stacks}
+
+    stacks = @props.stacks.filter (stack) ->
+      stack.title.toLowerCase() isnt 'managed vms'
+
+    <View stacks={stacks}
       onChangeAlwaysOn={@bound 'onChangeAlwaysOn'}
       onChangePowerStatus={@bound 'onChangePowerStatus'}
       onSharedWithUser={@bound 'onSharedWithUser'}
       onUnsharedWithUser={@bound 'onUnsharedWithUser'}
       onCancelSharing={@bound 'onCancelSharing'}
     />
-
-
-VirtualMachinesListContainer.include [KDReactorMixin]
