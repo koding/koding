@@ -206,6 +206,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
+        operationId: "#{name}.#{method}"
         parameters: parameters ? []
         security: [ { Bearer: [] } ]
         description: docs[name]['static'][method]?.description ? ''
@@ -246,6 +247,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
     paths["/remote.api/#{name}.#{method}/{id}"] =
       post:
         tags: [ name ]
+        operationId: "#{name}.#{method}"
         security: [ { Bearer: [] } ]
         consumes: [ 'application/json' ]
         description: docs[name]['instance'][method]?.description ? ''
