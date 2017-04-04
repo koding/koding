@@ -61,7 +61,7 @@ main() {
 	gzip --decompress --force --stdout /tmp/klient.gz > /opt/kite/klient/klient
 	chmod +x /opt/kite/klient/klient
 
-	chown -R "$${KODING_USERNAME}:$${KODING_USERNAME}" \
+	chown -R "$${KODING_USERNAME}" \
 		/opt/kite/klient \
 		/var/log/klient.log \
 		/var/log/cloud-init-output.log
