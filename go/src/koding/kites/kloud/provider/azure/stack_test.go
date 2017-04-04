@@ -220,11 +220,18 @@ func stripNondeterministicResources(v interface{}) {
 		return
 	}
 
+	stripVariables(m)
+
 	resource, ok := m["resource"].(map[string]interface{})
 	if !ok {
 		return
 	}
 
+	stripInstances(resource)
+	stripNulls(resource)
+}
+
+func stripInstances(resource map[string]interface{}) {
 	instance, ok := resource["azure_instance"].(map[string]interface{})
 	if !ok {
 		return
@@ -239,7 +246,9 @@ func stripNondeterministicResources(v interface{}) {
 		vm["custom_data"] = "..."
 		vm["name"] = "..."
 	}
+}
 
+func stripVariables(m map[string]interface{}) {
 	variable, ok := m["variable"].(map[string]interface{})
 	if !ok {
 		return
@@ -263,5 +272,26 @@ func stripNondeterministicResources(v interface{}) {
 		for i := range list {
 			list[i] = "..."
 		}
+	}
+}
+
+func stripNulls(m map[string]interface{}) {
+	null, ok := m["null_resource"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	for _, v := range null {
+		res, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		trigger, ok := res["triggers"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		trigger["custom_data"] = "..."
 	}
 }

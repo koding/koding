@@ -31,6 +31,9 @@
       "default": {
         "0": "..."
       }
+    },
+    "koding_use_embedded": {
+      "default": 0
     }
   }
 }

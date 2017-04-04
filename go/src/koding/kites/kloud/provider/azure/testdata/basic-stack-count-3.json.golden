@@ -55,6 +55,9 @@
         "2": "..."
       }
     },
+    "koding_use_embedded": {
+      "default": 0
+    },
     "passwords_example-instance": {
       "default": {
         "0": "...",

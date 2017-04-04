@@ -1,4 +1,12 @@
 {
+  "null_resource": {
+    "test": {
+      "depends_on": [],
+      "triggers": {
+        "user_data": "***"
+      }
+    }
+  },
   "resource": {
     "softlayer_virtual_guest": {
       "test": {
@@ -23,6 +31,9 @@
       "default": {
         "0": "***"
       }
+    },
+    "koding_use_embedded": {
+      "default": 0
     }
   }
 }
