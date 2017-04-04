@@ -9,23 +9,23 @@ ProfileText = require 'app/components/profile/profiletext'
 module.exports = class SharingUserList extends React.Component
 
   @propTypes     =
-    users        : React.PropTypes.instanceOf immutable.List
+    users        : React.PropTypes.array
     onUserRemove : React.PropTypes.func
 
   @defaultProps  =
-    users        : immutable.List()
+    users        : []
     onUserRemove : kd.noop
 
 
   onUserRemove: (user) ->
 
-    @props.onUserRemove user.getIn [ 'profile', 'nickname' ]
+    @props.onUserRemove user.getAt 'profile.nickname'
 
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.users.toList().size
+  numberOfRowsInSection: -> @props.users.length
 
 
   renderSectionHeaderAtIndex: -> null
@@ -33,10 +33,11 @@ module.exports = class SharingUserList extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    user = @props.users.toList().get rowIndex
+    user = @props.users[rowIndex]
+
     <div>
-      <Avatar width=32 height=32 account={user.toJS()} />
-      <ProfileText className='ProfileName' account={user.toJS()} />
+      <Avatar width=32 height=32 account={user} />
+      <ProfileText className='ProfileName' account={user} />
       <span className='remove' onClick={@lazyBound 'onUserRemove', user} />
     </div>
 
