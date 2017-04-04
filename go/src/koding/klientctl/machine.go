@@ -11,7 +11,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/machine"
 
@@ -375,7 +375,7 @@ func tabListFormatter(w io.Writer, infos []*machine.Info) {
 	tw.Flush()
 }
 
-func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
+func tabListMountFormatter(w io.Writer, mounts map[string][]mount.Info) {
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
 	// TODO: keep the mounts list sorted.

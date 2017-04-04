@@ -1,4 +1,4 @@
-package sync_test
+package mount_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"koding/klient/machine/index"
-	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount"
 )
 
 func TestIdxUpdateFlush(t *testing.T) {
@@ -20,7 +20,7 @@ func TestIdxUpdateFlush(t *testing.T) {
 
 	var (
 		idx = index.NewIndex()
-		iu  = msync.NewIdxUpdate(path, idx, 100*time.Millisecond, nil)
+		iu  = mount.NewIdxUpdate(path, idx, 100*time.Millisecond, nil)
 		c   = index.NewChange("not/important", index.PriorityHigh, index.ChangeMetaAdd)
 	)
 	defer iu.Close()
@@ -43,7 +43,7 @@ func createTmpFile() (string, error) {
 	return f.Name(), nil
 }
 
-func waitForZeroChanges(iu *msync.IdxUpdate, timeout time.Duration) error {
+func waitForZeroChanges(iu *mount.IdxUpdate, timeout time.Duration) error {
 	var (
 		ticker   = time.NewTicker(5 * time.Millisecond)
 		timeoutC = time.After(timeout)

@@ -1,4 +1,4 @@
-package sync
+package mount
 
 import (
 	"context"
@@ -7,22 +7,23 @@ import (
 	"time"
 
 	"koding/klient/machine/index"
+	msync "koding/klient/machine/mount/sync"
 )
 
 // Anteroom is a waiting room for synchronization requests. This structure
 // manages index change events and safely distributes them to sync workers.
 type Anteroom struct {
-	queue   *Queue        // FIFO queue that stores events to be synced.
-	evC     chan *Event   // Channel used to dequeue Events.
-	wakeupC chan struct{} // Channel used to wake up dequeue go-routine.
+	queue   *Queue            // FIFO queue that stores events to be synced.
+	evC     chan *msync.Event // Channel used to dequeue Events.
+	wakeupC chan struct{}     // Channel used to wake up dequeue go-routine.
 
 	once   sync.Once
 	closed bool          // set to true when the object was closed.
 	stopC  chan struct{} // channel used to close queue dispatching go-routine.
 
 	mu     sync.Mutex
-	evs    map[string]*Event // Change name to change event map.
-	synced int64             // How many events are processing.
+	evs    map[string]*msync.Event // Change name to change event map.
+	synced int64                   // How many events are processing.
 }
 
 // NewAnteroom creates a new Anteroom object. Once it's created, Close method
@@ -30,10 +31,10 @@ type Anteroom struct {
 func NewAnteroom() *Anteroom {
 	a := &Anteroom{
 		queue:   NewQueue(),
-		evC:     make(chan *Event),
+		evC:     make(chan *msync.Event),
 		wakeupC: make(chan struct{}, 1),
 		stopC:   make(chan struct{}),
-		evs:     make(map[string]*Event),
+		evs:     make(map[string]*msync.Event),
 	}
 
 	go a.dequeue()
@@ -58,12 +59,12 @@ func (a *Anteroom) Commit(c *index.Change) context.Context {
 	ev, ok := a.evs[c.Path()]
 	if !ok {
 		// Event for the file doesn't exist. Add new one to evs and queue.
-		ev = NewEvent(context.Background(), a, c)
+		ev = msync.NewEvent(context.Background(), a, c)
 		a.evs[c.Path()] = ev
 		a.queue.Push(ev)
 		a.wakeup()
 
-		return ev.ctx
+		return ev.Context()
 	}
 
 	// Coalesce two changes. If they are similar, do nothing and wait for
@@ -80,26 +81,26 @@ func (a *Anteroom) Commit(c *index.Change) context.Context {
 	//     re-added to the queue because it was already added by Add event.
 	//     Thus, Delete event will be silently ignored.
 	//
-	if !index.Similar(ev.change.Coalesce(c).Meta(), ev.change.Meta()) {
+	if !index.Similar(ev.Change().Coalesce(c).Meta(), ev.Change().Meta()) {
 		// If change was removed from the queue, mark it deprecated.
-		if !atomic.CompareAndSwapUint64((*uint64)(&ev.stat), uint64(statusPop), uint64(statusDeprecated)) {
-			return ev.ctx
+		if !ev.DeprecateIfPop() {
+			return ev.Context()
 		}
 
 		// Change is deprecated. Re-push new change to the queue but keep
 		// context from old event.
-		newEv := NewEventCopy(ev)
+		newEv := msync.NewEventCopy(ev)
 		a.evs[c.Path()] = newEv
 		a.queue.Push(newEv)
 		a.wakeup()
 	}
 
-	return ev.ctx
+	return ev.Context()
 }
 
 // Events is a dispatcher for the queued events. The returned channel will be
 // closed when Anteroom object is closed.
-func (a *Anteroom) Events() <-chan *Event {
+func (a *Anteroom) Events() <-chan *msync.Event {
 	return a.evC
 }
 
@@ -124,9 +125,7 @@ func (a *Anteroom) Close() error {
 
 		// Mark all events as deprecated and detach them from the queue.
 		for path, ev := range a.evs {
-			atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusDeprecated))
-			ev.cancel()
-
+			ev.Deprecate()
 			delete(a.evs, path)
 		}
 
@@ -140,8 +139,8 @@ func (a *Anteroom) Close() error {
 // dequeue pops events from the queue and sends them to events channel.
 func (a *Anteroom) dequeue() {
 	var (
-		ev  *Event
-		evC chan *Event
+		ev  *msync.Event
+		evC chan *msync.Event
 
 		// wakeupTick ensures that dequeue will be always waked up. Even in case
 		// we somehow miss the wakeup event. This is a safety fall-back.
@@ -158,7 +157,7 @@ func (a *Anteroom) dequeue() {
 			evC = nil // queue is empty - turn off event channel.
 		} else {
 			atomic.AddInt64(&a.synced, 1)
-			atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusPop))
+			ev.Pop()
 			evC = a.evC // there is an event - turn on event channel.
 		}
 	}
@@ -170,7 +169,7 @@ func (a *Anteroom) dequeue() {
 				evC = nil // queue is empty - turn off event channel.
 			} else {
 				atomic.AddInt64(&a.synced, 1)
-				atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusPop))
+				ev.Pop()
 			}
 		case <-a.wakeupC:
 			tryPop()
@@ -194,19 +193,19 @@ func (a *Anteroom) wakeup() {
 	}
 }
 
-// detach removes the change from coalescing events map only if stored id
+// Detach removes the change from coalescing events map only if stored id
 // is equal to provided one.
-func (a *Anteroom) detach(path string, id uint64) {
+func (a *Anteroom) Detach(path string, id uint64) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	if ev, ok := a.evs[path]; ok && ev.ID() == id {
-		a.unsync()
+		a.Unsync()
 		delete(a.evs, path)
 	}
 }
 
-// unsync is called by event which is considered done.
-func (a *Anteroom) unsync() {
+// Unsync is called by event which is considered done.
+func (a *Anteroom) Unsync() {
 	atomic.AddInt64(&a.synced, -1)
 }
