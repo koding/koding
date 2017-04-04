@@ -208,8 +208,6 @@ func NewCloudInit(cfg *CloudConfig) CloudInit {
 			"permissions": "0755",
 			"content":     cfg.Userdata,
 		})
-
-		cmd = append(cmd, "/var/lib/koding/user-data.sh")
 	}
 
 	return CloudInit{
@@ -227,9 +225,8 @@ func NewCloudInit(cfg *CloudConfig) CloudInit {
 				"shell":       "/bin/bash",
 			},
 		},
-		"write_files":   files,
-		"runcmd":        cmd,
-		"final_message": "_KD_DONE_",
+		"write_files": files,
+		"runcmd":      cmd,
 	}
 }
 
