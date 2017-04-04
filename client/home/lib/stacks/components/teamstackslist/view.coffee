@@ -7,20 +7,10 @@ StackTemplateItem = require '../stacktemplateitem'
 
 module.exports = class TeamStacksListView extends React.Component
 
-  getResources: ->
-
-    resources = (@props.resources or []).filter (resource) ->
-      resource.stack and resource.template?.accessLevel isnt 'private'
-
-    debug 'resources requested', resources
-
-    return resources
-
-
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @getResources().length
+  numberOfRowsInSection: -> @props.resources?.length or 0
 
 
   renderSectionHeaderAtIndex: -> null
@@ -30,13 +20,9 @@ module.exports = class TeamStacksListView extends React.Component
 
     { sidebar } = kd.singletons
 
-    resource = @getResources()[rowIndex]
+    resource = @props.resources[rowIndex]
 
-    { stack, template } = resource
-
-    isVisible = if stack
-    then sidebar.isVisible 'stack', stack.getId()
-    else sidebar.isVisible 'draft', template.getId()
+    { stack, template, isVisible } = resource
 
     <StackTemplateItem
       isVisibleOnSidebar={isVisible}
