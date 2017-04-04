@@ -23,170 +23,176 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJProvisionerCreate post remote API j provisioner create API
+JProvisionerCreate j provisioner create API
 */
-func (a *Client) PostRemoteAPIJProvisionerCreate(params *PostRemoteAPIJProvisionerCreateParams) (*PostRemoteAPIJProvisionerCreateOK, error) {
+func (a *Client) JProvisionerCreate(params *JProvisionerCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JProvisionerCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProvisionerCreateParams()
+		params = NewJProvisionerCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProvisionerCreate",
+		ID:                 "JProvisioner.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProvisioner.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProvisionerCreateReader{formats: a.formats},
+		Reader:             &JProvisionerCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProvisionerCreateOK), nil
+	return result.(*JProvisionerCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJProvisionerDeleteID post remote API j provisioner delete ID API
+JProvisionerDelete j provisioner delete API
 */
-func (a *Client) PostRemoteAPIJProvisionerDeleteID(params *PostRemoteAPIJProvisionerDeleteIDParams) (*PostRemoteAPIJProvisionerDeleteIDOK, error) {
+func (a *Client) JProvisionerDelete(params *JProvisionerDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*JProvisionerDeleteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProvisionerDeleteIDParams()
+		params = NewJProvisionerDeleteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProvisionerDeleteID",
+		ID:                 "JProvisioner.delete",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProvisioner.delete/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProvisionerDeleteIDReader{formats: a.formats},
+		Reader:             &JProvisionerDeleteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProvisionerDeleteIDOK), nil
+	return result.(*JProvisionerDeleteOK), nil
 
 }
 
 /*
-PostRemoteAPIJProvisionerOne post remote API j provisioner one API
+JProvisionerOne j provisioner one API
 */
-func (a *Client) PostRemoteAPIJProvisionerOne(params *PostRemoteAPIJProvisionerOneParams) (*PostRemoteAPIJProvisionerOneOK, error) {
+func (a *Client) JProvisionerOne(params *JProvisionerOneParams, authInfo runtime.ClientAuthInfoWriter) (*JProvisionerOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProvisionerOneParams()
+		params = NewJProvisionerOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProvisionerOne",
+		ID:                 "JProvisioner.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProvisioner.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProvisionerOneReader{formats: a.formats},
+		Reader:             &JProvisionerOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProvisionerOneOK), nil
+	return result.(*JProvisionerOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJProvisionerSetAccessID post remote API j provisioner set access ID API
+JProvisionerSetAccess j provisioner set access API
 */
-func (a *Client) PostRemoteAPIJProvisionerSetAccessID(params *PostRemoteAPIJProvisionerSetAccessIDParams) (*PostRemoteAPIJProvisionerSetAccessIDOK, error) {
+func (a *Client) JProvisionerSetAccess(params *JProvisionerSetAccessParams, authInfo runtime.ClientAuthInfoWriter) (*JProvisionerSetAccessOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProvisionerSetAccessIDParams()
+		params = NewJProvisionerSetAccessParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProvisionerSetAccessID",
+		ID:                 "JProvisioner.setAccess",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProvisioner.setAccess/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProvisionerSetAccessIDReader{formats: a.formats},
+		Reader:             &JProvisionerSetAccessReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProvisionerSetAccessIDOK), nil
+	return result.(*JProvisionerSetAccessOK), nil
 
 }
 
 /*
-PostRemoteAPIJProvisionerSome post remote API j provisioner some API
+JProvisionerSome j provisioner some API
 */
-func (a *Client) PostRemoteAPIJProvisionerSome(params *PostRemoteAPIJProvisionerSomeParams) (*PostRemoteAPIJProvisionerSomeOK, error) {
+func (a *Client) JProvisionerSome(params *JProvisionerSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JProvisionerSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProvisionerSomeParams()
+		params = NewJProvisionerSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProvisionerSome",
+		ID:                 "JProvisioner.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProvisioner.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProvisionerSomeReader{formats: a.formats},
+		Reader:             &JProvisionerSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProvisionerSomeOK), nil
+	return result.(*JProvisionerSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJProvisionerUpdateID post remote API j provisioner update ID API
+JProvisionerUpdate j provisioner update API
 */
-func (a *Client) PostRemoteAPIJProvisionerUpdateID(params *PostRemoteAPIJProvisionerUpdateIDParams) (*PostRemoteAPIJProvisionerUpdateIDOK, error) {
+func (a *Client) JProvisionerUpdate(params *JProvisionerUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*JProvisionerUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJProvisionerUpdateIDParams()
+		params = NewJProvisionerUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJProvisionerUpdateID",
+		ID:                 "JProvisioner.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JProvisioner.update/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJProvisionerUpdateIDReader{formats: a.formats},
+		Reader:             &JProvisionerUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJProvisionerUpdateIDOK), nil
+	return result.(*JProvisionerUpdateOK), nil
 
 }
 

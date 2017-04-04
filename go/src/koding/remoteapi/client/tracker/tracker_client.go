@@ -23,30 +23,31 @@ type Client struct {
 }
 
 /*
-PostRemoteAPITrackerTrack Method Tracker.track
+TrackerTrack Method Tracker.track
 */
-func (a *Client) PostRemoteAPITrackerTrack(params *PostRemoteAPITrackerTrackParams) (*PostRemoteAPITrackerTrackOK, error) {
+func (a *Client) TrackerTrack(params *TrackerTrackParams, authInfo runtime.ClientAuthInfoWriter) (*TrackerTrackOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPITrackerTrackParams()
+		params = NewTrackerTrackParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPITrackerTrack",
+		ID:                 "Tracker.track",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Tracker.track",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPITrackerTrackReader{formats: a.formats},
+		Reader:             &TrackerTrackReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPITrackerTrackOK), nil
+	return result.(*TrackerTrackOK), nil
 
 }
 

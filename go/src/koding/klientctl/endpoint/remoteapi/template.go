@@ -31,7 +31,7 @@ type TemplateFilter struct {
 func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, error) {
 	c.init()
 
-	params := &stacktemplate.PostRemoteAPIJStackTemplateSomeParams{}
+	params := &stacktemplate.JStackTemplateSomeParams{}
 
 	if tf != nil {
 		if err := c.buildTF(tf); err != nil {
@@ -43,7 +43,7 @@ func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, er
 
 	params.SetTimeout(c.timeout())
 
-	resp, err := c.client().JStackTemplate.PostRemoteAPIJStackTemplateSome(params)
+	resp, err := c.client().JStackTemplate.JStackTemplateSome(params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +65,13 @@ func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, er
 func (c *Client) DeleteTemplate(id string) error {
 	c.init()
 
-	params := &stacktemplate.PostRemoteAPIJStackTemplateDeleteIDParams{
+	params := &stacktemplate.JStackTemplateDeleteParams{
 		ID: id,
 	}
 
 	params.SetTimeout(c.timeout())
 
-	resp, err := c.client().JStackTemplate.PostRemoteAPIJStackTemplateDeleteID(params)
+	resp, err := c.client().JStackTemplate.JStackTemplateDelete(params, nil)
 	if err != nil {
 		return err
 	}

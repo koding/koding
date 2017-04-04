@@ -37,7 +37,6 @@ import (
 	"koding/remoteapi/client/j_team_invitation"
 	"koding/remoteapi/client/j_url_alias"
 	"koding/remoteapi/client/j_user"
-	"koding/remoteapi/client/j_workspace"
 	"koding/remoteapi/client/kloud"
 	"koding/remoteapi/client/o_auth"
 	"koding/remoteapi/client/s3"
@@ -123,8 +122,6 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Koding {
 
 	cli.JUser = j_user.New(transport, formats)
 
-	cli.JWorkspace = j_workspace.New(transport, formats)
-
 	cli.Kloud = kloud.New(transport, formats)
 
 	cli.OAuth = o_auth.New(transport, formats)
@@ -205,8 +202,6 @@ type Koding struct {
 	JURLAlias *j_url_alias.Client
 
 	JUser *j_user.Client
-
-	JWorkspace *j_workspace.Client
 
 	Kloud *kloud.Client
 
@@ -290,8 +285,6 @@ func (c *Koding) SetTransport(transport runtime.ClientTransport) {
 	c.JURLAlias.SetTransport(transport)
 
 	c.JUser.SetTransport(transport)
-
-	c.JWorkspace.SetTransport(transport)
 
 	c.Kloud.SetTransport(transport)
 

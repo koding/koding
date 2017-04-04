@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJDomainAliasOne post remote API j domain alias one API
+JDomainAliasOne j domain alias one API
 */
-func (a *Client) PostRemoteAPIJDomainAliasOne(params *PostRemoteAPIJDomainAliasOneParams) (*PostRemoteAPIJDomainAliasOneOK, error) {
+func (a *Client) JDomainAliasOne(params *JDomainAliasOneParams, authInfo runtime.ClientAuthInfoWriter) (*JDomainAliasOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJDomainAliasOneParams()
+		params = NewJDomainAliasOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJDomainAliasOne",
+		ID:                 "JDomainAlias.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JDomainAlias.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJDomainAliasOneReader{formats: a.formats},
+		Reader:             &JDomainAliasOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJDomainAliasOneOK), nil
+	return result.(*JDomainAliasOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJDomainAliasSome post remote API j domain alias some API
+JDomainAliasSome j domain alias some API
 */
-func (a *Client) PostRemoteAPIJDomainAliasSome(params *PostRemoteAPIJDomainAliasSomeParams) (*PostRemoteAPIJDomainAliasSomeOK, error) {
+func (a *Client) JDomainAliasSome(params *JDomainAliasSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JDomainAliasSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJDomainAliasSomeParams()
+		params = NewJDomainAliasSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJDomainAliasSome",
+		ID:                 "JDomainAlias.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JDomainAlias.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJDomainAliasSomeReader{formats: a.formats},
+		Reader:             &JDomainAliasSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJDomainAliasSomeOK), nil
+	return result.(*JDomainAliasSomeOK), nil
 
 }
 

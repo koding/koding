@@ -23,30 +23,31 @@ type Client struct {
 }
 
 /*
-PostRemoteAPISidebarFetchEnvironment post remote API sidebar fetch environment API
+SidebarFetchEnvironment sidebar fetch environment API
 */
-func (a *Client) PostRemoteAPISidebarFetchEnvironment(params *PostRemoteAPISidebarFetchEnvironmentParams) (*PostRemoteAPISidebarFetchEnvironmentOK, error) {
+func (a *Client) SidebarFetchEnvironment(params *SidebarFetchEnvironmentParams, authInfo runtime.ClientAuthInfoWriter) (*SidebarFetchEnvironmentOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISidebarFetchEnvironmentParams()
+		params = NewSidebarFetchEnvironmentParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISidebarFetchEnvironment",
+		ID:                 "Sidebar.fetchEnvironment",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Sidebar.fetchEnvironment",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISidebarFetchEnvironmentReader{formats: a.formats},
+		Reader:             &SidebarFetchEnvironmentReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISidebarFetchEnvironmentOK), nil
+	return result.(*SidebarFetchEnvironmentOK), nil
 
 }
 

@@ -23,30 +23,31 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJCombinedAppStorageUpsertID post remote API j combined app storage upsert ID API
+JCombinedAppStorageUpsert j combined app storage upsert API
 */
-func (a *Client) PostRemoteAPIJCombinedAppStorageUpsertID(params *PostRemoteAPIJCombinedAppStorageUpsertIDParams) (*PostRemoteAPIJCombinedAppStorageUpsertIDOK, error) {
+func (a *Client) JCombinedAppStorageUpsert(params *JCombinedAppStorageUpsertParams, authInfo runtime.ClientAuthInfoWriter) (*JCombinedAppStorageUpsertOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCombinedAppStorageUpsertIDParams()
+		params = NewJCombinedAppStorageUpsertParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCombinedAppStorageUpsertID",
+		ID:                 "JCombinedAppStorage.upsert",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCombinedAppStorage.upsert/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCombinedAppStorageUpsertIDReader{formats: a.formats},
+		Reader:             &JCombinedAppStorageUpsertReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCombinedAppStorageUpsertIDOK), nil
+	return result.(*JCombinedAppStorageUpsertOK), nil
 
 }
 

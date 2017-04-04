@@ -23,170 +23,176 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJRewardCampaignCreate post remote API j reward campaign create API
+JRewardCampaignCreate j reward campaign create API
 */
-func (a *Client) PostRemoteAPIJRewardCampaignCreate(params *PostRemoteAPIJRewardCampaignCreateParams) (*PostRemoteAPIJRewardCampaignCreateOK, error) {
+func (a *Client) JRewardCampaignCreate(params *JRewardCampaignCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardCampaignCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardCampaignCreateParams()
+		params = NewJRewardCampaignCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardCampaignCreate",
+		ID:                 "JRewardCampaign.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JRewardCampaign.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardCampaignCreateReader{formats: a.formats},
+		Reader:             &JRewardCampaignCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardCampaignCreateOK), nil
+	return result.(*JRewardCampaignCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardCampaignIsValid post remote API j reward campaign is valid API
+JRewardCampaignIsValid j reward campaign is valid API
 */
-func (a *Client) PostRemoteAPIJRewardCampaignIsValid(params *PostRemoteAPIJRewardCampaignIsValidParams) (*PostRemoteAPIJRewardCampaignIsValidOK, error) {
+func (a *Client) JRewardCampaignIsValid(params *JRewardCampaignIsValidParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardCampaignIsValidOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardCampaignIsValidParams()
+		params = NewJRewardCampaignIsValidParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardCampaignIsValid",
+		ID:                 "JRewardCampaign.isValid",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JRewardCampaign.isValid",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardCampaignIsValidReader{formats: a.formats},
+		Reader:             &JRewardCampaignIsValidReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardCampaignIsValidOK), nil
+	return result.(*JRewardCampaignIsValidOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardCampaignOne post remote API j reward campaign one API
+JRewardCampaignOne j reward campaign one API
 */
-func (a *Client) PostRemoteAPIJRewardCampaignOne(params *PostRemoteAPIJRewardCampaignOneParams) (*PostRemoteAPIJRewardCampaignOneOK, error) {
+func (a *Client) JRewardCampaignOne(params *JRewardCampaignOneParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardCampaignOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardCampaignOneParams()
+		params = NewJRewardCampaignOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardCampaignOne",
+		ID:                 "JRewardCampaign.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JRewardCampaign.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardCampaignOneReader{formats: a.formats},
+		Reader:             &JRewardCampaignOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardCampaignOneOK), nil
+	return result.(*JRewardCampaignOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardCampaignRemoveID post remote API j reward campaign remove ID API
+JRewardCampaignRemove j reward campaign remove API
 */
-func (a *Client) PostRemoteAPIJRewardCampaignRemoveID(params *PostRemoteAPIJRewardCampaignRemoveIDParams) (*PostRemoteAPIJRewardCampaignRemoveIDOK, error) {
+func (a *Client) JRewardCampaignRemove(params *JRewardCampaignRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardCampaignRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardCampaignRemoveIDParams()
+		params = NewJRewardCampaignRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardCampaignRemoveID",
+		ID:                 "JRewardCampaign.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JRewardCampaign.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardCampaignRemoveIDReader{formats: a.formats},
+		Reader:             &JRewardCampaignRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardCampaignRemoveIDOK), nil
+	return result.(*JRewardCampaignRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardCampaignSome post remote API j reward campaign some API
+JRewardCampaignSome j reward campaign some API
 */
-func (a *Client) PostRemoteAPIJRewardCampaignSome(params *PostRemoteAPIJRewardCampaignSomeParams) (*PostRemoteAPIJRewardCampaignSomeOK, error) {
+func (a *Client) JRewardCampaignSome(params *JRewardCampaignSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardCampaignSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardCampaignSomeParams()
+		params = NewJRewardCampaignSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardCampaignSome",
+		ID:                 "JRewardCampaign.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JRewardCampaign.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardCampaignSomeReader{formats: a.formats},
+		Reader:             &JRewardCampaignSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardCampaignSomeOK), nil
+	return result.(*JRewardCampaignSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJRewardCampaignUpdateID post remote API j reward campaign update ID API
+JRewardCampaignUpdate j reward campaign update API
 */
-func (a *Client) PostRemoteAPIJRewardCampaignUpdateID(params *PostRemoteAPIJRewardCampaignUpdateIDParams) (*PostRemoteAPIJRewardCampaignUpdateIDOK, error) {
+func (a *Client) JRewardCampaignUpdate(params *JRewardCampaignUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*JRewardCampaignUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJRewardCampaignUpdateIDParams()
+		params = NewJRewardCampaignUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJRewardCampaignUpdateID",
+		ID:                 "JRewardCampaign.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JRewardCampaign.update/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJRewardCampaignUpdateIDReader{formats: a.formats},
+		Reader:             &JRewardCampaignUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJRewardCampaignUpdateIDOK), nil
+	return result.(*JRewardCampaignUpdateOK), nil
 
 }
 

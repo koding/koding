@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIDataDogSendEvent post remote API data dog send event API
+DataDogSendEvent data dog send event API
 */
-func (a *Client) PostRemoteAPIDataDogSendEvent(params *PostRemoteAPIDataDogSendEventParams) (*PostRemoteAPIDataDogSendEventOK, error) {
+func (a *Client) DataDogSendEvent(params *DataDogSendEventParams, authInfo runtime.ClientAuthInfoWriter) (*DataDogSendEventOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIDataDogSendEventParams()
+		params = NewDataDogSendEventParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIDataDogSendEvent",
+		ID:                 "DataDog.sendEvent",
 		Method:             "POST",
 		PathPattern:        "/remote.api/DataDog.sendEvent",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIDataDogSendEventReader{formats: a.formats},
+		Reader:             &DataDogSendEventReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIDataDogSendEventOK), nil
+	return result.(*DataDogSendEventOK), nil
 
 }
 
 /*
-PostRemoteAPIDataDogSendMetrics post remote API data dog send metrics API
+DataDogSendMetrics data dog send metrics API
 */
-func (a *Client) PostRemoteAPIDataDogSendMetrics(params *PostRemoteAPIDataDogSendMetricsParams) (*PostRemoteAPIDataDogSendMetricsOK, error) {
+func (a *Client) DataDogSendMetrics(params *DataDogSendMetricsParams, authInfo runtime.ClientAuthInfoWriter) (*DataDogSendMetricsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIDataDogSendMetricsParams()
+		params = NewDataDogSendMetricsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIDataDogSendMetrics",
+		ID:                 "DataDog.sendMetrics",
 		Method:             "POST",
 		PathPattern:        "/remote.api/DataDog.sendMetrics",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIDataDogSendMetricsReader{formats: a.formats},
+		Reader:             &DataDogSendMetricsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIDataDogSendMetricsOK), nil
+	return result.(*DataDogSendMetricsOK), nil
 
 }
 

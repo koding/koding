@@ -23,424 +23,439 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJUserAuthenticateWithOauth post remote API j user authenticate with oauth API
+JUserAuthenticateWithOauth j user authenticate with oauth API
 */
-func (a *Client) PostRemoteAPIJUserAuthenticateWithOauth(params *PostRemoteAPIJUserAuthenticateWithOauthParams) (*PostRemoteAPIJUserAuthenticateWithOauthOK, error) {
+func (a *Client) JUserAuthenticateWithOauth(params *JUserAuthenticateWithOauthParams, authInfo runtime.ClientAuthInfoWriter) (*JUserAuthenticateWithOauthOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserAuthenticateWithOauthParams()
+		params = NewJUserAuthenticateWithOauthParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserAuthenticateWithOauth",
+		ID:                 "JUser.authenticateWithOauth",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.authenticateWithOauth",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserAuthenticateWithOauthReader{formats: a.formats},
+		Reader:             &JUserAuthenticateWithOauthReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserAuthenticateWithOauthOK), nil
+	return result.(*JUserAuthenticateWithOauthOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserChangeEmail post remote API j user change email API
+JUserChangeEmail j user change email API
 */
-func (a *Client) PostRemoteAPIJUserChangeEmail(params *PostRemoteAPIJUserChangeEmailParams) (*PostRemoteAPIJUserChangeEmailOK, error) {
+func (a *Client) JUserChangeEmail(params *JUserChangeEmailParams, authInfo runtime.ClientAuthInfoWriter) (*JUserChangeEmailOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserChangeEmailParams()
+		params = NewJUserChangeEmailParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserChangeEmail",
+		ID:                 "JUser.changeEmail",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.changeEmail",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserChangeEmailReader{formats: a.formats},
+		Reader:             &JUserChangeEmailReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserChangeEmailOK), nil
+	return result.(*JUserChangeEmailOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserChangePassword post remote API j user change password API
+JUserChangePassword j user change password API
 */
-func (a *Client) PostRemoteAPIJUserChangePassword(params *PostRemoteAPIJUserChangePasswordParams) (*PostRemoteAPIJUserChangePasswordOK, error) {
+func (a *Client) JUserChangePassword(params *JUserChangePasswordParams, authInfo runtime.ClientAuthInfoWriter) (*JUserChangePasswordOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserChangePasswordParams()
+		params = NewJUserChangePasswordParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserChangePassword",
+		ID:                 "JUser.changePassword",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.changePassword",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserChangePasswordReader{formats: a.formats},
+		Reader:             &JUserChangePasswordReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserChangePasswordOK), nil
+	return result.(*JUserChangePasswordOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserConvert post remote API j user convert API
+JUserConvert j user convert API
 */
-func (a *Client) PostRemoteAPIJUserConvert(params *PostRemoteAPIJUserConvertParams) (*PostRemoteAPIJUserConvertOK, error) {
+func (a *Client) JUserConvert(params *JUserConvertParams, authInfo runtime.ClientAuthInfoWriter) (*JUserConvertOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserConvertParams()
+		params = NewJUserConvertParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserConvert",
+		ID:                 "JUser.convert",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.convert",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserConvertReader{formats: a.formats},
+		Reader:             &JUserConvertReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserConvertOK), nil
+	return result.(*JUserConvertOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserEmailAvailable Method JUser.emailAvailable
+JUserEmailAvailable Method JUser.emailAvailable
 */
-func (a *Client) PostRemoteAPIJUserEmailAvailable(params *PostRemoteAPIJUserEmailAvailableParams) (*PostRemoteAPIJUserEmailAvailableOK, error) {
+func (a *Client) JUserEmailAvailable(params *JUserEmailAvailableParams, authInfo runtime.ClientAuthInfoWriter) (*JUserEmailAvailableOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserEmailAvailableParams()
+		params = NewJUserEmailAvailableParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserEmailAvailable",
+		ID:                 "JUser.emailAvailable",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.emailAvailable",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserEmailAvailableReader{formats: a.formats},
+		Reader:             &JUserEmailAvailableReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserEmailAvailableOK), nil
+	return result.(*JUserEmailAvailableOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserFetchUser post remote API j user fetch user API
+JUserFetchUser j user fetch user API
 */
-func (a *Client) PostRemoteAPIJUserFetchUser(params *PostRemoteAPIJUserFetchUserParams) (*PostRemoteAPIJUserFetchUserOK, error) {
+func (a *Client) JUserFetchUser(params *JUserFetchUserParams, authInfo runtime.ClientAuthInfoWriter) (*JUserFetchUserOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserFetchUserParams()
+		params = NewJUserFetchUserParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserFetchUser",
+		ID:                 "JUser.fetchUser",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.fetchUser",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserFetchUserReader{formats: a.formats},
+		Reader:             &JUserFetchUserReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserFetchUserOK), nil
+	return result.(*JUserFetchUserOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserGetSSHKeys post remote API j user get SSH keys API
+JUserGetSSHKeys j user get SSH keys API
 */
-func (a *Client) PostRemoteAPIJUserGetSSHKeys(params *PostRemoteAPIJUserGetSSHKeysParams) (*PostRemoteAPIJUserGetSSHKeysOK, error) {
+func (a *Client) JUserGetSSHKeys(params *JUserGetSSHKeysParams, authInfo runtime.ClientAuthInfoWriter) (*JUserGetSSHKeysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserGetSSHKeysParams()
+		params = NewJUserGetSSHKeysParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserGetSSHKeys",
+		ID:                 "JUser.getSSHKeys",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.getSSHKeys",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserGetSSHKeysReader{formats: a.formats},
+		Reader:             &JUserGetSSHKeysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserGetSSHKeysOK), nil
+	return result.(*JUserGetSSHKeysOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserLogin Method JUser.login
+JUserLogin Method JUser.login
 */
-func (a *Client) PostRemoteAPIJUserLogin(params *PostRemoteAPIJUserLoginParams) (*PostRemoteAPIJUserLoginOK, error) {
+func (a *Client) JUserLogin(params *JUserLoginParams, authInfo runtime.ClientAuthInfoWriter) (*JUserLoginOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserLoginParams()
+		params = NewJUserLoginParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserLogin",
+		ID:                 "JUser.login",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.login",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserLoginReader{formats: a.formats},
+		Reader:             &JUserLoginReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserLoginOK), nil
+	return result.(*JUserLoginOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserLogout post remote API j user logout API
+JUserLogout j user logout API
 */
-func (a *Client) PostRemoteAPIJUserLogout(params *PostRemoteAPIJUserLogoutParams) (*PostRemoteAPIJUserLogoutOK, error) {
+func (a *Client) JUserLogout(params *JUserLogoutParams, authInfo runtime.ClientAuthInfoWriter) (*JUserLogoutOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserLogoutParams()
+		params = NewJUserLogoutParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserLogout",
+		ID:                 "JUser.logout",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.logout",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserLogoutReader{formats: a.formats},
+		Reader:             &JUserLogoutReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserLogoutOK), nil
+	return result.(*JUserLogoutOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserSetSSHKeys post remote API j user set SSH keys API
+JUserSetSSHKeys j user set SSH keys API
 */
-func (a *Client) PostRemoteAPIJUserSetSSHKeys(params *PostRemoteAPIJUserSetSSHKeysParams) (*PostRemoteAPIJUserSetSSHKeysOK, error) {
+func (a *Client) JUserSetSSHKeys(params *JUserSetSSHKeysParams, authInfo runtime.ClientAuthInfoWriter) (*JUserSetSSHKeysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserSetSSHKeysParams()
+		params = NewJUserSetSSHKeysParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserSetSSHKeys",
+		ID:                 "JUser.setSSHKeys",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.setSSHKeys",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserSetSSHKeysReader{formats: a.formats},
+		Reader:             &JUserSetSSHKeysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserSetSSHKeysOK), nil
+	return result.(*JUserSetSSHKeysOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserUnregister post remote API j user unregister API
+JUserUnregister j user unregister API
 */
-func (a *Client) PostRemoteAPIJUserUnregister(params *PostRemoteAPIJUserUnregisterParams) (*PostRemoteAPIJUserUnregisterOK, error) {
+func (a *Client) JUserUnregister(params *JUserUnregisterParams, authInfo runtime.ClientAuthInfoWriter) (*JUserUnregisterOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserUnregisterParams()
+		params = NewJUserUnregisterParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserUnregister",
+		ID:                 "JUser.unregister",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.unregister",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserUnregisterReader{formats: a.formats},
+		Reader:             &JUserUnregisterReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserUnregisterOK), nil
+	return result.(*JUserUnregisterOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserUsernameAvailable Method JUser.usernameAvailable
+JUserUsernameAvailable Method JUser.usernameAvailable
 */
-func (a *Client) PostRemoteAPIJUserUsernameAvailable(params *PostRemoteAPIJUserUsernameAvailableParams) (*PostRemoteAPIJUserUsernameAvailableOK, error) {
+func (a *Client) JUserUsernameAvailable(params *JUserUsernameAvailableParams, authInfo runtime.ClientAuthInfoWriter) (*JUserUsernameAvailableOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserUsernameAvailableParams()
+		params = NewJUserUsernameAvailableParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserUsernameAvailable",
+		ID:                 "JUser.usernameAvailable",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.usernameAvailable",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserUsernameAvailableReader{formats: a.formats},
+		Reader:             &JUserUsernameAvailableReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserUsernameAvailableOK), nil
+	return result.(*JUserUsernameAvailableOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserVerifyByPin post remote API j user verify by pin API
+JUserVerifyByPin j user verify by pin API
 */
-func (a *Client) PostRemoteAPIJUserVerifyByPin(params *PostRemoteAPIJUserVerifyByPinParams) (*PostRemoteAPIJUserVerifyByPinOK, error) {
+func (a *Client) JUserVerifyByPin(params *JUserVerifyByPinParams, authInfo runtime.ClientAuthInfoWriter) (*JUserVerifyByPinOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserVerifyByPinParams()
+		params = NewJUserVerifyByPinParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserVerifyByPin",
+		ID:                 "JUser.verifyByPin",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.verifyByPin",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserVerifyByPinReader{formats: a.formats},
+		Reader:             &JUserVerifyByPinReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserVerifyByPinOK), nil
+	return result.(*JUserVerifyByPinOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserVerifyPassword post remote API j user verify password API
+JUserVerifyPassword j user verify password API
 */
-func (a *Client) PostRemoteAPIJUserVerifyPassword(params *PostRemoteAPIJUserVerifyPasswordParams) (*PostRemoteAPIJUserVerifyPasswordOK, error) {
+func (a *Client) JUserVerifyPassword(params *JUserVerifyPasswordParams, authInfo runtime.ClientAuthInfoWriter) (*JUserVerifyPasswordOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserVerifyPasswordParams()
+		params = NewJUserVerifyPasswordParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserVerifyPassword",
+		ID:                 "JUser.verifyPassword",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.verifyPassword",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserVerifyPasswordReader{formats: a.formats},
+		Reader:             &JUserVerifyPasswordReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserVerifyPasswordOK), nil
+	return result.(*JUserVerifyPasswordOK), nil
 
 }
 
 /*
-PostRemoteAPIJUserWhoami whoami
+JUserWhoami whoami
 
 Returns your JAccount instance based on the session data
 */
-func (a *Client) PostRemoteAPIJUserWhoami(params *PostRemoteAPIJUserWhoamiParams) (*PostRemoteAPIJUserWhoamiOK, error) {
+func (a *Client) JUserWhoami(params *JUserWhoamiParams, authInfo runtime.ClientAuthInfoWriter) (*JUserWhoamiOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJUserWhoamiParams()
+		params = NewJUserWhoamiParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJUserWhoami",
+		ID:                 "JUser.whoami",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUser.whoami",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJUserWhoamiReader{formats: a.formats},
+		Reader:             &JUserWhoamiReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJUserWhoamiOK), nil
+	return result.(*JUserWhoamiOK), nil
 
 }
 

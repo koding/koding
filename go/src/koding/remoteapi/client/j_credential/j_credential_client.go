@@ -23,310 +23,321 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJCredentialBootstrapID post remote API j credential bootstrap ID API
+JCredentialBootstrap j credential bootstrap API
 */
-func (a *Client) PostRemoteAPIJCredentialBootstrapID(params *PostRemoteAPIJCredentialBootstrapIDParams) (*PostRemoteAPIJCredentialBootstrapIDOK, error) {
+func (a *Client) JCredentialBootstrap(params *JCredentialBootstrapParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialBootstrapOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialBootstrapIDParams()
+		params = NewJCredentialBootstrapParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialBootstrapID",
+		ID:                 "JCredential.bootstrap",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.bootstrap/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialBootstrapIDReader{formats: a.formats},
+		Reader:             &JCredentialBootstrapReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialBootstrapIDOK), nil
+	return result.(*JCredentialBootstrapOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialCloneID post remote API j credential clone ID API
+JCredentialClone j credential clone API
 */
-func (a *Client) PostRemoteAPIJCredentialCloneID(params *PostRemoteAPIJCredentialCloneIDParams) (*PostRemoteAPIJCredentialCloneIDOK, error) {
+func (a *Client) JCredentialClone(params *JCredentialCloneParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialCloneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialCloneIDParams()
+		params = NewJCredentialCloneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialCloneID",
+		ID:                 "JCredential.clone",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.clone/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialCloneIDReader{formats: a.formats},
+		Reader:             &JCredentialCloneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialCloneIDOK), nil
+	return result.(*JCredentialCloneOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialCreate post remote API j credential create API
+JCredentialCreate j credential create API
 */
-func (a *Client) PostRemoteAPIJCredentialCreate(params *PostRemoteAPIJCredentialCreateParams) (*PostRemoteAPIJCredentialCreateOK, error) {
+func (a *Client) JCredentialCreate(params *JCredentialCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialCreateParams()
+		params = NewJCredentialCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialCreate",
+		ID:                 "JCredential.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialCreateReader{formats: a.formats},
+		Reader:             &JCredentialCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialCreateOK), nil
+	return result.(*JCredentialCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialDeleteID post remote API j credential delete ID API
+JCredentialDelete j credential delete API
 */
-func (a *Client) PostRemoteAPIJCredentialDeleteID(params *PostRemoteAPIJCredentialDeleteIDParams) (*PostRemoteAPIJCredentialDeleteIDOK, error) {
+func (a *Client) JCredentialDelete(params *JCredentialDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialDeleteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialDeleteIDParams()
+		params = NewJCredentialDeleteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialDeleteID",
+		ID:                 "JCredential.delete",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.delete/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialDeleteIDReader{formats: a.formats},
+		Reader:             &JCredentialDeleteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialDeleteIDOK), nil
+	return result.(*JCredentialDeleteOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialFetchDataID Method JCredential.fetchData
+JCredentialFetchData Method JCredential.fetchData
 */
-func (a *Client) PostRemoteAPIJCredentialFetchDataID(params *PostRemoteAPIJCredentialFetchDataIDParams) (*PostRemoteAPIJCredentialFetchDataIDOK, error) {
+func (a *Client) JCredentialFetchData(params *JCredentialFetchDataParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialFetchDataOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialFetchDataIDParams()
+		params = NewJCredentialFetchDataParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialFetchDataID",
+		ID:                 "JCredential.fetchData",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.fetchData/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialFetchDataIDReader{formats: a.formats},
+		Reader:             &JCredentialFetchDataReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialFetchDataIDOK), nil
+	return result.(*JCredentialFetchDataOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialFetchUsersID post remote API j credential fetch users ID API
+JCredentialFetchUsers j credential fetch users API
 */
-func (a *Client) PostRemoteAPIJCredentialFetchUsersID(params *PostRemoteAPIJCredentialFetchUsersIDParams) (*PostRemoteAPIJCredentialFetchUsersIDOK, error) {
+func (a *Client) JCredentialFetchUsers(params *JCredentialFetchUsersParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialFetchUsersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialFetchUsersIDParams()
+		params = NewJCredentialFetchUsersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialFetchUsersID",
+		ID:                 "JCredential.fetchUsers",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.fetchUsers/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialFetchUsersIDReader{formats: a.formats},
+		Reader:             &JCredentialFetchUsersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialFetchUsersIDOK), nil
+	return result.(*JCredentialFetchUsersOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialIsBootstrappedID post remote API j credential is bootstrapped ID API
+JCredentialIsBootstrapped j credential is bootstrapped API
 */
-func (a *Client) PostRemoteAPIJCredentialIsBootstrappedID(params *PostRemoteAPIJCredentialIsBootstrappedIDParams) (*PostRemoteAPIJCredentialIsBootstrappedIDOK, error) {
+func (a *Client) JCredentialIsBootstrapped(params *JCredentialIsBootstrappedParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialIsBootstrappedOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialIsBootstrappedIDParams()
+		params = NewJCredentialIsBootstrappedParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialIsBootstrappedID",
+		ID:                 "JCredential.isBootstrapped",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.isBootstrapped/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialIsBootstrappedIDReader{formats: a.formats},
+		Reader:             &JCredentialIsBootstrappedReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialIsBootstrappedIDOK), nil
+	return result.(*JCredentialIsBootstrappedOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialOne post remote API j credential one API
+JCredentialOne j credential one API
 */
-func (a *Client) PostRemoteAPIJCredentialOne(params *PostRemoteAPIJCredentialOneParams) (*PostRemoteAPIJCredentialOneOK, error) {
+func (a *Client) JCredentialOne(params *JCredentialOneParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialOneParams()
+		params = NewJCredentialOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialOne",
+		ID:                 "JCredential.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialOneReader{formats: a.formats},
+		Reader:             &JCredentialOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialOneOK), nil
+	return result.(*JCredentialOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialShareWithID Method JCredential.shareWith
+JCredentialShareWith Method JCredential.shareWith
 */
-func (a *Client) PostRemoteAPIJCredentialShareWithID(params *PostRemoteAPIJCredentialShareWithIDParams) (*PostRemoteAPIJCredentialShareWithIDOK, error) {
+func (a *Client) JCredentialShareWith(params *JCredentialShareWithParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialShareWithOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialShareWithIDParams()
+		params = NewJCredentialShareWithParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialShareWithID",
+		ID:                 "JCredential.shareWith",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.shareWith/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialShareWithIDReader{formats: a.formats},
+		Reader:             &JCredentialShareWithReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialShareWithIDOK), nil
+	return result.(*JCredentialShareWithOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialSome post remote API j credential some API
+JCredentialSome j credential some API
 */
-func (a *Client) PostRemoteAPIJCredentialSome(params *PostRemoteAPIJCredentialSomeParams) (*PostRemoteAPIJCredentialSomeOK, error) {
+func (a *Client) JCredentialSome(params *JCredentialSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialSomeParams()
+		params = NewJCredentialSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialSome",
+		ID:                 "JCredential.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialSomeReader{formats: a.formats},
+		Reader:             &JCredentialSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialSomeOK), nil
+	return result.(*JCredentialSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJCredentialUpdateID post remote API j credential update ID API
+JCredentialUpdate j credential update API
 */
-func (a *Client) PostRemoteAPIJCredentialUpdateID(params *PostRemoteAPIJCredentialUpdateIDParams) (*PostRemoteAPIJCredentialUpdateIDOK, error) {
+func (a *Client) JCredentialUpdate(params *JCredentialUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*JCredentialUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCredentialUpdateIDParams()
+		params = NewJCredentialUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCredentialUpdateID",
+		ID:                 "JCredential.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCredential.update/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCredentialUpdateIDReader{formats: a.formats},
+		Reader:             &JCredentialUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCredentialUpdateIDOK), nil
+	return result.(*JCredentialUpdateOK), nil
 
 }
 
