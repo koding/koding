@@ -30,10 +30,7 @@ module.exports = class SidebarContainer extends React.Component
   constructor: (props) ->
     super props
 
-    @state =
-      ownedResources: calculateOwnedResources @props
-      sharedResources: calculateSharedResources @props
-      loading: yes
+    @state = { loading: yes }
 
 
   componentDidMount: ->
@@ -42,17 +39,7 @@ module.exports = class SidebarContainer extends React.Component
 
     mainController.ready =>
       computeController.fetchStackTemplates =>
-        @setState {
-          ownedResources: calculateOwnedResources @props, @state
-          sharedResources: calculateSharedResources @props, @state
-        }, => @setState { loading: no }
-
-
-  componentWillReceiveProps: (nextProps, nextState) ->
-
-    @setState
-      ownedResources: calculateOwnedResources nextProps, nextState
-      sharedResources: calculateSharedResources nextProps, nextState
+        @setState { loading: no }
 
 
   render: ->
@@ -64,8 +51,8 @@ module.exports = class SidebarContainer extends React.Component
       {not @state.loading and
         <SidebarResources
           disabled={isGroupDisabled()}
-          owned={@state.ownedResources}
-          shared={@state.sharedResources} /> }
+          owned={@props.ownedResources}
+          shared={@props.sharedResources} /> }
 
       <SidebarFooterLogo
         src={DEFAULT_LOGOPATH} />

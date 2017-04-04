@@ -3,12 +3,37 @@ React = require 'app/react'
 ReactView = require 'app/react/reactview'
 
 connectCompute = require 'app/providers/connectcompute'
+connectSidebar = require 'app/sidebar/connectsidebar'
+
+calculateOwnedResources = require 'app/util/calculateOwnedResources'
+calculateSharedResources = require 'app/util/calculateSharedResources'
 
 Container = require './container'
 
-ConnectedContainer = connectCompute({
+computeConnector = connectCompute({
   storage: ['stacks', 'templates', 'machines']
-})(Container)
+})
+
+sidebarConnector = connectSidebar({
+  transformState: (sidebarState, props) ->
+
+    { sidebar } = kd.singletons
+
+    ownedResources = calculateOwnedResources(props)
+      .map (resource) ->
+        isVisible = if resource.stack
+        then sidebar.isVisible 'stack', resource.stack.getId()
+        else sidebar.isVisible 'draft', resource.template.getId()
+
+        return Object.assign {}, resource, { isVisible }
+      .filter (resource) -> resource.isVisible
+
+    sharedResources = calculateSharedResources props
+
+    return { ownedResources, sharedResources }
+})
+
+ConnectedContainer = computeConnector sidebarConnector Container
 
 module.exports = class SidebarView extends ReactView
 
