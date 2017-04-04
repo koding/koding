@@ -149,11 +149,11 @@ module.exports = class SidebarController extends kd.Controller
 
     { FilterType } = SidebarController
 
-    isVisible = if visibility = @visibility[type]?[id]?
-    then visibility is SidebarController.FilterType
+    isVisible = if visibility = @visibility[type]?[id]
+    then visibility is SidebarController.FilterType.Visible
     else yes
 
-    debug 'is visible', isVisible
+    debug 'is visible', { isVisible, visibility }
 
     return isVisible
 
