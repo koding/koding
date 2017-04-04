@@ -198,6 +198,22 @@ module.exports = class JMachine extends remote.api.JMachine
 
       callback err, machine
 
+  getSharedUsers: -> @sharedUsers or []
+
+  reviveUsers: (options, callback = kd.noop) ->
+
+    { storage } = kd.singletons.computeController
+
+    super options, (err, users = []) =>
+      return callback err  if err
+
+      @sharedUsers = users
+
+      storage.machines.push this
+
+      callback err, users
+
+
 
   deny: (callback) ->
 
@@ -257,3 +273,41 @@ module.exports = class JMachine extends remote.api.JMachine
 
 
   getDashboardLink: -> "/Home/stacks/virtual-machines/#{@getId()}"
+
+
+  unshareAllUsers: ->
+
+    debug 'unshare all users'
+
+    Promise.all @getSharedUsers().map (user) =>
+      @unshareUser user.profile.nickname
+
+
+  unshareUser: (username) ->
+
+    debug 'unshare user', username
+
+    new Promise (resolve, reject) =>
+      remote.api.SharedMachine.kick @uid, [username], (err) =>
+        return reject new Error err  if err
+
+        @getBaseKite()
+          .klientUnshare { username, permanent: yes }
+          .then => @reviveUsers { permanentOnly : yes }
+          .then resolve
+          .catch reject
+
+
+  shareUser: (username) ->
+
+    debug 'share user', username
+
+    new Promise (resolve, reject) =>
+      remote.api.SharedMachine.add @uid, [username], (err) =>
+        return reject new Error err  if err
+
+        @getBaseKite()
+          .klientShare { username, permanent: yes }
+          .then => @reviveUsers { permanentOnly : yes }
+          .then resolve
+          .catch reject
