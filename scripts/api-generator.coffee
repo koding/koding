@@ -182,7 +182,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
       examples = docs[name]['static'][method]?.examples ? []
       if (returns = docs[name]['static'][method]?.returns) and Object.keys(returns).length
         response =
-          description: returns.description
+          description: returns.description ? 'Request processed successfully'
           schema: { $ref: "#/definitions/#{returns.type}" }
 
       for example in examples
