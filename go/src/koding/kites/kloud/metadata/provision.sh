@@ -36,12 +36,12 @@ fi
 
 if [ ! -e /var/run/screen ]; then
 	mkdir -p /var/run/screen
-	chmod 0755 /var/run/screen
+	chmod 0700 /var/run/screen
 fi
 
 gzip --decompress --force --stdout /tmp/klient.gz > /opt/kite/klient/klient
 chmod +x /opt/kite/klient/klient
 chown -R "$${KODING_USERNAME}:$${KODING_USERNAME}" /opt/kite/klient
-chown "$${KODING_USERNAME}:$${KODING_USERNAME}" /var/log/klient.log
+chown "$${KODING_USERNAME}:$${KODING_USERNAME}" /var/log/klient.log /var/run/screen
 
 /opt/kite/klient/klient -metadata-user "$${KODING_USERNAME}" -metadata-file /var/lib/koding/metadata.json run
