@@ -1,4 +1,4 @@
-package sync_test
+package mount_test
 
 import (
 	"os"
@@ -11,7 +11,6 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 	"koding/klient/machine/mount/notify/silent"
-	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/discard"
 )
 
@@ -24,7 +23,7 @@ func TestSyncNew(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	sA, err := msync.NewSync(mountID, m, defaultOptions(wd))
+	sA, err := mount.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -35,7 +34,7 @@ func TestSyncNew(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(wd, msync.IndexFileName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, mount.IndexFileName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
 
@@ -48,7 +47,7 @@ func TestSyncNew(t *testing.T) {
 		t.Error("want all disk size > 0")
 	}
 
-	expected := &msync.Info{
+	expected := &mount.Info{
 		ID:          mountID,
 		Mount:       m,
 		Count:       1,
@@ -72,7 +71,7 @@ func TestSyncNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	sB, err := msync.NewSync(mountID, m, defaultOptions(wd))
+	sB, err := mount.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -83,7 +82,7 @@ func TestSyncNew(t *testing.T) {
 		t.Fatalf("want info != nil; got nil")
 	}
 
-	expected = &msync.Info{
+	expected = &mount.Info{
 		ID:          mountID,
 		Mount:       m,
 		Count:       2,
@@ -108,7 +107,7 @@ func TestSyncDrop(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	s, err := msync.NewSync(mountID, m, defaultOptions(wd))
+	s, err := mount.NewSync(mountID, m, defaultOptions(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -124,8 +123,8 @@ func TestSyncDrop(t *testing.T) {
 	}
 }
 
-func defaultOptions(wd string) msync.Options {
-	return msync.Options{
+func defaultOptions(wd string) mount.Options {
+	return mount.Options{
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},

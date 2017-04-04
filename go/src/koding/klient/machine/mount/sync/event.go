@@ -36,12 +36,21 @@ func (s status) String() string {
 	return "UNKN"
 }
 
-// Event wraps index change with context.Context. When more index.Changes arrive
-// to anteroom, they are coalesced and have the same context.
+// Finalizer is an interface used by Event to clean its resources from event
+// storage. The event calls it when is no longer needed.
+type Finalizer interface {
+	// Detach detach is called by non deprecated events.
+	Detach(path string, id uint64)
+
+	// Unsync is called by deprecated events.
+	Unsync()
+}
+
+// Event wraps index change with context.Context.
 type Event struct {
 	id     uint64        // unique ID of the event.
 	stat   status        // event status.
-	parent *Anteroom     // parent structure used to detach event.
+	fin    Finalizer     // finalized used to detach events.
 	change *index.Change // Index change to be synced.
 
 	ctx    context.Context    // Context attached to stored change.
@@ -49,11 +58,11 @@ type Event struct {
 }
 
 // NewEvent creates a new Event.
-func NewEvent(ctx context.Context, parent *Anteroom, change *index.Change) *Event {
+func NewEvent(ctx context.Context, fin Finalizer, change *index.Change) *Event {
 	ev := &Event{
 		id:     atomic.AddUint64(&eventCounter, 1),
 		stat:   statusPush,
-		parent: parent,
+		fin:    fin,
 		change: change,
 	}
 	ev.ctx, ev.cancel = context.WithCancel(ctx)
@@ -67,7 +76,7 @@ func NewEventCopy(ev *Event) *Event {
 	return &Event{
 		id:     atomic.AddUint64(&eventCounter, 1),
 		stat:   statusPush,
-		parent: ev.parent,
+		fin:    ev.fin,
 		change: ev.change,
 		ctx:    ev.ctx,
 		cancel: ev.cancel,
@@ -95,13 +104,30 @@ func (e *Event) Valid() bool {
 // event should be GC if it haven't been yet.
 func (e *Event) Done() {
 	if atomic.SwapUint64((*uint64)(&e.stat), uint64(statusDone)) != uint64(statusDeprecated) {
-		if e.parent != nil {
-			e.parent.detach(e.change.Path(), e.id)
+		if e.fin != nil {
+			e.fin.Detach(e.change.Path(), e.id)
 		}
 		e.cancel()
-	} else if e.parent != nil {
-		e.parent.unsync()
+	} else if e.fin != nil {
+		e.fin.Unsync()
 	}
+}
+
+// Pop marks event as removed from the queue.
+func (e *Event) Pop() {
+	atomic.StoreUint64((*uint64)(&e.stat), uint64(statusPop))
+}
+
+// Deprecate marks event deprecated.
+func (e *Event) Deprecate() {
+	atomic.StoreUint64((*uint64)(&e.stat), uint64(statusDeprecated))
+	e.cancel()
+}
+
+// DeprecateIfPop deprecates the Event only when it's removed from the queue.
+// if it is not, this function returns false.
+func (e *Event) DeprecateIfPop() bool {
+	return atomic.CompareAndSwapUint64((*uint64)(&e.stat), uint64(statusPop), uint64(statusDeprecated))
 }
 
 // Context returns context associated with called event.

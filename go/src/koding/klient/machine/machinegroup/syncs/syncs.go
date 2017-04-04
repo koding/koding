@@ -66,7 +66,7 @@ type Syncs struct {
 	stopC  chan struct{}     // channel used to close any opened exec streams.
 
 	mu  sync.RWMutex
-	scs map[mount.ID]*msync.Sync
+	scs map[mount.ID]*mount.Sync
 }
 
 // New creates a new Syncs instance from the given options.
@@ -82,7 +82,7 @@ func New(opts Options) (*Syncs, error) {
 		exC:   make(chan msync.Execer),
 		stopC: make(chan struct{}),
 
-		scs: make(map[mount.ID]*msync.Sync),
+		scs: make(map[mount.ID]*mount.Sync),
 	}
 
 	if s.log == nil {
@@ -188,7 +188,7 @@ func (s *Syncs) Add(req *AddRequest) error {
 		return fmt.Errorf("sync for mount with ID %s already exists", req.MountID)
 	}
 
-	sc, err := msync.NewSync(req.MountID, req.Mount, msync.Options{
+	sc, err := mount.NewSync(req.MountID, req.Mount, mount.Options{
 		ClientFunc:    req.ClientFunc,
 		SSHFunc:       req.SSHFunc,
 		WorkDir:       filepath.Join(s.wd, "mount-"+string(req.MountID)),
@@ -238,7 +238,7 @@ func (s *Syncs) sink(exC <-chan msync.Execer) {
 }
 
 // Sync returns mount syncer that synchronizes mount with provided ID.
-func (s *Syncs) Sync(mountID mount.ID) (*msync.Sync, error) {
+func (s *Syncs) Sync(mountID mount.ID) (*mount.Sync, error) {
 	s.mu.RLock()
 	sc, ok := s.scs[mountID]
 	s.mu.RUnlock()

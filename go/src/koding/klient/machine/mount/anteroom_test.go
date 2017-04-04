@@ -1,4 +1,4 @@
-package sync_test
+package mount_test
 
 import (
 	"reflect"
@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 	msync "koding/klient/machine/mount/sync"
 )
 
 func TestAnteroom(t *testing.T) {
-	a := msync.NewAnteroom()
+	a := mount.NewAnteroom()
 	defer a.Close()
 
 	c := index.NewChange("a/test.txt", index.PriorityLow, index.ChangeMetaAdd)
@@ -62,7 +63,7 @@ func TestAnteroom(t *testing.T) {
 }
 
 func TestAnteroomCoalescing(t *testing.T) {
-	a := msync.NewAnteroom()
+	a := mount.NewAnteroom()
 	defer a.Close()
 
 	cs := [2]*index.Change{
@@ -107,7 +108,7 @@ func TestAnteroomCoalescing(t *testing.T) {
 }
 
 func TestAnteroomPopChange(t *testing.T) {
-	a := msync.NewAnteroom()
+	a := mount.NewAnteroom()
 	defer a.Close()
 
 	var (
@@ -151,7 +152,7 @@ func TestAnteroomPopChange(t *testing.T) {
 }
 
 func TestAnteroomMultiEvents(t *testing.T) {
-	a := msync.NewAnteroom()
+	a := mount.NewAnteroom()
 	defer a.Close()
 
 	const eventsN = 1000

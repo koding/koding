@@ -1,4 +1,4 @@
-package sync
+package mount
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	msync "koding/klient/machine/mount/sync"
 )
 
 // DefaultSkipper contains a default set of non-synced file rules.
@@ -20,7 +22,7 @@ type Skipper interface {
 	Initialize(string) error
 
 	// IsSkip tells whether Event should be skipped or not.
-	IsSkip(*Event) bool
+	IsSkip(*msync.Event) bool
 }
 
 // MultiSkipper is a set of rules on files that should not be synced with remote
@@ -41,7 +43,7 @@ func (ms MultiSkipper) Initialize(wd string) (err error) {
 
 // IsSkip runs all underlying Skippers and returns true if any of them returns
 // true.
-func (ms MultiSkipper) IsSkip(ev *Event) bool {
+func (ms MultiSkipper) IsSkip(ev *msync.Event) bool {
 	for _, s := range ms {
 		if ok := s.IsSkip(ev); ok {
 			return true
@@ -58,7 +60,7 @@ type NeverSkip struct{}
 func (NeverSkip) Initialize(_ string) error { return nil }
 
 // IsSkip never skips the evvent.
-func (NeverSkip) IsSkip(_ *Event) bool { return false }
+func (NeverSkip) IsSkip(_ *msync.Event) bool { return false }
 
 // DirectorySkip creates a directory which content will not be synced.
 type DirectorySkip string
@@ -81,7 +83,7 @@ func (ds DirectorySkip) Initialize(wd string) error {
 
 // IsSkip returns true for all events which are created in given path and for
 // the path itself.
-func (ds DirectorySkip) IsSkip(ev *Event) bool {
+func (ds DirectorySkip) IsSkip(ev *msync.Event) bool {
 	path := ev.Change().Path()
 	return path == string(ds) || (strings.HasPrefix(path, string(ds)) && path[len(ds)] == '/')
 }
@@ -93,7 +95,7 @@ type PathSuffixSkip string
 func (PathSuffixSkip) Initialize(_ string) error { return nil }
 
 // IsSkip returns true for all change paths that ends with provided suffix.
-func (pss PathSuffixSkip) IsSkip(ev *Event) bool {
+func (pss PathSuffixSkip) IsSkip(ev *msync.Event) bool {
 	path := ev.Change().Path()
 	return path == string(pss) || (strings.HasSuffix(path, string(pss)) && path[len(path)-len(pss)-1] == '/')
 }

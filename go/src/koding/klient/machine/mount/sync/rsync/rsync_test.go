@@ -10,7 +10,6 @@ import (
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/indextest"
-	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/rsync"
@@ -82,7 +81,7 @@ func TestRsyncExec(t *testing.T) {
 			indextest.Sync()
 
 			opts := &msync.BuildOpts{
-				Mount:      mount.Mount{RemotePath: remotePath},
+				RemoteDir:  remotePath,
 				CacheDir:   cachePath,
 				ClientFunc: func() (client.Client, error) { return clienttest.NewClient(), nil },
 				SSHFunc:    func() (_ string, _ int, _ error) { return },

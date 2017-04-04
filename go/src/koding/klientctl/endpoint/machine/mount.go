@@ -10,8 +10,7 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/mount"
-	"koding/klient/machine/mount/sync"
-	"koding/klient/machine/mount/sync/prefetch"
+	"koding/klient/machine/mount/prefetch"
 
 	"github.com/dustin/go-humanize"
 	"github.com/koding/logging"
@@ -126,7 +125,7 @@ type ListMountOptions struct {
 }
 
 // ListMount lists local mounts that are known to a klient.
-func (c *Client) ListMount(options *ListMountOptions) (map[string][]sync.Info, error) {
+func (c *Client) ListMount(options *ListMountOptions) (map[string][]mount.Info, error) {
 	if options == nil {
 		return nil, errors.New("invalid nil options")
 	}
@@ -245,7 +244,7 @@ func removeContent(path string) error {
 func Mount(opts *MountOptions) error { return DefaultClient.Mount(opts) }
 
 // ListMount lists local mounts that are known to a klient using DefaultClient.
-func ListMount(opts *ListMountOptions) (map[string][]sync.Info, error) {
+func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 	return DefaultClient.ListMount(opts)
 }
 

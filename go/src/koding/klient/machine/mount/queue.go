@@ -1,9 +1,10 @@
-package sync
+package mount
 
 import (
 	"sync"
 
 	"koding/klient/machine/index"
+	msync "koding/klient/machine/mount/sync"
 )
 
 // Queue is a basic unbound FIFO queue based on a circular list that resizes as
@@ -25,18 +26,18 @@ type Queue struct {
 // NewQueue creates a new Queue object.
 func NewQueue() *Queue {
 	return &Queue{
-		qHigh:   &queue{evs: make([]*Event, 16)},
-		qMedium: &queue{evs: make([]*Event, 16)},
-		qLow:    &queue{evs: make([]*Event, 16)},
+		qHigh:   &queue{evs: make([]*msync.Event, 16)},
+		qMedium: &queue{evs: make([]*msync.Event, 16)},
+		qLow:    &queue{evs: make([]*msync.Event, 16)},
 	}
 }
 
 // Push adds new event to the queue.
-func (q *Queue) Push(ev *Event) {
+func (q *Queue) Push(ev *msync.Event) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	switch priority := ev.change.Priority(); {
+	switch priority := ev.Change().Priority(); {
 	case priority&index.PriorityHigh != 0:
 		q.qHigh.Push(ev)
 	case priority&index.PriorityMedium != 0:
@@ -56,7 +57,7 @@ func (q *Queue) Size() int {
 
 // Pop removes and returns an event from queue. If queue is empty, this function
 // return nil.
-func (q *Queue) Pop() (ev *Event) {
+func (q *Queue) Pop() (ev *msync.Event) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -71,16 +72,16 @@ func (q *Queue) Pop() (ev *Event) {
 }
 
 type queue struct {
-	evs   []*Event
+	evs   []*msync.Event
 	head  int
 	tail  int
 	count int
 }
 
 // Push adds new event to the queue.
-func (q *queue) Push(ev *Event) {
+func (q *queue) Push(ev *msync.Event) {
 	if q.head == q.tail && q.count > 0 {
-		evs := make([]*Event, len(q.evs)*2)
+		evs := make([]*msync.Event, len(q.evs)*2)
 		copy(evs, q.evs[q.head:])
 		copy(evs[len(q.evs)-q.head:], q.evs[:q.head])
 		q.head = 0
@@ -95,7 +96,7 @@ func (q *queue) Push(ev *Event) {
 
 // Pop removes and returns an event from queue. If queue is empty, this function
 // return nil.
-func (q *queue) Pop() *Event {
+func (q *queue) Pop() *msync.Event {
 	if q.count == 0 {
 		return nil
 	}

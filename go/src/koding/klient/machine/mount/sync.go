@@ -1,10 +1,8 @@
-package sync
+package mount
 
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -13,9 +11,9 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
-	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/notify"
-	"koding/klient/machine/mount/sync/prefetch"
+	"koding/klient/machine/mount/prefetch"
+	msync "koding/klient/machine/mount/sync"
 
 	"github.com/koding/logging"
 )
@@ -23,57 +21,10 @@ import (
 // IndexFileName is a file name of managed directory index.
 const IndexFileName = "index"
 
-// DynamicSSHFunc locates the remote host which ssh should connect to.
-type DynamicSSHFunc func() (host string, port int, err error)
-
-// IndexSyncFunc is a function that must be called by syncer immediately after
-// synchronization process. It is used to update index.
-type IndexSyncFunc func(*index.Change)
-
-// BuildOpts represents the context that can be used by external syncers to
-// build their own type. Built syncer should update the index after syncing and
-// manage received events.
-type BuildOpts struct {
-	Mount    mount.Mount // single mount with absolute paths.
-	CacheDir string      // absolute path to locally cached files.
-
-	ClientFunc    client.DynamicClientFunc // factory for dynamic clients.
-	SSHFunc       DynamicSSHFunc           // dynamic getter for machine SSH address.
-	IndexSyncFunc IndexSyncFunc            // callback used to update index.
-}
-
-// Builder represents a factory method which external syncers must implement in
-// order to create their instances.
-type Builder interface {
-	// Build uses provided build options to create Syncer instance.
-	Build(opts *BuildOpts) (Syncer, error)
-}
-
-// Execer represents an interface which must be implemented by sync event
-// produced by external syncer.
-type Execer interface {
-	// Exec starts synchronization of stored syncing job. It should update
-	// indexes and clean up synced Event.
-	Exec() error
-
-	// fmt.Stringer defines human readable information about the event.
-	fmt.Stringer
-}
-
-// Syncer is an interface which must be implemented by external syncer.
-type Syncer interface {
-	// ExecStream is a method that wraps received event with custom
-	// synchronization logic.
-	ExecStream(<-chan *Event) <-chan Execer
-
-	// Close cleans up syncer resources.
-	io.Closer
-}
-
 // Info stores information about current mount status.
 type Info struct {
-	ID    mount.ID    `json:"id"`    // Mount ID.
-	Mount mount.Mount `json:"mount"` // Mount paths stored in absolute form.
+	ID    ID    `json:"id"`    // Mount ID.
+	Mount Mount `json:"mount"` // Mount paths stored in absolute form.
 
 	Count    int `json:"count"`    // Number of synced files.
 	CountAll int `json:"countAll"` // Number of all files handled by mount.
@@ -91,7 +42,7 @@ type Options struct {
 	ClientFunc client.DynamicClientFunc
 
 	// SSHFunc is a factory for client SSH addresses.
-	SSHFunc DynamicSSHFunc
+	SSHFunc msync.DynamicSSHFunc
 
 	// WorkDir is a working directory that will be used by syncs object. The
 	// directory structure for single mount with ID will look like:
@@ -109,7 +60,7 @@ type Options struct {
 
 	// SyncBuilder defines a factory used to build object which will be
 	// responsible for syncing files.
-	SyncBuilder Builder
+	SyncBuilder msync.Builder
 
 	// Log is used for logging. If nil, default logger will be created.
 	Log logging.Logger
@@ -143,8 +94,8 @@ func (opts *Options) Valid() error {
 // is to make stored index and cache directory consistent.
 type Sync struct {
 	opts    Options
-	mountID mount.ID    // identifier of synced mount.
-	m       mount.Mount // single mount with absolute paths.
+	mountID ID    // identifier of synced mount.
+	m       Mount // single mount with absolute paths.
 	log     logging.Logger
 
 	a *Anteroom // file system event consumer.
@@ -154,7 +105,7 @@ type Sync struct {
 	closeC chan struct{} // closed when sync object is closed.
 
 	n notify.Notifier // object responsible for file system notifications.
-	s Syncer          // object responsible for actual file synchronization.
+	s msync.Syncer    // object responsible for actual file synchronization.
 
 	idx *index.Index // known state of managed index.
 	iu  *IdxUpdate   // local index updater.
@@ -162,7 +113,7 @@ type Sync struct {
 
 // NewSync creates a new sync instance for a given mount. It ensures basic mount
 // directory structure. This function is blocking.
-func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
+func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
@@ -208,34 +159,35 @@ func NewSync(mountID mount.ID, m mount.Mount, opts Options) (*Sync, error) {
 
 	// Create file system notification object.
 	s.n, err = opts.NotifyBuilder.Build(&notify.BuildOpts{
-		MountID:  mountID,
-		Mount:    m,
-		Cache:    s.a,
-		CacheDir: s.CacheDir(),
-		Index:    s.idx,
+		ID:         string(mountID),
+		Path:       m.Path,
+		RemotePath: m.RemotePath,
+		Cache:      s.a,
+		CacheDir:   s.CacheDir(),
+		Index:      s.idx,
 	})
 	if err != nil {
-		return nil, nonil(err, s.a.Close())
+		return nil, nonil(err, s.a.Close(), s.iu.Close())
 	}
 
 	// Create file synchronization object.
-	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
-		Mount:         m,
+	s.s, err = opts.SyncBuilder.Build(&msync.BuildOpts{
+		RemoteDir:     m.RemotePath,
 		CacheDir:      s.CacheDir(),
 		ClientFunc:    s.opts.ClientFunc,
 		SSHFunc:       s.opts.SSHFunc,
 		IndexSyncFunc: s.indexSync(),
 	})
 	if err != nil {
-		return nil, nonil(err, s.n.Close(), s.a.Close())
+		return nil, nonil(err, s.n.Close(), s.a.Close(), s.iu.Close())
 	}
 
 	return s, nil
 }
 
 // Stream creates a stream of file synchronization jobs.
-func (s *Sync) Stream() <-chan Execer {
-	evC := make(chan *Event)
+func (s *Sync) Stream() <-chan msync.Execer {
+	evC := make(chan *msync.Event)
 
 	go func() {
 		// Event loop will be closed once Anteroom is closed.
@@ -352,7 +304,7 @@ func (s *Sync) loadIdx(path string) (*index.Index, error) {
 	return idx, json.NewDecoder(f).Decode(idx)
 }
 
-func (s *Sync) indexSync() IndexSyncFunc {
+func (s *Sync) indexSync() msync.IndexSyncFunc {
 	cacheDir := filepath.Join(s.opts.WorkDir, "data")
 
 	return func(c *index.Change) {
