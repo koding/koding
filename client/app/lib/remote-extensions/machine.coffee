@@ -182,6 +182,8 @@ module.exports = class JMachine extends remote.api.JMachine
   isBuilt     : -> @status?.state isnt JMachine.State.NotInitialized
   isUsable    : -> @isRunning() or @isStopped()
   getOldOwner : -> @getAt 'meta.oldOwner'
+  isAlwaysOn  : -> @getAt 'meta.alwaysOn'
+
 
   getChannelId: -> @getAt 'channelId'
   setChannelId: (options, callback) ->
@@ -198,6 +200,9 @@ module.exports = class JMachine extends remote.api.JMachine
 
       callback err, machine
 
+  getStatus: -> @getAt 'status.state'
+
+
   getSharedUsers: -> @sharedUsers or []
 
   reviveUsers: (options, callback = kd.noop) ->
@@ -213,6 +218,19 @@ module.exports = class JMachine extends remote.api.JMachine
 
       callback err, users
 
+
+  setLabel: (label, callback) ->
+
+    { storage } = kd.singletons.computeController
+
+    super label, (err, newLabel) =>
+      return callback err  if err
+
+      @label = newLabel
+
+      storage.machines.push this
+
+      return callback err, newLabel
 
 
   deny: (callback) ->
