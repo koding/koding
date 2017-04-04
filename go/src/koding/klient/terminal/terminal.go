@@ -14,6 +14,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"koding/kites/config"
 	"koding/klient/terminal/pty"
 
 	"github.com/koding/kite"
@@ -203,18 +204,13 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("{ sizeX: %d, sizeY: %d } { raw JSON : %v }", params.SizeX, params.SizeY, r.Args.One())
 	}
 
-	user, err := user.Current()
-	if err != nil {
-		return nil, fmt.Errorf("Could not get home dir: %s", err)
-	}
-
 	if params.Mode == "create" && t.HasLimit(r.Username) {
 		return nil, errors.New("session limit has reached")
 	}
 
-	command, err := newCommand(params.Mode, params.Session, user.Username)
+	command, err := newCommand(params.Mode, params.Session, config.CurrentUser.Username)
 	if err != nil {
-		t.Log.Warning("terminal: connect failed for user %q: %s", user.Username, err)
+		t.Log.Warning("terminal: connect failed for user %q: %s", config.CurrentUser.Username, err)
 
 		return nil, err
 	}
@@ -243,7 +239,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	if os.Geteuid() == 0 {
 		args = []string{"-i", command.Name}
 	} else {
-		args = []string{"-i", "-u", user.Username, "--", command.Name}
+		args = []string{"-i", "-u", config.CurrentUser.Username, "--", command.Name}
 	}
 
 	// check if we have custom screenrc path and there is a file for it. If yes
@@ -268,10 +264,10 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 
 	var stderr bytes.Buffer
 
-	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
+	cmd.Env = defaultEnv
 	cmd.Stdin = server.pty.Slave
 	cmd.Stdout = server.pty.Slave
-	cmd.Dir = user.HomeDir
+	cmd.Dir = config.CurrentUser.HomeDir
 	cmd.Stderr = &stderr
 
 	// Open in background, this is needed otherwise the process will be killed

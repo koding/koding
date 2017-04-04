@@ -12,13 +12,21 @@ import (
 	"runtime"
 	"strings"
 
+	"koding/kites/config"
+	kos "koding/klient/os"
+
 	"github.com/koding/passwd"
 )
 
-const (
+var (
 	sessionPrefix      = "koding"
 	defaultShell       = "/bin/bash"
 	randomStringLength = 24 // 144 bit hex encoded
+	defaultEnv         = kos.NewEnviron(os.Environ()).Encode(kos.Environ{
+		"TERM":      "xterm-256color",
+		"HOME":      config.CurrentUser.HomeDir,
+		"SCREENDIR": "/var/run/screen",
+	})
 )
 
 var defaultScreenPath = "/usr/bin/screen"
@@ -141,7 +149,7 @@ func newCommand(mode, session, username string) (*Command, error) {
 // TODO: socket directory is different under darwin, it will not work probably
 func screenSessions(username string) []string {
 	// Do not include dead sessions in our result
-	exec.Command(defaultScreenPath, "-wipe").Run()
+	run(defaultScreenPath, "-wipe")
 
 	// We need to use ls here, because /var/run/screen mount is only
 	// visible from inside of container. Errors are ignored.
@@ -219,6 +227,7 @@ func run(cmd string, args ...string) (stdout, stderr []byte, err error) {
 	c := exec.Command(cmd, args...)
 	c.Stdout = &bufout
 	c.Stderr = &buferr
+	c.Env = defaultEnv
 
 	if err := c.Run(); err != nil {
 		return nil, buferr.Bytes(), err
