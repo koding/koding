@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	"koding/kites/kloud/metadata"
 	"koding/kites/kloud/stack"
@@ -29,6 +31,17 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 		"default": useEmbedded,
 	}
 	delete(vm, "koding_use_embedded")
+
+	if s, ok := vm["koding_klient_timeout"].(string); ok {
+		d, err := time.ParseDuration(s)
+		if err != nil {
+			return errors.New(`unable to read "koding_klient_timeout": ` + err.Error())
+		}
+
+		bs.Planner.KlientTimeout = d
+
+		delete(vm, "koding_klient_timeout")
+	}
 
 	var labels []string
 	if count > 1 {
