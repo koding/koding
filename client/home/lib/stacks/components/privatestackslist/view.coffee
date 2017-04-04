@@ -5,24 +5,12 @@ React = require 'app/react'
 List = require 'app/components/list'
 StackTemplateItem = require '../stacktemplateitem'
 
-calculateOwnedResources = require 'app/util/calculateOwnedResources'
-
 module.exports = class PrivateStacksListView extends React.Component
-
-  getResources: ->
-
-    resources = (@props.resources or []).filter (resource) ->
-      resource.stack and resource.template?.accessLevel is 'private'
-
-    debug 'resources requested', resources
-
-    return resources
-
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @getResources().length
+  numberOfRowsInSection: -> @props.resources?.length or 0
 
 
   renderSectionHeaderAtIndex: -> null
@@ -32,7 +20,7 @@ module.exports = class PrivateStacksListView extends React.Component
 
     { sidebar } = kd.singletons
 
-    resource = @getResources()[rowIndex]
+    resource = @props.resources[rowIndex]
 
     { stack, template } = resource
 

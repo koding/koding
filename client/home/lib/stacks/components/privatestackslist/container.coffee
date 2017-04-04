@@ -3,42 +3,15 @@ React           = require 'app/react'
 EnvironmentFlux = require 'app/flux/environment'
 View            = require './view'
 
-calculateOwnedResources = require 'app/util/calculateOwnedResources'
-
 module.exports = class PrivateStacksListContainer extends React.Component
-
-  constructor: (props) ->
-    super props
-
-    @state =
-      resources: calculateOwnedResources @props
-      loading: yes
-
-
-  componentDidMount: ->
-
-    { computeController, mainController } = kd.singletons
-
-    mainController.ready =>
-      computeController.fetchStackTemplates =>
-        @setState {
-          resources: calculateOwnedResources @props, @state
-        }, => @setState { loading: no }
-
-
-  componentWillReceiveProps: (nextProps, nextState) ->
-
-    @setState
-      resources: calculateOwnedResources nextProps, nextState
-
 
   onAddToSidebar: ({ stack, template }) ->
 
     { sidebar } = kd.singletons
 
     if stack
-    then sidebar.setVisible 'stack', stack.getId()
-    else sidebar.setVisible 'draft', template.getId()
+    then sidebar.makeVisible 'stack', stack.getId()
+    else sidebar.makeVisible 'draft', template.getId()
 
 
   onRemoveFromSidebar: ({ stack, template }) ->
@@ -46,13 +19,13 @@ module.exports = class PrivateStacksListContainer extends React.Component
     { sidebar } = kd.singletons
 
     if stack
-    then sidebar.setHidden 'stack', stack.getId()
-    else sidebar.setHidden 'draft', template.getId()
+    then sidebar.makeHidden 'stack', stack.getId()
+    else sidebar.makeHidden 'draft', template.getId()
 
 
   render: ->
     <View
-      resources={@state.resources}
+      resources={@props.resources}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
