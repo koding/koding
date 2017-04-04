@@ -14,20 +14,12 @@ export USE_EMBEDDED="$${USE_EMBEDDED:-${var.koding_use_embedded}}"
 
 trap "echo _KD_DONE_ | tee -a /var/log/cloud-init-output.log" EXIT
 
-echo "127.0.0.1 $${KODING_USERNAME}" >> /etc/hosts
-
-mkdir -p /opt/kite/klient
-
-curl --location --silent --show-error --retry 5 "$${KLIENT_URL}" --output /tmp/klient.gz
-curl --location --silent --show-error --retry 5 "$${SCREEN_URL}" --output /tmp/screen.tar.gz
-
-touch /var/log/klient.log \
-      /var/log/cloud-init-output.log
-
-# TODO(rjeczalik): Move the below to klient (altogether with installing screen).
-
-if [ $${USE_EMBEDDED} -eq 1 ]; then
+install_screen() {
+	curl --location --silent --show-error --retry 5 "$${SCREEN_URL}" --output /tmp/screen.tar.gz
     tar -C / -xf /tmp/screen.tar.gz
+
+	groupadd --force screen
+	usermod -a -G screen "$${KODING_USERNAME}"
 
 	if [ ! -x /usr/bin/screen ]; then
 		ln -sf /opt/kite/klient/embedded/bin/screen /usr/bin/screen
@@ -41,27 +33,44 @@ if [ $${USE_EMBEDDED} -eq 1 ]; then
 
 	if [ ! -e /var/run/screen ]; then
 		mkdir -p /var/run/screen
-		chmod 0700 /var/run/screen
+		chmod 0755 /var/run/screen
+		chown root:screen /var/run/screen
 	fi
-else
-	if type yum &>/dev/null; then
-		yum install --assumeyes screen
-	elif type apt-get &>/dev/null; then
-		apt-get install -y screen
+}
+
+main() {
+	echo "127.0.0.1 $${KODING_USERNAME}" >> /etc/hosts
+
+	touch /var/log/klient.log \
+	      /var/log/cloud-init-output.log
+
+	if ! type screen &>/dev/null; then
+		if [ $${USE_EMBEDDED} -eq 1 ]; then
+			install_screen
+		elif type yum &>/dev/null; then
+			yum install --assumeyes screen
+		elif type apt-get &>/dev/null; then
+			apt-get install -y screen
+		else
+			install_screen
+		fi
 	fi
-fi
 
-gzip --decompress --force --stdout /tmp/klient.gz > /opt/kite/klient/klient
-chmod +x /opt/kite/klient/klient
+	mkdir -p /opt/kite/klient
+	curl --location --silent --show-error --retry 5 "$${KLIENT_URL}" --output /tmp/klient.gz
+	gzip --decompress --force --stdout /tmp/klient.gz > /opt/kite/klient/klient
+	chmod +x /opt/kite/klient/klient
 
-chown -R "$${KODING_USERNAME}:$${KODING_USERNAME}" \
-	/opt/kite/klient \
-	/var/log/klient.log \
-	/var/run/screen \
-	/var/log/cloud-init-output.log
+	chown -R "$${KODING_USERNAME}:$${KODING_USERNAME}" \
+		/opt/kite/klient \
+		/var/log/klient.log \
+		/var/log/cloud-init-output.log
 
-/opt/kite/klient/klient -metadata-user "$${KODING_USERNAME}" -metadata-file /var/lib/koding/metadata.json run
+	/opt/kite/klient/klient -metadata-user "$${KODING_USERNAME}" -metadata-file /var/lib/koding/metadata.json run
 
-if [ -x /var/lib/koding/user-data.sh ]; then
-	/var/lib/koding/user-data.sh
-fi
+	if [ -x /var/lib/koding/user-data.sh ]; then
+		/var/lib/koding/user-data.sh
+	fi
+}
+
+main
