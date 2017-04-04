@@ -258,7 +258,38 @@ func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 // MachineInspectMountCommand allows to inspect internal mount status.
 func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	return 1, fmt.Errorf("not implemented")
+	// Machine inspect command needs exactly one identifier. Either mount ID or
+	// mount local path.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
+		return 1, err
+	}
+
+	// Enable all options when none of them are set.
+	isSync := c.Bool("sync")
+	if !isSync {
+		isSync = true
+	}
+
+	opts := &machine.InspectMountOptions{
+		Identifier: idents[0],
+		Sync:       isSync,
+		Log:        log.New("machine:inspect"),
+	}
+
+	records, err := machine.InspectMount(opts)
+	if err != nil {
+		return 1, err
+	}
+
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+	enc.Encode(records)
+
+	return 0, nil
 }
 
 // getIdentifiers extracts identifiers and validate provided arguments.

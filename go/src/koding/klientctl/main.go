@@ -503,10 +503,10 @@ func run(args []string) {
 					Action: ctlcli.ExitErrAction(MachineInspectMountCommand, log, "mount inspect"),
 					Flags: []cli.Flag{
 						cli.BoolFlag{
-							Name: "sync",
+							Name:  "sync",
 							Usage: "Displays syncing history up to 100 records.",
 						},
-					}
+					},
 				}},
 			}, {
 				Name:        "umount",
