@@ -222,7 +222,8 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.instance
 
-    parameters = [ { $ref: '#/parameters/instanceParam' }, { $ref: '#/parameters/bodyParam' } ]
+    hasCustomParams = no
+    parameters = [{ $ref: '#/parameters/instanceParam' }]
     response = { description: 'OK', schema }
     if returns = docs[name]['instance'][method]?.returns
       if Object.keys(returns).length and swagger.definitions[returns.type]
@@ -241,8 +242,12 @@ generateMethodPaths = (model, definitions, paths, docs) ->
             required: true
             description: 'body of the request'
           }
+          hasCustomParams = yes
         else if example.title is 'return'
           response.schema = example.schema
+
+    unless hasCustomParams
+      parameters.push { $ref: '#/parameters/bodyParam' }
 
     paths["/remote.api/#{name}.#{method}/{id}"] =
       post:
