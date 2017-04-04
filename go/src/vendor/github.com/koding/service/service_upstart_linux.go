@@ -83,10 +83,12 @@ func (s *upstart) Install() error {
 		*Config
 		Path        string
 		Environment map[string]string
+		User        string
 	}{
 		Config:      s.Config,
 		Path:        path,
 		Environment: s.Option.stringMap(optionEnvironment, optionEnvironmentDefault),
+		User:        s.Option.string(optionUser, ""),
 	}
 
 	return s.template().Execute(f, to)
@@ -177,6 +179,10 @@ pre-start script
 end script
 
 script
+{{if .User}}
+    sudo -E -u {{.User}} {{.Path}}{{range .Arguments}} {{.|cmd}} {{end}}
+{{else}}
     {{.Path}}{{range .Arguments}} {{.|cmd}} {{end}}
+{{end}}
 end script
 `
