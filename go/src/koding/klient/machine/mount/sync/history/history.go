@@ -87,6 +87,8 @@ func (h *History) Close() error {
 
 // Get gets recorded history. Returned slice length will not exceed history
 // maximum size.
+//
+// If there's no history available, the method returns empty, non-nil slice.
 func (h *History) Get() []*Record {
 	recs := make([]*Record, 0)
 
