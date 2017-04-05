@@ -23,7 +23,7 @@ var (
 	defaultShell       = "/bin/bash"
 	randomStringLength = 24 // 144 bit hex encoded
 	defaultEnv         = kos.NewEnviron(os.Environ()).Encode(kos.Environ{
-		"TERM":      "xterm-256color",
+		"TERM":      guessTerm(),
 		"HOME":      config.CurrentUser.HomeDir,
 		"SCREENDIR": "/var/run/screen",
 	})
@@ -37,6 +37,22 @@ func init() {
 	if fi, err := os.Stat(embeddedScreen); err == nil && !fi.IsDir() {
 		defaultScreenPath = embeddedScreen
 	}
+}
+
+func guessTerm() string {
+	terms := [][2]string{
+		{"xterm-256color", "/usr/share/terminfo/x/xterm-256color"},
+		{"xterm-256color", "/usr/share/terminfo/78/xterm-256color"},
+		{"xterm+256color", "/usr/share/terminfo/x/xterm+256color"},
+	}
+
+	for _, term := range terms {
+		if _, err := os.Stat(term[1]); err == nil {
+			return term[0]
+		}
+	}
+
+	return "xterm"
 }
 
 type Command struct {
