@@ -20,6 +20,7 @@ module.exports = class JGroupData extends Model
         validate  : require('../name').validateName
         set       : (value) -> value.toLowerCase()
       payload     : Object
+
     sharedMethods :
       static      :
         fetchByKey: [
@@ -29,8 +30,22 @@ module.exports = class JGroupData extends Model
   @create = (slug, callback) ->
     data = new JGroupData { slug }
     data.save (err) ->
+      # this happens if socialapi creates the document in between fetch/create
+      # operations.
+      if err?.code is 11000 # duplicate key error
+        return JGroupData.fetchData slug, callback
+
       return callback err  if err
       callback null, data
+
+  @fetchData: (slug, callback) ->
+    return callback new Error 'slug is required' unless slug
+
+    JGroupData.one { slug }, (err, data) ->
+      return callback err  if err
+      return callback null, data if data
+
+      JGroupData.create slug, callback
 
   # fetchByKey fetches given path from GroupData if only they are available
   # within the group.
@@ -49,40 +64,35 @@ module.exports = class JGroupData extends Model
     slug = client.context.group
     JGroupData.fetchDataAt slug, path, callback
 
-  @fetchData: (slug, callback) ->
-    return callback new Error 'slug is required' unless slug
-
-    JGroupData.one { slug }, (err, data) ->
-      return callback err  if err
-      return callback null, data if data
-
-      JGroupData.create slug, callback
 
   @fetchDataAt: (slug, path, callback) ->
     return callback new Error 'slug is required' unless slug
 
     opts = {}
-    opts[path] = 1 if path
+    opts["payload.#{path}"] = 1 if path
 
     JGroupData.one { slug }, opts, (err, data) ->
       return callback err  if err
 
-      return callback null, getAt data.payload, path
+      payload = if data then getAt data.payload, path else null
+      return callback null, payload
 
   # see docs on JGroup::modifyData
   modifyData : (slug, data, callback) ->
     return callback new Error 'slug is required' unless slug
 
     # it's only allowed to change followings
-    whitelist  = ['github.organizationToken' ]
+    whitelist  = ['github.organizationToken', 'test_key__' ]
 
     # handle $set and $unset cases in one
     operation  = { $set: {}, $unset: {} }
+
     for item in whitelist
       key = "payload.#{item}"
-      if data[item]?
-      then operation.$set[key]   = data[item]
-      else operation.$unset[key] = data[item]
+      val = getAt data, item
+      if val
+      then operation.$set[key]   = val
+      else operation.$unset[key] = ""
 
     JGroupData.fetchData slug, (err, data) ->
       return callback err  if err
