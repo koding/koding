@@ -97,9 +97,7 @@ parseRequest = (req, res) ->
     sendApiError res, apiErrors.invalidInput
     return
 
-  if not token and not token = getToken req
-    sendApiError res, apiErrors.unauthorizedRequest
-    return
+  token ?= getToken req
 
   return { model, id, method, token }
 
@@ -112,7 +110,19 @@ updateSessionTimestamp = (session, callback) ->
     callback null, session
 
 
-fetchSession = (Models, token, callback) ->
+fetchSession = (Models, options, callback) ->
+
+  { token } = options
+
+  unless token
+
+    Models.JSession.createSession options, (err, res) ->
+      if err or not res?.session
+        return callback apiErrors.unauthorizedRequest
+
+      callback null, res.session
+
+    return
 
   Models.JSession.one { clientId: token }, (err, session) ->
 
@@ -120,6 +130,10 @@ fetchSession = (Models, token, callback) ->
       return callback apiErrors.unauthorizedRequest
 
     if session
+
+      if session.isGuestSession()
+        session.remove()
+        return callback apiErrors.unauthorizedRequest
 
       if session.getAt 'sessionData.apiSession'
         Models.JApiToken.fetchGroup (session.getAt 'groupName'), (err) ->
@@ -177,7 +191,21 @@ module.exports = RemoteHandler = (koding) ->
     return  unless parsedRequest = parseRequest req, res
     { model, id, method, token } = parsedRequest
 
-    fetchSession Models, token, (err, session) ->
+    options = {}
+    options.token = token   if token
+    options.group = req.body.groupName
+    customContext = req.body.username
+
+    if "#{model}.#{method}" is 'JUser.login'
+      if not options.group or not customContext
+        sendApiError res, apiErrors.invalidInput
+        return
+
+    else if not token
+      sendApiError res, apiErrors.unauthorizedRequest
+      return
+
+    fetchSession Models, options, (err, session) ->
 
       if err
         sendApiError res, err
@@ -187,6 +215,9 @@ module.exports = RemoteHandler = (koding) ->
 
       context         = getContextFromSession session
       constructorName = getConstructorName model, Models
+
+      if customContext
+        context.customContext = "custom:#{customContext}"
 
       unless constructorName
         sendApiError res, apiErrors.invalidInput
