@@ -32,7 +32,7 @@ func TestCreateApp(t *testing.T) {
 					So(json.Unmarshal(res, &keys), ShouldBeNil)
 					So(len(keys), ShouldEqual, 3)
 
-					countly, err := api.FetchCountlyInfo(groupName)
+					countly, err := modelhelper.FetchCountlyInfo(groupName)
 					tests.ResultedWithNoErrorCheck(countly, err)
 
 					// check if we stored keys properly.

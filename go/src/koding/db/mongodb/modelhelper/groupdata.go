@@ -29,7 +29,7 @@ func GetGroupDataPath(slug, path string, gd interface{}) error {
 	}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"slug": slug}).Select(bson.M{"data." + path: 1}).One(gd)
+		return c.Find(bson.M{"slug": slug}).Select(bson.M{"payload." + path: 1}).One(gd)
 	}
 
 	return Mongo.Run(GroupDataColl, query)
@@ -43,7 +43,7 @@ func HasGroupDataPath(slug, path string) (bool, error) {
 		return false, err
 	}
 
-	data, err := gdp.Data.Get(path)
+	data, err := gdp.Payload.Get(path)
 	if err != nil {
 		return false, err
 	}
@@ -63,7 +63,7 @@ func UpsertGroupData(slug, path string, data interface{}) error {
 			bson.M{"slug": slug},
 			bson.M{
 				"$set": bson.M{
-					"data." + path: data,
+					"payload." + path: data,
 				},
 			},
 		)
@@ -71,4 +71,18 @@ func UpsertGroupData(slug, path string, data interface{}) error {
 	}
 
 	return Mongo.Run(GroupDataColl, op)
+}
+
+// FetchCountlyInfo gets the countly data for a given group
+func FetchCountlyInfo(slug string) (*models.Countly, error) {
+	type countly struct {
+		Payload struct {
+			Countly *models.Countly
+		}
+	}
+	res := &countly{}
+	if err := GetGroupDataPath(slug, "countly", res); err != nil {
+		return nil, err
+	}
+	return res.Payload.Countly, nil
 }

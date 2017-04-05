@@ -55,7 +55,7 @@ func (c *CountlyAPI) Init(u *url.URL, h http.Header, _ interface{}, context *mod
 // CreateApp creates an app for given group.
 func (c *CountlyAPI) CreateApp(slug string) (*mongomodels.Countly, error) {
 	// make this call idempotent
-	countlyInfo, err := FetchCountlyInfo(slug)
+	countlyInfo, err := modelhelper.FetchCountlyInfo(slug)
 	if err == nil {
 		return countlyInfo, nil
 	}
@@ -123,18 +123,4 @@ func (c *CountlyAPI) EnsureUser(slug, appID string) (*client.User, error) {
 	}
 
 	return nil, errors.New("user not found")
-}
-
-// FetchCountlyInfo gets the countly data for a given group
-func FetchCountlyInfo(slug string) (*mongomodels.Countly, error) {
-	type countly struct {
-		Data struct {
-			Countly *mongomodels.Countly
-		}
-	}
-	res := &countly{}
-	if err := modelhelper.GetGroupDataPath(slug, "countly", res); err != nil {
-		return nil, err
-	}
-	return res.Data.Countly, nil
 }
