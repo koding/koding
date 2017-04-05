@@ -639,7 +639,7 @@ module.exports = class JUser extends jraphical.Module
 
   logout = (reason, clientId, callback) ->
 
-    JSession.logout clientId, (err) ->
+    JUser.logout clientId, (err) ->
       logError reason, clientId
       callback new KodingError reason
 
@@ -679,11 +679,11 @@ module.exports = class JUser extends jraphical.Module
 
     JUser.one { username }, (err, user) ->
 
-      if err?
+      if err
 
         logout 'error finding user with username', clientId, callback
 
-      else unless user?
+      else unless user
 
         logout "no user found with #{username} and sessionId", clientId, callback
 
@@ -693,7 +693,7 @@ module.exports = class JUser extends jraphical.Module
 
         user.fetchAccount context, (err, account) ->
 
-          if err?
+          if err
 
             logout 'error fetching account', clientId, callback
 
