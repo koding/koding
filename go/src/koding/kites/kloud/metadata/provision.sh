@@ -73,4 +73,4 @@ main() {
 	fi
 }
 
-main
+main &>/var/log/cloud-init-output.log
