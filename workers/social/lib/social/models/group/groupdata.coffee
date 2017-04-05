@@ -92,7 +92,7 @@ module.exports = class JGroupData extends Model
       val = getAt data, item
       if val
       then operation.$set[key]   = val
-      else operation.$unset[key] = ""
+      else operation.$unset[key] = ''
 
     JGroupData.fetchData slug, (err, data) ->
       return callback err  if err

@@ -57,16 +57,16 @@ runTests = -> describe 'workers.social.group.groupdata', ->
     it 'fetchDataAt should not be able to get non existing group', (done) ->
 
       fakeGroupSlug = generateRandomString()
-      JGroupData.fetchDataAt fakeGroupSlug, "path", (err, data) ->
+      JGroupData.fetchDataAt fakeGroupSlug, 'path', (err, data) ->
         expect(err).to.not.exist
         expect(data).to.not.exist
         done()
 
     it 'fetchDataAt should be able to get existing group', (done) ->
 
-      JGroupData.fetchDataAt groupSlug, "path", (err, data) ->
+      JGroupData.fetchDataAt groupSlug, 'path', (err, data) ->
         expect(err).to.not.exist
-        expect(data).to.not.exist # because we dont have "path" in data
+        expect(data).to.not.exist # because we dont have 'path' in data
         done()
 
 
