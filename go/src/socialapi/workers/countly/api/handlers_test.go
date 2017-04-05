@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"encoding/json"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
