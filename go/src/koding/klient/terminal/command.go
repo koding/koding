@@ -22,11 +22,12 @@ var (
 	sessionPrefix      = "koding"
 	defaultShell       = "/bin/bash"
 	randomStringLength = 24 // 144 bit hex encoded
-	defaultEnv         = kos.NewEnviron(os.Environ()).Encode(kos.Environ{
+	screenEnv          = kos.Environ{
 		"TERM":      guessTerm(),
 		"HOME":      config.CurrentUser.HomeDir,
 		"SCREENDIR": "/var/run/screen",
-	})
+	}
+	defaultEnv = kos.NewEnviron(os.Environ()).Encode(screenEnv)
 )
 
 var defaultScreenPath = "/usr/bin/screen"
@@ -106,7 +107,7 @@ func getDefaultShell(username string) string {
 
 // newCmd returns a new command instance that is used to start the terminal.
 // The command line is created differently based on the incoming mode.
-func newCommand(mode, session, username string) (*Command, error) {
+func (t *Terminal) newCommand(mode, session, username string) (*Command, error) {
 	// let's assume by default its Screen
 	name := defaultScreenPath
 	defaultShell := getDefaultShell(username)
@@ -121,7 +122,7 @@ func newCommand(mode, session, username string) (*Command, error) {
 			return nil, errors.New("session is needed for 'shared' or 'resume' mode")
 		}
 
-		if !sessionExists(session, username) {
+		if !t.sessionExists(session, username) {
 			return nil, ErrNoSession
 		}
 
@@ -163,20 +164,21 @@ func newCommand(mode, session, username string) (*Command, error) {
 // username.  The sessions are in the form of ["k7sdjv12344", "askIj12sas12",
 // ...]
 // TODO: socket directory is different under darwin, it will not work probably
-func screenSessions(username string) []string {
+func (t *Terminal) screenSessions(username string) []string {
 	// Do not include dead sessions in our result
-	run(defaultScreenPath, "-wipe")
+	t.run(defaultScreenPath, "-wipe")
 
 	// We need to use ls here, because /var/run/screen mount is only
 	// visible from inside of container. Errors are ignored.
-	stdout, stderr, err := run("ls", "/var/run/screen/S-"+username)
+	stdout, stderr, err := t.run("ls", "/var/run/screen/S-"+username)
 	if err != nil {
-		log.Printf("terminal: listing sessions failed: %s:\n%s\n", err, stderr)
+		t.Log.Error("terminal: listing sessions failed: %s:\n%s\n", err, stderr)
+		return nil
 	}
 
 	shellOut := string(bytes.TrimSpace(stdout))
 	if shellOut == "" {
-		return []string{}
+		return nil
 	}
 
 	names := strings.Split(shellOut, "\n")
@@ -193,8 +195,8 @@ func screenSessions(username string) []string {
 
 // screenExists checks whether the given session exists in the running list of
 // screen sessions.
-func sessionExists(session, username string) bool {
-	for _, s := range screenSessions(username) {
+func (t *Terminal) sessionExists(session, username string) bool {
+	for _, s := range t.screenSessions(username) {
 		if s == session {
 			return true
 		}
@@ -204,9 +206,9 @@ func sessionExists(session, username string) bool {
 }
 
 // killSessions kills all screen sessions for given username
-func killSessions(username string) error {
-	for _, session := range screenSessions(username) {
-		if err := killSession(session); err != nil {
+func (t *Terminal) killSessions(username string) error {
+	for _, session := range t.screenSessions(username) {
+		if err := t.killSession(session); err != nil {
 			return err
 		}
 	}
@@ -215,8 +217,8 @@ func killSessions(username string) error {
 }
 
 // killSession kills the given SessionID
-func killSession(session string) error {
-	stdout, stderr, err := run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill")
+func (t *Terminal) killSession(session string) error {
+	stdout, stderr, err := t.run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill")
 	if err != nil {
 		return commandError("screen kill failed", err, stdout, stderr)
 	}
@@ -224,8 +226,8 @@ func killSession(session string) error {
 	return nil
 }
 
-func renameSession(oldName, newName string) error {
-	stdout, stderr, err := run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", sessionPrefix+"."+newName)
+func (t *Terminal) renameSession(oldName, newName string) error {
+	stdout, stderr, err := t.run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", sessionPrefix+"."+newName)
 	if err != nil {
 		return commandError("screen renaming failed", err, stdout, stderr)
 	}
@@ -237,13 +239,15 @@ func commandError(message string, err error, stdout, stderr []byte) error {
 	return fmt.Errorf("%s\n%s\n%s\n%s\n", message, err, stdout, stderr)
 }
 
-func run(cmd string, args ...string) (stdout, stderr []byte, err error) {
+func (t *Terminal) run(cmd string, args ...string) (stdout, stderr []byte, err error) {
 	var bufout, buferr bytes.Buffer
 
 	c := exec.Command(cmd, args...)
 	c.Stdout = &bufout
 	c.Stderr = &buferr
 	c.Env = defaultEnv
+
+	t.Log.Debug("terminal: running: %v (%v)", c.Args, screenEnv)
 
 	if err := c.Run(); err != nil {
 		return nil, buferr.Bytes(), err
