@@ -1,11 +1,8 @@
 package azure_test
 
 import (
-	"encoding/json"
-	"fmt"
+	"flag"
 	"io/ioutil"
-	"reflect"
-	"strings"
 	"testing"
 
 	"koding/kites/kloud/contexthelper/session"
@@ -13,12 +10,15 @@ import (
 	"koding/kites/kloud/provider/azure"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/stack/provider/providertest"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/logging"
 )
+
+var update = flag.Bool("update-golden", false, "Update golden files.")
 
 var publishSettings = `<?xml version="1.0" encoding="utf-8"?>
 <PublishData>
@@ -87,6 +87,8 @@ func TestAzureMeta_PublishSettings(t *testing.T) {
 }
 
 func TestAzure_ApplyTemplate(t *testing.T) {
+	flag.Parse()
+
 	log := logging.NewCustom("test", true)
 
 	cred := &stack.Credential{
@@ -123,18 +125,10 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 	}
 
 	for name, cas := range cases {
-		// capture range variable here
-		cas := cas
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			content, err := ioutil.ReadFile(cas.stackFile)
 			if err != nil {
 				t.Fatalf("ReadFile(%s)=%s", cas.stackFile, err)
-			}
-
-			want, err := ioutil.ReadFile(cas.wantFile)
-			if err != nil {
-				t.Fatalf("ReadFile(%s)=%s", cas.wantFile, err)
 			}
 
 			template, err := provider.ParseTemplate(string(content), log)
@@ -170,42 +164,24 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 				t.Fatalf("ApplyTemplate()=%s", err)
 			}
 
-			if err := equal(stack.Content, string(want)); err != nil {
+			if *update {
+				if err := providertest.Write(cas.wantFile, stack.Content, stripNondeterministicResources); err != nil {
+					t.Fatalf("Write()=%s", err)
+				}
+
+				return
+			}
+
+			want, err := ioutil.ReadFile(cas.wantFile)
+			if err != nil {
+				t.Fatalf("ReadFile(%s)=%s", cas.wantFile, err)
+			}
+
+			if err := providertest.Equal(stack.Content, string(want), stripNondeterministicResources); err != nil {
 				t.Fatal(err)
 			}
 		})
 	}
-}
-
-func equal(got, want string) error {
-	var v1, v2 interface{}
-
-	if err := json.Unmarshal([]byte(got), &v1); err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal([]byte(want), &v2); err != nil {
-		return err
-	}
-
-	stripNondeterministicResources(v1)
-	stripNondeterministicResources(v2)
-
-	if !reflect.DeepEqual(v1, v2) {
-		p1, err := json.MarshalIndent(v1, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-
-		p2, err := json.MarshalIndent(v2, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-
-		return fmt.Errorf("got:\n%s\nwant:\n%s\n", p1, p2)
-	}
-
-	return nil
 }
 
 // stripNondeterministicResources sets the following fields to "...",
@@ -214,84 +190,11 @@ func equal(got, want string) error {
 //   - resource.azure_instance.*.custom_data
 //   - variable.kitekeys_*.default.*
 //
-func stripNondeterministicResources(v interface{}) {
-	m, ok := v.(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	stripVariables(m)
-
-	resource, ok := m["resource"].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	stripInstances(resource)
-	stripNulls(resource)
-}
-
-func stripInstances(resource map[string]interface{}) {
-	instance, ok := resource["azure_instance"].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	for _, v := range instance {
-		vm, ok := v.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		vm["custom_data"] = "..."
-		vm["name"] = "..."
-	}
-}
-
-func stripVariables(m map[string]interface{}) {
-	variable, ok := m["variable"].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	for name, v := range variable {
-		if !strings.HasPrefix(name, "kitekeys_") && !strings.HasPrefix(name, "passwords_") {
-			continue
-		}
-
-		v, ok := v.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		list, ok := v["default"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		for i := range list {
-			list[i] = "..."
-		}
-	}
-}
-
-func stripNulls(m map[string]interface{}) {
-	null, ok := m["null_resource"].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	for _, v := range null {
-		res, ok := v.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		trigger, ok := res["triggers"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		trigger["custom_data"] = "..."
+func stripNondeterministicResources(name string) string {
+	switch name {
+	case "0", "1", "2", "custom_data", "name":
+		return "***"
+	default:
+		return ""
 	}
 }

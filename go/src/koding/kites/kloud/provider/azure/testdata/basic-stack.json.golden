@@ -8,16 +8,16 @@
   "resource": {
     "azure_instance": {
       "example-instance": {
-        "custom_data": "...",
+        "custom_data": "***",
         "endpoint": [
           {
-            "name": "klient",
+            "name": "***",
             "private_port": 56789,
             "protocol": "tcp",
             "public_port": 56789
           },
           {
-            "name": "ssh",
+            "name": "***",
             "private_port": 22,
             "protocol": "tcp",
             "public_port": 22
@@ -26,7 +26,6 @@
         "hosted_service_name": "hosted-service",
         "image": "Ubuntu Server 14.04 LTS",
         "location": "",
-        "name": "...",
         "password": "${lookup(var.passwords_example-instance, count.index)}",
         "security_group": "security-group",
         "size": "Basic_A1",
@@ -41,7 +40,7 @@
       "example-instance": {
         "depends_on": [],
         "triggers": {
-          "custom_data": "echo Hello world!"
+          "custom_data": "***"
         }
       }
     }
@@ -49,15 +48,12 @@
   "variable": {
     "kitekeys_example-instance": {
       "default": {
-        "0": "..."
+        "0": "***"
       }
-    },
-    "koding_use_embedded": {
-      "default": 0
     },
     "passwords_example-instance": {
       "default": {
-        "0": "..."
+        "0": "***"
       }
     }
   }

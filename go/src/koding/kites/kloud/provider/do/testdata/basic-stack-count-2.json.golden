@@ -33,9 +33,6 @@
         "0": "...",
         "1": "..."
       }
-    },
-    "koding_use_embedded": {
-      "default": 0
     }
   }
 }
