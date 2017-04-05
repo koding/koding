@@ -434,12 +434,10 @@ func TestResubscribingAfterTrialEndsChargesUser(t *testing.T) {
 				withTrialTestPlan(func(planID string) {
 					addCreditCardToUserWithChecks(endpoint, sessionID)
 
-					var firstSub *stripe.Sub
 					// create and cancel sub, because we will resubscribe again.
 					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 						sub, err := stripesub.Get(subscriptionID, nil)
 						tests.ResultedWithNoErrorCheck(sub, err)
-						firstSub = sub
 					})
 
 					travelInTimeForGroupID(groupName, -time.Hour*24*31) // trial period is 30 days
