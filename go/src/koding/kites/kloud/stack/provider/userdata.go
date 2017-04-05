@@ -22,15 +22,6 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 
 	kiteKeyName := "kitekeys_" + name
 	kiteKeys := make(map[int]string, count)
-	useEmbedded := 0
-
-	if b, ok := vm["koding_use_embedded"].(bool); ok && b {
-		useEmbedded = 1
-	}
-	t.Variable["koding_use_embedded"] = map[string]interface{}{
-		"default": useEmbedded,
-	}
-	delete(vm, "koding_use_embedded")
 
 	if s, ok := vm["koding_klient_timeout"].(string); ok {
 		d, err := time.ParseDuration(s)

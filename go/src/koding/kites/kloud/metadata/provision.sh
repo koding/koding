@@ -10,7 +10,6 @@ set -euo pipefail
 export KODING_USERNAME="$${KODING_USERNAME:-${var.koding_account_profile_nickname}}"
 export KLIENT_URL="$${KLIENT_URL:-${var.koding_klient_url}}"
 export SCREEN_URL="$${SCREEN_URL:-${var.koding_screen_url}}"
-export USE_EMBEDDED="$${USE_EMBEDDED:-${var.koding_use_embedded}}"
 
 trap "echo _KD_DONE_ | tee -a /var/log/cloud-init-output.log" EXIT
 
