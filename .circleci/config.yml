@@ -20,6 +20,12 @@ jobs:
 
       - image: redis
 
+      # countly will listen at port 80 till we can give -p "$KONFIG_COUNTLY_APIPORT:80" 
+      - image: koding/countly-server:latest
+        environment:
+          COUNTLY_PATH: /countly
+          COUNTLY_WITH_DEFAULT_DATA: 1
+
     working_directory: ~/koding
 
     steps:
@@ -74,7 +80,7 @@ jobs:
 
       - run:
           name: configure
-          command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com
+          command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort 80
 
       - run:
           name: launch test hosts
