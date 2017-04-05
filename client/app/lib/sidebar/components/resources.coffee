@@ -36,7 +36,10 @@ module.exports = class SidebarResources extends React.Component
 
     switch sections[sectionIndex]
       when 'owned'
-        <OwnedResourcesList resources={owned} />
+        <OwnedResourcesList
+          resources={owned}
+          hasTemplate={@props.hasTemplate}
+        />
       when 'shared'
         <SharedResourcesList resources={shared} />
 

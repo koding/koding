@@ -244,6 +244,8 @@ module.exports = class OwnedResourcesList extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
+    debug 'render row at index', { sectionIndex, rowIndex }
+
     unless stack = @props.resources[sectionIndex].stack
       return null
 
@@ -254,12 +256,12 @@ module.exports = class OwnedResourcesList extends React.Component
       stackId={stack.getId()} />
 
 
-  renderEmpty: (sectionIndex) ->
+  renderEmpty: ->
 
     debug 'render empty section'
 
     <SidebarNoStacks
-      hasTemplate={!!@props.resources.length}
+      hasTemplate={@props.hasTemplate}
       hasPermission={canCreateStacks()} />
 
 

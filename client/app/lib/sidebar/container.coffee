@@ -47,6 +47,7 @@ module.exports = class SidebarContainer extends React.Component
 
       {not @state.loading and
         <SidebarResources
+          hasTemplate={!!@props.templates.length}
           disabled={isGroupDisabled()}
           owned={@props.ownedResources}
           shared={@props.sharedResources} /> }
