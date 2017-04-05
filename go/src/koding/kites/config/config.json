@@ -1,0 +1,33 @@
+{
+  "buckets": {
+    "publicLogs": {
+      "name": "kodingdev-publiclogs",
+      "region": "us-east-1"
+    }
+  },
+  "endpoints": {
+    "ip": {
+      "public": "https://dev-p.koding.com/-/ip"
+    },
+    "ipCheck": {
+      "public": "https://dev-p.koding.com/-/ipcheck"
+    },
+    "kdLatest": {
+      "public": "https://koding-kd.s3.amazonaws.com/sandbox/latest-version.txt"
+    },
+    "klientLatest": {
+      "public": "https://koding-klient.s3.amazonaws.com/sandbox/latest-version.txt"
+    },
+    "kodingBase": {
+      "private": "http://127.0.0.1",
+      "public": "https://sandbox.koding.com"
+    },
+    "tunnelServer": {
+      "public": "http://dev-t.koding.com/kite"
+    }
+  },
+  "environment": "sandbox",
+  "routes": {
+    "dev.koding.com": "127.0.0.1"
+  }
+}
