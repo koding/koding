@@ -23,282 +23,292 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJComputeStackCheckRevisionID post remote API j compute stack check revision ID API
+JComputeStackCheckRevision j compute stack check revision API
 */
-func (a *Client) PostRemoteAPIJComputeStackCheckRevisionID(params *PostRemoteAPIJComputeStackCheckRevisionIDParams) (*PostRemoteAPIJComputeStackCheckRevisionIDOK, error) {
+func (a *Client) JComputeStackCheckRevision(params *JComputeStackCheckRevisionParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackCheckRevisionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackCheckRevisionIDParams()
+		params = NewJComputeStackCheckRevisionParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackCheckRevisionID",
+		ID:                 "JComputeStack.checkRevision",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.checkRevision/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackCheckRevisionIDReader{formats: a.formats},
+		Reader:             &JComputeStackCheckRevisionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackCheckRevisionIDOK), nil
+	return result.(*JComputeStackCheckRevisionOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackCreate JComputeStack::create
+JComputeStackCreate JComputeStack::create
 */
-func (a *Client) PostRemoteAPIJComputeStackCreate(params *PostRemoteAPIJComputeStackCreateParams) (*PostRemoteAPIJComputeStackCreateOK, error) {
+func (a *Client) JComputeStackCreate(params *JComputeStackCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackCreateParams()
+		params = NewJComputeStackCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackCreate",
+		ID:                 "JComputeStack.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackCreateReader{formats: a.formats},
+		Reader:             &JComputeStackCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackCreateOK), nil
+	return result.(*JComputeStackCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackCreateAdminMessageID Method JComputeStack.createAdminMessage
+JComputeStackCreateAdminMessage Method JComputeStack.createAdminMessage
 */
-func (a *Client) PostRemoteAPIJComputeStackCreateAdminMessageID(params *PostRemoteAPIJComputeStackCreateAdminMessageIDParams) (*PostRemoteAPIJComputeStackCreateAdminMessageIDOK, error) {
+func (a *Client) JComputeStackCreateAdminMessage(params *JComputeStackCreateAdminMessageParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackCreateAdminMessageOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackCreateAdminMessageIDParams()
+		params = NewJComputeStackCreateAdminMessageParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackCreateAdminMessageID",
+		ID:                 "JComputeStack.createAdminMessage",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.createAdminMessage/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackCreateAdminMessageIDReader{formats: a.formats},
+		Reader:             &JComputeStackCreateAdminMessageReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackCreateAdminMessageIDOK), nil
+	return result.(*JComputeStackCreateAdminMessageOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackDeleteAdminMessageID Method JComputeStack.deleteAdminMessage
+JComputeStackDelete Method JComputeStack.delete
 */
-func (a *Client) PostRemoteAPIJComputeStackDeleteAdminMessageID(params *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams) (*PostRemoteAPIJComputeStackDeleteAdminMessageIDOK, error) {
+func (a *Client) JComputeStackDelete(params *JComputeStackDeleteParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackDeleteOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackDeleteAdminMessageIDParams()
+		params = NewJComputeStackDeleteParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackDeleteAdminMessageID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JComputeStack.deleteAdminMessage/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackDeleteAdminMessageIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJComputeStackDeleteAdminMessageIDOK), nil
-
-}
-
-/*
-PostRemoteAPIJComputeStackDeleteID Method JComputeStack.delete
-*/
-func (a *Client) PostRemoteAPIJComputeStackDeleteID(params *PostRemoteAPIJComputeStackDeleteIDParams) (*PostRemoteAPIJComputeStackDeleteIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJComputeStackDeleteIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackDeleteID",
+		ID:                 "JComputeStack.delete",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.delete/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackDeleteIDReader{formats: a.formats},
+		Reader:             &JComputeStackDeleteReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackDeleteIDOK), nil
+	return result.(*JComputeStackDeleteOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackDestroyID Method JComputeStack.destroy
+JComputeStackDeleteAdminMessage Method JComputeStack.deleteAdminMessage
 */
-func (a *Client) PostRemoteAPIJComputeStackDestroyID(params *PostRemoteAPIJComputeStackDestroyIDParams) (*PostRemoteAPIJComputeStackDestroyIDOK, error) {
+func (a *Client) JComputeStackDeleteAdminMessage(params *JComputeStackDeleteAdminMessageParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackDeleteAdminMessageOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackDestroyIDParams()
+		params = NewJComputeStackDeleteAdminMessageParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackDestroyID",
+		ID:                 "JComputeStack.deleteAdminMessage",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JComputeStack.deleteAdminMessage/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &JComputeStackDeleteAdminMessageReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*JComputeStackDeleteAdminMessageOK), nil
+
+}
+
+/*
+JComputeStackDestroy Method JComputeStack.destroy
+*/
+func (a *Client) JComputeStackDestroy(params *JComputeStackDestroyParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackDestroyOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewJComputeStackDestroyParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "JComputeStack.destroy",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.destroy/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackDestroyIDReader{formats: a.formats},
+		Reader:             &JComputeStackDestroyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackDestroyIDOK), nil
+	return result.(*JComputeStackDestroyOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackMaintenanceID post remote API j compute stack maintenance ID API
+JComputeStackMaintenance j compute stack maintenance API
 */
-func (a *Client) PostRemoteAPIJComputeStackMaintenanceID(params *PostRemoteAPIJComputeStackMaintenanceIDParams) (*PostRemoteAPIJComputeStackMaintenanceIDOK, error) {
+func (a *Client) JComputeStackMaintenance(params *JComputeStackMaintenanceParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackMaintenanceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackMaintenanceIDParams()
+		params = NewJComputeStackMaintenanceParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackMaintenanceID",
+		ID:                 "JComputeStack.maintenance",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.maintenance/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackMaintenanceIDReader{formats: a.formats},
+		Reader:             &JComputeStackMaintenanceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackMaintenanceIDOK), nil
+	return result.(*JComputeStackMaintenanceOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackModifyID post remote API j compute stack modify ID API
+JComputeStackModify j compute stack modify API
 */
-func (a *Client) PostRemoteAPIJComputeStackModifyID(params *PostRemoteAPIJComputeStackModifyIDParams) (*PostRemoteAPIJComputeStackModifyIDOK, error) {
+func (a *Client) JComputeStackModify(params *JComputeStackModifyParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackModifyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackModifyIDParams()
+		params = NewJComputeStackModifyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackModifyID",
+		ID:                 "JComputeStack.modify",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.modify/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackModifyIDReader{formats: a.formats},
+		Reader:             &JComputeStackModifyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackModifyIDOK), nil
+	return result.(*JComputeStackModifyOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackOne post remote API j compute stack one API
+JComputeStackOne j compute stack one API
 */
-func (a *Client) PostRemoteAPIJComputeStackOne(params *PostRemoteAPIJComputeStackOneParams) (*PostRemoteAPIJComputeStackOneOK, error) {
+func (a *Client) JComputeStackOne(params *JComputeStackOneParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackOneParams()
+		params = NewJComputeStackOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackOne",
+		ID:                 "JComputeStack.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackOneReader{formats: a.formats},
+		Reader:             &JComputeStackOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackOneOK), nil
+	return result.(*JComputeStackOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJComputeStackSome post remote API j compute stack some API
+JComputeStackSome j compute stack some API
 */
-func (a *Client) PostRemoteAPIJComputeStackSome(params *PostRemoteAPIJComputeStackSomeParams) (*PostRemoteAPIJComputeStackSomeOK, error) {
+func (a *Client) JComputeStackSome(params *JComputeStackSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JComputeStackSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJComputeStackSomeParams()
+		params = NewJComputeStackSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJComputeStackSome",
+		ID:                 "JComputeStack.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JComputeStack.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJComputeStackSomeReader{formats: a.formats},
+		Reader:             &JComputeStackSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJComputeStackSomeOK), nil
+	return result.(*JComputeStackSomeOK), nil
 
 }
 

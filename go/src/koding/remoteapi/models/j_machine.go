@@ -21,6 +21,9 @@ type JMachine struct {
 	// assignee
 	Assignee *JMachineAssignee `json:"assignee,omitempty"`
 
+	// channel Id
+	ChannelID string `json:"channelId,omitempty"`
+
 	// created at
 	CreatedAt strfmt.Date `json:"createdAt,omitempty"`
 

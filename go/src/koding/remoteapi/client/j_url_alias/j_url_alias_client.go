@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJURLAliasCreate post remote API j URL alias create API
+JURLAliasCreate j Url alias create API
 */
-func (a *Client) PostRemoteAPIJURLAliasCreate(params *PostRemoteAPIJURLAliasCreateParams) (*PostRemoteAPIJURLAliasCreateOK, error) {
+func (a *Client) JURLAliasCreate(params *JURLAliasCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JURLAliasCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJURLAliasCreateParams()
+		params = NewJURLAliasCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJURLAliasCreate",
+		ID:                 "JUrlAlias.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUrlAlias.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJURLAliasCreateReader{formats: a.formats},
+		Reader:             &JURLAliasCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJURLAliasCreateOK), nil
+	return result.(*JURLAliasCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJURLAliasResolve Method JUrlAlias.resolve
+JURLAliasResolve Method JUrlAlias.resolve
 */
-func (a *Client) PostRemoteAPIJURLAliasResolve(params *PostRemoteAPIJURLAliasResolveParams) (*PostRemoteAPIJURLAliasResolveOK, error) {
+func (a *Client) JURLAliasResolve(params *JURLAliasResolveParams, authInfo runtime.ClientAuthInfoWriter) (*JURLAliasResolveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJURLAliasResolveParams()
+		params = NewJURLAliasResolveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJURLAliasResolve",
+		ID:                 "JUrlAlias.resolve",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JUrlAlias.resolve",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJURLAliasResolveReader{formats: a.formats},
+		Reader:             &JURLAliasResolveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJURLAliasResolveOK), nil
+	return result.(*JURLAliasResolveOK), nil
 
 }
 

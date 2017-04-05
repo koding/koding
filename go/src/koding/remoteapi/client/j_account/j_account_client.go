@@ -23,1150 +23,1191 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJAccountAcceptInvitationID post remote API j account accept invitation ID API
+JAccountAcceptInvitation j account accept invitation API
 */
-func (a *Client) PostRemoteAPIJAccountAcceptInvitationID(params *PostRemoteAPIJAccountAcceptInvitationIDParams) (*PostRemoteAPIJAccountAcceptInvitationIDOK, error) {
+func (a *Client) JAccountAcceptInvitation(params *JAccountAcceptInvitationParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountAcceptInvitationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountAcceptInvitationIDParams()
+		params = NewJAccountAcceptInvitationParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountAcceptInvitationID",
+		ID:                 "JAccount.acceptInvitation",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.acceptInvitation/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountAcceptInvitationIDReader{formats: a.formats},
+		Reader:             &JAccountAcceptInvitationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountAcceptInvitationIDOK), nil
+	return result.(*JAccountAcceptInvitationOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountBlockUserID post remote API j account block user ID API
+JAccountBlockUser j account block user API
 */
-func (a *Client) PostRemoteAPIJAccountBlockUserID(params *PostRemoteAPIJAccountBlockUserIDParams) (*PostRemoteAPIJAccountBlockUserIDOK, error) {
+func (a *Client) JAccountBlockUser(params *JAccountBlockUserParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountBlockUserOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountBlockUserIDParams()
+		params = NewJAccountBlockUserParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountBlockUserID",
+		ID:                 "JAccount.blockUser",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.blockUser/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountBlockUserIDReader{formats: a.formats},
+		Reader:             &JAccountBlockUserReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountBlockUserIDOK), nil
+	return result.(*JAccountBlockUserOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountByRelevance post remote API j account by relevance API
+JAccountByRelevance j account by relevance API
 */
-func (a *Client) PostRemoteAPIJAccountByRelevance(params *PostRemoteAPIJAccountByRelevanceParams) (*PostRemoteAPIJAccountByRelevanceOK, error) {
+func (a *Client) JAccountByRelevance(params *JAccountByRelevanceParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountByRelevanceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountByRelevanceParams()
+		params = NewJAccountByRelevanceParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountByRelevance",
+		ID:                 "JAccount.byRelevance",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.byRelevance",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountByRelevanceReader{formats: a.formats},
+		Reader:             &JAccountByRelevanceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountByRelevanceOK), nil
+	return result.(*JAccountByRelevanceOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountCancelRequestID post remote API j account cancel request ID API
+JAccountCancelRequest j account cancel request API
 */
-func (a *Client) PostRemoteAPIJAccountCancelRequestID(params *PostRemoteAPIJAccountCancelRequestIDParams) (*PostRemoteAPIJAccountCancelRequestIDOK, error) {
+func (a *Client) JAccountCancelRequest(params *JAccountCancelRequestParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountCancelRequestOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountCancelRequestIDParams()
+		params = NewJAccountCancelRequestParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountCancelRequestID",
+		ID:                 "JAccount.cancelRequest",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.cancelRequest/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountCancelRequestIDReader{formats: a.formats},
+		Reader:             &JAccountCancelRequestReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountCancelRequestIDOK), nil
+	return result.(*JAccountCancelRequestOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountCheckGroupMembershipID post remote API j account check group membership ID API
+JAccountCheckGroupMembership j account check group membership API
 */
-func (a *Client) PostRemoteAPIJAccountCheckGroupMembershipID(params *PostRemoteAPIJAccountCheckGroupMembershipIDParams) (*PostRemoteAPIJAccountCheckGroupMembershipIDOK, error) {
+func (a *Client) JAccountCheckGroupMembership(params *JAccountCheckGroupMembershipParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountCheckGroupMembershipOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountCheckGroupMembershipIDParams()
+		params = NewJAccountCheckGroupMembershipParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountCheckGroupMembershipID",
+		ID:                 "JAccount.checkGroupMembership",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.checkGroupMembership/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountCheckGroupMembershipIDReader{formats: a.formats},
+		Reader:             &JAccountCheckGroupMembershipReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountCheckGroupMembershipIDOK), nil
+	return result.(*JAccountCheckGroupMembershipOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountCount post remote API j account count API
+JAccountCount j account count API
 */
-func (a *Client) PostRemoteAPIJAccountCount(params *PostRemoteAPIJAccountCountParams) (*PostRemoteAPIJAccountCountOK, error) {
+func (a *Client) JAccountCount(params *JAccountCountParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountCountParams()
+		params = NewJAccountCountParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountCount",
+		ID:                 "JAccount.count",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.count",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountCountReader{formats: a.formats},
+		Reader:             &JAccountCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountCountOK), nil
+	return result.(*JAccountCountOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountDestroyID Method JAccount.destroy
+JAccountDestroy Method JAccount.destroy
 */
-func (a *Client) PostRemoteAPIJAccountDestroyID(params *PostRemoteAPIJAccountDestroyIDParams) (*PostRemoteAPIJAccountDestroyIDOK, error) {
+func (a *Client) JAccountDestroy(params *JAccountDestroyParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountDestroyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountDestroyIDParams()
+		params = NewJAccountDestroyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountDestroyID",
+		ID:                 "JAccount.destroy",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.destroy/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountDestroyIDReader{formats: a.formats},
+		Reader:             &JAccountDestroyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountDestroyIDOK), nil
+	return result.(*JAccountDestroyOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountExpireSubscriptionID post remote API j account expire subscription ID API
+JAccountExpireSubscription j account expire subscription API
 */
-func (a *Client) PostRemoteAPIJAccountExpireSubscriptionID(params *PostRemoteAPIJAccountExpireSubscriptionIDParams) (*PostRemoteAPIJAccountExpireSubscriptionIDOK, error) {
+func (a *Client) JAccountExpireSubscription(params *JAccountExpireSubscriptionParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountExpireSubscriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountExpireSubscriptionIDParams()
+		params = NewJAccountExpireSubscriptionParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountExpireSubscriptionID",
+		ID:                 "JAccount.expireSubscription",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.expireSubscription/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountExpireSubscriptionIDReader{formats: a.formats},
+		Reader:             &JAccountExpireSubscriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountExpireSubscriptionIDOK), nil
+	return result.(*JAccountExpireSubscriptionOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchAppStorageID post remote API j account fetch app storage ID API
+JAccountFetchAppStorage j account fetch app storage API
 */
-func (a *Client) PostRemoteAPIJAccountFetchAppStorageID(params *PostRemoteAPIJAccountFetchAppStorageIDParams) (*PostRemoteAPIJAccountFetchAppStorageIDOK, error) {
+func (a *Client) JAccountFetchAppStorage(params *JAccountFetchAppStorageParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchAppStorageOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchAppStorageIDParams()
+		params = NewJAccountFetchAppStorageParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchAppStorageID",
+		ID:                 "JAccount.fetchAppStorage",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchAppStorage/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchAppStorageIDReader{formats: a.formats},
+		Reader:             &JAccountFetchAppStorageReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchAppStorageIDOK), nil
+	return result.(*JAccountFetchAppStorageOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchBlockedUsers post remote API j account fetch blocked users API
+JAccountFetchBlockedUsers j account fetch blocked users API
 */
-func (a *Client) PostRemoteAPIJAccountFetchBlockedUsers(params *PostRemoteAPIJAccountFetchBlockedUsersParams) (*PostRemoteAPIJAccountFetchBlockedUsersOK, error) {
+func (a *Client) JAccountFetchBlockedUsers(params *JAccountFetchBlockedUsersParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchBlockedUsersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchBlockedUsersParams()
+		params = NewJAccountFetchBlockedUsersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchBlockedUsers",
+		ID:                 "JAccount.fetchBlockedUsers",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchBlockedUsers",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchBlockedUsersReader{formats: a.formats},
+		Reader:             &JAccountFetchBlockedUsersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchBlockedUsersOK), nil
+	return result.(*JAccountFetchBlockedUsersOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchEmailAndStatusID post remote API j account fetch email and status ID API
+JAccountFetchEmail Method JAccount.fetchEmail
 */
-func (a *Client) PostRemoteAPIJAccountFetchEmailAndStatusID(params *PostRemoteAPIJAccountFetchEmailAndStatusIDParams) (*PostRemoteAPIJAccountFetchEmailAndStatusIDOK, error) {
+func (a *Client) JAccountFetchEmail(params *JAccountFetchEmailParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchEmailOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchEmailAndStatusIDParams()
+		params = NewJAccountFetchEmailParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchEmailAndStatusID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JAccount.fetchEmailAndStatus/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchEmailAndStatusIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJAccountFetchEmailAndStatusIDOK), nil
-
-}
-
-/*
-PostRemoteAPIJAccountFetchEmailFrequencyID post remote API j account fetch email frequency ID API
-*/
-func (a *Client) PostRemoteAPIJAccountFetchEmailFrequencyID(params *PostRemoteAPIJAccountFetchEmailFrequencyIDParams) (*PostRemoteAPIJAccountFetchEmailFrequencyIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchEmailFrequencyIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchEmailFrequencyID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JAccount.fetchEmailFrequency/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchEmailFrequencyIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJAccountFetchEmailFrequencyIDOK), nil
-
-}
-
-/*
-PostRemoteAPIJAccountFetchEmailID Method JAccount.fetchEmail
-*/
-func (a *Client) PostRemoteAPIJAccountFetchEmailID(params *PostRemoteAPIJAccountFetchEmailIDParams) (*PostRemoteAPIJAccountFetchEmailIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchEmailIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchEmailID",
+		ID:                 "JAccount.fetchEmail",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchEmail/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchEmailIDReader{formats: a.formats},
+		Reader:             &JAccountFetchEmailReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchEmailIDOK), nil
+	return result.(*JAccountFetchEmailOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchEmailsByUsername post remote API j account fetch emails by username API
+JAccountFetchEmailAndStatus j account fetch email and status API
 */
-func (a *Client) PostRemoteAPIJAccountFetchEmailsByUsername(params *PostRemoteAPIJAccountFetchEmailsByUsernameParams) (*PostRemoteAPIJAccountFetchEmailsByUsernameOK, error) {
+func (a *Client) JAccountFetchEmailAndStatus(params *JAccountFetchEmailAndStatusParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchEmailAndStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchEmailsByUsernameParams()
+		params = NewJAccountFetchEmailAndStatusParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchEmailsByUsername",
+		ID:                 "JAccount.fetchEmailAndStatus",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JAccount.fetchEmailAndStatus/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &JAccountFetchEmailAndStatusReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*JAccountFetchEmailAndStatusOK), nil
+
+}
+
+/*
+JAccountFetchEmailFrequency j account fetch email frequency API
+*/
+func (a *Client) JAccountFetchEmailFrequency(params *JAccountFetchEmailFrequencyParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchEmailFrequencyOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewJAccountFetchEmailFrequencyParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "JAccount.fetchEmailFrequency",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JAccount.fetchEmailFrequency/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &JAccountFetchEmailFrequencyReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*JAccountFetchEmailFrequencyOK), nil
+
+}
+
+/*
+JAccountFetchEmailsByUsername j account fetch emails by username API
+*/
+func (a *Client) JAccountFetchEmailsByUsername(params *JAccountFetchEmailsByUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchEmailsByUsernameOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewJAccountFetchEmailsByUsernameParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "JAccount.fetchEmailsByUsername",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchEmailsByUsername",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchEmailsByUsernameReader{formats: a.formats},
+		Reader:             &JAccountFetchEmailsByUsernameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchEmailsByUsernameOK), nil
+	return result.(*JAccountFetchEmailsByUsernameOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchFromUserID post remote API j account fetch from user ID API
+JAccountFetchFromUser j account fetch from user API
 */
-func (a *Client) PostRemoteAPIJAccountFetchFromUserID(params *PostRemoteAPIJAccountFetchFromUserIDParams) (*PostRemoteAPIJAccountFetchFromUserIDOK, error) {
+func (a *Client) JAccountFetchFromUser(params *JAccountFetchFromUserParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchFromUserOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchFromUserIDParams()
+		params = NewJAccountFetchFromUserParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchFromUserID",
+		ID:                 "JAccount.fetchFromUser",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchFromUser/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchFromUserIDReader{formats: a.formats},
+		Reader:             &JAccountFetchFromUserReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchFromUserIDOK), nil
+	return result.(*JAccountFetchFromUserOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchGroupsID post remote API j account fetch groups ID API
+JAccountFetchGroups j account fetch groups API
 */
-func (a *Client) PostRemoteAPIJAccountFetchGroupsID(params *PostRemoteAPIJAccountFetchGroupsIDParams) (*PostRemoteAPIJAccountFetchGroupsIDOK, error) {
+func (a *Client) JAccountFetchGroups(params *JAccountFetchGroupsParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchGroupsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchGroupsIDParams()
+		params = NewJAccountFetchGroupsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchGroupsID",
+		ID:                 "JAccount.fetchGroups",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchGroups/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchGroupsIDReader{formats: a.formats},
+		Reader:             &JAccountFetchGroupsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchGroupsIDOK), nil
+	return result.(*JAccountFetchGroupsOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchKitesID post remote API j account fetch kites ID API
+JAccountFetchKites j account fetch kites API
 */
-func (a *Client) PostRemoteAPIJAccountFetchKitesID(params *PostRemoteAPIJAccountFetchKitesIDParams) (*PostRemoteAPIJAccountFetchKitesIDOK, error) {
+func (a *Client) JAccountFetchKites(params *JAccountFetchKitesParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchKitesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchKitesIDParams()
+		params = NewJAccountFetchKitesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchKitesID",
+		ID:                 "JAccount.fetchKites",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchKites/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchKitesIDReader{formats: a.formats},
+		Reader:             &JAccountFetchKitesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchKitesIDOK), nil
+	return result.(*JAccountFetchKitesOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchMyPermissionsAndRolesID post remote API j account fetch my permissions and roles ID API
+JAccountFetchMyPermissions j account fetch my permissions API
 */
-func (a *Client) PostRemoteAPIJAccountFetchMyPermissionsAndRolesID(params *PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDParams) (*PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOK, error) {
+func (a *Client) JAccountFetchMyPermissions(params *JAccountFetchMyPermissionsParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchMyPermissionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchMyPermissionsAndRolesIDParams()
+		params = NewJAccountFetchMyPermissionsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchMyPermissionsAndRolesID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JAccount.fetchMyPermissionsAndRoles/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOK), nil
-
-}
-
-/*
-PostRemoteAPIJAccountFetchMyPermissionsID post remote API j account fetch my permissions ID API
-*/
-func (a *Client) PostRemoteAPIJAccountFetchMyPermissionsID(params *PostRemoteAPIJAccountFetchMyPermissionsIDParams) (*PostRemoteAPIJAccountFetchMyPermissionsIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchMyPermissionsIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchMyPermissionsID",
+		ID:                 "JAccount.fetchMyPermissions",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchMyPermissions/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchMyPermissionsIDReader{formats: a.formats},
+		Reader:             &JAccountFetchMyPermissionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchMyPermissionsIDOK), nil
+	return result.(*JAccountFetchMyPermissionsOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchMySessionsID post remote API j account fetch my sessions ID API
+JAccountFetchMyPermissionsAndRoles j account fetch my permissions and roles API
 */
-func (a *Client) PostRemoteAPIJAccountFetchMySessionsID(params *PostRemoteAPIJAccountFetchMySessionsIDParams) (*PostRemoteAPIJAccountFetchMySessionsIDOK, error) {
+func (a *Client) JAccountFetchMyPermissionsAndRoles(params *JAccountFetchMyPermissionsAndRolesParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchMyPermissionsAndRolesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchMySessionsIDParams()
+		params = NewJAccountFetchMyPermissionsAndRolesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchMySessionsID",
+		ID:                 "JAccount.fetchMyPermissionsAndRoles",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JAccount.fetchMyPermissionsAndRoles/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &JAccountFetchMyPermissionsAndRolesReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*JAccountFetchMyPermissionsAndRolesOK), nil
+
+}
+
+/*
+JAccountFetchMySessions j account fetch my sessions API
+*/
+func (a *Client) JAccountFetchMySessions(params *JAccountFetchMySessionsParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchMySessionsOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewJAccountFetchMySessionsParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "JAccount.fetchMySessions",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchMySessions/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchMySessionsIDReader{formats: a.formats},
+		Reader:             &JAccountFetchMySessionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchMySessionsIDOK), nil
+	return result.(*JAccountFetchMySessionsOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchOAuthInfoID post remote API j account fetch o auth info ID API
+JAccountFetchOAuthInfo j account fetch o auth info API
 */
-func (a *Client) PostRemoteAPIJAccountFetchOAuthInfoID(params *PostRemoteAPIJAccountFetchOAuthInfoIDParams) (*PostRemoteAPIJAccountFetchOAuthInfoIDOK, error) {
+func (a *Client) JAccountFetchOAuthInfo(params *JAccountFetchOAuthInfoParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchOAuthInfoOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchOAuthInfoIDParams()
+		params = NewJAccountFetchOAuthInfoParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchOAuthInfoID",
+		ID:                 "JAccount.fetchOAuthInfo",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchOAuthInfo/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchOAuthInfoIDReader{formats: a.formats},
+		Reader:             &JAccountFetchOAuthInfoReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchOAuthInfoIDOK), nil
+	return result.(*JAccountFetchOAuthInfoOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchOtaTokenID post remote API j account fetch ota token ID API
+JAccountFetchOtaToken j account fetch ota token API
 */
-func (a *Client) PostRemoteAPIJAccountFetchOtaTokenID(params *PostRemoteAPIJAccountFetchOtaTokenIDParams) (*PostRemoteAPIJAccountFetchOtaTokenIDOK, error) {
+func (a *Client) JAccountFetchOtaToken(params *JAccountFetchOtaTokenParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchOtaTokenOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchOtaTokenIDParams()
+		params = NewJAccountFetchOtaTokenParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchOtaTokenID",
+		ID:                 "JAccount.fetchOtaToken",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchOtaToken/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchOtaTokenIDReader{formats: a.formats},
+		Reader:             &JAccountFetchOtaTokenReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchOtaTokenIDOK), nil
+	return result.(*JAccountFetchOtaTokenOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchPaymentMethodsID post remote API j account fetch payment methods ID API
+JAccountFetchPaymentMethods j account fetch payment methods API
 */
-func (a *Client) PostRemoteAPIJAccountFetchPaymentMethodsID(params *PostRemoteAPIJAccountFetchPaymentMethodsIDParams) (*PostRemoteAPIJAccountFetchPaymentMethodsIDOK, error) {
+func (a *Client) JAccountFetchPaymentMethods(params *JAccountFetchPaymentMethodsParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchPaymentMethodsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchPaymentMethodsIDParams()
+		params = NewJAccountFetchPaymentMethodsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchPaymentMethodsID",
+		ID:                 "JAccount.fetchPaymentMethods",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchPaymentMethods/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchPaymentMethodsIDReader{formats: a.formats},
+		Reader:             &JAccountFetchPaymentMethodsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchPaymentMethodsIDOK), nil
+	return result.(*JAccountFetchPaymentMethodsOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchRelativeGroupsID Method JAccount.fetchRelativeGroups
+JAccountFetchRelativeGroups Method JAccount.fetchRelativeGroups
 */
-func (a *Client) PostRemoteAPIJAccountFetchRelativeGroupsID(params *PostRemoteAPIJAccountFetchRelativeGroupsIDParams) (*PostRemoteAPIJAccountFetchRelativeGroupsIDOK, error) {
+func (a *Client) JAccountFetchRelativeGroups(params *JAccountFetchRelativeGroupsParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchRelativeGroupsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchRelativeGroupsIDParams()
+		params = NewJAccountFetchRelativeGroupsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchRelativeGroupsID",
+		ID:                 "JAccount.fetchRelativeGroups",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchRelativeGroups/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchRelativeGroupsIDReader{formats: a.formats},
+		Reader:             &JAccountFetchRelativeGroupsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchRelativeGroupsIDOK), nil
+	return result.(*JAccountFetchRelativeGroupsOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountFetchRoleID post remote API j account fetch role ID API
+JAccountFetchRole j account fetch role API
 */
-func (a *Client) PostRemoteAPIJAccountFetchRoleID(params *PostRemoteAPIJAccountFetchRoleIDParams) (*PostRemoteAPIJAccountFetchRoleIDOK, error) {
+func (a *Client) JAccountFetchRole(params *JAccountFetchRoleParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountFetchRoleOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchRoleIDParams()
+		params = NewJAccountFetchRoleParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchRoleID",
+		ID:                 "JAccount.fetchRole",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.fetchRole/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchRoleIDReader{formats: a.formats},
+		Reader:             &JAccountFetchRoleReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountFetchRoleIDOK), nil
+	return result.(*JAccountFetchRoleOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountGenerate2FactorAuthKeyID post remote API j account generate2 factor auth key ID API
+JAccountGenerate2FactorAuthKey j account generate2 factor auth key API
 */
-func (a *Client) PostRemoteAPIJAccountGenerate2FactorAuthKeyID(params *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams) (*PostRemoteAPIJAccountGenerate2FactorAuthKeyIDOK, error) {
+func (a *Client) JAccountGenerate2FactorAuthKey(params *JAccountGenerate2FactorAuthKeyParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountGenerate2FactorAuthKeyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams()
+		params = NewJAccountGenerate2FactorAuthKeyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountGenerate2FactorAuthKeyID",
+		ID:                 "JAccount.generate2FactorAuthKey",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.generate2FactorAuthKey/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountGenerate2FactorAuthKeyIDReader{formats: a.formats},
+		Reader:             &JAccountGenerate2FactorAuthKeyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountGenerate2FactorAuthKeyIDOK), nil
+	return result.(*JAccountGenerate2FactorAuthKeyOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountIgnoreInvitationID post remote API j account ignore invitation ID API
+JAccountIgnoreInvitation j account ignore invitation API
 */
-func (a *Client) PostRemoteAPIJAccountIgnoreInvitationID(params *PostRemoteAPIJAccountIgnoreInvitationIDParams) (*PostRemoteAPIJAccountIgnoreInvitationIDOK, error) {
+func (a *Client) JAccountIgnoreInvitation(params *JAccountIgnoreInvitationParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountIgnoreInvitationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountIgnoreInvitationIDParams()
+		params = NewJAccountIgnoreInvitationParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountIgnoreInvitationID",
+		ID:                 "JAccount.ignoreInvitation",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.ignoreInvitation/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountIgnoreInvitationIDReader{formats: a.formats},
+		Reader:             &JAccountIgnoreInvitationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountIgnoreInvitationIDOK), nil
+	return result.(*JAccountIgnoreInvitationOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountIsEmailVerifiedID Method JAccount.isEmailVerified
+JAccountIsEmailVerified Method JAccount.isEmailVerified
 */
-func (a *Client) PostRemoteAPIJAccountIsEmailVerifiedID(params *PostRemoteAPIJAccountIsEmailVerifiedIDParams) (*PostRemoteAPIJAccountIsEmailVerifiedIDOK, error) {
+func (a *Client) JAccountIsEmailVerified(params *JAccountIsEmailVerifiedParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountIsEmailVerifiedOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountIsEmailVerifiedIDParams()
+		params = NewJAccountIsEmailVerifiedParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountIsEmailVerifiedID",
+		ID:                 "JAccount.isEmailVerified",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.isEmailVerified/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountIsEmailVerifiedIDReader{formats: a.formats},
+		Reader:             &JAccountIsEmailVerifiedReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountIsEmailVerifiedIDOK), nil
+	return result.(*JAccountIsEmailVerifiedOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountIsFollowingID post remote API j account is following ID API
+JAccountIsFollowing j account is following API
 */
-func (a *Client) PostRemoteAPIJAccountIsFollowingID(params *PostRemoteAPIJAccountIsFollowingIDParams) (*PostRemoteAPIJAccountIsFollowingIDOK, error) {
+func (a *Client) JAccountIsFollowing(params *JAccountIsFollowingParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountIsFollowingOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountIsFollowingIDParams()
+		params = NewJAccountIsFollowingParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountIsFollowingID",
+		ID:                 "JAccount.isFollowing",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.isFollowing/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountIsFollowingIDReader{formats: a.formats},
+		Reader:             &JAccountIsFollowingReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountIsFollowingIDOK), nil
+	return result.(*JAccountIsFollowingOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountMarkUserAsExemptID post remote API j account mark user as exempt ID API
+JAccountMarkUserAsExempt j account mark user as exempt API
 */
-func (a *Client) PostRemoteAPIJAccountMarkUserAsExemptID(params *PostRemoteAPIJAccountMarkUserAsExemptIDParams) (*PostRemoteAPIJAccountMarkUserAsExemptIDOK, error) {
+func (a *Client) JAccountMarkUserAsExempt(params *JAccountMarkUserAsExemptParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountMarkUserAsExemptOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountMarkUserAsExemptIDParams()
+		params = NewJAccountMarkUserAsExemptParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountMarkUserAsExemptID",
+		ID:                 "JAccount.markUserAsExempt",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.markUserAsExempt/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountMarkUserAsExemptIDReader{formats: a.formats},
+		Reader:             &JAccountMarkUserAsExemptReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountMarkUserAsExemptIDOK), nil
+	return result.(*JAccountMarkUserAsExemptOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountModifyID post remote API j account modify ID API
+JAccountModify j account modify API
 */
-func (a *Client) PostRemoteAPIJAccountModifyID(params *PostRemoteAPIJAccountModifyIDParams) (*PostRemoteAPIJAccountModifyIDOK, error) {
+func (a *Client) JAccountModify(params *JAccountModifyParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountModifyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountModifyIDParams()
+		params = NewJAccountModifyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountModifyID",
+		ID:                 "JAccount.modify",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.modify/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountModifyIDReader{formats: a.formats},
+		Reader:             &JAccountModifyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountModifyIDOK), nil
+	return result.(*JAccountModifyOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountOne post remote API j account one API
+JAccountOne j account one API
 */
-func (a *Client) PostRemoteAPIJAccountOne(params *PostRemoteAPIJAccountOneParams) (*PostRemoteAPIJAccountOneOK, error) {
+func (a *Client) JAccountOne(params *JAccountOneParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountOneParams()
+		params = NewJAccountOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountOne",
+		ID:                 "JAccount.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountOneReader{formats: a.formats},
+		Reader:             &JAccountOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountOneOK), nil
+	return result.(*JAccountOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountPushNotificationID post remote API j account push notification ID API
+JAccountPushNotification j account push notification API
 */
-func (a *Client) PostRemoteAPIJAccountPushNotificationID(params *PostRemoteAPIJAccountPushNotificationIDParams) (*PostRemoteAPIJAccountPushNotificationIDOK, error) {
+func (a *Client) JAccountPushNotification(params *JAccountPushNotificationParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountPushNotificationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountPushNotificationIDParams()
+		params = NewJAccountPushNotificationParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountPushNotificationID",
+		ID:                 "JAccount.pushNotification",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.pushNotification/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountPushNotificationIDReader{formats: a.formats},
+		Reader:             &JAccountPushNotificationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountPushNotificationIDOK), nil
+	return result.(*JAccountPushNotificationOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountSetEmailPreferencesID Method JAccount.setEmailPreferences
+JAccountSetEmailPreferences Method JAccount.setEmailPreferences
 */
-func (a *Client) PostRemoteAPIJAccountSetEmailPreferencesID(params *PostRemoteAPIJAccountSetEmailPreferencesIDParams) (*PostRemoteAPIJAccountSetEmailPreferencesIDOK, error) {
+func (a *Client) JAccountSetEmailPreferences(params *JAccountSetEmailPreferencesParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountSetEmailPreferencesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountSetEmailPreferencesIDParams()
+		params = NewJAccountSetEmailPreferencesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountSetEmailPreferencesID",
+		ID:                 "JAccount.setEmailPreferences",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.setEmailPreferences/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountSetEmailPreferencesIDReader{formats: a.formats},
+		Reader:             &JAccountSetEmailPreferencesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountSetEmailPreferencesIDOK), nil
+	return result.(*JAccountSetEmailPreferencesOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountSetup2FactorAuthID post remote API j account setup2 factor auth ID API
+JAccountSetup2FactorAuth j account setup2 factor auth API
 */
-func (a *Client) PostRemoteAPIJAccountSetup2FactorAuthID(params *PostRemoteAPIJAccountSetup2FactorAuthIDParams) (*PostRemoteAPIJAccountSetup2FactorAuthIDOK, error) {
+func (a *Client) JAccountSetup2FactorAuth(params *JAccountSetup2FactorAuthParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountSetup2FactorAuthOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountSetup2FactorAuthIDParams()
+		params = NewJAccountSetup2FactorAuthParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountSetup2FactorAuthID",
+		ID:                 "JAccount.setup2FactorAuth",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.setup2FactorAuth/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountSetup2FactorAuthIDReader{formats: a.formats},
+		Reader:             &JAccountSetup2FactorAuthReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountSetup2FactorAuthIDOK), nil
+	return result.(*JAccountSetup2FactorAuthOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountSome post remote API j account some API
+JAccountSome j account some API
 */
-func (a *Client) PostRemoteAPIJAccountSome(params *PostRemoteAPIJAccountSomeParams) (*PostRemoteAPIJAccountSomeOK, error) {
+func (a *Client) JAccountSome(params *JAccountSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountSomeParams()
+		params = NewJAccountSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountSome",
+		ID:                 "JAccount.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountSomeReader{formats: a.formats},
+		Reader:             &JAccountSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountSomeOK), nil
+	return result.(*JAccountSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountSomeWithRelationship post remote API j account some with relationship API
+JAccountSomeWithRelationship j account some with relationship API
 */
-func (a *Client) PostRemoteAPIJAccountSomeWithRelationship(params *PostRemoteAPIJAccountSomeWithRelationshipParams) (*PostRemoteAPIJAccountSomeWithRelationshipOK, error) {
+func (a *Client) JAccountSomeWithRelationship(params *JAccountSomeWithRelationshipParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountSomeWithRelationshipOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountSomeWithRelationshipParams()
+		params = NewJAccountSomeWithRelationshipParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountSomeWithRelationship",
+		ID:                 "JAccount.someWithRelationship",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.someWithRelationship",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountSomeWithRelationshipReader{formats: a.formats},
+		Reader:             &JAccountSomeWithRelationshipReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountSomeWithRelationshipOK), nil
+	return result.(*JAccountSomeWithRelationshipOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountUnblockUserID post remote API j account unblock user ID API
+JAccountUnblockUser j account unblock user API
 */
-func (a *Client) PostRemoteAPIJAccountUnblockUserID(params *PostRemoteAPIJAccountUnblockUserIDParams) (*PostRemoteAPIJAccountUnblockUserIDOK, error) {
+func (a *Client) JAccountUnblockUser(params *JAccountUnblockUserParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountUnblockUserOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountUnblockUserIDParams()
+		params = NewJAccountUnblockUserParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountUnblockUserID",
+		ID:                 "JAccount.unblockUser",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.unblockUser/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountUnblockUserIDReader{formats: a.formats},
+		Reader:             &JAccountUnblockUserReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountUnblockUserIDOK), nil
+	return result.(*JAccountUnblockUserOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountUnlinkOauthID post remote API j account unlink oauth ID API
+JAccountUnlinkOauth j account unlink oauth API
 */
-func (a *Client) PostRemoteAPIJAccountUnlinkOauthID(params *PostRemoteAPIJAccountUnlinkOauthIDParams) (*PostRemoteAPIJAccountUnlinkOauthIDOK, error) {
+func (a *Client) JAccountUnlinkOauth(params *JAccountUnlinkOauthParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountUnlinkOauthOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountUnlinkOauthIDParams()
+		params = NewJAccountUnlinkOauthParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountUnlinkOauthID",
+		ID:                 "JAccount.unlinkOauth",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.unlinkOauth/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountUnlinkOauthIDReader{formats: a.formats},
+		Reader:             &JAccountUnlinkOauthReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountUnlinkOauthIDOK), nil
+	return result.(*JAccountUnlinkOauthOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountUpdateFlagsID post remote API j account update flags ID API
+JAccountUpdateFlags j account update flags API
 */
-func (a *Client) PostRemoteAPIJAccountUpdateFlagsID(params *PostRemoteAPIJAccountUpdateFlagsIDParams) (*PostRemoteAPIJAccountUpdateFlagsIDOK, error) {
+func (a *Client) JAccountUpdateFlags(params *JAccountUpdateFlagsParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountUpdateFlagsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountUpdateFlagsIDParams()
+		params = NewJAccountUpdateFlagsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountUpdateFlagsID",
+		ID:                 "JAccount.updateFlags",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.updateFlags/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountUpdateFlagsIDReader{formats: a.formats},
+		Reader:             &JAccountUpdateFlagsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountUpdateFlagsIDOK), nil
+	return result.(*JAccountUpdateFlagsOK), nil
 
 }
 
 /*
-PostRemoteAPIJAccountVerifyEmailByUsername post remote API j account verify email by username API
+JAccountVerifyEmailByUsername j account verify email by username API
 */
-func (a *Client) PostRemoteAPIJAccountVerifyEmailByUsername(params *PostRemoteAPIJAccountVerifyEmailByUsernameParams) (*PostRemoteAPIJAccountVerifyEmailByUsernameOK, error) {
+func (a *Client) JAccountVerifyEmailByUsername(params *JAccountVerifyEmailByUsernameParams, authInfo runtime.ClientAuthInfoWriter) (*JAccountVerifyEmailByUsernameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAccountVerifyEmailByUsernameParams()
+		params = NewJAccountVerifyEmailByUsernameParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountVerifyEmailByUsername",
+		ID:                 "JAccount.verifyEmailByUsername",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JAccount.verifyEmailByUsername",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAccountVerifyEmailByUsernameReader{formats: a.formats},
+		Reader:             &JAccountVerifyEmailByUsernameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAccountVerifyEmailByUsernameOK), nil
+	return result.(*JAccountVerifyEmailByUsernameOK), nil
 
 }
 

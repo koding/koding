@@ -23,86 +23,89 @@ type Client struct {
 }
 
 /*
-PostRemoteAPICollaborationAdd post remote API collaboration add API
+CollaborationAdd collaboration add API
 */
-func (a *Client) PostRemoteAPICollaborationAdd(params *PostRemoteAPICollaborationAddParams) (*PostRemoteAPICollaborationAddOK, error) {
+func (a *Client) CollaborationAdd(params *CollaborationAddParams, authInfo runtime.ClientAuthInfoWriter) (*CollaborationAddOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPICollaborationAddParams()
+		params = NewCollaborationAddParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPICollaborationAdd",
+		ID:                 "Collaboration.add",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Collaboration.add",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPICollaborationAddReader{formats: a.formats},
+		Reader:             &CollaborationAddReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPICollaborationAddOK), nil
+	return result.(*CollaborationAddOK), nil
 
 }
 
 /*
-PostRemoteAPICollaborationKick post remote API collaboration kick API
+CollaborationKick collaboration kick API
 */
-func (a *Client) PostRemoteAPICollaborationKick(params *PostRemoteAPICollaborationKickParams) (*PostRemoteAPICollaborationKickOK, error) {
+func (a *Client) CollaborationKick(params *CollaborationKickParams, authInfo runtime.ClientAuthInfoWriter) (*CollaborationKickOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPICollaborationKickParams()
+		params = NewCollaborationKickParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPICollaborationKick",
+		ID:                 "Collaboration.kick",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Collaboration.kick",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPICollaborationKickReader{formats: a.formats},
+		Reader:             &CollaborationKickReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPICollaborationKickOK), nil
+	return result.(*CollaborationKickOK), nil
 
 }
 
 /*
-PostRemoteAPICollaborationStop post remote API collaboration stop API
+CollaborationStop collaboration stop API
 */
-func (a *Client) PostRemoteAPICollaborationStop(params *PostRemoteAPICollaborationStopParams) (*PostRemoteAPICollaborationStopOK, error) {
+func (a *Client) CollaborationStop(params *CollaborationStopParams, authInfo runtime.ClientAuthInfoWriter) (*CollaborationStopOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPICollaborationStopParams()
+		params = NewCollaborationStopParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPICollaborationStop",
+		ID:                 "Collaboration.stop",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Collaboration.stop",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPICollaborationStopReader{formats: a.formats},
+		Reader:             &CollaborationStopReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPICollaborationStopOK), nil
+	return result.(*CollaborationStopOK), nil
 
 }
 

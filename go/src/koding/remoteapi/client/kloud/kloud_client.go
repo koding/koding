@@ -23,450 +23,466 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIKloudAddAdmin post remote API kloud add admin API
+KloudAddAdmin kloud add admin API
 */
-func (a *Client) PostRemoteAPIKloudAddAdmin(params *PostRemoteAPIKloudAddAdminParams) (*PostRemoteAPIKloudAddAdminOK, error) {
+func (a *Client) KloudAddAdmin(params *KloudAddAdminParams, authInfo runtime.ClientAuthInfoWriter) (*KloudAddAdminOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudAddAdminParams()
+		params = NewKloudAddAdminParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudAddAdmin",
+		ID:                 "Kloud.addAdmin",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.addAdmin",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudAddAdminReader{formats: a.formats},
+		Reader:             &KloudAddAdminReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudAddAdminOK), nil
+	return result.(*KloudAddAdminOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudBootstrap post remote API kloud bootstrap API
+KloudBootstrap kloud bootstrap API
 */
-func (a *Client) PostRemoteAPIKloudBootstrap(params *PostRemoteAPIKloudBootstrapParams) (*PostRemoteAPIKloudBootstrapOK, error) {
+func (a *Client) KloudBootstrap(params *KloudBootstrapParams, authInfo runtime.ClientAuthInfoWriter) (*KloudBootstrapOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudBootstrapParams()
+		params = NewKloudBootstrapParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudBootstrap",
+		ID:                 "Kloud.bootstrap",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.bootstrap",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudBootstrapReader{formats: a.formats},
+		Reader:             &KloudBootstrapReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudBootstrapOK), nil
+	return result.(*KloudBootstrapOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudBuild post remote API kloud build API
+KloudBuild kloud build API
 */
-func (a *Client) PostRemoteAPIKloudBuild(params *PostRemoteAPIKloudBuildParams) (*PostRemoteAPIKloudBuildOK, error) {
+func (a *Client) KloudBuild(params *KloudBuildParams, authInfo runtime.ClientAuthInfoWriter) (*KloudBuildOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudBuildParams()
+		params = NewKloudBuildParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudBuild",
+		ID:                 "Kloud.build",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.build",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudBuildReader{formats: a.formats},
+		Reader:             &KloudBuildReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudBuildOK), nil
+	return result.(*KloudBuildOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudBuildStack post remote API kloud build stack API
+KloudBuildStack kloud build stack API
 */
-func (a *Client) PostRemoteAPIKloudBuildStack(params *PostRemoteAPIKloudBuildStackParams) (*PostRemoteAPIKloudBuildStackOK, error) {
+func (a *Client) KloudBuildStack(params *KloudBuildStackParams, authInfo runtime.ClientAuthInfoWriter) (*KloudBuildStackOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudBuildStackParams()
+		params = NewKloudBuildStackParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudBuildStack",
+		ID:                 "Kloud.buildStack",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.buildStack",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudBuildStackReader{formats: a.formats},
+		Reader:             &KloudBuildStackReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudBuildStackOK), nil
+	return result.(*KloudBuildStackOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudCheckCredential post remote API kloud check credential API
+KloudCheckCredential kloud check credential API
 */
-func (a *Client) PostRemoteAPIKloudCheckCredential(params *PostRemoteAPIKloudCheckCredentialParams) (*PostRemoteAPIKloudCheckCredentialOK, error) {
+func (a *Client) KloudCheckCredential(params *KloudCheckCredentialParams, authInfo runtime.ClientAuthInfoWriter) (*KloudCheckCredentialOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudCheckCredentialParams()
+		params = NewKloudCheckCredentialParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudCheckCredential",
+		ID:                 "Kloud.checkCredential",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.checkCredential",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudCheckCredentialReader{formats: a.formats},
+		Reader:             &KloudCheckCredentialReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudCheckCredentialOK), nil
+	return result.(*KloudCheckCredentialOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudCheckTemplate post remote API kloud check template API
+KloudCheckTemplate kloud check template API
 */
-func (a *Client) PostRemoteAPIKloudCheckTemplate(params *PostRemoteAPIKloudCheckTemplateParams) (*PostRemoteAPIKloudCheckTemplateOK, error) {
+func (a *Client) KloudCheckTemplate(params *KloudCheckTemplateParams, authInfo runtime.ClientAuthInfoWriter) (*KloudCheckTemplateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudCheckTemplateParams()
+		params = NewKloudCheckTemplateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudCheckTemplate",
+		ID:                 "Kloud.checkTemplate",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.checkTemplate",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudCheckTemplateReader{formats: a.formats},
+		Reader:             &KloudCheckTemplateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudCheckTemplateOK), nil
+	return result.(*KloudCheckTemplateOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudDestroy post remote API kloud destroy API
+KloudDestroy kloud destroy API
 */
-func (a *Client) PostRemoteAPIKloudDestroy(params *PostRemoteAPIKloudDestroyParams) (*PostRemoteAPIKloudDestroyOK, error) {
+func (a *Client) KloudDestroy(params *KloudDestroyParams, authInfo runtime.ClientAuthInfoWriter) (*KloudDestroyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudDestroyParams()
+		params = NewKloudDestroyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudDestroy",
+		ID:                 "Kloud.destroy",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.destroy",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudDestroyReader{formats: a.formats},
+		Reader:             &KloudDestroyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudDestroyOK), nil
+	return result.(*KloudDestroyOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudDestroyStack post remote API kloud destroy stack API
+KloudDestroyStack kloud destroy stack API
 */
-func (a *Client) PostRemoteAPIKloudDestroyStack(params *PostRemoteAPIKloudDestroyStackParams) (*PostRemoteAPIKloudDestroyStackOK, error) {
+func (a *Client) KloudDestroyStack(params *KloudDestroyStackParams, authInfo runtime.ClientAuthInfoWriter) (*KloudDestroyStackOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudDestroyStackParams()
+		params = NewKloudDestroyStackParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudDestroyStack",
+		ID:                 "Kloud.destroyStack",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.destroyStack",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudDestroyStackReader{formats: a.formats},
+		Reader:             &KloudDestroyStackReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudDestroyStackOK), nil
+	return result.(*KloudDestroyStackOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudEvent post remote API kloud event API
+KloudEvent kloud event API
 */
-func (a *Client) PostRemoteAPIKloudEvent(params *PostRemoteAPIKloudEventParams) (*PostRemoteAPIKloudEventOK, error) {
+func (a *Client) KloudEvent(params *KloudEventParams, authInfo runtime.ClientAuthInfoWriter) (*KloudEventOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudEventParams()
+		params = NewKloudEventParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudEvent",
+		ID:                 "Kloud.event",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.event",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudEventReader{formats: a.formats},
+		Reader:             &KloudEventReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudEventOK), nil
+	return result.(*KloudEventOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudInfo post remote API kloud info API
+KloudInfo kloud info API
 */
-func (a *Client) PostRemoteAPIKloudInfo(params *PostRemoteAPIKloudInfoParams) (*PostRemoteAPIKloudInfoOK, error) {
+func (a *Client) KloudInfo(params *KloudInfoParams, authInfo runtime.ClientAuthInfoWriter) (*KloudInfoOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudInfoParams()
+		params = NewKloudInfoParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudInfo",
+		ID:                 "Kloud.info",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.info",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudInfoReader{formats: a.formats},
+		Reader:             &KloudInfoReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudInfoOK), nil
+	return result.(*KloudInfoOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudMigrate post remote API kloud migrate API
+KloudMigrate kloud migrate API
 */
-func (a *Client) PostRemoteAPIKloudMigrate(params *PostRemoteAPIKloudMigrateParams) (*PostRemoteAPIKloudMigrateOK, error) {
+func (a *Client) KloudMigrate(params *KloudMigrateParams, authInfo runtime.ClientAuthInfoWriter) (*KloudMigrateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudMigrateParams()
+		params = NewKloudMigrateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudMigrate",
+		ID:                 "Kloud.migrate",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.migrate",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudMigrateReader{formats: a.formats},
+		Reader:             &KloudMigrateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudMigrateOK), nil
+	return result.(*KloudMigrateOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudPing post remote API kloud ping API
+KloudPing kloud ping API
 */
-func (a *Client) PostRemoteAPIKloudPing(params *PostRemoteAPIKloudPingParams) (*PostRemoteAPIKloudPingOK, error) {
+func (a *Client) KloudPing(params *KloudPingParams, authInfo runtime.ClientAuthInfoWriter) (*KloudPingOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudPingParams()
+		params = NewKloudPingParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudPing",
+		ID:                 "Kloud.ping",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.ping",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudPingReader{formats: a.formats},
+		Reader:             &KloudPingReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudPingOK), nil
+	return result.(*KloudPingOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudRemoveAdmin post remote API kloud remove admin API
+KloudRemoveAdmin kloud remove admin API
 */
-func (a *Client) PostRemoteAPIKloudRemoveAdmin(params *PostRemoteAPIKloudRemoveAdminParams) (*PostRemoteAPIKloudRemoveAdminOK, error) {
+func (a *Client) KloudRemoveAdmin(params *KloudRemoveAdminParams, authInfo runtime.ClientAuthInfoWriter) (*KloudRemoveAdminOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudRemoveAdminParams()
+		params = NewKloudRemoveAdminParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudRemoveAdmin",
+		ID:                 "Kloud.removeAdmin",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.removeAdmin",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudRemoveAdminReader{formats: a.formats},
+		Reader:             &KloudRemoveAdminReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudRemoveAdminOK), nil
+	return result.(*KloudRemoveAdminOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudRestart post remote API kloud restart API
+KloudRestart kloud restart API
 */
-func (a *Client) PostRemoteAPIKloudRestart(params *PostRemoteAPIKloudRestartParams) (*PostRemoteAPIKloudRestartOK, error) {
+func (a *Client) KloudRestart(params *KloudRestartParams, authInfo runtime.ClientAuthInfoWriter) (*KloudRestartOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudRestartParams()
+		params = NewKloudRestartParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudRestart",
+		ID:                 "Kloud.restart",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.restart",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudRestartReader{formats: a.formats},
+		Reader:             &KloudRestartReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudRestartOK), nil
+	return result.(*KloudRestartOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudStart post remote API kloud start API
+KloudStart kloud start API
 */
-func (a *Client) PostRemoteAPIKloudStart(params *PostRemoteAPIKloudStartParams) (*PostRemoteAPIKloudStartOK, error) {
+func (a *Client) KloudStart(params *KloudStartParams, authInfo runtime.ClientAuthInfoWriter) (*KloudStartOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudStartParams()
+		params = NewKloudStartParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudStart",
+		ID:                 "Kloud.start",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.start",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudStartReader{formats: a.formats},
+		Reader:             &KloudStartReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudStartOK), nil
+	return result.(*KloudStartOK), nil
 
 }
 
 /*
-PostRemoteAPIKloudStop post remote API kloud stop API
+KloudStop kloud stop API
 */
-func (a *Client) PostRemoteAPIKloudStop(params *PostRemoteAPIKloudStopParams) (*PostRemoteAPIKloudStopOK, error) {
+func (a *Client) KloudStop(params *KloudStopParams, authInfo runtime.ClientAuthInfoWriter) (*KloudStopOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIKloudStopParams()
+		params = NewKloudStopParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIKloudStop",
+		ID:                 "Kloud.stop",
 		Method:             "POST",
 		PathPattern:        "/remote.api/Kloud.stop",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIKloudStopReader{formats: a.formats},
+		Reader:             &KloudStopReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIKloudStopOK), nil
+	return result.(*KloudStopOK), nil
 
 }
 

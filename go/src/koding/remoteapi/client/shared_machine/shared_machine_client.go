@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPISharedMachineAdd post remote API shared machine add API
+SharedMachineAdd shared machine add API
 */
-func (a *Client) PostRemoteAPISharedMachineAdd(params *PostRemoteAPISharedMachineAddParams) (*PostRemoteAPISharedMachineAddOK, error) {
+func (a *Client) SharedMachineAdd(params *SharedMachineAddParams, authInfo runtime.ClientAuthInfoWriter) (*SharedMachineAddOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISharedMachineAddParams()
+		params = NewSharedMachineAddParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISharedMachineAdd",
+		ID:                 "SharedMachine.add",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SharedMachine.add",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISharedMachineAddReader{formats: a.formats},
+		Reader:             &SharedMachineAddReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISharedMachineAddOK), nil
+	return result.(*SharedMachineAddOK), nil
 
 }
 
 /*
-PostRemoteAPISharedMachineKick post remote API shared machine kick API
+SharedMachineKick shared machine kick API
 */
-func (a *Client) PostRemoteAPISharedMachineKick(params *PostRemoteAPISharedMachineKickParams) (*PostRemoteAPISharedMachineKickOK, error) {
+func (a *Client) SharedMachineKick(params *SharedMachineKickParams, authInfo runtime.ClientAuthInfoWriter) (*SharedMachineKickOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPISharedMachineKickParams()
+		params = NewSharedMachineKickParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPISharedMachineKick",
+		ID:                 "SharedMachine.kick",
 		Method:             "POST",
 		PathPattern:        "/remote.api/SharedMachine.kick",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPISharedMachineKickReader{formats: a.formats},
+		Reader:             &SharedMachineKickReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPISharedMachineKickOK), nil
+	return result.(*SharedMachineKickOK), nil
 
 }
 

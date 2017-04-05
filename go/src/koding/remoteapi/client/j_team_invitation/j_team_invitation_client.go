@@ -23,114 +23,118 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJTeamInvitationByCode Method JTeamInvitation.byCode
+JTeamInvitationByCode Method JTeamInvitation.byCode
 */
-func (a *Client) PostRemoteAPIJTeamInvitationByCode(params *PostRemoteAPIJTeamInvitationByCodeParams) (*PostRemoteAPIJTeamInvitationByCodeOK, error) {
+func (a *Client) JTeamInvitationByCode(params *JTeamInvitationByCodeParams, authInfo runtime.ClientAuthInfoWriter) (*JTeamInvitationByCodeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJTeamInvitationByCodeParams()
+		params = NewJTeamInvitationByCodeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJTeamInvitationByCode",
+		ID:                 "JTeamInvitation.byCode",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JTeamInvitation.byCode",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJTeamInvitationByCodeReader{formats: a.formats},
+		Reader:             &JTeamInvitationByCodeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJTeamInvitationByCodeOK), nil
+	return result.(*JTeamInvitationByCodeOK), nil
 
 }
 
 /*
-PostRemoteAPIJTeamInvitationCreate Method JTeamInvitation.create
+JTeamInvitationCreate Method JTeamInvitation.create
 */
-func (a *Client) PostRemoteAPIJTeamInvitationCreate(params *PostRemoteAPIJTeamInvitationCreateParams) (*PostRemoteAPIJTeamInvitationCreateOK, error) {
+func (a *Client) JTeamInvitationCreate(params *JTeamInvitationCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JTeamInvitationCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJTeamInvitationCreateParams()
+		params = NewJTeamInvitationCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJTeamInvitationCreate",
+		ID:                 "JTeamInvitation.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JTeamInvitation.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJTeamInvitationCreateReader{formats: a.formats},
+		Reader:             &JTeamInvitationCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJTeamInvitationCreateOK), nil
+	return result.(*JTeamInvitationCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJTeamInvitationRemoveID post remote API j team invitation remove ID API
+JTeamInvitationRemove j team invitation remove API
 */
-func (a *Client) PostRemoteAPIJTeamInvitationRemoveID(params *PostRemoteAPIJTeamInvitationRemoveIDParams) (*PostRemoteAPIJTeamInvitationRemoveIDOK, error) {
+func (a *Client) JTeamInvitationRemove(params *JTeamInvitationRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JTeamInvitationRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJTeamInvitationRemoveIDParams()
+		params = NewJTeamInvitationRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJTeamInvitationRemoveID",
+		ID:                 "JTeamInvitation.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JTeamInvitation.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJTeamInvitationRemoveIDReader{formats: a.formats},
+		Reader:             &JTeamInvitationRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJTeamInvitationRemoveIDOK), nil
+	return result.(*JTeamInvitationRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIJTeamInvitationSendInvitationEmails post remote API j team invitation send invitation emails API
+JTeamInvitationSendInvitationEmails j team invitation send invitation emails API
 */
-func (a *Client) PostRemoteAPIJTeamInvitationSendInvitationEmails(params *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams) (*PostRemoteAPIJTeamInvitationSendInvitationEmailsOK, error) {
+func (a *Client) JTeamInvitationSendInvitationEmails(params *JTeamInvitationSendInvitationEmailsParams, authInfo runtime.ClientAuthInfoWriter) (*JTeamInvitationSendInvitationEmailsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJTeamInvitationSendInvitationEmailsParams()
+		params = NewJTeamInvitationSendInvitationEmailsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJTeamInvitationSendInvitationEmails",
+		ID:                 "JTeamInvitation.sendInvitationEmails",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JTeamInvitation.sendInvitationEmails",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJTeamInvitationSendInvitationEmailsReader{formats: a.formats},
+		Reader:             &JTeamInvitationSendInvitationEmailsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJTeamInvitationSendInvitationEmailsOK), nil
+	return result.(*JTeamInvitationSendInvitationEmailsOK), nil
 
 }
 

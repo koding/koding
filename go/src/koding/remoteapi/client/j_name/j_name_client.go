@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJNameClaimNames post remote API j name claim names API
+JNameClaimNames j name claim names API
 */
-func (a *Client) PostRemoteAPIJNameClaimNames(params *PostRemoteAPIJNameClaimNamesParams) (*PostRemoteAPIJNameClaimNamesOK, error) {
+func (a *Client) JNameClaimNames(params *JNameClaimNamesParams, authInfo runtime.ClientAuthInfoWriter) (*JNameClaimNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJNameClaimNamesParams()
+		params = NewJNameClaimNamesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJNameClaimNames",
+		ID:                 "JName.claimNames",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JName.claimNames",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJNameClaimNamesReader{formats: a.formats},
+		Reader:             &JNameClaimNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJNameClaimNamesOK), nil
+	return result.(*JNameClaimNamesOK), nil
 
 }
 
 /*
-PostRemoteAPIJNameOne post remote API j name one API
+JNameOne j name one API
 */
-func (a *Client) PostRemoteAPIJNameOne(params *PostRemoteAPIJNameOneParams) (*PostRemoteAPIJNameOneOK, error) {
+func (a *Client) JNameOne(params *JNameOneParams, authInfo runtime.ClientAuthInfoWriter) (*JNameOneOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJNameOneParams()
+		params = NewJNameOneParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJNameOne",
+		ID:                 "JName.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JName.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJNameOneReader{formats: a.formats},
+		Reader:             &JNameOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJNameOneOK), nil
+	return result.(*JNameOneOK), nil
 
 }
 

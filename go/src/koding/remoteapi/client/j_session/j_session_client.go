@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJSessionActiveSession post remote API j session active session API
+JSessionActiveSession j session active session API
 */
-func (a *Client) PostRemoteAPIJSessionActiveSession(params *PostRemoteAPIJSessionActiveSessionParams) (*PostRemoteAPIJSessionActiveSessionOK, error) {
+func (a *Client) JSessionActiveSession(params *JSessionActiveSessionParams, authInfo runtime.ClientAuthInfoWriter) (*JSessionActiveSessionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJSessionActiveSessionParams()
+		params = NewJSessionActiveSessionParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJSessionActiveSession",
+		ID:                 "JSession.activeSession",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JSession.activeSession",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJSessionActiveSessionReader{formats: a.formats},
+		Reader:             &JSessionActiveSessionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJSessionActiveSessionOK), nil
+	return result.(*JSessionActiveSessionOK), nil
 
 }
 
 /*
-PostRemoteAPIJSessionRemoveID post remote API j session remove ID API
+JSessionRemove j session remove API
 */
-func (a *Client) PostRemoteAPIJSessionRemoveID(params *PostRemoteAPIJSessionRemoveIDParams) (*PostRemoteAPIJSessionRemoveIDOK, error) {
+func (a *Client) JSessionRemove(params *JSessionRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JSessionRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJSessionRemoveIDParams()
+		params = NewJSessionRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJSessionRemoveID",
+		ID:                 "JSession.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JSession.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJSessionRemoveIDReader{formats: a.formats},
+		Reader:             &JSessionRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJSessionRemoveIDOK), nil
+	return result.(*JSessionRemoveOK), nil
 
 }
 
