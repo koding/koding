@@ -16,9 +16,9 @@ import (
 //
 // TODO(rjeczalik): make it configurable during ./configure = add to kites/config/config.json
 var (
-	DefaultEntrypointBaseURL = "https://koding-klient.s3.amazonaws.com/entrypoint"
-	DefaultScreenURL         = "https://koding-dl.s3.amazonaws.com/screen.tar.gz"
-	DefaultCertURL           = "https://koding-dl.s3.amazonaws.com/ca-certificates.crt.gz"
+	DefaultEntrypointBaseURL = "https://koding.com/s3/koding-klient/entrypoint"
+	DefaultScreenURL         = "https://koding.com/d/screen.tar.gz"
+	DefaultCertURL           = "https://koding.com/d/ca-certificates.crt.gz"
 )
 
 var provision = string(mustAsset("provision.sh"))
