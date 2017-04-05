@@ -1,7 +1,9 @@
 package rsync
 
 import (
+	"bytes"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"koding/kites/config"
@@ -24,6 +26,14 @@ func (Builder) Build(opts *msync.BuildOpts) (msync.Syncer, error) {
 type Event struct {
 	ev     *msync.Event
 	parent *Rsync
+
+	done   uint64
+	output bytes.Buffer
+}
+
+// Event returns base event which is going to be synchronized.
+func (e *Event) Event() *msync.Event {
+	return e.ev
 }
 
 // Exec satisfies msync.Execer interface. It executes rsync executable with
@@ -49,7 +59,10 @@ func (e *Event) Exec() error {
 		Host:            host,
 		SSHPort:         port,
 		Change:          change,
+		Output:          &e.output,
 	}).Run(e.ev.Context())
+
+	atomic.StoreUint64(&e.done, 1)
 
 	if err != nil {
 		return err
@@ -63,6 +76,18 @@ func (e *Event) Exec() error {
 // String implements fmt.Stringer interface. It pretty prints internal event.
 func (e *Event) String() string {
 	return e.ev.String() + " - " + "rsync"
+}
+
+// Debug stores the output of rsync command. This function is useful when one
+// wants to see underlying behavior and/or potential errors after executing the
+// event.
+func (e *Event) Debug() string {
+	// Do not check buffer until rsync comand exits. This prevents data races.
+	if isDone := atomic.LoadUint64(&e.done); isDone == 0 {
+		return "(output is not available yet)"
+	}
+
+	return e.output.String()
 }
 
 // Rsync uses rsync(1) file-copying tool to provide synchronization between

@@ -496,6 +496,17 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 					},
+				}, {
+					Name:   "inspect",
+					Hidden: true,
+					Usage:  "Advanced utilities for mount command.",
+					Action: ctlcli.ExitErrAction(MachineInspectMountCommand, log, "mount inspect"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "sync",
+							Usage: "Displays syncing history up to 100 records.",
+						},
+					},
 				}},
 			}, {
 				Name:        "umount",
@@ -784,6 +795,7 @@ func createActionFunc(action cli.ActionFunc) cli.ActionFunc {
 		return err
 	}
 }
+
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a
 // codegansta/cli friendly command Action.
 func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) cli.ActionFunc {

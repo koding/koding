@@ -24,16 +24,16 @@ const (
 func (s status) String() string {
 	switch s {
 	case statusPush:
-		return "PUSH"
+		return "push"
 	case statusPop:
-		return "POP_"
+		return "pop"
 	case statusDeprecated:
-		return "DEPR"
+		return "deprecated"
 	case statusDone:
-		return "DONE"
+		return "done"
 	}
 
-	return "UNKN"
+	return "unknown"
 }
 
 // Finalizer is an interface used by Event to clean its resources from event
