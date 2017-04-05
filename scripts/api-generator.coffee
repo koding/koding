@@ -11,9 +11,11 @@ docGen = require './docgen'
 
 swagger =
   swagger: '2.0'
+  basePath: '/remote.api'
+
   info:
     title: 'Koding API'
-    version: '0.0.2'
+    version: '0.0.3'
     description: 'Koding API for integrating your application with Koding services'
     license:
       name: 'Apache 2.0'
@@ -170,6 +172,12 @@ generateMethodPaths = (model, definitions, paths, docs) ->
   then { allOf: [ { $ref: "#/definitions/#{name}" }, { $ref: '#/definitions/DefaultResponse' } ] }
   else { $ref: '#/definitions/DefaultResponse' }
 
+  # currently swagger-codegen does not support multiple response types
+  # which causes to generate unexpected client api. So, for now we're
+  # only providing the DefaultResponse schema ~ GG
+  # ref: https://github.com/swagger-api/swagger-codegen/issues/358
+  schema = { $ref: '#/definitions/DefaultResponse' }
+
   for method, signatures of methods.statik
 
     response      =
@@ -202,11 +210,11 @@ generateMethodPaths = (model, definitions, paths, docs) ->
     else
       parameters = null
 
-    paths["/remote.api/#{name}.#{method}"] =
+    paths["/#{name}.#{method}"] =
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
-        operationId: "#{name}.#{method}"
+        operationId: "#{method}"
         parameters: parameters ? []
         security: [ { Bearer: [] } ]
         description: docs[name]['static'][method]?.description ? ''
@@ -249,10 +257,10 @@ generateMethodPaths = (model, definitions, paths, docs) ->
     unless hasCustomParams
       parameters.push { $ref: '#/parameters/bodyParam' }
 
-    paths["/remote.api/#{name}.#{method}/{id}"] =
+    paths["/#{name}.#{method}/{id}"] =
       post:
         tags: [ name ]
-        operationId: "#{name}.#{method}"
+        operationId: "#{method}"
         security: [ { Bearer: [] } ]
         consumes: [ 'application/json' ]
         description: docs[name]['instance'][method]?.description ? ''
@@ -261,6 +269,10 @@ generateMethodPaths = (model, definitions, paths, docs) ->
           '200':
             description: response.description
             schema: response.schema
+          '401':
+            description: 'Unauthorized request'
+            schema:
+              $ref: '#/definitions/UnauthorizedRequest'
 
 
 module.exports = generateApi = (callback) ->
