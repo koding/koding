@@ -77,6 +77,7 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
           return  if @events[eventId]
 
           @events[eventId] = (event) =>
+            return  if event.status is 'NotInitialized' and @state.percentage
             newState = handlers[eventName](event)
             @setState newState
 
