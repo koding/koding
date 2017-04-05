@@ -1,7 +1,6 @@
 React = require 'app/react'
 
 List = require 'app/components/list'
-SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
 
 OwnedResourcesList = require './ownedresourceslist'
 SharedResourcesList = require './sharedresourceslist'
@@ -16,8 +15,6 @@ module.exports = class SidebarResources extends React.Component
       permanent: React.PropTypes.array
       collaboration: React.PropTypes.array
     disabled: React.PropTypes.bool
-    hasTemplate: React.PropTypes.bool
-    canCreateStacks: React.PropTypes.bool
 
 
   getSectionCount: ->
@@ -33,23 +30,9 @@ module.exports = class SidebarResources extends React.Component
   getRowCount: (sectionIndex) -> 1
 
 
-  renderEmptySectionAtIndex: (sectionIndex) ->
-
-    if sectionIndex > 0
-      return null
-
-    { canCreateStacks, hasTemplate } = @props
-
-    <SidebarNoStacks
-      hasTemplate={hasTemplate}
-      hasPermission={canCreateStacks} />
-
-
   renderRowAtIndex: (sectionIndex) ->
 
     { owned, shared } = @props
-
-    console.log '>>>>>>>', sectionIndex, sections[sectionIndex]
 
     switch sections[sectionIndex]
       when 'owned'
@@ -69,6 +52,6 @@ module.exports = class SidebarResources extends React.Component
         numberOfSections={@bound 'getSectionCount'}
         numberOfRowsInSection={@bound 'getRowCount'}
         renderRowAtIndex={@bound 'renderRowAtIndex'}
-        renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'} />
+      />
 
     </div>
