@@ -794,6 +794,20 @@
         }
       }
     },
+    "JGroupData": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
     "JGroupLimit": {
       "type": "object",
       "properties": {
