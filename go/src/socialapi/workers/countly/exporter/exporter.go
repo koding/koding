@@ -5,8 +5,6 @@ import (
 	"socialapi/workers/countly/api"
 	"socialapi/workers/countly/client"
 
-	mgo "gopkg.in/mgo.v2"
-
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
@@ -52,16 +50,13 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		return nil
 	}
 
-	groupData, err := c.groupDataCache.BySlug(slug)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil
-		}
-		return err
+	groupData, _ := c.groupDataCache.BySlug(slug)
+	appKey := ""
+	if groupData != nil {
+		appKey, _ = groupData.Payload.GetString("countly.appKey")
 	}
 
-	appKey, err := groupData.Payload.GetString("countly.appKey")
-	if err != nil {
+	if appKey == "" {
 		if !c.fixApps {
 			return nil
 		}
@@ -83,6 +78,7 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		Count:        1,
 		Segmentation: event.Properties,
 	}}
+
 	return c.client.WriteEvent(appKey, slug, events)
 }
 
