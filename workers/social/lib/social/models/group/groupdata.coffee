@@ -1,6 +1,6 @@
-{ secure, signature, Base, JsPath:{ getAt } } = require 'bongo'
+{ secure, signature, Model, JsPath:{ getAt } } = require 'bongo'
 
-module.exports = class JGroupData extends Base
+module.exports = class JGroupData extends Model
   JPermissionSet = require './permissionset'
   { permit }     = JPermissionSet
 
@@ -19,12 +19,11 @@ module.exports = class JGroupData extends Base
         type      : String
         validate  : require('../name').validateName
         set       : (value) -> value.toLowerCase()
-      data        : Object
+      payload     : Object
     sharedMethods :
       static      :
         fetchByKey: [
-          (signature Object, Function)
-          (signature Object, String, Function)
+          (signature String, Function)
         ]
 
   @create = (slug, callback) ->
@@ -53,7 +52,7 @@ module.exports = class JGroupData extends Base
   @fetchData: (slug, callback) ->
     return callback new Error 'slug is required' unless slug
 
-    @one { slug }, (err, data) ->
+    JGroupData.one { slug }, (err, data) ->
       return callback err  if err
       return callback null, data if data
 
@@ -65,9 +64,10 @@ module.exports = class JGroupData extends Base
     opts = {}
     opts[path] = 1 if path
 
-    @one { slug }, opts, (err, data) ->
+    JGroupData.one { slug }, opts, (err, data) ->
       return callback err  if err
-      return callback null, getAt data, path
+
+      return callback null, getAt data.payload, path
 
   # see docs on JGroup::modifyData
   modifyData : (slug, data, callback) ->
@@ -79,7 +79,7 @@ module.exports = class JGroupData extends Base
     # handle $set and $unset cases in one
     operation  = { $set: {}, $unset: {} }
     for item in whitelist
-      key = "data.#{item}"
+      key = "payload.#{item}"
       if data[item]?
       then operation.$set[key]   = data[item]
       else operation.$unset[key] = data[item]
