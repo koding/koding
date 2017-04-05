@@ -56,7 +56,9 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
   machineFoundCallback: (info, machine) ->
 
-    actions.showManagedMachineAddedModal info, machine._id
+    { sidebar } = kd.singletons
+
+    sidebar.addManaged machine.getId()
 
     @destroy()
 
