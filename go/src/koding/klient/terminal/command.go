@@ -44,7 +44,7 @@ func guessTerm() string {
 	terms := [][2]string{
 		{"xterm-256color", "/usr/share/terminfo/x/xterm-256color"},
 		{"xterm-256color", "/usr/share/terminfo/78/xterm-256color"},
-		{"xterm+256color", "/usr/share/terminfo/x/xterm+256color"},
+		{"xterm-color", "/usr/share/terminfo/x/xterm-color"},
 	}
 
 	for _, term := range terms {
