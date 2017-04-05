@@ -13,8 +13,11 @@ isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 List = require 'app/components/list'
 Link = require 'app/components/common/link'
 
+SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
+
 SidebarMachineItem = require './machineitemcontainer'
 OwnedResourceHeader = require './ownedresourceheader'
+SidebarNoStacks = require './nostacks'
 
 MENU = null
 
@@ -251,6 +254,15 @@ module.exports = class OwnedResourcesList extends React.Component
       stackId={stack.getId()} />
 
 
+  renderEmpty: (sectionIndex) ->
+
+    debug 'render empty section'
+
+    <SidebarNoStacks
+      hasTemplate={!!@props.resources.length}
+      hasPermission={canCreateStacks()} />
+
+
   render: ->
 
     <div className='SidebarTeamSection'>
@@ -260,6 +272,7 @@ module.exports = class OwnedResourcesList extends React.Component
         rowClassName='SidebarSection-body'
         numberOfSections={@bound 'getSectionCount'}
         renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
+        renderEmpty={@bound 'renderEmpty'}
         numberOfRowsInSection={@bound 'getRowCount'}
         renderRowAtIndex={@bound 'renderRowAtIndex'}
       />
