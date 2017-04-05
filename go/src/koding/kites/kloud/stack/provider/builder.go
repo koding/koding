@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/credential"
+	"koding/kites/kloud/metadata"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/utils/object"
 
@@ -31,6 +32,9 @@ type KodingMeta struct {
 	Slug       string `hcl:"group_slug"`
 	StackID    string `hcl:"stack_id"`
 	TemplateID string `hcl:"template_id"`
+	KlientURL  string `hcl:"klient_url"`
+	ScreenURL  string `hcl:"screen_url"`
+	CertURL    string `hcl:"cert_url"`
 }
 
 // CustomMeta represents private variables injected into Terraform template.
@@ -405,6 +409,9 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		Firstname: account.Profile.FirstName,
 		Lastname:  account.Profile.LastName,
 		Hash:      account.Profile.Hash,
+		KlientURL: stack.Konfig.KlientGzURL(),
+		ScreenURL: metadata.DefaultScreenURL,
+		CertURL:   metadata.DefaultCertURL,
 	}
 
 	if b.StackTemplate != nil {
@@ -575,7 +582,7 @@ func (b *Builder) InterpolateField(resource map[string]interface{}, resourceName
 	//   https://github.com/hashicorp/terraform/issues/4084
 	//
 	if s, ok := resource[field].(string); ok && s != "" {
-		resource[field] = fmt.Sprintf("${base64encode(null_resource.%s.triggers.%s)}", resourceName, field)
+		resource[field] = fmt.Sprintf("${null_resource.%s.triggers.%s}", resourceName, field)
 
 		nullRes, ok := b.Template.Resource["null_resource"].(map[string]interface{})
 		if !ok {

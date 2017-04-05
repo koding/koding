@@ -355,4 +355,23 @@ func stripNondeterministicResources(v interface{}) {
 			list[i] = "..."
 		}
 	}
+
+	null, ok := resource["null_resource"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	for _, v := range null {
+		res, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		trigger, ok := res["triggers"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		trigger["user_data"] = "..."
+	}
 }

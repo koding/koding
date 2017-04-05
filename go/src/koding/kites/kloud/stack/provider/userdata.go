@@ -1,43 +1,42 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
-	"koding/kites/kloud/userdata"
+	"koding/kites/kloud/metadata"
+	"koding/kites/kloud/stack"
 )
-
-// Userdata describes generic stack data required
-// to deploy and run a klient service.
-type Userdata struct {
-	Count       int            `json:"count" hcl:"count"` // number of instances
-	Debug       bool           `json:"debug" hcl:"debug"` // whether start klient in debug mode
-	KiteKeyName string         `json:"-" hcl:"-"`         // variable name of kitekey list
-	KiteKeys    map[int]string `json:"-" hcl:"-"`         // kite keys
-}
 
 // BuildUserdata builds a Userdata value for the given named vm.
 //
 // The vm is a Terraform resource value.
-func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) (*Userdata, error) {
-	ud := &Userdata{
-		Count:       1,
-		KiteKeyName: "kitekeys_" + name,
-	}
+func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error {
+	count := 1
+	t := bs.Builder.Template
 
 	if n, ok := vm["count"].(int); ok && n > 1 {
-		ud.Count = n
+		count = n
 	}
 
-	ud.KiteKeys = make(map[int]string, ud.Count)
+	kiteKeyName := "kitekeys_" + name
+	kiteKeys := make(map[int]string, count)
 
-	if b, ok := vm["debug"].(bool); ok {
-		ud.Debug = b
-		delete(vm, "debug")
+	if s, ok := vm["koding_klient_timeout"].(string); ok {
+		d, err := time.ParseDuration(s)
+		if err != nil {
+			return errors.New(`unable to read "koding_klient_timeout": ` + err.Error())
+		}
+
+		bs.Planner.KlientTimeout = d
+
+		delete(vm, "koding_klient_timeout")
 	}
 
 	var labels []string
-	if ud.Count > 1 {
-		for i := 0; i < ud.Count; i++ {
+	if count > 1 {
+		for i := 0; i < count; i++ {
 			labels = append(labels, fmt.Sprintf("%s.%d", name, i))
 		}
 	} else {
@@ -46,37 +45,44 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) (*Use
 
 	field := bs.Provider.userdata()
 
-	bs.Builder.InterpolateField(vm, name, field)
+	cfg := &metadata.Config{
+		Konfig:  stack.Konfig,
+		KiteKey: "${lookup(var." + kiteKeyName + ", count.index)}",
+	}
 
-	// this part will be the same for all machines
-	userCfg := &userdata.CloudInitConfig{
-		Username: bs.Req.Username,
-		Groups:   []string{"sudo"},
-		Hostname: bs.Req.Username, // no typo here. hostname = username
-		KiteKey:  "${lookup(var." + ud.KiteKeyName + ", count.index)}",
+	if b, ok := vm["koding_debug"].(bool); ok {
+		cfg.Debug = b
+		bs.Debug = b
+		delete(vm, "koding_debug")
 	}
 
 	if s, ok := vm[field].(string); ok {
-		userCfg.UserData = s
+		cfg.Userdata = s
 	}
 
-	userdata, err := bs.Session.Userdata.Create(userCfg)
+	ci, err := metadata.New(cfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	vm[field] = string(userdata)
+	vm[field] = ci.String()
+
+	bs.Builder.InterpolateField(vm, name, field)
 
 	// create independent kiteKey for each machine and create a Terraform
 	// lookup map, which is used in conjunction with the `count.index`.
 	for i, label := range labels {
 		kiteKey, err := bs.BuildKiteKey(label, bs.Req.Username)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		ud.KiteKeys[i] = kiteKey
+		kiteKeys[i] = kiteKey
 	}
 
-	return ud, nil
+	t.Variable[kiteKeyName] = map[string]interface{}{
+		"default": kiteKeys,
+	}
+
+	return nil
 }

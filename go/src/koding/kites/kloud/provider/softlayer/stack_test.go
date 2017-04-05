@@ -1,6 +1,7 @@
 package softlayer_test
 
 import (
+	"flag"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -30,6 +31,8 @@ var minimumTemplate = `
 	}
 }
 `
+
+var update = flag.Bool("update-golden", false, "Update golden files.")
 
 func newBaseStack(template string) (*provider.BaseStack, error) {
 	t, err := provider.ParseTemplate(template, nil)
@@ -130,6 +133,8 @@ func stripNondeterministicResources(s string) string {
 }
 
 func TestApplyTemplate(t *testing.T) {
+	flag.Parse()
+
 	cases := map[string]struct {
 		stack string
 		want  string
@@ -151,10 +156,7 @@ func TestApplyTemplate(t *testing.T) {
 	}
 
 	for name, cas := range cases {
-		// capture range variable here
-		cas := cas
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			pStack, err := ioutil.ReadFile(cas.stack)
 			if err != nil {
 				t.Fatal(err)
@@ -171,6 +173,14 @@ func TestApplyTemplate(t *testing.T) {
 			stack, err := s.ApplyTemplate(c)
 			if err != nil {
 				t.Fatal(err)
+			}
+
+			if *update {
+				if err := providertest.Write(cas.want, stack.Content, stripNondeterministicResources); err != nil {
+					t.Fatalf("Write()=%s", err)
+				}
+
+				return
 			}
 
 			if err := providertest.Equal(stack.Content, string(pWant), stripNondeterministicResources); err != nil {

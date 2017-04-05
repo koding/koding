@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
+
 	"koding/kites/config"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/metadata"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/utils"
-	"path"
 
 	marathon "github.com/gambol99/go-marathon"
 	"github.com/hashicorp/terraform/terraform"
@@ -49,9 +51,9 @@ var (
 func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	s := &Stack{
 		BaseStack:         bs,
-		EntrypointBaseURL: "https://koding-klient.s3.amazonaws.com/entrypoint",
-		ScreenURL:         "https://koding-dl.s3.amazonaws.com/screen.tar.gz",
-		CertURL:           "https://koding-dl.s3.amazonaws.com/ca-certificates.crt.gz",
+		EntrypointBaseURL: metadata.DefaultEntrypointBaseURL,
+		ScreenURL:         metadata.DefaultScreenURL,
+		CertURL:           metadata.DefaultCertURL,
 		KlientURL:         stack.Konfig.KlientGzURL(),
 	}
 

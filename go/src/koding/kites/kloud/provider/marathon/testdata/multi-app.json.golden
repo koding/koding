@@ -33,7 +33,7 @@
         "count": 3,
         "cpus": 1.2,
         "env": {
-          "KODING_CMD": "${base64encode(null_resource.multi-app.triggers.cmd)}",
+          "KODING_CMD": "${null_resource.multi-app.triggers.cmd}",
           "KODING_KLIENT_URL": "$KLIENT_URL",
           "KODING_METADATA_1": "***",
           "KODING_METADATA_2": "***",

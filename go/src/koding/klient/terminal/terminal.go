@@ -14,6 +14,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"koding/kites/config"
 	"koding/klient/terminal/pty"
 
 	"github.com/koding/kite"
@@ -113,7 +114,7 @@ func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session is empty")
 	}
 
-	if err := killSession(params.Session); err != nil {
+	if err := t.killSession(params.Session); err != nil {
 		return nil, err
 	}
 
@@ -129,7 +130,7 @@ func (t *Terminal) KillSessions(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Could not get user: %s", err)
 	}
 
-	if err := killSessions(user.Username); err != nil {
+	if err := t.killSessions(user.Username); err != nil {
 		return nil, err
 	}
 
@@ -156,11 +157,11 @@ func (t *Terminal) RenameSession(r *kite.Request) (interface{}, error) {
 	}
 
 	// prevent to rename it to a session that exists already
-	if sessionExists(params.NewName, r.Username) {
+	if t.sessionExists(params.NewName, r.Username) {
 		return nil, ErrNoSession
 	}
 
-	if err := renameSession(params.OldName, params.NewName); err != nil {
+	if err := t.renameSession(params.OldName, params.NewName); err != nil {
 		return nil, err
 	}
 
@@ -176,7 +177,7 @@ func (t *Terminal) GetSessions(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Could not get user: %s", err)
 	}
 
-	sessions := screenSessions(user.Username)
+	sessions := t.screenSessions(user.Username)
 	if len(sessions) == 0 {
 		return nil, errors.New("no sessions available")
 	}
@@ -203,18 +204,13 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("{ sizeX: %d, sizeY: %d } { raw JSON : %v }", params.SizeX, params.SizeY, r.Args.One())
 	}
 
-	user, err := user.Current()
-	if err != nil {
-		return nil, fmt.Errorf("Could not get home dir: %s", err)
-	}
-
 	if params.Mode == "create" && t.HasLimit(r.Username) {
 		return nil, errors.New("session limit has reached")
 	}
 
-	command, err := newCommand(params.Mode, params.Session, user.Username)
+	command, err := t.newCommand(params.Mode, params.Session, config.CurrentUser.Username)
 	if err != nil {
-		t.Log.Warning("terminal: connect failed for user %q: %s", user.Username, err)
+		t.Log.Warning("terminal: connect failed for user %q: %s", config.CurrentUser.Username, err)
 
 		return nil, err
 	}
@@ -243,7 +239,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	if os.Geteuid() == 0 {
 		args = []string{"-i", command.Name}
 	} else {
-		args = []string{"-i", "-u", "#" + user.Uid, "--", command.Name}
+		args = []string{"-i", "-u", config.CurrentUser.Username, "--", command.Name}
 	}
 
 	// check if we have custom screenrc path and there is a file for it. If yes
@@ -266,25 +262,32 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	// For test use this, sudo is not going to work
 	// cmd := exec.Command(command.Name, command.Args...)
 
-	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
+	var stderr bytes.Buffer
+
+	cmd.Env = defaultEnv
 	cmd.Stdin = server.pty.Slave
 	cmd.Stdout = server.pty.Slave
-	cmd.Dir = user.HomeDir
-	// cmd.Stderr = server.pty.Slave
+	cmd.Dir = config.CurrentUser.HomeDir
+	cmd.Stderr = &stderr
 
 	// Open in background, this is needed otherwise the process will be killed
 	// if you hit close on the client side.
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
+
+	t.Log.Debug("terminal: starting session %q: %v (%v)", command.Session, cmd.Args, screenEnv)
+
 	err = cmd.Start()
 	if err != nil {
-		fmt.Println("could not start", err)
+		t.Log.Error("terminal: could not start session %q: %s", command.Session, err)
 	}
 
 	// Wait until the shell process is closed and notify the client.
 	go func() {
 		err := cmd.Wait()
 		if err != nil {
-			fmt.Println("cmd.wait err", err)
+			t.Log.Error("terminal: session %q wait error: %s: %s\n", command.Session, err, &stderr)
+		} else {
+			t.Log.Debug("terminal: session %q has ended: %s", command.Session, &stderr)
 		}
 
 		server.pty.Slave.Close()
