@@ -65,4 +65,4 @@ main() {
 	fi
 }
 
-main &>/var/log/cloud-init-output.log
+main &>>/var/log/cloud-init-output.log
