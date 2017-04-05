@@ -16,7 +16,7 @@ trap "echo _KD_DONE_ | tee -a /var/log/cloud-init-output.log" EXIT
 
 install_screen() {
 	curl --location --silent --show-error --retry 5 "$${SCREEN_URL}" --output /tmp/screen.tar.gz
-    tar -C / -xf /tmp/screen.tar.gz
+	tar -C / -xf /tmp/screen.tar.gz
 
 	groupadd --force screen
 	usermod -a -G screen "$${KODING_USERNAME}"
@@ -29,6 +29,9 @@ install_screen() {
 		mkdir -p /usr/share
 		ln -sf /opt/kite/klient/embedded/share/terminfo /usr/share/terminfo
 		ln -sf /usr/share/terminfo/X /usr/share/terminfo/x
+	elif [ -e /usr/share/terminfo/x/xterm-256color ]; then
+		rm -rf /opt/kite/klient/embedded/share/terminfo
+		ln -sf /usr/share/terminfo /opt/kite/klient/embedded/share/terminfo
 	fi
 
 	if [ ! -e /var/run/screen ]; then
@@ -44,17 +47,7 @@ main() {
 	touch /var/log/klient.log \
 	      /var/log/cloud-init-output.log
 
-	if ! type screen &>/dev/null; then
-		if [ $${USE_EMBEDDED} -eq 1 ]; then
-			install_screen
-		elif type yum &>/dev/null; then
-			yum install --assumeyes screen
-		elif type apt-get &>/dev/null; then
-			apt-get install -y screen
-		else
-			install_screen
-		fi
-	fi
+	install_screen
 
 	mkdir -p /opt/kite/klient
 	curl --location --silent --show-error --retry 5 "$${KLIENT_URL}" --output /tmp/klient.gz
