@@ -22,9 +22,6 @@ require './styl/sidebarstackwidgets.styl'
 require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
 
-calculateOwnedResources = require 'app/util/calculateOwnedResources'
-calculateSharedResources = require 'app/util/calculateSharedResources'
-
 module.exports = class SidebarContainer extends React.Component
 
   constructor: (props) ->
