@@ -429,29 +429,32 @@ func (g *Group) InspectMount(req *InspectMountRequest) (*InspectMountResponse, e
 	}
 
 	res := &InspectMountResponse{}
-	if req.Sync {
-		if sc, err := g.sync.Sync(mountID); err == nil {
-			if res.History, err = sc.History(); err != nil {
-				g.log.Error("Cannot get mount %s syncing history: %s", mountID, err)
-			}
-		} else {
-			g.log.Warning("Mount %s is not synchronized: %s", mountID, err)
+	if !req.Sync {
+		return res, nil
+	}
+
+	if sc, err := g.sync.Sync(mountID); err == nil {
+		if res.History, err = sc.History(); err != nil {
+			g.log.Error("Cannot get mount %s syncing history: %s", mountID, err)
 		}
+	} else {
+		g.log.Warning("Mount %s is not synchronized: %s", mountID, err)
 	}
 
 	return res, nil
 }
 
 // getMountID looks up and converts provided identifier to mount ID.
-func (g *Group) getMountID(identifier string) (mount.ID, error) {
-	mountID, err := mount.IDFromString(identifier)
-	if err != nil {
-		absPath, e := filepath.Abs(identifier)
-		if mountID, err = g.mount.Path(absPath); e != nil || err != nil {
-			g.log.Error("Cannot found mount with identifier: %s", identifier)
-			return "", fmt.Errorf("unknown mount: %q", identifier)
-		}
+func (g *Group) getMountID(identifier string) (mountID mount.ID, err error) {
+	if mountID, err = mount.IDFromString(identifier); err == nil {
+		return
 	}
 
-	return mountID, err
+	absPath, e := filepath.Abs(identifier)
+	if mountID, err = g.mount.Path(absPath); e != nil || err != nil {
+		g.log.Error("Cannot found mount with identifier: %s", identifier)
+		return "", fmt.Errorf("unknown mount: %q", identifier)
+	}
+
+	return
 }

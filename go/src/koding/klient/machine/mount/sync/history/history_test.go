@@ -39,7 +39,7 @@ func TestHistory(t *testing.T) {
 	h := history.NewHistory(discard.NewDiscard(), historySize)
 
 	for i, change := range changes {
-		tLeft := time.Now()
+		tLeft := time.Now().UTC()
 
 		if change.Change != nil {
 			if err := synctest.ExecChange(h, change.Change, time.Second); err != nil {
@@ -52,8 +52,12 @@ func TestHistory(t *testing.T) {
 			t.Fatalf("want recs len = %d; got %d (i:%d)", change.RecLen, len(recs), i)
 		}
 
-		for j := len(recs) - 1; j >= 0 && (len(recs)-1-j) < 3; j-- {
-			if err := timeBetween(recs[j].CreatedAt, tLeft, time.Now()); err != nil {
+		// Check creation time of last three elements stored in returned slice.
+		// Each new event should add at least three new entries to the buffer.
+		// Here we check if they were added and if they are at the right place.
+		maxIndex := len(recs) - 1
+		for j := maxIndex; j >= 0 && maxIndex-j < 3; j-- {
+			if err := timeBetween(recs[j].CreatedAt, tLeft, time.Now().UTC()); err != nil {
 				t.Fatalf("want err = nil; got %v (i:%d,j:%d)", err, i, j)
 			}
 		}

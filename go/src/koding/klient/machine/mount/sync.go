@@ -235,7 +235,7 @@ func (s *Sync) History() ([]*history.Record, error) {
 		return h.Get(), nil
 	}
 
-	return nil, errors.New("synchronization history in unavailable")
+	return nil, errors.New("synchronization history is unavailable")
 }
 
 // CacheDir returns the name of mount cache directory.

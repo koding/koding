@@ -53,7 +53,7 @@ func (h *History) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 				}
 
 				h.add(&Record{
-					CreatedAt: time.Now(),
+					CreatedAt: time.Now().UTC(),
 					Message:   "received: " + ex.String(),
 				})
 
@@ -130,7 +130,7 @@ func (he *histExec) Event() *msync.Event {
 // Exec starts synchronization of stored syncing job.
 func (he *histExec) Exec() (err error) {
 	he.parent.add(&Record{
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		Message:   "started: " + he.ex.String(),
 	})
 
@@ -142,7 +142,7 @@ func (he *histExec) Exec() (err error) {
 	}
 
 	he.parent.add(&Record{
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		Message:   msg,
 		Details:   he.ex.Debug(),
 	})
