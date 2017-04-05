@@ -78,8 +78,8 @@
       window.swaggerUi.load();
 
       function setAuth(auth) {
-        swaggerUi.api.clientAuthorizations.remove("clientId");
-        swaggerUi.api.clientAuthorizations.add("clientId",
+        swaggerUi.api.clientAuthorizations.remove("Bearer");
+        swaggerUi.api.clientAuthorizations.add("Bearer",
           new SwaggerClient.ApiKeyAuthorization(
             "Authorization", "Bearer " + auth
           , "header")
@@ -178,7 +178,7 @@
 
       function logoutFromKoding (callback) {
         var clientId = Cookies.get('clientId');
-        swaggerUi.api.clientAuthorizations.remove("clientId");
+        swaggerUi.api.clientAuthorizations.remove("Bearer");
         setCsrfToken(function (csrfToken) {
           $.ajax({
             url: '/remote.api/JUser.logout',
