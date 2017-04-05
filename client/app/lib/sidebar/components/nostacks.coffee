@@ -1,5 +1,4 @@
 React = require 'app/react'
-Link  = require 'app/components/common/link'
 
 module.exports = SidebarNoStacks = ({ hasTemplate, hasPermission }) ->
 
