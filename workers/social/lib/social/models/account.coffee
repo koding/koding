@@ -1102,7 +1102,7 @@ module.exports = class JAccount extends jraphical.Module
 
     JSession.one { clientId: sessionToken }, (err, session) ->
 
-      if err or not session
+      if err or not session or session.isGuestSession()
         return errorCallback()
 
       [otaToken] = uuid.v4().split '-'

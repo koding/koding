@@ -222,16 +222,10 @@ module.exports = class JUser extends jraphical.Module
         user, username, toBeDeletedUsername, client
       }, callback)
 
+  logError = (message, rest...) ->
+    console.error "[JUser::authenticateClient] #{message}", rest...
+
   @authenticateClient: (clientId, callback) ->
-
-    logError = (message, rest...) ->
-      console.error "[JUser::authenticateClient] #{message}", rest...
-
-    logout = (reason, clientId, callback) =>
-
-      @logout clientId, (err) ->
-        logError reason, clientId
-        callback new KodingError reason
 
     # Let's try to lookup provided session first
     JSession.one { clientId }, (err, session) ->
@@ -643,6 +637,13 @@ module.exports = class JUser extends jraphical.Module
       return callback null, { isEligible: yes }
 
 
+  logout = (reason, clientId, callback) ->
+
+    JSession.logout clientId, (err) ->
+      logError reason, clientId
+      callback new KodingError reason
+
+
   checkSessionValidity = (options, callback) ->
 
     { session, logout, clientId } = options
@@ -659,7 +660,7 @@ module.exports = class JUser extends jraphical.Module
     # If we are dealing with a guest session we know that we need to
     # use fake guest user
 
-    if /^guest-/.test username
+    if session.isGuestSession()
 
       JUser.fetchGuestUser (err, response) ->
 
@@ -697,10 +698,12 @@ module.exports = class JUser extends jraphical.Module
             logout 'error fetching account', clientId, callback
 
           else
-
             # A valid session, a valid user attached to
             # it voila, scenario #2
-            callback null, { session, account }
+            session.lastAccess = lastAccess = new Date
+            session.update { $set: { lastAccess } }, (err) ->
+              return callback err  if err
+              callback null, { session, account }
 
 
   updateUnregisteredUserAccount = (options, callback) ->
