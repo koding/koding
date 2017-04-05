@@ -6651,9 +6651,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroupData.fetchByKey",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
