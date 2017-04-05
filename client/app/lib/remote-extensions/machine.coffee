@@ -226,7 +226,7 @@ module.exports = class JMachine extends remote.api.JMachine
     super label, (err, newLabel) =>
       return callback err  if err
 
-      @label = newLabel
+      @setAt 'label', newLabel
 
       storage.machines.push this
 
