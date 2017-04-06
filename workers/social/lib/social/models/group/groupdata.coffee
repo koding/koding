@@ -58,10 +58,10 @@ module.exports = class JGroupData extends Model
     # for more granular control, specify each sub key as well.
     availableKeys = [ 'countly' ]
 
-    if availableKeys.indexOf(path) is -1
+    unless path in availableKeys
       return callback new Error 'path is forbidden'
 
-    slug = client.context.group
+    slug = client?.context?.group
     JGroupData.fetchDataAt slug, path, callback
 
 
