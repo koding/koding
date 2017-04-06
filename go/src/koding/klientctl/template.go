@@ -158,6 +158,13 @@ func printTemplates(templates []*models.JStackTemplate) {
 			}
 		}
 
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", tmpl.ID, *tmpl.Title, *tmpl.Slug, owner, *tmpl.Group, tmpl.AccessLevel, len(tmpl.Machines))
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", tmpl.ID, str(tmpl.Title), str(tmpl.Slug), owner, str(tmpl.Group), tmpl.AccessLevel, len(tmpl.Machines))
 	}
+}
+
+func str(s *string) string {
+	if s == nil || *s == "" {
+		return "-"
+	}
+	return *s
 }
