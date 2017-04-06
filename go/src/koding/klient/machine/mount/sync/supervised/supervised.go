@@ -80,15 +80,11 @@ func (s *Supervised) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 		// interval.
 		rebuild := func() {
 			var err error
-			switch sy, err = s.b.Build(s.opts); err {
-			case nil:
-				exDynC = sy.ExecStream(evC) // Consume from new syncer.
-			case client.ErrDisconnected:
-				exDynC = nil // Contex was set by ClientFunc.
-			default:
+			if sy, err = s.b.Build(&opts); err != nil {
 				exDynC = nil
-				ctx, _ = context.WithTimeout(context.Background(), s.interval)
+				return
 			}
+			exDynC = sy.ExecStream(evC) // Consume from new syncer.
 		}
 
 		for {
@@ -105,6 +101,7 @@ func (s *Supervised) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 					return
 				}
 			case <-ctx.Done():
+				ctx, _ = context.WithTimeout(context.Background(), s.interval)
 				if sy == nil {
 					rebuild()
 				} else {
