@@ -98,6 +98,9 @@ func (s *Supervised) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 				select {
 				case exC <- ex:
 				case <-s.stopC:
+					if sy != nil {
+						sy.Close()
+					}
 					return
 				}
 			case <-ctx.Done():
@@ -108,6 +111,9 @@ func (s *Supervised) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 					sy.Close()
 				}
 			case <-s.stopC:
+				if sy != nil {
+					sy.Close()
+				}
 				return
 			}
 		}
