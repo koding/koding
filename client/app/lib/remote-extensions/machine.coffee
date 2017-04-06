@@ -274,8 +274,8 @@ module.exports = class JMachine extends remote.api.JMachine
     { Shared, Reassigned, Collaboration } = JMachine.Type
 
     switch @getType()
-      when Shared, Collaboration then "#{@label} (#{@getOwner()})"
-      when Reassigned then "#{@label} (#{@getOldOwner()})"
+      when Shared, Collaboration then "#{@label} (@#{@getOwner()})"
+      when Reassigned then "#{@label} (@#{@getOldOwner()})"
       else @label
 
 
