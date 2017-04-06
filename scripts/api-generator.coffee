@@ -12,7 +12,7 @@ docGen = require './docgen'
 swagger =
   swagger: '2.0'
   basePath: '/remote.api'
-
+  host: 'koding.com'
   info:
     title: 'Koding API'
     version: '0.0.3'
@@ -32,11 +32,6 @@ swagger =
       name: 'system'
       description: 'System endpoints for various purposes'
     }
-  ]
-
-  schemes: [
-    'http'
-    'https'
   ]
 
   definitions:
@@ -102,7 +97,7 @@ swagger =
       description: 'body of the request'
 
   paths:
-    '/-/version':
+    '../-/version':
       get:
         tags: [ 'system' ]
         responses:
