@@ -67,6 +67,12 @@ func (c *Client) Stop() error {
 	return svc.Stop()
 }
 
+func (c *Client) Installed() bool {
+	c.init()
+
+	return len(c.d.Installation) == len(script)
+}
+
 func (c *Client) Ping() error {
 	timeout := time.NewTimer(c.timeout())
 	defer timeout.Stop()
@@ -197,3 +203,4 @@ func Update(opts *Opts) error    { return DefaultClient.Update(opts) }
 func Start() error               { return DefaultClient.Start() }
 func Restart() error             { return DefaultClient.Restart() }
 func Stop() error                { return DefaultClient.Stop() }
+func Installed() bool            { return DefaultClient.Installed() }

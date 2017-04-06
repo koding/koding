@@ -45,6 +45,7 @@ type LoginOptions struct {
 	Username string
 	Password string
 	Prefix   string
+	Force    bool
 }
 
 func (opts *LoginOptions) AskUserPass() (err error) {

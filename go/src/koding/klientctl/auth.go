@@ -39,6 +39,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	opts := &auth.LoginOptions{
 		Team:  c.String("team"),
 		Token: c.String("token"),
+		Force: true,
 	}
 
 	resp, err := f.Login(opts)

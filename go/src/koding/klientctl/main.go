@@ -22,6 +22,7 @@ import (
 	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/util"
 
@@ -105,13 +106,30 @@ func run(args []string) {
 		log.SetLevel(logging.DEBUG)
 	}
 
+	kloud.DefaultLog = log
+	testKloudHook(kloud.DefaultClient)
+	defer ctlcli.Close()
+
+	// TODO(leeola): deprecate this default, instead passing it as a dependency
+	// to the users of it.
+	//
+	// init the defaultHealthChecker with the log.
+	defaultHealthChecker = NewDefaultHealthChecker(log)
+
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
 		// In the event of an error, simply print the error to the user
 		// and exit.
-		fmt.Println("Error: this command requires sudo.")
+		fmt.Fprintln(os.Stderr, "This command requires sudo.")
 		ctlcli.Close()
 		os.Exit(10)
+	}
+
+	if !daemon.Installed() && !isDaemonCommand(os.Args[1:]) {
+		fmt.Fprintln(os.Stderr, "This command requires a daemon to be installed. Please install it "+
+			"with the following command:\n\n\tsudo kd daemon install [--team <name>]\n")
+		ctlcli.Close()
+		os.Exit(1)
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -123,16 +141,6 @@ func run(args []string) {
 	}()
 
 	signal.Notify(sig, signals...)
-
-	kloud.DefaultLog = log
-	testKloudHook(kloud.DefaultClient)
-	defer ctlcli.Close()
-
-	// TODO(leeola): deprecate this default, instead passing it as a dependency
-	// to the users of it.
-	//
-	// init the defaultHealthChecker with the log.
-	defaultHealthChecker = NewDefaultHealthChecker(log)
 
 	app := cli.NewApp()
 	app.Name = config.Name
@@ -899,4 +907,11 @@ func find(cmds cli.Commands, names ...string) cli.Command {
 	}
 
 	return cli.Command{}
+}
+
+func isDaemonCommand(args []string) bool {
+	if len(args) == 0 {
+		return false
+	}
+	return args[0] == "daemon"
 }

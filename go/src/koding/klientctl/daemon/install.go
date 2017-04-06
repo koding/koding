@@ -400,6 +400,7 @@ var script = []InstallStep{{
 			Team:   opts.Team,
 			Token:  opts.Token,
 			Prefix: "\t",
+			Force:  true,
 		})
 
 		fmt.Println()
@@ -512,6 +513,10 @@ var script = []InstallStep{{
 		if err != nil {
 			return "", err
 		}
+
+		// Stop the daemon if it's running, for the new configuration
+		// to take effect.
+		_ = svc.Stop()
 
 		return "", svc.Start()
 	},
