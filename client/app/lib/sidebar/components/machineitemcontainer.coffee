@@ -3,6 +3,8 @@ kd = require 'kd'
 { findDOMNode } = require 'react-dom'
 React = require 'app/react'
 
+getMachineLinks = require 'app/util/getMachineLinks'
+
 Machine = require 'app/remote-extensions/machine'
 connectCompute = require 'app/providers/connectcompute'
 connectSidebar = require 'app/sidebar/connectsidebar'
@@ -92,7 +94,7 @@ module.exports = computeConnector sidebarConnector class MachineItemContainer ex
     { router, sidebar } = kd.singletons
 
     if @props.machine.isApproved()
-    then router.handleRoute @props.machine.getIDELink()
+    then router.handleRoute getMachineLinks @props.machine, 'ide'
     else sidebar.setInvited @props.machine.getId()
 
 
@@ -102,7 +104,7 @@ module.exports = computeConnector sidebarConnector class MachineItemContainer ex
     { machine } = @props
 
     if machine.isMine() or machine.getOldOwner()
-    then router.handleRoute machine.getDashboardLink()
+    then router.handleRoute getMachineLinks machine, 'dashboard'
     else sidebar.setLeaving @props.machine.getId()
 
 

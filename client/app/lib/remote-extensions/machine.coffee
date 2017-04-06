@@ -279,20 +279,6 @@ module.exports = class JMachine extends remote.api.JMachine
       else @label
 
 
-  getIDELink: ->
-
-    { Own, Shared, Reassigned, Collaboration } = JMachine.Type
-
-    switch @getType()
-      when Own then "/IDE/#{@slug or @label}"
-      when Collaboration then "/IDE/#{@uid}"
-      when Shared, Reassigned then "/IDE/#{@uid}"
-      else ''
-
-
-  getDashboardLink: -> "/Home/stacks/virtual-machines/#{@getId()}"
-
-
   unshareAllUsers: ->
 
     debug 'unshare all users'

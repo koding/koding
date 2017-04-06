@@ -10,6 +10,7 @@ SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
 EnvironmentFlux     = require 'app/flux/environment'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
+getMachineLinks = require 'app/util/getMachineLinks'
 
 Machine = require 'app/remote-extensions/machine'
 
@@ -273,19 +274,19 @@ module.exports = class MachineDetails extends React.Component
     @props.machine.setLabel @state.machineLabel, (err) =>
       if err
         @setState { machineLabel: @props.machine.label }
-        # EnvironmentFlux.actions.loadExpandedMachineLabel @props.machine.label
         return new kd.NotificationView
           title: 'Something went wrong',
           duration: 2000
 
-      kd.singletons.router.handleRoute @props.machine.getDashboardLink()
+      kd.singletons.router.handleRoute \
+        getMachineLinks @props.machine, 'dashboard'
 
 
   onClickBuildLog: (e) ->
 
     { router, computeController } = kd.singletons
 
-    router.handleRoute @props.machine.getIDELink()
+    router.handleRoute getMachineLinks @props.machine, 'ide'
     computeController.showBuildLogs @props.machine, 0
 
 

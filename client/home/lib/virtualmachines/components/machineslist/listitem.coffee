@@ -7,6 +7,8 @@ KDReactorMixin  = require 'app/flux/base/reactormixin'
 Machine = require 'app/remote-extensions/machine'
 ComputeStack = require 'app/remote-extensions/computestack'
 
+getMachineLinks = require 'app/util/getMachineLinks'
+
 
 module.exports = class MachinesListItem extends React.Component
 
@@ -82,7 +84,7 @@ module.exports = class MachinesListItem extends React.Component
     if @state.activeMachine is @props.machine.getId()
       return router.handleRoute "/Home/stacks/virtual-machines"
 
-    router.handleRoute @props.machine.getDashboardLink()
+    router.handleRoute getMachineLinks @props.machine, 'dashboard'
 
 
   renderIpAddress: ->
