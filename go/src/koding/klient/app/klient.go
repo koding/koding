@@ -70,7 +70,7 @@ type Klient struct {
 	storage *storage.Storage
 
 	// terminal provides wmethods
-	terminal *terminal.Terminal
+	terminal terminal.Terminal
 
 	// vagrant handlers
 	vagrant *vagrant.Handlers
@@ -251,8 +251,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
-	term := terminal.New(k.Log, conf.ScreenrcPath)
-	term.InputHook = usg.Reset
+	term := terminal.New(k.Log, conf.ScreenrcPath, usg.Reset)
 
 	db, err := openBoltDB(configstore.CacheOptions("klient"))
 	if err != nil {
@@ -495,6 +494,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
 	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
+	k.kite.HandleFunc("machine.mount.inspect", machinegroup.KiteHandlerInspectMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
 	k.kite.HandleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))
 	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)

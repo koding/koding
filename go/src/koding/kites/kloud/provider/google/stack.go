@@ -184,13 +184,8 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			metadata = flatten(meta)
 		}
 
-		ub, err := s.BuildUserdata(resourceName, metadata)
-		if err != nil {
+		if err := s.BuildUserdata(resourceName, metadata); err != nil {
 			return nil, err
-		}
-
-		t.Variable[ub.KiteKeyName] = map[string]interface{}{
-			"default": ub.KiteKeys,
 		}
 
 		instance["metadata"] = addPublicKey(metadata, s.Req.Username, s.Keys.PublicKey)

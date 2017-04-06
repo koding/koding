@@ -9,6 +9,13 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
   "tags": [
     {
       "name": "system",
@@ -1589,9 +1596,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1619,9 +1632,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1649,9 +1668,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.someWithRelationship",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1679,9 +1704,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.count",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1709,9 +1740,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.byRelevance",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1739,9 +1776,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.verifyEmailByUsername",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1769,9 +1812,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.fetchBlockedUsers",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1799,9 +1848,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JAccount.fetchEmailsByUsername",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -1825,6 +1880,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.modify",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -1860,6 +1921,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.fetchAppStorage",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -1893,6 +1960,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.setEmailPreferences",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -1928,6 +2001,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.fetchRole",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -1961,6 +2040,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.isFollowing",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -1996,6 +2081,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.updateFlags",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2029,6 +2120,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchGroups",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2064,6 +2161,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.cancelRequest",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2097,6 +2200,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.acceptInvitation",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2132,6 +2241,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.ignoreInvitation",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2165,6 +2280,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchMyPermissions",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2200,6 +2321,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.fetchMyPermissionsAndRoles",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2233,6 +2360,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchMySessions",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2268,6 +2401,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.blockUser",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2301,6 +2440,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.unblockUser",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2336,6 +2481,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.unlinkOauth",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2369,6 +2520,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.markUserAsExempt",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2404,6 +2561,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.checkGroupMembership",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2437,6 +2600,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.isEmailVerified",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2472,6 +2641,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.fetchEmail",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2505,6 +2680,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchPaymentMethods",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2540,6 +2721,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.fetchEmailAndStatus",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2573,6 +2760,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchEmailFrequency",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2608,6 +2801,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.fetchOAuthInfo",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2641,6 +2840,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchFromUser",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2676,6 +2881,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.fetchKites",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2709,6 +2920,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchRelativeGroups",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2744,6 +2961,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.expireSubscription",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2777,6 +3000,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.fetchOtaToken",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2812,6 +3041,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.generate2FactorAuthKey",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2845,6 +3080,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.setup2FactorAuth",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2880,6 +3121,12 @@
         "tags": [
           "JAccount"
         ],
+        "operationId": "JAccount.pushNotification",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -2913,6 +3160,12 @@
       "post": {
         "tags": [
           "JAccount"
+        ],
+        "operationId": "JAccount.destroy",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -2951,7 +3204,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JApiToken.create",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "Method JApiToken.create",
         "responses": {
           "200": {
@@ -2973,6 +3232,12 @@
       "post": {
         "tags": [
           "JApiToken"
+        ],
+        "operationId": "JApiToken.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -3011,9 +3276,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Collaboration.stop",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3041,9 +3312,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Collaboration.add",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3071,9 +3348,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Collaboration.kick",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3097,6 +3380,12 @@
       "post": {
         "tags": [
           "JCombinedAppStorage"
+        ],
+        "operationId": "JCombinedAppStorage.upsert",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -3135,6 +3424,7 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.ping",
         "parameters": [
           {
             "in": "body",
@@ -3150,6 +3440,11 @@
             },
             "required": true,
             "description": "body of the request"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "pings to requested provider implementation",
@@ -3177,6 +3472,7 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.create",
         "parameters": [
           {
             "in": "body",
@@ -3227,6 +3523,11 @@
             "description": "body of the request"
           }
         ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "creates a JMachine for requested provider with the provided options",
         "responses": {
           "200": {
@@ -3252,9 +3553,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.remove",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3282,9 +3589,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.update",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3312,9 +3625,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.fetchAvailable",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3342,7 +3661,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.fetchProviders",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -3368,7 +3693,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.createGroupStack",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "Method ComputeProvider.createGroupStack",
         "responses": {
           "200": {
@@ -3394,9 +3725,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "ComputeProvider.updateTeamCounters",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method ComputeProvider.updateTeamCounters",
@@ -3424,9 +3761,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JCredential.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3454,9 +3797,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JCredential.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3484,9 +3833,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JCredential.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3510,6 +3865,12 @@
       "post": {
         "tags": [
           "JCredential"
+        ],
+        "operationId": "JCredential.delete",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -3545,6 +3906,12 @@
         "tags": [
           "JCredential"
         ],
+        "operationId": "JCredential.clone",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -3578,6 +3945,12 @@
       "post": {
         "tags": [
           "JCredential"
+        ],
+        "operationId": "JCredential.shareWith",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -3613,6 +3986,12 @@
         "tags": [
           "JCredential"
         ],
+        "operationId": "JCredential.fetchUsers",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -3646,6 +4025,12 @@
       "post": {
         "tags": [
           "JCredential"
+        ],
+        "operationId": "JCredential.fetchData",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -3681,6 +4066,12 @@
         "tags": [
           "JCredential"
         ],
+        "operationId": "JCredential.update",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -3715,6 +4106,12 @@
         "tags": [
           "JCredential"
         ],
+        "operationId": "JCredential.bootstrap",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -3748,6 +4145,12 @@
       "post": {
         "tags": [
           "JCredential"
+        ],
+        "operationId": "JCredential.isBootstrapped",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -3786,9 +4189,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.ping",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3816,9 +4225,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.event",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3846,9 +4261,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.info",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3876,9 +4297,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.stop",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3906,9 +4333,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.start",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3936,9 +4369,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.build",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3966,9 +4405,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.restart",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -3996,9 +4441,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.destroy",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4026,9 +4477,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.addAdmin",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4056,9 +4513,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.removeAdmin",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4086,9 +4549,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.migrate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4116,9 +4585,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.bootstrap",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4146,9 +4621,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.buildStack",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4176,9 +4657,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.checkTemplate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4206,9 +4693,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.checkCredential",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4236,9 +4729,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Kloud.destroyStack",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4266,9 +4765,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JMachine.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4296,9 +4801,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JMachine.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4322,6 +4833,12 @@
       "post": {
         "tags": [
           "JMachine"
+        ],
+        "operationId": "JMachine.deny",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -4357,6 +4874,12 @@
         "tags": [
           "JMachine"
         ],
+        "operationId": "JMachine.approve",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -4390,6 +4913,12 @@
       "post": {
         "tags": [
           "JMachine"
+        ],
+        "operationId": "JMachine.reviveUsers",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -4425,6 +4954,12 @@
         "tags": [
           "JMachine"
         ],
+        "operationId": "JMachine.shareWith",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -4458,6 +4993,12 @@
       "post": {
         "tags": [
           "JMachine"
+        ],
+        "operationId": "JMachine.setProvisioner",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -4493,6 +5034,12 @@
         "tags": [
           "JMachine"
         ],
+        "operationId": "JMachine.setLabel",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -4526,6 +5073,12 @@
       "post": {
         "tags": [
           "JMachine"
+        ],
+        "operationId": "JMachine.share",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -4561,6 +5114,12 @@
         "tags": [
           "JMachine"
         ],
+        "operationId": "JMachine.unshare",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -4594,6 +5153,12 @@
       "post": {
         "tags": [
           "JMachine"
+        ],
+        "operationId": "JMachine.setChannelId",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -4632,9 +5197,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProvisioner.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4662,9 +5233,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProvisioner.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4692,9 +5269,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProvisioner.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4718,6 +5301,12 @@
       "post": {
         "tags": [
           "JProvisioner"
+        ],
+        "operationId": "JProvisioner.delete",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -4753,6 +5342,12 @@
         "tags": [
           "JProvisioner"
         ],
+        "operationId": "JProvisioner.setAccess",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -4786,6 +5381,12 @@
       "post": {
         "tags": [
           "JProvisioner"
+        ],
+        "operationId": "JProvisioner.update",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -4824,6 +5425,7 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JStackTemplate.create",
         "parameters": [
           {
             "in": "body",
@@ -4853,6 +5455,11 @@
             "description": "body of the request"
           }
         ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "creates a JStackTemplate with requested content",
         "responses": {
           "200": {
@@ -4878,6 +5485,7 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JStackTemplate.samples",
         "parameters": [
           {
             "in": "body",
@@ -4897,6 +5505,11 @@
             },
             "required": true,
             "description": "body of the request"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "returns sample stack template for given provider",
@@ -4943,9 +5556,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JStackTemplate.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4973,9 +5592,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JStackTemplate.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -4999,6 +5624,12 @@
       "post": {
         "tags": [
           "JStackTemplate"
+        ],
+        "operationId": "JStackTemplate.delete",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5034,6 +5665,12 @@
         "tags": [
           "JStackTemplate"
         ],
+        "operationId": "JStackTemplate.setAccess",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -5067,6 +5704,12 @@
       "post": {
         "tags": [
           "JStackTemplate"
+        ],
+        "operationId": "JStackTemplate.update",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5102,6 +5745,12 @@
         "tags": [
           "JStackTemplate"
         ],
+        "operationId": "JStackTemplate.build",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -5135,6 +5784,12 @@
       "post": {
         "tags": [
           "JStackTemplate"
+        ],
+        "operationId": "JStackTemplate.clone",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5170,6 +5825,12 @@
         "tags": [
           "JStackTemplate"
         ],
+        "operationId": "JStackTemplate.verify",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -5203,6 +5864,12 @@
       "post": {
         "tags": [
           "JStackTemplate"
+        ],
+        "operationId": "JStackTemplate.generateStack",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5238,6 +5905,12 @@
         "tags": [
           "JStackTemplate"
         ],
+        "operationId": "JStackTemplate.forceStacksToReinit",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -5271,6 +5944,12 @@
       "post": {
         "tags": [
           "JStackTemplate"
+        ],
+        "operationId": "JStackTemplate.hasStacks",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5309,9 +5988,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JCustomPartials.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5339,9 +6024,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JCustomPartials.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5365,6 +6056,12 @@
       "post": {
         "tags": [
           "JCustomPartials"
+        ],
+        "operationId": "JCustomPartials.update",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5399,6 +6096,12 @@
       "post": {
         "tags": [
           "JCustomPartials"
+        ],
+        "operationId": "JCustomPartials.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5437,9 +6140,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "DataDog.sendEvent",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5467,9 +6176,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "DataDog.sendMetrics",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5497,9 +6212,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProposedDomain.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5527,7 +6248,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProposedDomain.fetchDomains",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -5553,9 +6280,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProposedDomain.createDomain",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JProposedDomain.createDomain",
@@ -5579,6 +6312,12 @@
       "post": {
         "tags": [
           "JProposedDomain"
+        ],
+        "operationId": "JProposedDomain.bindMachine",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5614,6 +6353,12 @@
         "tags": [
           "JProposedDomain"
         ],
+        "operationId": "JProposedDomain.unbindMachine",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -5647,6 +6392,12 @@
       "post": {
         "tags": [
           "JProposedDomain"
+        ],
+        "operationId": "JProposedDomain.activateDomain",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5682,6 +6433,12 @@
         "tags": [
           "JProposedDomain"
         ],
+        "operationId": "JProposedDomain.deactivateDomain",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -5715,6 +6472,12 @@
       "post": {
         "tags": [
           "JProposedDomain"
+        ],
+        "operationId": "JProposedDomain.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -5753,9 +6516,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JDomainAlias.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5783,9 +6552,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JDomainAlias.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5813,9 +6588,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Github.api",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5843,9 +6624,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "GitProvider.fetchConfig",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5873,9 +6660,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "GitProvider.importStackTemplateData",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5903,9 +6696,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "GitProvider.createImportedStackTemplate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5933,9 +6732,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -5963,9 +6768,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JGroup.create",
@@ -5993,9 +6804,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.each",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -6023,9 +6840,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.count",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -6053,9 +6876,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.byRelevance",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -6083,9 +6912,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.someWithRelationship",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -6113,9 +6948,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.fetchMyMemberships",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -6143,9 +6984,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.suggestUniqueSlug",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -6173,14 +7020,21 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JGroup.joinUser",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
           }
         ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "joinUser\n\nJoins user with given options to group either by logging in or converting\nthem.",
         "responses": {
           "200": {
+            "description": "Request processed successfully",
             "schema": {
               "$ref": "#/definitions/DefaultResponse"
             }
@@ -6198,6 +7052,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.join",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6233,6 +7093,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.leave",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6266,6 +7132,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.modify",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6301,6 +7173,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.modifyData",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6308,9 +7186,6 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
           },
           {
             "in": "body",
@@ -6342,6 +7217,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchPermissions",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6377,6 +7258,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.updatePermissions",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6410,6 +7297,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchAdmins",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6445,6 +7338,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.fetchAdminsWithEmail",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6478,6 +7377,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchModerators",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6513,6 +7418,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.fetchModeratorsWithEmail",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6546,6 +7457,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchMembers",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6581,6 +7498,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.fetchMembersWithEmail",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6614,6 +7537,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchBlockedAccounts",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6649,6 +7578,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.fetchBlockedAccountsWithEmail",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6682,6 +7617,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchResources",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6717,6 +7658,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.searchMembers",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6750,6 +7697,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchRoles",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6785,6 +7738,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.fetchMyRoles",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6818,6 +7777,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchUserRoles",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6853,6 +7818,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.changeMemberRoles",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6886,6 +7857,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.canEditGroup",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6921,6 +7898,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.isMember",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -6954,6 +7937,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.kickMember",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -6989,6 +7978,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.unblockMember",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -7022,6 +8017,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.transferOwnership",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7057,6 +8058,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.destroy",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -7090,6 +8097,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.addSubscription",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7125,6 +8138,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.fetchDataAt",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -7158,6 +8177,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchSubscription",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7193,6 +8218,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.fetchPermissionSetOrDefault",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -7226,6 +8257,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchUserStatus",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7261,6 +8298,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.toggleFeature",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -7294,6 +8337,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.sendNotification",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7329,6 +8378,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.setLimit",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -7363,6 +8418,12 @@
         "tags": [
           "JGroup"
         ],
+        "operationId": "JGroup.setOAuth",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -7396,6 +8457,12 @@
       "post": {
         "tags": [
           "JGroup"
+        ],
+        "operationId": "JGroup.fetchApiTokens",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7434,9 +8501,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JInvitation.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7464,9 +8537,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JInvitation.search",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7494,9 +8573,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JInvitation.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7524,9 +8609,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JInvitation.byCode",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "byCode fetches an invitation by its code",
@@ -7554,9 +8645,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JInvitation.revokeInvitation",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7584,9 +8681,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JInvitation.sendInvitationByCode",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7610,6 +8713,12 @@
       "post": {
         "tags": [
           "JInvitation"
+        ],
+        "operationId": "JInvitation.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7644,6 +8753,12 @@
       "post": {
         "tags": [
           "JInvitation"
+        ],
+        "operationId": "JInvitation.accept",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -7682,9 +8797,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JName.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7712,7 +8833,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JName.claimNames",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -7738,9 +8865,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "OAuth.getUrl",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7768,9 +8901,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JPasswordRecovery.validate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JPasswordRecovery.validate",
@@ -7798,9 +8937,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JPasswordRecovery.recoverPassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7828,9 +8973,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JPasswordRecovery.resendVerification",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7858,9 +9009,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JPasswordRecovery.resetPassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JPasswordRecovery.resetPassword",
@@ -7888,9 +9045,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JPasswordRecovery.fetchRegistrationDetails",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JPasswordRecovery.fetchRegistrationDetails",
@@ -7918,9 +9081,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProxyFilter.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7948,9 +9117,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProxyFilter.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -7974,6 +9149,12 @@
       "post": {
         "tags": [
           "JProxyFilter"
+        ],
+        "operationId": "JProxyFilter.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -8008,6 +9189,12 @@
       "post": {
         "tags": [
           "JProxyFilter"
+        ],
+        "operationId": "JProxyFilter.update",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -8046,9 +9233,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProxyRestriction.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8076,9 +9269,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProxyRestriction.remove",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8106,9 +9305,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProxyRestriction.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8136,9 +9341,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JProxyRestriction.clear",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8166,9 +9377,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JReward.addCustomReward",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8196,9 +9413,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JReward.fetchEarnedAmount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JReward.fetchEarnedAmount",
@@ -8226,9 +9449,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JReward.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8256,9 +9485,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JReward.fetchCustomData",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8286,9 +9521,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JRewardCampaign.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8316,9 +9557,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JRewardCampaign.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8346,9 +9593,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JRewardCampaign.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8376,9 +9629,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JRewardCampaign.isValid",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8402,6 +9661,12 @@
       "post": {
         "tags": [
           "JRewardCampaign"
+        ],
+        "operationId": "JRewardCampaign.update",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -8436,6 +9701,12 @@
       "post": {
         "tags": [
           "JRewardCampaign"
+        ],
+        "operationId": "JRewardCampaign.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -8474,7 +9745,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "S3.generatePolicy",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -8500,7 +9777,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JSession.activeSession",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -8522,6 +9805,12 @@
       "post": {
         "tags": [
           "JSession"
+        ],
+        "operationId": "JSession.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -8560,9 +9849,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SharedMachine.add",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8590,9 +9885,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SharedMachine.kick",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8620,7 +9921,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Sidebar.fetchEnvironment",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -8646,9 +9953,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.byId",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8676,9 +9989,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.byName",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8706,9 +10025,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchActivities",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8736,9 +10061,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchActivityCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method SocialChannel.fetchActivityCount",
@@ -8766,9 +10097,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchChannels",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8796,9 +10133,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8826,9 +10169,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.listParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8856,9 +10205,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.addParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8886,9 +10241,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.removeParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8916,9 +10277,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.leave",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8946,9 +10313,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.acceptInvite",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -8976,9 +10349,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.rejectInvite",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9006,9 +10385,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchPopularTopics",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9036,9 +10421,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchPopularPosts",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9066,9 +10457,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchPinnedMessages",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9096,9 +10493,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.pinMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9126,9 +10529,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.unpinMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9156,9 +10565,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchFollowedChannels",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9186,9 +10601,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchFollowedChannelCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9216,9 +10637,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.searchTopics",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9246,9 +10673,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchProfileFeed",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9276,9 +10709,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.fetchProfileFeedCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9306,9 +10745,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.updateLastSeenTime",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9336,9 +10781,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.glancePinnedPost",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9366,9 +10817,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.delete",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9396,9 +10853,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.update",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9426,9 +10889,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9456,9 +10925,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialChannel.createChannelWithParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9486,9 +10961,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.byId",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9516,9 +10997,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.bySlug",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9546,9 +11033,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.post",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9576,9 +11069,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.reply",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9606,9 +11105,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.edit",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9636,9 +11141,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.delete",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9666,9 +11177,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.listReplies",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9696,9 +11213,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.like",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9726,9 +11249,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.unlike",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9756,9 +11285,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.listLikers",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9786,9 +11321,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.initPrivateMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9816,9 +11357,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.sendPrivateMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9846,9 +11393,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.fetchPrivateMessages",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9876,9 +11429,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.fetchPrivateMessageCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9906,9 +11465,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.search",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9936,9 +11501,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.fetch",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -9966,9 +11537,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.fetchDataFromEmbedly",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method SocialMessage.fetchDataFromEmbedly",
@@ -9996,9 +11573,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialMessage.paymentSubscribe",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10026,9 +11609,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialNotification.fetch",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10056,9 +11645,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "SocialNotification.glance",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10086,9 +11681,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JComputeStack.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "JComputeStack::create",
@@ -10116,9 +11717,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JComputeStack.one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10146,9 +11753,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JComputeStack.some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10172,6 +11785,12 @@
       "post": {
         "tags": [
           "JComputeStack"
+        ],
+        "operationId": "JComputeStack.delete",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -10207,6 +11826,12 @@
         "tags": [
           "JComputeStack"
         ],
+        "operationId": "JComputeStack.maintenance",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -10240,6 +11865,12 @@
       "post": {
         "tags": [
           "JComputeStack"
+        ],
+        "operationId": "JComputeStack.destroy",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -10275,6 +11906,12 @@
         "tags": [
           "JComputeStack"
         ],
+        "operationId": "JComputeStack.modify",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -10308,6 +11945,12 @@
       "post": {
         "tags": [
           "JComputeStack"
+        ],
+        "operationId": "JComputeStack.checkRevision",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -10343,6 +11986,12 @@
         "tags": [
           "JComputeStack"
         ],
+        "operationId": "JComputeStack.createAdminMessage",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -10376,6 +12025,12 @@
       "post": {
         "tags": [
           "JComputeStack"
+        ],
+        "operationId": "JComputeStack.deleteAdminMessage",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -10414,9 +12069,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JTeamInvitation.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JTeamInvitation.create",
@@ -10444,9 +12105,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JTeamInvitation.byCode",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JTeamInvitation.byCode",
@@ -10474,9 +12141,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JTeamInvitation.sendInvitationEmails",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10500,6 +12173,12 @@
       "post": {
         "tags": [
           "JTeamInvitation"
+        ],
+        "operationId": "JTeamInvitation.remove",
+        "security": [
+          {
+            "Bearer": []
+          }
         ],
         "consumes": [
           "application/json"
@@ -10538,9 +12217,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "Tracker.track",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method Tracker.track",
@@ -10568,9 +12253,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUrlAlias.create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10598,9 +12289,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUrlAlias.resolve",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JUrlAlias.resolve",
@@ -10628,9 +12325,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.login",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JUser.login",
@@ -10658,7 +12361,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.whoami",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "whoami\n\nReturns your JAccount instance based on the session data",
         "responses": {
           "200": {
@@ -10684,7 +12393,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.logout",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -10710,9 +12425,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.convert",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10740,7 +12461,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.fetchUser",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -10766,9 +12493,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.setSSHKeys",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10796,7 +12529,13 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.getSSHKeys",
         "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "description": "",
         "responses": {
           "200": {
@@ -10822,9 +12561,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.unregister",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10852,9 +12597,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.verifyByPin",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10882,9 +12633,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.changeEmail",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10912,9 +12669,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.verifyPassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -10942,9 +12705,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.emailAvailable",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JUser.emailAvailable",
@@ -10972,9 +12741,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.changePassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",
@@ -11002,9 +12777,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.usernameAvailable",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "Method JUser.usernameAvailable",
@@ -11032,9 +12813,15 @@
         "consumes": [
           "application/json"
         ],
+        "operationId": "JUser.authenticateWithOauth",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
           }
         ],
         "description": "",

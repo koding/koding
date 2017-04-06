@@ -1,5 +1,13 @@
 {
   "resource": {
+    "null_resource": {
+      "test": {
+        "depends_on": [],
+        "triggers": {
+          "user_data": "***"
+        }
+      }
+    },
     "softlayer_virtual_guest": {
       "test": {
         "cpu": 1,

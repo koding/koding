@@ -45,8 +45,8 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		Disk:     di,
 		Cache:    opts.Cache,
 		CacheDir: opts.CacheDir,
-		Mount:    filepath.Base(opts.Mount.Path),
-		MountDir: opts.Mount.Path,
+		Mount:    filepath.Base(opts.Path),
+		MountDir: opts.Path,
 		// intentionally separate env to not enable fuse logging
 		// for regular kd debug
 		Debug: os.Getenv("KD_MOUNT_DEBUG") == "1",

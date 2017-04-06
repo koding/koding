@@ -23,30 +23,31 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIS3GeneratePolicy post remote API s3 generate policy API
+S3GeneratePolicy s3 generate policy API
 */
-func (a *Client) PostRemoteAPIS3GeneratePolicy(params *PostRemoteAPIS3GeneratePolicyParams) (*PostRemoteAPIS3GeneratePolicyOK, error) {
+func (a *Client) S3GeneratePolicy(params *S3GeneratePolicyParams, authInfo runtime.ClientAuthInfoWriter) (*S3GeneratePolicyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIS3GeneratePolicyParams()
+		params = NewS3GeneratePolicyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIS3GeneratePolicy",
+		ID:                 "S3.generatePolicy",
 		Method:             "POST",
 		PathPattern:        "/remote.api/S3.generatePolicy",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIS3GeneratePolicyReader{formats: a.formats},
+		Reader:             &S3GeneratePolicyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIS3GeneratePolicyOK), nil
+	return result.(*S3GeneratePolicyOK), nil
 
 }
 

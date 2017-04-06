@@ -23,114 +23,118 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJCustomPartialsCreate post remote API j custom partials create API
+JCustomPartialsCreate j custom partials create API
 */
-func (a *Client) PostRemoteAPIJCustomPartialsCreate(params *PostRemoteAPIJCustomPartialsCreateParams) (*PostRemoteAPIJCustomPartialsCreateOK, error) {
+func (a *Client) JCustomPartialsCreate(params *JCustomPartialsCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JCustomPartialsCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCustomPartialsCreateParams()
+		params = NewJCustomPartialsCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCustomPartialsCreate",
+		ID:                 "JCustomPartials.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCustomPartials.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCustomPartialsCreateReader{formats: a.formats},
+		Reader:             &JCustomPartialsCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCustomPartialsCreateOK), nil
+	return result.(*JCustomPartialsCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJCustomPartialsRemoveID post remote API j custom partials remove ID API
+JCustomPartialsRemove j custom partials remove API
 */
-func (a *Client) PostRemoteAPIJCustomPartialsRemoveID(params *PostRemoteAPIJCustomPartialsRemoveIDParams) (*PostRemoteAPIJCustomPartialsRemoveIDOK, error) {
+func (a *Client) JCustomPartialsRemove(params *JCustomPartialsRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JCustomPartialsRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCustomPartialsRemoveIDParams()
+		params = NewJCustomPartialsRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCustomPartialsRemoveID",
+		ID:                 "JCustomPartials.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCustomPartials.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCustomPartialsRemoveIDReader{formats: a.formats},
+		Reader:             &JCustomPartialsRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCustomPartialsRemoveIDOK), nil
+	return result.(*JCustomPartialsRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIJCustomPartialsSome post remote API j custom partials some API
+JCustomPartialsSome j custom partials some API
 */
-func (a *Client) PostRemoteAPIJCustomPartialsSome(params *PostRemoteAPIJCustomPartialsSomeParams) (*PostRemoteAPIJCustomPartialsSomeOK, error) {
+func (a *Client) JCustomPartialsSome(params *JCustomPartialsSomeParams, authInfo runtime.ClientAuthInfoWriter) (*JCustomPartialsSomeOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCustomPartialsSomeParams()
+		params = NewJCustomPartialsSomeParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCustomPartialsSome",
+		ID:                 "JCustomPartials.some",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCustomPartials.some",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCustomPartialsSomeReader{formats: a.formats},
+		Reader:             &JCustomPartialsSomeReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCustomPartialsSomeOK), nil
+	return result.(*JCustomPartialsSomeOK), nil
 
 }
 
 /*
-PostRemoteAPIJCustomPartialsUpdateID post remote API j custom partials update ID API
+JCustomPartialsUpdate j custom partials update API
 */
-func (a *Client) PostRemoteAPIJCustomPartialsUpdateID(params *PostRemoteAPIJCustomPartialsUpdateIDParams) (*PostRemoteAPIJCustomPartialsUpdateIDOK, error) {
+func (a *Client) JCustomPartialsUpdate(params *JCustomPartialsUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*JCustomPartialsUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJCustomPartialsUpdateIDParams()
+		params = NewJCustomPartialsUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJCustomPartialsUpdateID",
+		ID:                 "JCustomPartials.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JCustomPartials.update/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJCustomPartialsUpdateIDReader{formats: a.formats},
+		Reader:             &JCustomPartialsUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJCustomPartialsUpdateIDOK), nil
+	return result.(*JCustomPartialsUpdateOK), nil
 
 }
 

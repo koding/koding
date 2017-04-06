@@ -188,6 +188,27 @@ func KiteHandlerUmount(g *Group) kite.HandlerFunc {
 	}
 }
 
+// KiteHandlerInspectMount creates a kite handler function that, when called,
+// invokes machine group InspectMount method.
+func KiteHandlerInspectMount(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &InspectMountRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.InspectMount(req)
+		if err != nil {
+			return nil, newError(err)
+		}
+
+		return res, nil
+	}
+}
+
 // KiteHandlerCp creates a kite handler function that, when called, invokes
 // machine group Cp method.
 func KiteHandlerCp(g *Group) kite.HandlerFunc {

@@ -1,0 +1,13 @@
+{
+  "name": "analytics",
+  "main": "./lib/index.js",
+  "routes": {
+    "/Analytics": "analytics"
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}

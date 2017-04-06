@@ -64,9 +64,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
-
-	"github.com/kardianos/osext"
 )
 
 const (
@@ -90,6 +87,7 @@ const (
 	optionEnvironment          = "Environment"
 	optionRequiredStart        = "RequiredStart"
 	optionAfter                = "After"
+	optionUser                 = "User"
 )
 
 var (
@@ -133,13 +131,6 @@ type Config struct {
 	//    - After         string ()                 - Space-separated service dependencies (systemd, e.g. network.target)
 	//    - Environment   map[string]string         - environment variables
 	Option KeyValue
-}
-
-func (c *Config) execPath() (string, error) {
-	if len(c.Executable) != 0 {
-		return filepath.Abs(c.Executable)
-	}
-	return osext.Executable()
 }
 
 var (

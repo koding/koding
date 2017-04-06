@@ -7,7 +7,7 @@ jobs:
     resource_class: large
 
     docker:
-      - image: koding/circle@sha256:dec761b93b060282748019f40012988f4f4677f40827fd763579358f17e3c8ea
+      - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
 
       - image: mongo:3.2.8
         cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
@@ -171,12 +171,12 @@ jobs:
             koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
 
       - run:
-          name: test mongo models
-          command: ./run exec go test koding/db/mongodb/modelhelper
-
-      - run:
           name: run database migration
           command: ./run migrations up
+
+      - run:
+          name: test mongo models
+          command: ./run exec go test koding/db/mongodb/modelhelper
 
       - run:
           name: run

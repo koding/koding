@@ -1,0 +1,84 @@
+package modelhelper_test
+
+import (
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
+	"testing"
+
+	"gopkg.in/mgo.v2/bson"
+)
+
+func TestGroupData(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	slug := bson.NewObjectId().Hex()
+
+	testData := map[string]interface{}{
+		"key1": "val1",
+		"key2": map[string]interface{}{
+			"subkey2": "val2",
+		},
+		"key3": "val3",
+	}
+
+	if err := modelhelper.UpsertGroupData(slug, "testData", testData); err != nil {
+		t.Fatalf("UpsertGroupData() = %v, want %v", err, nil)
+	}
+
+	gd, err := modelhelper.GetGroupData(slug)
+	if err != nil {
+		t.Fatalf("GetGroupData(slug) = %v, want %v", err, nil)
+	}
+
+	res, err := gd.Data.GetString("testData.key2.subkey2")
+	if err != nil {
+		t.Fatalf("data.Get(testData.key2.subkey2) = %v, want %v", err, nil)
+	}
+
+	if want := "val2"; res != want {
+		t.Fatalf("res = %v, want %v", res, want)
+	}
+
+	updateVal := "updatedVal"
+	if err := modelhelper.UpsertGroupData(slug, "testData.key2.subkey2", updateVal); err != nil {
+		t.Fatalf("UpsertGroupData() = %v, want %v", err, nil)
+	}
+
+	gdp, err := modelhelper.GetGroupDataPath(slug, "testData.key2")
+	if err != nil {
+		t.Fatalf("GetGroupDataPath() = %v, want %v", err, nil)
+	}
+
+	res, err = gdp.Data.GetString("testData.key2.subkey2")
+	if err != nil {
+		t.Fatalf("data.Get(testData.key2.subkey2) = %v, want %v", err, nil)
+	}
+
+	if res != updateVal {
+		t.Fatalf("res = %v, want %v", res, updateVal)
+	}
+
+	hasGDP, err := modelhelper.HasGroupDataPath(slug, "testData.key2.subkey2")
+	if err != nil {
+		t.Fatalf("HasGroupDataPath() = %v, want %v", err, nil)
+	}
+
+	if !hasGDP {
+		t.Fatalf("hasGDP should be true got false")
+	}
+
+	if _, err := modelhelper.HasGroupDataPath(slug, "testData.key2.nonexistent"); err == nil {
+		t.Fatalf("HasGroupDataPath() = %v, want errPathNotSet", err)
+	}
+
+	// check if other keys are still existent
+	testDataVal3, err := gd.Data.GetString("testData.key3")
+	if err != nil {
+		t.Fatalf("data.Get(testData.key3) = %v, want %v", err, nil)
+	}
+
+	if testDataVal3 != "val3" {
+		t.Fatalf("testDataVal3 = %v, want %v", testDataVal3, "val3")
+	}
+}

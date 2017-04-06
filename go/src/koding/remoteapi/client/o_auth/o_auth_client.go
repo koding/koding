@@ -23,30 +23,31 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIOAuthGetURL post remote API o auth get URL API
+OAuthGetURL o auth get Url API
 */
-func (a *Client) PostRemoteAPIOAuthGetURL(params *PostRemoteAPIOAuthGetURLParams) (*PostRemoteAPIOAuthGetURLOK, error) {
+func (a *Client) OAuthGetURL(params *OAuthGetURLParams, authInfo runtime.ClientAuthInfoWriter) (*OAuthGetURLOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIOAuthGetURLParams()
+		params = NewOAuthGetURLParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIOAuthGetURL",
+		ID:                 "OAuth.getUrl",
 		Method:             "POST",
 		PathPattern:        "/remote.api/OAuth.getUrl",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIOAuthGetURLReader{formats: a.formats},
+		Reader:             &OAuthGetURLReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIOAuthGetURLOK), nil
+	return result.(*OAuthGetURLOK), nil
 
 }
 

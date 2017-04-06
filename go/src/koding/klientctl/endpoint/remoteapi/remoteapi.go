@@ -70,13 +70,13 @@ func (c *Client) AccountByUsername(username string) (*models.JAccount, error) {
 		}
 	}
 
-	params := &account.PostRemoteAPIJAccountOneParams{
+	params := &account.JAccountOneParams{
 		Body: map[string]string{"profile.nickname": username},
 	}
 
 	params.SetTimeout(c.timeout())
 
-	resp, err := c.client().JAccount.PostRemoteAPIJAccountOne(params)
+	resp, err := c.client().JAccount.JAccountOne(params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +102,13 @@ func (c *Client) Account(filter *models.JAccount) (*models.JAccount, error) {
 		}
 	}
 
-	params := &account.PostRemoteAPIJAccountOneParams{
+	params := &account.JAccountOneParams{
 		Body: filter,
 	}
 
 	params.SetTimeout(c.timeout())
 
-	resp, err := c.client().JAccount.PostRemoteAPIJAccountOne(params)
+	resp, err := c.client().JAccount.JAccountOne(params, nil)
 	if err != nil {
 		return nil, err
 	}

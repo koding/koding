@@ -185,7 +185,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		s.injectEndpointRules(vm)
 
-		if err := s.injectCloudInit(name, vm); err != nil {
+		if err := s.BuildUserdata(name, vm); err != nil {
 			return nil, err
 		}
 
@@ -306,21 +306,6 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 	}
 
 	vm["endpoint"] = endpoints
-}
-
-func (s *Stack) injectCloudInit(name string, vm map[string]interface{}) error {
-	ub, err := s.BuildUserdata(name, vm)
-	if err != nil {
-		return err
-	}
-
-	s.Debug = ub.Debug
-
-	s.Builder.Template.Variable[ub.KiteKeyName] = map[string]interface{}{
-		"default": ub.KiteKeys,
-	}
-
-	return nil
 }
 
 func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {

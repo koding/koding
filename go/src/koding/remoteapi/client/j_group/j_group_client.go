@@ -23,1265 +23,1310 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJGroupAddSubscriptionID post remote API j group add subscription ID API
+JGroupAddSubscription j group add subscription API
 */
-func (a *Client) PostRemoteAPIJGroupAddSubscriptionID(params *PostRemoteAPIJGroupAddSubscriptionIDParams) (*PostRemoteAPIJGroupAddSubscriptionIDOK, error) {
+func (a *Client) JGroupAddSubscription(params *JGroupAddSubscriptionParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupAddSubscriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupAddSubscriptionIDParams()
+		params = NewJGroupAddSubscriptionParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupAddSubscriptionID",
+		ID:                 "JGroup.addSubscription",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.addSubscription/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupAddSubscriptionIDReader{formats: a.formats},
+		Reader:             &JGroupAddSubscriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupAddSubscriptionIDOK), nil
+	return result.(*JGroupAddSubscriptionOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupByRelevance post remote API j group by relevance API
+JGroupByRelevance j group by relevance API
 */
-func (a *Client) PostRemoteAPIJGroupByRelevance(params *PostRemoteAPIJGroupByRelevanceParams) (*PostRemoteAPIJGroupByRelevanceOK, error) {
+func (a *Client) JGroupByRelevance(params *JGroupByRelevanceParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupByRelevanceOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupByRelevanceParams()
+		params = NewJGroupByRelevanceParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupByRelevance",
+		ID:                 "JGroup.byRelevance",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.byRelevance",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupByRelevanceReader{formats: a.formats},
+		Reader:             &JGroupByRelevanceReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupByRelevanceOK), nil
+	return result.(*JGroupByRelevanceOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupCanEditGroupID post remote API j group can edit group ID API
+JGroupCanEditGroup j group can edit group API
 */
-func (a *Client) PostRemoteAPIJGroupCanEditGroupID(params *PostRemoteAPIJGroupCanEditGroupIDParams) (*PostRemoteAPIJGroupCanEditGroupIDOK, error) {
+func (a *Client) JGroupCanEditGroup(params *JGroupCanEditGroupParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupCanEditGroupOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupCanEditGroupIDParams()
+		params = NewJGroupCanEditGroupParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupCanEditGroupID",
+		ID:                 "JGroup.canEditGroup",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.canEditGroup/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupCanEditGroupIDReader{formats: a.formats},
+		Reader:             &JGroupCanEditGroupReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupCanEditGroupIDOK), nil
+	return result.(*JGroupCanEditGroupOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupChangeMemberRolesID post remote API j group change member roles ID API
+JGroupChangeMemberRoles j group change member roles API
 */
-func (a *Client) PostRemoteAPIJGroupChangeMemberRolesID(params *PostRemoteAPIJGroupChangeMemberRolesIDParams) (*PostRemoteAPIJGroupChangeMemberRolesIDOK, error) {
+func (a *Client) JGroupChangeMemberRoles(params *JGroupChangeMemberRolesParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupChangeMemberRolesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupChangeMemberRolesIDParams()
+		params = NewJGroupChangeMemberRolesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupChangeMemberRolesID",
+		ID:                 "JGroup.changeMemberRoles",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.changeMemberRoles/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupChangeMemberRolesIDReader{formats: a.formats},
+		Reader:             &JGroupChangeMemberRolesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupChangeMemberRolesIDOK), nil
+	return result.(*JGroupChangeMemberRolesOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupCount post remote API j group count API
+JGroupCount j group count API
 */
-func (a *Client) PostRemoteAPIJGroupCount(params *PostRemoteAPIJGroupCountParams) (*PostRemoteAPIJGroupCountOK, error) {
+func (a *Client) JGroupCount(params *JGroupCountParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupCountOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupCountParams()
+		params = NewJGroupCountParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupCount",
+		ID:                 "JGroup.count",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.count",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupCountReader{formats: a.formats},
+		Reader:             &JGroupCountReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupCountOK), nil
+	return result.(*JGroupCountOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupCreate Method JGroup.create
+JGroupCreate Method JGroup.create
 */
-func (a *Client) PostRemoteAPIJGroupCreate(params *PostRemoteAPIJGroupCreateParams) (*PostRemoteAPIJGroupCreateOK, error) {
+func (a *Client) JGroupCreate(params *JGroupCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupCreateParams()
+		params = NewJGroupCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupCreate",
+		ID:                 "JGroup.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupCreateReader{formats: a.formats},
+		Reader:             &JGroupCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupCreateOK), nil
+	return result.(*JGroupCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupDestroyID Method JGroup.destroy
+JGroupDestroy Method JGroup.destroy
 */
-func (a *Client) PostRemoteAPIJGroupDestroyID(params *PostRemoteAPIJGroupDestroyIDParams) (*PostRemoteAPIJGroupDestroyIDOK, error) {
+func (a *Client) JGroupDestroy(params *JGroupDestroyParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupDestroyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupDestroyIDParams()
+		params = NewJGroupDestroyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupDestroyID",
+		ID:                 "JGroup.destroy",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.destroy/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupDestroyIDReader{formats: a.formats},
+		Reader:             &JGroupDestroyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupDestroyIDOK), nil
+	return result.(*JGroupDestroyOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupEach post remote API j group each API
+JGroupEach j group each API
 */
-func (a *Client) PostRemoteAPIJGroupEach(params *PostRemoteAPIJGroupEachParams) (*PostRemoteAPIJGroupEachOK, error) {
+func (a *Client) JGroupEach(params *JGroupEachParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupEachOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupEachParams()
+		params = NewJGroupEachParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupEach",
+		ID:                 "JGroup.each",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.each",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupEachReader{formats: a.formats},
+		Reader:             &JGroupEachReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupEachOK), nil
+	return result.(*JGroupEachOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchAPITokensID post remote API j group fetch API tokens ID API
+JGroupFetchAdmins j group fetch admins API
 */
-func (a *Client) PostRemoteAPIJGroupFetchAPITokensID(params *PostRemoteAPIJGroupFetchAPITokensIDParams) (*PostRemoteAPIJGroupFetchAPITokensIDOK, error) {
+func (a *Client) JGroupFetchAdmins(params *JGroupFetchAdminsParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchAdminsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchAPITokensIDParams()
+		params = NewJGroupFetchAdminsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchAPITokensID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JGroup.fetchApiTokens/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchAPITokensIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJGroupFetchAPITokensIDOK), nil
-
-}
-
-/*
-PostRemoteAPIJGroupFetchAdminsID post remote API j group fetch admins ID API
-*/
-func (a *Client) PostRemoteAPIJGroupFetchAdminsID(params *PostRemoteAPIJGroupFetchAdminsIDParams) (*PostRemoteAPIJGroupFetchAdminsIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchAdminsIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchAdminsID",
+		ID:                 "JGroup.fetchAdmins",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchAdmins/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchAdminsIDReader{formats: a.formats},
+		Reader:             &JGroupFetchAdminsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchAdminsIDOK), nil
+	return result.(*JGroupFetchAdminsOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchAdminsWithEmailID post remote API j group fetch admins with email ID API
+JGroupFetchAdminsWithEmail j group fetch admins with email API
 */
-func (a *Client) PostRemoteAPIJGroupFetchAdminsWithEmailID(params *PostRemoteAPIJGroupFetchAdminsWithEmailIDParams) (*PostRemoteAPIJGroupFetchAdminsWithEmailIDOK, error) {
+func (a *Client) JGroupFetchAdminsWithEmail(params *JGroupFetchAdminsWithEmailParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchAdminsWithEmailOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchAdminsWithEmailIDParams()
+		params = NewJGroupFetchAdminsWithEmailParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchAdminsWithEmailID",
+		ID:                 "JGroup.fetchAdminsWithEmail",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchAdminsWithEmail/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchAdminsWithEmailIDReader{formats: a.formats},
+		Reader:             &JGroupFetchAdminsWithEmailReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchAdminsWithEmailIDOK), nil
+	return result.(*JGroupFetchAdminsWithEmailOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchBlockedAccountsID post remote API j group fetch blocked accounts ID API
+JGroupFetchAPITokens j group fetch Api tokens API
 */
-func (a *Client) PostRemoteAPIJGroupFetchBlockedAccountsID(params *PostRemoteAPIJGroupFetchBlockedAccountsIDParams) (*PostRemoteAPIJGroupFetchBlockedAccountsIDOK, error) {
+func (a *Client) JGroupFetchAPITokens(params *JGroupFetchAPITokensParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchAPITokensOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchBlockedAccountsIDParams()
+		params = NewJGroupFetchAPITokensParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchBlockedAccountsID",
+		ID:                 "JGroup.fetchApiTokens",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JGroup.fetchApiTokens/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &JGroupFetchAPITokensReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*JGroupFetchAPITokensOK), nil
+
+}
+
+/*
+JGroupFetchBlockedAccounts j group fetch blocked accounts API
+*/
+func (a *Client) JGroupFetchBlockedAccounts(params *JGroupFetchBlockedAccountsParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchBlockedAccountsOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewJGroupFetchBlockedAccountsParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "JGroup.fetchBlockedAccounts",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchBlockedAccounts/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchBlockedAccountsIDReader{formats: a.formats},
+		Reader:             &JGroupFetchBlockedAccountsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchBlockedAccountsIDOK), nil
+	return result.(*JGroupFetchBlockedAccountsOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchBlockedAccountsWithEmailID post remote API j group fetch blocked accounts with email ID API
+JGroupFetchBlockedAccountsWithEmail j group fetch blocked accounts with email API
 */
-func (a *Client) PostRemoteAPIJGroupFetchBlockedAccountsWithEmailID(params *PostRemoteAPIJGroupFetchBlockedAccountsWithEmailIDParams) (*PostRemoteAPIJGroupFetchBlockedAccountsWithEmailIDOK, error) {
+func (a *Client) JGroupFetchBlockedAccountsWithEmail(params *JGroupFetchBlockedAccountsWithEmailParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchBlockedAccountsWithEmailOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchBlockedAccountsWithEmailIDParams()
+		params = NewJGroupFetchBlockedAccountsWithEmailParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchBlockedAccountsWithEmailID",
+		ID:                 "JGroup.fetchBlockedAccountsWithEmail",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchBlockedAccountsWithEmail/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchBlockedAccountsWithEmailIDReader{formats: a.formats},
+		Reader:             &JGroupFetchBlockedAccountsWithEmailReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchBlockedAccountsWithEmailIDOK), nil
+	return result.(*JGroupFetchBlockedAccountsWithEmailOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchDataAtID Method JGroup.fetchDataAt
+JGroupFetchDataAt Method JGroup.fetchDataAt
 */
-func (a *Client) PostRemoteAPIJGroupFetchDataAtID(params *PostRemoteAPIJGroupFetchDataAtIDParams) (*PostRemoteAPIJGroupFetchDataAtIDOK, error) {
+func (a *Client) JGroupFetchDataAt(params *JGroupFetchDataAtParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchDataAtOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchDataAtIDParams()
+		params = NewJGroupFetchDataAtParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchDataAtID",
+		ID:                 "JGroup.fetchDataAt",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchDataAt/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchDataAtIDReader{formats: a.formats},
+		Reader:             &JGroupFetchDataAtReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchDataAtIDOK), nil
+	return result.(*JGroupFetchDataAtOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchMembersID post remote API j group fetch members ID API
+JGroupFetchMembers j group fetch members API
 */
-func (a *Client) PostRemoteAPIJGroupFetchMembersID(params *PostRemoteAPIJGroupFetchMembersIDParams) (*PostRemoteAPIJGroupFetchMembersIDOK, error) {
+func (a *Client) JGroupFetchMembers(params *JGroupFetchMembersParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchMembersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchMembersIDParams()
+		params = NewJGroupFetchMembersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchMembersID",
+		ID:                 "JGroup.fetchMembers",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchMembers/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchMembersIDReader{formats: a.formats},
+		Reader:             &JGroupFetchMembersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchMembersIDOK), nil
+	return result.(*JGroupFetchMembersOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchMembersWithEmailID Method JGroup.fetchMembersWithEmail
+JGroupFetchMembersWithEmail Method JGroup.fetchMembersWithEmail
 */
-func (a *Client) PostRemoteAPIJGroupFetchMembersWithEmailID(params *PostRemoteAPIJGroupFetchMembersWithEmailIDParams) (*PostRemoteAPIJGroupFetchMembersWithEmailIDOK, error) {
+func (a *Client) JGroupFetchMembersWithEmail(params *JGroupFetchMembersWithEmailParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchMembersWithEmailOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchMembersWithEmailIDParams()
+		params = NewJGroupFetchMembersWithEmailParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchMembersWithEmailID",
+		ID:                 "JGroup.fetchMembersWithEmail",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchMembersWithEmail/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchMembersWithEmailIDReader{formats: a.formats},
+		Reader:             &JGroupFetchMembersWithEmailReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchMembersWithEmailIDOK), nil
+	return result.(*JGroupFetchMembersWithEmailOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchModeratorsID post remote API j group fetch moderators ID API
+JGroupFetchModerators j group fetch moderators API
 */
-func (a *Client) PostRemoteAPIJGroupFetchModeratorsID(params *PostRemoteAPIJGroupFetchModeratorsIDParams) (*PostRemoteAPIJGroupFetchModeratorsIDOK, error) {
+func (a *Client) JGroupFetchModerators(params *JGroupFetchModeratorsParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchModeratorsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchModeratorsIDParams()
+		params = NewJGroupFetchModeratorsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchModeratorsID",
+		ID:                 "JGroup.fetchModerators",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchModerators/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchModeratorsIDReader{formats: a.formats},
+		Reader:             &JGroupFetchModeratorsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchModeratorsIDOK), nil
+	return result.(*JGroupFetchModeratorsOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchModeratorsWithEmailID post remote API j group fetch moderators with email ID API
+JGroupFetchModeratorsWithEmail j group fetch moderators with email API
 */
-func (a *Client) PostRemoteAPIJGroupFetchModeratorsWithEmailID(params *PostRemoteAPIJGroupFetchModeratorsWithEmailIDParams) (*PostRemoteAPIJGroupFetchModeratorsWithEmailIDOK, error) {
+func (a *Client) JGroupFetchModeratorsWithEmail(params *JGroupFetchModeratorsWithEmailParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchModeratorsWithEmailOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchModeratorsWithEmailIDParams()
+		params = NewJGroupFetchModeratorsWithEmailParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchModeratorsWithEmailID",
+		ID:                 "JGroup.fetchModeratorsWithEmail",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchModeratorsWithEmail/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchModeratorsWithEmailIDReader{formats: a.formats},
+		Reader:             &JGroupFetchModeratorsWithEmailReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchModeratorsWithEmailIDOK), nil
+	return result.(*JGroupFetchModeratorsWithEmailOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchMyMemberships post remote API j group fetch my memberships API
+JGroupFetchMyMemberships j group fetch my memberships API
 */
-func (a *Client) PostRemoteAPIJGroupFetchMyMemberships(params *PostRemoteAPIJGroupFetchMyMembershipsParams) (*PostRemoteAPIJGroupFetchMyMembershipsOK, error) {
+func (a *Client) JGroupFetchMyMemberships(params *JGroupFetchMyMembershipsParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchMyMembershipsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchMyMembershipsParams()
+		params = NewJGroupFetchMyMembershipsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchMyMemberships",
+		ID:                 "JGroup.fetchMyMemberships",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchMyMemberships",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchMyMembershipsReader{formats: a.formats},
+		Reader:             &JGroupFetchMyMembershipsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchMyMembershipsOK), nil
+	return result.(*JGroupFetchMyMembershipsOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchMyRolesID post remote API j group fetch my roles ID API
+JGroupFetchMyRoles j group fetch my roles API
 */
-func (a *Client) PostRemoteAPIJGroupFetchMyRolesID(params *PostRemoteAPIJGroupFetchMyRolesIDParams) (*PostRemoteAPIJGroupFetchMyRolesIDOK, error) {
+func (a *Client) JGroupFetchMyRoles(params *JGroupFetchMyRolesParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchMyRolesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchMyRolesIDParams()
+		params = NewJGroupFetchMyRolesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchMyRolesID",
+		ID:                 "JGroup.fetchMyRoles",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchMyRoles/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchMyRolesIDReader{formats: a.formats},
+		Reader:             &JGroupFetchMyRolesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchMyRolesIDOK), nil
+	return result.(*JGroupFetchMyRolesOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchPermissionSetOrDefaultID Method JGroup.fetchPermissionSetOrDefault
+JGroupFetchPermissionSetOrDefault Method JGroup.fetchPermissionSetOrDefault
 */
-func (a *Client) PostRemoteAPIJGroupFetchPermissionSetOrDefaultID(params *PostRemoteAPIJGroupFetchPermissionSetOrDefaultIDParams) (*PostRemoteAPIJGroupFetchPermissionSetOrDefaultIDOK, error) {
+func (a *Client) JGroupFetchPermissionSetOrDefault(params *JGroupFetchPermissionSetOrDefaultParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchPermissionSetOrDefaultOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchPermissionSetOrDefaultIDParams()
+		params = NewJGroupFetchPermissionSetOrDefaultParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchPermissionSetOrDefaultID",
+		ID:                 "JGroup.fetchPermissionSetOrDefault",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchPermissionSetOrDefault/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchPermissionSetOrDefaultIDReader{formats: a.formats},
+		Reader:             &JGroupFetchPermissionSetOrDefaultReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchPermissionSetOrDefaultIDOK), nil
+	return result.(*JGroupFetchPermissionSetOrDefaultOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchPermissionsID post remote API j group fetch permissions ID API
+JGroupFetchPermissions j group fetch permissions API
 */
-func (a *Client) PostRemoteAPIJGroupFetchPermissionsID(params *PostRemoteAPIJGroupFetchPermissionsIDParams) (*PostRemoteAPIJGroupFetchPermissionsIDOK, error) {
+func (a *Client) JGroupFetchPermissions(params *JGroupFetchPermissionsParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchPermissionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchPermissionsIDParams()
+		params = NewJGroupFetchPermissionsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchPermissionsID",
+		ID:                 "JGroup.fetchPermissions",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchPermissions/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchPermissionsIDReader{formats: a.formats},
+		Reader:             &JGroupFetchPermissionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchPermissionsIDOK), nil
+	return result.(*JGroupFetchPermissionsOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchResourcesID post remote API j group fetch resources ID API
+JGroupFetchResources j group fetch resources API
 */
-func (a *Client) PostRemoteAPIJGroupFetchResourcesID(params *PostRemoteAPIJGroupFetchResourcesIDParams) (*PostRemoteAPIJGroupFetchResourcesIDOK, error) {
+func (a *Client) JGroupFetchResources(params *JGroupFetchResourcesParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchResourcesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchResourcesIDParams()
+		params = NewJGroupFetchResourcesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchResourcesID",
+		ID:                 "JGroup.fetchResources",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchResources/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchResourcesIDReader{formats: a.formats},
+		Reader:             &JGroupFetchResourcesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchResourcesIDOK), nil
+	return result.(*JGroupFetchResourcesOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchRolesID post remote API j group fetch roles ID API
+JGroupFetchRoles j group fetch roles API
 */
-func (a *Client) PostRemoteAPIJGroupFetchRolesID(params *PostRemoteAPIJGroupFetchRolesIDParams) (*PostRemoteAPIJGroupFetchRolesIDOK, error) {
+func (a *Client) JGroupFetchRoles(params *JGroupFetchRolesParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchRolesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchRolesIDParams()
+		params = NewJGroupFetchRolesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchRolesID",
+		ID:                 "JGroup.fetchRoles",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchRoles/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchRolesIDReader{formats: a.formats},
+		Reader:             &JGroupFetchRolesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchRolesIDOK), nil
+	return result.(*JGroupFetchRolesOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchSubscriptionID post remote API j group fetch subscription ID API
+JGroupFetchSubscription j group fetch subscription API
 */
-func (a *Client) PostRemoteAPIJGroupFetchSubscriptionID(params *PostRemoteAPIJGroupFetchSubscriptionIDParams) (*PostRemoteAPIJGroupFetchSubscriptionIDOK, error) {
+func (a *Client) JGroupFetchSubscription(params *JGroupFetchSubscriptionParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchSubscriptionOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchSubscriptionIDParams()
+		params = NewJGroupFetchSubscriptionParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchSubscriptionID",
+		ID:                 "JGroup.fetchSubscription",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchSubscription/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchSubscriptionIDReader{formats: a.formats},
+		Reader:             &JGroupFetchSubscriptionReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchSubscriptionIDOK), nil
+	return result.(*JGroupFetchSubscriptionOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchUserRolesID post remote API j group fetch user roles ID API
+JGroupFetchUserRoles j group fetch user roles API
 */
-func (a *Client) PostRemoteAPIJGroupFetchUserRolesID(params *PostRemoteAPIJGroupFetchUserRolesIDParams) (*PostRemoteAPIJGroupFetchUserRolesIDOK, error) {
+func (a *Client) JGroupFetchUserRoles(params *JGroupFetchUserRolesParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchUserRolesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchUserRolesIDParams()
+		params = NewJGroupFetchUserRolesParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchUserRolesID",
+		ID:                 "JGroup.fetchUserRoles",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchUserRoles/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchUserRolesIDReader{formats: a.formats},
+		Reader:             &JGroupFetchUserRolesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchUserRolesIDOK), nil
+	return result.(*JGroupFetchUserRolesOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupFetchUserStatusID post remote API j group fetch user status ID API
+JGroupFetchUserStatus j group fetch user status API
 */
-func (a *Client) PostRemoteAPIJGroupFetchUserStatusID(params *PostRemoteAPIJGroupFetchUserStatusIDParams) (*PostRemoteAPIJGroupFetchUserStatusIDOK, error) {
+func (a *Client) JGroupFetchUserStatus(params *JGroupFetchUserStatusParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupFetchUserStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupFetchUserStatusIDParams()
+		params = NewJGroupFetchUserStatusParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupFetchUserStatusID",
+		ID:                 "JGroup.fetchUserStatus",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.fetchUserStatus/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupFetchUserStatusIDReader{formats: a.formats},
+		Reader:             &JGroupFetchUserStatusReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupFetchUserStatusIDOK), nil
+	return result.(*JGroupFetchUserStatusOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupIsMemberID Method JGroup.isMember
+JGroupIsMember Method JGroup.isMember
 */
-func (a *Client) PostRemoteAPIJGroupIsMemberID(params *PostRemoteAPIJGroupIsMemberIDParams) (*PostRemoteAPIJGroupIsMemberIDOK, error) {
+func (a *Client) JGroupIsMember(params *JGroupIsMemberParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupIsMemberOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupIsMemberIDParams()
+		params = NewJGroupIsMemberParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupIsMemberID",
+		ID:                 "JGroup.isMember",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.isMember/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupIsMemberIDReader{formats: a.formats},
+		Reader:             &JGroupIsMemberReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupIsMemberIDOK), nil
+	return result.(*JGroupIsMemberOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupJoinID post remote API j group join ID API
+JGroupJoin j group join API
 */
-func (a *Client) PostRemoteAPIJGroupJoinID(params *PostRemoteAPIJGroupJoinIDParams) (*PostRemoteAPIJGroupJoinIDOK, error) {
+func (a *Client) JGroupJoin(params *JGroupJoinParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupJoinOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupJoinIDParams()
+		params = NewJGroupJoinParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupJoinID",
+		ID:                 "JGroup.join",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.join/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupJoinIDReader{formats: a.formats},
+		Reader:             &JGroupJoinReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupJoinIDOK), nil
+	return result.(*JGroupJoinOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupJoinUser joinUser
+JGroupJoinUser joinUser
 
 Joins user with given options to group either by logging in or converting
 them.
 */
-func (a *Client) PostRemoteAPIJGroupJoinUser(params *PostRemoteAPIJGroupJoinUserParams) (*PostRemoteAPIJGroupJoinUserOK, error) {
+func (a *Client) JGroupJoinUser(params *JGroupJoinUserParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupJoinUserOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupJoinUserParams()
+		params = NewJGroupJoinUserParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupJoinUser",
+		ID:                 "JGroup.joinUser",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.joinUser",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupJoinUserReader{formats: a.formats},
+		Reader:             &JGroupJoinUserReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupJoinUserOK), nil
+	return result.(*JGroupJoinUserOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupKickMemberID post remote API j group kick member ID API
+JGroupKickMember j group kick member API
 */
-func (a *Client) PostRemoteAPIJGroupKickMemberID(params *PostRemoteAPIJGroupKickMemberIDParams) (*PostRemoteAPIJGroupKickMemberIDOK, error) {
+func (a *Client) JGroupKickMember(params *JGroupKickMemberParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupKickMemberOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupKickMemberIDParams()
+		params = NewJGroupKickMemberParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupKickMemberID",
+		ID:                 "JGroup.kickMember",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.kickMember/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupKickMemberIDReader{formats: a.formats},
+		Reader:             &JGroupKickMemberReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupKickMemberIDOK), nil
+	return result.(*JGroupKickMemberOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupLeaveID Method JGroup.leave
+JGroupLeave Method JGroup.leave
 */
-func (a *Client) PostRemoteAPIJGroupLeaveID(params *PostRemoteAPIJGroupLeaveIDParams) (*PostRemoteAPIJGroupLeaveIDOK, error) {
+func (a *Client) JGroupLeave(params *JGroupLeaveParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupLeaveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupLeaveIDParams()
+		params = NewJGroupLeaveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupLeaveID",
+		ID:                 "JGroup.leave",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.leave/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupLeaveIDReader{formats: a.formats},
+		Reader:             &JGroupLeaveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupLeaveIDOK), nil
+	return result.(*JGroupLeaveOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupModifyDataID modifies JGroupData related with the JGroup instance
+JGroupModify j group modify API
 */
-func (a *Client) PostRemoteAPIJGroupModifyDataID(params *PostRemoteAPIJGroupModifyDataIDParams) (*PostRemoteAPIJGroupModifyDataIDOK, error) {
+func (a *Client) JGroupModify(params *JGroupModifyParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupModifyOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupModifyDataIDParams()
+		params = NewJGroupModifyParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupModifyDataID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JGroup.modifyData/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJGroupModifyDataIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJGroupModifyDataIDOK), nil
-
-}
-
-/*
-PostRemoteAPIJGroupModifyID post remote API j group modify ID API
-*/
-func (a *Client) PostRemoteAPIJGroupModifyID(params *PostRemoteAPIJGroupModifyIDParams) (*PostRemoteAPIJGroupModifyIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJGroupModifyIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupModifyID",
+		ID:                 "JGroup.modify",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.modify/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupModifyIDReader{formats: a.formats},
+		Reader:             &JGroupModifyReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupModifyIDOK), nil
+	return result.(*JGroupModifyOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupOne post remote API j group one API
+JGroupModifyData modifies JGroupData related with the JGroup instance
 */
-func (a *Client) PostRemoteAPIJGroupOne(params *PostRemoteAPIJGroupOneParams) (*PostRemoteAPIJGroupOneOK, error) {
+func (a *Client) JGroupModifyData(params *JGroupModifyDataParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupModifyDataOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupOneParams()
+		params = NewJGroupModifyDataParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupOne",
+		ID:                 "JGroup.modifyData",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JGroup.modifyData/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &JGroupModifyDataReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*JGroupModifyDataOK), nil
+
+}
+
+/*
+JGroupOne j group one API
+*/
+func (a *Client) JGroupOne(params *JGroupOneParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupOneOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewJGroupOneParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "JGroup.one",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.one",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupOneReader{formats: a.formats},
+		Reader:             &JGroupOneReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupOneOK), nil
+	return result.(*JGroupOneOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupSearchMembersID post remote API j group search members ID API
+JGroupSearchMembers j group search members API
 */
-func (a *Client) PostRemoteAPIJGroupSearchMembersID(params *PostRemoteAPIJGroupSearchMembersIDParams) (*PostRemoteAPIJGroupSearchMembersIDOK, error) {
+func (a *Client) JGroupSearchMembers(params *JGroupSearchMembersParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupSearchMembersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupSearchMembersIDParams()
+		params = NewJGroupSearchMembersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupSearchMembersID",
+		ID:                 "JGroup.searchMembers",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.searchMembers/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupSearchMembersIDReader{formats: a.formats},
+		Reader:             &JGroupSearchMembersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupSearchMembersIDOK), nil
+	return result.(*JGroupSearchMembersOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupSendNotificationID Method JGroup.sendNotification
+JGroupSendNotification Method JGroup.sendNotification
 */
-func (a *Client) PostRemoteAPIJGroupSendNotificationID(params *PostRemoteAPIJGroupSendNotificationIDParams) (*PostRemoteAPIJGroupSendNotificationIDOK, error) {
+func (a *Client) JGroupSendNotification(params *JGroupSendNotificationParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupSendNotificationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupSendNotificationIDParams()
+		params = NewJGroupSendNotificationParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupSendNotificationID",
+		ID:                 "JGroup.sendNotification",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.sendNotification/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupSendNotificationIDReader{formats: a.formats},
+		Reader:             &JGroupSendNotificationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupSendNotificationIDOK), nil
+	return result.(*JGroupSendNotificationOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupSetLimitID post remote API j group set limit ID API
+JGroupSetLimit j group set limit API
 */
-func (a *Client) PostRemoteAPIJGroupSetLimitID(params *PostRemoteAPIJGroupSetLimitIDParams) (*PostRemoteAPIJGroupSetLimitIDOK, error) {
+func (a *Client) JGroupSetLimit(params *JGroupSetLimitParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupSetLimitOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupSetLimitIDParams()
+		params = NewJGroupSetLimitParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupSetLimitID",
+		ID:                 "JGroup.setLimit",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.setLimit/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupSetLimitIDReader{formats: a.formats},
+		Reader:             &JGroupSetLimitReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupSetLimitIDOK), nil
+	return result.(*JGroupSetLimitOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupSetOAuthID post remote API j group set o auth ID API
+JGroupSetOAuth j group set o auth API
 */
-func (a *Client) PostRemoteAPIJGroupSetOAuthID(params *PostRemoteAPIJGroupSetOAuthIDParams) (*PostRemoteAPIJGroupSetOAuthIDOK, error) {
+func (a *Client) JGroupSetOAuth(params *JGroupSetOAuthParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupSetOAuthOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupSetOAuthIDParams()
+		params = NewJGroupSetOAuthParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupSetOAuthID",
+		ID:                 "JGroup.setOAuth",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.setOAuth/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupSetOAuthIDReader{formats: a.formats},
+		Reader:             &JGroupSetOAuthReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupSetOAuthIDOK), nil
+	return result.(*JGroupSetOAuthOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupSomeWithRelationship post remote API j group some with relationship API
+JGroupSomeWithRelationship j group some with relationship API
 */
-func (a *Client) PostRemoteAPIJGroupSomeWithRelationship(params *PostRemoteAPIJGroupSomeWithRelationshipParams) (*PostRemoteAPIJGroupSomeWithRelationshipOK, error) {
+func (a *Client) JGroupSomeWithRelationship(params *JGroupSomeWithRelationshipParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupSomeWithRelationshipOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupSomeWithRelationshipParams()
+		params = NewJGroupSomeWithRelationshipParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupSomeWithRelationship",
+		ID:                 "JGroup.someWithRelationship",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.someWithRelationship",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupSomeWithRelationshipReader{formats: a.formats},
+		Reader:             &JGroupSomeWithRelationshipReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupSomeWithRelationshipOK), nil
+	return result.(*JGroupSomeWithRelationshipOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupSuggestUniqueSlug post remote API j group suggest unique slug API
+JGroupSuggestUniqueSlug j group suggest unique slug API
 */
-func (a *Client) PostRemoteAPIJGroupSuggestUniqueSlug(params *PostRemoteAPIJGroupSuggestUniqueSlugParams) (*PostRemoteAPIJGroupSuggestUniqueSlugOK, error) {
+func (a *Client) JGroupSuggestUniqueSlug(params *JGroupSuggestUniqueSlugParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupSuggestUniqueSlugOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupSuggestUniqueSlugParams()
+		params = NewJGroupSuggestUniqueSlugParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupSuggestUniqueSlug",
+		ID:                 "JGroup.suggestUniqueSlug",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.suggestUniqueSlug",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupSuggestUniqueSlugReader{formats: a.formats},
+		Reader:             &JGroupSuggestUniqueSlugReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupSuggestUniqueSlugOK), nil
+	return result.(*JGroupSuggestUniqueSlugOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupToggleFeatureID post remote API j group toggle feature ID API
+JGroupToggleFeature j group toggle feature API
 */
-func (a *Client) PostRemoteAPIJGroupToggleFeatureID(params *PostRemoteAPIJGroupToggleFeatureIDParams) (*PostRemoteAPIJGroupToggleFeatureIDOK, error) {
+func (a *Client) JGroupToggleFeature(params *JGroupToggleFeatureParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupToggleFeatureOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupToggleFeatureIDParams()
+		params = NewJGroupToggleFeatureParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupToggleFeatureID",
+		ID:                 "JGroup.toggleFeature",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.toggleFeature/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupToggleFeatureIDReader{formats: a.formats},
+		Reader:             &JGroupToggleFeatureReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupToggleFeatureIDOK), nil
+	return result.(*JGroupToggleFeatureOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupTransferOwnershipID Method JGroup.transferOwnership
+JGroupTransferOwnership Method JGroup.transferOwnership
 */
-func (a *Client) PostRemoteAPIJGroupTransferOwnershipID(params *PostRemoteAPIJGroupTransferOwnershipIDParams) (*PostRemoteAPIJGroupTransferOwnershipIDOK, error) {
+func (a *Client) JGroupTransferOwnership(params *JGroupTransferOwnershipParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupTransferOwnershipOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupTransferOwnershipIDParams()
+		params = NewJGroupTransferOwnershipParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupTransferOwnershipID",
+		ID:                 "JGroup.transferOwnership",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.transferOwnership/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupTransferOwnershipIDReader{formats: a.formats},
+		Reader:             &JGroupTransferOwnershipReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupTransferOwnershipIDOK), nil
+	return result.(*JGroupTransferOwnershipOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupUnblockMemberID post remote API j group unblock member ID API
+JGroupUnblockMember j group unblock member API
 */
-func (a *Client) PostRemoteAPIJGroupUnblockMemberID(params *PostRemoteAPIJGroupUnblockMemberIDParams) (*PostRemoteAPIJGroupUnblockMemberIDOK, error) {
+func (a *Client) JGroupUnblockMember(params *JGroupUnblockMemberParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupUnblockMemberOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupUnblockMemberIDParams()
+		params = NewJGroupUnblockMemberParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupUnblockMemberID",
+		ID:                 "JGroup.unblockMember",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.unblockMember/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupUnblockMemberIDReader{formats: a.formats},
+		Reader:             &JGroupUnblockMemberReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupUnblockMemberIDOK), nil
+	return result.(*JGroupUnblockMemberOK), nil
 
 }
 
 /*
-PostRemoteAPIJGroupUpdatePermissionsID post remote API j group update permissions ID API
+JGroupUpdatePermissions j group update permissions API
 */
-func (a *Client) PostRemoteAPIJGroupUpdatePermissionsID(params *PostRemoteAPIJGroupUpdatePermissionsIDParams) (*PostRemoteAPIJGroupUpdatePermissionsIDOK, error) {
+func (a *Client) JGroupUpdatePermissions(params *JGroupUpdatePermissionsParams, authInfo runtime.ClientAuthInfoWriter) (*JGroupUpdatePermissionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJGroupUpdatePermissionsIDParams()
+		params = NewJGroupUpdatePermissionsParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJGroupUpdatePermissionsID",
+		ID:                 "JGroup.updatePermissions",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JGroup.updatePermissions/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJGroupUpdatePermissionsIDReader{formats: a.formats},
+		Reader:             &JGroupUpdatePermissionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJGroupUpdatePermissionsIDOK), nil
+	return result.(*JGroupUpdatePermissionsOK), nil
 
 }
 

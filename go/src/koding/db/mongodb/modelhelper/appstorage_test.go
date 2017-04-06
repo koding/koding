@@ -56,17 +56,9 @@ func TestGetAllCombinedAppStorageByAccountId(t *testing.T) {
 		Id:        bson.NewObjectId(),
 		AccountId: acc.Id,
 	}
-	cs2 := &models.CombinedAppStorage{
-		Id:        bson.NewObjectId(),
-		AccountId: acc.Id,
-	}
 
 	if err := modelhelper.CreateCombinedAppStorage(cs1); err != nil {
-		t.Fatalf("error should be nil but got:", err)
-	}
-
-	if err := modelhelper.CreateCombinedAppStorage(cs2); err != nil {
-		t.Fatalf("error should be nil but got:", err)
+		t.Fatalf("error should not be nil but got:", err)
 	}
 
 	if cs1 == nil {
@@ -82,8 +74,7 @@ func TestGetAllCombinedAppStorageByAccountId(t *testing.T) {
 		t.Fatalf("error should be nil but got:", err)
 	}
 
-	if len(css) != 2 {
+	if len(css) != 1 {
 		t.Fatalf("length of CombinedAppStorage should equal to 2, but got:", len(css))
 	}
-
 }

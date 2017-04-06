@@ -127,7 +127,6 @@ module.exports = (options, credentials) ->
 
     terraformerSecretKey: credentials.terraformer.secretKey
 
-
   marketingPagesURL = 'http://www.koding.com'
 
   # configuration for socialapi, order will be the same with
