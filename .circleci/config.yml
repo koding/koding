@@ -20,7 +20,7 @@ jobs:
 
       - image: redis
 
-      # countly will listen at port 80 till we can give -p "$KONFIG_COUNTLY_APIPORT:80" 
+      # countly will listen at port 80 till we can give -p "$KONFIG_COUNTLY_APIPORT:80"
       - image: koding/countly-server:latest
         environment:
           COUNTLY_PATH: /countly
@@ -80,7 +80,7 @@ jobs:
 
       - run:
           name: configure
-          command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort 80
+          command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort "80"
 
       - run:
           name: launch test hosts
@@ -190,7 +190,13 @@ jobs:
           name: run
           command: |
             ./run exec supervisord -c supervisord.conf
+
+            # kill previous nginx
+            rm -rf /etc/nginx/sites-enabled || echo "does not exist"
+            rm -rf /etc/nginx/conf.d || echo "does not exist"
+            pkill nginx
             nginx -c $(pwd)/nginx.conf
+
             ./run health-check 30 600
 
       - run:
