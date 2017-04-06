@@ -72,29 +72,25 @@ runTests = -> describe 'workers.social.group.groupdata', ->
 
     it 'modifyData should be able to update existing group', (done) ->
 
-      JGroupData.fetchData groupSlug, (err, data) ->
+      JGroupData.modifyData groupSlug, { 'test_key__': 'test_value' }, (err) ->
         expect(err).to.not.exist
-        expect(data).to.exist
 
-        data.modifyData groupSlug, { 'test_key__': 'test_value' }, (err) ->
+        JGroupData.fetchData groupSlug, (err, data) ->
           expect(err).to.not.exist
 
-          JGroupData.fetchData groupSlug, (err, data) ->
+          expect(data).to.exist
+          expect(data).to.be.an 'object'
+
+          expect(data.payload).to.exist
+          expect(data.payload).to.be.an 'object'
+
+          expect(data.payload.test_key__).to.exist
+          expect(data.payload.test_key__).to.be.an 'string'
+
+          JGroupData.fetchDataAt groupSlug, 'test_key__', (err, data) ->
             expect(err).to.not.exist
-
             expect(data).to.exist
-            expect(data).to.be.an 'object'
-
-            expect(data.payload).to.exist
-            expect(data.payload).to.be.an 'object'
-
-            expect(data.payload.test_key__).to.exist
-            expect(data.payload.test_key__).to.be.an 'string'
-
-            JGroupData.fetchDataAt groupSlug, 'test_key__', (err, data) ->
-              expect(err).to.not.exist
-              expect(data).to.exist
-              done()
+            done()
 
 beforeTests()
 

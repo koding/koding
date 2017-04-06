@@ -78,7 +78,7 @@ module.exports = class JGroupData extends Model
       return callback null, payload
 
   # see docs on JGroup::modifyData
-  modifyData : (slug, data, callback) ->
+  @modifyData : (slug, data, callback) ->
     return callback new Error 'slug is required' unless slug
 
     # it's only allowed to change followings
