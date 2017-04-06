@@ -15,6 +15,7 @@ import (
 	"koding/klient/machine/mount/prefetch"
 	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/history"
+	"koding/klient/machine/mount/sync/supervised"
 
 	"github.com/koding/logging"
 )
@@ -171,8 +172,13 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 		return nil, nonil(err, s.a.Close(), s.iu.Close())
 	}
 
+	// Use supervised syncer to gracefully handle client disconnections.
+	sb := supervised.Builder{
+		Inner: opts.SyncBuilder,
+	}
+
 	// Create file synchronization object.
-	syncer, err := opts.SyncBuilder.Build(&msync.BuildOpts{
+	syncer, err := sb.Build(&msync.BuildOpts{
 		RemoteDir:     m.RemotePath,
 		CacheDir:      s.CacheDir(),
 		ClientFunc:    s.opts.ClientFunc,
