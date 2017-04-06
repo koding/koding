@@ -41,7 +41,7 @@ resource:
     aws-instance:
       # select your instance_type here: eg. c3.xlarge
       instance_type: '${var.userInput_instance_type}'
-      # select your ami (optional) eg. ami-xxxxx (it should be based on ubuntu 14.04)
+      # select your ami (defaults to Ubuntu 14.04)
       ami: ''
       # we will tag the instance here so you can identify it when you login to your AWS console
       tags:

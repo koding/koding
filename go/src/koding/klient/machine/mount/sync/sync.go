@@ -37,9 +37,15 @@ type Builder interface {
 // Execer represents an interface which must be implemented by sync event
 // produced by external syncer.
 type Execer interface {
+	// Event returns base event which is going to be synchronized.
+	Event() *Event
+
 	// Exec starts synchronization of stored syncing job. It should update
 	// indexes and clean up synced Event.
 	Exec() error
+
+	// Debug returns debug information about the execer.
+	Debug() string
 
 	// fmt.Stringer defines human readable information about the event.
 	fmt.Stringer
