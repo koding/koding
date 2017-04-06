@@ -18,7 +18,7 @@ getIDEUrl = (machine) ->
 
   { Own, Shared, Reassigned, Collaboration } = Machine.Type
 
-  switch @getType()
+  switch machine.getType()
     when Own then "/IDE/#{machine.slug or machine.label}"
     when Collaboration then "/IDE/#{machine.uid}"
     when Shared, Reassigned then "/IDE/#{machine.uid}"
