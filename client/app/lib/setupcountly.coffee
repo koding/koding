@@ -23,7 +23,7 @@ bootCountly = (appKey) ->
 
 module.exports = ->
   remote = require 'app/remote'
-  remote.api.JGroupData.fetchByKey 'countly' , (err, data) ->
+  remote.api.JGroupData.fetchByKey 'countly', (err, data) ->
     return console.log 'err: countly wont be enabled', err if err
     return  unless data
     bootCountly data.appKey
