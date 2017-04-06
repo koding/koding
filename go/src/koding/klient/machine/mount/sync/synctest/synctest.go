@@ -58,15 +58,14 @@ func SyncLocal(s msync.Syncer, rootA, rootB string, dir index.ChangeMeta) (conte
 // the function will execute it end return its error or timeout if such occurs.
 func ExecChange(s msync.Syncer, change *index.Change, timeout time.Duration) error {
 	var (
-		ev       = msync.NewEvent(context.Background(), nil, change)
-		evC      = make(chan *msync.Event)
-		timeoutC = time.After(timeout)
+		ev  = msync.NewEvent(context.Background(), nil, change)
+		evC = make(chan *msync.Event)
 	)
 
 	go func() {
 		select {
 		case evC <- ev:
-		case <-timeoutC:
+		case <-time.After(timeout):
 		}
 	}()
 
@@ -76,7 +75,7 @@ func ExecChange(s msync.Syncer, change *index.Change, timeout time.Duration) err
 			return fmt.Errorf("nil execer received")
 		}
 		return ex.Exec()
-	case <-timeoutC:
+	case <-time.After(timeout):
 		return fmt.Errorf("timed out after %s", timeout)
 	}
 }
