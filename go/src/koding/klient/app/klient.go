@@ -70,7 +70,7 @@ type Klient struct {
 	storage *storage.Storage
 
 	// terminal provides wmethods
-	terminal *terminal.Terminal
+	terminal terminal.Terminal
 
 	// vagrant handlers
 	vagrant *vagrant.Handlers
@@ -251,8 +251,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
-	term := terminal.New(k.Log, conf.ScreenrcPath)
-	term.InputHook = usg.Reset
+	term := terminal.New(k.Log, conf.ScreenrcPath, usg.Reset)
 
 	db, err := openBoltDB(configstore.CacheOptions("klient"))
 	if err != nil {

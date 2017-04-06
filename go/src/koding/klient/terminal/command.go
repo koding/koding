@@ -1,3 +1,5 @@
+// +build !windows
+
 package terminal
 
 import (
@@ -107,7 +109,7 @@ func getDefaultShell(username string) string {
 
 // newCmd returns a new command instance that is used to start the terminal.
 // The command line is created differently based on the incoming mode.
-func (t *Terminal) newCommand(mode, session, username string) (*Command, error) {
+func (t *terminal) newCommand(mode, session, username string) (*Command, error) {
 	// let's assume by default its Screen
 	name := defaultScreenPath
 	defaultShell := getDefaultShell(username)
@@ -164,7 +166,7 @@ func (t *Terminal) newCommand(mode, session, username string) (*Command, error) 
 // username.  The sessions are in the form of ["k7sdjv12344", "askIj12sas12",
 // ...]
 // TODO: socket directory is different under darwin, it will not work probably
-func (t *Terminal) screenSessions(username string) []string {
+func (t *terminal) screenSessions(username string) []string {
 	// Do not include dead sessions in our result
 	t.run(defaultScreenPath, "-wipe")
 
@@ -195,7 +197,7 @@ func (t *Terminal) screenSessions(username string) []string {
 
 // screenExists checks whether the given session exists in the running list of
 // screen sessions.
-func (t *Terminal) sessionExists(session, username string) bool {
+func (t *terminal) sessionExists(session, username string) bool {
 	for _, s := range t.screenSessions(username) {
 		if s == session {
 			return true
@@ -206,7 +208,7 @@ func (t *Terminal) sessionExists(session, username string) bool {
 }
 
 // killSessions kills all screen sessions for given username
-func (t *Terminal) killSessions(username string) error {
+func (t *terminal) killSessions(username string) error {
 	for _, session := range t.screenSessions(username) {
 		if err := t.killSession(session); err != nil {
 			return err
@@ -217,7 +219,7 @@ func (t *Terminal) killSessions(username string) error {
 }
 
 // killSession kills the given SessionID
-func (t *Terminal) killSession(session string) error {
+func (t *terminal) killSession(session string) error {
 	stdout, stderr, err := t.run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill")
 	if err != nil {
 		return commandError("screen kill failed", err, stdout, stderr)
@@ -226,7 +228,7 @@ func (t *Terminal) killSession(session string) error {
 	return nil
 }
 
-func (t *Terminal) renameSession(oldName, newName string) error {
+func (t *terminal) renameSession(oldName, newName string) error {
 	stdout, stderr, err := t.run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", sessionPrefix+"."+newName)
 	if err != nil {
 		return commandError("screen renaming failed", err, stdout, stderr)
@@ -239,7 +241,7 @@ func commandError(message string, err error, stdout, stderr []byte) error {
 	return fmt.Errorf("%s\n%s\n%s\n%s\n", message, err, stdout, stderr)
 }
 
-func (t *Terminal) run(cmd string, args ...string) (stdout, stderr []byte, err error) {
+func (t *terminal) run(cmd string, args ...string) (stdout, stderr []byte, err error) {
 	var bufout, buferr bytes.Buffer
 
 	c := exec.Command(cmd, args...)
