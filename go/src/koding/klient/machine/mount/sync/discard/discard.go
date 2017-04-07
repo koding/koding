@@ -78,6 +78,9 @@ func (d *Discard) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 				select {
 				case exC <- ex:
 				case <-d.stopC:
+					if ex.ev.Valid() {
+						ex.ev.Done()
+					}
 					return
 				}
 			case <-d.stopC:
