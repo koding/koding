@@ -39,35 +39,27 @@ module.exports = class ConnectedMachinesListView extends React.Component
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: ->
-    @props.stacks?.length and @props.stacks[0].machines.length
-
-
-  renderSectionHeaderAtIndex: -> null
+  numberOfRowsInSection: -> @props.stack?.machines.length or 0
 
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    stack = @props.stacks[rowIndex]
+    { stack } = @props
+    machine = stack.machines[rowIndex]
 
-    return  unless stack
-
-    machines = stack.machines
-      .sort (a, b) -> a.label.localeCompare(b.label) # Sorting from a to z
-      .map (machine) =>
-        <MachineItemContainer
-          key={machine.getId()}
-          stackId={stack.getId()}
-          machineId={machine.getId()}
-          shouldRenderDetails={yes}
-          shouldRenderSpecs={yes}
-          shouldRenderDisconnect={yes}
-          shouldRenderSharing={yes}
-          onDisconnectVM={@lazyBound 'onDisconnectVM', machine}
-          onDetailOpen={@lazyBound 'onDetailOpen', machine}
-          onSharedWithUser={@lazyBound 'onSharedWithUser', machine}
-          onUnsharedWithUser={@lazyBound 'onUnsharedWithUser', machine}
-        />
+    <MachineItemContainer
+      key={machine.getId()}
+      stackId={stack.getId()}
+      machineId={machine.getId()}
+      shouldRenderDetails={yes}
+      shouldRenderSpecs={yes}
+      shouldRenderDisconnect={yes}
+      shouldRenderSharing={yes}
+      onDisconnectVM={@lazyBound 'onDisconnectVM', machine}
+      onDetailOpen={@lazyBound 'onDetailOpen', machine}
+      onSharedWithUser={@lazyBound 'onSharedWithUser', machine}
+      onUnsharedWithUser={@lazyBound 'onUnsharedWithUser', machine}
+    />
 
 
   renderEmptySectionAtIndex: -> <div>No connected machines.</div>
@@ -78,7 +70,6 @@ module.exports = class ConnectedMachinesListView extends React.Component
     <List
       numberOfSections={@bound 'numberOfSections'}
       numberOfRowsInSection={@bound 'numberOfRowsInSection'}
-      renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
       sectionClassName='HomeAppViewVMSection'

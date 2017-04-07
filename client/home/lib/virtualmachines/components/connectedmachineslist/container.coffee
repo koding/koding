@@ -49,10 +49,10 @@ module.exports = computeConnector class ConnectedMachinesListContainer extends R
 
   render: ->
 
-    stacks = @props.stacks?.filter (stack) ->
-      stack.title.toLowerCase() is 'managed vms'
+    stack = @props.stacks.find (stack) -> stack.isManaged()
 
-    <View stacks={stacks}
+    <View
+      stack={stack}
       onDisconnectVM={@bound 'onDisconnectVM'}
       onDetailOpen={@bound 'onDetailOpen'}
       onSharedWithUser={@bound 'onSharedWithUser'}
