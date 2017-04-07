@@ -210,33 +210,34 @@ module.exports = class JMachine extends remote.api.JMachine
       .map (user) -> user.instance
 
 
-
   reviveUsers: (options, callback = kd.noop) ->
 
     { storage } = kd.singletons.computeController
 
-    super options, (err, users = []) =>
+    super options, (err, accounts = []) =>
       return callback err  if err
 
-      debug 'reviveUsers', { users, machine: this }
+      debug 'reviveUsers', { accounts, machine: this }
 
-      machineUsers = @getAt('users').map (machineUser) ->
-        # find user instance matching the raw `machineUser` object.
-        userInstance = _.find users, (user) ->
-          user.profile.nickname is machineUser.username
+      machineUsers = @getAt 'users'
 
-        # if there is a match, update raw `machineUser` object by attaching the
-        # revived instance to it with `instance` key.
-        if userInstance
-          machineUser.instance = userInstance
+      accounts.forEach (account) ->
+        machineUser = _.find machineUsers, (user) ->
+          user.username is account.profile.nickname
 
-        return machineUser
+        if machineUser
+        then machineUser.instance = account
+        else machineUsers.push {
+          username: account.profile.nickname
+          instance: account
+          permanent: yes
+        }
 
       @setAt 'users', machineUsers
 
       storage.machines.push this
 
-      callback null, users
+      callback null, accounts
 
 
   setLabel: (label, callback) ->
@@ -311,15 +312,17 @@ module.exports = class JMachine extends remote.api.JMachine
 
     debug 'unshare user', username
 
+    { storage } = kd.singletons.computeController
+
     new Promise (resolve, reject) =>
       remote.api.SharedMachine.kick @uid, [username], (err) =>
         promise = @getBaseKite()
           .klientUnshare { username, permanent: yes }
+          .then => @users = @users.filter (user) -> user.username isnt username
           .then => @reviveUsers { permanentOnly : yes }
-          .then -> if err then reject new Error err else resolve()
+          .then =>
+            if err then reject new Error err else resolve()
           .catch reject
-
-
 
   shareUser: (username) ->
 
@@ -331,6 +334,7 @@ module.exports = class JMachine extends remote.api.JMachine
 
         @getBaseKite()
           .klientShare { username, permanent: yes }
+          .then => @users.push { approved: no, permanent: yes, username, owner: no }
           .then => @reviveUsers { permanentOnly : yes }
           .then resolve
           .catch reject
