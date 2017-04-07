@@ -98,11 +98,6 @@ module.exports = class NotificationController extends KDObject
       if clientId isnt kookies.get 'clientId'
         deleteUserCookie()
 
-    @once 'EmailShouldBeConfirmed', ->
-      { firstName, nickname } = whoami().profile
-      kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal) =>
-        @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
-        modal.on 'KDObjectWillBeDestroyed', deleteUserCookie.bind this
 
     @on 'MachineShareListUpdated', (data = {}) ->
 
