@@ -1,14 +1,17 @@
-kd = require 'kd'
 _ = require 'lodash'
 $ = require 'jquery'
+kd = require 'kd'
 React = require 'app/react'
-TimeAgo = require 'app/components/common/timeago'
-UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
-getBoundingClientReact = require 'app/util/getBoundingClientReact'
-StackUpdatedWidget = require 'app/sidebar/components/stackupdatedwidget'
+
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
+getBoundingClientReact = require 'app/util/getBoundingClientReact'
+
+TimeAgo = require 'app/components/common/timeago'
+UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
+StackUpdatedWidget = require 'app/sidebar/components/stackupdatedwidget'
+
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -16,17 +19,15 @@ module.exports = class StackTemplateItem extends React.Component
 
     super
 
-    @state        =
-      coordinates :
-        left      : 0
-        top       : 0
-      showWidget  : no
+    @state =
+      widgetVisible: no
+      coordinates: { left: 0, top: 0 }
 
 
   componentWillReceiveProps: (nextProps) ->
 
     if @props.stack?.getUnreadCount() < nextProps.stack?.getUnreadCount()
-      @setState { showWidget: yes }
+      @setState { widgetVisible: yes }
 
     @setCoordinates()
 
@@ -42,7 +43,7 @@ module.exports = class StackTemplateItem extends React.Component
 
 
   onScrollPage: -> _.debounce =>
-    @setState({ showWidget: no })
+    @setState({ widgetVisible: no })
   , 500, { leading: yes, trailing: no }
 
 
@@ -84,19 +85,19 @@ module.exports = class StackTemplateItem extends React.Component
   handleUnreadCountClick: ->
 
     @setCoordinates()
-    @setState { showWidget: yes }
+    @setState { widgetVisible: yes }
 
 
   onWidgetClose: ->
 
-    @setState { showWidget: no }
+    @setState { widgetVisible: no }
 
 
   renderStackUpdatedWidget: ->
 
-    { coordinates, showWidget } = @state
+    { coordinates, widgetVisible } = @state
 
-    return null  unless showWidget
+    return null  unless widgetVisible
     return null  unless @props.stack?.getUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
