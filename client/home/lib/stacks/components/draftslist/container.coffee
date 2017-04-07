@@ -28,7 +28,7 @@ module.exports = class DraftsListContainer extends React.Component
 
     { router } = kd.singletons
 
-    template.clone (err, template) =>
+    template.clone (err, template) ->
       if err
         return new kd.NotificationView
           title: "Error occured while cloning template"

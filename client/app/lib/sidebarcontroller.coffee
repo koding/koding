@@ -27,7 +27,6 @@ module.exports = class SidebarController extends kd.Controller
 
     @managed = {}
 
-    # kd.singletons.mainController.ready =>
     @bindNotificationHandlers()
     @setStateFromStorage()
     @loadVisibilityFilters()
