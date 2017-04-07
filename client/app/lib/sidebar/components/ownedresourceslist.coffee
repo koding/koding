@@ -9,6 +9,7 @@ whoami = require 'app/util/whoami'
 isAdmin = require 'app/util/isAdmin'
 canCreateStacks = require 'app/util/canCreateStacks'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
+showError = require 'app/util/showError'
 
 List = require 'app/components/list'
 Link = require 'app/components/common/link'
@@ -29,9 +30,11 @@ module.exports = class OwnedResourcesList extends React.Component
     @headers = []
 
 
-  onMenuItemClickError: (name) ->
+  onMenuItemClickError: (action, templateId) ->
 
-    new kd.NotificationView { title: "Error occured while #{name} template" }
+    debug "error while #{action}", { templateId }
+
+    showError "Error occured while #{action} the template"
 
 
   getSectionCount: -> @props.resources.length
