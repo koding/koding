@@ -61,6 +61,7 @@ module.exports = class MachinesListItem extends React.Component
     <main className="MachinesListItem-machineDetails">
       <MachineDetails
         machine={@props.machine}
+        status={@props.status}
         shouldRenderSpecs={@props.shouldRenderSpecs}
         shouldRenderPower={@props.shouldRenderPower}
         shouldRenderDisconnect={@props.shouldRenderDisconnect}
