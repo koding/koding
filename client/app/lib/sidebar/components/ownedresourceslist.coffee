@@ -14,8 +14,6 @@ showError = require 'app/util/showError'
 List = require 'app/components/list'
 Link = require 'app/components/common/link'
 
-SidebarNoStacks = require 'app/components/sidebarstacksection/sidebarnostacks'
-
 SidebarMachineItem = require './machineitemcontainer'
 OwnedResourceHeader = require './ownedresourceheader'
 SidebarNoStacks = require './nostacks'
