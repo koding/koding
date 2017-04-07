@@ -203,7 +203,13 @@ module.exports = class JMachine extends remote.api.JMachine
   getStatus: -> @getAt 'status.state'
 
 
-  getSharedUsers: -> @sharedUsers or []
+  getSharedUsers: ->
+
+    @getAt('users')
+      .filter (user) -> user.instance? and user.instance.profile.nickname isnt nick()
+      .map (user) -> user.instance
+
+
 
   reviveUsers: (options, callback = kd.noop) ->
 
@@ -212,11 +218,25 @@ module.exports = class JMachine extends remote.api.JMachine
     super options, (err, users = []) =>
       return callback err  if err
 
-      @sharedUsers = users
+      debug 'reviveUsers', { users, machine: this }
+
+      machineUsers = @getAt('users').map (machineUser) ->
+        # find user instance matching the raw `machineUser` object.
+        userInstance = _.find users, (user) ->
+          user.profile.nickname is machineUser.username
+
+        # if there is a match, update raw `machineUser` object by attaching the
+        # revived instance to it with `instance` key.
+        if userInstance
+          machineUser.instance = userInstance
+
+        return machineUser
+
+      @setAt 'users', machineUsers
 
       storage.machines.push this
 
-      callback err, users
+      callback null, users
 
 
   setLabel: (label, callback) ->
