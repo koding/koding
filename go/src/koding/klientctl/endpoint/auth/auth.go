@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"sort"
 	"sync"
 
@@ -10,6 +11,8 @@ import (
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/helper"
+
+	"github.com/koding/kite"
 )
 
 var DefaultClient = &Client{}
@@ -109,6 +112,10 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		err = c.kloud().Call("auth.passwordLogin", req, &resp)
 	} else {
 		err = c.kloud().Call("auth.login", req, &resp.LoginResponse)
+	}
+
+	if e, ok := err.(*kite.Error); ok && e.Type == "kloudError" && e.CodeVal == "415" {
+		return nil, errors.New("invalid team name or user does not belong to the team")
 	}
 
 	if err != nil {
