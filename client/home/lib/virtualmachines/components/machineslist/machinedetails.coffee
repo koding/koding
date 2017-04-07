@@ -75,7 +75,7 @@ module.exports = class MachineDetails extends React.Component
 
     modal          = new ContentModal
       title        : 'Are you sure?'
-      content      : 'Once you turn off sharing all of the participants will lose access to this VM immediately.'
+      content      : 'Once you disable sharing all of the participants will lose access to this VM immediately.'
       cssClass     : 'content-modal'
       overlay      : yes
       buttons      :
@@ -86,7 +86,7 @@ module.exports = class MachineDetails extends React.Component
             @setState { isShared: yes }
             modal.destroy()
         Yes        :
-          title    : 'Turn Off'
+          title    : 'Disable Sharing'
           cssClass : 'solid medium'
           callback : =>
             @setState { isShared: no }
