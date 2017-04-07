@@ -125,9 +125,9 @@ func run(args []string) {
 		os.Exit(10)
 	}
 
-	if !daemon.Installed() && !isDaemonCommand(os.Args[1:]) {
+	if !daemon.Installed() && !requiresDaemon(os.Args[1:]) {
 		fmt.Fprintln(os.Stderr, "This command requires a daemon to be installed. Please install it "+
-			"with the following command:\n\n\tsudo kd daemon install [--team <name>]\n")
+			"with the following command:\n\n\tsudo kd install [--team <name>]\n")
 		ctlcli.Close()
 		os.Exit(1)
 	}
@@ -821,21 +821,6 @@ func createActionFunc(action cli.ActionFunc) cli.ActionFunc {
 	}
 }
 
-// ExitWithMessage takes a ExitingWithMessageCommand type and returns a
-// codegansta/cli friendly command Action.
-func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		s, e := f(c, log, cmd)
-		if s != "" {
-			fmt.Println(s)
-		}
-		ctlcli.Close()
-		os.Exit(e)
-
-		return nil
-	}
-}
-
 func find(cmds cli.Commands, names ...string) cli.Command {
 	last := len(names) - 1
 
@@ -857,13 +842,13 @@ func find(cmds cli.Commands, names ...string) cli.Command {
 	return cli.Command{}
 }
 
-func isDaemonCommand(args []string) bool {
+func requiresDaemon(args []string) bool {
 	switch len(args) {
 	case 0:
 		return false
 	case 1:
-		return args[0] == "install"
+		return args[0] == "install" || args[0] == "-version"
 	default:
-		return args[0] == "daemon" && args[1] == "install" || args[0] == "install"
+		return args[0] == "daemon" && args[1] == "install" || args[0] == "install" || args[0] == "-version"
 	}
 }
