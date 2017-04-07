@@ -107,10 +107,9 @@ module.exports = class NotificationController extends KDObject
 
       { storage } = kd.singletons.computeController
 
-      switch action
-        when 'deny'
-          machine = storage.machines.get '_id', machineId
-          machine.reviveUsers { permanentOnly: yes }
+      if machineId
+        storage.machines.fetch '_id', machineId, force = yes
+          .then (machine) -> machine.reviveUsers { permanentOnly: yes }
 
 
     @on 'StackOwnerUpdated', (data = {}) =>
