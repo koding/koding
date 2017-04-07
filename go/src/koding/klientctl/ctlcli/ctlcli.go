@@ -8,7 +8,6 @@ package ctlcli
 import (
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -21,12 +20,6 @@ type CloseFunc func() error
 
 // Close implements the io.Closer interface.
 func (c CloseFunc) Close() error { return c() }
-
-// ExitFunc is called upon command exit, it sets exit code.
-//
-// It is overwritten during testing, as calling os.Exit
-// prevents saving coverage profile.
-var ExitFunc = os.Exit
 
 // CloseOnExit is a hack to close program-lifetime-bound resources,
 // like log file or BoltDB database.
@@ -96,52 +89,34 @@ func CommandHelper(ctx *cli.Context, cmd string) Helper {
 
 // ExitAction implements a cli.Command's Action field for an ExitingCommand type.
 func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		exit := f(c, log, cmdName)
-		Close()
-		ExitFunc(exit)
-
-		return nil
+	eec := func(c *cli.Context, log logging.Logger, cmdName string) (int, error) {
+		return f(c, log, cmdName), nil
 	}
+
+	return ExitErrAction(eec, log, cmdName)
+}
+
+// FactoryAction implements a cli.Command's Action field.
+func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) cli.ActionFunc {
+	eec := func(c *cli.Context, log logging.Logger, cmdName string) (int, error) {
+		return factory(c, log, cmdName).Run()
+	}
+
+	return ExitErrAction(eec, log, cmdName)
 }
 
 // ExitErrAction implements a cli.Command's Action field for an ExitingErrCommand
 func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) cli.ActionFunc {
 	return func(c *cli.Context) error {
+		defer Close()
+
 		exit, err := f(c, log, cmdName)
-		if err != nil {
-			log.Error("ExitErrAction encountered error. err:%s", err)
+		if err != nil || exit != 0 {
+			log.Error("Command %q encountered error. Exit:%d, err:%v", cmdName, exit, err)
+
 			// Print error message to the user.
-			fmt.Fprintf(os.Stderr, "error executing %q command: %s\n", cmdName, err)
+			return cli.NewExitError(fmt.Sprintf("error executing %q command: %v", cmdName, err), exit)
 		}
-
-		Close()
-		if exit == 0 {
-			return nil
-		}
-		return fmt.Errorf("exit code: %d", exit)
-	}
-}
-
-// FactoryAction implements a cli.Command's Action field.
-func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		cmd := factory(c, log, cmdName)
-		exit, err := cmd.Run()
-
-		// For API reasons, we may return an error but a zero exit code. So we want
-		// to check and log both.
-		if exit != 0 || err != nil {
-			log.Error(
-				"Command encountered error. command:%s, exit:%d, err:%s",
-				cmdName, exit, err,
-			)
-			// Print error message to the user.
-			fmt.Fprintf(os.Stderr, "error executing %q command: %s\n", cmdName, err)
-		}
-
-		Close()
-		ExitFunc(exit)
 
 		return nil
 	}
