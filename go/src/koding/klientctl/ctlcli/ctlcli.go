@@ -108,18 +108,17 @@ func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) cli.Action
 // ExitErrAction implements a cli.Command's Action field for an ExitingErrCommand
 func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) cli.ActionFunc {
 	return func(c *cli.Context) error {
+		defer Close()
+
 		exit, err := f(c, log, cmdName)
 		if err != nil {
 			log.Error("ExitErrAction encountered error. err:%s", err)
+
 			// Print error message to the user.
-			fmt.Fprintf(os.Stderr, "error executing %q command: %s\n", cmdName, err)
+			return cli.NewExitError(fmt.Sprintf("error executing %q command: %s", cmdName, err), exit)
 		}
 
-		Close()
-		if exit == 0 {
-			return nil
-		}
-		return fmt.Errorf("exit code: %d", exit)
+		return nil
 	}
 }
 
