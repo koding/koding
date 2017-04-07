@@ -101,11 +101,16 @@ module.exports = class NotificationController extends KDObject
 
     @on 'MachineShareListUpdated', (data = {}) ->
 
-      { machineId, action, permanent } = data
+      { machineId, action } = data
+
+      debug 'machine share list updated', data
+
+      { storage } = kd.singletons.computeController
 
       switch action
         when 'deny'
-          EnvironmentFlux.actions.loadMachineSharedUsers machineId
+          machine = storage.machines.get '_id', machineId
+          machine.reviveUsers { permanentOnly: yes }
 
 
     @on 'StackOwnerUpdated', (data = {}) =>
