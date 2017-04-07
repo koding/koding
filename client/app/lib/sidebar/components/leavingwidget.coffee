@@ -30,8 +30,9 @@ module.exports = class LeavingWidget extends React.Component
         No         :
           title    : 'Cancel'
           cssClass : 'solid cancel medium'
-          callback : =>
+          callback : ->
             modal.destroy()
+
         Yes        :
           title    : 'Yes'
           cssClass : 'solid medium'
