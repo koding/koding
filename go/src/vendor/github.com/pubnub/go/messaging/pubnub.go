@@ -947,6 +947,8 @@ func (pub *Pubnub) executeTime(callbackChannel chan []byte, errorChannel chan []
 func (pub *Pubnub) sendPublishRequest(channel string, publishURLString string, jsonBytes []byte, callbackChannel chan []byte, errorChannel chan []byte) {
 	u := &url.URL{Path: string(jsonBytes)}
 	encodedPath := u.String()
+	// Go 1.8 inserts a ./ per RFC 3986 §4.2.
+	encodedPath = strings.TrimLeft(encodedPath, "./")
 	logMu.Lock()
 	infoLogger.Println(fmt.Sprintf("Publish: json: %s, encoded: %s", string(jsonBytes), encodedPath))
 	logMu.Unlock()
