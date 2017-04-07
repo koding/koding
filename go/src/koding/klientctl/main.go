@@ -338,6 +338,79 @@ func run(args []string) {
 				},
 			}},
 		}, {
+			Name:  "daemon",
+			Usage: "Manage KD Daemon service.",
+			Subcommands: []cli.Command{{
+				Name:   "install",
+				Usage:  "Install the daemon and dependencies.",
+				Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force, y",
+						Usage: "Forces a yes answer to all interactive questions.",
+					},
+					cli.StringFlag{
+						Name:  "prefix",
+						Usage: "Overwrite installation directory.",
+					},
+					cli.StringFlag{
+						Name:  "baseurl",
+						Usage: "Specify a Koding endpoint to log in.",
+						Value: config.Konfig.Endpoints.Koding.Public.String(),
+					},
+					cli.StringFlag{
+						Name:  "token",
+						Usage: "Temporary token to logging in into your Koding account.",
+					},
+					cli.StringFlag{
+						Name:  "team",
+						Usage: "Provide explicit Koding team to log into.",
+					},
+					cli.StringSliceFlag{
+						Name:  "skip",
+						Usage: "List steps to skip during installation.",
+					},
+				},
+			}, {
+				Name:   "uninstall",
+				Usage:  "Uninstall the daemon and dependencies.",
+				Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force, y",
+						Usage: "Forces a yes answer to all interactive questions.",
+					},
+				},
+			}, {
+				Name:   "update",
+				Usage:  "Update KD and KD Daemon to the latest versions.",
+				Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force",
+						Usage: "Force retrieving configuration from Koding.",
+					},
+					// TODO(rjeczalik): Left here for compatibility reasons, remove in future.
+					cli.BoolFlag{
+						Name:   "continue",
+						Usage:  "Internal use only.",
+						Hidden: true,
+					},
+				},
+			}, {
+				Name:   "start",
+				Usage:  "Start the daemon service.",
+				Action: ctlcli.ExitErrAction(DaemonStart, log, "start"),
+			}, {
+				Name:   "restart",
+				Usage:  "Restart the daemon service.",
+				Action: ctlcli.ExitErrAction(DaemonRestart, log, "restart"),
+			}, {
+				Name:   "stop",
+				Usage:  "Stop the daemon service.",
+				Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
+			}},
+		}, {
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
@@ -348,69 +421,6 @@ func run(args []string) {
 			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 			Description: cmdDescriptions["status"],
 			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
-		}, {
-			Name:        "update",
-			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
-			Description: cmdDescriptions["update"],
-			Action:      ctlcli.ExitAction(UpdateCommand, log, "update"),
-			Flags: []cli.Flag{
-				cli.IntFlag{
-					Name:  "kd-version",
-					Usage: "Version of KD (klientctl) to update to.",
-				},
-				cli.StringFlag{
-					Name:  "kd-channel",
-					Usage: "Channel (production|development) to download update from.",
-				},
-				cli.IntFlag{
-					Name:  "klient-version",
-					Usage: "Version of klient to update to.",
-				},
-				cli.StringFlag{
-					Name:  "klient-channel",
-					Usage: "Channel (production|development) to download update from.",
-				},
-				cli.BoolFlag{
-					Name:  "force",
-					Usage: "Updates kd & klient to latest available version.",
-				},
-				cli.BoolFlag{
-					Name:   "continue",
-					Usage:  "Internal use only.",
-					Hidden: true,
-				},
-			},
-		}, {
-			Name:        "restart",
-			Usage:       fmt.Sprintf("Restart the %s.", config.KlientName),
-			Description: cmdDescriptions["restart"],
-			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
-		}, {
-			Name:        "start",
-			Usage:       fmt.Sprintf("Start the %s.", config.KlientName),
-			Description: cmdDescriptions["start"],
-			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
-		}, {
-			Name:        "stop",
-			Usage:       fmt.Sprintf("Stop the %s.", config.KlientName),
-			Description: cmdDescriptions["stop"],
-			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
-		}, {
-			Name:        "uninstall",
-			Usage:       fmt.Sprintf("Uninstall the %s.", config.KlientName),
-			Description: cmdDescriptions["uninstall"],
-			Action:      ExitWithMessage(UninstallCommand, log, "uninstall"),
-		}, {
-			Name:        "install",
-			Usage:       fmt.Sprintf("Install the %s.", config.KlientName),
-			Description: cmdDescriptions["install"],
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "kontrol, k",
-					Usage: "Specify an alternate Kontrol",
-				},
-			},
-			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
 		}, {
 			Name:        "autocompletion",
 			Usage:       "Enable autocompletion support for bash and fish shells",
@@ -549,6 +559,12 @@ func run(args []string) {
 		find(app.Commands, "machine", "umount"),
 		find(app.Commands, "machine", "exec"),
 		find(app.Commands, "machine", "cp"),
+		find(app.Commands, "daemon", "install"),
+		find(app.Commands, "daemon", "uninstall"),
+		find(app.Commands, "daemon", "update"),
+		find(app.Commands, "daemon", "start"),
+		find(app.Commands, "daemon", "stop"),
+		find(app.Commands, "daemon", "restart"),
 	)
 
 	if experimental {
@@ -584,74 +600,6 @@ func run(args []string) {
 					// command: kd auth register
 					auth.NewRegisterSubCommand(log),
 				},
-			},
-			cli.Command{
-				Name:  "daemon",
-				Usage: "Manage KD Daemon service.",
-				Subcommands: []cli.Command{{
-					Name:   "install",
-					Usage:  "Install the daemon and dependencies.",
-					Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "force, y",
-							Usage: "Forces a yes answer to all interactive questions.",
-						},
-						cli.StringFlag{
-							Name:  "prefix",
-							Usage: "Overwrite installation directory.",
-						},
-						cli.StringFlag{
-							Name:  "baseurl",
-							Usage: "Specify a Koding endpoint to log in.",
-							Value: config.Konfig.Endpoints.Koding.Public.String(),
-						},
-						cli.StringFlag{
-							Name:  "token",
-							Usage: "Temporary token to logging in into your Koding account.",
-						},
-						cli.StringFlag{
-							Name:  "team",
-							Usage: "Provide explicit Koding team to log into.",
-						},
-						cli.StringSliceFlag{
-							Name:  "skip",
-							Usage: "List steps to skip during installation.",
-						},
-					},
-				}, {
-					Name:   "uninstall",
-					Usage:  "Uninstall the daemon and dependencies.",
-					Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "force, y",
-							Usage: "Forces a yes answer to all interactive questions.",
-						},
-					},
-				}, {
-					Name:   "update",
-					Usage:  "Update KD and KD Daemon to the latest versions.",
-					Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "force",
-							Usage: "Force retrieving configuration from Koding.",
-						},
-					},
-				}, {
-					Name:   "start",
-					Usage:  "Start the daemon service.",
-					Action: ctlcli.ExitErrAction(DaemonStart, log, "start"),
-				}, {
-					Name:   "restart",
-					Usage:  "Restart the daemon service.",
-					Action: ctlcli.ExitErrAction(DaemonRestart, log, "restart"),
-				}, {
-					Name:   "stop",
-					Usage:  "Stop the daemon service.",
-					Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
-				}},
 			},
 			cli.Command{
 				Name:      "credential",

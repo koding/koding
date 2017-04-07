@@ -452,10 +452,6 @@ var script = []InstallStep{{
 		_ = uploader.FixPerms()
 		_ = tlsproxy.Init()
 
-		if err := svc.Start(); err != nil {
-			return "", err
-		}
-
 		if n, err := parseVersion(c.d.Files["klient"]); err == nil {
 			version = n
 		}
@@ -518,7 +514,10 @@ var script = []InstallStep{{
 		// to take effect.
 		_ = svc.Stop()
 
-		return "", svc.Start()
+		if err := svc.Start(); err != nil {
+			return "", err
+		}
+		return "", c.Ping()
 	},
 	RunOnUpdate: true,
 }}
