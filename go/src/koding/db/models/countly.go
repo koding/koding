@@ -10,13 +10,5 @@ type Countly struct {
 
 // Valid checks if countly instance is valid.
 func (c *Countly) Valid() bool {
-	if c == nil {
-		return false
-	}
-
-	if c.APIKey == "" {
-		return false
-	}
-
-	return true
+	return c != nil && c.APIKey != ""
 }

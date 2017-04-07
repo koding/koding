@@ -35,22 +35,6 @@ func GetGroupDataPath(slug, path string, gd interface{}) error {
 	return Mongo.Run(GroupDataColl, query)
 }
 
-// HasGroupDataPath checks if the given path has data or not.
-func HasGroupDataPath(slug, path string) (bool, error) {
-	gdp := &models.GroupData{}
-	err := GetGroupDataPath(slug, path, &gdp)
-	if err != nil {
-		return false, err
-	}
-
-	data, err := gdp.Payload.Get(path)
-	if err != nil {
-		return false, err
-	}
-
-	return data != nil, nil
-}
-
 // UpsertGroupData creates or updates GroupData.
 func UpsertGroupData(slug, path string, data interface{}) error {
 	if path == "" {
