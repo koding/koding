@@ -3,18 +3,6 @@ React = require 'app/react'
 SidebarWidget = require './widget'
 
 
-PROVIDERS         =
-  AWS             : 'Amazon'
-  Azure           : 'Azure'
-  HPCloud         : 'HP Cloud'
-  Joyent          : 'Joyent'
-  SoftLayer       : 'SoftLayer'
-  Rackspace       : 'Rackspace'
-  GoogleCloud     : 'Google Cloud'
-  DigitalOcean    : 'DigitalOcean'
-  UnknownProvider : '' # no custom name for unknown providers
-
-
 module.exports = class ManagedMachineWidget extends React.Component
 
   @defaultProps =
