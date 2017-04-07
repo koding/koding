@@ -30,7 +30,6 @@ loadIDE = (data, done = kd.noop) ->
   if showInstance
 
     { sidebar } = kd.singletons
-    console.log 'showInstance', yes
 
     sidebar.setSelected 'machineId', machine.getId()
 
