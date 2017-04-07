@@ -17,16 +17,12 @@ module.exports = computeConnector class ConnectedMachinesListContainer extends R
 
     machine.reviveUsers { permanentOnly: yes }
 
-    # EnvironmentFlux.actions.loadMachineSharedUsers machineId
-
 
   onSharedWithUser: (machine, nickname) ->
 
     debug 'shared with user', { machine, nickname }
 
     machine.shareUser nickname
-
-    # EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
 
 
   onUnsharedWithUser: (machine, nickname) ->
@@ -35,16 +31,12 @@ module.exports = computeConnector class ConnectedMachinesListContainer extends R
 
     machine.unshareUser nickname
 
-    # EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
-
 
   onDisconnectVM: (machine) ->
 
     debug 'machine needs to disconnect', { machine }
 
     kd.singletons.computeController.destroy machine
-
-    # EnvironmentFlux.actions.disconnectMachine machine
 
 
   render: ->

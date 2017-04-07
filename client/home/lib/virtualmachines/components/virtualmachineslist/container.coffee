@@ -26,29 +26,29 @@ module.exports = computeConnector class VirtualMachinesListContainer extends Rea
 
 
   onCancelSharing: (machine) ->
+
     debug 'cancel sharing', { machine }
 
     machine.unshareAllUsers()
 
 
   onSharedWithUser: (machine, nickname) ->
+
     debug 'shared with user', { machine, nickname }
-    # EnvironmentFlux.actions.shareMachineWithUser machine, nickname
 
     machine.shareUser nickname
 
 
   onUnsharedWithUser: (machine, nickname) ->
+
     debug 'unshared with user', { machine, nickname }
-    # EnvironmentFlux.actions.unshareMachineWithUser machine, nickname
 
     machine.unshareUser nickname
 
 
   render: ->
 
-    stacks = @props.stacks.filter (stack) ->
-      stack.title.toLowerCase() isnt 'managed vms'
+    stacks = @props.stacks.filter (stack) -> not stack.isManaged()
 
     <View stacks={stacks}
       onChangeAlwaysOn={@bound 'onChangeAlwaysOn'}
