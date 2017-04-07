@@ -1,5 +1,5 @@
 debug = require('debug')('util:calculateOwnedResources')
-{ flatten } = require 'lodash'
+{ flatten, find } = require 'lodash'
 
 
 module.exports = calculateOwnedResources = (props, state) ->
@@ -16,7 +16,6 @@ module.exports = calculateOwnedResources = (props, state) ->
 
     return stacks.map (stack) -> { stack, template, unreadCount: 0 }
 
-
   debug 'resources are calculated before flatten', resources
 
   # this will make sure that stacks will be on top,
@@ -24,8 +23,7 @@ module.exports = calculateOwnedResources = (props, state) ->
   # 2) the templates without stacks will come after them.
   resources = flatten(resources).sort ({ stack }) -> if stack then -1 else 1
 
-  [ managedStack ] = props.stacks.filter (s) ->
-    s.title.indexOf('Managed VMs') > -1
+  managedStack = find props.stacks, (stack) -> stack.isManaged()
 
   # and finally show managed machines on bottom.
   if managedStack and managedStack.machines?.length

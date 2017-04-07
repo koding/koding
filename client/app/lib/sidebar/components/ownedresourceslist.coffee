@@ -51,10 +51,11 @@ module.exports = class OwnedResourcesList extends React.Component
 
     { router } = kd.singletons
 
-    if stack?.title.indexOf('Managed VMs') > -1
-      return router.handleRoute '/Home/stacks/virtual-machines#connected-machines'
+    route = if stack?.isManaged()
+    then '/Home/stacks/virtual-machines#connected-machines'
+    else "/Stack-Editor/#{template.getId()}"
 
-    router.handleRoute "/Stack-Editor/#{template.getId()}"
+    router.handleRoute route
 
 
   onHeaderMenuItemClick: (resource, item) ->
@@ -150,7 +151,7 @@ module.exports = class OwnedResourcesList extends React.Component
     if stack.config?.remoteDetails?.originalUrl?
       menuItems['Open on GitLab'] = { callback }
 
-    if stack.title.indexOf('Managed VMs') > -1
+    if stack.isManaged()
       menuItems['VMs'] = { callback }
 
     else if stack.disabled

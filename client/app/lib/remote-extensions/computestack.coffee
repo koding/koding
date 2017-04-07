@@ -8,3 +8,6 @@ module.exports = class JComputeStack extends remote.api.JComputeStack
 
 
   getOldOwner: -> @config?.oldOwner
+
+
+  isManaged: -> @title is 'Managed VMs'
