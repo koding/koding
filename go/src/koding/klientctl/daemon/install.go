@@ -394,7 +394,11 @@ var script = []InstallStep{{
 			return "", err
 		}
 
-		fmt.Printf("\tSign in to your account:\n\n")
+		if opts.Team != "" {
+			fmt.Printf("\tSign in to your %q team (%s):\n\n", opts.Team, f.Konfig.Endpoints.Koding.Public)
+		} else {
+			fmt.Printf("\tSign in to your account (%s):\n\n", f.Konfig.Endpoints.Koding.Public)
+		}
 
 		_, err = f.Login(&auth.LoginOptions{
 			Team:   opts.Team,
