@@ -858,8 +858,12 @@ func find(cmds cli.Commands, names ...string) cli.Command {
 }
 
 func isDaemonCommand(args []string) bool {
-	if len(args) == 0 {
+	switch len(args) {
+	case 0:
 		return false
+	case 1:
+		return args[0] == "install"
+	default:
+		return args[0] == "daemon" && args[1] == "install" || args[0] == "install"
 	}
-	return args[0] == "daemon"
 }

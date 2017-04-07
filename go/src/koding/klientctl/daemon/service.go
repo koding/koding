@@ -57,7 +57,6 @@ sudo -E -u "${USERNAME}" ${KLIENT_BIN}
 // service provides a preconfigured (based on klientctl's config)
 // service object to install, uninstall, start and stop Klient.
 func (d *Details) service() (service.Service, error) {
-	// TODO: Add hosts's username
 	svcConfig := &service.Config{
 		Name:        "klient",
 		DisplayName: "klient",
