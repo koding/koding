@@ -5,7 +5,7 @@ React = require 'app/react'
 TimeAgo = require 'app/components/common/timeago'
 UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
 getBoundingClientReact = require 'app/util/getBoundingClientReact'
-StackUpdatedWidget = require 'app/components/sidebarstacksection/stackupdatedwidget'
+StackUpdatedWidget = require 'app/sidebar/components/stackupdatedwidget'
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
@@ -96,6 +96,7 @@ module.exports = class StackTemplateItem extends React.Component
 
     { coordinates, showWidget } = @state
 
+    return null  unless showWidget
     return null  unless @props.stack?.getUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
@@ -106,7 +107,6 @@ module.exports = class StackTemplateItem extends React.Component
       className='StackTemplate'
       coordinates={coordinates}
       stack={@props.stack}
-      visible={showWidget}
       onClose={@bound 'onWidgetClose'}
     />
 
