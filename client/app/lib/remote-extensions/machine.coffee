@@ -324,6 +324,7 @@ module.exports = class JMachine extends remote.api.JMachine
             if err then reject new Error err else resolve()
           .catch reject
 
+
   shareUser: (username) ->
 
     debug 'share user', username
