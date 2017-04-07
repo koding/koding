@@ -313,13 +313,12 @@ module.exports = class JMachine extends remote.api.JMachine
 
     new Promise (resolve, reject) =>
       remote.api.SharedMachine.kick @uid, [username], (err) =>
-        return reject new Error err  if err
-
-        @getBaseKite()
+        promise = @getBaseKite()
           .klientUnshare { username, permanent: yes }
           .then => @reviveUsers { permanentOnly : yes }
-          .then resolve
+          .then -> if err then reject new Error err else resolve()
           .catch reject
+
 
 
   shareUser: (username) ->
