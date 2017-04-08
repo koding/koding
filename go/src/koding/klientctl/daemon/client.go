@@ -29,8 +29,9 @@ type Client struct {
 	Script  []InstallStep
 	Timeout time.Duration
 
-	once sync.Once
-	d    *Details
+	once    sync.Once
+	d       *Details
+	vagrant *bool
 }
 
 func (c *Client) Start() error {

@@ -21,11 +21,20 @@ import (
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/auth"
+	"koding/klientctl/helper"
 	"koding/tools/util"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/logging"
 )
+
+var vagrantfile = []byte(`VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "ubuntu/trusty64"
+    config.vm.hostname = "kd-install-test"
+end
+`)
 
 var ErrSkipInstall = errors.New("skip installation step")
 
@@ -73,7 +82,7 @@ func (c *Client) Install(opts *Opts) error {
 	case 0:
 		fmt.Fprintln(os.Stderr, "Performing fresh installation ...")
 	case len(script):
-		return errors.New(`Already installed. To reinstall, run "sudo kd daemon uninstall" first.`)
+		return errors.New(`Already installed. To reinstall, run "sudo kd uninstall" first.`)
 	default:
 		fmt.Fprintf(os.Stderr, "Resuming installation at %q step ...\n", script[start].Name)
 	}
@@ -137,7 +146,7 @@ func (c *Client) Uninstall(opts *Opts) error {
 
 	switch start {
 	case -1:
-		return errors.New(`Already uninstalled. To install again, run "sudo kd daemon install".`)
+		return errors.New(`Already uninstalled. To install again, run "sudo kd install".`)
 	case len(script) - 1:
 		fmt.Fprintln(os.Stderr, "Performing full uninstallation ...")
 	default:
@@ -172,7 +181,7 @@ func (c *Client) Update(opts *Opts) error {
 	c.init()
 
 	if len(c.d.Installation) != len(c.script()) {
-		return errors.New(`KD is not yet installed. Please run "sudo kd daemon install".`)
+		return errors.New(`KD is not yet installed. Please run "sudo kd install".`)
 	}
 
 	var merr error
@@ -206,6 +215,38 @@ func (c *Client) Update(opts *Opts) error {
 	}
 
 	return merr
+}
+
+func (c *Client) needVagrant(opts *Opts) bool {
+	if c.vagrant != nil {
+		return *c.vagrant
+	}
+
+	if opts.Force {
+		b := true
+		c.vagrant = &b
+		return true
+	}
+
+	for {
+		resp, err := helper.Ask("\tDo you want to deploy Vagrant Stacks on this machine? [y/N]: ")
+		if err != nil {
+			return false
+		}
+
+		fmt.Fprintln(os.Stderr)
+
+		switch strings.ToLower(resp) {
+		case "y", "yes":
+			b := true
+			c.vagrant = &b
+			return true
+		case "", "n", "no":
+			b := false
+			c.vagrant = &b
+			return false
+		}
+	}
 }
 
 var script = []InstallStep{{
@@ -280,8 +321,10 @@ var script = []InstallStep{{
 		},
 	},
 	"linux": {
-		Name: "osxfuse",
+		Name: "FUSE",
 		Install: func(c *Client, _ *Opts) (string, error) {
+			// TODO(rjeczalik): check if FUSE is correctly configured?
+
 			return "", ErrSkipInstall
 		},
 	},
@@ -344,11 +387,11 @@ var script = []InstallStep{{
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "Vagrant",
-		Install: func(c *Client, _ *Opts) (string, error) {
+		Install: func(c *Client, opts *Opts) (string, error) {
 			const volume = "/Volumes/Vagrant"
 			const pkg = volume + "/Vagrant.pkg"
 
-			if hasVagrant() {
+			if hasVagrant() || !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 
@@ -366,8 +409,8 @@ var script = []InstallStep{{
 	},
 	"linux": {
 		Name: "Vagrant",
-		Install: func(c *Client, _ *Opts) (string, error) {
-			if hasVagrant() {
+		Install: func(c *Client, opts *Opts) (string, error) {
+			if hasVagrant() || !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 
@@ -400,7 +443,7 @@ var script = []InstallStep{{
 		if opts.Team != "" {
 			fmt.Printf("\tSign in to your %q team (%s):\n\n", opts.Team, f.Konfig.Endpoints.Koding.Public)
 		} else {
-			fmt.Printf("\tSign in to your account (%s):\n\n", f.Konfig.Endpoints.Koding.Public)
+			fmt.Printf("\tSign in to your kd.io account:\n\n")
 		}
 
 		_, err = f.Login(&auth.LoginOptions{
@@ -533,7 +576,74 @@ var script = []InstallStep{{
 		return "", c.Ping()
 	},
 	RunOnUpdate: true,
+}, {
+	Name: "Test Vagrant Stacks",
+	Install: func(c *Client, opts *Opts) (string, error) {
+		if !c.needVagrant(opts) {
+			return "", ErrSkipInstall
+		}
+
+		w, err := newWorkplace()
+		if err != nil {
+			return "", err
+		}
+
+		if err := w.init(vagrantfile); err != nil {
+			return "", nonil(err, w.Close())
+		}
+
+		_ = w.run("vagrant", "box", "add", "ubuntu/trusty64", "--no-color")
+		err = nonil(w.run("vagrant", "up", "--no-color"), w.Close())
+
+		if err == nil {
+			fmt.Printf("\n\tYour system seems ready to have some Vagrant Stacks deployed!\n\n")
+		} else {
+			fmt.Printf("\n\tInstaller failed to create a simple Vagrant vm.\n")
+		}
+
+		return "", err
+	},
 }}
+
+type workplace string
+
+func newWorkplace() (workplace, error) {
+	dir, err := ioutil.TempDir("", "kd-workplace")
+	if err != nil {
+		return "", err
+	}
+
+	return workplace(dir), nil
+}
+
+func (w workplace) init(vagrantfile []byte) error {
+	return ioutil.WriteFile(filepath.Join(string(w), "Vagrantfile"), vagrantfile, 0644)
+}
+
+func (w workplace) Close() error {
+	if !strings.HasPrefix(filepath.Base(string(w)), "kd-workplace") {
+		return nil
+	}
+
+	if err := w.run("vagrant", "destroy", "--force", "--no-color"); err != nil {
+		return err
+	}
+
+	return os.RemoveAll(string(w))
+}
+
+func (w workplace) run(cmd string, args ...string) error {
+	c := exec.Command(cmd, args...)
+	c.Env = append(os.Environ(), "VAGRANT_CHECKPOINT_DISABLE=1")
+	c.Dir = string(w)
+
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+
+	fmt.Fprintf(os.Stderr, "\t[%s] Running %v ...\n\n", w, c.Args)
+
+	return c.Run()
+}
 
 func hasVirtualBox() bool {
 	const s = "Oracle VM VirtualBox Headless Interface"

@@ -127,7 +127,7 @@ func run(args []string) {
 
 	if !daemon.Installed() && !requiresDaemon(os.Args[1:]) {
 		fmt.Fprintln(os.Stderr, "This command requires a daemon to be installed. Please install it "+
-			"with the following command:\n\n\tsudo kd install [--team <name>]\n")
+			"with the following command:\n\n\tsudo kd install [--team <koding.com team name>]\n")
 		ctlcli.Close()
 		os.Exit(1)
 	}
