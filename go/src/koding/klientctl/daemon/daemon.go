@@ -195,13 +195,13 @@ func wget(url, output string, mode os.FileMode) error {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return nonil(err, f.Close())
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(url + ":" + http.StatusText(resp.StatusCode))
+		return nonil(errors.New(url+":"+http.StatusText(resp.StatusCode)), f.Close())
 	}
 
 	var buf bytes.Buffer // to restore beginning of a response body consumed by gzip.NewReader
@@ -233,11 +233,8 @@ func wget(url, output string, mode os.FileMode) error {
 		}
 	}
 
-	if _, err := io.Copy(f, body); err != nil {
-		return err
-	}
-
-	return nonil(f.Chmod(mode), f.Close())
+	_, err = io.Copy(f, body)
+	return nonil(err, f.Chmod(mode), f.Close())
 }
 
 // wgetTemp is a convenience wrapper over wget, that

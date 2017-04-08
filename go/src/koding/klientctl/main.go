@@ -346,7 +346,7 @@ func run(args []string) {
 				Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
 				Flags: []cli.Flag{
 					cli.BoolFlag{
-						Name:  "force, y",
+						Name:  "force-yes, y",
 						Usage: "Forces a yes answer to all interactive questions.",
 					},
 					cli.StringFlag{
@@ -377,7 +377,7 @@ func run(args []string) {
 				Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
 				Flags: []cli.Flag{
 					cli.BoolFlag{
-						Name:  "force, y",
+						Name:  "force-yes, y",
 						Usage: "Forces a yes answer to all interactive questions.",
 					},
 				},

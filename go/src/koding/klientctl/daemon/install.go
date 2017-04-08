@@ -102,11 +102,11 @@ func (c *Client) Install(opts *Opts) error {
 
 	switch start {
 	case 0:
-		fmt.Fprintln(os.Stderr, "Performing fresh installation ...")
+		fmt.Fprintln(os.Stderr, "Performing fresh installation...")
 	case len(Script):
 		return errors.New(`Already installed. To reinstall, run "sudo kd uninstall" first.`)
 	default:
-		fmt.Fprintf(os.Stderr, "Resuming installation at %q step ...\n", Script[start].Name)
+		fmt.Fprintf(os.Stderr, "Resuming installation at %q step...\n", Script[start].Name)
 	}
 
 	c.d.Base = &conf.URL{
@@ -120,7 +120,7 @@ func (c *Client) Install(opts *Opts) error {
 
 	var merr error
 	for _, step := range c.script()[start:] {
-		fmt.Fprintf(os.Stderr, "Installing %q ...\n\n", step.Name)
+		fmt.Fprintf(os.Stderr, "Installing %q...\n\n", step.Name)
 
 		result := InstallResult{
 			Name: step.Name,
@@ -174,16 +174,16 @@ func (c *Client) Uninstall(opts *Opts) error {
 	case -1:
 		return errors.New(`Already uninstalled. To install again, run "sudo kd install".`)
 	case len(Script) - 1:
-		fmt.Fprintln(os.Stderr, "Performing full uninstallation ...")
+		fmt.Fprintln(os.Stderr, "Performing full uninstallation...")
 	default:
-		fmt.Fprintf(os.Stderr, "Performing partial uninstallation at %q step ...\n", c.script()[start].Name)
+		fmt.Fprintf(os.Stderr, "Performing partial uninstallation at %q step...\n", c.script()[start].Name)
 	}
 
 	var merr error
 	for i := start; i >= 0; i-- {
 		step := c.script()[i]
 
-		fmt.Fprintf(os.Stderr, "Uninstalling %q ...\n", step.Name)
+		fmt.Fprintf(os.Stderr, "Uninstalling %q...\n", step.Name)
 
 		if step.Uninstall != nil {
 			switch err := step.Uninstall(c, opts); err {
@@ -221,7 +221,7 @@ func (c *Client) Update(opts *Opts) error {
 			continue
 		}
 
-		fmt.Fprintf(os.Stderr, "Updating %q ...\n\n", step.Name)
+		fmt.Fprintf(os.Stderr, "Updating %q...\n\n", step.Name)
 
 		switch version, err := step.Install(c, opts); err {
 		case nil:

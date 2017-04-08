@@ -23,13 +23,17 @@ import (
 // DefaultClient is a default client used for daemon package-level functions.
 var DefaultClient = &Client{}
 
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 // Client is used to configure behaviour of daemon package
 // functionality like install / uninstall and start / stop.
 type Client struct {
 	Konfig  *config.Konfig      // configuration to use; by default config.Konfig
 	Store   *configstore.Client // cache to use; be default configstore.DefaultClient
 	Log     logging.Logger      // logger to use; by default kloud.DefaultLog
-	Script  []InstallStep       // installation script to use; by default internal script is used
+	Script  []InstallStep       // installation script to use; by default Script is used
 	Timeout time.Duration       // max time to wait for daemon to be ready; by default 20s
 
 	once    sync.Once
@@ -46,13 +50,13 @@ func (c *Client) Start() error {
 		return err
 	}
 
-	fmt.Printf("Starting daemon service ... ")
+	fmt.Printf("Starting daemon service... ")
 
 	if err = svc.Start(); err != nil {
 		return err
 	}
 
-	fmt.Printf("ok\nWaiting for the daemon to become ready ... ")
+	fmt.Printf("ok\nWaiting for the daemon to become ready... ")
 
 	if err := c.Ping(); err != nil {
 		return err
@@ -80,7 +84,7 @@ func (c *Client) Stop() error {
 		return err
 	}
 
-	fmt.Printf("Stopping daemon service ... ")
+	fmt.Printf("Stopping daemon service... ")
 
 	if err := svc.Stop(); err != nil {
 		return err
@@ -106,7 +110,8 @@ func (c *Client) Ping() error {
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
 
-	var err error
+	err := errors.New("too small timeout")
+
 	for {
 		select {
 		case <-tick.C:
@@ -157,10 +162,6 @@ func (c *Client) readCache() {
 	_ = c.store().Commit(func(cache *config.Cache) error {
 		return cache.GetValue("daemon.details", c.d)
 	})
-
-	if c == DefaultClient {
-		ctlcli.CloseOnExit(c)
-	}
 }
 
 func (c *Client) newFacade() (*auth.Facade, error) {
