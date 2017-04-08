@@ -1,13 +1,13 @@
-remote         = require('../remote')
+debug = (require 'debug')('remote:api:jcredential')
+remote = require('../remote')
+
 
 module.exports = class JComputeStack extends remote.api.JComputeStack
 
-  getUnreadCount: ->
-
-    @_revisionStatus?.status?.code or 0
-
-
-  getOldOwner: -> @config?.oldOwner
+  getUnreadCount: -> @_revisionStatus?.status?.code or 0
 
 
   isManaged: -> @title is 'Managed VMs'
+
+
+  getOldOwner: -> @config?.oldOwner

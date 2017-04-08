@@ -320,7 +320,7 @@ module.exports = class JMachine extends remote.api.JMachine
           .klientUnshare { username, permanent: yes }
           .then => @users = @users.filter (user) -> user.username isnt username
           .then => @reviveUsers { permanentOnly : yes }
-          .then =>
+          .then ->
             if err then reject new Error err else resolve()
           .catch reject
 
