@@ -3,6 +3,7 @@ package remoteapi
 import (
 	"errors"
 	"fmt"
+	"koding/kites/config"
 	"koding/remoteapi"
 	stacktemplate "koding/remoteapi/client/j_stack_template"
 	"koding/remoteapi/models"
@@ -82,7 +83,12 @@ func (c *Client) DeleteTemplate(id string) error {
 func (c *Client) buildTF(tf *TemplateFilter) error {
 	if tf.Slug != "" {
 		fields := strings.Split(tf.Slug, "/")
-		if len(fields) != 2 {
+		switch len(fields) {
+		case 1:
+			fields = []string{config.CurrentUser.Username, fields[0]}
+		case 2:
+			// ok
+		default:
 			return errors.New(`invalid slug format - expected "user/template"`)
 		}
 
