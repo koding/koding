@@ -200,6 +200,10 @@ func (c *Client) Uninstall(opts *Opts) error {
 		c.d.Installation = c.d.Installation[:i]
 	}
 
+	if len(c.d.Installation) == 0 {
+		c.d = nil
+	}
+
 	return merr
 }
 

@@ -843,12 +843,23 @@ func find(cmds cli.Commands, names ...string) cli.Command {
 }
 
 func requiresDaemon(args []string) bool {
+	var cmd string
 	switch len(args) {
 	case 0:
 		return false
 	case 1:
-		return args[0] == "install" || args[0] == "-version"
+		cmd = args[0]
 	default:
-		return args[0] == "daemon" && args[1] == "install" || args[0] == "install" || args[0] == "-version"
+		cmd = args[0]
+		if cmd == "daemon" {
+			cmd = args[1]
+		}
+	}
+
+	switch cmd {
+	case "install", "uninstall", "-version":
+		return true
+	default:
+		return false
 	}
 }

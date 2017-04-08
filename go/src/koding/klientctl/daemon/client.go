@@ -135,6 +135,10 @@ func (c *Client) Ping() error {
 func (c *Client) Close() (err error) {
 	if c.d != nil {
 		err = c.store().Commit(func(cache *config.Cache) error {
+			if c.d == nil {
+				return cache.Delete("daemon.details")
+			}
+
 			return cache.SetValue("daemon.details", c.d)
 		})
 	}
