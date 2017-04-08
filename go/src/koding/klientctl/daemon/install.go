@@ -36,30 +36,52 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 `)
 
+// ErrSkipInstall is returned by InstallStep's Install/Uninstall
+// functors, when a given step should be skipped.
 var ErrSkipInstall = errors.New("skip installation step")
 
+// InstallResult describes a result of a single InstallStep execution.
 type InstallResult struct {
-	Skipped bool   `json:"skipped"`
-	Name    string `json:"name,omitempty"`
-	Version string `json:"version,omitempty"`
+	Skipped bool   `json:"skipped"`           // whether the step was skipped
+	Name    string `json:"name,omitempty"`    // name of the step
+	Version string `json:"version,omitempty"` // step versionning
 }
 
+// InstallStep represents a single installation step,
+// like "Installing KD Daemon" or "Testing Vagrant Stacks".
+//
+// Steps are ordered and used for install / uninstall
+// and update procedures.
+//
+// Steps are executed in an increasing order during
+// the "install" procedure.
+//
+// Steps are executed in a decreasing order during
+// the "uninstall" procedure.
 type InstallStep struct {
-	Name        string
-	Install     func(*Client, *Opts) (string, error)
-	Uninstall   func(*Client, *Opts) error
-	RunOnUpdate bool
+	Name        string                               // name of the step
+	Install     func(*Client, *Opts) (string, error) // code to run during installation
+	Uninstall   func(*Client, *Opts) error           // code to run during uninstallation
+	RunOnUpdate bool                                 // whether to run the Install on update procedure
 }
 
+// Opts describe daemon optional parameters used by
+// install / uninstall and update commands in order
+// to change their behaviour.
 type Opts struct {
-	Force   bool
-	Token   string
-	Prefix  string
-	Baseurl string
-	Team    string
-	Skip    []string
+	Force   bool     // whether to continue installation steps despite any failure
+	Token   string   // an optional kite token to use during authentication
+	Prefix  string   // an optional custom installation directory
+	Baseurl string   // Koding baseurl to use
+	Team    string   // Koding team to use
+	Skip    []string // steps that should be omitted during installation
 }
 
+// Installs executes installation steps.
+//
+// If the execution fails, Install marks the step which
+// failed in a cache, so another Install is going to
+// continue from that exact step.
 func (c *Client) Install(opts *Opts) error {
 	c.init()
 
@@ -139,6 +161,10 @@ func (c *Client) Install(opts *Opts) error {
 	return merr
 }
 
+// Uninstall executes uninstallation steps.
+//
+// If installation failed at a certain step, Uninstall
+// is going to execute steps starting from that exact step.
 func (c *Client) Uninstall(opts *Opts) error {
 	c.init()
 
@@ -177,6 +203,7 @@ func (c *Client) Uninstall(opts *Opts) error {
 	return merr
 }
 
+// Update runs installation steps which are marked as updatable.
 func (c *Client) Update(opts *Opts) error {
 	c.init()
 

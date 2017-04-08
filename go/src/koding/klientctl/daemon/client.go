@@ -20,20 +20,24 @@ import (
 // TODO(rjeczalik): emit events and move printing to stdout
 // to cli instead.
 
+// DefaultClient is a default client used for daemon package-level functions.
 var DefaultClient = &Client{}
 
+// Client is used to configure behaviour of daemon package
+// functionality like install / uninstall and start / stop.
 type Client struct {
-	Konfig  *config.Konfig
-	Store   *configstore.Client
-	Log     logging.Logger
-	Script  []InstallStep
-	Timeout time.Duration
+	Konfig  *config.Konfig      // configuration to use; by default config.Konfig
+	Store   *configstore.Client // cache to use; be default configstore.DefaultClient
+	Log     logging.Logger      // logger to use; by default kloud.DefaultLog
+	Script  []InstallStep       // installation script to use; by default internal script is used
+	Timeout time.Duration       // max time to wait for daemon to be ready; by default 20s
 
 	once    sync.Once
 	d       *Details
 	vagrant *bool
 }
 
+// Starts starts KD daemon.
 func (c *Client) Start() error {
 	c.init()
 
@@ -59,11 +63,15 @@ func (c *Client) Start() error {
 	return nil
 }
 
+// Restart stops the KD daemon and starts it afterwards.
+//
+// Stop failure is ignored, e.g. when daemon is not running.
 func (c *Client) Restart() error {
 	_ = c.Stop()
 	return c.Start()
 }
 
+// Stop stops the KD daemon.
 func (c *Client) Stop() error {
 	c.init()
 
@@ -83,12 +91,14 @@ func (c *Client) Stop() error {
 	return nil
 }
 
+// Installed tells whether KD was installed for the current user.
 func (c *Client) Installed() bool {
 	c.init()
 
 	return len(c.d.Installation) == len(script)
 }
 
+// Ping probes KD daemon and returns nil error when it's ready.
 func (c *Client) Ping() error {
 	timeout := time.NewTimer(c.timeout())
 	defer timeout.Stop()
@@ -121,6 +131,7 @@ func (c *Client) Ping() error {
 	}
 }
 
+// Close closes the client flushing any updated state information.
 func (c *Client) Close() (err error) {
 	if c.d != nil {
 		err = c.store().Commit(func(cache *config.Cache) error {

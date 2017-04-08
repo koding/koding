@@ -21,11 +21,18 @@ import (
 	conf "koding/klientctl/config"
 )
 
+// Package describes an external dependency, that
+// is managed by the daemon installer.
 type Package struct {
-	config.URL `json:"url"`
-	Version    string `json:"version"`
+	config.URL `json:"url"` // origin URL of the package distribution
+	Version    string       `json:"version"` // version of the package
 }
 
+// Details describes the installation details, that are persisted
+// on a users machine.
+//
+// They are used to migrate or update daemon distribution between
+// different versions.
 type Details struct {
 	Username     string                       `json:"username"`
 	Base         *config.URL                  `json:"baseURL,omitempty"`
@@ -134,6 +141,9 @@ func cmd(name string, args ...string) *exec.Cmd {
 	return c
 }
 
+// dmgInstall is a helper function, that downloads the dmg file
+// from the given url, mounts under given volume and
+// installs a package given by the pkg argument.
 func dmgInstall(url, volume, pkg string) error {
 	dmg, err := wgetTemp(url, 0755)
 	if err != nil {
@@ -171,6 +181,8 @@ func parseVersion(bin string) (int, error) {
 	return n, nil
 }
 
+// wget is a helper function, that downloads any content from
+// the given url and writes it to the output file.
 func wget(url, output string, mode os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(output), 0755); err != nil {
 		return err
@@ -228,6 +240,8 @@ func wget(url, output string, mode os.FileMode) error {
 	return nonil(f.Chmod(mode), f.Close())
 }
 
+// wgetTemp is a conveniance wrapper over wget, that
+// writes the downloaded content to a temporary file.
 func wgetTemp(s string, mode os.FileMode) (string, error) {
 	u, err := url.Parse(s)
 	if err != nil {
@@ -248,6 +262,9 @@ func wgetTemp(s string, mode os.FileMode) (string, error) {
 	return tmp, nil
 }
 
+// curl downloads any content from the given url,
+// and tries to fscan its content into v given the
+// format details.
 func curl(url string, format string, v interface{}) error {
 	resp, err := http.Get(url)
 	if err != nil {
