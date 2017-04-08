@@ -17,6 +17,9 @@ import (
 	"github.com/koding/logging"
 )
 
+// TODO(rjeczalik): emit events and move printing to stdout
+// to cli instead.
+
 var DefaultClient = &Client{}
 
 type Client struct {
@@ -37,24 +40,27 @@ func (c *Client) Start() error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("Starting daemon service... ")
+
 	if err = svc.Start(); err != nil {
 		return err
 	}
-	return c.Ping()
+
+	fmt.Printf("ok\nWaiting for daemon to become ready... ")
+
+	if err := c.Ping(); err != nil {
+		return err
+	}
+
+	fmt.Println("ok")
+
+	return nil
 }
 
 func (c *Client) Restart() error {
-	c.init()
-
-	svc, err := c.d.service()
-	if err != nil {
-		return err
-	}
-	_ = svc.Stop()
-	if err = svc.Start(); err != nil {
-		return err
-	}
-	return c.Ping()
+	_ = c.Stop()
+	return c.Start()
 }
 
 func (c *Client) Stop() error {
@@ -64,7 +70,16 @@ func (c *Client) Stop() error {
 	if err != nil {
 		return err
 	}
-	return svc.Stop()
+
+	fmt.Printf("Stopping daemon service... ")
+
+	if err := svc.Stop(); err != nil {
+		return err
+	}
+
+	fmt.Println("ok")
+
+	return nil
 }
 
 func (c *Client) Installed() bool {
