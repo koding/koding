@@ -41,13 +41,13 @@ func (c *Client) Start() error {
 		return err
 	}
 
-	fmt.Printf("Starting daemon service... ")
+	fmt.Printf("Starting daemon service ... ")
 
 	if err = svc.Start(); err != nil {
 		return err
 	}
 
-	fmt.Printf("ok\nWaiting for daemon to become ready... ")
+	fmt.Printf("ok\nWaiting for the daemon to become ready ... ")
 
 	if err := c.Ping(); err != nil {
 		return err
@@ -71,7 +71,7 @@ func (c *Client) Stop() error {
 		return err
 	}
 
-	fmt.Printf("Stopping daemon service... ")
+	fmt.Printf("Stopping daemon service ... ")
 
 	if err := svc.Stop(); err != nil {
 		return err

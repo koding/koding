@@ -181,13 +181,16 @@ func (c *Client) Update(opts *Opts) error {
 			continue
 		}
 
+		fmt.Fprintf(os.Stderr, "Updating %q ...\n\n", step.Name)
+
 		switch version, err := step.Install(c, opts); err {
 		case nil:
 			c.d.Installation[i].Version = version
 		case ErrSkipInstall:
+			fmt.Fprintf(os.Stderr, "\tAlready updated, skipping.\n\n")
 		default:
 			if !opts.Force {
-				return fmt.Errorf("error uninstalling %q: %s", step.Name, err)
+				return fmt.Errorf("error updating %q: %s", step.Name, err)
 			}
 
 			merr = multierror.Append(merr, err)
@@ -424,8 +427,11 @@ var script = []InstallStep{{
 			return "", err
 		}
 
+		fmt.Fprintf(os.Stderr, "\tCurrent version: %s\n", formatVersion(version))
+		fmt.Fprintf(os.Stderr, "\tLatest version: %s\n\n", formatVersion(newVersion))
+
 		if version != 0 && newVersion <= version {
-			return strconv.Itoa(version), nil
+			return strconv.Itoa(version), ErrSkipInstall
 		}
 
 		svc, err := c.d.service()
@@ -487,6 +493,9 @@ var script = []InstallStep{{
 			return "", err
 		}
 
+		fmt.Fprintf(os.Stderr, "\tCurrent version: %s\n", formatVersion(version))
+		fmt.Fprintf(os.Stderr, "\tLatest version: %s\n\n", formatVersion(newVersion))
+
 		if version != 0 && version < config.VersionNum() {
 			if err := copyFile(os.Args[0], c.d.Files["kd"], 0755); err != nil {
 				return "", err
@@ -496,7 +505,7 @@ var script = []InstallStep{{
 		}
 
 		if version != 0 && newVersion <= version {
-			return strconv.Itoa(version), nil
+			return strconv.Itoa(version), ErrSkipInstall
 		}
 
 		if err := wget(c.kd(newVersion), c.d.Files["kd"], 0755); err != nil {
@@ -589,4 +598,11 @@ func copyFile(src, dst string, mode os.FileMode) error {
 	}
 
 	return nil
+}
+
+func formatVersion(version int) string {
+	if version <= 0 {
+		return "-"
+	}
+	return "0.1." + strconv.Itoa(version)
 }
