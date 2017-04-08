@@ -95,7 +95,7 @@ func (c *Client) Stop() error {
 func (c *Client) Installed() bool {
 	c.init()
 
-	return len(c.d.Installation) == len(script)
+	return len(c.d.Installation) == len(Script)
 }
 
 // Ping probes KD daemon and returns nil error when it's ready.
@@ -200,7 +200,7 @@ func (c *Client) script() []InstallStep {
 	if c.Script != nil {
 		return c.Script
 	}
-	return script
+	return Script
 }
 
 func (c *Client) log() logging.Logger {

@@ -103,10 +103,10 @@ func (c *Client) Install(opts *Opts) error {
 	switch start {
 	case 0:
 		fmt.Fprintln(os.Stderr, "Performing fresh installation ...")
-	case len(script):
+	case len(Script):
 		return errors.New(`Already installed. To reinstall, run "sudo kd uninstall" first.`)
 	default:
-		fmt.Fprintf(os.Stderr, "Resuming installation at %q step ...\n", script[start].Name)
+		fmt.Fprintf(os.Stderr, "Resuming installation at %q step ...\n", Script[start].Name)
 	}
 
 	c.d.Base = &conf.URL{
@@ -173,7 +173,7 @@ func (c *Client) Uninstall(opts *Opts) error {
 	switch start {
 	case -1:
 		return errors.New(`Already uninstalled. To install again, run "sudo kd install".`)
-	case len(script) - 1:
+	case len(Script) - 1:
 		fmt.Fprintln(os.Stderr, "Performing full uninstallation ...")
 	default:
 		fmt.Fprintf(os.Stderr, "Performing partial uninstallation at %q step ...\n", c.script()[start].Name)
@@ -276,7 +276,8 @@ func (c *Client) needVagrant(opts *Opts) bool {
 	}
 }
 
-var script = []InstallStep{{
+// Script is a list of installation steps, used by default by KD.
+var Script = []InstallStep{{
 	Name: "log files",
 	Install: func(c *Client, _ *Opts) (string, error) {
 		uid, gid, err := util.UserIDs(conf.CurrentUser.User)

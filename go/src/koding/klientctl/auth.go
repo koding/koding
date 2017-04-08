@@ -14,6 +14,7 @@ import (
 )
 
 var testKloudHook = nop
+var force = true
 
 func nop(*kloud.Client) {}
 
@@ -39,7 +40,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	opts := &auth.LoginOptions{
 		Team:  c.String("team"),
 		Token: c.String("token"),
-		Force: true,
+		Force: force,
 	}
 
 	resp, err := f.Login(opts)
