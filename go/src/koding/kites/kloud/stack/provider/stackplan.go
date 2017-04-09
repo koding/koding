@@ -125,7 +125,9 @@ func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*
 
 			attrs := make(map[string]string, len(r.Primary.Attributes))
 			for key, val := range r.Primary.Attributes {
-				attrs[key] = val
+				if !strings.ContainsAny(key, "#.") && val != "" {
+					attrs[key] = val
+				}
 			}
 
 			state, ok := klients[label]
@@ -190,8 +192,10 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (stack.Machines, error)
 			}
 
 			attrs := make(map[string]string, len(r.Attributes))
-			for name, a := range r.Attributes {
-				attrs[name] = a.New
+			for key, val := range r.Attributes {
+				if !strings.ContainsAny(key, "#.") && val.New != "" {
+					attrs[key] = val.New
+				}
 			}
 
 			machines[label] = &stack.Machine{
