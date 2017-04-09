@@ -15,6 +15,8 @@ jobs:
       - image: koding/postgres
 
       - image: rabbitmq:3
+        env:
+            RABBITMQ_VM_MEMORY_HIGH_WATERMARK: "2048MB"
 
       - image: redis
 
