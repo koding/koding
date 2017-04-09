@@ -94,7 +94,7 @@ module.exports = class FSHelper
         treeController.addNode file
       when 'removed'
         node = treeController.nodes["#{path}/#{change.file.name}"]
-        treeController.removeNodeView node  if node
+        treeController.removeNodeView node  if node?.getData()
 
   @getFileExtension: (path) ->
     fileName = path or ''
