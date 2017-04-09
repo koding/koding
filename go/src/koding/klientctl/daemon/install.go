@@ -158,6 +158,10 @@ func (c *Client) Install(opts *Opts) error {
 		merr = multierror.Append(merr, err)
 	}
 
+	if merr == nil {
+		fmt.Println("Installed successfully.")
+	}
+
 	return merr
 }
 
@@ -202,6 +206,10 @@ func (c *Client) Uninstall(opts *Opts) error {
 
 	if len(c.d.Installation) == 0 {
 		c.d = nil
+	}
+
+	if merr == nil {
+		fmt.Println("Uninstalled successfully.")
 	}
 
 	return merr
