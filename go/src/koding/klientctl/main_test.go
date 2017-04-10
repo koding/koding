@@ -12,7 +12,6 @@ import (
 	"sync"
 	"testing"
 
-	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 )
 
@@ -24,12 +23,6 @@ func TestMainHelper(t *testing.T) {
 	// Close stdout as soon as command finishes, so Go's testing command
 	// does not pollute it.
 	defer os.Stdout.Close()
-
-	ctlcli.ExitFunc = func(code int) {
-		if code != 0 {
-			os.Exit(code)
-		}
-	}
 
 	var args []string
 
