@@ -106,6 +106,8 @@ func ConfigSet(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
+	fmt.Printf("Changed %q setting.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", c.Args().Get(0))
+
 	return 0, nil
 }
 
@@ -119,6 +121,8 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
+
+	fmt.Printf("Changed %q setting.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", c.Args().Get(0))
 
 	return 0, nil
 }

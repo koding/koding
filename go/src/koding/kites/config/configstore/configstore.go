@@ -197,6 +197,12 @@ func (c *Client) cacheOpts() *config.CacheOptions {
 	return defaultCacheOpts
 }
 
+func (c *Client) Commit(fn func(*config.Cache) error) error {
+	c.init()
+
+	return c.commit(fn)
+}
+
 func (c *Client) commit(fn func(*config.Cache) error) error {
 	if c.Cache != nil {
 		return fn(c.Cache)
@@ -447,6 +453,7 @@ func nonil(err ...error) error {
 }
 
 func CacheOptions(app string) *config.CacheOptions { return DefaultClient.CacheOptions(app) }
+func Commit(fn func(*config.Cache) error) error    { return DefaultClient.Commit(fn) }
 func List() config.Konfigs                         { return DefaultClient.List() }
 func Read(e *config.Environments) *config.Konfig   { return DefaultClient.Read(e) }
 func Set(key, value string) error                  { return DefaultClient.Set(key, value) }
