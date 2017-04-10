@@ -166,6 +166,9 @@ func (r *Rsync) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 				select {
 				case exC <- ex:
 				case <-r.stopC:
+					if ex.ev.Valid() {
+						ex.ev.Done()
+					}
 					return
 				}
 			case <-r.stopC:
