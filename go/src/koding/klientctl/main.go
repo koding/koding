@@ -346,8 +346,8 @@ func run(args []string) {
 				Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
 				Flags: []cli.Flag{
 					cli.BoolFlag{
-						Name:  "force-yes, y",
-						Usage: "Forces a yes answer to all interactive questions.",
+						Name:  "force, f",
+						Usage: "Forces execution of all installation steps.",
 					},
 					cli.StringFlag{
 						Name:  "prefix",
@@ -377,8 +377,8 @@ func run(args []string) {
 				Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
 				Flags: []cli.Flag{
 					cli.BoolFlag{
-						Name:  "force-yes, y",
-						Usage: "Forces a yes answer to all interactive questions.",
+						Name:  "force, f",
+						Usage: "Forces execution of all uninstallation steps.",
 					},
 				},
 			}, {
@@ -712,10 +712,6 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 						cli.StringFlag{
-							Name:  "template, t",
-							Usage: "Limit to stacks with the given name.",
-						},
-						cli.StringFlag{
 							Name:  "team",
 							Usage: "Limit to stack for the given team.",
 						},
@@ -749,10 +745,6 @@ func run(args []string) {
 					Usage:  "Show details of a stack template.",
 					Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
 					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "template, t",
-							Usage: "Show template with a given name.",
-						},
 						cli.BoolFlag{
 							Name:  "json",
 							Usage: "Output in JSON format.",

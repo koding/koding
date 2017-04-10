@@ -51,7 +51,7 @@ func TemplateList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	f := &remoteapi.Filter{
 		ID:   c.String("id"),
-		Slug: c.String("template"),
+		Slug: c.Args().Get(0),
 	}
 
 	if f.ID == "" && f.Slug == "" {

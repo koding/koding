@@ -8,7 +8,6 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/remoteapi"
 	"koding/klientctl/endpoint/stack"
 	"koding/klientctl/endpoint/team"
@@ -64,12 +63,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 func StackList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	f := &remoteapi.Filter{
-		Slug: c.String("template"),
 		Team: c.String("team"),
-	}
-
-	if f.Slug == "" {
-		f.Slug = kloud.Username() + "/"
 	}
 
 	if f.Team == "" {

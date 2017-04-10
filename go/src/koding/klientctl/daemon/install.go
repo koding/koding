@@ -98,7 +98,10 @@ func (c *Client) Install(opts *Opts) error {
 		c.d.setPrefix(opts.Prefix)
 	}
 
-	start := len(c.d.Installation)
+	start := min(len(c.d.Installation), len(Script))
+	if opts.Force {
+		start = 0
+	}
 
 	switch start {
 	case 0:
@@ -140,6 +143,7 @@ func (c *Client) Install(opts *Opts) error {
 				}
 
 				merr = multierror.Append(merr, err)
+				fmt.Fprintf(os.Stderr, "\terror: %s\n\n", err)
 			}
 		}
 
@@ -173,6 +177,9 @@ func (c *Client) Uninstall(opts *Opts) error {
 	c.init()
 
 	start := min(len(c.d.Installation), len(c.script())) - 1
+	if opts.Force {
+		start = len(Script) - 1
+	}
 
 	switch start {
 	case -1:
@@ -198,6 +205,7 @@ func (c *Client) Uninstall(opts *Opts) error {
 				}
 
 				merr = multierror.Append(merr, err)
+				fmt.Fprintf(os.Stderr, "\terror: %s\n\n", err)
 			}
 		}
 
