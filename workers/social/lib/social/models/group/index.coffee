@@ -551,31 +551,8 @@ module.exports = class JGroup extends Module
     @byRelevance client, seed, options, callback
 
   fetchData: (callback) ->
-
-    slug = @getAt 'slug'
-
     JGroupData = require './groupdata'
-    JGroupData.one { slug }, (err, data) ->
-      return callback err  if err
-
-      if not data
-        data = new JGroupData { slug }
-        data.save (err) ->
-          return callback err  if err
-          callback null, data
-      else
-        callback null, data
-
-
-  fetchDataAt: (path, callback) ->
-
-    @fetchData (err, data) ->
-
-      return callback err  if err
-
-      path = "data.#{path}"  if path.indexOf 'data.' isnt 0
-      callback null, data.getAt path
-
+    JGroupData.fetchData @slug, callback
 
   fetchDataAt$: permit
     advanced: [
@@ -583,7 +560,8 @@ module.exports = class JGroup extends Module
       { permission: 'grant permissions', superadmin: yes }
     ]
     success: (client, path, callback) ->
-      @fetchDataAt path, callback
+      JGroupData = require './groupdata'
+      JGroupData.fetchDataAt @slug, path, callback
 
 
   sendNotification: (event, contents, callback) ->
@@ -1071,23 +1049,9 @@ module.exports = class JGroup extends Module
       { permission: 'edit groups',     superadmin   : yes }
     ]
     success  : (client, _data, callback) ->
-
-      # it's only allowed to change followings
-      whitelist  = ['github.organizationToken']
-
-      # handle $set and $unset cases in one
-      operation  = { $set: {}, $unset: {} }
-      for item in whitelist
-        key = "data.#{item}"
-        if _data[item]?
-        then operation.$set[key]   = _data[item]
-        else operation.$unset[key] = _data[item]
-
-      @fetchData (err, data) ->
-        return callback err  if err
-
-        data.update operation, (err) ->
-          callback err
+      JGroupData = require './groupdata'
+      JGroupData.modifyData @slug, _data, (err) ->
+        return callback err
 
 
   modify     : permit
