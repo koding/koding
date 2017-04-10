@@ -8,9 +8,9 @@ purify = (data) ->
   if data?.get? then data.get() else data
 
 
-getConstructorName = (name, Models) ->
+getConstructorName = (name, api) ->
 
-  for own model, konstructor of Models
+  for own model, konstructor of api
     return model  if model.toLowerCase() is name.toLowerCase()
 
 
@@ -97,9 +97,7 @@ parseRequest = (req, res) ->
     sendApiError res, apiErrors.invalidInput
     return
 
-  if not token and not token = getToken req
-    sendApiError res, apiErrors.unauthorizedRequest
-    return
+  token ?= getToken req
 
   return { model, id, method, token }
 
@@ -112,17 +110,33 @@ updateSessionTimestamp = (session, callback) ->
     callback null, session
 
 
-fetchSession = (Models, token, callback) ->
+fetchSession = (api, options, callback) ->
 
-  Models.JSession.one { clientId: token }, (err, session) ->
+  { token } = options
+
+  unless token
+
+    api.JSession.createSession options, (err, res) ->
+      if err or not res?.session
+        return callback apiErrors.unauthorizedRequest
+
+      callback null, res.session
+
+    return
+
+  api.JSession.one { clientId: token }, (err, session) ->
 
     if err
       return callback apiErrors.unauthorizedRequest
 
     if session
 
+      if session.isGuestSession()
+        session.remove()
+        return callback apiErrors.unauthorizedRequest
+
       if session.getAt 'sessionData.apiSession'
-        Models.JApiToken.fetchGroup (session.getAt 'groupName'), (err) ->
+        api.JApiToken.fetchGroup (session.getAt 'groupName'), (err) ->
           return callback err  if err
           updateSessionTimestamp session, callback
 
@@ -131,7 +145,7 @@ fetchSession = (Models, token, callback) ->
 
       return
 
-    Models.JApiToken.createSessionByToken token, (err, session) ->
+    api.JApiToken.createSessionByToken token, (err, session) ->
 
       if err or not session
         return callback apiErrors.unauthorizedRequest
@@ -170,14 +184,28 @@ sendSignatureErr = (signatures, method, res) ->
 
 module.exports = RemoteHandler = (koding) ->
 
-  Models = koding.models
+  api = koding.models
 
   return (req, res) ->
 
     return  unless parsedRequest = parseRequest req, res
     { model, id, method, token } = parsedRequest
 
-    fetchSession Models, token, (err, session) ->
+    options = {}
+    options.token = token   if token
+    options.group = req.body.groupName
+    customContext = req.body.username
+
+    if "#{model}.#{method}" is 'JUser.login'
+      if not options.group or not customContext
+        sendApiError res, apiErrors.invalidInput
+        return
+
+    else if not token
+      sendApiError res, apiErrors.unauthorizedRequest
+      return
+
+    fetchSession api, options, (err, session) ->
 
       if err
         sendApiError res, err
@@ -186,7 +214,10 @@ module.exports = RemoteHandler = (koding) ->
       return  if processHookRequests req, res
 
       context         = getContextFromSession session
-      constructorName = getConstructorName model, Models
+      constructorName = getConstructorName model, api
+
+      if customContext
+        context.customContext = "custom:#{customContext}"
 
       unless constructorName
         sendApiError res, apiErrors.invalidInput
@@ -208,11 +239,11 @@ module.exports = RemoteHandler = (koding) ->
 
       type = if id then 'instance' else 'static'
 
-      unless Models[constructorName].getSignature type, method
+      unless api[constructorName].getSignature type, method
         sendApiError res, { ok: false, error: 'No such method' }
         return
 
-      [validCall, signatures] = Models[constructorName].testSignature type, method, args
+      [validCall, signatures] = api[constructorName].testSignature type, method, args
 
       unless validCall
         sendSignatureErr signatures, "#{constructorName}.#{method}", res
