@@ -698,12 +698,17 @@ module.exports = class JUser extends jraphical.Module
             terminateSession 'error fetching account', clientId, callback
 
           else
+
+            # At this point we will mark this session as accessed
+            # we can write down an updater to update lastAccess ~ GG
+            # see: https://github.com/koding/koding/pull/10957/files#r110447280
+            # session.lastAccess = lastAccess = new Date
+            # session.update { $set: { lastAccess } }, (err) ->
+            #   return callback err  if err
+
             # A valid session, a valid user attached to
             # it voila, scenario #2
-            session.lastAccess = lastAccess = new Date
-            session.update { $set: { lastAccess } }, (err) ->
-              return callback err  if err
-              callback null, { session, account }
+            callback null, { session, account }
 
 
   updateUnregisteredUserAccount = (options, callback) ->
