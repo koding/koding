@@ -254,7 +254,7 @@ module.exports = class JUser extends jraphical.Module
       else
 
         # So we have a session, let's check it out if its a valid one
-        checkSessionValidity { session, logout, clientId }, callback
+        checkSessionValidity { session, clientId }, callback
 
 
   @getHash = getHash = (value) ->
@@ -637,7 +637,7 @@ module.exports = class JUser extends jraphical.Module
       return callback null, { isEligible: yes }
 
 
-  logout = (reason, clientId, callback) ->
+  terminateSession = (reason, clientId, callback) ->
 
     JUser.logout clientId, (err) ->
       logError reason, clientId
@@ -646,14 +646,14 @@ module.exports = class JUser extends jraphical.Module
 
   checkSessionValidity = (options, callback) ->
 
-    { session, logout, clientId } = options
+    { session, clientId } = options
     { username } = session
 
     unless username?
 
       # A session without a username is nothing, let's kill it
       # and logout the user, this is also a rare condition
-      logout 'no username found', clientId, callback
+      terminateSession 'no username found', clientId, callback
 
       return
 
@@ -665,11 +665,11 @@ module.exports = class JUser extends jraphical.Module
       JUser.fetchGuestUser (err, response) ->
 
         if err
-          return logout 'error fetching guest account', clientId, callback
+          return terminateSession 'error fetching guest account', clientId, callback
 
         { account } = response
         if not response?.account
-          return logout 'guest account not found', clientId, callback
+          return terminateSession 'guest account not found', clientId, callback
 
         account.profile.nickname = username
 
@@ -681,11 +681,11 @@ module.exports = class JUser extends jraphical.Module
 
       if err
 
-        logout 'error finding user with username', clientId, callback
+        terminateSession 'error finding user with username', clientId, callback
 
       else unless user
 
-        logout "no user found with #{username} and sessionId", clientId, callback
+        terminateSession "no user found with #{username} and sessionId", clientId, callback
 
       else
 
@@ -695,7 +695,7 @@ module.exports = class JUser extends jraphical.Module
 
           if err
 
-            logout 'error fetching account', clientId, callback
+            terminateSession 'error fetching account', clientId, callback
 
           else
             # A valid session, a valid user attached to
