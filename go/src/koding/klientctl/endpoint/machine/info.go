@@ -3,6 +3,7 @@ package machine
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"koding/klient/machine"
@@ -99,7 +100,10 @@ func PrettyStatus(status machine.Status, now time.Time) string {
 	}
 
 	timeReasonFmt := ShortDuration(status.Since, now)
-	if status.Reason != "" {
+	// Do not print reason when machine is offline and reported reason contains
+	// `is running` string. This is a temporary fix for potentially invalid
+	// entries in mongo DB an will be improved by dynamic client.
+	if status.Reason != "" && !(status.State == machine.StateOffline && strings.Contains(status.Reason, "is running")) {
 		timeReasonFmt += ": " + status.Reason
 	}
 
