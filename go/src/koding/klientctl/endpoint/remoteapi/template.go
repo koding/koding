@@ -3,14 +3,15 @@ package remoteapi
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"koding/kites/config"
 	"koding/remoteapi"
 	stacktemplate "koding/remoteapi/client/j_stack_template"
 	"koding/remoteapi/models"
-	"strings"
 )
 
-// TemplateFilter is used to request some of the templates,
+// Filter is used to request some of the templates,
 // basing on the filter value.
 //
 // TODO(rjeczalik): Fix swagger.json:
@@ -20,7 +21,7 @@ import (
 //   - slug field
 //
 // And use models.JStackTemplate instead.
-type TemplateFilter struct {
+type Filter struct {
 	ID       string `json:"_id,omitempty"`
 	Slug     string `json:"slug,omitempty"`
 	Provider string `json:"provider,omitempty"`
@@ -29,17 +30,17 @@ type TemplateFilter struct {
 }
 
 // ListTemplates gives all templates filtered with use of the given filter.
-func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, error) {
+func (c *Client) ListTemplates(f *Filter) ([]*models.JStackTemplate, error) {
 	c.init()
 
 	params := &stacktemplate.JStackTemplateSomeParams{}
 
-	if tf != nil {
-		if err := c.buildTF(tf); err != nil {
+	if f != nil {
+		if err := c.buildFilter(f); err != nil {
 			return nil, err
 		}
 
-		params.Body = tf
+		params.Body = f
 	}
 
 	params.SetTimeout(c.timeout())
@@ -80,9 +81,9 @@ func (c *Client) DeleteTemplate(id string) error {
 	return remoteapi.Unmarshal(&resp.Payload.DefaultResponse, nil)
 }
 
-func (c *Client) buildTF(tf *TemplateFilter) error {
-	if tf.Slug != "" {
-		fields := strings.Split(tf.Slug, "/")
+func (c *Client) buildFilter(f *Filter) error {
+	if f.Slug != "" {
+		fields := strings.Split(f.Slug, "/")
 		switch len(fields) {
 		case 1:
 			fields = []string{config.CurrentUser.Username, fields[0]}
@@ -98,10 +99,10 @@ func (c *Client) buildTF(tf *TemplateFilter) error {
 				return fmt.Errorf("unable to look up user %q: %s", fields[0], err)
 			}
 
-			tf.OriginID = account.ID
+			f.OriginID = account.ID
 		}
 
-		tf.Slug = fields[1]
+		f.Slug = fields[1]
 	}
 
 	return nil
@@ -110,8 +111,8 @@ func (c *Client) buildTF(tf *TemplateFilter) error {
 // ListTemplates gives all templates filtered with use of the given filter.
 //
 // The functions uses DefaultClient.
-func ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, error) {
-	return DefaultClient.ListTemplates(tf)
+func ListTemplates(f *Filter) ([]*models.JStackTemplate, error) {
+	return DefaultClient.ListTemplates(f)
 }
 
 // DeleteTemplate deletes a template given by the id.
