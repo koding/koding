@@ -97,14 +97,13 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
       if action is 'virtual-machines'
-        { reactor } = kd.singletons
-        machine = reactor.evaluate ['MachinesStore']
-          .toList()
-          .filter (machine) -> machine.get('_id') is identifier
-          .get(0)
+        { sidebar, computeController } = kd.singletons
+        { storage } = computeController
+
+        if machine = storage.machines.get '_id', identifier
+          machine.reviveUsers { permanentOnly: yes }
 
         setSelectedMachineId identifier
-        loadMachineSharedUsers machine.get '_id'  if machine
         onboarding.run 'VMsViewed', yes
       break
 

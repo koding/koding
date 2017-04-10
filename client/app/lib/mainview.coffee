@@ -90,7 +90,11 @@ module.exports = class MainView extends kd.View
 
     @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
       cssClass : 'team-logo-wrapper'
-    SidebarView = require './components/sidebar/view'
+
+    # SidebarView = require './components/sidebar/view'
+    #
+    SidebarView = require './sidebar/view'
+
     @aside.addSubView @sidebar = new SidebarView
 
 

@@ -50,6 +50,20 @@ module.exports = class JStackTemplate extends remote.api.JStackTemplate
     super
 
 
+  @create = (options, callback) ->
+
+    debug 'creating a stack template', options
+
+    { storage } = kd.singletons.computeController
+
+    super options, (err, template) ->
+      return callback err  if err
+
+      storage.templates.push template
+
+      callback null, template
+
+
   update: (data, callback) ->
 
     super data, (err, updated) ->

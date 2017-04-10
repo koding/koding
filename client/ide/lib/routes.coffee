@@ -29,11 +29,13 @@ loadIDE = (data, done = kd.noop) ->
 
   if showInstance
 
-    actions.setSelectedMachineId machine._id
+    { sidebar } = kd.singletons
 
-    actions.setSelectedTemplateId  if machine.data?.generatedFrom?
-    then machine.data.generatedFrom.templateId
-    else null
+    sidebar.setSelected 'machineId', machine.getId()
+
+    if parent = machine.generatedFrom
+    then sidebar.setSelected 'stackId', parent.templateId
+    else sidebar.setSelected 'stackId', null
 
   appManager = kd.getSingleton 'appManager'
   ideApps    = appManager.appControllers.IDE
