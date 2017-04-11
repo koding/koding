@@ -4,6 +4,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"time"
+
 	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
@@ -133,7 +135,7 @@ func (m *JComputeStack) validateTitle(formats strfmt.Registry) error {
 type JComputeStackStatus struct {
 
 	// modified at
-	ModifiedAt strfmt.Date `json:"modifiedAt,omitempty"`
+	ModifiedAt time.Time `json:"modifiedAt,omitempty"`
 
 	// reason
 	Reason string `json:"reason,omitempty"`

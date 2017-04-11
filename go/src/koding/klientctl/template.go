@@ -20,15 +20,16 @@ import (
 )
 
 func TemplateList(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	tf := &remoteapi.TemplateFilter{
+	f := &remoteapi.Filter{
 		Slug: c.String("template"),
+		Team: c.String("team"),
 	}
 
-	if tf.Slug == "" {
-		tf.Slug = kloud.Username() + "/"
+	if f.Slug == "" {
+		f.Slug = kloud.Username() + "/"
 	}
 
-	tmpls, err := remoteapi.ListTemplates(tf)
+	tmpls, err := remoteapi.ListTemplates(f)
 	if err != nil {
 		return 1, err
 	}
@@ -48,16 +49,16 @@ func TemplateList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	tf := &remoteapi.TemplateFilter{
+	f := &remoteapi.Filter{
 		ID:   c.String("id"),
-		Slug: c.String("template"),
+		Slug: c.Args().Get(0),
 	}
 
-	if tf.ID == "" && tf.Slug == "" {
+	if f.ID == "" && f.Slug == "" {
 		return 1, errors.New("error requesting template - missing slug name")
 	}
 
-	tmpls, err := remoteapi.ListTemplates(tf)
+	tmpls, err := remoteapi.ListTemplates(f)
 	if err != nil {
 		return 1, err
 	}
@@ -102,17 +103,17 @@ func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	tf := &remoteapi.TemplateFilter{
+	f := &remoteapi.Filter{
 		ID:   c.String("id"),
 		Slug: c.String("template"),
 	}
 
-	if tf.ID == "" && tf.Slug == "" {
+	if f.ID == "" && f.Slug == "" {
 		return 1, errors.New("error deleting template - missing slug name")
 	}
 
-	if tf.ID == "" {
-		tmpls, err := remoteapi.ListTemplates(tf)
+	if f.ID == "" {
+		tmpls, err := remoteapi.ListTemplates(f)
 		if err != nil {
 			return 1, err
 		}
@@ -121,7 +122,7 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			return 1, fmt.Errorf("error deleting template - got %d templates, expecting only one", len(tmpls))
 		}
 
-		tf.ID = tmpls[0].ID
+		f.ID = tmpls[0].ID
 	}
 
 	if !c.Bool("force") {
@@ -135,11 +136,11 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		}
 	}
 
-	if err := remoteapi.DeleteTemplate(tf.ID); err != nil {
+	if err := remoteapi.DeleteTemplate(f.ID); err != nil {
 		return 1, err
 	}
 
-	fmt.Printf("Stack template with %q ID deleted successfully.\n", tf.ID)
+	fmt.Printf("Stack template with %q ID deleted successfully.\n", f.ID)
 
 	return 0, nil
 }

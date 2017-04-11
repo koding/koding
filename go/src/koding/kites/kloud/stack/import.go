@@ -296,6 +296,9 @@ func (sb *stackBuilder) setVerified(machines []*Machine) error {
 func (sb *stackBuilder) buildStack() error {
 	params := &stacktemplate.JStackTemplateGenerateStackParams{
 		ID: sb.resp.TemplateID,
+		Body: map[string]interface{}{
+			"_id": sb.resp.TemplateID,
+		},
 	}
 
 	params.SetTimeout(sb.timeout)
