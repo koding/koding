@@ -142,7 +142,6 @@ module.exports = class OwnedResourcesList extends React.Component
     menuItems = {}
     { stack, template } = resource
 
-
     if !!resource.unreadCount
       menuItems['Update'] = { callback }
 
@@ -230,6 +229,12 @@ module.exports = class OwnedResourcesList extends React.Component
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
 
 
+  onNewStack: (event) ->
+
+    kd.utils.stopDOMEvent event
+    kd.singletons.router.handleRoute '/Stack-Editor/New'
+
+
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
     resource = @props.resources[sectionIndex]
@@ -271,7 +276,7 @@ module.exports = class OwnedResourcesList extends React.Component
   render: ->
 
     <div className='SidebarTeamSection'>
-      <SectionHeader />
+      <SectionHeader onNewStack={@bound 'onNewStack'} />
       <List
         sectionClassName='SidebarSection SidebarStackSection'
         rowClassName='SidebarSection-body'
@@ -284,8 +289,9 @@ module.exports = class OwnedResourcesList extends React.Component
     </div>
 
 
-SectionHeader = ({ children }) ->
+SectionHeader = ({ onNewStack }) ->
 
   <Link className='SidebarSection-headerTitle' href='/Home/stacks'>
     STACKS
+    <span className='SidebarSection-secondaryLink' onClick={onNewStack} />
   </Link>
