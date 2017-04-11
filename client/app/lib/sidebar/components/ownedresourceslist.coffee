@@ -55,9 +55,10 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
 
     { router } = kd.singletons
 
-    route = if stack?.isManaged()
-    then '/Home/stacks/virtual-machines#connected-machines'
-    else "/Stack-Editor/#{template.getId()}"
+    route = switch
+      when stack?.isManaged() then '/Home/stacks/virtual-machines#connected-machines'
+      when stack then "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
+      else "/Stack-Editor/#{template.getId()}"
 
     router.handleRoute route
 
@@ -77,17 +78,17 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
         router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Initialize'
-        template.generateStack { verify: yes }, (err, stack) =>
+        template.generateStack { verify: yes }, (err, { stack }) =>
           return @onMenuItemClickError 'initializing', template.getId()  if err
-          router.handleRoute "/Stack-Editor/#{template.getId()}"
-          appManager.tell 'Stackeditor', 'reloadEditor', template.getId()
+          router.handleRoute "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
+          appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), stack.getId()
           if machine = stack.results?.machines?[0]?.obj
             computeController.reloadIDE machine
 
       when 'Reinitialize', 'Update'
-        computeController.reinitStack stack, (err) =>
+        computeController.reinitStack stack, (err, newStack) =>
           return @onMenuItemClickError 'reinitializing', template.getId()  if err
-          appManager.tell 'Stackeditor', 'reloadEditor', template.getId()
+          appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), newStack.stack.getId()
 
       when 'Clone'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
