@@ -1,4 +1,4 @@
-package index
+package node
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 	"os"
 	"sync/atomic"
 	"time"
+
+	"github.com/djherbis/times"
 )
 
 // EntryPromise describes the promised state of index entry.
@@ -61,8 +63,8 @@ type virtualEntry struct {
 }
 
 var (
-	_ json.Marshaler   = (*Index)(nil)
-	_ json.Unmarshaler = (*Index)(nil)
+	_ json.Marshaler   = (*Entry)(nil)
+	_ json.Unmarshaler = (*Entry)(nil)
 )
 
 // Entry represents a single file registered to index.
@@ -275,4 +277,21 @@ func (e *Entry) MarshalJSON() ([]byte, error) {
 // data into private entry fields.
 func (e *Entry) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &e.real)
+}
+
+func getPowerOf2(i uint64) (count int) {
+	for ; i > 1; count++ {
+		i = i >> 1
+	}
+
+	return count
+}
+
+// ctime gets file's change time in UNIX Nano format.
+func ctime(fi os.FileInfo) int64 {
+	if tspec := times.Get(fi); tspec.HasChangeTime() {
+		return tspec.ChangeTime().UnixNano()
+	}
+
+	return 0
 }

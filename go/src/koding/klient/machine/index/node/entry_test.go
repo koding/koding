@@ -1,30 +1,30 @@
-package index_test
+package node_test
 
 import (
 	"fmt"
 	"testing"
 
-	"koding/klient/machine/index"
+	"koding/klient/machine/index/node"
 )
 
 func TestEntryPromiseString(t *testing.T) {
 	tests := []struct {
-		EP     index.EntryPromise
+		EP     node.EntryPromise
 		Result string
 	}{
 		{
 			// 0 //
-			EP:     index.EntryPromiseVirtual,
+			EP:     node.EntryPromiseVirtual,
 			Result: "V----",
 		},
 		{
 			// 1 //
-			EP:     index.EntryPromiseVirtual | index.EntryPromiseDel | index.EntryPromiseUnlink,
+			EP:     node.EntryPromiseVirtual | node.EntryPromiseDel | node.EntryPromiseUnlink,
 			Result: "V--DN",
 		},
 		{
 			// 2 //
-			EP:     index.EntryPromiseAdd,
+			EP:     node.EntryPromiseAdd,
 			Result: "-A---",
 		},
 		{
