@@ -857,6 +857,27 @@ module.exports = class JStackTemplate extends Module
         return callback err  if err
         callback null, this
 
+  verifyCredentials: (client, callback) ->
+
+    [ err, provider ] = @getProvider()
+    return callback err  if err
+
+    # TODO: add multiple provider support here ~GG
+    unless identifier = @getAt "credentials.#{provider}.0"
+      return callback new KodingError \
+        "No credential found for #{provider} provider"
+
+    JCredential = require './credential'
+    JCredential.one$ client, identifier, (err, credential) ->
+      if err or not credential
+        return callback new KodingError 'Credential is not accessible'
+
+      credential.isBootstrapped client, (err, bootstrapped) ->
+        return callback err   if err
+        return callback null  if bootstrapped
+
+        credential.bootstrap client, callback
+
 
   forceStacksToReinit: permit 'force stacks to reinit',
 
