@@ -310,10 +310,10 @@ module.exports = class ComputeController extends KDController
           content  : 'A new stack generated and ready to build!'
           type     : 'success'
           duration : 3000
+        callback null, newStack
 
       @checkGroupStacks newStack.stack.getId()
 
-      callback null
 
     mainController.ready =>
 
@@ -1166,6 +1166,8 @@ module.exports = class ComputeController extends KDController
     @ui.askFor 'reinitStack', {}, (status) =>
 
       debug 'reinitStack question answered', status
+
+      return  if status.cancelled
 
       unless status.confirmed
         callback new Error 'Stack is not reinitialized'

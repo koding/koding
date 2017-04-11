@@ -34,9 +34,8 @@ module.exports = class StackEditorAppController extends AppController
       Object.keys(@shouldReloadMap).forEach @bound 'removeEditor'
 
 
-  openEditor: (stackTemplateId = no) ->
+  openEditor: (stackTemplateId = no, stackId) ->
     { mainController, groupsController, computeController } = kd.singletons
-    { setSelectedMachineId, setSelectedTemplateId } = EnvironmentFlux.actions
 
     unless groupsController.canEditGroup()
       mainController.tellChatlioWidget 'isShown', {}, (err, isShown) ->
@@ -44,11 +43,15 @@ module.exports = class StackEditorAppController extends AppController
         return if isShown
         mainController.tellChatlioWidget 'show', { expanded: no }
 
-    setSelectedMachineId null
-
     if stackTemplateId
-      setSelectedTemplateId stackTemplateId
       if @editors[stackTemplateId]
+        { sidebar } = kd.singletons
+
+        sidebar.setSelected
+          templateId: stackTemplateId
+          stackId: stackId
+          machineId: null
+
         return  @showView { _id: stackTemplateId }
 
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
@@ -58,6 +61,14 @@ module.exports = class StackEditorAppController extends AppController
           return showError err
 
         editor = @showView stackTemplate
+
+        { sidebar } = kd.singletons
+
+        sidebar.setSelected
+          templateId: stackTemplateId
+          stackId: stackId
+          machineId: null
+
         # If selected template is deleted, then redirect them to ide.
         # TODO: show an information modal to the user if he/she is admin. ~Umut
         stackTemplate.on 'deleteInstance', =>

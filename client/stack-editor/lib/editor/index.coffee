@@ -31,7 +31,6 @@ StackTemplateView = require './stacktemplateview'
 CredentialStatusView = require './credentialstatusview'
 CredentialListItem = require '../credentials/credentiallistitem'
 
-EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
@@ -345,8 +344,12 @@ module.exports = class StackEditorView extends kd.View
 
   cloneStackTemplate: ->
 
-     { stackTemplate } = @getData()
-     EnvironmentFlux.actions.cloneStackTemplate stackTemplate, no
+    { stackTemplate } = @getData()
+    computeController.fetchStackTemplate stackTemplate.getId(), (err, template) ->
+      return showError 'Error while cloning the template'  if err
+      template.clone (err, template) ->
+        return showError 'Error while cloning the template'  if err
+        router.handleRoute "/Stack-Editor/#{template.getId()}"
 
 
   createStackNameInput: (generatedStackTemplateTitle) ->
@@ -359,14 +362,9 @@ module.exports = class StackEditorView extends kd.View
       tagName: 'header'
       cssClass: headerCssClass
 
-    valueGetter = [
-      EnvironmentFlux.getters.teamStackTemplates
-      EnvironmentFlux.getters.privateStackTemplates
-      (teamTemplates, privateTemplates) ->
-        teamTemplates.merge(privateTemplates).getIn [ stackTemplate?._id, 'title' ]
-    ]
+    { storage } = kd.singletons.computeController
 
-    title = Encoder.htmlDecode kd.singletons.reactor.evaluate valueGetter
+    title = Encoder.htmlDecode stackTemplate.title
 
     options =
       cssClass: 'template-title'
@@ -376,8 +374,9 @@ module.exports = class StackEditorView extends kd.View
       bind: 'keyup'
 
       keyup: _.debounce (e) ->
-        { changeTemplateTitle } = EnvironmentFlux.actions
-        changeTemplateTitle stackTemplate?._id, e.target.value
+        if stackTemplate.getAt('title') isnt e.target.value
+          stackTemplate.setAt 'title', e.target.value
+          storage.templates.push stackTemplate
       , 100
 
     @titleTabHandle = new kd.TabHandleView
@@ -394,7 +393,6 @@ module.exports = class StackEditorView extends kd.View
       click : => @tabView.showPaneByName 'Stack Template'
     inputTitleWrapper.addSubView @inputTitle = new kd.InputView options
 
-
     @titleActionsWrapper.addSubView @editName = new CustomLinkView
       cssClass: 'edit-name'
       title: 'Edit Name'
@@ -405,13 +403,9 @@ module.exports = class StackEditorView extends kd.View
       title: 'Save Name'
       click : @inputTitle.bound 'setBlur'
 
-    kd.singletons.reactor.observe valueGetter, (value) =>
-
-      value = Encoder.htmlDecode value
-
-      return  if value is @inputTitle.getValue()
-
-      @inputTitle.setValue value
+    storage.on 'change:templates', ({ value }) =>
+      if value is stackTemplate
+        @inputTitle.setValue value.title
 
     @inputTitle.on 'viewAppended', =>
       @inputTitle.prepareClone()
@@ -543,7 +537,7 @@ module.exports = class StackEditorView extends kd.View
 
   createMainButtons: ->
 
-    { appManager } = kd.singletons
+    { appManager, computeController } = kd.singletons
     { stackTemplate } = @getData()
 
     @header.addSubView @buttons = new kd.CustomHTMLView { cssClass: 'buttons' }
@@ -571,7 +565,7 @@ module.exports = class StackEditorView extends kd.View
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
         if isDefaultTeamStack stackTemplate._id
-          return EnvironmentFlux.actions.reinitStackFromWidget()
+          return computeController.reinitStack()
         @handleGenerateStack()
 
 
@@ -718,7 +712,7 @@ module.exports = class StackEditorView extends kd.View
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
       hasGroupTemplates        = stackTemplates?.length
 
-      stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
+      stacks = computeController.storage.stacks.get()
       templateIds = Object.keys(stacks).map (key) -> stacks[key].baseStackId
 
       hasStack = stackTemplate._id in templateIds
@@ -1058,7 +1052,9 @@ module.exports = class StackEditorView extends kd.View
 
   handleReinit: ->
 
-    stacks = kd.singletons.reactor.evaluateToJS ['StacksStore']
+    { storage } = kd.singletons.computeController
+
+    stacks = storage.stacks.get()
     { stackTemplate } = @getData()
 
     foundStack = null

@@ -2,6 +2,7 @@ debug = require('debug')('sidebar:controller')
 kd = require 'kd'
 EnvironmentFlux = require 'app/flux/environment'
 remote = require 'app/remote'
+{ isObject } = require 'lodash'
 
 module.exports = class SidebarController extends kd.Controller
 
@@ -18,6 +19,7 @@ module.exports = class SidebarController extends kd.Controller
     @leavingId = null
 
     @selected =
+      templateId: null
       stackId: null
       machineId: null
 
@@ -82,7 +84,10 @@ module.exports = class SidebarController extends kd.Controller
 
   setSelected: (type, id) ->
 
-    @selected[type] = id
+    if isObject type
+    then @selected = Object.assign @selected, type
+    else @selected[type] = id
+
     @emit 'change'
 
 

@@ -10,13 +10,14 @@ module.exports = class OwnedResourceHeader extends React.Component
 
   render: ->
 
-    { title, onTitleClick, unreadCount, onMenuIconClick } = @props
+    { title, onTitleClick, unreadCount, onMenuIconClick, selected } = @props
 
     className = cx ['SidebarSection-header', {
       'unread': !!unreadCount
+      'active': !!selected
     }]
 
-    <header className='SidebarSection-header'>
+    <header className={className}>
       <h4 className='SidebarSection-headerTitle'>
 
         <Link onClick={onTitleClick}>{title}</Link>
