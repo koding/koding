@@ -18,9 +18,15 @@ SidebarMachineItem = require './machineitemcontainer'
 OwnedResourceHeader = require './ownedresourceheader'
 SidebarNoStacks = require './nostacks'
 
+connectSidebar = require 'app/sidebar/connectsidebar'
+
 MENU = null
 
-module.exports = class OwnedResourcesList extends React.Component
+sidebarConnector = connectSidebar({
+  transformState: (sidebarState, props) -> { selected: sidebarState.selected }
+})
+
+module.exports = sidebarConnector class OwnedResourcesList extends React.Component
 
   constructor: (props) ->
     super props
@@ -241,7 +247,12 @@ module.exports = class OwnedResourcesList extends React.Component
 
     { template, stack, unreadCount } = resource
 
+    selected = if stack
+    then stack.getId() is @props.selected?.stackId
+    else template.getId() is @props.selected?.templateId
+
     <OwnedResourceHeader
+      selected={selected}
       ref={(header) => @headers[sectionIndex] = header}
       title={template?.title or stack?.title}
       onTitleClick={@lazyBound 'onHeaderTitleClick', resource}
