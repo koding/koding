@@ -132,75 +132,6 @@ loadStacks = (force = no) ->
       _bindStackEvents()
 
 
-leaveMachine = (_machine) ->
-
-  { reactor, appManager, computeController } = kd.singletons
-
-  machineUId  = _machine.get 'uid'
-  ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machineUId
-  machine     = computeController.storage.machines.get 'uid', machineUId
-
-  async.series([
-
-    (callback) ->
-
-      machine.deny (err) ->
-        showError err  if err
-        callback err
-
-    (callback) ->
-
-      ideInstance?.quit reload = no
-
-      machineId = machine.getId()
-      reactor.dispatch actions.INVITATION_REJECTED, machineId
-      computeController.storage.machines.pop machineId
-
-  ])
-
-
-acceptInvitation = (_machine) ->
-
-  debug 'acceptInvitation', _machine
-
-  { router, socialapi, reactor, computeController } = kd.singletons
-
-  uid     = _machine.get 'uid'
-  machine = computeController.storage.machines.get '_id', _machine.get '_id'
-
-  debug 'acceptInvitation machine', machine
-
-  machine.approve (err) ->
-
-    return showError err  if err
-
-    kallback = (route, callback) ->
-      # Fetch all machines
-      callback()
-      router.handleRoute route
-
-    if _machine.get('type') is 'collaboration'
-      _getInvitationChannelId { uid }, (channelId) ->
-
-        unless channelId
-          return showError 'Session is invalid or ended by host'
-
-        require('app/flux/socialapi/actions/channel').loadChannel(channelId).then ({ channel }) ->
-          if channel.isParticipant
-            return kallback "/IDE/#{uid}", ->
-              reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
-
-          socialapi.channel.acceptInvite { channelId }, (err) ->
-            return showError err  if err
-
-            kallback "/IDE/#{uid}", ->
-              reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
-
-    else
-      kallback "/IDE/#{uid}", ->
-        reactor.dispatch actions.INVITATION_ACCEPTED, _machine.get '_id'
-
-
 dispatchInvitationRejected = (id) ->
 
   kd.singletons.reactor.dispatch actions.INVITATION_REJECTED, id
@@ -642,6 +573,74 @@ loadExpandedMachineLabel = (label) ->
 
   { reactor } = kd.singletons
   reactor.dispatch actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, { label }
+
+
+# Following are here for now, will be moved to appropriate place afterwards.
+# ~Umut
+
+leaveMachine = (machine) ->
+
+  { reactor, appManager, computeController } = kd.singletons
+
+  ideInstance = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
+
+  async.series([
+
+    (callback) ->
+
+      machine.deny (err) ->
+        showError err  if err
+        callback err
+
+    (callback) ->
+
+      ideInstance?.quit reload = no
+
+      machineId = machine.getId()
+      reactor.dispatch actions.INVITATION_REJECTED, machineId
+      computeController.storage.machines.pop machineId
+
+  ])
+
+
+acceptInvitation = (machine) ->
+
+  { router, computeController, socialapi } = kd.singletons
+
+  debug 'acceptInvitation', { machine }
+
+  approveMachine = (m) ->
+    new Promise (resolve, reject) ->
+      m.approve (err) ->
+        if err then reject(err) else resolve(m)
+
+  approveMachine machine
+    .then ->
+      # permanently shared machines doesn't have a channel id, skip this part.
+      unless machine.getType() is 'collaboration'
+        return Promise.resolve()
+
+      unless channelId = machine.getChannelId()
+        return Promise.reject new Error 'Session is invalid or ended by host'
+
+      require('app/flux/socialapi/actions/channel').loadChannel channelId
+        .then ({ channel }) ->
+          if channel.isParticipant
+          then Promise.resolve()
+          else socialapi.channel.acceptInvite { channelId: channel._id }
+
+    .then ->
+      machine.setApproved()
+      computeController.storage.machines.push '_id', machine
+
+    .then ->
+      kd.singletons.router.handleRoute "/IDE/#{machine.uid}"
+
+    .then ->
+      Tracker.track Tracker.VM_REJECTED_SHARED
+
+    .catch (err) ->
+      showError err.message
 
 
 module.exports = {

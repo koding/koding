@@ -27,6 +27,11 @@ var ErrNotFound = errors.New("resource was not found")
 // and kd cache for storing authentication tokens.
 var DefaultClient = &Client{}
 
+func init() {
+	// Ensure DefaultClient is closed on exit.
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 // DefaultTimeout defines max remote.api request time,
 // after which the request is cancelled.
 var DefaultTimeout = 30 * time.Second
@@ -146,10 +151,6 @@ func (c *Client) initClient() {
 		})
 	}
 
-	// Ensure DefaultClient is closed on exit.
-	if c == DefaultClient {
-		ctlcli.CloseOnExit(c)
-	}
 }
 
 func (c *Client) kloud() *kloud.Client {

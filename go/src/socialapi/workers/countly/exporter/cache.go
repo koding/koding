@@ -8,27 +8,27 @@ import (
 	"github.com/koding/cache"
 )
 
-func newGroupCache() *groupCache {
+func newGroupCache() *groupDataCache {
 	slugCache := cache.NewMemoryWithTTL(time.Second * 5)
 	slugCache.StartGC(time.Minute)
-	return &groupCache{
+	return &groupDataCache{
 		slug: slugCache,
 	}
 }
 
-// groupCache caches the group.
-type groupCache struct {
+// groupDataCache caches the group.
+type groupDataCache struct {
 	slug cache.Cache
 }
 
-func (s *groupCache) BySlug(slug string) (*mongomodels.Group, error) {
+func (s *groupDataCache) BySlug(slug string) (*mongomodels.GroupData, error) {
 	data, err := s.slug.Get(slug)
 	if err != nil && err != cache.ErrNotFound {
 		return nil, err
 	}
 
 	if err == nil {
-		if group, ok := data.(*mongomodels.Group); ok {
+		if group, ok := data.(*mongomodels.GroupData); ok {
 			return group, nil
 		}
 	}
@@ -36,19 +36,20 @@ func (s *groupCache) BySlug(slug string) (*mongomodels.Group, error) {
 	return s.Refresh(slug)
 }
 
-func (s *groupCache) SetToCache(group *mongomodels.Group) error {
+func (s *groupDataCache) SetToCache(group *mongomodels.GroupData) error {
 	return s.slug.Set(group.Slug, group)
 }
 
-func (s *groupCache) Refresh(slug string) (*mongomodels.Group, error) {
-	group, err := modelhelper.GetGroup(slug)
+func (s *groupDataCache) Refresh(slug string) (*mongomodels.GroupData, error) {
+	groupData := &mongomodels.GroupData{}
+	err := modelhelper.GetGroupData(slug, groupData)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.SetToCache(group); err != nil {
+	if err := s.SetToCache(groupData); err != nil {
 		return nil, err
 	}
 
-	return group, nil
+	return groupData, nil
 }

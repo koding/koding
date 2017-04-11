@@ -101,6 +101,9 @@ module.exports = class List extends React.Component
 
     sectionCount = dataSource.numberOfSections()
 
+    if not sectionCount and @props.renderEmpty
+      return @props.renderEmpty()
+
     { sectionClassName, rowClassName } = @props
 
     [0...sectionCount].map (sectionIndex) ->

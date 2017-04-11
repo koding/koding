@@ -60,14 +60,19 @@ func NewFacade(opts *FacadeOpts) (*Facade, error) {
 }
 
 func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
-	// If we already own a valid kite.key, it means we were already
-	// authenticated and we just call kloud using kite.key authentication.
-	err := f.Kloud.Transport.(stack.Validator).Valid()
+	newLogin := opts.Force
 
-	f.log().Debug("auth: transport test: %s", err)
+	if !newLogin {
+		// If we already own a valid kite.key, it means we were already
+		// authenticated and we just call kloud using kite.key authentication.
+		err := f.Kloud.Transport.(stack.Validator).Valid()
+		f.log().Debug("auth: transport test: %s", err)
 
-	if err != nil && opts.Token == "" {
-		if err = opts.AskUserPass(); err != nil {
+		newLogin = err != nil && opts.Token == ""
+	}
+
+	if newLogin {
+		if err := opts.AskUserPass(); err != nil {
 			return nil, err
 		}
 	}

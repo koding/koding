@@ -12,8 +12,34 @@ import (
 	"sync"
 	"testing"
 
+	"koding/kites/config"
+	"koding/kites/config/configstore"
+	"koding/klientctl/ctlcli"
+	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
 )
+
+func init() {
+	// Fake installation.
+	d := &daemon.Details{
+		Installation: make([]daemon.InstallResult, len(daemon.Script)),
+	}
+
+	err := configstore.Commit(func(cache *config.Cache) error {
+		return cache.SetValue("daemon.details", d)
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Cleanup.
+	ctlcli.CloseOnExit(ctlcli.CloseFunc(func() error {
+		return configstore.Commit(func(cache *config.Cache) error {
+			return cache.Delete("daemon.details")
+		})
+	}))
+}
 
 func TestMainHelper(t *testing.T) {
 	if os.Getenv("TEST_MAIN_HELPER") == "" {
@@ -42,6 +68,8 @@ func TestMainHelper(t *testing.T) {
 			testKloudHook = nop
 		}()
 	}
+
+	force = false
 
 	run(append(os.Args[:1], args...))
 }

@@ -81,7 +81,14 @@ func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
 	_ = os.MkdirAll(dir, 0755)
 	_ = util.Chown(dir, o.owner().User)
 
-	return bolt.Open(o.File, 0644, o.BoltDB)
+	db, err := bolt.Open(o.File, 0644, o.BoltDB)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = util.Chown(o.File, o.owner().User)
+
+	return db, nil
 }
 
 func KodingHome() string {

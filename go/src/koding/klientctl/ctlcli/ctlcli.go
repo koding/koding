@@ -114,8 +114,13 @@ func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) cli.
 		if err != nil || exit != 0 {
 			log.Error("Command %q encountered error. Exit:%d, err:%v", cmdName, exit, err)
 
+			msg := fmt.Sprintf("error executing %q command", cmdName)
+			if err != nil {
+				msg = msg + ": " + err.Error()
+			}
+
 			// Print error message to the user.
-			return cli.NewExitError(fmt.Sprintf("error executing %q command: %v", cmdName, err), exit)
+			return cli.NewExitError(msg, exit)
 		}
 
 		return nil

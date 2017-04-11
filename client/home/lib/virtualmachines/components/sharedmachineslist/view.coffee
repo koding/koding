@@ -2,7 +2,7 @@ kd              = require 'kd'
 React           = require 'app/react'
 immutable       = require 'immutable'
 List            = require 'app/components/list'
-MachineItem     = require '../machineslist/listitem'
+MachineItemContainer = require '../machineslist/listitemcontainer'
 
 
 module.exports = class SharedMachinesListView extends React.Component
@@ -10,7 +10,7 @@ module.exports = class SharedMachinesListView extends React.Component
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.machines.size
+  numberOfRowsInSection: -> @props.machines.length
 
 
   renderSectionHeaderAtIndex: -> null
@@ -18,16 +18,18 @@ module.exports = class SharedMachinesListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    stack = immutable.Map {
+    stack = {
       title: 'Shared Machine'
-      machines: @props.machines or immutable.Map({})
+      machines: @props.machines or []
     }
 
-    stack.get 'machines'
-      .sort (a, b) -> a.get('label').localeCompare(b.get('label')) # Sorting from a to z
+    stack.machines
+      .sort (a, b) -> a.label.localeCompare(b.label) # Sorting from a to z
       .map (machine) ->
-        <MachineItem
-          key={machine.get '_id'} stack={stack} machine={machine}
+        <MachineItemContainer
+          key={machine.getId()}
+          stack={stack}
+          machine={machine}
           shouldRenderDetails={no} />
 
 

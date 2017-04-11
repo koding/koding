@@ -1,7 +1,7 @@
 kd          = require 'kd'
 React       = require 'app/react'
 List        = require 'app/components/list'
-MachineItem = require '../machineslist/listitem'
+MachineItemContainer = require '../machineslist/listitemcontainer'
 
 module.exports = class ConnectedMachinesListView extends React.Component
 
@@ -25,47 +25,41 @@ module.exports = class ConnectedMachinesListView extends React.Component
 
 
   onDetailOpen: (machine) ->
-
-    @props.onDetailOpen machine.get '_id'
+    @props.onDetailOpen machine
 
 
   onSharedWithUser: (machine, nickname) ->
-
-    @props.onSharedWithUser machine.get('_id'), nickname
+    @props.onSharedWithUser machine, nickname
 
 
   onUnsharedWithUser: (machine, nickname) ->
+    @props.onUnsharedWithUser machine, nickname
 
-    @props.onUnsharedWithUser machine.get('_id'), nickname
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: ->
-    @props.stacks?.size and @props.stacks?.get(0).get('machines').length
+  numberOfRowsInSection: -> @props.stack?.machines.length or 0
 
-  renderSectionHeaderAtIndex: -> null
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    stack = @props.stacks.get rowIndex
+    { stack } = @props
+    machine = stack.machines[rowIndex]
 
-    return  unless stack
-
-    machines = stack.get 'machines'
-      .sort (a, b) -> a.get('label').localeCompare(b.get('label')) # Sorting from a to z
-      .map (machine) =>
-        <MachineItem
-          key={machine.get '_id'} stack={stack} machine={machine}
-          shouldRenderDetails={yes}
-          shouldRenderSpecs={yes}
-          shouldRenderDisconnect={yes}
-          shouldRenderSharing={yes}
-          onDisconnectVM={@lazyBound 'onDisconnectVM', machine}
-          onDetailOpen={@lazyBound 'onDetailOpen', machine}
-          onSharedWithUser={@lazyBound 'onSharedWithUser', machine}
-          onUnsharedWithUser={@lazyBound 'onUnsharedWithUser', machine}
-        />
+    <MachineItemContainer
+      key={machine.getId()}
+      stackId={stack.getId()}
+      machineId={machine.getId()}
+      shouldRenderDetails={yes}
+      shouldRenderSpecs={yes}
+      shouldRenderDisconnect={yes}
+      shouldRenderSharing={yes}
+      onDisconnectVM={@lazyBound 'onDisconnectVM', machine}
+      onDetailOpen={@lazyBound 'onDetailOpen', machine}
+      onSharedWithUser={@lazyBound 'onSharedWithUser', machine}
+      onUnsharedWithUser={@lazyBound 'onUnsharedWithUser', machine}
+    />
 
 
   renderEmptySectionAtIndex: -> <div>No connected machines.</div>
@@ -76,7 +70,6 @@ module.exports = class ConnectedMachinesListView extends React.Component
     <List
       numberOfSections={@bound 'numberOfSections'}
       numberOfRowsInSection={@bound 'numberOfRowsInSection'}
-      renderSectionHeaderAtIndex={@bound 'renderSectionHeaderAtIndex'}
       renderRowAtIndex={@bound 'renderRowAtIndex'}
       renderEmptySectionAtIndex={@bound 'renderEmptySectionAtIndex'}
       sectionClassName='HomeAppViewVMSection'

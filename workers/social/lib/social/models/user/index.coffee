@@ -222,16 +222,10 @@ module.exports = class JUser extends jraphical.Module
         user, username, toBeDeletedUsername, client
       }, callback)
 
+  logError = (message, rest...) ->
+    console.error "[JUser::authenticateClient] #{message}", rest...
+
   @authenticateClient: (clientId, callback) ->
-
-    logError = (message, rest...) ->
-      console.error "[JUser::authenticateClient] #{message}", rest...
-
-    logout = (reason, clientId, callback) =>
-
-      @logout clientId, (err) ->
-        logError reason, clientId
-        callback new KodingError reason
 
     # Let's try to lookup provided session first
     JSession.one { clientId }, (err, session) ->
@@ -260,7 +254,7 @@ module.exports = class JUser extends jraphical.Module
       else
 
         # So we have a session, let's check it out if its a valid one
-        checkSessionValidity { session, logout, clientId }, callback
+        checkSessionValidity { session, clientId }, callback
 
 
   @getHash = getHash = (value) ->
@@ -643,32 +637,39 @@ module.exports = class JUser extends jraphical.Module
       return callback null, { isEligible: yes }
 
 
+  terminateSession = (reason, clientId, callback) ->
+
+    JUser.logout clientId, (err) ->
+      logError reason, clientId
+      callback new KodingError reason
+
+
   checkSessionValidity = (options, callback) ->
 
-    { session, logout, clientId } = options
+    { session, clientId } = options
     { username } = session
 
     unless username?
 
       # A session without a username is nothing, let's kill it
       # and logout the user, this is also a rare condition
-      logout 'no username found', clientId, callback
+      terminateSession 'no username found', clientId, callback
 
       return
 
     # If we are dealing with a guest session we know that we need to
     # use fake guest user
 
-    if /^guest-/.test username
+    if session.isGuestSession()
 
       JUser.fetchGuestUser (err, response) ->
 
         if err
-          return logout 'error fetching guest account', clientId, callback
+          return terminateSession 'error fetching guest account', clientId, callback
 
         { account } = response
         if not response?.account
-          return logout 'guest account not found', clientId, callback
+          return terminateSession 'guest account not found', clientId, callback
 
         account.profile.nickname = username
 
@@ -678,13 +679,13 @@ module.exports = class JUser extends jraphical.Module
 
     JUser.one { username }, (err, user) ->
 
-      if err?
+      if err
 
-        logout 'error finding user with username', clientId, callback
+        terminateSession 'error finding user with username', clientId, callback
 
-      else unless user?
+      else unless user
 
-        logout "no user found with #{username} and sessionId", clientId, callback
+        terminateSession "no user found with #{username} and sessionId", clientId, callback
 
       else
 
@@ -692,11 +693,18 @@ module.exports = class JUser extends jraphical.Module
 
         user.fetchAccount context, (err, account) ->
 
-          if err?
+          if err
 
-            logout 'error fetching account', clientId, callback
+            terminateSession 'error fetching account', clientId, callback
 
           else
+
+            # At this point we will mark this session as accessed
+            # we can write down an updater to update lastAccess ~ GG
+            # see: https://github.com/koding/koding/pull/10957/files#r110447280
+            # session.lastAccess = lastAccess = new Date
+            # session.update { $set: { lastAccess } }, (err) ->
+            #   return callback err  if err
 
             # A valid session, a valid user attached to
             # it voila, scenario #2

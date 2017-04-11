@@ -22,6 +22,7 @@ import (
 	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/util"
 
@@ -42,6 +43,7 @@ var sudoRequiredFor = []string{
 	"stop",
 	"restart",
 	"update",
+	"daemon",
 }
 
 var signals = []os.Signal{
@@ -104,13 +106,30 @@ func run(args []string) {
 		log.SetLevel(logging.DEBUG)
 	}
 
+	kloud.DefaultLog = log
+	testKloudHook(kloud.DefaultClient)
+	defer ctlcli.Close()
+
+	// TODO(leeola): deprecate this default, instead passing it as a dependency
+	// to the users of it.
+	//
+	// init the defaultHealthChecker with the log.
+	defaultHealthChecker = NewDefaultHealthChecker(log)
+
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
 		// In the event of an error, simply print the error to the user
 		// and exit.
-		fmt.Println("Error: this command requires sudo.")
+		fmt.Fprintln(os.Stderr, "This command requires sudo.")
 		ctlcli.Close()
 		os.Exit(10)
+	}
+
+	if !daemon.Installed() && !requiresDaemon(os.Args[1:]) {
+		fmt.Fprintln(os.Stderr, "This command requires a daemon to be installed. Please install it "+
+			"with the following command:\n\n\tsudo kd install [--team <koding.com team name>]\n")
+		ctlcli.Close()
+		os.Exit(1)
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -122,16 +141,6 @@ func run(args []string) {
 	}()
 
 	signal.Notify(sig, signals...)
-
-	kloud.DefaultLog = log
-	testKloudHook(kloud.DefaultClient)
-	defer ctlcli.Close()
-
-	// TODO(leeola): deprecate this default, instead passing it as a dependency
-	// to the users of it.
-	//
-	// init the defaultHealthChecker with the log.
-	defaultHealthChecker = NewDefaultHealthChecker(log)
 
 	app := cli.NewApp()
 	app.Name = config.Name
@@ -329,6 +338,79 @@ func run(args []string) {
 				},
 			}},
 		}, {
+			Name:  "daemon",
+			Usage: "Manage KD Daemon service.",
+			Subcommands: []cli.Command{{
+				Name:   "install",
+				Usage:  "Install the daemon and dependencies.",
+				Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force, f",
+						Usage: "Forces execution of all installation steps.",
+					},
+					cli.StringFlag{
+						Name:  "prefix",
+						Usage: "Overwrite installation directory.",
+					},
+					cli.StringFlag{
+						Name:  "baseurl",
+						Usage: "Specify a Koding endpoint to log in.",
+						Value: config.Konfig.Endpoints.Koding.Public.String(),
+					},
+					cli.StringFlag{
+						Name:  "token",
+						Usage: "Temporary token to logging in into your Koding account.",
+					},
+					cli.StringFlag{
+						Name:  "team",
+						Usage: "Provide explicit Koding team to log into.",
+					},
+					cli.StringSliceFlag{
+						Name:  "skip",
+						Usage: "List steps to skip during installation.",
+					},
+				},
+			}, {
+				Name:   "uninstall",
+				Usage:  "Uninstall the daemon and dependencies.",
+				Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force, f",
+						Usage: "Forces execution of all uninstallation steps.",
+					},
+				},
+			}, {
+				Name:   "update",
+				Usage:  "Update KD and KD Daemon to the latest versions.",
+				Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force",
+						Usage: "Force retrieving configuration from Koding.",
+					},
+					// TODO(rjeczalik): Left here for compatibility reasons, remove in future.
+					cli.BoolFlag{
+						Name:   "continue",
+						Usage:  "Internal use only.",
+						Hidden: true,
+					},
+				},
+			}, {
+				Name:   "start",
+				Usage:  "Start the daemon service.",
+				Action: ctlcli.ExitErrAction(DaemonStart, log, "start"),
+			}, {
+				Name:   "restart",
+				Usage:  "Restart the daemon service.",
+				Action: ctlcli.ExitErrAction(DaemonRestart, log, "restart"),
+			}, {
+				Name:   "stop",
+				Usage:  "Stop the daemon service.",
+				Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
+			}},
+		}, {
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
@@ -339,69 +421,6 @@ func run(args []string) {
 			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 			Description: cmdDescriptions["status"],
 			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
-		}, {
-			Name:        "update",
-			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
-			Description: cmdDescriptions["update"],
-			Action:      ctlcli.ExitAction(UpdateCommand, log, "update"),
-			Flags: []cli.Flag{
-				cli.IntFlag{
-					Name:  "kd-version",
-					Usage: "Version of KD (klientctl) to update to.",
-				},
-				cli.StringFlag{
-					Name:  "kd-channel",
-					Usage: "Channel (production|development) to download update from.",
-				},
-				cli.IntFlag{
-					Name:  "klient-version",
-					Usage: "Version of klient to update to.",
-				},
-				cli.StringFlag{
-					Name:  "klient-channel",
-					Usage: "Channel (production|development) to download update from.",
-				},
-				cli.BoolFlag{
-					Name:  "force",
-					Usage: "Updates kd & klient to latest available version.",
-				},
-				cli.BoolFlag{
-					Name:   "continue",
-					Usage:  "Internal use only.",
-					Hidden: true,
-				},
-			},
-		}, {
-			Name:        "restart",
-			Usage:       fmt.Sprintf("Restart the %s.", config.KlientName),
-			Description: cmdDescriptions["restart"],
-			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
-		}, {
-			Name:        "start",
-			Usage:       fmt.Sprintf("Start the %s.", config.KlientName),
-			Description: cmdDescriptions["start"],
-			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
-		}, {
-			Name:        "stop",
-			Usage:       fmt.Sprintf("Stop the %s.", config.KlientName),
-			Description: cmdDescriptions["stop"],
-			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
-		}, {
-			Name:        "uninstall",
-			Usage:       fmt.Sprintf("Uninstall the %s.", config.KlientName),
-			Description: cmdDescriptions["uninstall"],
-			Action:      ExitWithMessage(UninstallCommand, log, "uninstall"),
-		}, {
-			Name:        "install",
-			Usage:       fmt.Sprintf("Install the %s.", config.KlientName),
-			Description: cmdDescriptions["install"],
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "kontrol, k",
-					Usage: "Specify an alternate Kontrol",
-				},
-			},
-			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
 		}, {
 			Name:        "autocompletion",
 			Usage:       "Enable autocompletion support for bash and fish shells",
@@ -540,6 +559,12 @@ func run(args []string) {
 		find(app.Commands, "machine", "umount"),
 		find(app.Commands, "machine", "exec"),
 		find(app.Commands, "machine", "cp"),
+		find(app.Commands, "daemon", "install"),
+		find(app.Commands, "daemon", "uninstall"),
+		find(app.Commands, "daemon", "update"),
+		find(app.Commands, "daemon", "start"),
+		find(app.Commands, "daemon", "stop"),
+		find(app.Commands, "daemon", "restart"),
 	)
 
 	if experimental {
@@ -676,6 +701,21 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 					},
+				}, {
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List all stacks.",
+					Action:    ctlcli.ExitErrAction(StackList, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "team",
+							Usage: "Limit to stack for the given team.",
+						},
+					},
 				}},
 			},
 			cli.Command{
@@ -693,7 +733,11 @@ func run(args []string) {
 						},
 						cli.StringFlag{
 							Name:  "template, t",
-							Usage: "Limit to templates with a given name.",
+							Usage: "Limit to templates with the given name.",
+						},
+						cli.StringFlag{
+							Name:  "team",
+							Usage: "Limit to templates for the given team.",
 						},
 					},
 				}, {
@@ -701,10 +745,6 @@ func run(args []string) {
 					Usage:  "Show details of a stack template.",
 					Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
 					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "template, t",
-							Usage: "Show template with a given name.",
-						},
 						cli.BoolFlag{
 							Name:  "json",
 							Usage: "Output in JSON format.",
@@ -796,21 +836,6 @@ func createActionFunc(action cli.ActionFunc) cli.ActionFunc {
 	}
 }
 
-// ExitWithMessage takes a ExitingWithMessageCommand type and returns a
-// codegansta/cli friendly command Action.
-func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		s, e := f(c, log, cmd)
-		if s != "" {
-			fmt.Println(s)
-		}
-		ctlcli.Close()
-		os.Exit(e)
-
-		return nil
-	}
-}
-
 func find(cmds cli.Commands, names ...string) cli.Command {
 	last := len(names) - 1
 
@@ -830,4 +855,26 @@ func find(cmds cli.Commands, names ...string) cli.Command {
 	}
 
 	return cli.Command{}
+}
+
+func requiresDaemon(args []string) bool {
+	var cmd string
+	switch len(args) {
+	case 0:
+		return false
+	case 1:
+		cmd = args[0]
+	default:
+		cmd = args[0]
+		if cmd == "daemon" {
+			cmd = args[1]
+		}
+	}
+
+	switch cmd {
+	case "install", "uninstall", "-version":
+		return true
+	default:
+		return false
+	}
 }

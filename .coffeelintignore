@@ -3,6 +3,7 @@ client/app/lib/applicationmanager.coffee
 client/app/lib/commonviews/avatarviews/avatarview.coffee
 client/app/lib/commonviews/dnduploader.coffee
 client/app/lib/components
+client/app/lib/sidebar
 client/app/lib/flux/environment/actions.coffee
 client/app/lib/navigation/navigationmachineitem.coffee
 client/app/lib/nostackfoundview.coffee

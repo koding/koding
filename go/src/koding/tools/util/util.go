@@ -219,7 +219,8 @@ func ExistsOk(file string) (bool, error) {
 	return false, err
 }
 
-func userIDs(u *user.User) (uid, gid int, err error) {
+// UserIDs parses the Uid/Gid strings as ints.
+func UserIDs(u *user.User) (uid, gid int, err error) {
 	if u == nil {
 		return 0, 0, errors.New("no user provided")
 	}
@@ -237,7 +238,7 @@ func userIDs(u *user.User) (uid, gid int, err error) {
 
 // Chown changes a file's ownership to the u user.
 func Chown(file string, u *user.User) error {
-	uid, gid, err := userIDs(u)
+	uid, gid, err := UserIDs(u)
 	if err != nil {
 		return err
 	}
@@ -252,7 +253,7 @@ func Chown(file string, u *user.User) error {
 //
 // It returns first encountered error or none if all went successful.
 func ChownAll(dir string, u *user.User) error {
-	uid, gid, err := userIDs(u)
+	uid, gid, err := UserIDs(u)
 	if err != nil {
 		return err
 	}

@@ -267,7 +267,7 @@ func (t *terminal) Connect(r *kite.Request) (interface{}, error) {
 
 	var stderr bytes.Buffer
 
-	cmd.Env = defaultEnv
+	cmd.Env = screenEnv
 	cmd.Stdin = server.pty.Slave
 	cmd.Stdout = server.pty.Slave
 	cmd.Dir = config.CurrentUser.HomeDir
