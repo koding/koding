@@ -28,9 +28,6 @@ install_screen() {
 		mkdir -p /usr/share
 		ln -sf /opt/kite/klient/embedded/share/terminfo /usr/share/terminfo
 		ln -sf /usr/share/terminfo/X /usr/share/terminfo/x
-	elif ls /usr/share/terminfo/x/xterm* &>/dev/null; then
-		rm -rf /opt/kite/klient/embedded/share/terminfo
-		ln -sf /usr/share/terminfo /opt/kite/klient/embedded/share/terminfo
 	fi
 
 	if [ ! -e /var/run/screen ]; then
