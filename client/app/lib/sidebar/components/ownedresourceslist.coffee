@@ -78,8 +78,9 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
         router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Initialize'
-        template.generateStack { verify: yes }, (err, { stack }) =>
           return @onMenuItemClickError 'initializing', template.getId()  if err
+        template.generateStack { verify: yes }, (err, res) =>
+          { stack } = res
           router.handleRoute "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
           appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), stack.getId()
           if machine = stack.results?.machines?[0]?.obj
