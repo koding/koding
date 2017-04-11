@@ -42,6 +42,11 @@ func init() {
 	SetTerm(term)
 }
 
+// SetTerm changes the TERM environment variable used with
+// screen processes.
+//
+// The function cannot be called after Terminal starts
+// accepting kite requets.
 func SetTerm(term string) {
 	if term == "" {
 		term = guessTerm()
