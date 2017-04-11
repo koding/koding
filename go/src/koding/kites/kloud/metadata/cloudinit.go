@@ -214,6 +214,7 @@ func NewCloudInit(cfg *CloudConfig) CloudInit {
 		"output": map[string]interface{}{
 			"all": "| tee -a /var/log/cloud-init-output.log",
 		},
+		"hostname": "${var.koding_account_profile_nickname}",
 		"users": []interface{}{
 			"default",
 			map[string]interface{}{
