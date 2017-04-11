@@ -355,6 +355,9 @@ var Screen = (map[string]InstallStep{
 				return "", err
 			}
 
+			// TODO(rjeczalik): remove after kloud deploy
+			_ = exec.Command("sudo", "chown", "-R", conf.CurrentUser.Username, "/opt/kite").Run()
+
 			resp, err := http.Get(metadata.DefaultScreenURL)
 			if err != nil {
 				return "", err
