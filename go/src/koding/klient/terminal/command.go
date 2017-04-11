@@ -59,9 +59,8 @@ func SetTerm(term string) {
 	}
 
 	screenEnv = (kos.Environ{
-		"TERM":      term,
-		"HOME":      config.CurrentUser.HomeDir,
-		"SCREENDIR": "/tmp/uscreens",
+		"TERM": term,
+		"HOME": config.CurrentUser.HomeDir,
 	}).Encode(nil)
 }
 
