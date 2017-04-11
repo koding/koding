@@ -1167,6 +1167,8 @@ module.exports = class ComputeController extends KDController
 
       debug 'reinitStack question answered', status
 
+      return  if status.cancelled
+
       unless status.confirmed
         callback new Error 'Stack is not reinitialized'
         return
