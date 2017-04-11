@@ -34,9 +34,12 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
     @headers = []
 
 
-  onMenuItemClickError: (action, templateId) ->
+  onMenuItemClickError: (action, err, templateId) ->
 
     debug "error while #{action}", { templateId }
+
+    # TODO Show this error in notification
+    console.warn err
 
     showError "Error occured while #{action} the template"
 
@@ -78,8 +81,8 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
         router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Initialize'
-          return @onMenuItemClickError 'initializing', template.getId()  if err
         template.generateStack { verify: yes }, (err, res) =>
+          return @onMenuItemClickError 'initializing', err, template.getId()  if err
           { stack } = res
           router.handleRoute "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
           appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), stack.getId()
@@ -88,21 +91,21 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
 
       when 'Reinitialize', 'Update'
         computeController.reinitStack stack, (err, newStack) =>
-          return @onMenuItemClickError 'reinitializing', template.getId()  if err
+          return @onMenuItemClickError 'reinitializing', err, template.getId()  if err
           appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), newStack.stack.getId()
 
       when 'Clone'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
-          return @onMenuItemClickError 'cloning'  if err
+          return @onMenuItemClickError 'cloning', err  if err
           template.clone (err, template) =>
-            return @onMenuItemClickError 'cloning'  if err
+            return @onMenuItemClickError 'cloning', err  if err
             router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Destroy VMs'
         computeController.ui.askFor 'deleteStack', {}, (status) =>
           return  unless status.confirmed
           computeController.destroyStack stack, (err) =>
-            return @onMenuItemClickError 'destroying'  if err
+            return @onMenuItemClickError 'destroying', err  if err
           , followEvents = no
 
       when 'Delete'
@@ -118,19 +121,19 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
 
       when 'Make Team Default'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
-          return @onMenuItemClickError 'making team default'  if err
+          return @onMenuItemClickError 'making team default', err  if err
           if template
             computeController.makeTeamDefault template
 
       when 'Share With Team'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
-          return @onMenuItemClickError 'sharing'  if err
+          return @onMenuItemClickError 'sharing', err  if err
           if template
             computeController.setStackTemplateAccessLevel template, 'group'
 
       when 'Make Private'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
-          return @onMenuItemClickError 'cloning'  if err
+          return @onMenuItemClickError 'cloning', err  if err
           if template
             computeController.setStackTemplateAccessLevel template, 'private'
 
