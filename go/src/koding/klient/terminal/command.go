@@ -24,12 +24,7 @@ var (
 	sessionPrefix      = "koding"
 	defaultShell       = "/bin/bash"
 	randomStringLength = 24 // 144 bit hex encoded
-	screenEnv          = kos.Environ{
-		"TERM":      guessTerm(),
-		"HOME":      config.CurrentUser.HomeDir,
-		"SCREENDIR": "/var/run/screen",
-	}
-	defaultEnv = kos.NewEnviron(os.Environ()).Encode(screenEnv)
+	screenEnv          []string
 )
 
 var defaultScreenPath = "/usr/bin/screen"
@@ -37,9 +32,26 @@ var defaultScreenPath = "/usr/bin/screen"
 func init() {
 	const embeddedScreen = "/opt/kite/klient/embedded/bin/screen"
 
+	term := ""
+
 	if fi, err := os.Stat(embeddedScreen); err == nil && !fi.IsDir() {
 		defaultScreenPath = embeddedScreen
+		term = "screen-256color"
 	}
+
+	SetTerm(term)
+}
+
+func SetTerm(term string) {
+	if term == "" {
+		term = guessTerm()
+	}
+
+	screenEnv = (kos.Environ{
+		"TERM":      term,
+		"HOME":      config.CurrentUser.HomeDir,
+		"SCREENDIR": "/var/run/screen",
+	}).Encode(nil)
 }
 
 func guessTerm() string {
@@ -247,7 +259,7 @@ func (t *terminal) run(cmd string, args ...string) (stdout, stderr []byte, err e
 	c := exec.Command(cmd, args...)
 	c.Stdout = &bufout
 	c.Stderr = &buferr
-	c.Env = defaultEnv
+	c.Env = screenEnv
 
 	t.Log.Debug("terminal: running: %v (%v)", c.Args, screenEnv)
 
