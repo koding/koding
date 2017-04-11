@@ -840,22 +840,29 @@ module.exports = class JStackTemplate extends Module
     [ err, provider ] = @getProvider()
     return callback err  if err
 
-    noMachines = ->
-      callback new KodingError \
-        'Nothing to verify, template has no machines'
+    @verifyCredentials client, (err) =>
 
-    Kloud = require './kloud'
-    Kloud.checkTemplate client, { stackTemplateId, provider }, (err, res) =>
-      return callback err  if err
-      return noMachines()  if not res or not res.machines?.length
+      if err
+        return callback new KodingError \
+          'Credentials verification failed', 'CredentialError', err
 
-      machines = parsePlanResponse res
-      return noMachines()  unless machines.length
+      noMachines = ->
+        callback new KodingError \
+          'Nothing to verify, template has no machines'
 
-      query = { $set: { machines, 'config.verified': true } }
-      @updateAndNotify (@getNotifyOptions client), query, (err) =>
+      Kloud = require './kloud'
+      Kloud.checkTemplate client, { stackTemplateId, provider }, (err, res) =>
         return callback err  if err
-        callback null, this
+        return noMachines()  if not res or not res.machines?.length
+
+        machines = parsePlanResponse res
+        return noMachines()  unless machines.length
+
+        query = { $set: { machines, 'config.verified': true } }
+        @updateAndNotify (@getNotifyOptions client), query, (err) =>
+          return callback err  if err
+          callback null, this
+
 
   verifyCredentials: (client, callback) ->
 
