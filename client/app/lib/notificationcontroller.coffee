@@ -105,8 +105,6 @@ module.exports = class NotificationController extends KDObject
 
       debug 'machine share list updated', data
 
-      { storage } = kd.singletons.computeController
-
       if machineId
         storage.machines.fetch '_id', machineId, force = yes
           .then (machine) -> machine.reviveUsers { permanentOnly: yes }
@@ -225,4 +223,4 @@ module.exports = class NotificationController extends KDObject
 
 
     @on 'KloudActionOverAPI', (change) ->
-      computeController.handleChangesOverAPI change
+      kd.singletons.computeController.handleChangesOverAPI change
