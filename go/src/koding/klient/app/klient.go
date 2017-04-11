@@ -139,6 +139,7 @@ type KlientConfig struct {
 	Debug       bool
 
 	ScreenrcPath string
+	ScreenTerm   string
 
 	UpdateInterval time.Duration
 	UpdateURL      string
@@ -249,6 +250,10 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
 		!konfig.Konfig.Endpoints.Kontrol().Equal(konfig.Builtin.Endpoints.Kontrol()) {
 		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
+	}
+
+	if conf.ScreenTerm != "" {
+		terminal.SetTerm(conf.ScreenTerm)
 	}
 
 	term := terminal.New(k.Log, conf.ScreenrcPath, usg.Reset)
