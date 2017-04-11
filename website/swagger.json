@@ -1,8 +1,10 @@
 {
   "swagger": "2.0",
+  "basePath": "/remote.api",
+  "host": "koding.com",
   "info": {
     "title": "Koding API",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Koding API for integrating your application with Koding services",
     "license": {
       "name": "Apache 2.0",
@@ -138,14 +140,6 @@
       "name": "JPasswordRecovery"
     },
     {
-      "description": "Model JProxyFilter",
-      "name": "JProxyFilter"
-    },
-    {
-      "description": "Model JProxyRestriction",
-      "name": "JProxyRestriction"
-    },
-    {
       "description": "Model JEarnedReward",
       "name": "JEarnedReward"
     },
@@ -221,10 +215,6 @@
       "description": "Model JVerificationToken",
       "name": "JVerificationToken"
     }
-  ],
-  "schemes": [
-    "http",
-    "https"
   ],
   "definitions": {
     "Error": {
@@ -811,7 +801,7 @@
         "slug": {
           "type": "string"
         },
-        "data": {
+        "payload": {
           "type": "object"
         }
       }
@@ -1125,65 +1115,6 @@
           "type": "string"
         },
         "requestedAt": {
-          "type": "string",
-          "format": "date"
-        }
-      }
-    },
-    "JProxyFilter": {
-      "type": "object",
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "_id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "rules": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "owner": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date"
-        },
-        "modifiedAt": {
-          "type": "string",
-          "format": "date"
-        }
-      }
-    },
-    "JProxyRestriction": {
-      "type": "object",
-      "properties": {
-        "_id": {
-          "type": "string"
-        },
-        "domainName": {
-          "type": "string"
-        },
-        "filters": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "owner": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date"
-        },
-        "modifiedAt": {
           "type": "string",
           "format": "date"
         }
@@ -1576,7 +1507,7 @@
     }
   },
   "paths": {
-    "/-/version": {
+    "../-/version": {
       "get": {
         "tags": [
           "system"
@@ -1588,7 +1519,7 @@
         }
       }
     },
-    "/remote.api/JAccount.one": {
+    "/JAccount.one": {
       "post": {
         "tags": [
           "JAccount"
@@ -1596,7 +1527,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1624,7 +1555,7 @@
         }
       }
     },
-    "/remote.api/JAccount.some": {
+    "/JAccount.some": {
       "post": {
         "tags": [
           "JAccount"
@@ -1632,7 +1563,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1660,7 +1591,7 @@
         }
       }
     },
-    "/remote.api/JAccount.someWithRelationship": {
+    "/JAccount.someWithRelationship": {
       "post": {
         "tags": [
           "JAccount"
@@ -1668,7 +1599,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.someWithRelationship",
+        "operationId": "someWithRelationship",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1696,7 +1627,7 @@
         }
       }
     },
-    "/remote.api/JAccount.count": {
+    "/JAccount.count": {
       "post": {
         "tags": [
           "JAccount"
@@ -1704,7 +1635,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.count",
+        "operationId": "count",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1732,7 +1663,7 @@
         }
       }
     },
-    "/remote.api/JAccount.byRelevance": {
+    "/JAccount.byRelevance": {
       "post": {
         "tags": [
           "JAccount"
@@ -1740,7 +1671,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.byRelevance",
+        "operationId": "byRelevance",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1768,7 +1699,7 @@
         }
       }
     },
-    "/remote.api/JAccount.verifyEmailByUsername": {
+    "/JAccount.verifyEmailByUsername": {
       "post": {
         "tags": [
           "JAccount"
@@ -1776,7 +1707,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.verifyEmailByUsername",
+        "operationId": "verifyEmailByUsername",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1804,7 +1735,7 @@
         }
       }
     },
-    "/remote.api/JAccount.fetchBlockedUsers": {
+    "/JAccount.fetchBlockedUsers": {
       "post": {
         "tags": [
           "JAccount"
@@ -1812,7 +1743,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.fetchBlockedUsers",
+        "operationId": "fetchBlockedUsers",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1840,7 +1771,7 @@
         }
       }
     },
-    "/remote.api/JAccount.fetchEmailsByUsername": {
+    "/JAccount.fetchEmailsByUsername": {
       "post": {
         "tags": [
           "JAccount"
@@ -1848,7 +1779,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JAccount.fetchEmailsByUsername",
+        "operationId": "fetchEmailsByUsername",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -1876,12 +1807,12 @@
         }
       }
     },
-    "/remote.api/JAccount.modify/{id}": {
+    "/JAccount.modify/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.modify",
+        "operationId": "modify",
         "security": [
           {
             "Bearer": []
@@ -1903,25 +1834,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchAppStorage/{id}": {
+    "/JAccount.fetchAppStorage/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchAppStorage",
+        "operationId": "fetchAppStorage",
         "security": [
           {
             "Bearer": []
@@ -1943,25 +1873,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.setEmailPreferences/{id}": {
+    "/JAccount.setEmailPreferences/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.setEmailPreferences",
+        "operationId": "setEmailPreferences",
         "security": [
           {
             "Bearer": []
@@ -1983,25 +1912,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchRole/{id}": {
+    "/JAccount.fetchRole/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchRole",
+        "operationId": "fetchRole",
         "security": [
           {
             "Bearer": []
@@ -2023,25 +1951,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.isFollowing/{id}": {
+    "/JAccount.isFollowing/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.isFollowing",
+        "operationId": "isFollowing",
         "security": [
           {
             "Bearer": []
@@ -2063,25 +1990,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.updateFlags/{id}": {
+    "/JAccount.updateFlags/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.updateFlags",
+        "operationId": "updateFlags",
         "security": [
           {
             "Bearer": []
@@ -2103,25 +2029,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchGroups/{id}": {
+    "/JAccount.fetchGroups/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchGroups",
+        "operationId": "fetchGroups",
         "security": [
           {
             "Bearer": []
@@ -2143,25 +2068,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.cancelRequest/{id}": {
+    "/JAccount.cancelRequest/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.cancelRequest",
+        "operationId": "cancelRequest",
         "security": [
           {
             "Bearer": []
@@ -2183,25 +2107,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.acceptInvitation/{id}": {
+    "/JAccount.acceptInvitation/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.acceptInvitation",
+        "operationId": "acceptInvitation",
         "security": [
           {
             "Bearer": []
@@ -2223,25 +2146,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.ignoreInvitation/{id}": {
+    "/JAccount.ignoreInvitation/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.ignoreInvitation",
+        "operationId": "ignoreInvitation",
         "security": [
           {
             "Bearer": []
@@ -2263,25 +2185,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchMyPermissions/{id}": {
+    "/JAccount.fetchMyPermissions/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchMyPermissions",
+        "operationId": "fetchMyPermissions",
         "security": [
           {
             "Bearer": []
@@ -2303,25 +2224,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchMyPermissionsAndRoles/{id}": {
+    "/JAccount.fetchMyPermissionsAndRoles/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchMyPermissionsAndRoles",
+        "operationId": "fetchMyPermissionsAndRoles",
         "security": [
           {
             "Bearer": []
@@ -2343,25 +2263,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchMySessions/{id}": {
+    "/JAccount.fetchMySessions/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchMySessions",
+        "operationId": "fetchMySessions",
         "security": [
           {
             "Bearer": []
@@ -2383,25 +2302,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.blockUser/{id}": {
+    "/JAccount.blockUser/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.blockUser",
+        "operationId": "blockUser",
         "security": [
           {
             "Bearer": []
@@ -2423,25 +2341,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.unblockUser/{id}": {
+    "/JAccount.unblockUser/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.unblockUser",
+        "operationId": "unblockUser",
         "security": [
           {
             "Bearer": []
@@ -2463,25 +2380,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.unlinkOauth/{id}": {
+    "/JAccount.unlinkOauth/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.unlinkOauth",
+        "operationId": "unlinkOauth",
         "security": [
           {
             "Bearer": []
@@ -2503,25 +2419,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.markUserAsExempt/{id}": {
+    "/JAccount.markUserAsExempt/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.markUserAsExempt",
+        "operationId": "markUserAsExempt",
         "security": [
           {
             "Bearer": []
@@ -2543,25 +2458,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.checkGroupMembership/{id}": {
+    "/JAccount.checkGroupMembership/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.checkGroupMembership",
+        "operationId": "checkGroupMembership",
         "security": [
           {
             "Bearer": []
@@ -2583,25 +2497,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.isEmailVerified/{id}": {
+    "/JAccount.isEmailVerified/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.isEmailVerified",
+        "operationId": "isEmailVerified",
         "security": [
           {
             "Bearer": []
@@ -2623,25 +2536,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchEmail/{id}": {
+    "/JAccount.fetchEmail/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchEmail",
+        "operationId": "fetchEmail",
         "security": [
           {
             "Bearer": []
@@ -2663,25 +2575,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchPaymentMethods/{id}": {
+    "/JAccount.fetchPaymentMethods/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchPaymentMethods",
+        "operationId": "fetchPaymentMethods",
         "security": [
           {
             "Bearer": []
@@ -2703,25 +2614,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchEmailAndStatus/{id}": {
+    "/JAccount.fetchEmailAndStatus/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchEmailAndStatus",
+        "operationId": "fetchEmailAndStatus",
         "security": [
           {
             "Bearer": []
@@ -2743,25 +2653,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchEmailFrequency/{id}": {
+    "/JAccount.fetchEmailFrequency/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchEmailFrequency",
+        "operationId": "fetchEmailFrequency",
         "security": [
           {
             "Bearer": []
@@ -2783,25 +2692,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchOAuthInfo/{id}": {
+    "/JAccount.fetchOAuthInfo/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchOAuthInfo",
+        "operationId": "fetchOAuthInfo",
         "security": [
           {
             "Bearer": []
@@ -2823,25 +2731,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchFromUser/{id}": {
+    "/JAccount.fetchFromUser/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchFromUser",
+        "operationId": "fetchFromUser",
         "security": [
           {
             "Bearer": []
@@ -2863,25 +2770,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchKites/{id}": {
+    "/JAccount.fetchKites/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchKites",
+        "operationId": "fetchKites",
         "security": [
           {
             "Bearer": []
@@ -2903,25 +2809,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchRelativeGroups/{id}": {
+    "/JAccount.fetchRelativeGroups/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchRelativeGroups",
+        "operationId": "fetchRelativeGroups",
         "security": [
           {
             "Bearer": []
@@ -2943,25 +2848,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.expireSubscription/{id}": {
+    "/JAccount.expireSubscription/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.expireSubscription",
+        "operationId": "expireSubscription",
         "security": [
           {
             "Bearer": []
@@ -2983,25 +2887,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.fetchOtaToken/{id}": {
+    "/JAccount.fetchOtaToken/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.fetchOtaToken",
+        "operationId": "fetchOtaToken",
         "security": [
           {
             "Bearer": []
@@ -3023,25 +2926,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.generate2FactorAuthKey/{id}": {
+    "/JAccount.generate2FactorAuthKey/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.generate2FactorAuthKey",
+        "operationId": "generate2FactorAuthKey",
         "security": [
           {
             "Bearer": []
@@ -3063,25 +2965,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.setup2FactorAuth/{id}": {
+    "/JAccount.setup2FactorAuth/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.setup2FactorAuth",
+        "operationId": "setup2FactorAuth",
         "security": [
           {
             "Bearer": []
@@ -3103,25 +3004,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.pushNotification/{id}": {
+    "/JAccount.pushNotification/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.pushNotification",
+        "operationId": "pushNotification",
         "security": [
           {
             "Bearer": []
@@ -3143,25 +3043,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JAccount.destroy/{id}": {
+    "/JAccount.destroy/{id}": {
       "post": {
         "tags": [
           "JAccount"
         ],
-        "operationId": "JAccount.destroy",
+        "operationId": "destroy",
         "security": [
           {
             "Bearer": []
@@ -3183,20 +3082,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JApiToken.create": {
+    "/JApiToken.create": {
       "post": {
         "tags": [
           "JApiToken"
@@ -3204,7 +3102,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JApiToken.create",
+        "operationId": "create",
         "parameters": [],
         "security": [
           {
@@ -3228,12 +3126,12 @@
         }
       }
     },
-    "/remote.api/JApiToken.remove/{id}": {
+    "/JApiToken.remove/{id}": {
       "post": {
         "tags": [
           "JApiToken"
         ],
-        "operationId": "JApiToken.remove",
+        "operationId": "remove",
         "security": [
           {
             "Bearer": []
@@ -3255,20 +3153,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JApiToken"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/Collaboration.stop": {
+    "/Collaboration.stop": {
       "post": {
         "tags": [
           "Collaboration"
@@ -3276,7 +3173,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Collaboration.stop",
+        "operationId": "stop",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3304,7 +3201,7 @@
         }
       }
     },
-    "/remote.api/Collaboration.add": {
+    "/Collaboration.add": {
       "post": {
         "tags": [
           "Collaboration"
@@ -3312,7 +3209,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Collaboration.add",
+        "operationId": "add",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3340,7 +3237,7 @@
         }
       }
     },
-    "/remote.api/Collaboration.kick": {
+    "/Collaboration.kick": {
       "post": {
         "tags": [
           "Collaboration"
@@ -3348,7 +3245,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Collaboration.kick",
+        "operationId": "kick",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3376,12 +3273,12 @@
         }
       }
     },
-    "/remote.api/JCombinedAppStorage.upsert/{id}": {
+    "/JCombinedAppStorage.upsert/{id}": {
       "post": {
         "tags": [
           "JCombinedAppStorage"
         ],
-        "operationId": "JCombinedAppStorage.upsert",
+        "operationId": "upsert",
         "security": [
           {
             "Bearer": []
@@ -3403,20 +3300,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCombinedAppStorage"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/ComputeProvider.ping": {
+    "/ComputeProvider.ping": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3424,7 +3320,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.ping",
+        "operationId": "ping",
         "parameters": [
           {
             "in": "body",
@@ -3464,7 +3360,7 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.create": {
+    "/ComputeProvider.create": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3472,7 +3368,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.create",
+        "operationId": "create",
         "parameters": [
           {
             "in": "body",
@@ -3545,7 +3441,7 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.remove": {
+    "/ComputeProvider.remove": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3553,7 +3449,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.remove",
+        "operationId": "remove",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3581,7 +3477,7 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.update": {
+    "/ComputeProvider.update": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3589,7 +3485,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.update",
+        "operationId": "update",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3617,7 +3513,7 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.fetchAvailable": {
+    "/ComputeProvider.fetchAvailable": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3625,7 +3521,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.fetchAvailable",
+        "operationId": "fetchAvailable",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3653,7 +3549,7 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.fetchProviders": {
+    "/ComputeProvider.fetchProviders": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3661,7 +3557,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.fetchProviders",
+        "operationId": "fetchProviders",
         "parameters": [],
         "security": [
           {
@@ -3685,7 +3581,7 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.createGroupStack": {
+    "/ComputeProvider.createGroupStack": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3693,7 +3589,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.createGroupStack",
+        "operationId": "createGroupStack",
         "parameters": [],
         "security": [
           {
@@ -3717,7 +3613,7 @@
         }
       }
     },
-    "/remote.api/ComputeProvider.updateTeamCounters": {
+    "/ComputeProvider.updateTeamCounters": {
       "post": {
         "tags": [
           "ComputeProvider"
@@ -3725,7 +3621,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "ComputeProvider.updateTeamCounters",
+        "operationId": "updateTeamCounters",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3753,7 +3649,7 @@
         }
       }
     },
-    "/remote.api/JCredential.one": {
+    "/JCredential.one": {
       "post": {
         "tags": [
           "JCredential"
@@ -3761,7 +3657,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JCredential.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3789,7 +3685,7 @@
         }
       }
     },
-    "/remote.api/JCredential.create": {
+    "/JCredential.create": {
       "post": {
         "tags": [
           "JCredential"
@@ -3797,7 +3693,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JCredential.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3825,7 +3721,7 @@
         }
       }
     },
-    "/remote.api/JCredential.some": {
+    "/JCredential.some": {
       "post": {
         "tags": [
           "JCredential"
@@ -3833,7 +3729,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JCredential.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -3861,12 +3757,12 @@
         }
       }
     },
-    "/remote.api/JCredential.delete/{id}": {
+    "/JCredential.delete/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.delete",
+        "operationId": "delete",
         "security": [
           {
             "Bearer": []
@@ -3888,25 +3784,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCredential.clone/{id}": {
+    "/JCredential.clone/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.clone",
+        "operationId": "clone",
         "security": [
           {
             "Bearer": []
@@ -3928,25 +3823,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCredential.shareWith/{id}": {
+    "/JCredential.shareWith/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.shareWith",
+        "operationId": "shareWith",
         "security": [
           {
             "Bearer": []
@@ -3968,25 +3862,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCredential.fetchUsers/{id}": {
+    "/JCredential.fetchUsers/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.fetchUsers",
+        "operationId": "fetchUsers",
         "security": [
           {
             "Bearer": []
@@ -4008,25 +3901,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCredential.fetchData/{id}": {
+    "/JCredential.fetchData/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.fetchData",
+        "operationId": "fetchData",
         "security": [
           {
             "Bearer": []
@@ -4048,25 +3940,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCredential.update/{id}": {
+    "/JCredential.update/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.update",
+        "operationId": "update",
         "security": [
           {
             "Bearer": []
@@ -4088,25 +3979,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCredential.bootstrap/{id}": {
+    "/JCredential.bootstrap/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.bootstrap",
+        "operationId": "bootstrap",
         "security": [
           {
             "Bearer": []
@@ -4128,25 +4018,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCredential.isBootstrapped/{id}": {
+    "/JCredential.isBootstrapped/{id}": {
       "post": {
         "tags": [
           "JCredential"
         ],
-        "operationId": "JCredential.isBootstrapped",
+        "operationId": "isBootstrapped",
         "security": [
           {
             "Bearer": []
@@ -4168,20 +4057,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCredential"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/Kloud.ping": {
+    "/Kloud.ping": {
       "post": {
         "tags": [
           "Kloud"
@@ -4189,7 +4077,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.ping",
+        "operationId": "ping",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4217,7 +4105,7 @@
         }
       }
     },
-    "/remote.api/Kloud.event": {
+    "/Kloud.event": {
       "post": {
         "tags": [
           "Kloud"
@@ -4225,7 +4113,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.event",
+        "operationId": "event",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4253,7 +4141,7 @@
         }
       }
     },
-    "/remote.api/Kloud.info": {
+    "/Kloud.info": {
       "post": {
         "tags": [
           "Kloud"
@@ -4261,7 +4149,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.info",
+        "operationId": "info",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4289,7 +4177,7 @@
         }
       }
     },
-    "/remote.api/Kloud.stop": {
+    "/Kloud.stop": {
       "post": {
         "tags": [
           "Kloud"
@@ -4297,7 +4185,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.stop",
+        "operationId": "stop",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4325,7 +4213,7 @@
         }
       }
     },
-    "/remote.api/Kloud.start": {
+    "/Kloud.start": {
       "post": {
         "tags": [
           "Kloud"
@@ -4333,7 +4221,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.start",
+        "operationId": "start",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4361,7 +4249,7 @@
         }
       }
     },
-    "/remote.api/Kloud.build": {
+    "/Kloud.build": {
       "post": {
         "tags": [
           "Kloud"
@@ -4369,7 +4257,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.build",
+        "operationId": "build",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4397,7 +4285,7 @@
         }
       }
     },
-    "/remote.api/Kloud.restart": {
+    "/Kloud.restart": {
       "post": {
         "tags": [
           "Kloud"
@@ -4405,7 +4293,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.restart",
+        "operationId": "restart",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4433,7 +4321,7 @@
         }
       }
     },
-    "/remote.api/Kloud.destroy": {
+    "/Kloud.destroy": {
       "post": {
         "tags": [
           "Kloud"
@@ -4441,7 +4329,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.destroy",
+        "operationId": "destroy",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4469,7 +4357,7 @@
         }
       }
     },
-    "/remote.api/Kloud.addAdmin": {
+    "/Kloud.addAdmin": {
       "post": {
         "tags": [
           "Kloud"
@@ -4477,7 +4365,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.addAdmin",
+        "operationId": "addAdmin",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4505,7 +4393,7 @@
         }
       }
     },
-    "/remote.api/Kloud.removeAdmin": {
+    "/Kloud.removeAdmin": {
       "post": {
         "tags": [
           "Kloud"
@@ -4513,7 +4401,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.removeAdmin",
+        "operationId": "removeAdmin",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4541,7 +4429,7 @@
         }
       }
     },
-    "/remote.api/Kloud.migrate": {
+    "/Kloud.migrate": {
       "post": {
         "tags": [
           "Kloud"
@@ -4549,7 +4437,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.migrate",
+        "operationId": "migrate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4577,7 +4465,7 @@
         }
       }
     },
-    "/remote.api/Kloud.bootstrap": {
+    "/Kloud.bootstrap": {
       "post": {
         "tags": [
           "Kloud"
@@ -4585,7 +4473,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.bootstrap",
+        "operationId": "bootstrap",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4613,7 +4501,7 @@
         }
       }
     },
-    "/remote.api/Kloud.buildStack": {
+    "/Kloud.buildStack": {
       "post": {
         "tags": [
           "Kloud"
@@ -4621,7 +4509,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.buildStack",
+        "operationId": "buildStack",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4649,7 +4537,7 @@
         }
       }
     },
-    "/remote.api/Kloud.checkTemplate": {
+    "/Kloud.checkTemplate": {
       "post": {
         "tags": [
           "Kloud"
@@ -4657,7 +4545,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.checkTemplate",
+        "operationId": "checkTemplate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4685,7 +4573,7 @@
         }
       }
     },
-    "/remote.api/Kloud.checkCredential": {
+    "/Kloud.checkCredential": {
       "post": {
         "tags": [
           "Kloud"
@@ -4693,7 +4581,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.checkCredential",
+        "operationId": "checkCredential",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4721,7 +4609,7 @@
         }
       }
     },
-    "/remote.api/Kloud.destroyStack": {
+    "/Kloud.destroyStack": {
       "post": {
         "tags": [
           "Kloud"
@@ -4729,7 +4617,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Kloud.destroyStack",
+        "operationId": "destroyStack",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4757,7 +4645,7 @@
         }
       }
     },
-    "/remote.api/JMachine.one": {
+    "/JMachine.one": {
       "post": {
         "tags": [
           "JMachine"
@@ -4765,7 +4653,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JMachine.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4793,7 +4681,7 @@
         }
       }
     },
-    "/remote.api/JMachine.some": {
+    "/JMachine.some": {
       "post": {
         "tags": [
           "JMachine"
@@ -4801,7 +4689,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JMachine.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -4829,12 +4717,12 @@
         }
       }
     },
-    "/remote.api/JMachine.deny/{id}": {
+    "/JMachine.deny/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.deny",
+        "operationId": "deny",
         "security": [
           {
             "Bearer": []
@@ -4856,25 +4744,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.approve/{id}": {
+    "/JMachine.approve/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.approve",
+        "operationId": "approve",
         "security": [
           {
             "Bearer": []
@@ -4896,25 +4783,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.reviveUsers/{id}": {
+    "/JMachine.reviveUsers/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.reviveUsers",
+        "operationId": "reviveUsers",
         "security": [
           {
             "Bearer": []
@@ -4936,25 +4822,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.shareWith/{id}": {
+    "/JMachine.shareWith/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.shareWith",
+        "operationId": "shareWith",
         "security": [
           {
             "Bearer": []
@@ -4976,25 +4861,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.setProvisioner/{id}": {
+    "/JMachine.setProvisioner/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.setProvisioner",
+        "operationId": "setProvisioner",
         "security": [
           {
             "Bearer": []
@@ -5016,25 +4900,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.setLabel/{id}": {
+    "/JMachine.setLabel/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.setLabel",
+        "operationId": "setLabel",
         "security": [
           {
             "Bearer": []
@@ -5056,25 +4939,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.share/{id}": {
+    "/JMachine.share/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.share",
+        "operationId": "share",
         "security": [
           {
             "Bearer": []
@@ -5096,25 +4978,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.unshare/{id}": {
+    "/JMachine.unshare/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.unshare",
+        "operationId": "unshare",
         "security": [
           {
             "Bearer": []
@@ -5136,25 +5017,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JMachine.setChannelId/{id}": {
+    "/JMachine.setChannelId/{id}": {
       "post": {
         "tags": [
           "JMachine"
         ],
-        "operationId": "JMachine.setChannelId",
+        "operationId": "setChannelId",
         "security": [
           {
             "Bearer": []
@@ -5176,20 +5056,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JMachine"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JProvisioner.one": {
+    "/JProvisioner.one": {
       "post": {
         "tags": [
           "JProvisioner"
@@ -5197,7 +5076,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JProvisioner.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -5225,7 +5104,7 @@
         }
       }
     },
-    "/remote.api/JProvisioner.create": {
+    "/JProvisioner.create": {
       "post": {
         "tags": [
           "JProvisioner"
@@ -5233,7 +5112,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JProvisioner.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -5261,7 +5140,7 @@
         }
       }
     },
-    "/remote.api/JProvisioner.some": {
+    "/JProvisioner.some": {
       "post": {
         "tags": [
           "JProvisioner"
@@ -5269,7 +5148,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JProvisioner.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -5297,12 +5176,12 @@
         }
       }
     },
-    "/remote.api/JProvisioner.delete/{id}": {
+    "/JProvisioner.delete/{id}": {
       "post": {
         "tags": [
           "JProvisioner"
         ],
-        "operationId": "JProvisioner.delete",
+        "operationId": "delete",
         "security": [
           {
             "Bearer": []
@@ -5324,25 +5203,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProvisioner"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JProvisioner.setAccess/{id}": {
+    "/JProvisioner.setAccess/{id}": {
       "post": {
         "tags": [
           "JProvisioner"
         ],
-        "operationId": "JProvisioner.setAccess",
+        "operationId": "setAccess",
         "security": [
           {
             "Bearer": []
@@ -5364,25 +5242,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProvisioner"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JProvisioner.update/{id}": {
+    "/JProvisioner.update/{id}": {
       "post": {
         "tags": [
           "JProvisioner"
         ],
-        "operationId": "JProvisioner.update",
+        "operationId": "update",
         "security": [
           {
             "Bearer": []
@@ -5404,20 +5281,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProvisioner"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.create": {
+    "/JStackTemplate.create": {
       "post": {
         "tags": [
           "JStackTemplate"
@@ -5425,7 +5301,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JStackTemplate.create",
+        "operationId": "create",
         "parameters": [
           {
             "in": "body",
@@ -5477,7 +5353,7 @@
         }
       }
     },
-    "/remote.api/JStackTemplate.samples": {
+    "/JStackTemplate.samples": {
       "post": {
         "tags": [
           "JStackTemplate"
@@ -5485,7 +5361,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JStackTemplate.samples",
+        "operationId": "samples",
         "parameters": [
           {
             "in": "body",
@@ -5548,7 +5424,7 @@
         }
       }
     },
-    "/remote.api/JStackTemplate.one": {
+    "/JStackTemplate.one": {
       "post": {
         "tags": [
           "JStackTemplate"
@@ -5556,7 +5432,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JStackTemplate.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -5584,7 +5460,7 @@
         }
       }
     },
-    "/remote.api/JStackTemplate.some": {
+    "/JStackTemplate.some": {
       "post": {
         "tags": [
           "JStackTemplate"
@@ -5592,7 +5468,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JStackTemplate.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -5620,12 +5496,12 @@
         }
       }
     },
-    "/remote.api/JStackTemplate.delete/{id}": {
+    "/JStackTemplate.delete/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.delete",
+        "operationId": "delete",
         "security": [
           {
             "Bearer": []
@@ -5647,25 +5523,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.setAccess/{id}": {
+    "/JStackTemplate.setAccess/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.setAccess",
+        "operationId": "setAccess",
         "security": [
           {
             "Bearer": []
@@ -5687,25 +5562,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.update/{id}": {
+    "/JStackTemplate.update/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.update",
+        "operationId": "update",
         "security": [
           {
             "Bearer": []
@@ -5727,25 +5601,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.build/{id}": {
+    "/JStackTemplate.build/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.build",
+        "operationId": "build",
         "security": [
           {
             "Bearer": []
@@ -5767,25 +5640,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.clone/{id}": {
+    "/JStackTemplate.clone/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.clone",
+        "operationId": "clone",
         "security": [
           {
             "Bearer": []
@@ -5807,25 +5679,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.verify/{id}": {
+    "/JStackTemplate.verify/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.verify",
+        "operationId": "verify",
         "security": [
           {
             "Bearer": []
@@ -5847,25 +5718,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.generateStack/{id}": {
+    "/JStackTemplate.generateStack/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.generateStack",
+        "operationId": "generateStack",
         "security": [
           {
             "Bearer": []
@@ -5887,25 +5757,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.forceStacksToReinit/{id}": {
+    "/JStackTemplate.forceStacksToReinit/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.forceStacksToReinit",
+        "operationId": "forceStacksToReinit",
         "security": [
           {
             "Bearer": []
@@ -5927,25 +5796,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JStackTemplate.hasStacks/{id}": {
+    "/JStackTemplate.hasStacks/{id}": {
       "post": {
         "tags": [
           "JStackTemplate"
         ],
-        "operationId": "JStackTemplate.hasStacks",
+        "operationId": "hasStacks",
         "security": [
           {
             "Bearer": []
@@ -5967,20 +5835,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JStackTemplate"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCustomPartials.create": {
+    "/JCustomPartials.create": {
       "post": {
         "tags": [
           "JCustomPartials"
@@ -5988,7 +5855,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JCustomPartials.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6016,7 +5883,7 @@
         }
       }
     },
-    "/remote.api/JCustomPartials.some": {
+    "/JCustomPartials.some": {
       "post": {
         "tags": [
           "JCustomPartials"
@@ -6024,7 +5891,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JCustomPartials.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6052,12 +5919,12 @@
         }
       }
     },
-    "/remote.api/JCustomPartials.update/{id}": {
+    "/JCustomPartials.update/{id}": {
       "post": {
         "tags": [
           "JCustomPartials"
         ],
-        "operationId": "JCustomPartials.update",
+        "operationId": "update",
         "security": [
           {
             "Bearer": []
@@ -6079,25 +5946,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCustomPartials"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JCustomPartials.remove/{id}": {
+    "/JCustomPartials.remove/{id}": {
       "post": {
         "tags": [
           "JCustomPartials"
         ],
-        "operationId": "JCustomPartials.remove",
+        "operationId": "remove",
         "security": [
           {
             "Bearer": []
@@ -6119,20 +5985,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JCustomPartials"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/DataDog.sendEvent": {
+    "/DataDog.sendEvent": {
       "post": {
         "tags": [
           "DataDog"
@@ -6140,7 +6005,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "DataDog.sendEvent",
+        "operationId": "sendEvent",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6168,7 +6033,7 @@
         }
       }
     },
-    "/remote.api/DataDog.sendMetrics": {
+    "/DataDog.sendMetrics": {
       "post": {
         "tags": [
           "DataDog"
@@ -6176,7 +6041,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "DataDog.sendMetrics",
+        "operationId": "sendMetrics",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6204,7 +6069,7 @@
         }
       }
     },
-    "/remote.api/JProposedDomain.one": {
+    "/JProposedDomain.one": {
       "post": {
         "tags": [
           "JProposedDomain"
@@ -6212,7 +6077,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JProposedDomain.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6240,7 +6105,7 @@
         }
       }
     },
-    "/remote.api/JProposedDomain.fetchDomains": {
+    "/JProposedDomain.fetchDomains": {
       "post": {
         "tags": [
           "JProposedDomain"
@@ -6248,7 +6113,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JProposedDomain.fetchDomains",
+        "operationId": "fetchDomains",
         "parameters": [],
         "security": [
           {
@@ -6272,7 +6137,7 @@
         }
       }
     },
-    "/remote.api/JProposedDomain.createDomain": {
+    "/JProposedDomain.createDomain": {
       "post": {
         "tags": [
           "JProposedDomain"
@@ -6280,7 +6145,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JProposedDomain.createDomain",
+        "operationId": "createDomain",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6308,12 +6173,12 @@
         }
       }
     },
-    "/remote.api/JProposedDomain.bindMachine/{id}": {
+    "/JProposedDomain.bindMachine/{id}": {
       "post": {
         "tags": [
           "JProposedDomain"
         ],
-        "operationId": "JProposedDomain.bindMachine",
+        "operationId": "bindMachine",
         "security": [
           {
             "Bearer": []
@@ -6335,25 +6200,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProposedDomain"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JProposedDomain.unbindMachine/{id}": {
+    "/JProposedDomain.unbindMachine/{id}": {
       "post": {
         "tags": [
           "JProposedDomain"
         ],
-        "operationId": "JProposedDomain.unbindMachine",
+        "operationId": "unbindMachine",
         "security": [
           {
             "Bearer": []
@@ -6375,25 +6239,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProposedDomain"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JProposedDomain.activateDomain/{id}": {
+    "/JProposedDomain.activateDomain/{id}": {
       "post": {
         "tags": [
           "JProposedDomain"
         ],
-        "operationId": "JProposedDomain.activateDomain",
+        "operationId": "activateDomain",
         "security": [
           {
             "Bearer": []
@@ -6415,25 +6278,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProposedDomain"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JProposedDomain.deactivateDomain/{id}": {
+    "/JProposedDomain.deactivateDomain/{id}": {
       "post": {
         "tags": [
           "JProposedDomain"
         ],
-        "operationId": "JProposedDomain.deactivateDomain",
+        "operationId": "deactivateDomain",
         "security": [
           {
             "Bearer": []
@@ -6455,25 +6317,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProposedDomain"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JProposedDomain.remove/{id}": {
+    "/JProposedDomain.remove/{id}": {
       "post": {
         "tags": [
           "JProposedDomain"
         ],
-        "operationId": "JProposedDomain.remove",
+        "operationId": "remove",
         "security": [
           {
             "Bearer": []
@@ -6495,20 +6356,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProposedDomain"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JDomainAlias.one": {
+    "/JDomainAlias.one": {
       "post": {
         "tags": [
           "JDomainAlias"
@@ -6516,7 +6376,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JDomainAlias.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6544,7 +6404,7 @@
         }
       }
     },
-    "/remote.api/JDomainAlias.some": {
+    "/JDomainAlias.some": {
       "post": {
         "tags": [
           "JDomainAlias"
@@ -6552,7 +6412,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JDomainAlias.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6580,7 +6440,7 @@
         }
       }
     },
-    "/remote.api/Github.api": {
+    "/Github.api": {
       "post": {
         "tags": [
           "Github"
@@ -6588,7 +6448,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Github.api",
+        "operationId": "api",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6616,7 +6476,7 @@
         }
       }
     },
-    "/remote.api/GitProvider.fetchConfig": {
+    "/GitProvider.fetchConfig": {
       "post": {
         "tags": [
           "GitProvider"
@@ -6624,7 +6484,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "GitProvider.fetchConfig",
+        "operationId": "fetchConfig",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6652,7 +6512,7 @@
         }
       }
     },
-    "/remote.api/GitProvider.importStackTemplateData": {
+    "/GitProvider.importStackTemplateData": {
       "post": {
         "tags": [
           "GitProvider"
@@ -6660,7 +6520,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "GitProvider.importStackTemplateData",
+        "operationId": "importStackTemplateData",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6688,7 +6548,7 @@
         }
       }
     },
-    "/remote.api/GitProvider.createImportedStackTemplate": {
+    "/GitProvider.createImportedStackTemplate": {
       "post": {
         "tags": [
           "GitProvider"
@@ -6696,7 +6556,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "GitProvider.createImportedStackTemplate",
+        "operationId": "createImportedStackTemplate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6724,7 +6584,43 @@
         }
       }
     },
-    "/remote.api/JGroup.one": {
+    "/JGroupData.fetchByKey": {
+      "post": {
+        "tags": [
+          "JGroupData"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "fetchByKey",
+        "parameters": [
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Request processed successfully",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
+    "/JGroup.one": {
       "post": {
         "tags": [
           "JGroup"
@@ -6732,7 +6628,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6760,7 +6656,7 @@
         }
       }
     },
-    "/remote.api/JGroup.create": {
+    "/JGroup.create": {
       "post": {
         "tags": [
           "JGroup"
@@ -6768,7 +6664,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6796,7 +6692,7 @@
         }
       }
     },
-    "/remote.api/JGroup.each": {
+    "/JGroup.each": {
       "post": {
         "tags": [
           "JGroup"
@@ -6804,7 +6700,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.each",
+        "operationId": "each",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6832,7 +6728,7 @@
         }
       }
     },
-    "/remote.api/JGroup.count": {
+    "/JGroup.count": {
       "post": {
         "tags": [
           "JGroup"
@@ -6840,7 +6736,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.count",
+        "operationId": "count",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6868,7 +6764,7 @@
         }
       }
     },
-    "/remote.api/JGroup.byRelevance": {
+    "/JGroup.byRelevance": {
       "post": {
         "tags": [
           "JGroup"
@@ -6876,7 +6772,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.byRelevance",
+        "operationId": "byRelevance",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6904,7 +6800,7 @@
         }
       }
     },
-    "/remote.api/JGroup.someWithRelationship": {
+    "/JGroup.someWithRelationship": {
       "post": {
         "tags": [
           "JGroup"
@@ -6912,7 +6808,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.someWithRelationship",
+        "operationId": "someWithRelationship",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6940,7 +6836,7 @@
         }
       }
     },
-    "/remote.api/JGroup.fetchMyMemberships": {
+    "/JGroup.fetchMyMemberships": {
       "post": {
         "tags": [
           "JGroup"
@@ -6948,7 +6844,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.fetchMyMemberships",
+        "operationId": "fetchMyMemberships",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -6976,7 +6872,7 @@
         }
       }
     },
-    "/remote.api/JGroup.suggestUniqueSlug": {
+    "/JGroup.suggestUniqueSlug": {
       "post": {
         "tags": [
           "JGroup"
@@ -6984,7 +6880,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.suggestUniqueSlug",
+        "operationId": "suggestUniqueSlug",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -7012,7 +6908,7 @@
         }
       }
     },
-    "/remote.api/JGroup.joinUser": {
+    "/JGroup.joinUser": {
       "post": {
         "tags": [
           "JGroup"
@@ -7020,7 +6916,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JGroup.joinUser",
+        "operationId": "joinUser",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -7048,12 +6944,12 @@
         }
       }
     },
-    "/remote.api/JGroup.join/{id}": {
+    "/JGroup.join/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.join",
+        "operationId": "join",
         "security": [
           {
             "Bearer": []
@@ -7075,25 +6971,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.leave/{id}": {
+    "/JGroup.leave/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.leave",
+        "operationId": "leave",
         "security": [
           {
             "Bearer": []
@@ -7115,25 +7010,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.modify/{id}": {
+    "/JGroup.modify/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.modify",
+        "operationId": "modify",
         "security": [
           {
             "Bearer": []
@@ -7155,25 +7049,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.modifyData/{id}": {
+    "/JGroup.modifyData/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.modifyData",
+        "operationId": "modifyData",
         "security": [
           {
             "Bearer": []
@@ -7209,16 +7102,22 @@
             "schema": {
               "$ref": "#/definitions/Error"
             }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchPermissions/{id}": {
+    "/JGroup.fetchPermissions/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchPermissions",
+        "operationId": "fetchPermissions",
         "security": [
           {
             "Bearer": []
@@ -7240,25 +7139,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.updatePermissions/{id}": {
+    "/JGroup.updatePermissions/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.updatePermissions",
+        "operationId": "updatePermissions",
         "security": [
           {
             "Bearer": []
@@ -7280,25 +7178,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchAdmins/{id}": {
+    "/JGroup.fetchAdmins/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchAdmins",
+        "operationId": "fetchAdmins",
         "security": [
           {
             "Bearer": []
@@ -7320,25 +7217,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchAdminsWithEmail/{id}": {
+    "/JGroup.fetchAdminsWithEmail/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchAdminsWithEmail",
+        "operationId": "fetchAdminsWithEmail",
         "security": [
           {
             "Bearer": []
@@ -7360,25 +7256,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchModerators/{id}": {
+    "/JGroup.fetchModerators/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchModerators",
+        "operationId": "fetchModerators",
         "security": [
           {
             "Bearer": []
@@ -7400,25 +7295,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchModeratorsWithEmail/{id}": {
+    "/JGroup.fetchModeratorsWithEmail/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchModeratorsWithEmail",
+        "operationId": "fetchModeratorsWithEmail",
         "security": [
           {
             "Bearer": []
@@ -7440,25 +7334,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchMembers/{id}": {
+    "/JGroup.fetchMembers/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchMembers",
+        "operationId": "fetchMembers",
         "security": [
           {
             "Bearer": []
@@ -7480,25 +7373,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchMembersWithEmail/{id}": {
+    "/JGroup.fetchMembersWithEmail/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchMembersWithEmail",
+        "operationId": "fetchMembersWithEmail",
         "security": [
           {
             "Bearer": []
@@ -7520,25 +7412,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchBlockedAccounts/{id}": {
+    "/JGroup.fetchBlockedAccounts/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchBlockedAccounts",
+        "operationId": "fetchBlockedAccounts",
         "security": [
           {
             "Bearer": []
@@ -7560,25 +7451,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchBlockedAccountsWithEmail/{id}": {
+    "/JGroup.fetchBlockedAccountsWithEmail/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchBlockedAccountsWithEmail",
+        "operationId": "fetchBlockedAccountsWithEmail",
         "security": [
           {
             "Bearer": []
@@ -7600,25 +7490,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchResources/{id}": {
+    "/JGroup.fetchResources/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchResources",
+        "operationId": "fetchResources",
         "security": [
           {
             "Bearer": []
@@ -7640,25 +7529,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.searchMembers/{id}": {
+    "/JGroup.searchMembers/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.searchMembers",
+        "operationId": "searchMembers",
         "security": [
           {
             "Bearer": []
@@ -7680,25 +7568,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchRoles/{id}": {
+    "/JGroup.fetchRoles/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchRoles",
+        "operationId": "fetchRoles",
         "security": [
           {
             "Bearer": []
@@ -7720,25 +7607,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchMyRoles/{id}": {
+    "/JGroup.fetchMyRoles/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchMyRoles",
+        "operationId": "fetchMyRoles",
         "security": [
           {
             "Bearer": []
@@ -7760,25 +7646,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchUserRoles/{id}": {
+    "/JGroup.fetchUserRoles/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchUserRoles",
+        "operationId": "fetchUserRoles",
         "security": [
           {
             "Bearer": []
@@ -7800,25 +7685,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.changeMemberRoles/{id}": {
+    "/JGroup.changeMemberRoles/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.changeMemberRoles",
+        "operationId": "changeMemberRoles",
         "security": [
           {
             "Bearer": []
@@ -7840,25 +7724,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.canEditGroup/{id}": {
+    "/JGroup.canEditGroup/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.canEditGroup",
+        "operationId": "canEditGroup",
         "security": [
           {
             "Bearer": []
@@ -7880,25 +7763,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.isMember/{id}": {
+    "/JGroup.isMember/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.isMember",
+        "operationId": "isMember",
         "security": [
           {
             "Bearer": []
@@ -7920,25 +7802,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.kickMember/{id}": {
+    "/JGroup.kickMember/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.kickMember",
+        "operationId": "kickMember",
         "security": [
           {
             "Bearer": []
@@ -7960,25 +7841,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.unblockMember/{id}": {
+    "/JGroup.unblockMember/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.unblockMember",
+        "operationId": "unblockMember",
         "security": [
           {
             "Bearer": []
@@ -8000,25 +7880,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.transferOwnership/{id}": {
+    "/JGroup.transferOwnership/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.transferOwnership",
+        "operationId": "transferOwnership",
         "security": [
           {
             "Bearer": []
@@ -8040,25 +7919,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.destroy/{id}": {
+    "/JGroup.destroy/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.destroy",
+        "operationId": "destroy",
         "security": [
           {
             "Bearer": []
@@ -8080,25 +7958,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.addSubscription/{id}": {
+    "/JGroup.addSubscription/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.addSubscription",
+        "operationId": "addSubscription",
         "security": [
           {
             "Bearer": []
@@ -8120,65 +7997,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
             }
-          }
-        }
-      }
-    },
-    "/remote.api/JGroup.fetchDataAt/{id}": {
-      "post": {
-        "tags": [
-          "JGroup"
-        ],
-        "operationId": "JGroup.fetchDataAt",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "Method JGroup.fetchDataAt",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
           },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized request",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchSubscription/{id}": {
+    "/JGroup.fetchDataAt/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchSubscription",
+        "operationId": "fetchDataAt",
         "security": [
           {
             "Bearer": []
@@ -8200,25 +8036,63 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchPermissionSetOrDefault/{id}": {
+    "/JGroup.fetchSubscription/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchPermissionSetOrDefault",
+        "operationId": "fetchSubscription",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
+    "/JGroup.fetchPermissionSetOrDefault/{id}": {
+      "post": {
+        "tags": [
+          "JGroup"
+        ],
+        "operationId": "fetchPermissionSetOrDefault",
         "security": [
           {
             "Bearer": []
@@ -8240,25 +8114,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchUserStatus/{id}": {
+    "/JGroup.fetchUserStatus/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchUserStatus",
+        "operationId": "fetchUserStatus",
         "security": [
           {
             "Bearer": []
@@ -8280,25 +8153,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.toggleFeature/{id}": {
+    "/JGroup.toggleFeature/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.toggleFeature",
+        "operationId": "toggleFeature",
         "security": [
           {
             "Bearer": []
@@ -8320,25 +8192,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.sendNotification/{id}": {
+    "/JGroup.sendNotification/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.sendNotification",
+        "operationId": "sendNotification",
         "security": [
           {
             "Bearer": []
@@ -8360,25 +8231,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.setLimit/{id}": {
+    "/JGroup.setLimit/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.setLimit",
+        "operationId": "setLimit",
         "security": [
           {
             "Bearer": []
@@ -8400,25 +8270,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.setOAuth/{id}": {
+    "/JGroup.setOAuth/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.setOAuth",
+        "operationId": "setOAuth",
         "security": [
           {
             "Bearer": []
@@ -8440,25 +8309,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JGroup.fetchApiTokens/{id}": {
+    "/JGroup.fetchApiTokens/{id}": {
       "post": {
         "tags": [
           "JGroup"
         ],
-        "operationId": "JGroup.fetchApiTokens",
+        "operationId": "fetchApiTokens",
         "security": [
           {
             "Bearer": []
@@ -8480,20 +8348,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JGroup"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JInvitation.some": {
+    "/JInvitation.some": {
       "post": {
         "tags": [
           "JInvitation"
@@ -8501,7 +8368,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JInvitation.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8529,7 +8396,7 @@
         }
       }
     },
-    "/remote.api/JInvitation.search": {
+    "/JInvitation.search": {
       "post": {
         "tags": [
           "JInvitation"
@@ -8537,7 +8404,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JInvitation.search",
+        "operationId": "search",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8565,7 +8432,7 @@
         }
       }
     },
-    "/remote.api/JInvitation.create": {
+    "/JInvitation.create": {
       "post": {
         "tags": [
           "JInvitation"
@@ -8573,7 +8440,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JInvitation.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8601,7 +8468,7 @@
         }
       }
     },
-    "/remote.api/JInvitation.byCode": {
+    "/JInvitation.byCode": {
       "post": {
         "tags": [
           "JInvitation"
@@ -8609,7 +8476,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JInvitation.byCode",
+        "operationId": "byCode",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8637,7 +8504,7 @@
         }
       }
     },
-    "/remote.api/JInvitation.revokeInvitation": {
+    "/JInvitation.revokeInvitation": {
       "post": {
         "tags": [
           "JInvitation"
@@ -8645,7 +8512,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JInvitation.revokeInvitation",
+        "operationId": "revokeInvitation",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8673,7 +8540,7 @@
         }
       }
     },
-    "/remote.api/JInvitation.sendInvitationByCode": {
+    "/JInvitation.sendInvitationByCode": {
       "post": {
         "tags": [
           "JInvitation"
@@ -8681,7 +8548,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JInvitation.sendInvitationByCode",
+        "operationId": "sendInvitationByCode",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8709,12 +8576,12 @@
         }
       }
     },
-    "/remote.api/JInvitation.remove/{id}": {
+    "/JInvitation.remove/{id}": {
       "post": {
         "tags": [
           "JInvitation"
         ],
-        "operationId": "JInvitation.remove",
+        "operationId": "remove",
         "security": [
           {
             "Bearer": []
@@ -8736,25 +8603,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JInvitation"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JInvitation.accept/{id}": {
+    "/JInvitation.accept/{id}": {
       "post": {
         "tags": [
           "JInvitation"
         ],
-        "operationId": "JInvitation.accept",
+        "operationId": "accept",
         "security": [
           {
             "Bearer": []
@@ -8776,20 +8642,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JInvitation"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JName.one": {
+    "/JName.one": {
       "post": {
         "tags": [
           "JName"
@@ -8797,7 +8662,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JName.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8825,7 +8690,7 @@
         }
       }
     },
-    "/remote.api/JName.claimNames": {
+    "/JName.claimNames": {
       "post": {
         "tags": [
           "JName"
@@ -8833,7 +8698,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JName.claimNames",
+        "operationId": "claimNames",
         "parameters": [],
         "security": [
           {
@@ -8857,7 +8722,7 @@
         }
       }
     },
-    "/remote.api/OAuth.getUrl": {
+    "/OAuth.getUrl": {
       "post": {
         "tags": [
           "OAuth"
@@ -8865,7 +8730,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "OAuth.getUrl",
+        "operationId": "getUrl",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8893,7 +8758,7 @@
         }
       }
     },
-    "/remote.api/JPasswordRecovery.validate": {
+    "/JPasswordRecovery.validate": {
       "post": {
         "tags": [
           "JPasswordRecovery"
@@ -8901,7 +8766,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JPasswordRecovery.validate",
+        "operationId": "validate",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8929,7 +8794,7 @@
         }
       }
     },
-    "/remote.api/JPasswordRecovery.recoverPassword": {
+    "/JPasswordRecovery.recoverPassword": {
       "post": {
         "tags": [
           "JPasswordRecovery"
@@ -8937,7 +8802,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JPasswordRecovery.recoverPassword",
+        "operationId": "recoverPassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -8965,7 +8830,7 @@
         }
       }
     },
-    "/remote.api/JPasswordRecovery.resendVerification": {
+    "/JPasswordRecovery.resendVerification": {
       "post": {
         "tags": [
           "JPasswordRecovery"
@@ -8973,7 +8838,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JPasswordRecovery.resendVerification",
+        "operationId": "resendVerification",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9001,7 +8866,7 @@
         }
       }
     },
-    "/remote.api/JPasswordRecovery.resetPassword": {
+    "/JPasswordRecovery.resetPassword": {
       "post": {
         "tags": [
           "JPasswordRecovery"
@@ -9009,7 +8874,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JPasswordRecovery.resetPassword",
+        "operationId": "resetPassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9037,7 +8902,7 @@
         }
       }
     },
-    "/remote.api/JPasswordRecovery.fetchRegistrationDetails": {
+    "/JPasswordRecovery.fetchRegistrationDetails": {
       "post": {
         "tags": [
           "JPasswordRecovery"
@@ -9045,7 +8910,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JPasswordRecovery.fetchRegistrationDetails",
+        "operationId": "fetchRegistrationDetails",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9073,303 +8938,7 @@
         }
       }
     },
-    "/remote.api/JProxyFilter.create": {
-      "post": {
-        "tags": [
-          "JProxyFilter"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "operationId": "JProxyFilter.create",
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JProxyFilter.some": {
-      "post": {
-        "tags": [
-          "JProxyFilter"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "operationId": "JProxyFilter.some",
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JProxyFilter.remove/{id}": {
-      "post": {
-        "tags": [
-          "JProxyFilter"
-        ],
-        "operationId": "JProxyFilter.remove",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProxyFilter"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JProxyFilter.update/{id}": {
-      "post": {
-        "tags": [
-          "JProxyFilter"
-        ],
-        "operationId": "JProxyFilter.update",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JProxyFilter"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JProxyRestriction.create": {
-      "post": {
-        "tags": [
-          "JProxyRestriction"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "operationId": "JProxyRestriction.create",
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JProxyRestriction.remove": {
-      "post": {
-        "tags": [
-          "JProxyRestriction"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "operationId": "JProxyRestriction.remove",
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JProxyRestriction.some": {
-      "post": {
-        "tags": [
-          "JProxyRestriction"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "operationId": "JProxyRestriction.some",
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JProxyRestriction.clear": {
-      "post": {
-        "tags": [
-          "JProxyRestriction"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "operationId": "JProxyRestriction.clear",
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed successfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JReward.addCustomReward": {
+    "/JReward.addCustomReward": {
       "post": {
         "tags": [
           "JReward"
@@ -9377,7 +8946,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JReward.addCustomReward",
+        "operationId": "addCustomReward",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9405,7 +8974,7 @@
         }
       }
     },
-    "/remote.api/JReward.fetchEarnedAmount": {
+    "/JReward.fetchEarnedAmount": {
       "post": {
         "tags": [
           "JReward"
@@ -9413,7 +8982,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JReward.fetchEarnedAmount",
+        "operationId": "fetchEarnedAmount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9441,7 +9010,7 @@
         }
       }
     },
-    "/remote.api/JReward.some": {
+    "/JReward.some": {
       "post": {
         "tags": [
           "JReward"
@@ -9449,7 +9018,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JReward.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9477,7 +9046,7 @@
         }
       }
     },
-    "/remote.api/JReward.fetchCustomData": {
+    "/JReward.fetchCustomData": {
       "post": {
         "tags": [
           "JReward"
@@ -9485,7 +9054,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JReward.fetchCustomData",
+        "operationId": "fetchCustomData",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9513,7 +9082,7 @@
         }
       }
     },
-    "/remote.api/JRewardCampaign.create": {
+    "/JRewardCampaign.create": {
       "post": {
         "tags": [
           "JRewardCampaign"
@@ -9521,7 +9090,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JRewardCampaign.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9549,7 +9118,7 @@
         }
       }
     },
-    "/remote.api/JRewardCampaign.one": {
+    "/JRewardCampaign.one": {
       "post": {
         "tags": [
           "JRewardCampaign"
@@ -9557,7 +9126,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JRewardCampaign.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9585,7 +9154,7 @@
         }
       }
     },
-    "/remote.api/JRewardCampaign.some": {
+    "/JRewardCampaign.some": {
       "post": {
         "tags": [
           "JRewardCampaign"
@@ -9593,7 +9162,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JRewardCampaign.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9621,7 +9190,7 @@
         }
       }
     },
-    "/remote.api/JRewardCampaign.isValid": {
+    "/JRewardCampaign.isValid": {
       "post": {
         "tags": [
           "JRewardCampaign"
@@ -9629,7 +9198,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JRewardCampaign.isValid",
+        "operationId": "isValid",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9657,12 +9226,12 @@
         }
       }
     },
-    "/remote.api/JRewardCampaign.update/{id}": {
+    "/JRewardCampaign.update/{id}": {
       "post": {
         "tags": [
           "JRewardCampaign"
         ],
-        "operationId": "JRewardCampaign.update",
+        "operationId": "update",
         "security": [
           {
             "Bearer": []
@@ -9684,25 +9253,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JRewardCampaign"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JRewardCampaign.remove/{id}": {
+    "/JRewardCampaign.remove/{id}": {
       "post": {
         "tags": [
           "JRewardCampaign"
         ],
-        "operationId": "JRewardCampaign.remove",
+        "operationId": "remove",
         "security": [
           {
             "Bearer": []
@@ -9724,20 +9292,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JRewardCampaign"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/S3.generatePolicy": {
+    "/S3.generatePolicy": {
       "post": {
         "tags": [
           "S3"
@@ -9745,7 +9312,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "S3.generatePolicy",
+        "operationId": "generatePolicy",
         "parameters": [],
         "security": [
           {
@@ -9769,7 +9336,7 @@
         }
       }
     },
-    "/remote.api/JSession.activeSession": {
+    "/JSession.activeSession": {
       "post": {
         "tags": [
           "JSession"
@@ -9777,7 +9344,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JSession.activeSession",
+        "operationId": "activeSession",
         "parameters": [],
         "security": [
           {
@@ -9801,12 +9368,12 @@
         }
       }
     },
-    "/remote.api/JSession.remove/{id}": {
+    "/JSession.remove/{id}": {
       "post": {
         "tags": [
           "JSession"
         ],
-        "operationId": "JSession.remove",
+        "operationId": "remove",
         "security": [
           {
             "Bearer": []
@@ -9828,20 +9395,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JSession"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/SharedMachine.add": {
+    "/SharedMachine.add": {
       "post": {
         "tags": [
           "SharedMachine"
@@ -9849,7 +9415,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SharedMachine.add",
+        "operationId": "add",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9877,7 +9443,7 @@
         }
       }
     },
-    "/remote.api/SharedMachine.kick": {
+    "/SharedMachine.kick": {
       "post": {
         "tags": [
           "SharedMachine"
@@ -9885,7 +9451,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SharedMachine.kick",
+        "operationId": "kick",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9913,7 +9479,7 @@
         }
       }
     },
-    "/remote.api/Sidebar.fetchEnvironment": {
+    "/Sidebar.fetchEnvironment": {
       "post": {
         "tags": [
           "Sidebar"
@@ -9921,7 +9487,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Sidebar.fetchEnvironment",
+        "operationId": "fetchEnvironment",
         "parameters": [],
         "security": [
           {
@@ -9945,7 +9511,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.byId": {
+    "/SocialChannel.byId": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -9953,7 +9519,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.byId",
+        "operationId": "byId",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -9981,7 +9547,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.byName": {
+    "/SocialChannel.byName": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -9989,7 +9555,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.byName",
+        "operationId": "byName",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10017,7 +9583,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchActivities": {
+    "/SocialChannel.fetchActivities": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10025,7 +9591,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchActivities",
+        "operationId": "fetchActivities",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10053,7 +9619,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchActivityCount": {
+    "/SocialChannel.fetchActivityCount": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10061,7 +9627,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchActivityCount",
+        "operationId": "fetchActivityCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10089,7 +9655,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchChannels": {
+    "/SocialChannel.fetchChannels": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10097,7 +9663,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchChannels",
+        "operationId": "fetchChannels",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10125,7 +9691,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchParticipants": {
+    "/SocialChannel.fetchParticipants": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10133,7 +9699,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchParticipants",
+        "operationId": "fetchParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10161,7 +9727,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.listParticipants": {
+    "/SocialChannel.listParticipants": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10169,7 +9735,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.listParticipants",
+        "operationId": "listParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10197,7 +9763,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.addParticipants": {
+    "/SocialChannel.addParticipants": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10205,7 +9771,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.addParticipants",
+        "operationId": "addParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10233,7 +9799,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.removeParticipants": {
+    "/SocialChannel.removeParticipants": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10241,7 +9807,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.removeParticipants",
+        "operationId": "removeParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10269,7 +9835,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.leave": {
+    "/SocialChannel.leave": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10277,7 +9843,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.leave",
+        "operationId": "leave",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10305,7 +9871,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.acceptInvite": {
+    "/SocialChannel.acceptInvite": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10313,7 +9879,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.acceptInvite",
+        "operationId": "acceptInvite",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10341,7 +9907,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.rejectInvite": {
+    "/SocialChannel.rejectInvite": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10349,7 +9915,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.rejectInvite",
+        "operationId": "rejectInvite",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10377,7 +9943,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchPopularTopics": {
+    "/SocialChannel.fetchPopularTopics": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10385,7 +9951,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchPopularTopics",
+        "operationId": "fetchPopularTopics",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10413,7 +9979,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchPopularPosts": {
+    "/SocialChannel.fetchPopularPosts": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10421,7 +9987,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchPopularPosts",
+        "operationId": "fetchPopularPosts",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10449,7 +10015,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchPinnedMessages": {
+    "/SocialChannel.fetchPinnedMessages": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10457,7 +10023,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchPinnedMessages",
+        "operationId": "fetchPinnedMessages",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10485,7 +10051,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.pinMessage": {
+    "/SocialChannel.pinMessage": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10493,7 +10059,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.pinMessage",
+        "operationId": "pinMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10521,7 +10087,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.unpinMessage": {
+    "/SocialChannel.unpinMessage": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10529,7 +10095,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.unpinMessage",
+        "operationId": "unpinMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10557,7 +10123,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchFollowedChannels": {
+    "/SocialChannel.fetchFollowedChannels": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10565,7 +10131,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchFollowedChannels",
+        "operationId": "fetchFollowedChannels",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10593,7 +10159,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchFollowedChannelCount": {
+    "/SocialChannel.fetchFollowedChannelCount": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10601,7 +10167,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchFollowedChannelCount",
+        "operationId": "fetchFollowedChannelCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10629,7 +10195,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.searchTopics": {
+    "/SocialChannel.searchTopics": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10637,7 +10203,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.searchTopics",
+        "operationId": "searchTopics",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10665,7 +10231,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchProfileFeed": {
+    "/SocialChannel.fetchProfileFeed": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10673,7 +10239,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchProfileFeed",
+        "operationId": "fetchProfileFeed",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10701,7 +10267,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchProfileFeedCount": {
+    "/SocialChannel.fetchProfileFeedCount": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10709,7 +10275,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.fetchProfileFeedCount",
+        "operationId": "fetchProfileFeedCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10737,7 +10303,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.updateLastSeenTime": {
+    "/SocialChannel.updateLastSeenTime": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10745,7 +10311,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.updateLastSeenTime",
+        "operationId": "updateLastSeenTime",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10773,7 +10339,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.glancePinnedPost": {
+    "/SocialChannel.glancePinnedPost": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10781,7 +10347,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.glancePinnedPost",
+        "operationId": "glancePinnedPost",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10809,7 +10375,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.delete": {
+    "/SocialChannel.delete": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10817,7 +10383,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.delete",
+        "operationId": "delete",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10845,7 +10411,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.update": {
+    "/SocialChannel.update": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10853,7 +10419,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.update",
+        "operationId": "update",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10881,7 +10447,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.create": {
+    "/SocialChannel.create": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10889,7 +10455,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10917,7 +10483,7 @@
         }
       }
     },
-    "/remote.api/SocialChannel.createChannelWithParticipants": {
+    "/SocialChannel.createChannelWithParticipants": {
       "post": {
         "tags": [
           "SocialChannel"
@@ -10925,7 +10491,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialChannel.createChannelWithParticipants",
+        "operationId": "createChannelWithParticipants",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10953,7 +10519,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.byId": {
+    "/SocialMessage.byId": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -10961,7 +10527,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.byId",
+        "operationId": "byId",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -10989,7 +10555,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.bySlug": {
+    "/SocialMessage.bySlug": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -10997,7 +10563,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.bySlug",
+        "operationId": "bySlug",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11025,7 +10591,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.post": {
+    "/SocialMessage.post": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11033,7 +10599,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.post",
+        "operationId": "post",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11061,7 +10627,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.reply": {
+    "/SocialMessage.reply": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11069,7 +10635,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.reply",
+        "operationId": "reply",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11097,7 +10663,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.edit": {
+    "/SocialMessage.edit": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11105,7 +10671,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.edit",
+        "operationId": "edit",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11133,7 +10699,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.delete": {
+    "/SocialMessage.delete": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11141,7 +10707,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.delete",
+        "operationId": "delete",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11169,7 +10735,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.listReplies": {
+    "/SocialMessage.listReplies": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11177,7 +10743,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.listReplies",
+        "operationId": "listReplies",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11205,7 +10771,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.like": {
+    "/SocialMessage.like": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11213,7 +10779,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.like",
+        "operationId": "like",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11241,7 +10807,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.unlike": {
+    "/SocialMessage.unlike": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11249,7 +10815,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.unlike",
+        "operationId": "unlike",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11277,7 +10843,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.listLikers": {
+    "/SocialMessage.listLikers": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11285,7 +10851,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.listLikers",
+        "operationId": "listLikers",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11313,7 +10879,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.initPrivateMessage": {
+    "/SocialMessage.initPrivateMessage": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11321,7 +10887,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.initPrivateMessage",
+        "operationId": "initPrivateMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11349,7 +10915,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.sendPrivateMessage": {
+    "/SocialMessage.sendPrivateMessage": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11357,7 +10923,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.sendPrivateMessage",
+        "operationId": "sendPrivateMessage",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11385,7 +10951,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.fetchPrivateMessages": {
+    "/SocialMessage.fetchPrivateMessages": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11393,7 +10959,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.fetchPrivateMessages",
+        "operationId": "fetchPrivateMessages",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11421,7 +10987,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.fetchPrivateMessageCount": {
+    "/SocialMessage.fetchPrivateMessageCount": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11429,7 +10995,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.fetchPrivateMessageCount",
+        "operationId": "fetchPrivateMessageCount",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11457,7 +11023,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.search": {
+    "/SocialMessage.search": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11465,7 +11031,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.search",
+        "operationId": "search",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11493,7 +11059,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.fetch": {
+    "/SocialMessage.fetch": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11501,7 +11067,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.fetch",
+        "operationId": "fetch",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11529,7 +11095,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.fetchDataFromEmbedly": {
+    "/SocialMessage.fetchDataFromEmbedly": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11537,7 +11103,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.fetchDataFromEmbedly",
+        "operationId": "fetchDataFromEmbedly",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11565,7 +11131,7 @@
         }
       }
     },
-    "/remote.api/SocialMessage.paymentSubscribe": {
+    "/SocialMessage.paymentSubscribe": {
       "post": {
         "tags": [
           "SocialMessage"
@@ -11573,7 +11139,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialMessage.paymentSubscribe",
+        "operationId": "paymentSubscribe",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11601,7 +11167,7 @@
         }
       }
     },
-    "/remote.api/SocialNotification.fetch": {
+    "/SocialNotification.fetch": {
       "post": {
         "tags": [
           "SocialNotification"
@@ -11609,7 +11175,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialNotification.fetch",
+        "operationId": "fetch",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11637,7 +11203,7 @@
         }
       }
     },
-    "/remote.api/SocialNotification.glance": {
+    "/SocialNotification.glance": {
       "post": {
         "tags": [
           "SocialNotification"
@@ -11645,7 +11211,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "SocialNotification.glance",
+        "operationId": "glance",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11673,7 +11239,7 @@
         }
       }
     },
-    "/remote.api/JComputeStack.create": {
+    "/JComputeStack.create": {
       "post": {
         "tags": [
           "JComputeStack"
@@ -11681,7 +11247,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JComputeStack.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11709,7 +11275,7 @@
         }
       }
     },
-    "/remote.api/JComputeStack.one": {
+    "/JComputeStack.one": {
       "post": {
         "tags": [
           "JComputeStack"
@@ -11717,7 +11283,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JComputeStack.one",
+        "operationId": "one",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11745,7 +11311,7 @@
         }
       }
     },
-    "/remote.api/JComputeStack.some": {
+    "/JComputeStack.some": {
       "post": {
         "tags": [
           "JComputeStack"
@@ -11753,7 +11319,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JComputeStack.some",
+        "operationId": "some",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -11781,12 +11347,12 @@
         }
       }
     },
-    "/remote.api/JComputeStack.delete/{id}": {
+    "/JComputeStack.delete/{id}": {
       "post": {
         "tags": [
           "JComputeStack"
         ],
-        "operationId": "JComputeStack.delete",
+        "operationId": "delete",
         "security": [
           {
             "Bearer": []
@@ -11808,25 +11374,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JComputeStack.maintenance/{id}": {
+    "/JComputeStack.maintenance/{id}": {
       "post": {
         "tags": [
           "JComputeStack"
         ],
-        "operationId": "JComputeStack.maintenance",
+        "operationId": "maintenance",
         "security": [
           {
             "Bearer": []
@@ -11848,25 +11413,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JComputeStack.destroy/{id}": {
+    "/JComputeStack.destroy/{id}": {
       "post": {
         "tags": [
           "JComputeStack"
         ],
-        "operationId": "JComputeStack.destroy",
+        "operationId": "destroy",
         "security": [
           {
             "Bearer": []
@@ -11888,25 +11452,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JComputeStack.modify/{id}": {
+    "/JComputeStack.modify/{id}": {
       "post": {
         "tags": [
           "JComputeStack"
         ],
-        "operationId": "JComputeStack.modify",
+        "operationId": "modify",
         "security": [
           {
             "Bearer": []
@@ -11928,25 +11491,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JComputeStack.checkRevision/{id}": {
+    "/JComputeStack.checkRevision/{id}": {
       "post": {
         "tags": [
           "JComputeStack"
         ],
-        "operationId": "JComputeStack.checkRevision",
+        "operationId": "checkRevision",
         "security": [
           {
             "Bearer": []
@@ -11968,25 +11530,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JComputeStack.createAdminMessage/{id}": {
+    "/JComputeStack.createAdminMessage/{id}": {
       "post": {
         "tags": [
           "JComputeStack"
         ],
-        "operationId": "JComputeStack.createAdminMessage",
+        "operationId": "createAdminMessage",
         "security": [
           {
             "Bearer": []
@@ -12008,25 +11569,24 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JComputeStack.deleteAdminMessage/{id}": {
+    "/JComputeStack.deleteAdminMessage/{id}": {
       "post": {
         "tags": [
           "JComputeStack"
         ],
-        "operationId": "JComputeStack.deleteAdminMessage",
+        "operationId": "deleteAdminMessage",
         "security": [
           {
             "Bearer": []
@@ -12048,20 +11608,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/JTeamInvitation.create": {
+    "/JTeamInvitation.create": {
       "post": {
         "tags": [
           "JTeamInvitation"
@@ -12069,7 +11628,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JTeamInvitation.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12097,7 +11656,7 @@
         }
       }
     },
-    "/remote.api/JTeamInvitation.byCode": {
+    "/JTeamInvitation.byCode": {
       "post": {
         "tags": [
           "JTeamInvitation"
@@ -12105,7 +11664,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JTeamInvitation.byCode",
+        "operationId": "byCode",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12133,7 +11692,7 @@
         }
       }
     },
-    "/remote.api/JTeamInvitation.sendInvitationEmails": {
+    "/JTeamInvitation.sendInvitationEmails": {
       "post": {
         "tags": [
           "JTeamInvitation"
@@ -12141,7 +11700,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JTeamInvitation.sendInvitationEmails",
+        "operationId": "sendInvitationEmails",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12169,12 +11728,12 @@
         }
       }
     },
-    "/remote.api/JTeamInvitation.remove/{id}": {
+    "/JTeamInvitation.remove/{id}": {
       "post": {
         "tags": [
           "JTeamInvitation"
         ],
-        "operationId": "JTeamInvitation.remove",
+        "operationId": "remove",
         "security": [
           {
             "Bearer": []
@@ -12196,20 +11755,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTeamInvitation"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
       }
     },
-    "/remote.api/Tracker.track": {
+    "/Tracker.track": {
       "post": {
         "tags": [
           "Tracker"
@@ -12217,7 +11775,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "Tracker.track",
+        "operationId": "track",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12245,7 +11803,7 @@
         }
       }
     },
-    "/remote.api/JUrlAlias.create": {
+    "/JUrlAlias.create": {
       "post": {
         "tags": [
           "JUrlAlias"
@@ -12253,7 +11811,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUrlAlias.create",
+        "operationId": "create",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12281,7 +11839,7 @@
         }
       }
     },
-    "/remote.api/JUrlAlias.resolve": {
+    "/JUrlAlias.resolve": {
       "post": {
         "tags": [
           "JUrlAlias"
@@ -12289,7 +11847,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUrlAlias.resolve",
+        "operationId": "resolve",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12317,7 +11875,7 @@
         }
       }
     },
-    "/remote.api/JUser.login": {
+    "/JUser.login": {
       "post": {
         "tags": [
           "JUser"
@@ -12325,7 +11883,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.login",
+        "operationId": "login",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12353,7 +11911,7 @@
         }
       }
     },
-    "/remote.api/JUser.whoami": {
+    "/JUser.whoami": {
       "post": {
         "tags": [
           "JUser"
@@ -12361,7 +11919,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.whoami",
+        "operationId": "whoami",
         "parameters": [],
         "security": [
           {
@@ -12385,7 +11943,7 @@
         }
       }
     },
-    "/remote.api/JUser.logout": {
+    "/JUser.logout": {
       "post": {
         "tags": [
           "JUser"
@@ -12393,7 +11951,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.logout",
+        "operationId": "logout",
         "parameters": [],
         "security": [
           {
@@ -12417,7 +11975,7 @@
         }
       }
     },
-    "/remote.api/JUser.convert": {
+    "/JUser.convert": {
       "post": {
         "tags": [
           "JUser"
@@ -12425,7 +11983,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.convert",
+        "operationId": "convert",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12453,7 +12011,7 @@
         }
       }
     },
-    "/remote.api/JUser.fetchUser": {
+    "/JUser.fetchUser": {
       "post": {
         "tags": [
           "JUser"
@@ -12461,7 +12019,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.fetchUser",
+        "operationId": "fetchUser",
         "parameters": [],
         "security": [
           {
@@ -12485,7 +12043,7 @@
         }
       }
     },
-    "/remote.api/JUser.setSSHKeys": {
+    "/JUser.setSSHKeys": {
       "post": {
         "tags": [
           "JUser"
@@ -12493,7 +12051,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.setSSHKeys",
+        "operationId": "setSSHKeys",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12521,7 +12079,7 @@
         }
       }
     },
-    "/remote.api/JUser.getSSHKeys": {
+    "/JUser.getSSHKeys": {
       "post": {
         "tags": [
           "JUser"
@@ -12529,7 +12087,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.getSSHKeys",
+        "operationId": "getSSHKeys",
         "parameters": [],
         "security": [
           {
@@ -12553,7 +12111,7 @@
         }
       }
     },
-    "/remote.api/JUser.unregister": {
+    "/JUser.unregister": {
       "post": {
         "tags": [
           "JUser"
@@ -12561,7 +12119,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.unregister",
+        "operationId": "unregister",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12589,7 +12147,7 @@
         }
       }
     },
-    "/remote.api/JUser.verifyByPin": {
+    "/JUser.verifyByPin": {
       "post": {
         "tags": [
           "JUser"
@@ -12597,7 +12155,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.verifyByPin",
+        "operationId": "verifyByPin",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12625,7 +12183,7 @@
         }
       }
     },
-    "/remote.api/JUser.changeEmail": {
+    "/JUser.changeEmail": {
       "post": {
         "tags": [
           "JUser"
@@ -12633,7 +12191,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.changeEmail",
+        "operationId": "changeEmail",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12661,7 +12219,7 @@
         }
       }
     },
-    "/remote.api/JUser.verifyPassword": {
+    "/JUser.verifyPassword": {
       "post": {
         "tags": [
           "JUser"
@@ -12669,7 +12227,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.verifyPassword",
+        "operationId": "verifyPassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12697,7 +12255,7 @@
         }
       }
     },
-    "/remote.api/JUser.emailAvailable": {
+    "/JUser.emailAvailable": {
       "post": {
         "tags": [
           "JUser"
@@ -12705,7 +12263,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.emailAvailable",
+        "operationId": "emailAvailable",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12733,7 +12291,7 @@
         }
       }
     },
-    "/remote.api/JUser.changePassword": {
+    "/JUser.changePassword": {
       "post": {
         "tags": [
           "JUser"
@@ -12741,7 +12299,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.changePassword",
+        "operationId": "changePassword",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12769,7 +12327,7 @@
         }
       }
     },
-    "/remote.api/JUser.usernameAvailable": {
+    "/JUser.usernameAvailable": {
       "post": {
         "tags": [
           "JUser"
@@ -12777,7 +12335,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.usernameAvailable",
+        "operationId": "usernameAvailable",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"
@@ -12805,7 +12363,7 @@
         }
       }
     },
-    "/remote.api/JUser.authenticateWithOauth": {
+    "/JUser.authenticateWithOauth": {
       "post": {
         "tags": [
           "JUser"
@@ -12813,7 +12371,7 @@
         "consumes": [
           "application/json"
         ],
-        "operationId": "JUser.authenticateWithOauth",
+        "operationId": "authenticateWithOauth",
         "parameters": [
           {
             "$ref": "#/parameters/bodyParam"

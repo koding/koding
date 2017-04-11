@@ -1,35 +1,32 @@
-kd              = require 'kd'
-React           = require 'app/react'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-View            = require './view'
-SidebarFlux = require 'app/flux/sidebar'
-
+kd = require 'kd'
+React = require 'app/react'
+View = require './view'
 
 module.exports = class TeamStacksListContainer extends React.Component
 
-  getDataBindings: ->
-    return {
-      stacks: EnvironmentFlux.getters.teamStacks
-      templates: EnvironmentFlux.getters.inUseTeamStackTemplates
-      sidebarStacks: SidebarFlux.getters.sidebarStacks
-    }
+  onAddToSidebar: ({ template, stack }) ->
+
+    { sidebar } = kd.singletons
+
+    if stack
+    then sidebar.makeVisible 'stack', stack.getId()
+    else sidebar.makeVisible 'draft', template.getId()
 
 
-  onAddToSidebar: (stackId) -> SidebarFlux.actions.makeVisible 'stack', stackId
+  onRemoveFromSidebar: ({ template, stack }) ->
 
+    { sidebar } = kd.singletons
 
-  onRemoveFromSidebar: (stackId) -> SidebarFlux.actions.makeHidden 'stack', stackId
+    if stack
+    then sidebar.makeHidden 'stack', stack.getId()
+    else sidebar.makeHidden 'draft', template.getId()
 
 
   render: ->
+
     <View
-      stacks={@state.stacks}
-      templates={@state.templates}
-      sidebarStacks={@state.sidebarStacks}
+      resources={@props.resources}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
     />
-
-TeamStacksListContainer.include [KDReactorMixin]

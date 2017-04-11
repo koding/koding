@@ -6,38 +6,41 @@ remote = require 'app/remote'
 View = require './view'
 SidebarFlux = require 'app/flux/sidebar'
 
+calculateOwnedResources = require 'app/util/calculateOwnedResources'
+
 module.exports = class DraftsListContainer extends React.Component
 
-  getDataBindings: ->
-    return {
-      templates: EnvironmentFlux.getters.draftStackTemplates
-      sidebarDrafts: SidebarFlux.getters.sidebarDrafts
-    }
+  onAddToSidebar: ({ template }) ->
+
+    { sidebar } = kd.singletons
+
+    sidebar.makeVisible 'draft', template.getId()
 
 
-  onAddToSidebar: (stackTemplateId) ->
+  onRemoveFromSidebar: ({ template }) ->
 
-    SidebarFlux.actions.makeVisible 'draft', stackTemplateId
+    { sidebar } = kd.singletons
+
+    sidebar.makeHidden 'draft', template.getId()
 
 
-  onRemoveFromSidebar: (stackTemplateId) ->
+  onCloneFromDashboard: ({ template }) ->
 
-    SidebarFlux.actions.makeHidden 'draft', stackTemplateId
+    { router } = kd.singletons
 
-  onCloneFromDashboard: (stackTemplate) ->
+    template.clone (err, template) ->
+      if err
+        return new kd.NotificationView
+          title: "Error occured while cloning template"
 
-    EnvironmentFlux.actions.cloneStackTemplate remote.revive stackTemplate.toJS()
+      router.handleRoute "/Stack-Editor/#{template.getId()}"
 
 
   render: ->
     <View
-      templates={@state.templates}
-      sidebarDrafts={@state.sidebarDrafts}
+      resources={@props.resources}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
       onCloneFromDashboard={@bound 'onCloneFromDashboard'}
     />
-
-
-DraftsListContainer.include [KDReactorMixin]

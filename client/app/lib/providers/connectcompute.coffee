@@ -1,6 +1,7 @@
 React = require 'app/react'
 kd = require 'kd'
-shallowCompare = require 'react-addons-shallow-compare'
+
+debug = require('debug')('compute:connect')
 
 # FIXME: so naive, but works for now.
 makeSingular = (plural) -> plural.slice 0, -1
@@ -34,33 +35,38 @@ makeState = (config, props) ->
 
 module.exports = connectCompute = (config) -> (WrappedComponent) ->
 
-  class ConnectedCompute extends React.Component
+  class ConnectCompute extends React.Component
 
     constructor: (props) ->
       super props
 
       @handlers = null
       @events = {}
+      @_mounted = no
 
       @state = makeState config, props
 
 
-    shouldComponentUpdate: (nextProps, nextState) ->
-
-      return shallowCompare this, nextProps, nextState
-
-
     onStorageUpdate: ->
+
+      return  unless @_mounted
+
+      debug 'onStorageUpdate'
 
       @setState makeState config, @props
 
 
     componentDidMount: ->
 
+      @_mounted = yes
+
       { computeController } = kd.singletons
-      { controllerEvents } = config
 
       computeController.storage.on 'change', @bound 'onStorageUpdate'
+
+      { controllerEvents } = config
+
+      return  unless controllerEvents
 
       Object.keys(controllerEvents).forEach (resource) =>
         return  unless resourceId = @props["#{resource}Id"]
@@ -71,17 +77,27 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
           return  if @events[eventId]
 
           @events[eventId] = (event) =>
+            return  if event.status is 'NotInitialized' and @state.percentage
             newState = handlers[eventName](event)
             @setState newState
 
           computeController.on eventId, @events[eventId]
 
 
+    componentWillReceiveProps: (nextProps, nextState) ->
+
+      @setState makeState config, nextProps
+
+
     componentWillUnmount: ->
+
+      @_mounted = no
 
       { computeController } = kd.singletons
 
       computeController.storage.off 'change', @bound 'onStorageUpdate'
+
+      debug 'componentWillUnmount'
 
       Object.keys(@events).forEach (eventId) =>
         computeController.off eventId, @events[eventId]
@@ -89,3 +105,10 @@ module.exports = connectCompute = (config) -> (WrappedComponent) ->
 
     render: ->
       <WrappedComponent {...@state} />
+
+  name = \
+    WrappedComponent.displayName or WrappedComponent.name or 'Component'
+
+  ConnectCompute.displayName = "ConnectCompute(#{name})"
+
+  return ConnectCompute

@@ -14,45 +14,46 @@ var DefaultClient = &Client{}
 
 type Client struct {
 	Kloud *kloud.Client
+	Store *configstore.Client
 
 	once     sync.Once // for c.init()
-	store    *configstore.Client
-	cache    *config.Cache
 	defaults config.Konfigs
 }
 
 func (c *Client) Used() (*config.Konfig, error) {
 	c.init()
 
-	return c.store.Used()
+	return c.store().Used()
 }
 
 func (c *Client) Use(k *config.Konfig) error {
 	c.init()
 
-	return c.store.Use(k)
+	return c.store().Use(k)
 }
 
 func (c *Client) List() config.Konfigs {
 	c.init()
 
-	return c.store.List()
+	return c.store().List()
 }
 
 func (c *Client) Set(key, value string) error {
 	c.init()
 
-	return c.store.Set(key, value)
+	return c.store().Set(key, value)
 }
 
 func (c *Client) Close() (err error) {
 	c.init()
 
 	if len(c.defaults) != 0 {
-		err = c.cache.SetValue("konfigs.default", c.defaults)
+		err = c.store().Commit(func(cache *config.Cache) error {
+			return cache.SetValue("konfigs.default", c.defaults)
+		})
 	}
 
-	return nonil(err, c.cache.Close())
+	return err
 }
 
 func (c *Client) Defaults() (*config.Konfig, error) {
@@ -62,7 +63,7 @@ func (c *Client) Defaults() (*config.Konfig, error) {
 }
 
 func (c *Client) fetchDefaults(force bool) (*config.Konfig, error) {
-	used, err := c.store.Used()
+	used, err := c.store().Used()
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ type ResetOpts struct {
 func (c *Client) Reset(opts *ResetOpts) error {
 	c.init()
 
-	used, err := c.store.Used()
+	used, err := c.store().Used()
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func (c *Client) Reset(opts *ResetOpts) error {
 
 	used.Endpoints = defaults.Endpoints
 
-	return c.store.Use(used)
+	return c.store().Use(used)
 }
 
 func (c *Client) init() {
@@ -118,15 +119,13 @@ func (c *Client) init() {
 }
 
 func (c *Client) initClient() {
-	c.store = &configstore.Client{}
-	c.cache = config.NewCache(c.store.CacheOptions("konfig"))
 	c.defaults = make(config.Konfigs)
-
-	c.store.Cache = c.cache
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.cache.GetValue("konfigs.default", &c.defaults)
+	_ = c.store().Commit(func(cache *config.Cache) error {
+		return cache.GetValue("konfigs.default", &c.defaults)
+	})
 
 	// Flush cache on exit.
 	ctlcli.CloseOnExit(c)
@@ -137,6 +136,13 @@ func (c *Client) kloud() *kloud.Client {
 		return c.Kloud
 	}
 	return kloud.DefaultClient
+}
+
+func (c *Client) store() *configstore.Client {
+	if c.Store != nil {
+		return c.Store
+	}
+	return configstore.DefaultClient
 }
 
 func nonil(err ...error) error {

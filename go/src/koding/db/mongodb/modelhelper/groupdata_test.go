@@ -1,6 +1,7 @@
 package modelhelper_test
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
 	"testing"
@@ -26,12 +27,12 @@ func TestGroupData(t *testing.T) {
 		t.Fatalf("UpsertGroupData() = %v, want %v", err, nil)
 	}
 
-	gd, err := modelhelper.GetGroupData(slug)
-	if err != nil {
+	gd := &models.GroupData{}
+	if err := modelhelper.GetGroupData(slug, gd); err != nil {
 		t.Fatalf("GetGroupData(slug) = %v, want %v", err, nil)
 	}
 
-	res, err := gd.Data.GetString("testData.key2.subkey2")
+	res, err := gd.Payload.GetString("testData.key2.subkey2")
 	if err != nil {
 		t.Fatalf("data.Get(testData.key2.subkey2) = %v, want %v", err, nil)
 	}
@@ -45,12 +46,12 @@ func TestGroupData(t *testing.T) {
 		t.Fatalf("UpsertGroupData() = %v, want %v", err, nil)
 	}
 
-	gdp, err := modelhelper.GetGroupDataPath(slug, "testData.key2")
-	if err != nil {
+	gdp := &models.GroupData{}
+	if err := modelhelper.GetGroupDataPath(slug, "testData.key2", gdp); err != nil {
 		t.Fatalf("GetGroupDataPath() = %v, want %v", err, nil)
 	}
 
-	res, err = gdp.Data.GetString("testData.key2.subkey2")
+	res, err = gdp.Payload.GetString("testData.key2.subkey2")
 	if err != nil {
 		t.Fatalf("data.Get(testData.key2.subkey2) = %v, want %v", err, nil)
 	}
@@ -73,7 +74,7 @@ func TestGroupData(t *testing.T) {
 	}
 
 	// check if other keys are still existent
-	testDataVal3, err := gd.Data.GetString("testData.key3")
+	testDataVal3, err := gd.Payload.GetString("testData.key3")
 	if err != nil {
 		t.Fatalf("data.Get(testData.key3) = %v, want %v", err, nil)
 	}

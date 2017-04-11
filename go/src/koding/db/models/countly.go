@@ -7,3 +7,16 @@ type Countly struct {
 	AppID  string `bson:"appId" json:"appId"`
 	UserID string `bson:"userId" json:"-"`
 }
+
+// Valid checks if countly instance is valid.
+func (c *Countly) Valid() bool {
+	if c == nil {
+		return false
+	}
+
+	if c.APIKey == "" {
+		return false
+	}
+
+	return true
+}

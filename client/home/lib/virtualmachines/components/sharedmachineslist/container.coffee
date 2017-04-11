@@ -1,18 +1,17 @@
-kd              = require 'kd'
-React           = require 'app/react'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-View            = require './view'
+kd = require 'kd'
+React = require 'app/react'
+View = require './view'
 
+connectCompute = require 'app/providers/connectcompute'
 
-module.exports = class SharedMachinesListContainer extends React.Component
+computeConnector = connectCompute({
+  storage: ['machines']
+})
 
-  getDataBindings: ->
-    return {
-      machines: EnvironmentFlux.getters.sharedMachines
-    }
+module.exports = computeConnector class SharedMachinesListContainer extends React.Component
 
   render: ->
-    <View machines={@state.machines} />
 
-SharedMachinesListContainer.include [KDReactorMixin]
+    machines = @props.machines.filter (m) -> m.getType() is 'shared'
+
+    <View machines={machines} />

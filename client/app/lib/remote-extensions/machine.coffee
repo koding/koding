@@ -36,6 +36,15 @@ module.exports = class JMachine extends remote.api.JMachine
                       # needs to be resolved manually
   }
 
+  @Type = {
+
+    Own: 'own'
+    Collaboration: 'collaboration'
+    Shared: 'shared'
+    Reassigned: 'reassigned'
+
+  }
+
   stop: ->
     kd.singletons.computeController.stop this
 
@@ -173,6 +182,8 @@ module.exports = class JMachine extends remote.api.JMachine
   isBuilt     : -> @status?.state isnt JMachine.State.NotInitialized
   isUsable    : -> @isRunning() or @isStopped()
   getOldOwner : -> @getAt 'meta.oldOwner'
+  isAlwaysOn  : -> @getAt 'meta.alwaysOn'
+
 
   getChannelId: -> @getAt 'channelId'
   setChannelId: (options, callback) ->
@@ -188,6 +199,59 @@ module.exports = class JMachine extends remote.api.JMachine
         delete (storage.machines.get '_id', machine._id).channelId
 
       callback err, machine
+
+  getStatus: -> @getAt 'status.state'
+
+
+  getSharedUsers: ->
+
+    @getAt('users')
+      .filter (user) -> user.instance? and user.instance.profile.nickname isnt nick()
+      .map (user) -> user.instance
+
+
+  reviveUsers: (options, callback = kd.noop) ->
+
+    { storage } = kd.singletons.computeController
+
+    super options, (err, accounts = []) =>
+      return callback err  if err
+
+      debug 'reviveUsers', { accounts, machine: this }
+
+      machineUsers = @getAt 'users'
+
+      accounts.forEach (account) ->
+        machineUser = _.find machineUsers, (user) ->
+          user.username is account.profile.nickname
+
+        if machineUser
+        then machineUser.instance = account
+        else machineUsers.push {
+          username: account.profile.nickname
+          instance: account
+          permanent: yes
+        }
+
+      @setAt 'users', machineUsers
+
+      storage.machines.push this
+
+      callback null, accounts
+
+
+  setLabel: (label, callback) ->
+
+    { storage } = kd.singletons.computeController
+
+    super label, (err, newLabel) =>
+      return callback err  if err
+
+      @setAt 'label', newLabel
+
+      storage.machines.push this
+
+      return callback err, newLabel
 
 
   deny: (callback) ->
@@ -213,3 +277,65 @@ module.exports = class JMachine extends remote.api.JMachine
       @setApproved()
       storage.machines.push this
       callback null
+
+
+  getType: ->
+
+    { Own, Shared, Reassigned, Collaboration } = JMachine.Type
+
+    switch
+      when @isMine()      then Own
+      when @isPermanent() then Shared
+      when @getOldOwner() then Reassigned
+      else Collaboration
+
+
+  getTitle: ->
+
+    { Shared, Reassigned, Collaboration } = JMachine.Type
+
+    switch @getType()
+      when Shared, Collaboration then "#{@label} (@#{@getOwner()})"
+      when Reassigned then "#{@label} (@#{@getOldOwner()})"
+      else @label
+
+
+  unshareAllUsers: ->
+
+    debug 'unshare all users'
+
+    Promise.all @getSharedUsers().map (user) =>
+      @unshareUser user.profile.nickname
+
+
+  unshareUser: (username) ->
+
+    debug 'unshare user', username
+
+    { storage } = kd.singletons.computeController
+
+    new Promise (resolve, reject) =>
+      remote.api.SharedMachine.kick @uid, [username], (err) =>
+        promise = @getBaseKite()
+          .klientUnshare { username, permanent: yes }
+          .then => @users = @users.filter (user) -> user.username isnt username
+          .then => @reviveUsers { permanentOnly : yes }
+          .then ->
+            if err then reject new Error err else resolve()
+          .catch reject
+
+
+  shareUser: (username) ->
+
+    debug 'share user', username
+
+    new Promise (resolve, reject) =>
+      remote.api.SharedMachine.add @uid, [username], (err) =>
+        return reject new Error err  if err
+
+        @getBaseKite()
+          .klientShare { username, permanent: yes }
+          .then => @users.push { approved: no, permanent: yes, username, owner: no }
+          .then => @reviveUsers { permanentOnly : yes }
+          .then resolve
+          .catch reject
