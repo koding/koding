@@ -306,6 +306,9 @@ func InstallScreen() error {
 		return cache.GetValue("daemon.screen", &res)
 	})
 
+	// TODO(rjeczalik): For backward-compatibility reasons, remove in future.
+	_ = ensureWorldWriteable("/tmp/uscreens")
+
 	if err == nil {
 		return ErrSkipInstall
 	}
@@ -341,7 +344,7 @@ var Screen = (map[string]InstallStep{
 	"linux": {
 		Name: "screen",
 		Install: func(*Client, *Opts) (string, error) {
-			base := filepath.FromSlash("/opt/kite/klient/embedded")
+			const base = "/opt/kite/klient/embedded"
 			bin := filepath.Join(base, "bin", "screen")
 
 			if fi, err := os.Stat(bin); err == nil && !fi.IsDir() {
@@ -409,36 +412,23 @@ var Screen = (map[string]InstallStep{
 			}
 
 			// Best-effort attempt of creating screen dir.
-			_ = mkdir(filepath.FromSlash("/var/run/screen"), conf.CurrentUser, "screen")
-			_ = symlink(filepath.Join(base, "share", "terminfo"), filepath.FromSlash("/usr/share/terminfo"))
+			_ = ensureWorldWriteable("/tmp/uscreens")
+			_ = symlink(filepath.Join(base, "share", "terminfo"), "/usr/share/terminfo")
 
 			return "", nil
 		},
 		Uninstall: func(c *Client, _ *Opts) error {
-			return os.RemoveAll(filepath.FromSlash("/opt/kite/klient/embedded"))
+			return os.RemoveAll("/opt/kite/klient/embedded")
 		},
 	},
 })[runtime.GOOS]
 
-func mkdir(dir string, user *conf.User, group string) error {
-	if _, err := os.Stat(dir); err == nil {
-		return nil
+func ensureWorldWriteable(dir string) error {
+	if fi, err := os.Lstat(dir); err == nil && !fi.IsDir() {
+		_ = os.Remove(dir)
 	}
 
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-
-	// TODO(rjeczalik): native?
-	if err := run("groupadd", "--force", group); err != nil {
-		return err
-	}
-
-	if err := run("usermod", "-a", "-G", group, user.Username); err != nil {
-		return err
-	}
-
-	return run("chown", user.Username+":"+group, dir)
+	return nonil(os.MkdirAll(dir, 0777), os.Chmod(dir, 0777))
 }
 
 func symlink(from, to string) error {

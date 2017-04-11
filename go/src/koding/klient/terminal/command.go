@@ -61,7 +61,7 @@ func SetTerm(term string) {
 	screenEnv = (kos.Environ{
 		"TERM":      term,
 		"HOME":      config.CurrentUser.HomeDir,
-		"SCREENDIR": "/var/run/screen",
+		"SCREENDIR": "/tmp/uscreens",
 	}).Encode(nil)
 }
 
@@ -193,9 +193,9 @@ func (t *terminal) screenSessions(username string) []string {
 	// Do not include dead sessions in our result
 	t.run(defaultScreenPath, "-wipe")
 
-	// We need to use ls here, because /var/run/screen mount is only
+	// We need to use ls here, because /tmp/uscreens mount is only
 	// visible from inside of container. Errors are ignored.
-	stdout, stderr, err := t.run("ls", "/var/run/screen/S-"+username)
+	stdout, stderr, err := t.run("ls", "/tmp/uscreens/S-"+username)
 	if err != nil {
 		t.Log.Error("terminal: listing sessions failed: %s:\n%s\n", err, stderr)
 		return nil
