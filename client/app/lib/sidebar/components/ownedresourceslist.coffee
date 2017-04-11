@@ -254,6 +254,7 @@ module.exports = class OwnedResourcesList extends React.Component
     machine = stack.machines[rowIndex]
 
     <SidebarMachineItem
+      key={machine.getId()}
       machineId={machine.getId()}
       stackId={stack.getId()} />
 
