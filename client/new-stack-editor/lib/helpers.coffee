@@ -1,12 +1,11 @@
+kd = require 'kd'
+
 module.exports = helpers =
 
-  markAsLoaded: (stackTemplateId) ->
+  markAsLoaded: (templateId, stackId) ->
 
-    EnvironmentFlux = require 'app/flux/environment'
+    kd.singletons.sidebar.setSelected { templateId, stackId, machineId: null }
 
-    { setSelectedMachineId, setSelectedTemplateId } = EnvironmentFlux.actions
-    setSelectedTemplateId stackTemplateId
-    setSelectedMachineId null
 
   log: (rest...) ->
 

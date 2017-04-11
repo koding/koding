@@ -68,16 +68,9 @@ module.exports = class StackEditorAppController extends AppController
 
       @stackEditor.setData template, reset
 
-      { sidebar } = kd.singletons
-
-      sidebar.setSelected
-        templateId: templateId
-        stackId: stackId
-        machineId: null
-
       callback null
 
-    markAsLoaded templateId
+    markAsLoaded templateId, stackId
 
 
   openStackWizard: (handleRoute = yes) ->
@@ -170,12 +163,6 @@ module.exports = class StackEditorAppController extends AppController
         logs.add 'stack template updated successfully'
         debug 'updated template instance', updatedTemplate
         debug 'generated stack', generatedStack
-        { sidebar } = kd.singletons
-
-        sidebar.setSelected
-          stackId: generatedStack.stack.getId()
-          templateId: updatedTemplate.getId()
-          machineId: null
 
 
   createStackTemplate: (provider) ->
