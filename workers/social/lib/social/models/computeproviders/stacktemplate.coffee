@@ -811,6 +811,17 @@ module.exports = class JStackTemplate extends Module
           Kloud.buildStack client, { stackId, provider, variables }, callback
 
 
+  getProvider: ->
+
+    # TODO: add multiple provider support here ~GG
+    provider = @getAt 'config.requiredProviders.0'
+
+    unless provider or not PROVIDERS[provider]
+      return [ new KodingError 'Provider is not supported' ]
+
+    return [ null, provider ]
+
+
   verify$: permit
 
     advanced: [
@@ -825,10 +836,9 @@ module.exports = class JStackTemplate extends Module
   verify: (client, callback) ->
 
     stackTemplateId = @getAt '_id'
-    provider = (@getAt 'config.requiredProviders')[0]
 
-    unless provider or not PROVIDERS[provider]
-      return callback new KodingError 'Provider is not supported'
+    [ err, provider ] = @getProvider()
+    return callback err  if err
 
     noMachines = ->
       callback new KodingError \
