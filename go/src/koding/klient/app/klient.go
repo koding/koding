@@ -45,6 +45,7 @@ import (
 	"koding/klient/uploader"
 	"koding/klient/usage"
 	"koding/klient/vagrant"
+	"koding/klientctl/daemon"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
@@ -252,6 +253,14 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
+	switch err := daemon.InstallScreen(); err {
+	case nil:
+		terminal.Reset()
+	case daemon.ErrSkipInstall:
+	default:
+		return nil, err
+	}
+
 	if conf.ScreenTerm != "" {
 		terminal.SetTerm(conf.ScreenTerm)
 	}
@@ -290,7 +299,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	t, err := tunnel.New(tunOpts)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if conf.UpdateInterval < time.Minute {

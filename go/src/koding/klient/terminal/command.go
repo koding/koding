@@ -30,6 +30,12 @@ var (
 var defaultScreenPath = "/usr/bin/screen"
 
 func init() {
+	Reset()
+}
+
+// Reset is used to reconfigure terminal package when state of its dependencies
+// changed in the runtime, e.g. embedded screen was installed.
+func Reset() {
 	const embeddedScreen = "/opt/kite/klient/embedded/bin/screen"
 
 	term := ""

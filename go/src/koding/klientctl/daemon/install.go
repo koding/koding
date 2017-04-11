@@ -1,11 +1,14 @@
 package daemon
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -16,13 +19,13 @@ import (
 
 	conf "koding/kites/config"
 	"koding/kites/config/configstore"
+	"koding/kites/kloud/metadata"
 	"koding/klient/tunnel/tlsproxy"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/helper"
-	"koding/tools/util"
 
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/logging"
@@ -296,26 +299,188 @@ func (c *Client) needVagrant(opts *Opts) bool {
 	}
 }
 
+func InstallScreen() error {
+	var res InstallResult
+
+	err := DefaultClient.store().Commit(func(cache *conf.Cache) error {
+		return cache.GetValue("daemon.screen", &res)
+	})
+
+	if err == nil {
+		return ErrSkipInstall
+	}
+
+	DefaultClient.log().Info("Going to install screen...")
+
+	switch _, err = Screen.Install(DefaultClient, nil); err {
+	case nil:
+		DefaultClient.log().Info("Screen was successfully installed.")
+	case ErrSkipInstall:
+		res.Skipped = true
+	default:
+		return err
+	}
+
+	res.Name = "screen"
+
+	return nonil(DefaultClient.store().Commit(func(cache *conf.Cache) error {
+		return cache.SetValue("daemon.screen", &res)
+	}), err)
+}
+
+var Screen = (map[string]InstallStep{
+	"darwin": {
+		Name: "screen",
+		Install: func(c *Client, _ *Opts) (string, error) {
+			return "", ErrSkipInstall
+		},
+		Uninstall: func(c *Client, _ *Opts) error {
+			return nil
+		},
+	},
+	"linux": {
+		Name: "screen",
+		Install: func(*Client, *Opts) (string, error) {
+			base := filepath.FromSlash("/opt/kite/klient/embedded")
+			bin := filepath.Join(base, "bin", "screen")
+
+			if fi, err := os.Stat(bin); err == nil && !fi.IsDir() {
+				return "", ErrSkipInstall
+			}
+
+			if err := os.MkdirAll(base, 0755); err != nil {
+				return "", err
+			}
+
+			resp, err := http.Get(metadata.DefaultScreenURL)
+			if err != nil {
+				return "", err
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				return "", errors.New(http.StatusText(resp.StatusCode))
+			}
+
+			cr, err := gzip.NewReader(resp.Body)
+			if err != nil {
+				return "", err
+			}
+			defer cr.Close()
+
+			tr := tar.NewReader(cr)
+
+			for {
+				h, err := tr.Next()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					return "", err
+				}
+
+				name := filepath.Join("/", h.Name)
+
+				if !strings.HasPrefix(name, base) {
+					return "", errors.New("invalid entry: " + name)
+				}
+
+				if h.Typeflag == tar.TypeDir {
+					if err := os.MkdirAll(name, 0755); err != nil {
+						return "", err
+					}
+
+					continue
+				}
+
+				if h.Typeflag != tar.TypeReg && h.Typeflag != tar.TypeRegA {
+					return "", err
+				}
+
+				f, err := os.OpenFile(name, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, os.FileMode(h.Mode))
+				if err != nil {
+					return "", err
+				}
+
+				_, err = io.Copy(f, tr)
+				err = nonil(err, f.Close())
+				if err != nil {
+					return "", err
+				}
+			}
+
+			// Best-effort attempt of creating screen dir.
+			_ = mkdir(filepath.FromSlash("/var/run/screen"), conf.CurrentUser, "screen")
+			_ = symlink(filepath.Join(base, "share", "terminfo"), filepath.FromSlash("/usr/share/terminfo"))
+
+			return "", nil
+		},
+		Uninstall: func(c *Client, _ *Opts) error {
+			return os.RemoveAll(filepath.FromSlash("/opt/kite/klient/embedded"))
+		},
+	},
+})[runtime.GOOS]
+
+func mkdir(dir string, user *conf.User, group string) error {
+	if _, err := os.Stat(dir); err == nil {
+		return nil
+	}
+
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	// TODO(rjeczalik): native?
+	if err := run("groupadd", "--force", group); err != nil {
+		return err
+	}
+
+	if err := run("usermod", "-a", "-G", group, user.Username); err != nil {
+		return err
+	}
+
+	return run("chown", user.Username+":"+group, dir)
+}
+
+func symlink(from, to string) error {
+	if _, err := os.Stat(to); err == nil {
+		return nil
+	}
+
+	if err := os.MkdirAll(filepath.Dir(to), 0755); err != nil {
+		return err
+	}
+
+	return os.Symlink(from, to)
+}
+
+func run(cmd string, args ...string) error {
+	var buf bytes.Buffer
+
+	c := exec.Command(cmd, args...)
+	c.Stderr = &buf
+
+	if err := c.Run(); err != nil {
+		return fmt.Errorf("%s: %s", err, &buf)
+	}
+
+	return nil
+}
+
 // Script is a list of installation steps, used by default by KD.
 var Script = []InstallStep{{
 	Name: "log files",
 	Install: func(c *Client, _ *Opts) (string, error) {
-		uid, gid, err := util.UserIDs(conf.CurrentUser.User)
-		if err != nil {
-			return "", err
-		}
-
 		kd := c.d.LogFiles["kd"][runtime.GOOS]
 		klient := c.d.LogFiles["klient"][runtime.GOOS]
 
-		f, err := os.OpenFile(kd, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+		f, err := os.OpenFile(kd, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 		if err != nil {
 			return "", err
 		}
 
 		ctlcli.CloseOnExit(f)
 
-		if err := f.Chown(uid, gid); err != nil {
+		if err := f.Chown(conf.CurrentUser.Uid, conf.CurrentUser.Gid); err != nil {
 			return "", err
 		}
 
@@ -324,7 +489,7 @@ var Script = []InstallStep{{
 
 		fk, err := os.Create(klient)
 		if err == nil {
-			err = nonil(fk.Chown(uid, gid), fk.Close())
+			err = nonil(fk.Chown(conf.CurrentUser.Uid, conf.CurrentUser.Gid), fk.Close())
 		}
 		if err != nil {
 			return "", err
