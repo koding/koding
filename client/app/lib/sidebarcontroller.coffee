@@ -19,6 +19,7 @@ module.exports = class SidebarController extends kd.Controller
     @leavingId = null
 
     @selected =
+      templateId: null
       stackId: null
       machineId: null
 
