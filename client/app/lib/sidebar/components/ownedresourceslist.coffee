@@ -18,9 +18,15 @@ SidebarMachineItem = require './machineitemcontainer'
 OwnedResourceHeader = require './ownedresourceheader'
 SidebarNoStacks = require './nostacks'
 
+connectSidebar = require 'app/sidebar/connectsidebar'
+
 MENU = null
 
-module.exports = class OwnedResourcesList extends React.Component
+sidebarConnector = connectSidebar({
+  transformState: (sidebarState, props) -> { selected: sidebarState.selected }
+})
+
+module.exports = sidebarConnector class OwnedResourcesList extends React.Component
 
   constructor: (props) ->
     super props
@@ -49,9 +55,10 @@ module.exports = class OwnedResourcesList extends React.Component
 
     { router } = kd.singletons
 
-    route = if stack?.isManaged()
-    then '/Home/stacks/virtual-machines#connected-machines'
-    else "/Stack-Editor/#{template.getId()}"
+    route = switch
+      when stack?.isManaged() then '/Home/stacks/virtual-machines#connected-machines'
+      when stack then "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
+      else "/Stack-Editor/#{template.getId()}"
 
     router.handleRoute route
 
@@ -71,17 +78,17 @@ module.exports = class OwnedResourcesList extends React.Component
         router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Initialize'
-        template.generateStack { verify: yes }, (err, stack) =>
+        template.generateStack { verify: yes }, (err, { stack }) =>
           return @onMenuItemClickError 'initializing', template.getId()  if err
-          router.handleRoute "/Stack-Editor/#{template.getId()}"
-          appManager.tell 'Stackeditor', 'reloadEditor', template.getId()
+          router.handleRoute "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
+          appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), stack.getId()
           if machine = stack.results?.machines?[0]?.obj
             computeController.reloadIDE machine
 
       when 'Reinitialize', 'Update'
-        computeController.reinitStack stack, (err) =>
+        computeController.reinitStack stack, (err, newStack) =>
           return @onMenuItemClickError 'reinitializing', template.getId()  if err
-          appManager.tell 'Stackeditor', 'reloadEditor', template.getId()
+          appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), newStack.stack.getId()
 
       when 'Clone'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
@@ -141,7 +148,6 @@ module.exports = class OwnedResourcesList extends React.Component
     callback = @lazyBound 'onHeaderMenuItemClick', resource
     menuItems = {}
     { stack, template } = resource
-
 
     if !!resource.unreadCount
       menuItems['Update'] = { callback }
@@ -230,13 +236,24 @@ module.exports = class OwnedResourcesList extends React.Component
     MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
 
 
+  onNewStack: (event) ->
+
+    kd.utils.stopDOMEvent event
+    kd.singletons.router.handleRoute '/Stack-Editor/New'
+
+
   renderSectionHeaderAtIndex: (sectionIndex) ->
 
     resource = @props.resources[sectionIndex]
 
     { template, stack, unreadCount } = resource
 
+    selected = if stack
+    then stack.getId() is @props.selected?.stackId
+    else template.getId() is @props.selected?.templateId
+
     <OwnedResourceHeader
+      selected={selected}
       ref={(header) => @headers[sectionIndex] = header}
       title={template?.title or stack?.title}
       onTitleClick={@lazyBound 'onHeaderTitleClick', resource}
@@ -254,6 +271,7 @@ module.exports = class OwnedResourcesList extends React.Component
     machine = stack.machines[rowIndex]
 
     <SidebarMachineItem
+      key={machine.getId()}
       machineId={machine.getId()}
       stackId={stack.getId()} />
 
@@ -270,7 +288,7 @@ module.exports = class OwnedResourcesList extends React.Component
   render: ->
 
     <div className='SidebarTeamSection'>
-      <SectionHeader />
+      <SectionHeader onNewStack={@bound 'onNewStack'} />
       <List
         sectionClassName='SidebarSection SidebarStackSection'
         rowClassName='SidebarSection-body'
@@ -283,8 +301,9 @@ module.exports = class OwnedResourcesList extends React.Component
     </div>
 
 
-SectionHeader = ({ children }) ->
+SectionHeader = ({ onNewStack }) ->
 
   <Link className='SidebarSection-headerTitle' href='/Home/stacks'>
     STACKS
+    <span className='SidebarSection-secondaryLink' onClick={onNewStack} />
   </Link>

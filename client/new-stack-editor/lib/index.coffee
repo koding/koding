@@ -50,7 +50,7 @@ module.exports = class StackEditorAppController extends AppController
     @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
 
 
-  openEditor: (templateId, options = {}, callback = kd.noop) ->
+  openEditor: (templateId, stackId, options = {}, callback = kd.noop) ->
 
     { reset = no } = options
 
@@ -67,6 +67,14 @@ module.exports = class StackEditorAppController extends AppController
         return callback err
 
       @stackEditor.setData template, reset
+
+      { sidebar } = kd.singletons
+
+      sidebar.setSelected
+        templateId: templateId
+        stackId: stackId
+        machineId: null
+
       callback null
 
     markAsLoaded templateId
@@ -78,12 +86,12 @@ module.exports = class StackEditorAppController extends AppController
     markAsLoaded()
 
 
-  reloadEditor: (templateId) ->
+  reloadEditor: (templateId, stackId) ->
 
     return  unless @templates[templateId]
 
     delete @templates[templateId]
-    @openEditor templateId, { reset: yes }
+    @openEditor templateId, stackId, { reset: yes }
 
 
   fetchStackTemplate: (templateId, callback) ->
@@ -115,7 +123,7 @@ module.exports = class StackEditorAppController extends AppController
       (next) =>
         if @stackEditor.getData()._id isnt templateId
           logs.add 'loading template first...'
-          @openEditor templateId, {}, next
+          @openEditor templateId, null, {}, next
         else
           next()
 
@@ -162,6 +170,12 @@ module.exports = class StackEditorAppController extends AppController
         logs.add 'stack template updated successfully'
         debug 'updated template instance', updatedTemplate
         debug 'generated stack', generatedStack
+        { sidebar } = kd.singletons
+
+        sidebar.setSelected
+          stackId: generatedStack.stack.getId()
+          templateId: updatedTemplate.getId()
+          machineId: null
 
 
   createStackTemplate: (provider) ->

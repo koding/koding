@@ -419,7 +419,7 @@ module.exports = class ComputeControllerUI
           type       : 'button'
           callback   : ->
             modal.destroy()
-            callback { confirmed: no }
+            callback { confirmed: no, cancelled: yes }
         ok           :
           title      : button ? 'Yes, remove'
           style      : 'solid medium'
