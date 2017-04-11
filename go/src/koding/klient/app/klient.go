@@ -253,18 +253,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
-	switch err := daemon.InstallScreen(); err {
-	case nil:
-		terminal.Reset()
-	case daemon.ErrSkipInstall:
-	default:
-		return nil, err
-	}
-
-	if conf.ScreenTerm != "" {
-		terminal.SetTerm(conf.ScreenTerm)
-	}
-
 	term := terminal.New(k.Log, conf.ScreenrcPath, usg.Reset)
 
 	db, err := openBoltDB(configstore.CacheOptions("klient"))
@@ -746,6 +734,18 @@ func (k *Klient) Run() {
 			}
 		}
 	}()
+
+	switch err := daemon.InstallScreen(); err {
+	case nil:
+		terminal.Reset()
+	case daemon.ErrSkipInstall:
+	default:
+		k.log.Error("%s", err)
+	}
+
+	if k.config.ScreenTerm != "" {
+		terminal.SetTerm(k.config.ScreenTerm)
+	}
 
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
