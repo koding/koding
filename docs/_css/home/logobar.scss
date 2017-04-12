@@ -25,17 +25,16 @@
   }
 }
 .Homepage-LogoBar-Gray {
-  background-color: #F5F9FB;
-  border-top: 1px solid #E8ECEE;
-  border-bottom: 1px solid #E8ECEE;
-  padding-bottom: 75px;
+  background-color: #FBF9FC;
+  padding: 90px 0;
 }
 .Homepage-LogoBar-Gray h3 {
-  font-size: 18px;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 28px;
   padding: 0;
   margin-top: 30px;
   margin-bottom: 40px;
-  color: #989898;
+  color: #9B75B0;
 }
 @media (max-width: 1200px) {
   .Homepage-LogoBar--logos {

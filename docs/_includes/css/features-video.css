@@ -1,10 +1,12 @@
 .feature-title {
-  font-size: 42px;
-  color: #F2778A;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  line-height: 46px;
+  color: #DB881F;
   font-weight: 300;
   text-align: center;
   margin-top: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .feature-lead {
