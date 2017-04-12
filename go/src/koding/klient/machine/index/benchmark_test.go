@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/index/node"
 )
 
 var repo = flag.String("repo", "", "")
@@ -49,7 +50,7 @@ func BenchmarkNodeLookup(b *testing.B) {
 
 func BenchmarkNodeAdd(b *testing.B) {
 	const name = "proxy/tmp/sync/fuse/fuse.go"
-	entry := index.NewEntry(0xB, 0)
+	entry := node.NewEntry(0xB, 0)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -79,6 +80,6 @@ func BenchmarkNodeForEach(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		root.ForEach(func(name string, _ *index.Entry) {})
+		root.ForEach(func(name string, _ *node.Entry) {})
 	}
 }
