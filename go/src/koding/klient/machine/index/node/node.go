@@ -110,43 +110,6 @@ func WalkPath(f func(string, *Node)) Predicate {
 	}
 }
 
-/*
-	err := walkFn(nodePath, info, nil)
-   352		if err != nil {
-   353			if info.IsDir() && err == SkipDir {
-   354				return nil
-   355			}
-   356			return err
-   357		}
-   358
-   359		if !info.IsDir() {
-   360			return nil
-   361		}
-   362
-   363		names, err := readDirNames(nodePath)
-   364		if err != nil {
-   365			return walkFn(nodePath, info, err)
-   366		}
-   367
-   368		for _, name := range names {
-   369			filename := Join(nodePath, name)
-   370			fileInfo, err := lstat(filename)
-   371			if err != nil {
-   372				if err := walkFn(filename, fileInfo, err); err != nil && err != SkipDir {
-   373					return err
-   374				}
-   375			} else {
-   376				err = walk(filename, fileInfo, walkFn)
-   377				if err != nil {
-   378					if !fileInfo.IsDir() || err != SkipDir {
-   379						return err
-   380					}
-   381				}
-   382			}
-   383		}
-   384		return nil
-*/
-
 func Count(n *int) Predicate {
 	return Walk(func(*Node) { (*n)++ })
 }
