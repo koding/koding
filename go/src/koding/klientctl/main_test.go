@@ -221,12 +221,3 @@ func (ft *FakeTransport) Call(method string, arg, reply interface{}) error {
 func (ft *FakeTransport) Connect(string) (kloud.Transport, error) { return ft, nil }
 
 func (*FakeTransport) Valid() (_ error) { return }
-
-func nonil(err ...error) error {
-	for _, e := range err {
-		if e != nil {
-			return e
-		}
-	}
-	return nil
-}
