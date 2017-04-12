@@ -1300,7 +1300,7 @@ module.exports = class ComputeController extends KDController
 
 
   # FIXMERESET ~ GG
-  handleChangesOverAPI: (change) -> @reset yes, =>
+  handleChangesOverAPI: (change) ->
 
     # TODO implement better next to flows here ~ GG
 
@@ -1308,7 +1308,7 @@ module.exports = class ComputeController extends KDController
       stack = @findStackFromStackId change.payload.stackId
       @reloadIDE stack.machines.first
 
-    console.log '[Kloud:API]', change
+    debug '[Kloud:API]', change
 
 
   # Follow Payment changes

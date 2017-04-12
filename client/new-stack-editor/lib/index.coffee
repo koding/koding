@@ -45,6 +45,8 @@ module.exports = class StackEditorAppController extends AppController
 
     super options, data
 
+    @builds = {}
+
     @mainView.addSubView @stackEditor = new StackEditor { cssClass: 'initial' }
 
     @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
@@ -67,7 +69,10 @@ module.exports = class StackEditorAppController extends AppController
         return callback err
 
       @stackEditor.setData template, reset
-      @triggerBuild template  if build
+
+      if build
+      then @showBuildFlow template
+      else @hideBuildFlow template
 
       callback null
 
@@ -182,12 +187,21 @@ module.exports = class StackEditorAppController extends AppController
         kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
 
-  triggerBuild: (template) ->
+  showBuildFlow: (template) ->
 
     { storage } = kd.singletons.computeController
-    machine = storage.machines.get 'generatedFrom.templateId', template.getId()
+    templateId = template.getId()
+    machine = storage.machines.get 'generatedFrom.templateId', templateId
 
     debug 'build triggered for', { machine, template }
+
+    if stackId = machine.getStackId?()
+      debug 'mark as loaded', templateId, stackId, machine.getId()
+      markAsLoaded templateId, stackId, machine.getId()
+
+    if builder = @builds[templateId]
+      builder.show()
+      return
 
     modalOptions = {
       state: 'NotInitialized'
@@ -199,4 +213,11 @@ module.exports = class StackEditorAppController extends AppController
     modal.once 'KDObjectWillBeDestroyed', -> modal = null
     modal.once 'IDEBecameReady', -> console.log 'IDEBecameReady ....'
 
+    @builds[templateId] = modal
+
     return
+
+
+  hideBuildFlow: ->
+
+    builder.hide()  for templateId, builder of @builds

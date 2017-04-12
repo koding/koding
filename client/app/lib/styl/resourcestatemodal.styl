@@ -335,11 +335,18 @@ $regularColor               = #989898
         overflow            hidden
         borderBox()
 
+        .ace_gutter
+          border-right      1px solid #e8e8e8 !important
+
+        .ace_marker-layer
+          .ace_active-line
+            bg              color, rgb(245, 245, 245) !important
+
         .ace_editor, .ace_gutter-layer
-          bg                color, #f8f8f8
+          bg                color, #f8f8f8 !important
 
         .ace_scrollbar::-webkit-scrollbar-thumb
-          bg                color, #E0E0E0
+          bg                color, #E0E0E0 !important
 
 
   .credentials-page
