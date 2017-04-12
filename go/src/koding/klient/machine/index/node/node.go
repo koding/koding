@@ -40,7 +40,7 @@ func (n *Node) IsShadowed() bool { return n.Entry == nil }
 // Clone returns a deep copy of called node.
 func (n *Node) Clone() *Node {
 	c := &Node{
-		Name: n.Name
+		Name: n.Name,
 	}
 
 	if n.Entry != nil {
@@ -139,7 +139,7 @@ func Count(n *int) Predicate {
 func DiskSize(size *int64) Predicate {
 	return Walk(func(n *Node) {
 		if n.Entry != nil {
-			*size += n.Entry.Size()
+			*size += n.Entry.File.Size
 		}
 	})
 }
@@ -165,7 +165,7 @@ func NewTree() *Tree {
 // Clone returns a deep copy of called tree.
 func (t *Tree) Clone() *Tree {
 	return &Tree{
-		root: t.root.Clone()
+		root: t.root.Clone(),
 	}
 }
 
@@ -231,8 +231,7 @@ func (t *Tree) find(names []string) (pi int, p, live *Node, ci int, c, subj *Nod
 		if idx >= len(subj.Children) || subj.Children[idx].Name != names[i] {
 			e := &Entry{}
 			if i < len(names)-1 {
-				// This entry is a part of larger nodePath so make it a directory.
-				e.SetMode((subj.Entry.Mode() & os.ModePerm) | os.ModeDir)
+				e.File.Mode = (subj.Entry.File.Mode & os.ModePerm) | os.ModeDir
 			}
 
 			n := NewNodeEntry(names[i], e)

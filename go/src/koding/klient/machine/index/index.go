@@ -101,7 +101,7 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 // Clone returns a deep copy of called index.
 func (idx *Index) Clone() *Index {
 	return &Index{
-		root: idx.root.Clone(),
+		root: idx.t.Clone(),
 	}
 }
 

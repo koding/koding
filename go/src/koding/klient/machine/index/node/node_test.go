@@ -78,7 +78,7 @@ func TestTreeLookup(t *testing.T) {
 					t.Fatalf("Lookup(%q) failed", path)
 				}
 
-				if es := n.Entry.Size(); es != size {
+				if es := n.Entry.File.Size; es != size {
 					t.Errorf("got %d, want %d", size, es)
 				}
 
@@ -168,7 +168,7 @@ func TestTreeAdd(t *testing.T) {
 						t.Fatalf("Lookup(%q) failed", path)
 					}
 
-					if size := n.Entry.Size(); size != funnySize {
+					if size := n.Entry.File.Size; size != funnySize {
 						t.Errorf("got %d, want %d", size, funnySize)
 					}
 
