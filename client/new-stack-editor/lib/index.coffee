@@ -44,7 +44,6 @@ module.exports = class StackEditorAppController extends AppController
 
     super options, data
 
-    @templates = {}
     @mainView.addSubView @stackEditor = new StackEditor { cssClass: 'initial' }
 
     @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
@@ -58,7 +57,7 @@ module.exports = class StackEditorAppController extends AppController
       do @openStackWizard
       return callback { message: 'No template provided' }
 
-    @fetchStackTemplate templateId, (err, template) =>
+    @fetchStackTemplate templateId, reset, (err, template) =>
 
       @stackEditor.unsetClass 'initial'
 
@@ -81,23 +80,29 @@ module.exports = class StackEditorAppController extends AppController
 
   reloadEditor: (templateId, stackId) ->
 
-    return  unless @templates[templateId]
-
-    delete @templates[templateId]
     @openEditor templateId, stackId, { reset: yes }
 
 
-  fetchStackTemplate: (templateId, callback) ->
+  fetchStackTemplate: (templateId, reset = no, callback) ->
 
-    if template = @templates[templateId]
+    { storage } = kd.singletons.computeController
+
+    if not reset and template = storage.templates.get templateId
       return callback null, template
 
-    cc = kd.singletons.computeController
-    cc.fetchStackTemplate templateId, (err, template) =>
-      return callback err  if err
-      return callback Errors.NotExists  unless template
+    storage.templates.fetch templateId, null, reset
 
-      callback null, @templates[templateId] = template
+      .then (template) ->
+        if template
+          callback null, template
+        else
+          callback Errors.NotExists
+
+        return template
+
+      .catch (err) ->
+        callback err
+
 
 
   initializeStack: (templateId) ->
