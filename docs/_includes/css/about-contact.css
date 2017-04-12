@@ -5,13 +5,15 @@
   font-weight: 300;
 }
 .AboutUs-Contact h2 {
-  color: #515151;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  color: #9B75B0;
   font-size: 22px;
-  font-weight: 400;
+  font-weight: 500;
   margin-bottom: 10px;
   margin-top: 15px;
 }
 .AboutUs-Contact p {
+  font-family:  "proxima-nova", Helvetica, Arial, sans-serif;
   margin-bottom: 10px;
 }
 .AboutUs-Contact .AboutUs-Contact--col {
@@ -25,7 +27,8 @@
   padding: 0;
 }
 .AboutUs-Contact a {
-  color: #358BB0;
+  font-family:  "proxima-nova", Helvetica, Arial, sans-serif;
+  color: #84b3f1;
   text-decoration: none;
 }
 .AboutUs-Contact--numbers {

@@ -1,27 +1,34 @@
+@import "mixins";
+@import "colors";
+
 @charset "utf-8";
 
 // Our variables
+$title-font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
 $base-font-family: "proxima-nova", Helvetica, Arial, sans-serif;
-$base-font-size:   16px;
+$base-font-size: 16px;
 $base-font-weight: 400;
-$small-font-size:  $base-font-size * 0.875;
+$small-font-size: $base-font-size * 0.875;
 $base-line-height: 1.5;
 
-$spacing-unit:     30px;
+$spacing-unit: 30px;
 
-$text-color:       #111;
+$text-color: #111;
 $background-color: #fdfdfd;
-$brand-color:      #2a7ae2;
+$brand-color: #2a7ae2;
 
-$grey-color:       #828282;
+$grey-color: #828282;
 $grey-color-light: lighten($grey-color, 40%);
-$grey-color-dark:  darken($grey-color, 25%);
+$grey-color-dark: darken($grey-color, 25%);
 
 // Width of the content area
-$content-width:    1176px;
+$content-width: 1176px;
 
-$on-palm:          600px;
-$on-laptop:        800px;
+$on-palm: 600px;
+$on-laptop: 800px;
+
+$header-image-width: 302px;
+$header-image-width-tablet: 226px;
 
 body {
   font-family: $base-font-family;
@@ -37,4 +44,108 @@ body {
 .hidden {
   display: none;
   visibility: hidden;
+}
+
+.Header {
+  img {
+    width: $header-image-width;
+    @include tablet {
+      width: $header-image-width-tablet;
+    }
+    @include mobile {
+      display: none;
+    }
+  }
+  &.BlogHome-Header {
+    @include verticalGradient($header-blog-top, $header-blog-bottom);
+  }
+  &.FeaturesHome-Header {
+    height: 480px;
+    @include verticalGradient($header-features-top, $header-features-bottom);
+  }
+  &.AboutusHome-Header {
+    height: 480px;
+    @include verticalGradient($header-aboutus-top, $header-aboutus-bottom);
+    img {
+      width: 345px;
+      @include tablet {
+        width: 245px;
+      }
+    }
+  }
+  &.PricingHome-Header {
+    height: 480px;
+    @include verticalGradient($header-pricing-top, $header-pricing-bottom);
+
+    img {
+      width: 416px;
+      @include tablet {
+        width: 256px;
+      }
+    }
+  }
+  .Header--outer-wrapper {
+    background: url('/assets/img/landing/common/hero_bg_pyramids.svg') no-repeat;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+  }
+  .Header--wrapper {
+    max-width: $content-width;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+    @include border-box;
+    @media screen and (max-width: 1200px) {
+      max-width: 90%;
+      min-width: 734px;
+    }
+    @include mobile {
+      min-width: 325px;
+      max-width: 90%;
+      width: 100%;
+    }
+    .Header--content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-right: 60px;
+      @include tablet {
+        margin-right: 30px;
+      }
+      @include mobile {
+        margin-right: 0;
+      }
+      h1 {
+        margin-bottom: 40px;
+        font-family: $title-font-family;
+        font-size: 40px;
+        font-weight: 500;
+        line-height: 50px;
+        text-align: left;
+        color: white;
+        @include mobile {
+          padding: 0 20px;
+          font-size: 36px;
+          line-height: 46px;
+        }
+      }
+      p {
+        max-width: 600px;
+        font-family: $base-font-family;
+        font-size: 22px;
+        opacity: 0.75;
+        color: white;
+        line-height: 32px;
+        @include mobile {
+          padding: 0 20px;
+          font-size: 20px;
+        }
+      }
+    }
+  }
 }
