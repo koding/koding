@@ -1,6 +1,7 @@
 package node
 
 import (
+	"encoding/json"
 	"os"
 	"path"
 	"sort"
@@ -74,6 +75,7 @@ func Delete() Predicate {
 	}
 }
 
+// Walk calls provided function on root note and all its children.
 func Walk(f func(*Node)) Predicate {
 	return func(n *Node) bool {
 		for stack := []*Node{n}; len(stack) != 0; {
@@ -86,6 +88,7 @@ func Walk(f func(*Node)) Predicate {
 	}
 }
 
+// WalkPath behaves like Walk but also sends path to the node.
 func WalkPath(f func(string, *Node)) Predicate {
 	var subFn func(string, *Node)
 
@@ -110,10 +113,12 @@ func WalkPath(f func(string, *Node)) Predicate {
 	}
 }
 
+// Count stores the number of nodes in provided argument.
 func Count(n *int) Predicate {
 	return Walk(func(*Node) { (*n)++ })
 }
 
+// DiskSize stores the size of nodes in provided argument.
 func DiskSize(size *int64) Predicate {
 	return Walk(func(n *Node) {
 		if n.Entry != nil {
@@ -121,6 +126,11 @@ func DiskSize(size *int64) Predicate {
 		}
 	})
 }
+
+var (
+	_ json.Marshaler   = (*Tree)(nil)
+	_ json.Unmarshaler = (*Tree)(nil)
+)
 
 // Tree is a wrapper on Nodes that allows safe manipulation of stored Nodes.
 type Tree struct {
@@ -169,6 +179,24 @@ func (t *Tree) Do(nodePath string, pred Predicate) {
 	}
 
 	t.mu.Unlock()
+}
+
+// MarshalJSON satisfies json.Marshaler interface. It safely marshals Tree
+// private data to JSON format.
+func (t *Tree) MarshalJSON() ([]byte, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	return json.Marshal(t.root)
+}
+
+// UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
+// data into private Tree fields.
+func (t *Tree) UnmarshalJSON(data []byte) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	return json.Unmarshal(data, &t.root)
 }
 
 func (t *Tree) find(names []string) (pi int, p, live *Node, ci int, c, subj *Node) {

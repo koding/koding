@@ -1,6 +1,7 @@
 package node_test
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -52,7 +53,7 @@ func testTree(data map[string]int64) *node.Tree {
 	return tree
 }
 
-func TestNodeLookup(t *testing.T) {
+func TestTreeLookup(t *testing.T) {
 	cases := map[string]int64{
 		"/":                       0,
 		"addresses":               0,
@@ -87,7 +88,7 @@ func TestNodeLookup(t *testing.T) {
 	}
 }
 
-func TestNodeCount(t *testing.T) {
+func TestTreeCount(t *testing.T) {
 	cases := map[string]int{
 		"":                       34,
 		"/":                      34,
@@ -111,7 +112,7 @@ func TestNodeCount(t *testing.T) {
 	}
 }
 
-func TestNodeDiskSize(t *testing.T) {
+func TestTreeDiskSize(t *testing.T) {
 	cases := map[string]int64{
 		"":                       93991,
 		"/":                      93991,
@@ -135,7 +136,7 @@ func TestNodeDiskSize(t *testing.T) {
 	}
 }
 
-func TestNodeAdd(t *testing.T) {
+func TestTreeAdd(t *testing.T) {
 	const finalCount = 61
 
 	cases := map[string]struct{}{
@@ -183,7 +184,7 @@ func TestNodeAdd(t *testing.T) {
 	}
 }
 
-func TestNodeDel(t *testing.T) {
+func TestTreeDel(t *testing.T) {
 	const finalCount = 22
 
 	cases := map[string]struct{}{
@@ -216,7 +217,7 @@ func TestNodeDel(t *testing.T) {
 	}
 }
 
-func TestNodeForEach(t *testing.T) {
+func TestTreeForEach(t *testing.T) {
 	want := []string{
 		"",
 		"addresses",
@@ -263,5 +264,35 @@ func TestNodeForEach(t *testing.T) {
 
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %v, want %v", got, want)
+	}
+}
+
+func TestTreeMarshalJSON(t *testing.T) {
+	var treeNodes, gotNodes []string
+
+	tree := testTree(fixData)
+	tree.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {
+		treeNodes = append(treeNodes, nodePath)
+	}))
+
+	data, err := json.Marshal(tree)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	got := &node.Tree{}
+	if err := json.Unmarshal(data, got); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	got.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {
+		gotNodes = append(gotNodes, nodePath)
+	}))
+
+	if !reflect.DeepEqual(tree, got) {
+		t.Errorf("want:\n%#v\ngot\n%#v\n", tree, got)
+	}
+
+	if !reflect.DeepEqual(treeNodes, gotNodes) {
+		t.Errorf("want:\n%#v\ngot\n%#v\n", treeNodes, gotNodes)
 	}
 }
