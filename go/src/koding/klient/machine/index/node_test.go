@@ -370,3 +370,23 @@ func TestNodeMarshalJSON(t *testing.T) {
 		t.Fatalf("want:\n%#v\ngot\n%#v\n", root, node)
 	}
 }
+
+func TestNodeToTree(t *testing.T) {
+	var gotNode, gotTree []string
+
+	root := fixture()
+	root.ForEach(func(name string, _ *node.Entry) {
+		gotNode = append(gotNode, name)
+	})
+
+	sort.Strings(gotNode)
+
+	tree := root.ToTree()
+	tree.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {
+		gotTree = append(gotTree, nodePath)
+	}))
+
+	if !reflect.DeepEqual(gotTree, gotNode) {
+		t.Fatalf("want:\n%#v\ngot\n%#v\n", gotNode, gotTree)
+	}
+}

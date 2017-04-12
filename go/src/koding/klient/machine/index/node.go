@@ -421,3 +421,13 @@ func (nd *Node) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+// ToTree converts node to its equivalent node.Tree representation.
+func (nd *Node) ToTree() *node.Tree {
+	tree := node.NewTree()
+	nd.ForEachAll(func(path string, entry *node.Entry) {
+		tree.Do(path, node.Insert(entry))
+	})
+
+	return tree
+}
