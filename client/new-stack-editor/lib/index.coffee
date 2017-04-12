@@ -10,6 +10,7 @@ EnvironmentFlux = require 'app/flux/environment'
 Events = require './events'
 StackEditor = require './views'
 StackWizardModal = require './views/wizard/stackwizardmodal'
+ResourceStateModal = require 'app/providers/resourcestatemodal'
 
 { markAsLoaded, log } = require './helpers'
 
@@ -51,7 +52,7 @@ module.exports = class StackEditorAppController extends AppController
 
   openEditor: (templateId, stackId, options = {}, callback = kd.noop) ->
 
-    { reset = no } = options
+    { reset = no, build = no } = options
 
     unless templateId
       do @openStackWizard
@@ -66,6 +67,7 @@ module.exports = class StackEditorAppController extends AppController
         return callback err
 
       @stackEditor.setData template, reset
+      @triggerBuild template  if build
 
       callback null
 
@@ -178,3 +180,23 @@ module.exports = class StackEditorAppController extends AppController
     EnvironmentFlux.actions.createStackTemplateWithDefaults provider
       .then ({ stackTemplate }) ->
         kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+
+
+  triggerBuild: (template) ->
+
+    { storage } = kd.singletons.computeController
+    machine = storage.machines.get 'generatedFrom.templateId', template.getId()
+
+    debug 'build triggered for', { machine, template }
+
+    modalOptions = {
+      state: 'NotInitialized'
+      container: @getView()
+      initial: yes
+    }
+
+    modal = new ResourceStateModal modalOptions, machine
+    modal.once 'KDObjectWillBeDestroyed', -> modal = null
+    modal.once 'IDEBecameReady', -> console.log 'IDEBecameReady ....'
+
+    return

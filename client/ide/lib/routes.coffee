@@ -42,6 +42,11 @@ loadIDE = (data, done = kd.noop) ->
   machineUId = machine.uid
 
   callback   = ->
+
+    if Cookies.get('use-nse') and not machine.isBuilt()
+      kd.singletons.router.handleRoute "/Stack-Editor/#{parent.templateId}/#{machine.getStackId()}#build"
+      return
+
     appManager.open 'IDE', { forceNew: yes, showInstance }, (app) ->
       app.mountedMachineUId   = machineUId
 
@@ -148,11 +153,6 @@ routeToMachine = (options = {}) ->
           loadIDENotFound()
         else
           router.handleRoute '/IDE'
-
-
-      # if machine.isPermanent() or machine.meta?.oldOwner
-      #   identifier = machine.uid
-      # kd.getSingleton('router').handleRoute "/IDE/#{identifier}"
 
 
 routeHandler = (type, info, state, path, ctx) ->
