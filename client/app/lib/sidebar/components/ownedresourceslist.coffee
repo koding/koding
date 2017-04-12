@@ -252,9 +252,9 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
 
     { template, stack, unreadCount } = resource
 
-    selected = if stack
-    then stack.getId() is @props.selected?.stackId
-    else template.getId() is @props.selected?.templateId
+    selected = if template
+    then template.getId() is @props.selected?.templateId
+    else stack.getId() is @props.selected?.stackId
 
     <OwnedResourceHeader
       selected={selected}
