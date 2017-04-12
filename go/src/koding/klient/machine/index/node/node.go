@@ -37,6 +37,23 @@ func NewNodeEntry(name string, entry *Entry) *Node {
 // IsShadowed returns true when node is not present in tree.
 func (n *Node) IsShadowed() bool { return n.Entry == nil }
 
+// Clone returns a deep copy of called node.
+func (n *Node) Clone() *Node {
+	c := &Node{
+		Name: n.Name
+	}
+
+	if n.Entry != nil {
+		c.Entry = n.Entry.Clone()
+	}
+
+	for i := range n.Children {
+		c.Children = append(c.Children, n.Children[i].Clone())
+	}
+
+	return c
+}
+
 // NodeSlice attaches the methods of sortInterface to []*Node, sorting in
 // asceding order.
 type NodeSlice []*Node
@@ -142,6 +159,13 @@ type Tree struct {
 func NewTree() *Tree {
 	return &Tree{
 		root: NewNode(""),
+	}
+}
+
+// Clone returns a deep copy of called tree.
+func (t *Tree) Clone() *Tree {
+	return &Tree{
+		root: t.root.Clone()
 	}
 }
 

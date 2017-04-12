@@ -24,8 +24,7 @@ const Version = 1
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
 type Index struct {
-	mu   sync.RWMutex
-	root *Node
+	t *node.Tree
 }
 
 var (
@@ -36,7 +35,7 @@ var (
 // NewIndex creates the empty index object.
 func NewIndex() *Index {
 	return &Index{
-		root: newNode(),
+		root: node.NewTree(),
 	}
 }
 
@@ -95,9 +94,7 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 			name = ""
 		}
 
-		idx.mu.Lock()
-		idx.root.Add(name, node.NewEntryFileInfo(f.info))
-		idx.mu.Unlock()
+		idx.t.Do(name, node.Insert(node.NewEntryFileInfo(f.info)))
 	}
 }
 
