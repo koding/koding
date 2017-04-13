@@ -13,37 +13,11 @@ export SCREEN_URL="$${SCREEN_URL:-${var.koding_screen_url}}"
 
 trap "echo _KD_DONE_ | tee -a /var/log/cloud-init-output.log" EXIT
 
-install_screen() {
-	curl --location --silent --show-error --retry 5 "$${SCREEN_URL}" --output /tmp/screen.tar.gz
-	tar -C / -xf /tmp/screen.tar.gz
-
-	groupadd --force screen
-	usermod -a -G screen "$${KODING_USERNAME}"
-
-	if [ ! -x /usr/bin/screen ]; then
-		ln -sf /opt/kite/klient/embedded/bin/screen /usr/bin/screen
-	fi
-
-	if [ ! -e /usr/share/terminfo ]; then
-		mkdir -p /usr/share
-		ln -sf /opt/kite/klient/embedded/share/terminfo /usr/share/terminfo
-		ln -sf /usr/share/terminfo/X /usr/share/terminfo/x
-	fi
-
-	if [ ! -e /var/run/screen ]; then
-		mkdir -p /var/run/screen
-		chmod 0755 /var/run/screen
-		chown root:screen /var/run/screen
-	fi
-}
-
 main() {
 	echo "127.0.0.1 $${KODING_USERNAME}" >> /etc/hosts
 
 	touch /var/log/klient.log \
 	      /var/log/cloud-init-output.log
-
-	install_screen
 
 	mkdir -p /opt/kite/klient
 	curl --location --silent --show-error --retry 5 "$${KLIENT_URL}" --output /tmp/klient.gz
