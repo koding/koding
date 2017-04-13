@@ -17,7 +17,7 @@ func defaultInodeIDGenerator() func() uint64 {
 	var current uint64 = RootInodeID
 	return func() uint64 {
 		inodeID := atomic.AddUint64(&current, 1)
-		if inodeID == RootInodeID {
+		if inodeID <= RootInodeID {
 			return atomic.AddUint64(&current, 1)
 		}
 
@@ -37,6 +37,9 @@ type Tree struct {
 	inGen func() uint64
 	mu    sync.Mutex
 	root  *Node
+
+	guard  Guard
+	inodes map[uint64]*Node
 }
 
 // NewTree creates a new Tree instance initialized with a single root node.
@@ -48,21 +51,47 @@ func NewTree() *Tree {
 // node. This function allows to specify custom inode ID generator.
 func NewTreeInodeGen(inGen func() uint64) *Tree {
 	t := &Tree{
-		inGen: inGen,
-		root:  NewNode(""),
+		inGen:  inGen,
+		root:   NewNode(""),
+		inodes: nil, // set by reset method.
 	}
 
-	t.root.Entry.Virtual.Inode = RootInodeID
+	t.guard = Guard{t: t}
+
+	// Set initial Inodes.
+	t.reset()
 
 	return t
 }
 
-// Clone returns a deep copy of called tree.
-func (t *Tree) Clone() *Tree {
-	return &Tree{
-		inGen: t.inGen,
-		root:  t.root.Clone(),
+// DataClone returns a deep copy of called tree without virtual parts and inode
+// logic.
+func (t *Tree) DataClone() *Tree {
+	dc := &Tree{
+		inGen:  t.inGen,
+		root:   t.root.Clone(),
+		inodes: make(map[uint64]*Node),
 	}
+
+	dc.guard = Guard{t: dc}
+
+	return dc
+}
+
+// DoInode safely searches for a note that contains given inode. If not found,
+// fn is called with nil node. All mutating operations on given node should
+// be guarded by guard argument.
+func (t *Tree) DoInode(inode uint64, fn func(Guard, *Node)) {
+	t.mu.Lock()
+	fn(t.guard, t.inodes[inode])
+	t.mu.Unlock()
+}
+
+// DoInode2 behaves like DoInode but for two inodes.
+func (t *Tree) DoInode2(inode1, inode2 uint64, fn func(Guard, *Node, *Node)) {
+	t.mu.Lock()
+	fn(t.guard, t.inodes[inode1], t.inodes[inode2])
+	t.mu.Unlock()
 }
 
 // DoPath safely calls a given predicate on node pointed by nodePath argument.
@@ -129,6 +158,8 @@ func (t *Tree) UnmarshalJSON(data []byte) error {
 		return errors.New("tree: root entry is nil")
 	}
 
+	t.guard = Guard{t: t}
+
 	// Set initial Inodes.
 	t.reset()
 
@@ -136,6 +167,7 @@ func (t *Tree) UnmarshalJSON(data []byte) error {
 }
 
 func (t *Tree) reset() {
+	t.inodes = make(map[uint64]*Node)
 	t.root.Walk(func(parent, n *Node) {
 		if parent == nil {
 			n.Entry.Virtual.Inode = RootInodeID
@@ -143,6 +175,7 @@ func (t *Tree) reset() {
 			n.Entry.Virtual.Inode = t.inGen()
 		}
 
+		t.inodes[n.Entry.Virtual.Inode] = n
 		n.Entry.Virtual.Promise, n.Entry.Virtual.RefCount = 0, 0
 	})
 }
@@ -188,16 +221,11 @@ func (t *Tree) find(names []string) (pi int, p, live *Node, ci int, c, subj *Nod
 }
 
 func (t *Tree) addChild(n *Node, pos int, child *Node) {
-	if child == nil {
-		panic("cannot add nil node to the tree")
-	}
-
 	if old := n.addChild(pos, child); old != nil {
-		// TODO: Garbage collect.
-	}
-
-	if child.Entry.Virtual.Inode == 0 {
-		child.Entry.Virtual.Inode = t.inGen()
+		// Clean inodes map in order to not leak resources.
+		old.Walk(func(_, n *Node) {
+			delete(t.inodes, n.Entry.Virtual.Inode)
+		})
 	}
 
 	// Ensure that child branches are set.
@@ -211,6 +239,12 @@ func (t *Tree) addChild(n *Node, pos int, child *Node) {
 		if child.Entry.Virtual.Inode == 0 {
 			child.Entry.Virtual.Inode = t.inGen()
 		}
+
+		if _, ok := t.inodes[child.Entry.Virtual.Inode]; ok {
+			panic("duplicated inode")
+		}
+
+		t.inodes[child.Entry.Virtual.Inode] = child
 	})
 }
 
@@ -218,7 +252,10 @@ func (t *Tree) rmChild(n *Node, pos int, child *Node) {
 	n.rmChild(pos, child)
 
 	if child != nil {
-		// TODO Garbage collect.
+		// Clean inodes map in order to not leak resources.
+		child.Walk(func(_, n *Node) {
+			delete(t.inodes, n.Entry.Virtual.Inode)
+		})
 	}
 }
 
@@ -234,6 +271,28 @@ func split(nodePath string) []string {
 	}
 
 	return names
+}
+
+// Guard is used by tree to guard modification on nodes obtained after calling
+// Tree's DoInode* mothods. It should not be used outside of these calls.
+type Guard struct {
+	t *Tree
+}
+
+// AddChild should be used instead n.AddChild inside DoInode callbacks.
+func (g Guard) AddChild(n, child *Node) {
+	if child == nil {
+		panic("cannot add nil node to the tree")
+	}
+
+	pos, _ := n.getChild(child.Name)
+	g.t.addChild(n, pos, child)
+}
+
+// RmChild should be used instead n.RmChild inside DoInode callbacks.
+func (g Guard) RmChild(n *Node, name string) {
+	pos, child := n.getChild(name)
+	g.t.rmChild(n, pos, child)
 }
 
 // Predicate defines the read or write operation on the node. Node passed

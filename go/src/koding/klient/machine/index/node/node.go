@@ -95,7 +95,8 @@ func (n *Node) AddChild(child *Node) {
 		panic("cannot add nil node to the tree")
 	}
 
-	n.addChild(n.getChild(child.Name))
+	pos, _ := n.getChild(child.Name)
+	n.addChild(pos, child)
 
 	child.Walk(func(parent, child *Node) {
 		if parent == nil {
