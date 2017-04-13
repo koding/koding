@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"text/tabwriter"
 
+	"koding/kites/kloud/stack/provider"
+	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/remoteapi"
 	"koding/klientctl/helper"
@@ -143,6 +148,87 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	fmt.Printf("Stack template with %q ID deleted successfully.\n", f.ID)
 
 	return 0, nil
+}
+
+func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	descs, err := credential.Describe()
+	if err != nil {
+		return 1, err
+	}
+
+	name, err := helper.Ask("Provider type []: ")
+	if err != nil {
+		return 1, err
+	}
+
+	if _, ok := descs[name]; !ok {
+		return 1, fmt.Errorf("provider %q does not exist", name)
+	}
+
+	tmpl, err := remoteapi.SampleTemplate(name)
+	if err != nil {
+		return 1, err
+	}
+
+	vars := provider.ReadVariables(tmpl)
+	input := make(map[string]string)
+
+	for _, v := range vars {
+		if !strings.HasPrefix(v.Name, "userInput_") {
+			continue
+		}
+
+		s, err := helper.Ask("Set %q to []: ", v.Name[len("userInput_"):])
+		if err != nil {
+			return 1, err
+		}
+
+		input[v.Name] = s
+	}
+
+	tmpl = provider.ReplaceVariablesFunc(tmpl, vars, func(v *provider.Variable) string {
+		if s, ok := input[v.Name]; ok {
+			return s
+		}
+
+		return v.String()
+	})
+
+	var m map[string]interface{}
+
+	if err := json.Unmarshal([]byte(tmpl), &m); err != nil {
+		return 1, err
+	}
+
+	f, err := os.Create(c.String("output"))
+	if err != nil {
+		return 1, err
+	}
+
+	p, err := yaml.Marshal(m)
+	if err != nil {
+		return 1, err
+	}
+
+	_, err = io.Copy(f, bytes.NewReader(p))
+	err = nonil(err, f.Close())
+
+	if err != nil {
+		return 1, err
+	}
+
+	fmt.Printf("\nTemplate successfully written to %s.\n", f.Name())
+
+	return 0, nil
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 func printTemplates(templates []*models.JStackTemplate) {

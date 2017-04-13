@@ -1,6 +1,7 @@
 package remoteapi
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -81,6 +82,39 @@ func (c *Client) DeleteTemplate(id string) error {
 	return remoteapi.Unmarshal(&resp.Payload.DefaultResponse, nil)
 }
 
+// SampleTemplate returns a content of a sample stack template
+// for the given provider.
+func (c *Client) SampleTemplate(provider string) (string, error) {
+	c.init()
+
+	params := &stacktemplate.JStackTemplateSamplesParams{
+		Body: stacktemplate.JStackTemplateSamplesBody{
+			Provider: &provider,
+		},
+	}
+
+	params.SetTimeout(c.timeout())
+
+	resp, err := c.client().JStackTemplate.JStackTemplateSamples(params, nil)
+	if err != nil {
+		return "", err
+	}
+
+	var v struct {
+		JSON string `json:"json,omitempty"`
+	}
+
+	if err := remoteapi.Unmarshal(resp.Payload, &v); err != nil {
+		return "", err
+	}
+
+	if err := json.Unmarshal([]byte(v.JSON), &json.RawMessage{}); err != nil {
+		return "", errors.New("invalid template sample: " + err.Error())
+	}
+
+	return v.JSON, nil
+}
+
 func (c *Client) buildFilter(f *Filter) error {
 	if f.Slug != "" {
 		fields := strings.Split(f.Slug, "/")
@@ -106,6 +140,14 @@ func (c *Client) buildFilter(f *Filter) error {
 	}
 
 	return nil
+}
+
+// SampleTemplate returns a content of a sample stack template
+// for the given provider.
+//
+// The functions uses DefaultClient.
+func SampleTemplate(provider string) (string, error) {
+	return DefaultClient.SampleTemplate(provider)
 }
 
 // ListTemplates gives all templates filtered with use of the given filter.
