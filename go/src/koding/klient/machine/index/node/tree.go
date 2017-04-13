@@ -64,6 +64,11 @@ func NewTreeInodeGen(inGen func() uint64) *Tree {
 	return t
 }
 
+// GenerateInode uses tree generator to generate new node value.
+func (t *Tree) GenerateInode() uint64 {
+	return t.inGen()
+}
+
 // DataClone returns a deep copy of called tree without virtual parts and inode
 // logic.
 func (t *Tree) DataClone() *Tree {

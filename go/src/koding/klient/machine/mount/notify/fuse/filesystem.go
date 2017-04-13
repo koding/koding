@@ -107,6 +107,12 @@ func (opts *Opts) user() *config.User {
 	return config.CurrentUser
 }
 
+// HandleInfo contains information about file handle destination.
+type HandleInfo struct {
+	InodeID fuseops.InodeID
+	File    *os.File
+}
+
 // Filesystem implements fuseutil.FileSystem.
 //
 // List operations are backend by index.
@@ -125,10 +131,8 @@ type Filesystem struct {
 	cancel func()
 
 	mu        sync.RWMutex
-	seq       uint64
-	inodes    map[fuseops.InodeID]string
 	seqHandle uint64
-	handles   map[fuseops.HandleID]*os.File
+	handles   map[fuseops.HandleID]HandleInfo
 }
 
 var _ fuseutil.FileSystem = (*Filesystem)(nil)
@@ -149,14 +153,10 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	fs := &Filesystem{
-		Opts:   *opts,
-		cancel: cancel,
-		seq:    uint64(fuseops.RootInodeID),
-		inodes: map[fuseops.InodeID]string{
-			fuseops.RootInodeID: "",
-		},
+		Opts:      *opts,
+		cancel:    cancel,
 		seqHandle: uint64(3),
-		handles:   make(map[fuseops.HandleID]*os.File),
+		handles:   make(map[fuseops.HandleID]HandleInfo),
 	}
 
 	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
@@ -199,26 +199,7 @@ func (fs *Filesystem) DebugString() string {
 	return fs.Index.DebugString()
 }
 
-func (fs *Filesystem) add(path string) (id fuseops.InodeID) {
-	for {
-		fs.seq++
-
-		if fs.seq <= fuseops.RootInodeID {
-			fs.seq = fuseops.RootInodeID + 1
-		}
-
-		id = fuseops.InodeID(fs.seq)
-
-		if _, ok := fs.inodes[id]; !ok {
-			fs.inodes[id] = path
-			break
-		}
-	}
-
-	return id
-}
-
-func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
+func (fs *Filesystem) addHandle(nID fuseops.InodeID, f *os.File) (id fuseops.HandleID) {
 	for {
 		fs.seqHandle++
 
@@ -229,7 +210,10 @@ func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 		id = fuseops.HandleID(fs.seqHandle)
 
 		if _, ok := fs.handles[id]; !ok {
-			fs.handles[id] = f
+			fs.handles[id] = HandleInfo{
+				InodeID: nID,
+				File:    f,
+			}
 			break
 		}
 	}
@@ -237,74 +221,21 @@ func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 	return id
 }
 
-func (fs *Filesystem) lookupInodeID(dir, base string, entry *node.Entry) (id fuseops.InodeID) {
-	// Fast path - check if InodeID was already associated with index node.
-	if id = fuseops.InodeID(entry.Inode()); id != 0 {
-		return id
+func checkDir(n *node.Node) error {
+	if n == nil || !n.Entry.Virtual.Promise.Exist() {
+		return fuse.ENOENT
 	}
 
-	path := filepath.Join(dir, base)
-
-	fs.mu.Lock()
-	id = fs.add(path)
-	entry.SetInode(uint64(id))
-	fs.mu.Unlock()
-
-	return id
-}
-
-func (fs *Filesystem) get(id fuseops.InodeID) (*index.Node, string, bool) {
-	fs.mu.RLock()
-	rel, ok := fs.inodes[id]
-	fs.mu.RUnlock()
-
-	if !ok {
-		return nil, "", false
+	if !n.Entry.File.Mode.IsDir() {
+		return fuse.ENOTDIR
 	}
 
-	nd, ok := fs.Index.Lookup(rel)
-	if !ok {
-		return nil, "", false
-	}
-
-	return nd, rel, true
-}
-
-func (fs *Filesystem) getDir(id fuseops.InodeID) (*index.Node, string, error) {
-	nd, rel, ok := fs.get(id)
-	if !ok {
-		return nil, "", fuse.ENOENT
-	}
-
-	if !isdir(nd.Entry) {
-		return nil, "", fuse.EIO
-	}
-
-	return nd, rel, nil
-}
-
-func (fs *Filesystem) getFile(id fuseops.InodeID) (*index.Node, string, error) {
-	nd, rel, ok := fs.get(id)
-	if !ok {
-		return nil, "", fuse.ENOENT
-	}
-
-	if isdir(nd.Entry) {
-		return nil, "", fuse.EIO
-	}
-
-	return nd, rel, nil
-}
-
-func (fs *Filesystem) del(id fuseops.InodeID) {
-	fs.mu.Lock()
-	delete(fs.inodes, id)
-	fs.mu.Unlock()
+	return nil
 }
 
 func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 	fs.mu.Lock()
-	f, nd, ok := fs.getHandle(id)
+	f, nID, ok := fs.getHandle(id)
 	delete(fs.handles, id)
 	fs.mu.Unlock()
 
@@ -312,23 +243,23 @@ func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 		return nil
 	}
 
-	nd.Entry.DecRefCount()
+	fs.Index.Tree().DoInode(uint64(nID), func(_ node.Guard, n *node.Node) {
+		if n == nil {
+			return
+		}
+
+		n.Entry.Virtual.RefCount--
+	})
 
 	return f.Close()
 }
 
-func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, bool) {
-	f, ok := fs.handles[id]
+func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, fuseops.InodeID, bool) {
+	hi, ok := fs.handles[id]
 	if !ok {
-		return nil, nil, false
+		return nil, 0, false
 	}
-
-	nd, ok := fs.Index.Lookup(fs.rel(f.Name()))
-	if !ok || nd.Deleted() {
-		return nil, nil, false
-	}
-
-	return f, nd, true
+	return hi.File, hi.InodeID, true
 }
 
 func (fs *Filesystem) commit(rel string, meta index.ChangeMeta) stdcontext.Context {
@@ -347,13 +278,13 @@ func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.Chan
 }
 
 func (fs *Filesystem) attr(entry *node.Entry) fuseops.InodeAttributes {
-	mtime := time.Unix(0, entry.MTime())
-	ctime := time.Unix(0, entry.CTime())
+	mtime := time.Unix(0, entry.File.MTime)
+	ctime := time.Unix(0, entry.File.CTime)
 
 	return fuseops.InodeAttributes{
-		Size:   uint64(entry.Size()),
+		Size:   uint64(entry.File.Size),
 		Nlink:  1, // TODO(rjeczalik): symlink / hardlink implementation
-		Mode:   entry.Mode(),
+		Mode:   entry.File.Mode,
 		Atime:  mtime,
 		Mtime:  mtime,
 		Ctime:  ctime,
@@ -387,54 +318,6 @@ func (fs *Filesystem) rel(abs string) string {
 	return strings.TrimPrefix(abs, fs.CacheDir)
 }
 
-func (fs *Filesystem) mkdir(rel string, mode os.FileMode) (id fuseops.InodeID, err error) {
-	if err = os.MkdirAll(fs.abs(rel), mode); err != nil {
-		return 0, err
-	}
-
-	entry := node.NewEntry(0, mode|os.ModeDir)
-	entry.IncRefCount()
-
-	fs.mu.Lock()
-	id = fs.add(rel)
-	fs.mu.Unlock()
-
-	entry.SetInode(uint64(id))
-
-	fs.Index.PromiseAdd(rel, entry)
-
-	return id, nil
-}
-
-func (fs *Filesystem) mkfile(rel string, mode os.FileMode) (id fuseops.InodeID, h fuseops.HandleID, err error) {
-	abs := fs.abs(rel)
-
-	if err := os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
-		return 0, 0, err
-	}
-
-	f, err := os.Create(abs)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	_ = f.Chmod(mode)
-
-	entry := node.NewEntry(0, mode)
-	entry.IncRefCount()
-
-	fs.mu.Lock()
-	id = fs.add(rel)
-	h = fs.addHandle(f)
-	fs.mu.Unlock()
-
-	entry.SetInode(uint64(id))
-
-	fs.Index.PromiseAdd(rel, entry)
-
-	return id, h, nil
-}
-
 func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error {
 	absOld := fs.abs(oldrel)
 	absNew := fs.abs(newrel)
@@ -452,50 +335,40 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error 
 	return os.Rename(absOld, absNew)
 }
 
-func (fs *Filesystem) unlink(ctx stdcontext.Context, nd *index.Node, rel string) error {
-	fs.Index.PromiseUnlink(rel, nd)
-
-	if n := nd.Entry.DecRefCount(); n > 0 {
+func (fs *Filesystem) unlink(n *node.Node) error {
+	n.Entry.Virtual.RefCount--
+	if rc := n.Entry.Virtual.RefCount; rc > 0 {
+		n.PromiseUnlink()
 		return nil
 	}
 
-	return fs.rm(ctx, nd, rel)
+	return fs.rm(n)
 }
 
-func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, rel string) error {
-	fs.Index.PromiseDel(rel, nd)
-	nd.Entry.SetInode(0)
+func (fs *Filesystem) rm(n *node.Node) error {
+	n.PromiseDel()
 
-	if err := os.Remove(fs.abs(rel)); os.IsNotExist(err) {
+	path := n.Path()
+	if err := os.Remove(fs.abs(path)); os.IsNotExist(err) {
 		return nil
 	}
 
-	fs.commit(rel, index.ChangeMetaLocal|index.ChangeMetaRemove)
+	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
 
 	return nil
 }
 
-func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File, nd *index.Node) error {
-	err := f.Sync()
-
-	_ = updateSize(f, nd)
-
-	fs.commit(fs.rel(f.Name()), index.ChangeMetaLocal|index.ChangeMetaUpdate)
-
-	return err
-}
-
-func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, rel string) (*os.File, fuseops.HandleID, error) {
-	f, err := fs.openFile(ctx, rel, nd.Entry.Mode())
+func (fs *Filesystem) open(ctx stdcontext.Context, n *node.Node) (*os.File, fuseops.HandleID, error) {
+	f, err := fs.openFile(ctx, n.Path(), n.Entry.File.Mode)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	fs.mu.Lock()
-	id := fs.addHandle(f)
+	id := fs.addHandle(fuseops.InodeID(n.Entry.Virtual.Inode), f)
 	fs.mu.Unlock()
 
-	nd.Entry.IncRefCount()
+	n.Entry.Virtual.RefCount++
 
 	return f, id, nil
 }
@@ -520,37 +393,16 @@ func (fs *Filesystem) openFile(ctx stdcontext.Context, rel string, mode os.FileM
 	return f, err
 }
 
-func (fs *Filesystem) openInode(ctx stdcontext.Context, id fuseops.InodeID) (*os.File, fuseops.HandleID, error) {
-	nd, rel, err := fs.getFile(id)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return fs.open(ctx, nd, rel)
-}
-
-func (fs *Filesystem) openHandle(id fuseops.HandleID) (*os.File, error) {
+func (fs *Filesystem) openHandleInfo(id fuseops.HandleID) (*os.File, fuseops.InodeID, error) {
 	fs.mu.RLock()
-	f, ok := fs.handles[id]
+	f, nID, ok := fs.getHandle(id)
 	fs.mu.RUnlock()
 
 	if !ok {
-		return nil, fuse.ENOENT
+		return nil, 0, fuse.ENOENT
 	}
 
-	return f, nil
-}
-
-func (fs *Filesystem) openHandleNode(id fuseops.HandleID) (*os.File, *index.Node, error) {
-	fs.mu.RLock()
-	f, nd, ok := fs.getHandle(id)
-	fs.mu.RUnlock()
-
-	if !ok {
-		return nil, nil, fuse.ENOENT
-	}
-
-	return f, nd, nil
+	return f, nID, nil
 }
 
 func trimRightNull(p []byte) []byte {
@@ -565,26 +417,11 @@ func trimRightNull(p []byte) []byte {
 	return p
 }
 
-func updateSize(f *os.File, nd *index.Node) error {
-	fi, err := f.Stat()
-	if err != nil {
-		return err
-	}
-
-	nd.Entry.SetSize(fi.Size())
-
-	return nil
-}
-
 func direntType(entry *node.Entry) fuseutil.DirentType {
-	if isdir(entry) {
+	if entry.File.Mode.IsDir() {
 		return fuseutil.DT_Directory
 	}
 	return fuseutil.DT_File
-}
-
-func isdir(entry *node.Entry) bool {
-	return entry.Mode()&os.ModeDir == os.ModeDir
 }
 
 func nonil(err ...error) error {

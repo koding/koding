@@ -88,6 +88,11 @@ func (n *Node) Path() string {
 	return filepath.Join(toks...)
 }
 
+// ChildN returns the number of stored children.
+func (n *Node) ChildN() int {
+	return len(n.children)
+}
+
 // AddChild adds new child to the node. If child node is invalid, this method
 // panics.
 func (n *Node) AddChild(child *Node) {
@@ -163,6 +168,15 @@ func (n *Node) getChild(name string) (int, *Node) {
 	}
 
 	return pos, n.children[pos]
+}
+
+// Children iterates over node children starting from provided offset.
+func (n *Node) Children(offset int, fn func(*Node)) {
+	if offset < len(n.children) {
+		for _, child := range n.children[offset:] {
+			fn(child)
+		}
+	}
 }
 
 // Walk recursively walks the node and all its children.

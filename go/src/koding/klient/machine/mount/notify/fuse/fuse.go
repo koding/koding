@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sort"
 
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/node"
@@ -40,93 +39,103 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 // its attributes. It assumes parent directory has already been seen.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) error {
-	dir, rel, err := fs.getDir(op.Parent)
-	if err != nil {
-		return err
-	}
+func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) (err error) {
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(_ node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
+		}
 
-	nd, ok := dir.Sub[op.Name]
-	if !ok || nd.Deleted() {
-		return fuse.ENOENT
-	}
+		if child := n.GetChild(op.Name); child != nil {
+			op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
+			op.Entry.Attributes = fs.attr(child.Entry)
+			return
+		}
 
-	op.Entry.Child = fs.lookupInodeID(rel, op.Name, nd.Entry)
-	op.Entry.Attributes = fs.attr(nd.Entry)
+		err = fuse.ENOENT
+	})
 
-	return nil
+	return err
 }
 
 // GetInodeAttributes set attributes for a specified Node.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
-	nd, _, ok := fs.get(op.Inode)
-	if !ok {
-		return fuse.ENOENT
-	}
+func (fs *Filesystem) GetInodeAttributes(_ context.Context, op *fuseops.GetInodeAttributesOp) (err error) {
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+		if n != nil && n.Entry.Virtual.Promise.Exist() {
+			op.Attributes = fs.attr(n.Entry)
+			return
+		}
 
-	op.Attributes = fs.attr(nd.Entry)
+		err = fuse.ENOENT
+	})
 
-	return nil
+	return err
 }
 
 // SetInodeAttributes sets specified attributes to file or directory.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) error {
-	nd, rel, ok := fs.get(op.Inode)
-	if !ok {
-		return fuse.ENOENT
-	}
-
-	f, err := fs.openFile(ctx, rel, nd.Entry.Mode())
-	if err != nil {
-		return err
-	}
-
-	op.Attributes = fs.attr(nd.Entry)
-
-	if op.Size != nil {
-		if err := f.Truncate(int64(*op.Size)); err != nil {
-			return nonil(err, f.Close())
+func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) (err error) {
+	var rel string
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+		if n == nil || !n.Entry.Virtual.Promise.Exist() {
+			err = fuse.ENOENT
+			return
 		}
 
-		op.Attributes.Size = *op.Size
-		nd.Entry.SetSize(int64(*op.Size))
-	}
+		rel := n.Path()
 
-	if op.Mode != nil && *op.Mode != 0 {
-		if err := f.Chmod(*op.Mode); err != nil {
-			return nonil(err, f.Close())
+		var f *os.File
+		if f, err = fs.openFile(ctx, rel, n.Entry.File.Mode); err != nil {
+			return
 		}
 
-		op.Attributes.Mode = *op.Mode
-		nd.Entry.SetMode(*op.Mode)
-	}
-
-	if err := f.Close(); err != nil {
-		return err
-	}
-
-	if op.Atime != nil || op.Mtime != nil {
-		if op.Atime != nil {
-			op.Attributes.Atime = *op.Atime
+		op.Attributes = fs.attr(n.Entry)
+		if op.Size != nil {
+			if err = f.Truncate(int64(*op.Size)); err != nil {
+				f.Close()
+				return
+			}
+			op.Attributes.Size = *op.Size
 		}
 
-		if op.Mtime != nil {
-			op.Attributes.Mtime = *op.Mtime
-			nd.Entry.SetMTime(op.Mtime.UnixNano())
+		if op.Mode != nil && *op.Mode != 0 {
+			if err = f.Chmod(*op.Mode); err != nil {
+				f.Close()
+				return
+			}
+			op.Attributes.Mode = *op.Mode
 		}
 
-		if err := os.Chtimes(f.Name(), op.Attributes.Atime, op.Attributes.Mtime); err != nil {
-			return err
+		if err = f.Close(); err != nil {
+			return
 		}
+
+		if op.Atime != nil || op.Mtime != nil {
+			if op.Atime != nil {
+				op.Attributes.Atime = *op.Atime
+			}
+
+			if op.Mtime != nil {
+				op.Attributes.Mtime = *op.Mtime
+			}
+
+			if err = os.Chtimes(f.Name(), op.Attributes.Atime, op.Attributes.Mtime); err != nil {
+				return
+			}
+		}
+
+		n.Entry.File.MTime = op.Attributes.Mtime.UnixNano()
+		n.Entry.File.Mode = op.Attributes.Mode
+		n.Entry.File.Size = int64(op.Attributes.Size)
+	})
+
+	if err == nil {
+		fs.commit(rel, index.ChangeMetaLocal|index.ChangeMetaUpdate)
 	}
 
-	fs.commit(rel, index.ChangeMetaLocal|index.ChangeMetaUpdate)
-
-	return nil
+	return
 }
 
 // MkDir creates new directory inside specified parent directory. It returns
@@ -136,28 +145,36 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 // so you won't see the error from here if you're using `mkdir`.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
-	dir, rel, err := fs.getDir(op.Parent)
-	if err != nil {
-		return err
+func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error) {
+	var path string
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
+		}
+
+		if child := n.GetChild(op.Name); child != nil && child.Entry.Virtual.Promise.Exist() {
+			err = fuse.EEXIST
+			return
+		}
+
+		path = filepath.Join(n.Path(), op.Name)
+		if err = os.MkdirAll(filepath.Join(fs.CacheDir, path), op.Mode); err != nil {
+			return
+		}
+
+		child := node.NewNodeEntry(op.Name, node.NewEntry(0, op.Mode|os.ModeDir))
+		child.Entry.Virtual.RefCount++
+		g.AddChild(n, child)
+		child.PromiseAdd()
+
+		op.Entry.Attributes = fs.newAttr(op.Mode)
+	})
+
+	if err == nil {
+		fs.commit(path, index.ChangeMetaAdd|index.ChangeMetaLocal)
 	}
 
-	if _, ok := dir.Sub[op.Name]; ok {
-		return fuse.EEXIST
-	}
-
-	path := filepath.Join(rel, op.Name)
-
-	op.Entry.Child, err = fs.mkdir(path, op.Mode)
-	if err != nil {
-		return err
-	}
-
-	op.Entry.Attributes = fs.newAttr(op.Mode)
-
-	fs.commit(path, index.ChangeMetaAdd|index.ChangeMetaLocal)
-
-	return nil
+	return
 }
 
 // CreateFile creates an empty file with specified name and mode. It returns an
@@ -165,28 +182,45 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 // exists.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) error {
-	dir, rel, err := fs.getDir(op.Parent)
-	if err != nil {
-		return err
+func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) (err error) {
+	var path string
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
+		}
+
+		if child := n.GetChild(op.Name); child != nil && child.Entry.Virtual.Promise.Exist() {
+			err = fuse.EEXIST
+			return
+		}
+
+		path = filepath.Join(n.Path(), op.Name)
+		abs := filepath.Join(fs.CacheDir, path)
+		if err = os.MkdirAll(filepath.Dir(abs), 0755); err != nil {
+			return
+		}
+
+		var f *os.File
+		if f, err = os.Create(abs); err != nil {
+			return
+		}
+
+		_ = f.Chmod(op.Mode)
+
+		child := node.NewNodeEntry(op.Name, node.NewEntry(0, op.Mode))
+		child.Entry.Virtual.RefCount++
+		g.AddChild(n, child)
+		child.PromiseAdd()
+
+		op.Entry.Attributes = fs.newAttr(op.Mode)
+		op.Handle = fs.addHandle(fuseops.InodeID(child.Entry.Virtual.Inode), f)
+	})
+
+	if err == nil {
+		fs.commit(path, index.ChangeMetaAdd|index.ChangeMetaLocal)
 	}
 
-	if nd, ok := dir.Sub[op.Name]; ok && !nd.Deleted() {
-		return fuse.EEXIST
-	}
-
-	path := filepath.Join(rel, op.Name)
-
-	op.Entry.Child, op.Handle, err = fs.mkfile(path, op.Mode)
-	if err != nil {
-		return err
-	}
-
-	op.Entry.Attributes = fs.newAttr(op.Mode)
-
-	fs.commit(path, index.ChangeMetaAdd|index.ChangeMetaLocal)
-
-	return nil
+	return
 }
 
 // Rename changes a file or directory from old name and parent to new name and
@@ -197,46 +231,59 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 // new entry for it.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
-	oldDir, oldPath, err := fs.getDir(op.OldParent)
-	if err != nil {
-		return err
+func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err error) {
+	var oldPath, newPath string
+	fs.Index.Tree().DoInode2(uint64(op.OldParent), uint64(op.NewParent),
+		func(g node.Guard, oldN, newN *node.Node) {
+			if err = checkDir(oldN); err != nil {
+				return
+			}
+			if err = checkDir(newN); err != nil {
+				return
+			}
+
+			oldChild := oldN.GetChild(op.OldName)
+			if oldChild == nil || !oldChild.Entry.Virtual.Promise.Exist() {
+				err = fuse.ENOENT
+				return
+			}
+
+			newChild := newN.GetChild(op.NewName)
+			if newChild != nil && newChild.Entry.Virtual.Promise.Exist() {
+				if newChild.Entry.File.Mode.IsDir() != oldChild.Entry.File.Mode.IsDir() {
+					err = fuse.EINVAL
+					return
+				}
+
+				if newChild.Entry.File.Mode.IsDir() && newChild.ChildN() != 0 {
+					err = fuse.ENOTEMPTY
+					return
+				}
+			}
+
+			oldPath = filepath.Join(oldN.Path(), op.OldName)
+			newPath = filepath.Join(newN.Path(), op.NewName)
+
+			if err = fs.move(ctx, oldPath, newPath); err != nil {
+				return
+			}
+
+			cloned := oldN.Clone()
+			cloned.Name = op.NewName
+			cloned.Entry.Virtual.Inode = fs.Index.Tree().GenerateInode()
+
+			g.AddChild(newN, cloned)
+
+			oldChild.PromiseDel()
+			cloned.PromiseAdd()
+		})
+
+	if err == nil {
+		fs.commit(oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove)
+		fs.commit(newPath, index.ChangeMetaLocal|index.ChangeMetaAdd)
 	}
 
-	newDir, newPath, err := fs.getDir(op.NewParent)
-	if err != nil {
-		return err
-	}
-
-	oldNd, ok := oldDir.Sub[op.OldName]
-	if !ok || oldNd.Deleted() {
-		return fuse.ENOENT
-	}
-
-	if newNd, ok := newDir.Sub[op.NewName]; ok && newNd.IsDir() {
-		return fuse.EEXIST
-	}
-
-	oldPath = filepath.Join(oldPath, op.OldName)
-	newPath = filepath.Join(newPath, op.NewName)
-
-	if err := fs.move(ctx, oldPath, newPath); err != nil {
-		return err
-	}
-
-	entry := oldNd.Entry.Clone()
-
-	fs.mu.Lock()
-	fs.inodes[fuseops.InodeID(entry.Inode())] = newPath
-	fs.mu.Unlock()
-
-	fs.Index.PromiseDel(oldPath, oldNd)
-	fs.Index.PromiseAdd(newPath, entry)
-
-	fs.commit(oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove)
-	fs.commit(newPath, index.ChangeMetaLocal|index.ChangeMetaAdd)
-
-	return nil
+	return
 }
 
 // RmDir deletes a directory from remote and list of live nodes.
@@ -244,73 +291,90 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 // Note: `rm -r` calls Unlink method on each directory entry.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
-	dir, rel, err := fs.getDir(op.Parent)
-	if err != nil {
-		return err
+func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error) {
+	var path string
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
+		}
+
+		child := n.GetChild(op.Name)
+		if child == nil || !child.Entry.Virtual.Promise.Exist() {
+			err = fuse.ENOENT
+			return
+		}
+
+		if !child.Entry.File.Mode.IsDir() {
+			err = fuse.ENOTDIR
+			return
+		}
+
+		path = filepath.Join(n.Path(), op.Name)
+		abs := filepath.Join(fs.CacheDir, path)
+		if err = os.Remove(filepath.Dir(abs)); err != nil && !os.IsNotExist(err) {
+			return
+		}
+
+		child.PromiseDel()
+	})
+
+	if err == nil {
+		fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
 	}
 
-	nd, ok := dir.Sub[op.Name]
-	if !ok || nd.Deleted() {
-		return fuse.ENOENT
-	}
-
-	if !isdir(nd.Entry) {
-		return fuse.EIO
-	}
-
-	path := filepath.Join(rel, op.Name)
-
-	if err := fs.rm(ctx, nd, path); err != nil {
-		return err
-	}
-
-	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
-
-	return nil
+	return
 }
 
 // Unlink removes entry from specified parent directory.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
-	dir, rel, err := fs.getDir(op.Parent)
-	if err != nil {
-		return err
-	}
+func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) (err error) {
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
+		}
 
-	nd, ok := dir.Sub[op.Name]
-	if !ok || nd.Deleted() {
-		return fuse.ENOENT
-	}
+		child := n.GetChild(op.Name)
+		if child == nil || !child.Entry.Virtual.Promise.Exist() {
+			err = fuse.ENOENT
+			return
+		}
 
-	return fs.unlink(ctx, nd, filepath.Join(rel, op.Name))
+		err = fs.unlink(n)
+	})
+
+	return
 }
 
 // ForgetInode removes a file specified by an inode ID if the file was previously
 // marked for an unlink.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) error {
-	nd, rel, ok := fs.get(op.Inode)
-	if !ok {
-		return nil // no-op
-	}
+func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) (err error) {
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(g node.Guard, n *node.Node) {
+		if n == nil {
+			err = fuse.ENOENT
+			return
+		}
 
-	if nd.Entry.HasPromise(node.EntryPromiseUnlink) {
-		return fs.rm(ctx, nd, rel)
-	}
+		if n.Entry.Virtual.Promise&node.EntryPromiseUnlink != 0 {
+			err = fs.rm(n)
+		}
+	})
 
-	return nil
+	return
 }
 
 // OpenDir opens a directory, ie. indicates operations are to be done on this
 // directory.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
-	_, _, err := fs.getDir(op.Inode)
-	return err
+func (fs *Filesystem) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) (err error) {
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+		err = checkDir(n)
+	})
+
+	return
 }
 
 // ReleaseDirHandle removes a directory under the given handle ID for open ones.
@@ -323,48 +387,36 @@ func (fs *Filesystem) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseD
 // ReadDir reads entries in a specific directory.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
-	dir, rel, err := fs.getDir(op.Inode)
-	if err != nil {
-		return err
-	}
-
-	files := make([]string, 0, len(dir.Sub))
-
-	for name, nd := range dir.Sub {
-		if !nd.Deleted() {
-			files = append(files, name)
+func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) (err error) {
+	var dirents []*fuseutil.Dirent
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(g node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
 		}
-	}
 
-	if n := int(op.Offset); n > len(files) {
-		return fuse.EIO
-	} else if n == len(files) {
-		return nil
-	}
+		if offset := int(op.Offset); offset > n.ChildN() {
+			err = fuse.EIO
+			return
+		} else if offset == n.ChildN() {
+			return
+		}
 
-	sort.Strings(files)
-
-	files = files[int(op.Offset):]
-
-	dirent := make([]*fuseutil.Dirent, 0, len(files))
-
-	for i, file := range files {
-		sub := dir.Sub[file]
-
-		dirent = append(dirent, &fuseutil.Dirent{
-			Offset: op.Offset + fuseops.DirOffset(i+1),
-			Inode:  fs.lookupInodeID(rel, file, sub.Entry),
-			Name:   file,
-			Type:   direntType(sub.Entry),
+		i := 0
+		n.Children(int(op.Offset), func(child *node.Node) {
+			i++
+			dirents = append(dirents, &fuseutil.Dirent{
+				Offset: op.Offset + fuseops.DirOffset(i),
+				Inode:  fuseops.InodeID(child.Entry.Virtual.Inode),
+				Name:   child.Name,
+				Type:   direntType(n.Entry),
+			})
 		})
-	}
+	})
 
 	sum := 0
-
 	// TODO(rjeczalik): we can estimate how many entries to return by
 	// looking at op.Dst size.
-	for _, dir := range dirent {
+	for _, dir := range dirents {
 		n := fuseutil.WriteDirent(op.Dst[sum:], *dir)
 		if n == 0 {
 			break
@@ -381,11 +433,16 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 // OpenFile opens a File, ie. indicates operations are to be done on this file.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
-	_, h, err := fs.openInode(ctx, op.Inode)
-	if err != nil {
-		return err
-	}
+func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err error) {
+	var h fuseops.HandleID
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+		if n == nil {
+			err = fuse.ENOENT
+			return
+		}
+
+		_, h, err = fs.open(ctx, n)
+	})
 
 	op.KeepPageCache = false
 	op.Handle = h
@@ -399,7 +456,7 @@ func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) erro
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
-	f, err := fs.openHandle(op.Handle)
+	f, _, err := fs.openHandleInfo(op.Handle)
 	if err != nil {
 		return err
 	}
@@ -416,7 +473,7 @@ func (fs *Filesystem) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) erro
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
-	f, nd, err := fs.openHandleNode(op.Handle)
+	f, nID, err := fs.openHandleInfo(op.Handle)
 	if err != nil {
 		return err
 	}
@@ -425,9 +482,20 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 		return err
 	}
 
-	updateSize(f, nd)
+	err = f.Sync()
+	if fi, e := f.Stat(); e == nil {
+		fs.Index.Tree().DoInode(uint64(nID), func(_ node.Guard, n *node.Node) {
+			if n == nil {
+				return
+			}
 
-	fs.commit(fs.rel(f.Name()), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+			n.Entry.File.Size = fi.Size()
+		})
+	}
+
+	if err == nil {
+		fs.commit(fs.rel(f.Name()), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	}
 
 	return nil
 }
@@ -436,12 +504,27 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
-	f, nd, err := fs.openHandleNode(op.Handle)
+	f, nID, err := fs.openHandleInfo(op.Handle)
 	if err != nil {
 		return err
 	}
 
-	return fs.update(ctx, f, nd)
+	err = f.Sync()
+	if fi, e := f.Stat(); e == nil {
+		fs.Index.Tree().DoInode(uint64(nID), func(_ node.Guard, n *node.Node) {
+			if n == nil {
+				return
+			}
+
+			n.Entry.File.Size = fi.Size()
+		})
+	}
+
+	if err == nil {
+		fs.commit(fs.rel(f.Name()), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	}
+
+	return err
 }
 
 // FlushFile yields file updates on a locally cached file.
@@ -452,13 +535,25 @@ func (fs *Filesystem) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) er
 		return nil
 	}
 
-	f, nd, err := fs.openHandleNode(op.Handle)
+	f, nID, err := fs.openHandleInfo(op.Handle)
 	if err != nil {
 		return err
 	}
 
 	err = f.Sync()
-	updateSize(f, nd)
+	if fi, e := f.Stat(); e == nil {
+		fs.Index.Tree().DoInode(uint64(nID), func(_ node.Guard, n *node.Node) {
+			if n == nil {
+				return
+			}
+
+			n.Entry.File.Size = fi.Size()
+		})
+	}
+
+	if err == nil {
+		fs.commit(fs.rel(f.Name()), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	}
 
 	return err
 }
@@ -475,9 +570,9 @@ func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFi
 func (fs *Filesystem) Destroy() {
 	fs.mu.Lock()
 	for _, f := range fs.handles {
-		_ = f.Close()
+		_ = f.File.Close()
 	}
-	fs.handles = make(map[fuseops.HandleID]*os.File)
+	fs.handles = make(map[fuseops.HandleID]HandleInfo)
 	fs.mu.Unlock()
 }
 
