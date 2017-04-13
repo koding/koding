@@ -190,12 +190,13 @@ func (n *Node) walk(walkFn func(*Node, *Node)) {
 const notPresent = EntryPromiseVirtual | EntryPromiseDel | EntryPromiseUnlink
 
 // PromiseVirtual sets node as virtual.
-func (n *Node) PromiseVirtual() {
+func (n *Node) PromiseVirtual() bool {
 	n.setPromiseRec(EntryPromiseVirtual)
+	return true
 }
 
 // PromiseAdd sets node path as added. Root path virtual entry is not set.
-func (n *Node) PromiseAdd() {
+func (n *Node) PromiseAdd() bool {
 	var root = n
 	for root.parent != nil {
 		if root.Entry.Virtual.Promise&notPresent != 0 {
@@ -203,23 +204,27 @@ func (n *Node) PromiseAdd() {
 		}
 		root = root.parent
 	}
+	return true
 }
 
 // PromiseUpdate sets node as updated. Root node is not set.
-func (n *Node) PromiseUpdate() {
+func (n *Node) PromiseUpdate() bool {
 	if n.parent != nil {
 		n.Entry.Virtual.Promise = EntryPromiseUpdate
 	}
+	return true
 }
 
 // PromiseDel sets node as deleted.
-func (n *Node) PromiseDel() {
+func (n *Node) PromiseDel() bool {
 	n.setPromiseRec(EntryPromiseDel)
+	return true
 }
 
 // PromiseUnlink sets node as unlinked.
-func (n *Node) PromiseUnlink() {
+func (n *Node) PromiseUnlink() bool {
 	n.setPromiseRec(EntryPromiseUnlink)
+	return true
 }
 
 func (n *Node) setPromiseRec(ep EntryPromise) {
@@ -234,12 +239,13 @@ func (n *Node) setPromiseRec(ep EntryPromise) {
 }
 
 // UnsetPromises removes all promises from a given node and all its parents.
-func (n *Node) UnsetPromises() {
+func (n *Node) UnsetPromises() bool {
 	var root = n
 	for root.parent != nil {
 		root.Entry.Virtual.Promise = 0
 		root = root.parent
 	}
+	return true
 }
 
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals Node

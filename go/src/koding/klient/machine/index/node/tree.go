@@ -311,13 +311,11 @@ func Insert(entry *Entry) Predicate {
 }
 
 // Delete removes the node and all its children from the tree.
-func Delete() Predicate {
-	return func(_ *Node) bool {
-		return false
-	}
-}
+func Delete(*Node) bool { return false }
 
 // Walk calls provided function on root note and all its children.
+//
+// If the f modifies a node, set commit to true, false otherwise.
 func Walk(f func(*Node)) Predicate {
 	return func(n *Node) bool {
 		for stack := []*Node{n}; len(stack) != 0; {
@@ -355,13 +353,43 @@ func WalkPath(f func(string, *Node)) Predicate {
 	}
 }
 
-// Count stores the number of nodes in provided argument.
+// CountAll stores the number of nodes in provided argument.
+//
+// The function skips deleted and virtual nodes.
 func Count(n *int) Predicate {
-	return Walk(func(*Node) { (*n)++ })
+	return Walk(func(nd *Node) {
+		if nd.Entry != nil {
+			p := nd.Entry.Virtual.Promise
+
+			if !p.Deleted() && !p.Virtual() {
+				*n++
+			}
+		}
+	})
+}
+
+// CountAll stores the number of nodes in provided argument.
+func CountAll(n *int) Predicate {
+	return Walk(func(*Node) { *n++ })
 }
 
 // DiskSize stores the size of nodes in provided argument.
-func DiskSize(size *int64) Predicate {
+//
+// The function skips deleted and virtual nodes.
+func DiskSize(n *int64) Predicate {
+	return Walk(func(nd *Node) {
+		if nd.Entry != nil {
+			p := nd.Entry.Virtual.Promise
+
+			if !p.Deleted() && !p.Virtual() {
+				*n += nd.Entry.File.Size
+			}
+		}
+	})
+}
+
+// DiskSize stores the size of nodes in provided argument.
+func DiskSizeAll(size *int64) Predicate {
 	return Walk(func(n *Node) {
 		if n.Entry != nil {
 			*size += n.Entry.File.Size

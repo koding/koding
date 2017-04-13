@@ -45,7 +45,7 @@ func BenchmarkNodeDel(b *testing.B) {
 		tree := testTree(fixData)
 		b.StartTimer()
 
-		tree.DoPath(name, node.Delete())
+		tree.DoPath(name, node.Delete)
 	}
 }
 

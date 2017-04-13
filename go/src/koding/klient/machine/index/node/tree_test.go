@@ -215,7 +215,7 @@ func TestTreeDel(t *testing.T) {
 			t.Run(path, func(t *testing.T) {
 				t.Parallel()
 
-				tree.DoPath(path, node.Delete())
+				tree.DoPath(path, node.Delete)
 			})
 		}
 	})
