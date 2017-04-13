@@ -40,7 +40,7 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 // its attributes. It assumes parent directory has already been seen.
 //
 // Required for fuse.FileSystem.
-func (fs *Filesystem) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
+func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) error {
 	dir, rel, err := fs.getDir(op.Parent)
 	if err != nil {
 		return err
@@ -287,7 +287,7 @@ func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 	return fs.unlink(ctx, nd, filepath.Join(rel, op.Name))
 }
 
-// ForgotInode removes a file specified by an inode ID if the file was previously
+// ForgetInode removes a file specified by an inode ID if the file was previously
 // marked for an unlink.
 //
 // Required for fuse.FileSystem.

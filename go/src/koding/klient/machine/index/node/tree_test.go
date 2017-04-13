@@ -3,6 +3,7 @@ package node_test
 import (
 	"encoding/json"
 	"reflect"
+	"sort"
 	"testing"
 
 	"koding/klient/machine/index/node"
@@ -45,9 +46,17 @@ var fixData = map[string]int64{
 }
 
 func testTree(data map[string]int64) *node.Tree {
+	var paths []string
+	for path := range data {
+		paths = append(paths, path)
+	}
+
+	sort.Strings(paths)
+
 	tree := node.NewTree()
-	for path, size := range data {
-		tree.Do(path, node.Insert(node.NewEntry(size, 0)))
+	for _, path := range paths {
+		size := data[path]
+		tree.DoPath(path, node.Insert(node.NewEntry(size, 0)))
 	}
 
 	return tree
@@ -73,7 +82,7 @@ func TestTreeLookup(t *testing.T) {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 
-			tree.Do(path, func(n *node.Node) bool {
+			tree.DoPath(path, func(n *node.Node) bool {
 				if n.IsShadowed() {
 					t.Fatalf("Lookup(%q) failed", path)
 				}
@@ -105,7 +114,7 @@ func TestTreeCount(t *testing.T) {
 			t.Parallel()
 
 			var got int
-			if tree.Do(path, node.Count(&got)); got != count {
+			if tree.DoPath(path, node.Count(&got)); got != count {
 				t.Errorf("got %d, want %d", got, count)
 			}
 		})
@@ -129,7 +138,7 @@ func TestTreeDiskSize(t *testing.T) {
 			t.Parallel()
 
 			var got int64
-			if tree.Do(path, node.DiskSize(&got)); got != size {
+			if tree.DoPath(path, node.DiskSize(&got)); got != size {
 				t.Errorf("got %d, want %d", got, size)
 			}
 		})
@@ -162,8 +171,8 @@ func TestTreeAdd(t *testing.T) {
 			t.Run(path, func(t *testing.T) {
 				t.Parallel()
 
-				tree.Do(path, node.Insert(node.NewEntry(funnySize, 0)))
-				tree.Do(path, func(n *node.Node) bool {
+				tree.DoPath(path, node.Insert(node.NewEntry(funnySize, 0)))
+				tree.DoPath(path, func(n *node.Node) bool {
 					if n.IsShadowed() {
 						t.Fatalf("Lookup(%q) failed", path)
 					}
@@ -179,7 +188,7 @@ func TestTreeAdd(t *testing.T) {
 	})
 
 	var count int
-	if tree.Do("", node.Count(&count)); count != finalCount {
+	if tree.DoPath("", node.Count(&count)); count != finalCount {
 		t.Fatalf("got %d, want %d", count, finalCount)
 	}
 }
@@ -206,13 +215,13 @@ func TestTreeDel(t *testing.T) {
 			t.Run(path, func(t *testing.T) {
 				t.Parallel()
 
-				tree.Do(path, node.Delete())
+				tree.DoPath(path, node.Delete())
 			})
 		}
 	})
 
 	var count int
-	if tree.Do("", node.Count(&count)); count != finalCount {
+	if tree.DoPath("", node.Count(&count)); count != finalCount {
 		t.Fatalf("got %d, want %d", count, finalCount)
 	}
 }
@@ -258,7 +267,7 @@ func TestTreeForEach(t *testing.T) {
 	var got []string
 	tree := testTree(fixData)
 
-	tree.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {
+	tree.DoPath("", node.WalkPath(func(nodePath string, _ *node.Node) {
 		got = append(got, nodePath)
 	}))
 
@@ -268,11 +277,15 @@ func TestTreeForEach(t *testing.T) {
 }
 
 func TestTreeMarshalJSON(t *testing.T) {
-	var treeNodes, gotNodes []string
+	var (
+		treePaths, gotPaths     []string
+		treeEntries, gotEntries []*node.Entry
+	)
 
 	tree := testTree(fixData)
-	tree.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {
-		treeNodes = append(treeNodes, nodePath)
+	tree.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
+		treePaths = append(treePaths, nodePath)
+		treeEntries = append(treeEntries, n.Entry)
 	}))
 
 	data, err := json.Marshal(tree)
@@ -284,15 +297,16 @@ func TestTreeMarshalJSON(t *testing.T) {
 	if err := json.Unmarshal(data, got); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	got.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {
-		gotNodes = append(gotNodes, nodePath)
+	got.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
+		gotPaths = append(gotPaths, nodePath)
+		gotEntries = append(gotEntries, n.Entry)
 	}))
 
-	if !reflect.DeepEqual(tree, got) {
+	if !reflect.DeepEqual(treePaths, gotPaths) {
 		t.Errorf("want:\n%#v\ngot\n%#v\n", tree, got)
 	}
 
-	if !reflect.DeepEqual(treeNodes, gotNodes) {
-		t.Errorf("want:\n%#v\ngot\n%#v\n", treeNodes, gotNodes)
+	if !reflect.DeepEqual(treeEntries, gotEntries) {
+		t.Errorf("want:\n%#v\ngot\n%#v\n", treeEntries, gotEntries)
 	}
 }

@@ -12,7 +12,7 @@ func BenchmarkNodeLookup(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		tree.Do(name, func(n *node.Node) bool {
+		tree.DoPath(name, func(n *node.Node) bool {
 			if n.IsShadowed() {
 				b.Fatalf("want %s to be present in tree", name)
 			}
@@ -32,7 +32,7 @@ func BenchmarkNodeAdd(b *testing.B) {
 		tree := testTree(fixData)
 		b.StartTimer()
 
-		tree.Do(name, node.Insert(entry))
+		tree.DoPath(name, node.Insert(entry))
 	}
 }
 
@@ -45,7 +45,7 @@ func BenchmarkNodeDel(b *testing.B) {
 		tree := testTree(fixData)
 		b.StartTimer()
 
-		tree.Do(name, node.Delete())
+		tree.DoPath(name, node.Delete())
 	}
 }
 
@@ -54,6 +54,6 @@ func BenchmarkNodeForEach(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		tree.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {}))
+		tree.DoPath("", node.WalkPath(func(nodePath string, _ *node.Node) {}))
 	}
 }
