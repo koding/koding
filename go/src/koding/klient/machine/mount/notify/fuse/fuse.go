@@ -11,6 +11,7 @@ import (
 	"sort"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/index/node"
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
@@ -296,7 +297,7 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 		return nil // no-op
 	}
 
-	if nd.Entry.HasPromise(index.EntryPromiseUnlink) {
+	if nd.Entry.HasPromise(node.EntryPromiseUnlink) {
 		return fs.rm(ctx, nd, rel)
 	}
 
