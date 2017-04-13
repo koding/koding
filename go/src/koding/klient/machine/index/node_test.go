@@ -178,8 +178,8 @@ func TestNodeLookup(t *testing.T) {
 				t.Fatalf("Lookup(%q) failed", name)
 			}
 
-			if nd.Entry.Size() != size {
-				t.Fatalf("got %d, want %d", size, nd.Entry.Size())
+			if nd.Entry.File.Size != size {
+				t.Fatalf("got %d, want %d", size, nd.Entry.File.Size)
 			}
 		})
 	}
@@ -260,8 +260,8 @@ func TestNodeAdd(t *testing.T) {
 				t.Fatalf("got %d, want %d", count, cas.count)
 			}
 
-			if nd.Entry.Size() != entry.Size() {
-				t.Fatalf("got %d, want %d", nd.Entry.Size(), entry.Size())
+			if nd.Entry.File.Size != entry.File.Size {
+				t.Fatalf("got %d, want %d", nd.Entry.File.Size, entry.File.Size)
 			}
 		})
 	}
@@ -382,7 +382,7 @@ func TestNodeToTree(t *testing.T) {
 	sort.Strings(gotNode)
 
 	tree := root.ToTree()
-	tree.Do("", node.WalkPath(func(nodePath string, _ *node.Node) {
+	tree.DoPath("", node.WalkPath(func(nodePath string, _ *node.Node) {
 		gotTree = append(gotTree, nodePath)
 	}))
 

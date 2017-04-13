@@ -36,10 +36,10 @@ func TestCachedIndexCreate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if n := idx.Count(-1); count != n {
+	if n := nodeCount(idx.Tree()); count != n {
 		t.Errorf("want %d entries, got %d", n, count)
 	}
-	if n := idx.DiskSize(-1); diskSize != n {
+	if n := nodeDiskSize(idx.Tree()); diskSize != n {
 		t.Errorf("want size = %d bytes, got %d", n, diskSize)
 	}
 
@@ -87,10 +87,10 @@ func TestCachedIndexUpdated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if count, n := idx.Count(-1), idx2.Count(-1); count != n {
+	if count, n := nodeCount(idx.Tree()), nodeCount(idx2.Tree()); count != n {
 		t.Errorf("want %d entries; got %d", count, n)
 	}
-	if diskSize, n := idx.DiskSize(-1), idx2.DiskSize(-1); diskSize > n {
+	if diskSize, n := nodeDiskSize(idx.Tree()), nodeDiskSize(idx.Tree()); diskSize > n {
 		t.Errorf("want at least %d B of disk size; got %d B", diskSize, n)
 	}
 
@@ -101,10 +101,10 @@ func TestCachedIndexUpdated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if count, n := idx.Count(-1)+1, idx2.Count(-1); count != n {
+	if count, n := nodeCount(idx.Tree())+1, nodeCount(idx2.Tree()); count != n {
 		t.Errorf("want %d entries; got %d", count, n)
 	}
-	if diskSize, n := idx.DiskSize(-1)+1024, idx2.DiskSize(-1); diskSize > n {
+	if diskSize, n := nodeDiskSize(idx.Tree())+1024, nodeDiskSize(idx2.Tree()); diskSize > n {
 		t.Errorf("want at least %d B of disk size; got %d B", diskSize, n)
 	}
 

@@ -118,6 +118,7 @@ func (t *Tree) DoPath(nodePath string, pred Predicate) {
 		if c != nil {
 			// Child for live branch is present.
 			t.addChild(live, ci, c)
+			subj.PromiseAdd()
 		}
 	} else {
 		// User wants to remove the node so, if it's a live branch we need to
@@ -287,6 +288,7 @@ func (g Guard) AddChild(n, child *Node) {
 
 	pos, _ := n.getChild(child.Name)
 	g.t.addChild(n, pos, child)
+	child.PromiseAdd()
 }
 
 // RmChild should be used instead n.RmChild inside DoInode callbacks.
@@ -355,12 +357,30 @@ func WalkPath(f func(string, *Node)) Predicate {
 	}
 }
 
-// Count stores the number of nodes in provided argument.
+// ExistCount stores the number of nodes that are proven to exist.
+func ExistCount(n *int) Predicate {
+	return Walk(func(nd *Node) {
+		if nd.Entry != nil && nd.Entry.Virtual.Promise.Exist() {
+			(*n)++
+		}
+	})
+}
+
+// ExistDiskSize stores the size of nodes that are proven to exist.
+func ExistDiskSize(size *int64) Predicate {
+	return Walk(func(n *Node) {
+		if n.Entry != nil && n.Entry.Virtual.Promise.Exist() {
+			*size += n.Entry.File.Size
+		}
+	})
+}
+
+// Count stores the total number of nodes in provided argument.
 func Count(n *int) Predicate {
 	return Walk(func(*Node) { (*n)++ })
 }
 
-// DiskSize stores the size of nodes in provided argument.
+// DiskSize stores the total size of nodes in provided argument.
 func DiskSize(size *int64) Predicate {
 	return Walk(func(n *Node) {
 		if n.Entry != nil {

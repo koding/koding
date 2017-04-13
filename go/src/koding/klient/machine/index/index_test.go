@@ -132,48 +132,6 @@ func TestIndex(t *testing.T) {
 	}
 }
 
-func TestIndexCount(t *testing.T) {
-	tests := map[string]struct {
-		MaxSize  int64
-		Expected int
-	}{
-		"all items": {
-			MaxSize:  -1,
-			Expected: 12,
-		},
-		"less than 100kiB": {
-			MaxSize:  100 * 1024,
-			Expected: 10,
-		},
-		"zero": {
-			MaxSize:  0,
-			Expected: 0,
-		},
-	}
-
-	for name, test := range tests {
-		// capture range variable here
-		test := test
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			root, clean, err := indextest.GenerateTree(filetree)
-			if err != nil {
-				t.Fatalf("want err = nil; got %v", err)
-			}
-			defer clean()
-
-			idx, err := index.NewIndexFiles(root)
-			if err != nil {
-				t.Fatalf("want err = nil; got %v", err)
-			}
-
-			if count := idx.Count(test.MaxSize); count != test.Expected {
-				t.Errorf("want count = %d; got %d", test.Expected, count)
-			}
-		})
-	}
-}
-
 func TestIndexJSON(t *testing.T) {
 	root, clean, err := indextest.GenerateTree(filetree)
 	if err != nil {

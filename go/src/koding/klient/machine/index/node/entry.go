@@ -55,6 +55,11 @@ func (ep EntryPromise) Virtual() bool {
 	return ep&EntryPromiseVirtual != 0
 }
 
+// Exist checks if the promise indicates that the entry exists locally.
+func (ep EntryPromise) Exist() bool {
+	return !ep.Deleted() && !ep.Virtual()
+}
+
 // Swap flips the value of a promise field, setting the set bits and
 // unsetting the unset ones.
 func (ep *EntryPromise) Swap(set, unset EntryPromise) {

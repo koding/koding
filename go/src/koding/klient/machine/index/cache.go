@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"koding/klient/machine/index/node"
 )
 
 // TempIndexDirPrefix defines the prefix of temporary index file created by
@@ -72,7 +74,10 @@ func (c *Cached) HeadCachedIndex(root string) (count int, diskSize int64, err er
 		return 0, 0, err
 	}
 
-	return idx.Count(-1), idx.DiskSize(-1), nil
+	idx.Tree().DoPath("", node.Count(&count))
+	idx.Tree().DoPath("", node.DiskSize(&diskSize))
+
+	return
 }
 
 // getCachedIndex looks up for index stored in one of temporary directories.

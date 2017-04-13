@@ -44,7 +44,7 @@ func NewNodeEntry(name string, entry *Entry) *Node {
 }
 
 // IsShadowed returns true when node is not present in tree.
-func (n *Node) IsShadowed() bool { return n.Entry == nil }
+func (n *Node) IsShadowed() bool { return n.Entry == nil || n.Entry.File.Mode == 0 }
 
 // Clone returns a deep copy of called node.
 func (n *Node) Clone() *Node {
@@ -178,14 +178,6 @@ func (n *Node) walk(walkFn func(*Node, *Node)) {
 		n.children[i].walk(walkFn)
 	}
 }
-
-/*
-	EntryPromiseVirtual EntryPromise = 1 << iota // V: promise that file exists, doesn't exist locally.
-	EntryPromiseAdd                              // A: promise after adding, exists locally.
-	EntryPromiseUpdate                           // U: promise after updating, exists locally.
-	EntryPromiseDel                              // D: promise after deleting, doesn't exist locally.
-	EntryPromiseUnlink                           // N: promise after hard delete, doesn't exist locally.
-*/
 
 const notPresent = EntryPromiseVirtual | EntryPromiseDel | EntryPromiseUnlink
 
