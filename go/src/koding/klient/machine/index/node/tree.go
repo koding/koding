@@ -138,7 +138,7 @@ func (t *Tree) DoPath(nodePath string, pred Predicate) {
 
 // ExistCount returns the number of nodes that are proven to exist.
 func (t *Tree) ExistCount() (count int) {
-	t.DoPath("", Count(&count))
+	t.DoPath("", ExistCount(&count))
 	return
 }
 
@@ -336,6 +336,12 @@ type Predicate func(*Node) bool
 // the first present node in the tree.
 func Insert(entry *Entry) Predicate {
 	return func(n *Node) bool {
+		if !n.IsShadowed() && n.Entry.Virtual.Inode == RootInodeID {
+			n.Entry = entry
+			n.Entry.Virtual.Inode = RootInodeID
+			return true
+		}
+
 		n.Entry = entry
 		return true
 	}

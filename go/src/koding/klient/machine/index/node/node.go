@@ -44,7 +44,7 @@ func NewNodeEntry(name string, entry *Entry) *Node {
 }
 
 // IsShadowed returns true when node is not present in tree.
-func (n *Node) IsShadowed() bool { return n.Entry == nil || n.Entry.File.Mode == 0 }
+func (n *Node) IsShadowed() bool { return n.Entry == nil }
 
 // Clone returns a deep copy of called node.
 func (n *Node) Clone() *Node {

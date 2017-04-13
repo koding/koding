@@ -113,7 +113,8 @@ func TestTreeCount(t *testing.T) {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 
-			if got := tree.Count(); got != count {
+			var got int
+			if tree.DoPath(path, node.Count(&got)); got != count {
 				t.Errorf("got %d, want %d", got, count)
 			}
 		})

@@ -138,7 +138,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 	}
 
 	idx.t.DoPath(branch, node.WalkPath(func(name string, n *node.Node) {
-		if n.IsShadowed() {
+		if n.IsShadowed() || n.Entry.File.Mode == 0 {
 			return
 		}
 
