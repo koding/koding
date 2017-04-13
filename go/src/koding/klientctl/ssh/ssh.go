@@ -109,21 +109,13 @@ func PublicKey(pubPath string) (pubKey string, err error) {
 }
 
 // PrivateKey returns a private key stored under the given path.
-//
-// The function attempts to fix permissions of the private key,
-// if they are different than 0600.
 func PrivateKey(privPath string) (privKey interface{}, err error) {
-	fi, err := os.Stat(privPath)
+	_, err = os.Stat(privPath)
 	if os.IsNotExist(err) {
 		return nil, ErrPrivateKeyNotFound
 	}
 	if err != nil {
 		return nil, err
-	}
-
-	if fi.Mode() != 0600 {
-		// Best-effort attempt at fixing private key permissions.
-		_ = os.Chmod(privPath, 0600)
 	}
 
 	p, err := ioutil.ReadFile(privPath)
