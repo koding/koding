@@ -296,7 +296,19 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	defer r.Close()
 
 	if err = json.NewDecoder(r).Decode(&idx.t); err != nil {
-		return err
+		// Try converting to old nodes.
+		rn, err := gzip.NewReader(bytes.NewReader(dst[:n]))
+		if err != nil {
+			return err
+		}
+		defer rn.Close()
+
+		var root Node
+		if err = json.NewDecoder(r).Decode(&root); err == nil {
+			idx.t = root.ToTree()
+		} else {
+			return err
+		}
 	}
 
 	return nil
