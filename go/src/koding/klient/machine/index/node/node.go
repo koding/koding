@@ -179,6 +179,69 @@ func (n *Node) walk(walkFn func(*Node, *Node)) {
 	}
 }
 
+/*
+	EntryPromiseVirtual EntryPromise = 1 << iota // V: promise that file exists, doesn't exist locally.
+	EntryPromiseAdd                              // A: promise after adding, exists locally.
+	EntryPromiseUpdate                           // U: promise after updating, exists locally.
+	EntryPromiseDel                              // D: promise after deleting, doesn't exist locally.
+	EntryPromiseUnlink                           // N: promise after hard delete, doesn't exist locally.
+*/
+
+const notPresent = EntryPromiseVirtual | EntryPromiseDel | EntryPromiseUnlink
+
+// PromiseVirtual sets node as virtual.
+func (n *Node) PromiseVirtual() {
+	n.setPromiseRec(EntryPromiseVirtual)
+}
+
+// PromiseAdd sets node path as added. Root path virtual entry is not set.
+func (n *Node) PromiseAdd() {
+	var root = n
+	for root.parent != nil {
+		if root.Entry.Virtual.Promise&notPresent != 0 {
+			root.Entry.Virtual.Promise.Swap(EntryPromiseAdd, notPresent)
+		}
+		root = root.parent
+	}
+}
+
+// PromiseUpdate sets node as updated. Root node is not set.
+func (n *Node) PromiseUpdate() {
+	if n.parent != nil {
+		n.Entry.Virtual.Promise = EntryPromiseUpdate
+	}
+}
+
+// PromiseDel sets node as deleted.
+func (n *Node) PromiseDel() {
+	n.setPromiseRec(EntryPromiseDel)
+}
+
+// PromiseUnlink sets node as unlinked.
+func (n *Node) PromiseUnlink() {
+	n.setPromiseRec(EntryPromiseUnlink)
+}
+
+func (n *Node) setPromiseRec(ep EntryPromise) {
+	if n.Entry.Virtual.Promise == EntryPromiseVirtual {
+		return
+	}
+
+	n.Entry.Virtual.Promise = EntryPromiseVirtual
+	for i := range n.children {
+		n.children[i].PromiseVirtual()
+	}
+}
+
+// UnsetPromises removes all promises from a given node and all its parents.
+func (n *Node) UnsetPromises() {
+	var root = n
+	for root.parent != nil {
+		root.Entry.Virtual.Promise = 0
+		root = root.parent
+	}
+}
+
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals Node
 // private data to JSON format.
 func (n *Node) MarshalJSON() ([]byte, error) {
