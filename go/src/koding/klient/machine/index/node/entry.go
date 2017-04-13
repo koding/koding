@@ -43,16 +43,16 @@ func (ep EntryPromise) String() string {
 	return string(buf[:len(epMapping)])
 }
 
-// Has checks if provided promise is set.
-func (ep EntryPromise) HasPromise(promise EntryPromise) bool {
-	return ep&promise == promise
-}
-
 // Deleted checks if the promise is set to be deleted.
 func (ep EntryPromise) Deleted() bool {
 	const del = EntryPromiseDel | EntryPromiseUnlink
 
 	return ep&del != 0
+}
+
+// Virtual checks if the promise is set to be virtual.
+func (ep EntryPromise) Virtual() bool {
+	return ep&EntryPromiseVirtual != 0
 }
 
 // Swap flips the value of a promise field, setting the set bits and
