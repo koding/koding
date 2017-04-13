@@ -136,6 +136,30 @@ func (t *Tree) DoPath(nodePath string, pred Predicate) {
 	t.mu.Unlock()
 }
 
+// ExistCount returns the number of nodes that are proven to exist.
+func (t *Tree) ExistCount() (count int) {
+	t.DoPath("", Count(&count))
+	return
+}
+
+// ExistDiskSize returns the size of nodes that are proven to exist.
+func (t *Tree) ExistDiskSize() (size int64) {
+	t.DoPath("", ExistDiskSize(&size))
+	return
+}
+
+// Count returns the total number of nodes to provided argument.
+func (t *Tree) Count() (count int) {
+	t.DoPath("", Count(&count))
+	return
+}
+
+// DiskSize returns the total size of nodes to provided argument.
+func (t *Tree) DiskSize() (size int64) {
+	t.DoPath("", DiskSize(&size))
+	return
+}
+
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals Tree
 // private data to JSON format.
 func (t *Tree) MarshalJSON() ([]byte, error) {

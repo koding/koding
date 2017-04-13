@@ -31,11 +31,8 @@ func TestRepo(t *testing.T) {
 		t.Fatalf("Encode()=%s", err)
 	}
 
-	var count int
-	idx.Tree().DoPath("", node.Count(&count))
-
 	t.Logf("Index build time: %s", end.Sub(start))
-	t.Logf("Index file count: %d", count)
+	t.Logf("Index file count: %d", idx.Tree().Count())
 	t.Logf("Index size: %.4f MiB", float64(buf.Len())/1024/1024)
 }
 
@@ -85,14 +82,4 @@ func BenchmarkNodeForEach(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		root.ForEach(func(name string, _ *node.Entry) {})
 	}
-}
-
-func nodeCount(t *node.Tree) (count int) {
-	t.DoPath("", node.Count(&count))
-	return
-}
-
-func nodeDiskSize(t *node.Tree) (diskSize int64) {
-	t.DoPath("", node.DiskSize(&diskSize))
-	return
 }

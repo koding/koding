@@ -113,8 +113,7 @@ func TestTreeCount(t *testing.T) {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 
-			var got int
-			if tree.DoPath(path, node.Count(&got)); got != count {
+			if got := tree.Count(); got != count {
 				t.Errorf("got %d, want %d", got, count)
 			}
 		})
@@ -187,8 +186,7 @@ func TestTreeAdd(t *testing.T) {
 		}
 	})
 
-	var count int
-	if tree.DoPath("", node.Count(&count)); count != finalCount {
+	if count := tree.Count(); count != finalCount {
 		t.Fatalf("got %d, want %d", count, finalCount)
 	}
 }
@@ -220,8 +218,7 @@ func TestTreeDel(t *testing.T) {
 		}
 	})
 
-	var count int
-	if tree.DoPath("", node.Count(&count)); count != finalCount {
+	if count := tree.Count(); count != finalCount {
 		t.Fatalf("got %d, want %d", count, finalCount)
 	}
 }
