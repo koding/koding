@@ -13,6 +13,7 @@ import (
 	"koding/kites/config"
 	"koding/klient/fs"
 	"koding/klient/machine/index"
+	"koding/klient/machine/index/node"
 	"koding/klient/machine/mount/notify"
 
 	"github.com/jacobsa/fuse"
@@ -25,7 +26,7 @@ import (
 // TODO(rjeczalik): add promise update ops, so attrs updates are served
 // right away, without waiting for index update.
 
-// TODO(rjeczalik): symlink support: add index.Entry.Nlink field and
+// TODO(rjeczalik): symlink support: add node.Entry.Nlink field and
 // add support for in Unlink, ForgotInode and CreateSymlink methods.
 
 // Builder provides a default notify.Builder for the FUSE filesystem.
@@ -236,7 +237,7 @@ func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 	return id
 }
 
-func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fuseops.InodeID) {
+func (fs *Filesystem) lookupInodeID(dir, base string, entry *node.Entry) (id fuseops.InodeID) {
 	// Fast path - check if InodeID was already associated with index node.
 	if id = fuseops.InodeID(entry.Inode()); id != 0 {
 		return id
@@ -345,7 +346,7 @@ func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.Chan
 	}
 }
 
-func (fs *Filesystem) attr(entry *index.Entry) fuseops.InodeAttributes {
+func (fs *Filesystem) attr(entry *node.Entry) fuseops.InodeAttributes {
 	mtime := time.Unix(0, entry.MTime())
 	ctime := time.Unix(0, entry.CTime())
 
@@ -391,7 +392,7 @@ func (fs *Filesystem) mkdir(rel string, mode os.FileMode) (id fuseops.InodeID, e
 		return 0, err
 	}
 
-	entry := index.NewEntry(0, mode|os.ModeDir)
+	entry := node.NewEntry(0, mode|os.ModeDir)
 	entry.IncRefCount()
 
 	fs.mu.Lock()
@@ -419,7 +420,7 @@ func (fs *Filesystem) mkfile(rel string, mode os.FileMode) (id fuseops.InodeID, 
 
 	_ = f.Chmod(mode)
 
-	entry := index.NewEntry(0, mode)
+	entry := node.NewEntry(0, mode)
 	entry.IncRefCount()
 
 	fs.mu.Lock()
@@ -575,14 +576,14 @@ func updateSize(f *os.File, nd *index.Node) error {
 	return nil
 }
 
-func direntType(entry *index.Entry) fuseutil.DirentType {
+func direntType(entry *node.Entry) fuseutil.DirentType {
 	if isdir(entry) {
 		return fuseutil.DT_Directory
 	}
 	return fuseutil.DT_File
 }
 
-func isdir(entry *index.Entry) bool {
+func isdir(entry *node.Entry) bool {
 	return entry.Mode()&os.ModeDir == os.ModeDir
 }
 

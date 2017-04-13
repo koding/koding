@@ -13,6 +13,8 @@ import (
 	"sync"
 	"text/tabwriter"
 
+	"koding/klient/machine/index/node"
+
 	"github.com/djherbis/times"
 )
 
@@ -94,7 +96,7 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 		}
 
 		idx.mu.Lock()
-		idx.root.Add(name, NewEntryFileInfo(f.info))
+		idx.root.Add(name, node.NewEntryFileInfo(f.info))
 		idx.mu.Unlock()
 	}
 }
@@ -111,7 +113,7 @@ func (idx *Index) Clone() *Index {
 // If mode is non-zero, the node's mode is overwritten with the value.
 // If the node already exists, it'd be only marked with EntryPromiseAdd flag.
 // If the node is already marked as newly added, the method is a no-op.
-func (idx *Index) PromiseAdd(path string, entry *Entry) {
+func (idx *Index) PromiseAdd(path string, entry *node.Entry) {
 	idx.mu.Lock()
 	idx.root.PromiseAdd(path, entry)
 	idx.mu.Unlock()
@@ -238,14 +240,14 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 	}
 
 	idx.mu.RLock()
-	rt.ForEachAll(func(name string, entry *Entry) {
+	rt.ForEachAll(func(name string, entry *node.Entry) {
 		nameOS := filepath.FromSlash(name)
 		visited[filepath.Join(rootBranch, nameOS)] = struct{}{}
 
 		info, err := os.Lstat(filepath.Join(rootBranch, nameOS))
 		if os.IsNotExist(err) {
 			// File exists in remote but not in local.
-			entry.SwapPromise(EntryPromiseVirtual, 0)
+			entry.SwapPromise(node.EntryPromiseVirtual, 0)
 			cs = append(cs, NewChange(
 				filepath.ToSlash(filepath.Join(branch, nameOS)),
 				PriorityLow,
@@ -265,7 +267,7 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 		// set to source atime. That's why this is necessary.
 		if (mtime == info.ModTime().UnixNano() || mtime == atime(info)) && entry.Size() == info.Size() && mode == info.Mode() {
 			// Files are identical. Allow different ctimes.
-			entry.SwapPromise(0, EntryPromiseVirtual)
+			entry.SwapPromise(0, node.EntryPromiseVirtual)
 			return
 		}
 
@@ -273,12 +275,12 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 		// inside directory was added/removed and this file should be reported.
 		// Howewer we want to detect permission changes in all files.
 		if mode.IsDir() && mode == info.Mode() {
-			entry.SwapPromise(0, EntryPromiseVirtual)
+			entry.SwapPromise(0, node.EntryPromiseVirtual)
 			return
 		}
 
 		// Files differ. However the local file is not virtual.
-		entry.SwapPromise(EntryPromiseUpdate, EntryPromiseVirtual)
+		entry.SwapPromise(node.EntryPromiseUpdate, node.EntryPromiseVirtual)
 		cs = append(cs, NewChange(
 			filepath.ToSlash(filepath.Join(branch, nameOS)),
 			PriorityMedium,
@@ -313,7 +315,7 @@ skipBranch:
 		idx.mu.Lock()
 		idx.root.PromiseAdd(
 			filepath.ToSlash(name),
-			NewEntryFileInfo(info),
+			node.NewEntryFileInfo(info),
 		)
 		idx.mu.Unlock()
 
@@ -353,7 +355,7 @@ func (idx *Index) Sync(root string, c *Change) {
 	if !ok {
 		// Add new entry.
 		idx.mu.Lock()
-		idx.root.Add(c.Path(), NewEntryFileInfo(info))
+		idx.root.Add(c.Path(), node.NewEntryFileInfo(info))
 		idx.mu.Unlock()
 		return
 	}
@@ -363,7 +365,7 @@ func (idx *Index) Sync(root string, c *Change) {
 	nd.Entry.SetMTime(info.ModTime().UTC().UnixNano())
 	nd.Entry.SetSize(info.Size())
 	nd.Entry.SetMode(info.Mode())
-	nd.Entry.SwapPromise(0, ^EntryPromise(0))
+	nd.Entry.SwapPromise(0, ^node.EntryPromise(0))
 }
 
 // naturalMin returns the minimal value of provided arguments but not less than
@@ -424,8 +426,8 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 
 // DebugString dumps content of the index as a string, suitable for debugging.
 func (idx *Index) DebugString() string {
-	m := make(map[string]*Entry)
-	fn := func(path string, entry *Entry) {
+	m := make(map[string]*node.Entry)
+	fn := func(path string, entry *node.Entry) {
 		m[path] = entry
 	}
 
