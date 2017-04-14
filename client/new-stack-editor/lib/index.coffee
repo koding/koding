@@ -221,11 +221,14 @@ module.exports = class StackEditorAppController extends AppController
       markAsLoaded templateId, stackId, machine.getId()
 
     return  if @builds[templateId]?.show?()
+    onClose = ->
+      router.handleRoute "/Stack-Editor/#{templateId}"
 
     modalOptions = {
       state: 'NotInitialized'
       container: @getView()
       initial: yes
+      onClose
     }
 
     modal = new ResourceStateModal modalOptions, machine

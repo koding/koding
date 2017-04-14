@@ -40,7 +40,9 @@ module.exports = class ResourceStateModal extends BaseModalView
       container.addSubView @overlay
       container.addSubView this
 
-      @overlay.on 'click', @bound 'doBlockingAnimation'
+      @overlay.on 'click', if onClose = @getOption 'onClose'
+      then onClose
+      else @bound 'doBlockingAnimation'
 
     @setPositions()
 
