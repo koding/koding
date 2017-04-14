@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,8 @@ import (
 	"syscall"
 
 	"koding/klient/fs"
+	"koding/klient/machine/index"
+	"koding/klient/machine/mount/notify"
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/notify/fuse/fusetest"
 )
@@ -24,14 +27,16 @@ const sep = string(os.PathSeparator)
 var (
 	verbose = flag.Bool("v", false, "Turn on verbose logging.")
 	tmp     = flag.String("tmp", "", "Existing cache directory to use.")
+	change  = flag.Bool("c", false, "Print produced FS changes.")
 )
 
-const usage = `usage: loopfuse [-v] [-tmp]  <src> <dst>
+const usage = `usage: loopfuse [-v] [-tmp] [-c] <src> <dst>
 
 Flags
 
 	-v    Turns on verbose logging.
 	-tmp  Existing cache directory to use.
+	-c    Print produced FS changes.
 
 Arguments
 
@@ -88,8 +93,13 @@ func main() {
 		die(err)
 	}
 
+	var cache notify.Cache = bc
+	if *change {
+		cache = &printCache{sub: bc}
+	}
+
 	opts := &fuse.Opts{
-		Cache:    bc,
+		Cache:    cache,
 		CacheDir: *tmp,
 		Index:    bc.Index(),
 		Mount:    filepath.Base(dst),
@@ -138,4 +148,12 @@ func block(path string) *fs.DiskInfo {
 	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
 
 	return di
+}
+
+type printCache struct {
+	sub notify.Cache
+}
+
+func (pc *printCache) Commit(c *index.Change) context.Context {
+	return pc.sub.Commit(c)
 }
