@@ -569,8 +569,6 @@ module.exports = class IDEAppController extends AppController
           # After that, get participant's snapshot from collaboration data and build workspace.
           @silent = yes  if @isInSession and not @amIHost and not @mountedMachine.isPermanent()
 
-          @splitTabView { type: 'horizontal', dontSave: yes }
-
           @addInitialViews()
 
 
@@ -1293,8 +1291,7 @@ module.exports = class IDEAppController extends AppController
 
   addInitialViews: ->
 
-    @ideViews.first.createEditor()  unless @isNewRegister
-    @ideViews.last.createTerminal { machine: @mountedMachine }
+    @ideViews.first.createTerminal { machine: @mountedMachine }
     @setActiveTabView @ideViews.first.tabView
     @initialViewsReady = yes
 
