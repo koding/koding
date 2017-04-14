@@ -8,7 +8,6 @@
 
   .SidebarStackSection
     max-width               220px
-
     color                   #818181
 
     &.active
@@ -55,7 +54,6 @@
       top                   10px
 
   .SidebarSection
-    margin-bottom           30px
 
     &.draft
       margin-bottom         0px
@@ -72,8 +70,9 @@
       width                 6px
       margin-right          5px
 
-  &:last-of-type
-    margin-bottom           0
+    .ListView-row.SidebarSection-body:last-child
+      margin-bottom         20px
+
 
 #kdmaincontainer
   &.collapsed
