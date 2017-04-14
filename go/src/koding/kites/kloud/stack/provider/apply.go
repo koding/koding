@@ -360,7 +360,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 }
 
 func (bs *BaseStack) UpdateResources(state *terraform.State) error {
-	machines, err := bs.state(state, bs.Klients)
+	machines, err := bs.state(state)
 	if err != nil {
 		return err
 	}
@@ -410,6 +410,10 @@ func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Tim
 	obj["status.modifiedAt"] = now
 	obj["status.state"] = m.State.String()
 	obj["status.reason"] = m.StateReason
+
+	for k, v := range object.MetaBuilder.Build(m.Meta) {
+		obj[k] = v
+	}
 
 	if s.KiteURL != "" {
 		obj["registerUrl"] = s.KiteURL
