@@ -210,7 +210,8 @@ module.exports = class StackEditorAppController extends AppController
 
   showBuildFlow: (template, machineId) ->
 
-    { storage } = kd.singletons.computeController
+    { computeController: { storage }, router } = kd.singletons
+
     templateId = template.getId()
     machine = storage.machines.get machineId
 
@@ -239,6 +240,13 @@ module.exports = class StackEditorAppController extends AppController
     modal.once 'KDObjectWillBeDestroyed', -> modal = null
     modal.once 'OperationCompleted', ->
       debug 'OperationCompleted', machineId
+
+    handleDeleteMachine = ({ operation, value }) ->
+      if value is machineId and operation is 'pop'
+        storage.off 'change:machines', handleDeleteMachine
+        do onClose
+
+    storage.on 'change:machines', handleDeleteMachine
 
     @builds[templateId] = modal
 
