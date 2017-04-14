@@ -52,31 +52,37 @@ module.exports = class StackEditorAppController extends AppController
     @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
 
 
-  openEditor: (templateId, stackId, options = {}, callback = kd.noop) ->
+  openEditor: (options = {}, callback = kd.noop) ->
 
-    { reset = no, build = no } = options
+    { reset = no, build = no,
+      templateId, machineId } = options
 
-    unless templateId
+    debug 'opening editor', options
+
+    if not templateId and not machineId
+      debug 'no information provided, opening stack wizard'
       do @openStackWizard
       return callback { message: 'No template provided' }
 
-    @fetchStackTemplate templateId, reset, (err, template) =>
+    markAsLoaded templateId  if templateId
+
+    @hideBuildFlow()
+
+    @fetchStackTemplate { templateId, machineId, reset }, (err, template) =>
 
       @stackEditor.unsetClass 'initial'
 
       if err
         showError err
+        @openStackWizard()  if err is Errors.NotExists
         return callback err
 
       @stackEditor.setData template, reset
 
-      if build
-      then @showBuildFlow template
-      else @hideBuildFlow template
+      @showBuildFlow template, machineId  if build
 
       callback null
 
-    markAsLoaded templateId, stackId
 
 
   openStackWizard: (handleRoute = yes) ->
@@ -85,17 +91,32 @@ module.exports = class StackEditorAppController extends AppController
     markAsLoaded()
 
 
-  reloadEditor: (templateId, stackId) ->
+  reloadEditor: (templateId) ->
 
-    @openEditor templateId, stackId, { reset: yes }
+    @openEditor { templateId, reset: yes }
 
 
-  fetchStackTemplate: (templateId, reset = no, callback) ->
+  fetchStackTemplate: (options, callback) ->
 
+    debug 'fetchStackTemplate', options
+
+    { templateId, machineId, reset } = options
     { storage } = kd.singletons.computeController
 
-    if not reset and template = storage.templates.get templateId
+    if not reset and templateId and template = storage.templates.get templateId
+      debug 'template found in cache', template
       return callback null, template
+
+    if not templateId and machineId
+      debug 'checking for machine'
+      if machine = storage.machines.get machineId
+        debug 'found the machine', machine
+        templateId = machine.generatedFrom?.templateId
+        debug 'got templateId from machine', templateId
+
+    unless templateId
+      debug 'templateId not found'
+      return callback Errors.NotExists
 
     storage.templates.fetch templateId, null, reset
 
@@ -128,7 +149,7 @@ module.exports = class StackEditorAppController extends AppController
       (next) =>
         if @stackEditor.getData()._id isnt templateId
           logs.add 'loading template first...'
-          @openEditor templateId, null, {}, next
+          @openEditor { templateId }, next
         else
           next()
 
@@ -187,21 +208,19 @@ module.exports = class StackEditorAppController extends AppController
         kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
 
-  showBuildFlow: (template) ->
+  showBuildFlow: (template, machineId) ->
 
     { storage } = kd.singletons.computeController
     templateId = template.getId()
-    machine = storage.machines.get 'generatedFrom.templateId', templateId
+    machine = storage.machines.get machineId
 
     debug 'build triggered for', { machine, template }
 
     if stackId = machine.getStackId?()
-      debug 'mark as loaded', templateId, stackId, machine.getId()
+      debug 'mark as loaded', templateId, machine.getId()
       markAsLoaded templateId, stackId, machine.getId()
 
-    if builder = @builds[templateId]
-      builder.show()
-      return
+    return  if @builds[templateId]?.show?()
 
     modalOptions = {
       state: 'NotInitialized'
