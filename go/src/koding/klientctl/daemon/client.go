@@ -201,6 +201,24 @@ func (c *Client) klientLatest() string {
 	return config.ReplaceCustomEnv(c.konfig().Endpoints.KlientLatest, conf.Environments.Env, conf.Environments.KlientEnv).Public.String()
 }
 
+func (c *Client) klientVersion() (current, latest int, err error) {
+	if n, err := parseVersion(c.d.Files["klient"]); err == nil {
+		current = n
+	}
+
+	err = curl(c.klientLatest(), "%d", &latest)
+	return
+}
+
+func (c *Client) kdVersion() (current, latest int, err error) {
+	if n, err := parseVersion(c.d.Files["kd"]); err == nil {
+		current = n
+	}
+
+	err = curl(c.kdLatest(), "%d", &latest)
+	return
+}
+
 func (c *Client) script() []InstallStep {
 	if c.Script != nil {
 		return c.Script

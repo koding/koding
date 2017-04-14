@@ -20,11 +20,13 @@ import (
 	conf "koding/kites/config"
 	"koding/kites/config/configstore"
 	"koding/kites/kloud/metadata"
+	"koding/kites/kloud/stack"
 	"koding/klient/tunnel/tlsproxy"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/auth"
+	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/helper"
 
 	multierror "github.com/hashicorp/go-multierror"
@@ -38,6 +40,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.hostname = "kd-install-test"
 end
 `)
+
+var (
+	embedded = filepath.FromSlash("/opt/kite/klient/embedded")
+	screen   = filepath.Join(embedded, "bin", "screen")
+)
 
 // ErrSkipInstall is returned by InstallStep's Install/Uninstall
 // functors, when a given step should be skipped.
@@ -61,11 +68,30 @@ type InstallResult struct {
 //
 // Steps are executed in a decreasing order during
 // the "uninstall" procedure.
+//
+// If Check is non-nil and:
+//
+//   - it returns ErrSkipInstall, Install is not executed
+//   - it returns nil error, Install is executed
+//   - it returns other non-nil error, installation is aborted
+//
+// If Check is nil, Install is executed.
 type InstallStep struct {
 	Name        string                               // name of the step
+	Check       func(*Client, *Opts) (string, error) // code to run during installation check
 	Install     func(*Client, *Opts) (string, error) // code to run during installation
 	Uninstall   func(*Client, *Opts) error           // code to run during uninstallation
 	RunOnUpdate bool                                 // whether to run the Install on update procedure
+}
+
+func (is *InstallStep) install(c *Client, opts *Opts) (string, error) {
+	if is.Check != nil {
+		version, err := is.Check(c, opts)
+		if err != nil {
+			return version, err
+		}
+	}
+	return is.Install(c, opts)
 }
 
 // Opts describe daemon optional parameters used by
@@ -135,7 +161,7 @@ func (c *Client) Install(opts *Opts) error {
 		if _, ok := skip[strings.ToLower(step.Name)]; ok {
 			result.Skipped = true
 		} else {
-			result.Version, err = step.Install(c, opts)
+			result.Version, err = step.install(c, opts)
 			switch err {
 			case ErrSkipInstall:
 				result.Skipped = true
@@ -306,7 +332,7 @@ func InstallScreen() error {
 		return cache.GetValue("daemon.screen", &res)
 	})
 
-	if err == nil {
+	if err == nil && res.Name == "screen" {
 		return ErrSkipInstall
 	}
 
@@ -331,24 +357,23 @@ func InstallScreen() error {
 var Screen = (map[string]InstallStep{
 	"darwin": {
 		Name: "screen",
-		Install: func(c *Client, _ *Opts) (string, error) {
+		Install: func(*Client, *Opts) (string, error) {
 			return "", ErrSkipInstall
 		},
-		Uninstall: func(c *Client, _ *Opts) error {
+		Uninstall: func(*Client, *Opts) error {
 			return nil
 		},
 	},
 	"linux": {
 		Name: "screen",
-		Install: func(*Client, *Opts) (string, error) {
-			const base = "/opt/kite/klient/embedded"
-			bin := filepath.Join(base, "bin", "screen")
-
-			if fi, err := os.Stat(bin); err == nil && !fi.IsDir() {
+		Check: func(*Client, *Opts) (string, error) {
+			if fi, err := os.Stat(screen); err == nil && !fi.IsDir() {
 				return "", ErrSkipInstall
 			}
-
-			if err := os.MkdirAll(base, 0755); err != nil {
+			return "", nil
+		},
+		Install: func(*Client, *Opts) (string, error) {
+			if err := mkdirAll(embedded, 0755); err != nil {
 				return "", err
 			}
 
@@ -383,12 +408,12 @@ var Screen = (map[string]InstallStep{
 
 				name := filepath.Join("/", h.Name)
 
-				if !strings.HasPrefix(name, base) {
+				if !strings.HasPrefix(name, embedded) {
 					return "", errors.New("invalid entry: " + name)
 				}
 
 				if h.Typeflag == tar.TypeDir {
-					if err := os.MkdirAll(name, 0755); err != nil {
+					if err := mkdirAll(name, 0755); err != nil {
 						return "", err
 					}
 
@@ -405,14 +430,14 @@ var Screen = (map[string]InstallStep{
 				}
 
 				_, err = io.Copy(f, tr)
-				err = nonil(err, f.Close())
+				err = nonil(err, f.Chown(conf.CurrentUser.Uid, conf.CurrentUser.Gid), f.Close())
 				if err != nil {
 					return "", err
 				}
 			}
 
 			// Best-effort attempt of creating screen dir.
-			_ = symlink(filepath.Join(base, "share", "terminfo"), "/usr/share/terminfo")
+			_ = symlink(filepath.Join(embedded, "share", "terminfo"), filepath.FromSlash("/usr/share/terminfo"))
 
 			return "", nil
 		},
@@ -434,6 +459,14 @@ func symlink(from, to string) error {
 	return os.Symlink(from, to)
 }
 
+func mkdirAll(dir string, mode os.FileMode) error {
+	if err := os.Mkdir(dir, mode); err != nil {
+		return err
+	}
+
+	return os.Chown(dir, conf.CurrentUser.Uid, conf.CurrentUser.Gid)
+}
+
 func run(cmd string, args ...string) error {
 	var buf bytes.Buffer
 
@@ -450,6 +483,15 @@ func run(cmd string, args ...string) error {
 // Script is a list of installation steps, used by default by KD.
 var Script = []InstallStep{{
 	Name: "log files",
+	Check: func(c *Client, _ *Opts) (string, error) {
+		if _, err := os.Stat(c.d.LogFiles["kd"][runtime.GOOS]); err != nil {
+			return "", nil
+		}
+		if _, err := os.Stat(c.d.LogFiles["klient"][runtime.GOOS]); err != nil {
+			return "", nil
+		}
+		return "", ErrSkipInstall
+	},
 	Install: func(c *Client, _ *Opts) (string, error) {
 		kd := c.d.LogFiles["kd"][runtime.GOOS]
 		klient := c.d.LogFiles["klient"][runtime.GOOS]
@@ -488,8 +530,17 @@ var Script = []InstallStep{{
 	},
 }, {
 	Name: "directory structure",
+	Check: func(c *Client, _ *Opts) (string, error) {
+		if _, err := os.Stat(c.d.KlientHome); err != nil {
+			return "", nil
+		}
+		if _, err := os.Stat(c.d.KodingHome); err != nil {
+			return "", nil
+		}
+		return "", ErrSkipInstall
+	},
 	Install: func(c *Client, _ *Opts) (string, error) {
-		return "", nonil(os.MkdirAll(c.d.KlientHome, 0755), os.MkdirAll(c.d.KodingHome, 0755))
+		return "", nonil(mkdirAll(c.d.KlientHome, 0755), mkdirAll(c.d.KodingHome, 0755))
 	},
 	Uninstall: func(c *Client, _ *Opts) error {
 		return os.RemoveAll(c.d.KodingHome)
@@ -497,13 +548,15 @@ var Script = []InstallStep{{
 }, (map[string]InstallStep{
 	"darwin": {
 		Name: "osxfuse",
-		Install: func(c *Client, _ *Opts) (string, error) {
-			const volume = "/Volumes/FUSE for macOS"
-			const pkg = volume + "/Extras/FUSE for macOS 3.5.2.pkg"
-
+		Check: func(*Client, *Opts) (string, error) {
 			if _, err := os.Stat("/Library/Filesystems/osxfuse.fs"); err == nil {
 				return "", ErrSkipInstall
 			}
+			return "", nil
+		},
+		Install: func(c *Client, _ *Opts) (string, error) {
+			const volume = "/Volumes/FUSE for macOS"
+			const pkg = volume + "/Extras/FUSE for macOS 3.5.2.pkg"
 
 			dmg := c.d.Osxfuse
 
@@ -516,22 +569,26 @@ var Script = []InstallStep{{
 	},
 	"linux": {
 		Name: "FUSE",
+		Check: func(*Client, *Opts) (string, error) {
+			return "", ErrSkipInstall
+		},
 		Install: func(c *Client, _ *Opts) (string, error) {
 			// TODO(rjeczalik): check if FUSE is correctly configured?
-
 			return "", ErrSkipInstall
 		},
 	},
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "VirtualBox",
-		Install: func(c *Client, _ *Opts) (string, error) {
-			const volume = "/Volumes/VirtualBox"
-			const pkg = volume + "/VirtualBox.pkg"
-
+		Check: func(*Client, *Opts) (string, error) {
 			if hasVirtualBox() {
 				return "", ErrSkipInstall
 			}
+			return "", nil
+		},
+		Install: func(c *Client, _ *Opts) (string, error) {
+			const volume = "/Volumes/VirtualBox"
+			const pkg = volume + "/VirtualBox.pkg"
 
 			dmg := c.d.Virtualbox[runtime.GOOS]
 
@@ -544,11 +601,13 @@ var Script = []InstallStep{{
 	},
 	"linux": {
 		Name: "VirtualBox",
-		Install: func(c *Client, _ *Opts) (string, error) {
+		Check: func(*Client, *Opts) (string, error) {
 			if hasVirtualBox() {
 				return "", ErrSkipInstall
 			}
-
+			return "", nil
+		},
+		Install: func(c *Client, _ *Opts) (string, error) {
 			vbox := c.d.Virtualbox[runtime.GOOS]
 
 			// Best-effort attempt to install dependencies on Debian/Ubuntu.
@@ -581,11 +640,17 @@ var Script = []InstallStep{{
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "Vagrant",
+		Check: func(*Client, *Opts) (string, error) {
+			if hasVagrant() {
+				return "", ErrSkipInstall
+			}
+			return "", nil
+		},
 		Install: func(c *Client, opts *Opts) (string, error) {
 			const volume = "/Volumes/Vagrant"
 			const pkg = volume + "/Vagrant.pkg"
 
-			if hasVagrant() || !c.needVagrant(opts) {
+			if !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 
@@ -603,8 +668,14 @@ var Script = []InstallStep{{
 	},
 	"linux": {
 		Name: "Vagrant",
+		Check: func(*Client, *Opts) (string, error) {
+			if hasVagrant() {
+				return "", ErrSkipInstall
+			}
+			return "", nil
+		},
 		Install: func(c *Client, opts *Opts) (string, error) {
-			if hasVagrant() || !c.needVagrant(opts) {
+			if !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 
@@ -628,6 +699,18 @@ var Script = []InstallStep{{
 	},
 })[runtime.GOOS], {
 	Name: "Koding account",
+	Check: func(_ *Client, opts *Opts) (string, error) {
+		// For installation check we do not want to force
+		// authentication, thus we're only validating the
+		// auth when opts are nil (as Install requires
+		// non-nil opts).
+		if v, ok := kloud.DefaultClient.Transport.(stack.Validator); ok && opts == nil {
+			if err := v.Valid(); err == nil {
+				return "", ErrSkipInstall
+			}
+		}
+		return "", nil
+	},
 	Install: func(c *Client, opts *Opts) (string, error) {
 		f, err := c.newFacade()
 		if err != nil {
@@ -653,14 +736,19 @@ var Script = []InstallStep{{
 	},
 }, {
 	Name: "KD Daemon",
-	Install: func(c *Client, _ *Opts) (string, error) {
-		var version, newVersion int
-
-		if n, err := parseVersion(c.d.Files["klient"]); err == nil {
-			version = n
+	Check: func(c *Client, _ *Opts) (string, error) {
+		version, newVersion, err := c.klientVersion()
+		if err != nil {
+			return "", err
 		}
-
-		if err := curl(c.klientLatest(), "%d", &newVersion); err != nil {
+		if version != 0 && newVersion <= version {
+			return strconv.Itoa(version), ErrSkipInstall
+		}
+		return "", nil
+	},
+	Install: func(c *Client, _ *Opts) (string, error) {
+		version, newVersion, err := c.klientVersion()
+		if err != nil {
 			return "", err
 		}
 
@@ -719,14 +807,26 @@ var Script = []InstallStep{{
 	RunOnUpdate: true,
 }, {
 	Name: "KD",
-	Install: func(c *Client, _ *Opts) (string, error) {
-		var version, newVersion int
-
-		if n, err := parseVersion(c.d.Files["kd"]); err == nil {
-			version = n
+	Check: func(c *Client, _ *Opts) (string, error) {
+		version, newVersion, err := c.kdVersion()
+		if err != nil {
+			return "", err
 		}
+		if version != 0 && version < config.VersionNum() {
+			if err := copyFile(os.Args[0], c.d.Files["kd"], 0755); err != nil {
+				return "", err
+			}
 
-		if err := curl(c.kdLatest(), "%d", &newVersion); err != nil {
+			return config.Version, ErrSkipInstall
+		}
+		if version != 0 && newVersion <= version {
+			return strconv.Itoa(version), ErrSkipInstall
+		}
+		return "", nil
+	},
+	Install: func(c *Client, _ *Opts) (string, error) {
+		version, newVersion, err := c.kdVersion()
+		if err != nil {
 			return "", err
 		}
 
@@ -754,6 +854,9 @@ var Script = []InstallStep{{
 	RunOnUpdate: true,
 }, {
 	Name: "Start KD Deamon",
+	Check: func(*Client, *Opts) (string, error) {
+		return "", ErrSkipInstall
+	},
 	Install: func(c *Client, _ *Opts) (string, error) {
 		svc, err := c.d.service()
 		if err != nil {
@@ -772,6 +875,9 @@ var Script = []InstallStep{{
 	RunOnUpdate: true,
 }, {
 	Name: "Test Vagrant Stacks",
+	Check: func(*Client, *Opts) (string, error) {
+		return "", ErrSkipInstall
+	},
 	Install: func(c *Client, opts *Opts) (string, error) {
 		if !c.needVagrant(opts) {
 			return "", ErrSkipInstall
@@ -880,7 +986,7 @@ func copyFile(src, dst string, mode os.FileMode) error {
 		mode = fi.Mode()
 	}
 
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+	if err := mkdirAll(filepath.Dir(dst), 0755); err != nil {
 		return err
 	}
 
@@ -893,7 +999,7 @@ func copyFile(src, dst string, mode os.FileMode) error {
 		return nonil(err, tmp.Close(), os.Remove(tmp.Name()))
 	}
 
-	if err = nonil(tmp.Chmod(mode), tmp.Close()); err != nil {
+	if err = nonil(tmp.Chmod(mode), tmp.Chown(conf.CurrentUser.Uid, conf.CurrentUser.Gid), tmp.Close()); err != nil {
 		return nonil(err, os.Remove(tmp.Name()))
 	}
 
