@@ -212,6 +212,7 @@ func (s *Stacker) BaseStack(ctx context.Context) (*BaseStack, error) {
 		Provider:  s.Provider,
 		KlientIDs: make(stack.KiteMap),
 		Klients:   make(map[string]*DialState),
+		Metas:     make(map[string]map[string]interface{}),
 		TunnelURL: s.TunnelURL,
 		Keys:      s.SSHKey,
 	}
