@@ -548,6 +548,76 @@ func run(args []string) {
 				SkipFlagParsing: true,
 				Flags:           []cli.Flag{},
 			}},
+		}, {
+			Name:  "template",
+			Usage: "Manage stack templates.",
+			Subcommands: []cli.Command{{
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List all stack templates.",
+				Action:    ctlcli.ExitErrAction(TemplateList, log, "list"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+					cli.StringFlag{
+						Name:  "template, t",
+						Usage: "Limit to templates with the given name.",
+					},
+					cli.StringFlag{
+						Name:  "team",
+						Usage: "Limit to templates for the given team.",
+					},
+				},
+			}, {
+				Name:   "show",
+				Usage:  "Show details of a stack template.",
+				Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+					cli.StringFlag{
+						Name:  "id",
+						Usage: "Limit to a template that matches the ID.",
+					},
+					cli.BoolFlag{
+						Name:  "hcl",
+						Usage: "Output in HCL format.",
+					},
+				},
+			}, {
+				Name:   "delete",
+				Usage:  "Delete a stack template.",
+				Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "template, t",
+						Usage: "Show template with a given name.",
+					},
+					cli.StringFlag{
+						Name:  "id",
+						Usage: "Limit to a template that matches the ID.",
+					},
+					cli.StringFlag{
+						Name:  "force",
+						Usage: "Do not ask form confirmation.",
+					},
+				},
+			}, {
+				Name:   "init",
+				Usage:  "Generate a new stack template file.",
+				Action: ctlcli.ExitErrAction(TemplateInit, log, "init"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "output, o",
+						Usage: "Output template file.",
+						Value: "kd.yaml",
+					},
+				},
+			}},
 		},
 	}
 
@@ -714,66 +784,6 @@ func run(args []string) {
 						cli.StringFlag{
 							Name:  "team",
 							Usage: "Limit to stack for the given team.",
-						},
-					},
-				}},
-			},
-			cli.Command{
-				Name:  "template",
-				Usage: "Manage stack templates.",
-				Subcommands: []cli.Command{{
-					Name:      "list",
-					ShortName: "ls",
-					Usage:     "List all stack templates.",
-					Action:    ctlcli.ExitErrAction(TemplateList, log, "list"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "template, t",
-							Usage: "Limit to templates with the given name.",
-						},
-						cli.StringFlag{
-							Name:  "team",
-							Usage: "Limit to templates for the given team.",
-						},
-					},
-				}, {
-					Name:   "show",
-					Usage:  "Show details of a stack template.",
-					Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "id",
-							Usage: "Limit to a template that matches the ID.",
-						},
-						cli.BoolFlag{
-							Name:  "hcl",
-							Usage: "Output in HCL format.",
-						},
-					},
-				}, {
-					Name:   "delete",
-					Usage:  "Delete a stack template.",
-					Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "template, t",
-							Usage: "Show template with a given name.",
-						},
-						cli.StringFlag{
-							Name:  "id",
-							Usage: "Limit to a template that matches the ID.",
-						},
-						cli.StringFlag{
-							Name:  "force",
-							Usage: "Do not ask form confirmation.",
 						},
 					},
 				}},

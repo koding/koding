@@ -54,7 +54,7 @@ func NewJStackTemplateSamplesOK() *JStackTemplateSamplesOK {
 stacktemplate sample in json and yaml format with default values
 */
 type JStackTemplateSamplesOK struct {
-	Payload JStackTemplateSamplesOKBody
+	Payload *models.DefaultResponse
 }
 
 func (o *JStackTemplateSamplesOK) Error() string {
