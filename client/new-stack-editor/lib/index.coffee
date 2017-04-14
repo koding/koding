@@ -233,7 +233,8 @@ module.exports = class StackEditorAppController extends AppController
 
     modal = new ResourceStateModal modalOptions, machine
     modal.once 'KDObjectWillBeDestroyed', -> modal = null
-    modal.once 'IDEBecameReady', -> console.log 'IDEBecameReady ....'
+    modal.once 'OperationCompleted', ->
+      debug 'OperationCompleted', machineId
 
     @builds[templateId] = modal
 

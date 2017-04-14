@@ -642,9 +642,6 @@ module.exports = class IDEAppController extends AppController
               state, container, machineItem, initial: yes
             }
 
-            if state is NotInitialized
-              @setupFakeActivityNotification()
-
           @once 'IDEReady', =>
             @prepareCollaboration()
             @runOnboarding()
@@ -716,7 +713,7 @@ module.exports = class IDEAppController extends AppController
 
     @machineStateModal = new ResourceStateModal modalOptions, machineItem
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
-    @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'
+    @machineStateModal.once 'OperationCompleted', @bound 'handleIDEBecameReady'
 
     @emit 'MachineStateModalReady', @machineStateModal
 
@@ -1796,20 +1793,6 @@ module.exports = class IDEAppController extends AppController
             @quit()
 
     @showModal options
-
-
-  setupFakeActivityNotification: ->
-
-    return  unless kookies.get('newRegister') is 'true'
-
-    @isNewRegister = yes
-
-    @machineStateModal?.once 'MachineTurnOnStarted', =>
-      kookies.expire 'newRegister', { path: '/' }
-      kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
-
-      # open README.md for the first time for newly registered users.
-      @machineStateModal.once 'IDEBecameReady', @bound 'openReadme'
 
 
   fetchSnapshot: (callback, username = nick()) ->

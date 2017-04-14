@@ -18,7 +18,7 @@ module.exports = class ResourceStateModal extends BaseModalView
     @controller = new ResourceStateController { container: this, initial }, @getData()
     @controller.on 'PaneDidShow', @bound 'setPositions'
     @controller.on 'ClosingRequested', @bound 'destroy'
-    @forwardEvent @controller, 'IDEBecameReady'
+    @forwardEvent @controller, 'OperationCompleted'
     @forwardEvent @controller, 'MachineTurnOnStarted'
     @controller.loadData()
 
