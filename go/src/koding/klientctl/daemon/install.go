@@ -306,9 +306,6 @@ func InstallScreen() error {
 		return cache.GetValue("daemon.screen", &res)
 	})
 
-	// TODO(rjeczalik): For backward-compatibility reasons, remove in future.
-	_ = ensureWorldWriteable("/tmp/uscreens")
-
 	if err == nil {
 		return ErrSkipInstall
 	}
@@ -415,7 +412,6 @@ var Screen = (map[string]InstallStep{
 			}
 
 			// Best-effort attempt of creating screen dir.
-			_ = ensureWorldWriteable("/tmp/uscreens")
 			_ = symlink(filepath.Join(base, "share", "terminfo"), "/usr/share/terminfo")
 
 			return "", nil
@@ -425,14 +421,6 @@ var Screen = (map[string]InstallStep{
 		},
 	},
 })[runtime.GOOS]
-
-func ensureWorldWriteable(dir string) error {
-	if fi, err := os.Lstat(dir); err == nil && !fi.IsDir() {
-		_ = os.Remove(dir)
-	}
-
-	return nonil(os.MkdirAll(dir, 0777), os.Chmod(dir, 0777))
-}
 
 func symlink(from, to string) error {
 	if _, err := os.Stat(to); err == nil {
