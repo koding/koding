@@ -220,7 +220,11 @@ module.exports = class StackEditorAppController extends AppController
       debug 'mark as loaded', templateId, machine.getId()
       markAsLoaded templateId, stackId, machine.getId()
 
-    return  if @builds[templateId]?.show?()
+    if existingBuild = @builds[templateId]
+      if existingBuild.getData().getId() is machineId
+        return existingBuild.show()
+      delete @builds[templateId]
+
     onClose = ->
       router.handleRoute "/Stack-Editor/#{templateId}"
 
