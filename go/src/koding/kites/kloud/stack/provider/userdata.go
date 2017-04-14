@@ -56,6 +56,15 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 		delete(vm, "koding_debug")
 	}
 
+	var meta map[string]interface{}
+
+	if b, ok := vm["koding_always_on"].(bool); ok {
+		meta = map[string]interface{}{
+			"alwaysOn": b,
+		}
+		delete(vm, "koding_always_on")
+	}
+
 	if s, ok := vm[field].(string); ok {
 		cfg.Userdata = s
 	}
@@ -78,6 +87,10 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 		}
 
 		kiteKeys[i] = kiteKey
+
+		if len(meta) != 0 {
+			bs.Metas[label] = meta
+		}
 	}
 
 	t.Variable[kiteKeyName] = map[string]interface{}{
