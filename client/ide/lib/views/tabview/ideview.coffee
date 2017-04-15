@@ -386,7 +386,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     terminalPane = new IDETerminalPane options
     { isActivePane } = options
 
-    terminalPane.ready -> frontApp.setRealtimeManager terminalPane
+    terminalPane.ready -> frontApp.setRealtimeManager? terminalPane
 
     { webtermView } = terminalPane
 

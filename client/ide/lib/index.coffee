@@ -545,16 +545,12 @@ module.exports = class IDEAppController extends AppController
         machineLabel = machine.slug or machine.label
         splashes     = splashMarkups
 
-        @splitTabView { type: 'horizontal', dontSave: yes }
-
-        @fakeEditor       = @ideViews.first.createEditor()
         @fakeTabView      = @activeTabView
         fakeTerminalView  = new kd.CustomHTMLView { partial: splashes.getTerminal nickname }
         @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
         @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname, machineLabel }
 
         @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
-        @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
 
       else
 
@@ -570,6 +566,8 @@ module.exports = class IDEAppController extends AppController
           @silent = yes  if @isInSession and not @amIHost and not @mountedMachine.isPermanent()
 
           @addInitialViews()
+
+          return
 
 
   setMountedMachine: (machine) ->
@@ -953,6 +951,7 @@ module.exports = class IDEAppController extends AppController
     kite = machine.getBaseKite()
     kite.init().then ->
       kite.storageSetQueued key, value
+      return kite
     .catch kd.noop
 
 
@@ -1279,9 +1278,6 @@ module.exports = class IDEAppController extends AppController
 
   removeFakeViews: ->
 
-    fakeEditorPane = @fakeEditor?.parent
-    fakeEditorPane?.parent?.removePane fakeEditorPane
-
     @fakeTerminalPane?.parent?.removePane @fakeTerminalPane
     @fakeFinderView?.destroy()
 
@@ -1294,6 +1290,8 @@ module.exports = class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ (pane) ->
       pane.isInitial = yes
+
+    return
 
 
   toggleFullscreenIDEView: ->
@@ -1799,6 +1797,8 @@ module.exports = class IDEAppController extends AppController
 
     @fetchFromKiteStorage callback, username
 
+    return
+
 
   fetchFromKiteStorage: (callback, prefix) ->
 
@@ -1809,6 +1809,8 @@ module.exports = class IDEAppController extends AppController
 
       console.warn 'Failed to fetch data:', err
       callback null
+
+      return err
 
     fetch = (prefix) =>
 
