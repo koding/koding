@@ -37,15 +37,13 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 
 // LookUpInode finds entry in context of specific parent directory and sets
 // its attributes. It assumes parent directory has already been seen.
-//
-// Required for fuse.FileSystem.
 func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) (err error) {
 	fs.Index.Tree().DoInode(uint64(op.Parent), func(_ node.Guard, n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
 
-		if child := n.GetChild(op.Name); child != nil {
+		if child := n.GetChild(op.Name); child.Exist() {
 			op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
 			op.Entry.Attributes = fs.attr(child.Entry)
 			return
@@ -57,12 +55,10 @@ func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) 
 	return err
 }
 
-// GetInodeAttributes set attributes for a specified Node.
-//
-// Required for fuse.FileSystem.
+// GetInodeAttributes gets attributes of a node pointed by provided inode ID.
 func (fs *Filesystem) GetInodeAttributes(_ context.Context, op *fuseops.GetInodeAttributesOp) (err error) {
 	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
-		if n != nil && n.Entry.Virtual.Promise.Exist() {
+		if n.Exist() {
 			op.Attributes = fs.attr(n.Entry)
 			return
 		}
@@ -70,7 +66,7 @@ func (fs *Filesystem) GetInodeAttributes(_ context.Context, op *fuseops.GetInode
 		err = fuse.ENOENT
 	})
 
-	return err
+	return
 }
 
 // SetInodeAttributes sets specified attributes to file or directory.

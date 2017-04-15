@@ -98,7 +98,9 @@ func main() {
 		cache = &printCache{sub: bc}
 	}
 
-	opts := &fuse.Opts{
+	fmt.Println(bc.Index().DebugString())
+
+	opts := &fuse.Options{
 		Cache:    cache,
 		CacheDir: *tmp,
 		Index:    bc.Index(),
@@ -121,7 +123,7 @@ func main() {
 
 	go func() {
 		for range ch {
-			fmt.Print(fs.DebugString())
+			fmt.Print(fs.Index.DebugString())
 		}
 	}()
 

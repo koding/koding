@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"koding/kites/config"
@@ -17,7 +18,6 @@ import (
 	"koding/klient/machine/mount/notify"
 
 	"github.com/jacobsa/fuse"
-	origfuse "github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"golang.org/x/net/context"
@@ -41,7 +41,7 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		return nil, err
 	}
 
-	o := &Opts{
+	o := &Options{
 		Index:    opts.Index,
 		Disk:     di,
 		Cache:    opts.Cache,
@@ -60,20 +60,20 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 	return NewFilesystem(o)
 }
 
-// Opts configures FUSE filesystem.
-type Opts struct {
+// Options configures FUSE filesystem.
+type Options struct {
 	Index    *index.Index // metadata index
 	Disk     *fs.DiskInfo // filesystem information
 	Cache    notify.Cache // used to request cache updates
-	CacheDir string       // path of the cache directory of the mount; must end with a dangling /
+	CacheDir string       // path of the cache directory of the mount
 	Mount    string       // name of the mount
 	MountDir string       // path of the mount directory
 	User     *config.User // owner of the mount; if nil, config.CurrentUser is used
 	Debug    bool         // turns on fuse debug logging
 }
 
-// Valid implements the stack.Validator interface.
-func (o *Opts) Valid() error {
+// Valid checks if provided options are valid.
+func (o *Options) Valid() error {
 	const sep = string(os.PathSeparator)
 
 	if o.Index == nil {
@@ -97,12 +97,13 @@ func (o *Opts) Valid() error {
 	if !strings.HasSuffix(o.MountDir, sep) {
 		o.MountDir = o.MountDir + sep
 	}
+
 	return nil
 }
 
-func (opts *Opts) user() *config.User {
-	if opts.User != nil {
-		return opts.User
+func (o *Options) user() *config.User {
+	if o.User != nil {
+		return o.User
 	}
 	return config.CurrentUser
 }
@@ -126,7 +127,7 @@ type Filesystem struct {
 	//   - ReadSymlink
 	//
 	fuseutil.NotImplementedFileSystem
-	Opts
+	Options
 
 	cancel func()
 
@@ -138,7 +139,7 @@ type Filesystem struct {
 var _ fuseutil.FileSystem = (*Filesystem)(nil)
 
 // NewFilesystem creates new Filesystem value.
-func NewFilesystem(opts *Opts) (*Filesystem, error) {
+func NewFilesystem(opts *Options) (*Filesystem, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
@@ -153,13 +154,13 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	fs := &Filesystem{
-		Opts:      *opts,
+		Options:   *opts,
 		cancel:    cancel,
 		seqHandle: uint64(3),
 		handles:   make(map[fuseops.HandleID]HandleInfo),
 	}
 
-	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
+	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
 	if err != nil {
 		return nil, err
 	}
@@ -177,6 +178,7 @@ func (fs *Filesystem) Close() error {
 	return Umount(fs.MountDir)
 }
 
+// Config constructs fuse configuration.
 func (fs *Filesystem) Config() *fuse.MountConfig {
 	var logger *log.Logger
 
@@ -193,10 +195,6 @@ func (fs *Filesystem) Config() *fuse.MountConfig {
 		DebugLogger:             logger,
 		ErrorLogger:             logger,
 	}
-}
-
-func (fs *Filesystem) DebugString() string {
-	return fs.Index.DebugString()
 }
 
 func (fs *Filesystem) addHandle(nID fuseops.InodeID, f *os.File) (id fuseops.HandleID) {
@@ -221,8 +219,9 @@ func (fs *Filesystem) addHandle(nID fuseops.InodeID, f *os.File) (id fuseops.Han
 	return id
 }
 
+// checkDir checks if provided node describes a directory.
 func checkDir(n *node.Node) error {
-	if n == nil || !n.Entry.Virtual.Promise.Exist() {
+	if !n.Exist() {
 		return fuse.ENOENT
 	}
 
@@ -231,6 +230,37 @@ func checkDir(n *node.Node) error {
 	}
 
 	return nil
+}
+
+// toErrno is a modified version of hanwen/go-fuse `ToStatus`` function. It
+// converts error interface to system's error number or returns ENOSYS if the
+// error code cannot be obtained.
+func toStatus(err error) syscall.Errno {
+	switch err {
+	case nil:
+		return 0
+	case os.ErrPermission:
+		return syscall.EPERM
+	case os.ErrExist:
+		return syscall.EEXIST
+	case os.ErrNotExist:
+		return syscall.ENOENT
+	case os.ErrInvalid:
+		return syscall.EINVAL
+	}
+
+	switch t := err.(type) {
+	case syscall.Errno:
+		return t
+	case *os.SyscallError:
+		return t.Err.(syscall.Errno)
+	case *os.PathError:
+		return toStatus(t.Err)
+	case *os.LinkError:
+		return toStatus(t.Err)
+	}
+
+	return syscall.ENOSYS
 }
 
 func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
@@ -282,15 +312,17 @@ func (fs *Filesystem) attr(entry *node.Entry) fuseops.InodeAttributes {
 	ctime := time.Unix(0, entry.File.CTime)
 
 	return fuseops.InodeAttributes{
-		Size:   uint64(entry.File.Size),
-		Nlink:  1, // TODO(rjeczalik): symlink / hardlink implementation
-		Mode:   entry.File.Mode,
+		Size:  uint64(entry.File.Size),
+		Nlink: 1, // TODO(rjeczalik): symlink / hardlink implementation
+		Mode:  entry.File.Mode,
+
 		Atime:  mtime,
 		Mtime:  mtime,
 		Ctime:  ctime,
 		Crtime: ctime,
-		Uid:    uint32(fs.user().Uid),
-		Gid:    uint32(fs.user().Gid),
+
+		Uid: uint32(fs.user().Uid),
+		Gid: uint32(fs.user().Gid),
 	}
 }
 

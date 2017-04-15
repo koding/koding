@@ -46,6 +46,12 @@ func NewNodeEntry(name string, entry *Entry) *Node {
 // IsShadowed returns true when node is not present in tree.
 func (n *Node) IsShadowed() bool { return n.Entry == nil }
 
+// Exist returns true for nodes that are considered as existing files. This
+// method can be called on nil nodes.
+func (n *Node) Exist() bool {
+	return n != nil && n.Entry.Virtual.Promise.Exist()
+}
+
 // Clone returns a deep copy of called node.
 func (n *Node) Clone() *Node {
 	c := &Node{
