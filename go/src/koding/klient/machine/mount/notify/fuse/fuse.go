@@ -159,7 +159,7 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error
 		}
 
 		child := node.NewNodeEntry(op.Name, node.NewEntry(0, op.Mode|os.ModeDir))
-		child.Entry.Virtual.RefCount++
+		child.Entry.Virtual.CountInc()
 		g.AddChild(n, child)
 		child.PromiseAdd()
 
@@ -204,7 +204,7 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 		_ = f.Chmod(op.Mode)
 
 		child := node.NewNodeEntry(op.Name, node.NewEntry(0, op.Mode))
-		child.Entry.Virtual.RefCount++
+		child.Entry.Virtual.CountInc()
 		g.AddChild(n, child)
 		child.PromiseAdd()
 
@@ -362,68 +362,85 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 }
 
 // OpenDir opens a directory, ie. indicates operations are to be done on this
-// directory.
-//
-// Required for fuse.FileSystem.
-func (fs *Filesystem) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) (err error) {
+// directory. This function only increases directory handle counter. The handle
+// itself is not used.
+func (fs *Filesystem) OpenDir(_ context.Context, op *fuseops.OpenDirOp) (err error) {
 	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
-		err = checkDir(n)
+		if err = checkDir(n); err != nil {
+			return
+		}
+
+		// Create a new directory handle.
+		op.Handle = fs.dirHandles.Open(op.Inode)
+		n.Entry.Virtual.CountInc()
 	})
 
 	return
 }
 
-// ReleaseDirHandle removes a directory under the given handle ID for open ones.
-//
-// Required for fuse.FileSystem.
-func (fs *Filesystem) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseDirHandleOp) error {
-	return nil
-}
-
 // ReadDir reads entries in a specific directory.
-//
-// Required for fuse.FileSystem.
-func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) (err error) {
-	var dirents []*fuseutil.Dirent
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(g node.Guard, n *node.Node) {
+func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err error) {
+	var dirents []fuseutil.Dirent
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
 
 		if offset := int(op.Offset); offset > n.ChildN() {
-			err = fuse.EIO
+			err = fuse.EINVAL
 			return
 		} else if offset == n.ChildN() {
 			return
 		}
 
-		i := 0
+		var i = 1
 		n.Children(int(op.Offset), func(child *node.Node) {
-			i++
-			dirents = append(dirents, &fuseutil.Dirent{
+			dirents = append(dirents, fuseutil.Dirent{
 				Offset: op.Offset + fuseops.DirOffset(i),
 				Inode:  fuseops.InodeID(child.Entry.Virtual.Inode),
 				Name:   child.Name,
 				Type:   direntType(n.Entry),
 			})
+
+			i++
 		})
 	})
 
-	sum := 0
-	// TODO(rjeczalik): we can estimate how many entries to return by
-	// looking at op.Dst size.
-	for _, dir := range dirents {
-		n := fuseutil.WriteDirent(op.Dst[sum:], *dir)
-		if n == 0 {
+	var n, bytesRead int
+	for i := range dirents {
+		if n = fuseutil.WriteDirent(op.Dst[bytesRead:], dirents[i]); n == 0 {
 			break
 		}
-
-		sum += n
+		bytesRead += n
 	}
 
-	op.BytesRead = sum
+	op.BytesRead += bytesRead
 
-	return nil
+	return
+}
+
+// ReleaseDirHandle removes a directory under the given handle ID for open ones.
+// Since file system doesn't use handles, this function only decreases entry
+// reference counter.
+func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDirHandleOp) error {
+	dh, err := fs.dirHandles.Get(op.Handle)
+	if err != nil {
+		return err
+	}
+
+	fs.Index.Tree().DoInode(uint64(dh.InodeID), func(_ node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
+		}
+
+		if err = fs.dirHandles.Release(op.Handle); err != nil {
+			return
+		}
+
+		n.Entry.Virtual.CountDec()
+	})
+
+	return err
 }
 
 // OpenFile opens a File, ie. indicates operations are to be done on this file.

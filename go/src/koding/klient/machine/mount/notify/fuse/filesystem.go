@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"koding/kites/config"
@@ -131,6 +130,10 @@ type Filesystem struct {
 
 	cancel func()
 
+	// Dynamic filesystem state.
+	dirHandles  *DirHandleGroup
+	fileHandles *FileHandleGroup
+
 	mu        sync.RWMutex
 	seqHandle uint64
 	handles   map[fuseops.HandleID]HandleInfo
@@ -153,11 +156,14 @@ func NewFilesystem(opts *Options) (*Filesystem, error) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	gen := generator(MinHandleID)
 	fs := &Filesystem{
-		Options:   *opts,
-		cancel:    cancel,
-		seqHandle: uint64(3),
-		handles:   make(map[fuseops.HandleID]HandleInfo),
+		Options:     *opts,
+		cancel:      cancel,
+		dirHandles:  NewDirHandleGroup(gen),
+		fileHandles: NewFileHandleGroup(gen),
+		seqHandle:   uint64(3),
+		handles:     make(map[fuseops.HandleID]HandleInfo),
 	}
 
 	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
@@ -232,37 +238,6 @@ func checkDir(n *node.Node) error {
 	return nil
 }
 
-// toErrno is a modified version of hanwen/go-fuse `ToStatus`` function. It
-// converts error interface to system's error number or returns ENOSYS if the
-// error code cannot be obtained.
-func toStatus(err error) syscall.Errno {
-	switch err {
-	case nil:
-		return 0
-	case os.ErrPermission:
-		return syscall.EPERM
-	case os.ErrExist:
-		return syscall.EEXIST
-	case os.ErrNotExist:
-		return syscall.ENOENT
-	case os.ErrInvalid:
-		return syscall.EINVAL
-	}
-
-	switch t := err.(type) {
-	case syscall.Errno:
-		return t
-	case *os.SyscallError:
-		return t.Err.(syscall.Errno)
-	case *os.PathError:
-		return toStatus(t.Err)
-	case *os.LinkError:
-		return toStatus(t.Err)
-	}
-
-	return syscall.ENOSYS
-}
-
 func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 	fs.mu.Lock()
 	f, nID, ok := fs.getHandle(id)
@@ -278,7 +253,7 @@ func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 			return
 		}
 
-		n.Entry.Virtual.RefCount--
+		n.Entry.Virtual.CountDec()
 	})
 
 	return f.Close()
@@ -368,8 +343,7 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error 
 }
 
 func (fs *Filesystem) unlink(n *node.Node) error {
-	n.Entry.Virtual.RefCount--
-	if rc := n.Entry.Virtual.RefCount; rc > 0 {
+	if rc := n.Entry.Virtual.CountDec(); rc > 0 {
 		n.PromiseUnlink()
 		return nil
 	}
@@ -400,7 +374,7 @@ func (fs *Filesystem) open(ctx stdcontext.Context, n *node.Node) (*os.File, fuse
 	id := fs.addHandle(fuseops.InodeID(n.Entry.Virtual.Inode), f)
 	fs.mu.Unlock()
 
-	n.Entry.Virtual.RefCount++
+	n.Entry.Virtual.CountInc()
 
 	return f, id, nil
 }
@@ -454,23 +428,4 @@ func direntType(entry *node.Entry) fuseutil.DirentType {
 		return fuseutil.DT_Directory
 	}
 	return fuseutil.DT_File
-}
-
-func nonil(err ...error) error {
-	for _, e := range err {
-		if e != nil {
-			return e
-		}
-	}
-	return nil
-}
-
-// ignore filters out context.Canceled errors.
-func ignore(err error) error {
-	switch err {
-	case context.Canceled, stdcontext.Canceled:
-		return nil
-	default:
-		return err
-	}
 }

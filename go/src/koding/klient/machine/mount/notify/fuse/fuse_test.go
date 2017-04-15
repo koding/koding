@@ -1,10 +1,8 @@
-package fuse_test
+package fuse
 
 import (
 	"bytes"
 	"testing"
-
-	"koding/klient/machine/mount/notify/fuse"
 )
 
 func TestTrimRightNull(t *testing.T) {
@@ -36,7 +34,7 @@ func TestTrimRightNull(t *testing.T) {
 
 	for name, cas := range cases {
 		t.Run(name, func(t *testing.T) {
-			got := fuse.TrimRightNull(cas.p)
+			got := trimRightNull(cas.p)
 
 			if bytes.Compare(got, cas.want) != 0 {
 				t.Fatalf("got %v, want %v", got, cas.want)

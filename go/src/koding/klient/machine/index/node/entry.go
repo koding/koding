@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/djherbis/times"
@@ -79,9 +80,25 @@ type File struct {
 // Virtual stores virtual file system dependent data that is lost during
 // serialization and should be recreated by VFS which manages the entries.
 type Virtual struct {
-	Inode    uint64       // Inode ID of a mounted file.
-	RefCount int32        // Reference count of file handlers.
-	Promise  EntryPromise // Metadata of files's memory state.
+	Inode   uint64       // Inode ID of a mounted file.
+	Promise EntryPromise // Metadata of files's memory state.
+	count   int32        // Reference count of file handlers.
+}
+
+// Count returns virtual reference number. This value should be always increased
+// when there is an external handle to a given structure.
+func (v *Virtual) Count() int32 {
+	return atomic.LoadInt32(&v.count)
+}
+
+// CountInc atomically increases virtual reference counter.
+func (v *Virtual) CountInc() int32 {
+	return atomic.AddInt32(&v.count, 1)
+}
+
+// CountDec atomically decreases virtual reference counter.
+func (v *Virtual) CountDec() int32 {
+	return atomic.AddInt32(&v.count, -1)
 }
 
 var (
@@ -141,9 +158,8 @@ func (e *Entry) Clone() *Entry {
 	return &Entry{
 		File: e.File,
 		Virtual: Virtual{
-			Inode:    e.Virtual.Inode,
-			RefCount: 0,
-			Promise:  e.Virtual.Promise,
+			Inode:   e.Virtual.Inode,
+			Promise: e.Virtual.Promise,
 		},
 	}
 }
@@ -179,7 +195,7 @@ func (e *Entry) String() string {
 	)
 
 	return fmt.Sprintf("[INODE %d, REFS %d, PROMISE %s][CTIME %s, MTIME %s, SIZE %d, MODE %s]",
-		e.Virtual.Inode, e.Virtual.RefCount, e.Virtual.Promise,
+		e.Virtual.Inode, e.Virtual.Count(), e.Virtual.Promise,
 		ctime.Format(time.StampMilli), mtime.Format(time.StampMilli), e.File.Size, e.File.Mode,
 	)
 }

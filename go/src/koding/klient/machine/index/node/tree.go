@@ -206,7 +206,7 @@ func (t *Tree) reset() {
 		}
 
 		t.inodes[n.Entry.Virtual.Inode] = n
-		n.Entry.Virtual.Promise, n.Entry.Virtual.RefCount = 0, 0
+		n.Entry.Virtual.Promise, n.Entry.Virtual.count = 0, 0
 	})
 }
 
