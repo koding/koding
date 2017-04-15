@@ -1005,22 +1005,28 @@ module.exports = class ComputeController extends KDController
 
   showBuildLogs: (machine, tailOffset) ->
 
-    # Path of cloud-init-output log
-    path = '/var/log/cloud-init-output.log'
-    file = FSHelper.createFileInstance { path, machine }
+    { router } = kd.singletons
 
-    { appManager } = kd.singletons
-    ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
-    return  unless ideApp
+    router.once 'RouteInfoHandled', -> kd.utils.wait 1000, ->
 
-    ideApp.tailFile {
-      file
-      description : '
-        Your Koding Stack has successfully been initialized. The log here
-        describes each executed step of the Stack creation process.
-      '
-      tailOffset
-    }
+      # Path of cloud-init-output log
+      path = '/var/log/cloud-init-output.log'
+      file = FSHelper.createFileInstance { path, machine }
+
+      { appManager } = kd.singletons
+      ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
+      return  unless ideApp
+
+      ideApp.tailFile {
+        file
+        description : '
+          Your Koding Stack has successfully been initialized. The log here
+          describes each executed step of the Stack creation process.
+        '
+        tailOffset
+      }
+
+    router.handleRoute "/IDE/#{machine.getAt 'slug'}"
 
 
   ###*

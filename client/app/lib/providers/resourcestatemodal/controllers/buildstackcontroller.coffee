@@ -16,12 +16,12 @@ module.exports = class BuildStackController extends kd.Controller
 
     super options, data
 
-    { stack } = @getData()
+    { stack, machine } = @getData()
     { container } = @getOptions()
 
     @buildStackPage = new BuildStackPageView {}, { stack, file : @getLogFile() }
     @errorPage = new BuildStackErrorPageView {}, { stack }
-    @successPage = new BuildStackSuccessPageView {}, { stack }
+    @successPage = new BuildStackSuccessPageView {}, { stack, machine }
     @timeoutPage = new BuildStackTimeoutPageView {}, { stack }
 
     { router, appManager } = kd.singletons
