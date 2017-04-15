@@ -20,6 +20,14 @@ module.exports = class Editor extends BaseView
 
     @_initialContent = ''
 
+    { filename } = @getOptions()
+
+    @aceView = new AceView {
+      cssClass: 'editor'
+      useStorage: no
+      createBottomBar: no
+    }, FSHelper.createFileInstance { path: "localfile:/#{filename}" }
+
 
   getContent: ->
 
@@ -67,15 +75,7 @@ module.exports = class Editor extends BaseView
 
     super
 
-    { filename, showgutter, readonly, theme = 'base16' } = @getOptions()
-
-    file = FSHelper.createFileInstance { path: "localfile:/#{filename}" }
-
-    @aceView = new AceView {
-      cssClass: 'editor'
-      useStorage: no
-      createBottomBar: no
-    }, file
+    { showgutter, readonly, theme = 'base16' } = @getOptions()
 
     { ace } = @aceView
 
