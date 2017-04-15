@@ -134,13 +134,11 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 	return
 }
 
-// MkDir creates new directory inside specified parent directory. It returns
+// MkDir creates a new directory inside specified parent directory. It returns
 // `fuse.EEXIST` if a file or directory already exists with specified name.
 //
 // Note: `mkdir` command checks if directory exists before calling this method,
 // so you won't see the error from here if you're using `mkdir`.
-//
-// Required for fuse.FileSystem.
 func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error) {
 	var path string
 	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
@@ -148,21 +146,30 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error
 			return
 		}
 
-		if child := n.GetChild(op.Name); child != nil && child.Entry.Virtual.Promise.Exist() {
+		if child := n.GetChild(op.Name); child.Exist() {
 			err = fuse.EEXIST
 			return
 		}
 
 		path = filepath.Join(n.Path(), op.Name)
-		if err = os.MkdirAll(filepath.Join(fs.CacheDir, path), op.Mode); err != nil {
+
+		absPath := filepath.Join(fs.CacheDir, path)
+		if err = os.MkdirAll(absPath, op.Mode); err != nil {
+			err = toErrno(err)
 			return
 		}
 
-		child := node.NewNodeEntry(op.Name, node.NewEntry(0, op.Mode|os.ModeDir))
-		child.Entry.Virtual.CountInc()
+		entry, err := node.NewEntryFile(absPath)
+		if err != nil {
+			err = toErrno(err)
+			return
+		}
+
+		child := node.NewNodeEntry(op.Name, entry)
 		g.AddChild(n, child)
 		child.PromiseAdd()
 
+		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
 		op.Entry.Attributes = fs.newAttr(op.Mode)
 	})
 
@@ -285,8 +292,6 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err err
 // RmDir deletes a directory from remote and list of live nodes.
 //
 // Note: `rm -r` calls Unlink method on each directory entry.
-//
-// Required for fuse.FileSystem.
 func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error) {
 	var path string
 	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {

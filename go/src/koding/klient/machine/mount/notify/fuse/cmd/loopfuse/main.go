@@ -157,5 +157,6 @@ type printCache struct {
 }
 
 func (pc *printCache) Commit(c *index.Change) context.Context {
+	log.Println("Commit:", c)
 	return pc.sub.Commit(c)
 }

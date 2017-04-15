@@ -39,7 +39,11 @@ func (fh *FileHandle) Close() error {
 		return syscall.EINVAL
 	}
 
-	return toErrno(fh.File.Close())
+	if err := fh.File.Close(); err != nil {
+		return toErrno(err)
+	}
+
+	return nil
 }
 
 // FileHandleGroup stores currently opened files.

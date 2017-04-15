@@ -131,6 +131,12 @@ func NewEntryFileInfo(info os.FileInfo) *Entry {
 
 // NewEntryTime creates a new entry with custom file change and modify times.
 func NewEntryTime(ctime, mtime, size int64, mode os.FileMode) *Entry {
+	// All directories have size set to 0. This is done because on different
+	// file systems directory can have different size so we ignore it.
+	if mode.IsDir() {
+		size = 0
+	}
+
 	return &Entry{
 		File: File{
 			CTime: ctime,
