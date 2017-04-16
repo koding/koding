@@ -346,14 +346,6 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error 
 	return os.Rename(absOld, absNew)
 }
 
-func (fs *Filesystem) unlink(n *node.Node) error {
-	if rc := n.Entry.Virtual.CountDec(1); rc > 0 {
-		return nil
-	}
-
-	return fs.rm(n)
-}
-
 func (fs *Filesystem) rm(n *node.Node) error {
 	n.PromiseDel()
 

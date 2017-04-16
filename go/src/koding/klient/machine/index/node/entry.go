@@ -227,8 +227,8 @@ func (e *Entry) String() string {
 		mtime = time.Unix(0, e.File.MTime)
 	)
 
-	return fmt.Sprintf("[INODE %d, REFS %d, PROMISE %s][CTIME %s, MTIME %s, SIZE %d, MODE %s]",
-		e.Virtual.Inode, e.Virtual.Count(), e.Virtual.Promise,
+	return fmt.Sprintf("[INODE %d, COUNT %d, NLINK %d, PROMISE %s][CTIME %s, MTIME %s, SIZE %d, MODE %s]",
+		e.Virtual.Inode, e.Virtual.Count(), e.Virtual.NLink(), e.Virtual.Promise,
 		ctime.Format(time.StampMilli), mtime.Format(time.StampMilli), e.File.Size, e.File.Mode,
 	)
 }

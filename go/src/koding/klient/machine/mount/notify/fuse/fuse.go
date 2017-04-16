@@ -46,6 +46,9 @@ func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) 
 		if child := n.GetChild(op.Name); child.Exist() {
 			op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
 			op.Entry.Attributes = fs.attr(child.Entry)
+
+			// Increase reference counter for entry - fuse_reply_entry.
+			child.Entry.Virtual.CountInc()
 			return
 		}
 
@@ -170,6 +173,9 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error
 		child := node.NewNodeEntry(op.Name, entry)
 		g.AddChild(n, child)
 		child.PromiseAdd()
+
+		// Increase reference counter for entry - fuse_reply_entry.
+		child.Entry.Virtual.CountInc()
 
 		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
 		op.Entry.Attributes = fs.newAttr(mode)
@@ -328,22 +334,25 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error
 	return
 }
 
-// Unlink removes entry from specified parent directory.
-//
-// Required for fuse.FileSystem.
-func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
-		if err = checkDir(n); err != nil {
-			return
-		}
-
-		child := n.GetChild(op.Name)
-		if child == nil || !child.Entry.Virtual.Promise.Exist() {
+// Unlink removes entry from specified parent directory. It decreases node
+// Nlink counter and, when it reaches 0, it marks the node as deleted but not
+// remove any data since this should be done in ForgetInode method.
+func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error) {
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(_ node.Guard, n *node.Node) {
+		// Allow deleted nodes.
+		if n == nil {
 			err = fuse.ENOENT
 			return
 		}
 
-		err = fs.unlink(n)
+		child := n.GetChild(op.Name)
+		if child == nil {
+			err = fuse.ENOENT
+			return
+		}
+
+		child.PromiseDel()
+		child.Entry.Virtual.NLinkDec()
 	})
 
 	return
@@ -479,8 +488,6 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 		if err = fs.dirHandles.Release(op.Handle); err != nil {
 			return
 		}
-
-		n.Entry.Virtual.CountDec(1)
 	})
 
 	return err
