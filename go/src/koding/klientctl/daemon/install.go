@@ -348,7 +348,7 @@ var Screen = (map[string]InstallStep{
 				return "", ErrSkipInstall
 			}
 
-			if err := os.MkdirAll(base, 0755); err != nil {
+			if err := mkdirAll(base, 0755); err != nil {
 				return "", err
 			}
 
@@ -388,7 +388,7 @@ var Screen = (map[string]InstallStep{
 				}
 
 				if h.Typeflag == tar.TypeDir {
-					if err := os.MkdirAll(name, 0755); err != nil {
+					if err := mkdirAll(name, 0755); err != nil {
 						return "", err
 					}
 
@@ -405,7 +405,7 @@ var Screen = (map[string]InstallStep{
 				}
 
 				_, err = io.Copy(f, tr)
-				err = nonil(err, f.Close())
+				err = nonil(err, f.Chown(conf.CurrentUser.Uid, conf.CurrentUser.Gid), f.Close())
 				if err != nil {
 					return "", err
 				}
@@ -421,6 +421,14 @@ var Screen = (map[string]InstallStep{
 		},
 	},
 })[runtime.GOOS]
+
+func mkdirAll(dir string, mode os.FileMode) error {
+	if err := os.MkdirAll(dir, mode); err != nil {
+		return err
+	}
+
+	return os.Chown(dir, conf.CurrentUser.Gid, conf.CurrentUser.Gid)
+}
 
 func symlink(from, to string) error {
 	if _, err := os.Stat(to); err == nil {
@@ -489,7 +497,7 @@ var Script = []InstallStep{{
 }, {
 	Name: "directory structure",
 	Install: func(c *Client, _ *Opts) (string, error) {
-		return "", nonil(os.MkdirAll(c.d.KlientHome, 0755), os.MkdirAll(c.d.KodingHome, 0755))
+		return "", nonil(mkdirAll(c.d.KlientHome, 0755), mkdirAll(c.d.KodingHome, 0755))
 	},
 	Uninstall: func(c *Client, _ *Opts) error {
 		return os.RemoveAll(c.d.KodingHome)
@@ -880,7 +888,7 @@ func copyFile(src, dst string, mode os.FileMode) error {
 		mode = fi.Mode()
 	}
 
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+	if err := mkdirAll(filepath.Dir(dst), 0755); err != nil {
 		return err
 	}
 
@@ -893,7 +901,9 @@ func copyFile(src, dst string, mode os.FileMode) error {
 		return nonil(err, tmp.Close(), os.Remove(tmp.Name()))
 	}
 
-	if err = nonil(tmp.Chmod(mode), tmp.Close()); err != nil {
+	u := conf.CurrentUser
+
+	if err = nonil(tmp.Chmod(mode), tmp.Chown(u.Uid, u.Gid), tmp.Close()); err != nil {
 		return nonil(err, os.Remove(tmp.Name()))
 	}
 
