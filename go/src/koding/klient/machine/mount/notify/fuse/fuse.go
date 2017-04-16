@@ -48,7 +48,7 @@ func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) 
 			op.Entry.Attributes = fs.attr(child.Entry)
 
 			// Increase reference counter for entry - fuse_reply_entry.
-			child.Entry.Virtual.CountInc()
+			incCountNoRoot(child)
 			return
 		}
 
@@ -175,7 +175,7 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error
 		child.PromiseAdd()
 
 		// Increase reference counter for entry - fuse_reply_entry.
-		child.Entry.Virtual.CountInc()
+		incCountNoRoot(child)
 
 		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
 		op.Entry.Attributes = fs.newAttr(mode)
@@ -297,18 +297,24 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err err
 	return
 }
 
-// RmDir deletes a directory from remote and list of live nodes.
-//
-// Note: `rm -r` calls Unlink method on each directory entry.
+// RmDir unlinks a directory from its parent. Since it is not possible to have
+// hardlinks to directories, the unlinked directory will be deleted by
+// ForgetInode method called by fuse after all reference counters are released.
 func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error) {
-	var path string
 	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
-		if err = checkDir(n); err != nil {
+		// Allow deleted nodes.
+		if n == nil {
+			err = fuse.ENOENT
+			return
+		}
+
+		if !n.Entry.File.Mode.IsDir() {
+			err = fuse.ENOTDIR
 			return
 		}
 
 		child := n.GetChild(op.Name)
-		if child == nil || !child.Entry.Virtual.Promise.Exist() {
+		if child == nil {
 			err = fuse.ENOENT
 			return
 		}
@@ -318,18 +324,9 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error
 			return
 		}
 
-		path = filepath.Join(n.Path(), op.Name)
-		abs := filepath.Join(fs.CacheDir, path)
-		if err = os.Remove(filepath.Dir(abs)); err != nil && !os.IsNotExist(err) {
-			return
-		}
-
 		child.PromiseDel()
+		child.Entry.Virtual.NLinkDec()
 	})
-
-	if err == nil {
-		fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
-	}
 
 	return
 }
@@ -342,6 +339,11 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 		// Allow deleted nodes.
 		if n == nil {
 			err = fuse.ENOENT
+			return
+		}
+
+		if !n.Entry.File.Mode.IsDir() {
+			err = fuse.ENOTDIR
 			return
 		}
 
@@ -358,20 +360,38 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 	return
 }
 
-// ForgetInode removes a file specified by an inode ID if the file was previously
-// marked for an unlink.
-//
-// Required for fuse.FileSystem.
+// ForgetInode decreases Node reference count and if it reaches 0, this method
+// will remove isk data from the underlying filesystem as well as the Node
+// from tree.
 func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) (err error) {
 	fs.Index.Tree().DoInode(uint64(op.Inode), func(g node.Guard, n *node.Node) {
+		// Nil means that inode was already forgotten.
 		if n == nil {
-			err = fuse.ENOENT
 			return
 		}
 
-		// if n.Entry.Virtual.Promise&node.EntryPromiseUnlink != 0 {
-		// 	err = fs.rm(n)
-		// }
+		if count := decCountNoRoot(n, op.N); count > 0 {
+			return
+		}
+
+		path := n.Path()
+		// Try to delete even if the underlying filesystem operation fails.
+		defer func() {
+			fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+		}()
+
+		absPath := filepath.Join(fs.CacheDir, path)
+		if err := os.RemoveAll(absPath); os.IsNotExist(err) {
+			return
+		} else if err != nil {
+			err = toErrno(err)
+			return
+		}
+
+		// Clean up tree.
+		if parent := n.Parent(); parent != nil {
+			g.RmChild(parent, n.Name)
+		}
 	})
 
 	return
