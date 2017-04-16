@@ -73,6 +73,11 @@ func (n *Node) Clone() *Node {
 	return c
 }
 
+// Parent returns node parent or nil.
+func (n *Node) Parent() *Node {
+	return n.parent
+}
+
 // Path uses node parents to create a full path. It starts from root node.
 func (n *Node) Path() string {
 	var (

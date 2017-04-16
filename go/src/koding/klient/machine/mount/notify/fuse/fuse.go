@@ -153,8 +153,10 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error
 
 		path = filepath.Join(n.Path(), op.Name)
 
+		// According to fuse specs mode&os.ModeDir can be zero.
+		mode := op.Mode | os.ModeDir
 		absPath := filepath.Join(fs.CacheDir, path)
-		if err = os.MkdirAll(absPath, op.Mode); err != nil {
+		if err = os.MkdirAll(absPath, mode); err != nil {
 			err = toErrno(err)
 			return
 		}
@@ -170,7 +172,7 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error
 		child.PromiseAdd()
 
 		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
-		op.Entry.Attributes = fs.newAttr(op.Mode)
+		op.Entry.Attributes = fs.newAttr(mode)
 	})
 
 	if err == nil {
@@ -377,7 +379,6 @@ func (fs *Filesystem) OpenDir(_ context.Context, op *fuseops.OpenDirOp) (err err
 
 		// Create a new directory handle.
 		op.Handle = fs.dirHandles.Open(op.Inode)
-		n.Entry.Virtual.CountInc()
 	})
 
 	return
@@ -385,13 +386,50 @@ func (fs *Filesystem) OpenDir(_ context.Context, op *fuseops.OpenDirOp) (err err
 
 // ReadDir reads entries in a specific directory.
 func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err error) {
-	var dirents []fuseutil.Dirent
+	var (
+		dirents   []fuseutil.Dirent
+		dotOffset = op.Offset
+	)
+
 	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
 
-		if offset := int(op.Offset); offset > n.ChildN() {
+		parent, shift := n.Parent(), 1
+		if parent != nil || fs.mDirParentInode != 0 {
+			shift++
+		}
+
+		// Add "." directory.
+		if dotOffset == 0 {
+			dotOffset++
+			dirents = append(dirents, fuseutil.Dirent{
+				Offset: dotOffset,
+				Inode:  fuseops.InodeID(n.Entry.Virtual.Inode),
+				Name:   ".",
+				Type:   direntType(n.Entry),
+			})
+		}
+
+		// Add ".." directory.
+		if dotOffset == 1 && shift > 1 {
+			dotOffset++
+			inode := fs.mDirParentInode
+			if parent != nil {
+				inode = fuseops.InodeID(parent.Entry.Virtual.Inode)
+			}
+
+			dirents = append(dirents, fuseutil.Dirent{
+				Offset: dotOffset,
+				Inode:  inode,
+				Name:   "..",
+				Type:   fuseutil.DT_Directory,
+			})
+		}
+
+		offset := int(dotOffset) - shift
+		if offset > n.ChildN() {
 			err = fuse.EINVAL
 			return
 		} else if offset == n.ChildN() {
@@ -399,12 +437,12 @@ func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err err
 		}
 
 		var i = 1
-		n.Children(int(op.Offset), func(child *node.Node) {
+		n.Children(offset, func(child *node.Node) {
 			dirents = append(dirents, fuseutil.Dirent{
-				Offset: op.Offset + fuseops.DirOffset(i),
+				Offset: dotOffset + fuseops.DirOffset(i),
 				Inode:  fuseops.InodeID(child.Entry.Virtual.Inode),
 				Name:   child.Name,
-				Type:   direntType(n.Entry),
+				Type:   direntType(child.Entry),
 			})
 
 			i++
@@ -442,7 +480,7 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 			return
 		}
 
-		n.Entry.Virtual.CountDec()
+		n.Entry.Virtual.CountDec(1)
 	})
 
 	return err
@@ -614,4 +652,23 @@ func Umount(dir string) error {
 	// Under Darwin fuse.Umount uses syscall.Umount without syscall.MNT_FORCE flag,
 	// so we replace that implementation with diskutil.
 	return umountCmd("diskutil", "unmount", "force", dir)
+}
+
+// incCountNoRoot increases node reference counter by one but not for root node
+// since there are no methods than could increase it.
+func incCountNoRoot(n *node.Node) {
+	if n.Entry.Virtual.Inode != node.RootInodeID {
+		n.Entry.Virtual.CountInc()
+	}
+}
+
+// decCountNoRoot decreases node reference counter by provided value and returns
+// the number of remaining handles.
+func decCountNoRoot(n *node.Node, val uint64) int32 {
+	if n.Entry.Virtual.Inode != node.RootInodeID {
+		return n.Entry.Virtual.CountDec(int32(val))
+	}
+
+	// Root node has always ref count set to 1.
+	return 1
 }

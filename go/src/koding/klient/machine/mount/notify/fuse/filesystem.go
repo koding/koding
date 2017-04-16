@@ -134,6 +134,9 @@ type Filesystem struct {
 	dirHandles  *DirHandleGroup
 	fileHandles *FileHandleGroup
 
+	// Index node of mount parrent.
+	mDirParentInode fuseops.InodeID
+
 	mu        sync.RWMutex
 	seqHandle uint64
 	handles   map[fuseops.HandleID]HandleInfo
@@ -158,12 +161,13 @@ func NewFilesystem(opts *Options) (*Filesystem, error) {
 
 	gen := generator(MinHandleID)
 	fs := &Filesystem{
-		Options:     *opts,
-		cancel:      cancel,
-		dirHandles:  NewDirHandleGroup(gen),
-		fileHandles: NewFileHandleGroup(gen),
-		seqHandle:   uint64(3),
-		handles:     make(map[fuseops.HandleID]HandleInfo),
+		Options:         *opts,
+		cancel:          cancel,
+		dirHandles:      NewDirHandleGroup(gen),
+		fileHandles:     NewFileHandleGroup(gen),
+		mDirParentInode: getMountPointParentInode(opts.MountDir),
+		seqHandle:       uint64(3),
+		handles:         make(map[fuseops.HandleID]HandleInfo),
 	}
 
 	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
@@ -253,7 +257,7 @@ func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 			return
 		}
 
-		n.Entry.Virtual.CountDec()
+		n.Entry.Virtual.CountDec(1)
 	})
 
 	return f.Close()
@@ -343,7 +347,7 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error 
 }
 
 func (fs *Filesystem) unlink(n *node.Node) error {
-	if rc := n.Entry.Virtual.CountDec(); rc > 0 {
+	if rc := n.Entry.Virtual.CountDec(1); rc > 0 {
 		return nil
 	}
 
