@@ -18,7 +18,6 @@ const (
 	EntryPromiseAdd                              // A: promise after adding, exists locally.
 	EntryPromiseUpdate                           // U: promise after updating, exists locally.
 	EntryPromiseDel                              // D: promise after deleting, doesn't exist locally.
-	EntryPromiseUnlink                           // N: promise after hard delete, doesn't exist locally.
 )
 
 var epMapping = map[byte]EntryPromise{
@@ -26,7 +25,6 @@ var epMapping = map[byte]EntryPromise{
 	'A': EntryPromiseAdd,
 	'U': EntryPromiseUpdate,
 	'D': EntryPromiseDel,
-	'N': EntryPromiseUnlink,
 }
 
 // String implements fmt.Stringer interface and pretty prints stored promise.
@@ -46,9 +44,7 @@ func (ep EntryPromise) String() string {
 
 // Deleted checks if the promise is set to be deleted.
 func (ep EntryPromise) Deleted() bool {
-	const del = EntryPromiseDel | EntryPromiseUnlink
-
-	return ep&del != 0
+	return ep&EntryPromiseDel != 0
 }
 
 // Virtual checks if the promise is set to be virtual.
@@ -83,6 +79,7 @@ type Virtual struct {
 	Inode   uint64       // Inode ID of a mounted file.
 	Promise EntryPromise // Metadata of files's memory state.
 	count   int32        // Reference count of file handlers.
+	nlink   int64        // Number of hard links to dentries.
 }
 
 // Count returns virtual reference number. This value should be always increased
@@ -99,6 +96,23 @@ func (v *Virtual) CountInc() int32 {
 // CountDec atomically decreases virtual reference counter.
 func (v *Virtual) CountDec() int32 {
 	return atomic.AddInt32(&v.count, -1)
+}
+
+// NLink returns the number of entry hard links. This value should be always
+// increased when hard link to the entry is created. Directories cannot have
+// more than one hard link.
+func (v *Virtual) NLink() int64 {
+	return atomic.LoadInt64(&v.nlink)
+}
+
+// NLinkInc atomically increases entry Nlink value.
+func (v *Virtual) NLinkInc() int64 {
+	return atomic.AddInt64(&v.nlink, 1)
+}
+
+// NLinkDec atomically decreases entry Nlink value.
+func (v *Virtual) NLinkDec() int64 {
+	return atomic.AddInt64(&v.nlink, -1)
 }
 
 var (
@@ -144,6 +158,10 @@ func NewEntryTime(ctime, mtime, size int64, mode os.FileMode) *Entry {
 			Size:  size,
 			Mode:  mode,
 		},
+		Virtual: Virtual{
+			count: 0,
+			nlink: 1,
+		},
 	}
 }
 
@@ -166,6 +184,8 @@ func (e *Entry) Clone() *Entry {
 		Virtual: Virtual{
 			Inode:   e.Virtual.Inode,
 			Promise: e.Virtual.Promise,
+			count:   0,
+			nlink:   1,
 		},
 	}
 }

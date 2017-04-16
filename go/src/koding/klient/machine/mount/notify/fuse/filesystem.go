@@ -344,7 +344,6 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error 
 
 func (fs *Filesystem) unlink(n *node.Node) error {
 	if rc := n.Entry.Virtual.CountDec(); rc > 0 {
-		n.PromiseUnlink()
 		return nil
 	}
 

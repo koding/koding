@@ -131,7 +131,7 @@ func (nd *Node) PromiseAdd(path string, entry *node.Entry) {
 		newE.MergeIn(entry)
 	}
 
-	newE.Virtual.Promise.Swap(node.EntryPromiseAdd, node.EntryPromiseDel|node.EntryPromiseUnlink)
+	newE.Virtual.Promise.Swap(node.EntryPromiseAdd, node.EntryPromiseDel)
 	nd.Add(path, newE)
 }
 
@@ -151,26 +151,7 @@ func (nd *Node) PromiseDel(path string, n *Node) {
 		}
 	}
 
-	n.Entry.Virtual.Promise.Swap(node.EntryPromiseDel, node.EntryPromiseAdd|node.EntryPromiseUnlink)
-}
-
-// PromiseUnlink marks a node under the given path as unlinked.
-//
-// If the node does not exist or is already marked as unlinked, then
-// method is no-op.
-//
-// If node is non-nil, then it's used instead of looking it up
-// by the given path.
-func (nd *Node) PromiseUnlink(path string, n *Node) {
-	if n == nil {
-		var ok bool
-		n, ok = nd.Lookup(path)
-		if !ok {
-			return
-		}
-	}
-
-	n.Entry.Virtual.Promise.Swap(node.EntryPromiseUnlink, node.EntryPromiseAdd)
+	n.Entry.Virtual.Promise.Swap(node.EntryPromiseDel, node.EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -364,7 +345,7 @@ func (nd *Node) Virtual() bool {
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.Virtual.Promise.Swap(0, node.EntryPromiseDel|node.EntryPromiseUnlink)
+	nd.Entry.Virtual.Promise.Swap(0, node.EntryPromiseDel)
 }
 
 func (nd *Node) shallowCopy() *Node {

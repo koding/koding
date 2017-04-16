@@ -358,9 +358,9 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 			return
 		}
 
-		if n.Entry.Virtual.Promise&node.EntryPromiseUnlink != 0 {
-			err = fs.rm(n)
-		}
+		// if n.Entry.Virtual.Promise&node.EntryPromiseUnlink != 0 {
+		// 	err = fs.rm(n)
+		// }
 	})
 
 	return

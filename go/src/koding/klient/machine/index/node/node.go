@@ -199,7 +199,7 @@ func (n *Node) walk(walkFn func(*Node, *Node)) {
 	}
 }
 
-const notPresent = EntryPromiseVirtual | EntryPromiseDel | EntryPromiseUnlink
+const notPresent = EntryPromiseVirtual | EntryPromiseDel
 
 // PromiseVirtual sets node as virtual.
 func (n *Node) PromiseVirtual() {
@@ -229,19 +229,14 @@ func (n *Node) PromiseDel() {
 	n.setPromiseRec(EntryPromiseDel)
 }
 
-// PromiseUnlink sets node as unlinked.
-func (n *Node) PromiseUnlink() {
-	n.setPromiseRec(EntryPromiseUnlink)
-}
-
 func (n *Node) setPromiseRec(ep EntryPromise) {
-	if n.Entry.Virtual.Promise == EntryPromiseVirtual {
+	if n.Entry.Virtual.Promise == ep {
 		return
 	}
 
-	n.Entry.Virtual.Promise = EntryPromiseVirtual
+	n.Entry.Virtual.Promise = ep
 	for i := range n.children {
-		n.children[i].PromiseVirtual()
+		n.children[i].setPromiseRec(ep)
 	}
 }
 
