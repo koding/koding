@@ -68,10 +68,10 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		err := f.Kloud.Transport.(stack.Validator).Valid()
 		f.log().Debug("auth: transport test: %s", err)
 
-		newLogin = err != nil && opts.Token == ""
+		newLogin = err != nil
 	}
 
-	if newLogin {
+	if newLogin && opts.Token == "" {
 		if err := opts.AskUserPass(); err != nil {
 			return nil, err
 		}

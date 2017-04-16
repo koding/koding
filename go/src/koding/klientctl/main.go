@@ -882,7 +882,7 @@ func requiresDaemon(args []string) bool {
 	}
 
 	switch cmd {
-	case "install", "uninstall", "-version":
+	case "config", "version", "auth", "install", "uninstall", "-version":
 		return true
 	default:
 		return false

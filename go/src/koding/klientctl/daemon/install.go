@@ -644,6 +644,14 @@ var Script = []InstallStep{{
 
 		if opts.Team != "" {
 			fmt.Printf("\tSign in to your %q team (%s):\n\n", opts.Team, f.Konfig.Endpoints.Koding.Public)
+		} else if opts.Token != "" {
+			// TODO(rjeczalik): This is compatibility branch with old installation
+			// method which did take team into account when authenticating.
+			//
+			// Every jToken has a relationship to a jGroup it was created from,
+			// thus we do not ask user for their teamname, since we got it
+			// from the auth response.
+			fmt.Printf("\tSign in to your team (%s):\n\n", f.Konfig.Endpoints.Koding.Public)
 		} else {
 			fmt.Printf("\tSign in to your kd.io account:\n\n")
 		}
