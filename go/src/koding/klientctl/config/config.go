@@ -34,6 +34,8 @@ const (
 var environments = map[string]string{
 	"production":  "managed",
 	"development": "devmanaged",
+	"managed":     "managed",
+	"devmanaged":  "devmanaged",
 }
 
 func kd2klient(kdEnv string) string {
@@ -41,7 +43,7 @@ func kd2klient(kdEnv string) string {
 		return klientEnv
 	}
 
-	return "devmanaged"
+	return ""
 }
 
 var (
