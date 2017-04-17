@@ -179,13 +179,13 @@ func (g *Group) Kill(r *KillRequest) (*KillResponse, error) {
 func (g *Group) lookup(path string) (mount.ID, string, error) {
 	const sep = string(stdos.PathListSeparator)
 
-	for path != "" {
+	for path != "" && path != "/" {
 		id, err := g.mount.Path(path)
 		if err == nil {
 			return id, path, nil
 		}
-		if err == mount.ErrMountNotFound {
-			continue
+		if err != mount.ErrMountNotFound {
+			return "", "", err
 		}
 
 		if i := strings.LastIndex(path, sep); i != -1 {
