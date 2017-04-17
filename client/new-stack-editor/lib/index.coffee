@@ -174,10 +174,6 @@ module.exports = class StackEditorAppController extends AppController
         editor.save next
 
       (next) ->
-        logs.add 'checking stack...'
-        stack.check next
-
-      (next) ->
         logs.add 'generating stack...'
         stack.save next
 
@@ -189,13 +185,17 @@ module.exports = class StackEditorAppController extends AppController
 
       debug 'initializeStack result', err, result
 
-      if err
-        logs.handleError err
-      else
-        [ ..., updatedTemplate, generatedStack ] = result
-        logs.add 'stack template updated successfully'
-        debug 'updated template instance', updatedTemplate
-        debug 'generated stack', generatedStack
+      return logs.handleError err  if err
+
+      [ ..., updatedTemplate, generatedStack ] = result
+      logs.add 'stack initialized successfully'
+
+      debug 'updated template instance', updatedTemplate
+      debug 'generated stack', generatedStack
+
+      { stack: { machines } } = generatedStack
+      { router } = kd.singletons
+      router.handleRoute "/Stack-Editor/Build/#{machines.first.getId()}"
 
 
   createStackTemplate: (provider) ->
