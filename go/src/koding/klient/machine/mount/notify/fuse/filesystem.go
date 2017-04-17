@@ -1,19 +1,20 @@
 package fuse
 
 import (
+	"bytes"
 	stdcontext "context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
-	"sync"
-	"time"
 
 	"koding/kites/config"
 	"koding/klient/fs"
 	"koding/klient/machine/index"
-	"koding/klient/machine/index/node"
 	"koding/klient/machine/mount/notify"
 
 	"github.com/jacobsa/fuse"
@@ -107,11 +108,7 @@ func (o *Options) user() *config.User {
 	return config.CurrentUser
 }
 
-// HandleInfo contains information about file handle destination.
-type HandleInfo struct {
-	InodeID fuseops.InodeID
-	File    *os.File
-}
+var _ fuseutil.FileSystem = (*Filesystem)(nil)
 
 // Filesystem implements fuseutil.FileSystem.
 //
@@ -128,6 +125,7 @@ type Filesystem struct {
 	fuseutil.NotImplementedFileSystem
 	Options
 
+	// Cancel the background context of all fuse operatins.
 	cancel func()
 
 	// Dynamic filesystem state.
@@ -136,13 +134,7 @@ type Filesystem struct {
 
 	// Index node of mount parrent.
 	mDirParentInode fuseops.InodeID
-
-	mu        sync.RWMutex
-	seqHandle uint64
-	handles   map[fuseops.HandleID]HandleInfo
 }
-
-var _ fuseutil.FileSystem = (*Filesystem)(nil)
 
 // NewFilesystem creates new Filesystem value.
 func NewFilesystem(opts *Options) (*Filesystem, error) {
@@ -166,8 +158,6 @@ func NewFilesystem(opts *Options) (*Filesystem, error) {
 		dirHandles:      NewDirHandleGroup(gen),
 		fileHandles:     NewFileHandleGroup(gen),
 		mDirParentInode: getMountPointParentInode(opts.MountDir),
-		seqHandle:       uint64(3),
-		handles:         make(map[fuseops.HandleID]HandleInfo),
 	}
 
 	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
@@ -178,14 +168,6 @@ func NewFilesystem(opts *Options) (*Filesystem, error) {
 	go m.Join(ctx)
 
 	return fs, nil
-}
-
-// Close implements the notify.Notifier interface.
-func (fs *Filesystem) Close() error {
-	fs.cancel()
-	fs.Destroy()
-
-	return Umount(fs.MountDir)
 }
 
 // Config constructs fuse configuration.
@@ -207,220 +189,52 @@ func (fs *Filesystem) Config() *fuse.MountConfig {
 	}
 }
 
-func (fs *Filesystem) addHandle(nID fuseops.InodeID, f *os.File) (id fuseops.HandleID) {
-	for {
-		fs.seqHandle++
+// Close implements the notify.Notifier interface. It cleans up filesystem
+// resources and tries to umount created device.
+func (fs *Filesystem) Close() error {
+	fs.cancel()
+	fs.Destroy()
 
-		if fs.seqHandle < 3 {
-			fs.seqHandle = 3
-		}
-
-		id = fuseops.HandleID(fs.seqHandle)
-
-		if _, ok := fs.handles[id]; !ok {
-			fs.handles[id] = HandleInfo{
-				InodeID: nID,
-				File:    f,
-			}
-			break
-		}
-	}
-
-	return id
+	return Umount(fs.MountDir)
 }
 
-// checkDir checks if provided node describes a directory.
-func checkDir(n *node.Node) error {
-	if !n.Exist() {
-		return fuse.ENOENT
-	}
+// Umount unmounts FUSE filesystem.
+func Umount(dir string) error {
+	umountCmd := func(name string, args ...string) error {
+		if p, err := exec.Command(name, args...).CombinedOutput(); err != nil {
+			return fmt.Errorf("%s: %s", err, bytes.TrimSpace(p))
+		}
 
-	if !n.Entry.File.Mode.IsDir() {
-		return fuse.ENOTDIR
-	}
-
-	return nil
-}
-
-func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
-	fs.mu.Lock()
-	f, nID, ok := fs.getHandle(id)
-	delete(fs.handles, id)
-	fs.mu.Unlock()
-
-	if !ok {
 		return nil
 	}
 
-	fs.Index.Tree().DoInode(uint64(nID), func(_ node.Guard, n *node.Node) {
-		if n == nil {
-			return
+	if runtime.GOOS == "linux" {
+		if err := fuse.Unmount(dir); err != nil {
+			return umountCmd("fusermount", "-uz", dir) // Try lazy umount.
 		}
-
-		n.Entry.Virtual.CountDec(1)
-	})
-
-	return f.Close()
-}
-
-func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, fuseops.InodeID, bool) {
-	hi, ok := fs.handles[id]
-	if !ok {
-		return nil, 0, false
+		return nil
 	}
-	return hi.File, hi.InodeID, true
-}
 
-func (fs *Filesystem) commit(rel string, meta index.ChangeMeta) stdcontext.Context {
-	return fs.Cache.Commit(index.NewChange(rel, index.PriorityHigh, meta))
-}
-
-func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {
-	c := fs.commit(path, meta)
-
-	select {
-	case <-c.Done():
-		return ignore(c.Err())
-	case <-ctx.Done():
-		return ignore(ctx.Err())
-	}
-}
-
-func (fs *Filesystem) attr(entry *node.Entry) fuseops.InodeAttributes {
-	mtime := time.Unix(0, entry.File.MTime)
-	ctime := time.Unix(0, entry.File.CTime)
-
-	return fuseops.InodeAttributes{
-		Size:  uint64(entry.File.Size),
-		Nlink: 1, // TODO(rjeczalik): symlink / hardlink implementation
-		Mode:  entry.File.Mode,
-
-		Atime:  mtime,
-		Mtime:  mtime,
-		Ctime:  ctime,
-		Crtime: ctime,
-
-		Uid: uint32(fs.user().Uid),
-		Gid: uint32(fs.user().Gid),
-	}
-}
-
-func (fs *Filesystem) newAttr(mode os.FileMode) fuseops.InodeAttributes {
-	t := time.Now()
-
-	return fuseops.InodeAttributes{
-		Size:   0,
-		Nlink:  1,
-		Mode:   mode,
-		Atime:  t,
-		Mtime:  t,
-		Ctime:  t,
-		Crtime: t,
-		Uid:    uint32(fs.user().Uid),
-		Gid:    uint32(fs.user().Gid),
-	}
-}
-
-func (fs *Filesystem) abs(rel string) string {
-	return fs.CacheDir + rel
-}
-
-func (fs *Filesystem) rel(abs string) string {
-	return strings.TrimPrefix(abs, fs.CacheDir)
+	// Under Darwin fuse.Umount uses syscall.Umount without syscall.MNT_FORCE flag,
+	// so we replace that implementation with diskutil.
+	return umountCmd("diskutil", "unmount", "force", dir)
 }
 
 func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error {
-	absOld := fs.abs(oldrel)
-	absNew := fs.abs(newrel)
+	//absOld := fs.abs(oldrel)
+	//absNew := fs.abs(newrel)
 
-	if _, err := os.Stat(absOld); os.IsNotExist(err) {
-		if err = fs.yield(ctx, oldrel, index.ChangeMetaRemote|index.ChangeMetaAdd); err != nil {
-			return err
-		}
-	}
+	// if _, err := os.Stat(absOld); os.IsNotExist(err) {
+	// 	if err = fs.yield(ctx, oldrel, index.ChangeMetaRemote|index.ChangeMetaAdd); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if err := os.MkdirAll(filepath.Dir(absNew), 0755); err != nil {
-		return err
-	}
+	// if err := os.MkdirAll(filepath.Dir(absNew), 0755); err != nil {
+	// 	return err
+	// }
 
-	return os.Rename(absOld, absNew)
-}
-
-func (fs *Filesystem) rm(n *node.Node) error {
-	n.PromiseDel()
-
-	path := n.Path()
-	if err := os.Remove(fs.abs(path)); os.IsNotExist(err) {
-		return nil
-	}
-
-	fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+	// return os.Rename(absOld, absNew)
 
 	return nil
-}
-
-func (fs *Filesystem) open(ctx stdcontext.Context, n *node.Node) (*os.File, fuseops.HandleID, error) {
-	f, err := fs.openFile(ctx, n.Path(), n.Entry.File.Mode)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	fs.mu.Lock()
-	id := fs.addHandle(fuseops.InodeID(n.Entry.Virtual.Inode), f)
-	fs.mu.Unlock()
-
-	n.Entry.Virtual.CountInc()
-
-	return f, id, nil
-}
-
-func (fs *Filesystem) openFile(ctx stdcontext.Context, rel string, mode os.FileMode) (*os.File, error) {
-	abs := fs.abs(rel)
-
-	f, err := os.OpenFile(abs, os.O_RDWR, mode)
-	if os.IsNotExist(err) {
-		err = fs.yield(ctx, rel, index.ChangeMetaAdd|index.ChangeMetaRemote)
-		if err != nil {
-			return nil, err
-		}
-
-		f, err = os.OpenFile(abs, os.O_RDWR, mode)
-	}
-
-	if os.IsPermission(err) {
-		f, err = os.OpenFile(abs, os.O_RDONLY, mode)
-	}
-
-	return f, err
-}
-
-func (fs *Filesystem) openHandleInfo(id fuseops.HandleID) (*os.File, fuseops.InodeID, error) {
-	fs.mu.RLock()
-	f, nID, ok := fs.getHandle(id)
-	fs.mu.RUnlock()
-
-	if !ok {
-		return nil, 0, fuse.ENOENT
-	}
-
-	return f, nID, nil
-}
-
-func trimRightNull(p []byte) []byte {
-	for i := len(p) - 1; i >= 0; i-- {
-		if p[i] != 0 {
-			break
-		}
-
-		p = p[:i]
-	}
-
-	return p
-}
-
-func direntType(entry *node.Entry) fuseutil.DirentType {
-	if entry.File.Mode.IsDir() {
-		return fuseutil.DT_Directory
-	}
-	return fuseutil.DT_File
 }

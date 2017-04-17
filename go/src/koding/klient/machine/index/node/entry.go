@@ -95,7 +95,7 @@ func (v *Virtual) CountInc() int32 {
 
 // CountDec atomically decreases virtual reference counter by provided value.
 func (v *Virtual) CountDec(val int32) int32 {
-	return atomic.AddInt32(&v.count, val)
+	return atomic.AddInt32(&v.count, -val)
 }
 
 // NLink returns the number of entry hard links. This value should be always
@@ -146,11 +146,9 @@ func NewEntryFileInfo(info os.FileInfo) *Entry {
 // NewEntryTime creates a new entry with custom file change and modify times.
 func NewEntryTime(ctime, mtime, size int64, mode os.FileMode) *Entry {
 	// All directories have size set to 0. This is done because on different
-	// file systems directory can have different size so we ignore it. We also
-	// set count number to 1 since it is implicitly incremented for mkdir calls.
-	var count int32
+	// file systems directory can have different size so we ignore it.
 	if mode.IsDir() {
-		size, count = 0, 1
+		size = 0
 	}
 
 	return &Entry{
@@ -161,7 +159,7 @@ func NewEntryTime(ctime, mtime, size int64, mode os.FileMode) *Entry {
 			Mode:  mode,
 		},
 		Virtual: Virtual{
-			count: count,
+			count: 0,
 			nlink: 1,
 		},
 	}
@@ -179,19 +177,14 @@ func NewEntryFile(path string) (*Entry, error) {
 
 // Clone returns a deep copy of the e value.
 //
-// RefCount field is ignored and set to 0 for files and 1 for directories.
+// RefCount field is ignored and set to 0.
 func (e *Entry) Clone() *Entry {
-	var count int32
-	if e.File.Mode.IsDir() {
-		count = 1
-	}
-
 	return &Entry{
 		File: e.File,
 		Virtual: Virtual{
 			Inode:   e.Virtual.Inode,
 			Promise: e.Virtual.Promise,
-			count:   count,
+			count:   0,
 			nlink:   1,
 		},
 	}

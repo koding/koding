@@ -28,15 +28,17 @@ var (
 	verbose = flag.Bool("v", false, "Turn on verbose logging.")
 	tmp     = flag.String("tmp", "", "Existing cache directory to use.")
 	change  = flag.Bool("c", false, "Print produced FS changes.")
+	null    = flag.Bool("null", false, "Ignore all changes and report them as completed")
 )
 
-const usage = `usage: loopfuse [-v] [-tmp] [-c] <src> <dst>
+const usage = `usage: loopfuse [-v] [-tmp] [-c] [-null] <src> <dst>
 
 Flags
 
-	-v    Turns on verbose logging.
-	-tmp  Existing cache directory to use.
-	-c    Print produced FS changes.
+	-v     Turns on verbose logging.
+	-tmp   Existing cache directory to use.
+	-c     Print produced FS changes.
+	-null  Ignore all changes and report them as completed.
 
 Arguments
 
@@ -94,8 +96,13 @@ func main() {
 	}
 
 	var cache notify.Cache = bc
+	if *null {
+		log.Printf("using null cache")
+		cache = nullCache{}
+	}
 	if *change {
-		cache = &printCache{sub: bc}
+		log.Printf("print cache commits")
+		cache = &printCache{sub: cache}
 	}
 
 	fmt.Println(bc.Index().DebugString())
@@ -158,5 +165,15 @@ type printCache struct {
 
 func (pc *printCache) Commit(c *index.Change) context.Context {
 	log.Println("Commit:", c)
-	return pc.sub.Commit(c)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	return ctx //pc.sub.Commit(c)
+}
+
+type nullCache struct{}
+
+func (nullCache) Commit(c *index.Change) context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	return ctx
 }

@@ -39,14 +39,26 @@ func toErrno(err error) syscall.Errno {
 	return syscall.ENOSYS
 }
 
-// ignore filters out context.Canceled errors.
-func ignore(err error) error {
+// ignoreCtxCancel filters out context.Canceled errors.
+func ignoreCtxCancel(err error) error {
 	switch err {
 	case context.Canceled, xnetctx.Canceled:
 		return nil
 	default:
 		return err
 	}
+}
+
+func trimRightNull(p []byte) []byte {
+	for i := len(p) - 1; i >= 0; i-- {
+		if p[i] != 0 {
+			break
+		}
+
+		p = p[:i]
+	}
+
+	return p
 }
 
 func nonil(err ...error) error {

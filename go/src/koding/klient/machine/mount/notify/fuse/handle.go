@@ -2,9 +2,12 @@ package fuse
 
 import (
 	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"syscall"
+
+	"koding/klient/machine/index/node"
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
@@ -66,9 +69,71 @@ func NewFileHandleGroup(gen func() uint64) *FileHandleGroup {
 	}
 }
 
-// Open opens or creates a file under provided path and returns its handle.
-func (fhg *FileHandleGroup) Open(inodeID fuseops.InodeID, path string, mode os.FileMode) fuseops.HandleID {
-	return 0
+// Add creates a file handle for already opened file. The provided file should
+// be closed by calling file handle group release method.
+func (fhg *FileHandleGroup) Add(inodeID fuseops.InodeID, f *os.File) fuseops.HandleID {
+	handleID := fuseops.HandleID(fhg.generator())
+
+	fhg.mu.Lock()
+	if _, ok := fhg.handles[handleID]; ok {
+		panic("duplicated handle identifier")
+	}
+	fhg.handles[handleID] = FileHandle{
+		InodeID: inodeID,
+		File:    f,
+	}
+	fhg.mu.Unlock()
+
+	return handleID
+}
+
+// Open opens a file pointed by a given node. The node must exist.
+func (fhg *FileHandleGroup) Open(root string, n *node.Node) (fuseops.HandleID, error) {
+	if !n.Exist() {
+		return 0, fuse.ENOENT
+	}
+
+	absPath := filepath.Join(root, n.Path())
+	f, err := os.OpenFile(absPath, os.O_RDWR, n.Entry.File.Mode)
+	if os.IsNotExist(err) {
+		return 0, fuse.ENOENT
+	} else if os.IsPermission(err) {
+		f, err = os.OpenFile(absPath, os.O_RDONLY, n.Entry.File.Mode)
+	}
+
+	if err != nil {
+		return 0, toErrno(err)
+	}
+
+	return fhg.Add(fuseops.InodeID(n.Entry.Virtual.Inode), f), nil
+}
+
+// Get gets the FileHandle structure associated with provided handle ID.
+func (fhg *FileHandleGroup) Get(handleID fuseops.HandleID) (fh FileHandle, err error) {
+	fhg.mu.Lock()
+	fh, ok := fhg.handles[handleID]
+	fhg.mu.Unlock()
+
+	if !ok {
+		return fh, fuse.EINVAL
+	}
+
+	return fh, nil
+}
+
+// Release releases file handle. The underlying file descriptor will be closed.
+func (fhg *FileHandleGroup) Release(handleID fuseops.HandleID) error {
+	fhg.mu.Lock()
+	fh, ok := fhg.handles[handleID]
+	if !ok {
+		fhg.mu.Unlock()
+		return fuse.EINVAL
+	}
+	delete(fhg.handles, handleID)
+	fhg.mu.Unlock()
+
+	// Return error but drop the handle anyway.
+	return fh.Close()
 }
 
 // Close closes all remaining file handles and cleans its internal state. This
