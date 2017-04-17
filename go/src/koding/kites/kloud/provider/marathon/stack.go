@@ -354,8 +354,6 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 func (s *Stack) injectMetadata(app map[string]interface{}, name string) error {
 	envs := getObject(app["env"])
 
-	s.Builder.InterpolateField(app, name, "cmd")
-
 	cmd, ok := app["cmd"]
 	if ok {
 		delete(app, "cmd")
