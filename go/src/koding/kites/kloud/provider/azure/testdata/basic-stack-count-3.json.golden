@@ -36,14 +36,6 @@
         "username": "user",
         "virtual_network": "virtual-network"
       }
-    },
-    "null_resource": {
-      "example-instance": {
-        "depends_on": [],
-        "triggers": {
-          "custom_data": "***"
-        }
-      }
     }
   },
   "variable": {
