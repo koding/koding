@@ -24,8 +24,8 @@ module.exports = class SidebarController extends kd.Controller
       machineId: null
 
     @visibility =
-      stacks: {}
-      drafts: {}
+      stack: {}
+      draft: {}
 
     @managed = {}
 
