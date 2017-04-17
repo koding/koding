@@ -184,8 +184,6 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		tunnel := s.newTunnel(resourceName)
 
-		s.Builder.InterpolateField(box, resourceName, "user_data")
-
 		if b, ok := box["debug"].(bool); ok && b {
 			s.Debug = true
 		}

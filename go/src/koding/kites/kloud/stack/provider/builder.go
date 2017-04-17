@@ -559,61 +559,6 @@ func (b *Builder) BuildTemplate(content, contentID string) error {
 	return nil
 }
 
-// InterplateField interpolates a field that can't contain variables within it
-// with null_resource provider.
-//
-// User to interpolate content of user_data fields for kloud providers.
-func (b *Builder) InterpolateField(resource map[string]interface{}, resourceName, field string) {
-	// Build provisioning script if available - the script needs to be
-	// base64-encoded to ensure the eventual formatting and terraform
-	// interpolation won't break YAML encoding of the cloud-init
-	// script; since most likely the user_data requires terraform
-	// interpolation, let it be interpolated as variable, and base64-encode
-	// it during the interpolation.
-	//
-	// Note on implementation: since variables themselves cannot be
-	// additionally interpolated, as terraform would fail with:
-	//
-	//   * Variable 'userdata_example': cannot contain interpolations
-	//
-	// We're using special "null_resource" to have the the interpolation
-	// kick in. For more details see:
-	//
-	//   https://github.com/hashicorp/terraform/issues/4084
-	//
-	if s, ok := resource[field].(string); ok && s != "" {
-		resource[field] = fmt.Sprintf("${null_resource.%s.triggers.%s}", resourceName, field)
-
-		nullRes, ok := b.Template.Resource["null_resource"].(map[string]interface{})
-		if !ok {
-			nullRes = make(map[string]interface{})
-			b.Template.Resource["null_resource"] = nullRes
-		}
-
-		res, ok := nullRes[resourceName].(map[string]interface{})
-		if !ok {
-			res = make(map[string]interface{})
-			nullRes[resourceName] = res
-		}
-
-		triggers, ok := res["triggers"].(map[string]interface{})
-		if !ok {
-			triggers = make(map[string]interface{})
-			res["triggers"] = triggers
-
-			// This field is a nop, it works around the following terraform
-			// parsing bug:
-			//
-			//   resource must be followed by exactly two strings, a type and a name
-			//
-			// TODO(rjeczalik): report and/or fix
-			res["depends_on"] = []interface{}{}
-		}
-
-		triggers[field] = EscapeDeadVariables(s)
-	}
-}
-
 // FetchCredentials fetches credential and bootstrap data from credential store.
 //
 // If no credentials are provided, the method is a nop.

@@ -76,8 +76,6 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 
 	vm[field] = ci.String()
 
-	bs.Builder.InterpolateField(vm, name, field)
-
 	// create independent kiteKey for each machine and create a Terraform
 	// lookup map, which is used in conjunction with the `count.index`.
 	for i, label := range labels {
