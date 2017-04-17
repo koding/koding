@@ -64,6 +64,18 @@ func (c *Client) List(opts *ListOptions) ([]*team.Team, error) {
 	return resp.Teams, nil
 }
 
+func (c *Client) Whoami() (*stack.WhoamiResponse, error) {
+	c.init()
+
+	var resp stack.WhoamiResponse
+
+	if err := c.kloud().Call("team.whoami", nil, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 func (c *Client) Close() (err error) {
 	if c.used.Valid() == nil {
 		err = c.kloud().Cache().SetValue("team.used", &c.used)
@@ -95,3 +107,4 @@ func (c *Client) kloud() *kloud.Client {
 func Use(team *Team)                               { DefaultClient.Use(team) }
 func Used() *Team                                  { return DefaultClient.Used() }
 func List(opts *ListOptions) ([]*team.Team, error) { return DefaultClient.List(opts) }
+func Whoami() (*stack.WhoamiResponse, error)       { return DefaultClient.Whoami() }

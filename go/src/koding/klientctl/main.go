@@ -816,6 +816,16 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 					},
+				}, {
+					Name:   "whoami",
+					Usage:  "Displays current authentication details.",
+					Action: ctlcli.ExitErrAction(TeamWhoami, log, "whoami"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
 				}},
 			},
 		)
