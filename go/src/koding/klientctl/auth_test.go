@@ -99,9 +99,6 @@ func TestAuthLogin(t *testing.T) {
 
 func TestAuthLoginToken(t *testing.T) {
 	cases := map[string]*stack.PasswordLoginResponse{
-		"without team": {
-			KiteKey: "abc",
-		},
 		"with team": {
 			LoginResponse: stack.LoginResponse{
 				GroupName: "foobar",

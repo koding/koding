@@ -651,7 +651,7 @@ var Script = []InstallStep{{
 			// Every jToken has a relationship to a jGroup it was created from,
 			// thus we do not ask user for their teamname, since we got it
 			// from the auth response.
-			fmt.Printf("\tSign in to your team (%s):\n\n", f.Konfig.Endpoints.Koding.Public)
+			fmt.Printf("\tSign in to your team with %q token:\n\n", opts.Token)
 		} else {
 			fmt.Printf("\tSign in to your kd.io account:\n\n")
 		}

@@ -52,12 +52,18 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "\t")
 		enc.Encode(resp)
-	} else if resp.GroupName != "" {
+
+		return 0, nil
+	}
+
+	if resp.GroupName != "" {
 		fmt.Fprintln(os.Stdout, "Successfully logged in to the following team:", resp.GroupName)
 	} else {
 		fmt.Fprintf(os.Stdout, "Successfully authenticated to Koding.\n\nPlease run \"kd auth login "+
 			"[--team myteam]\" in order to login to your team.\n")
 	}
+
+	fmt.Printf("\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n")
 
 	return 0, nil
 }

@@ -11,6 +11,7 @@ import (
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/endpoint/team"
+	"koding/klientctl/helper"
 
 	"github.com/koding/logging"
 )
@@ -71,10 +72,43 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		newLogin = err != nil
 	}
 
-	if newLogin && opts.Token == "" {
+	var kiteKey string
+
+	if opts.Token != "" {
+		// TODO(rjeczalik): Backward compatibility with token-based authentication.
+		//
+		// The workflow:
+		//
+		//   - call Kontrol's "registerMachine" in order to obtain kite.key
+		//   - using the kite.key call Kloud's "auth.login" in order to obtain
+		//     ClientID for remote.api
+		//
+		// This should be removed once we get rid of temporary token-based auth
+		// (otaToken, do not confuse with not kite.key's tokenAuth).
+		resp, err := f.Client.Login(opts)
+		if err != nil {
+			return nil, err
+		}
+
+		if kt, ok := f.Kloud.Transport.(*kloud.KiteTransport); ok {
+			kt.SetKiteKey(resp.KiteKey)
+		}
+
+		opts.Token = ""
+		kiteKey = resp.KiteKey
+	} else if newLogin {
 		if err := opts.AskUserPass(); err != nil {
 			return nil, err
 		}
+	}
+
+	if opts.Team == "" {
+		team, err := helper.Ask("\tTeam name [kd.io]: ")
+		if err != nil {
+			return nil, err
+		}
+
+		opts.Team = team
 	}
 
 	resp, err := f.Client.Login(opts)
@@ -82,8 +116,12 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		return nil, err
 	}
 
-	if resp.KiteKey != "" {
-		f.Konfig.KiteKey = resp.KiteKey
+	if kiteKey == "" {
+		kiteKey = resp.KiteKey
+	}
+
+	if kiteKey != "" {
+		f.Konfig.KiteKey = kiteKey
 		if resp.Metadata != nil {
 			fixKlientEndpoint(f.Konfig.Endpoints)
 
@@ -97,7 +135,7 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		}
 
 		if kt, ok := f.Kloud.Transport.(*kloud.KiteTransport); ok {
-			kt.SetKiteKey(resp.KiteKey)
+			kt.SetKiteKey(kiteKey)
 		}
 	}
 
