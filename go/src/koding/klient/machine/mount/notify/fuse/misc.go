@@ -49,18 +49,6 @@ func ignoreCtxCancel(err error) error {
 	}
 }
 
-func trimRightNull(p []byte) []byte {
-	for i := len(p) - 1; i >= 0; i-- {
-		if p[i] != 0 {
-			break
-		}
-
-		p = p[:i]
-	}
-
-	return p
-}
-
 func nonil(err ...error) error {
 	for _, e := range err {
 		if e != nil {
