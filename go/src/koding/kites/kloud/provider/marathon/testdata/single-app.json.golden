@@ -33,7 +33,7 @@
         "count": 1,
         "cpus": 1.2,
         "env": {
-          "KODING_CMD": "${null_resource.app.triggers.cmd}",
+          "KODING_CMD": "python3 -m http.server 8080",
           "KODING_KLIENT_URL": "$KLIENT_URL",
           "KODING_METADATA_1": "***"
         },
@@ -63,14 +63,6 @@
         "ports": [
           0
         ]
-      }
-    },
-    "null_resource": {
-      "app": {
-        "depends_on": [],
-        "triggers": {
-          "cmd": "python3 -m http.server 8080"
-        }
       }
     }
   }
