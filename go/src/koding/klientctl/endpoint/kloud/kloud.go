@@ -1,6 +1,9 @@
 package kloud
 
 import (
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	cfg "koding/kites/config"
@@ -43,6 +46,11 @@ type Client struct {
 	// Required.
 	Transport Transport
 
+	// WaitInterval is used on polling for events.
+	//
+	// If zero, 10s is used by default.
+	WaitInterval time.Duration
+
 	cache *cfg.Cache
 }
 
@@ -66,6 +74,99 @@ func (c *Client) Username() string {
 
 func (c *Client) Call(method string, arg, reply interface{}) error {
 	return c.Transport.Call(method, arg, reply)
+}
+
+func (c *Client) Wait(event string) <-chan *stack.EventResponse {
+	ch := make(chan *stack.EventResponse, 1)
+
+	var arg stack.EventArg
+
+	if i := strings.IndexRune(event, '-'); i != -1 {
+		arg.Type = event[:i]
+		arg.EventId = event[i+1:]
+	}
+
+	if arg.Type == "" || arg.EventId == "" {
+		ch <- &stack.EventResponse{
+			EventId: arg.EventId,
+			Error:   newErr(errors.New("malformed event string")),
+		}
+		close(ch)
+
+		return ch
+	}
+
+	go func() {
+		last := -1
+		defer close(ch)
+
+		for {
+			var events []stack.EventResponse
+
+			if err := c.Call("event", arg, &events); err != nil {
+				ch <- &stack.EventResponse{
+					EventId: arg.EventId,
+					Error:   newErr(err),
+				}
+				return
+			}
+
+			if len(events) == 0 {
+				ch <- &stack.EventResponse{
+					EventId: arg.EventId,
+					Error:   newErr(fmt.Errorf("%s is no longer in progress", arg.Type)),
+				}
+				return
+			}
+
+			var event *stack.EventResponse
+
+			for _, e := range events {
+				if e.Event == nil {
+					continue
+				}
+
+				if e.Event.Percentage > last {
+					last = e.Event.Percentage
+					event = &e
+					break
+				}
+			}
+
+			if event != nil {
+				if event.Event.Error != "" {
+					event.Error = newErr(errors.New(event.Event.Error))
+				}
+
+				ch <- event
+
+				if event.Error != nil || event.Event.Percentage >= 100 {
+					return
+				}
+			}
+
+			time.Sleep(c.waitInterval())
+		}
+	}()
+
+	return ch
+}
+
+func (c *Client) waitInterval() time.Duration {
+	if c.WaitInterval != 0 {
+		return c.WaitInterval
+	}
+	return 10 * time.Second
+}
+
+func newErr(err error) *kite.Error {
+	if e, ok := err.(*kite.Error); ok {
+		return e
+	}
+	return &kite.Error{
+		Type:    "endpoint/kloud",
+		Message: err.Error(),
+	}
 }
 
 // KiteTransport is a default transport that uses github.com/koding/kite
