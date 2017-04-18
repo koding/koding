@@ -1,0 +1,18 @@
+{
+  "provider": {
+    "azure": {
+      "publish_settings": "${var.azure_publish_settings}",
+      "subscription_id": "${var.azure_subscription_id}"
+    }
+  },
+  "resource": {
+    "azure_instance": {
+      "azure-instance": {
+        "custom_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n",
+        "image": "${var.userInput_image}",
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
+        "size": "${var.userInput_size}"
+      }
+    }
+  }
+}

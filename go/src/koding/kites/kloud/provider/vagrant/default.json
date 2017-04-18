@@ -1,0 +1,12 @@
+{
+  "resource": {
+    "vagrant_instance": {
+      "vagrant-instance": {
+        "box": "${var.userInput_box}",
+        "cpus": "${var.userInput_cpus}",
+        "memory": "${var.userInput_memory}",
+        "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
+      }
+    }
+  }
+}

@@ -21,6 +21,9 @@ import (
 	"github.com/koding/kite"
 )
 
+//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg vagrant -o default.json.go default.json
+//go:generate go fmt default.json.go
+
 // VagrantResource represents vagrant_instance Terraform resource.
 type VagrantResource struct {
 	Build map[string]map[string]interface{} `hcl:"vagrant_instance"`
