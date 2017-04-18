@@ -11,6 +11,7 @@ Scroller = require 'app/components/scroller'
 
 SidebarFlux = require 'app/flux/sidebar'
 
+DefaultStackUpdated = require './components/defaultstackupdated'
 SidebarResources = require './components/resources'
 SidebarFooterLogo = require './components/footerlogo'
 
@@ -25,7 +26,6 @@ module.exports = class SidebarContainer extends React.Component
 
   constructor: (props) ->
     super props
-
     @state = { loading: yes }
 
 
@@ -43,6 +43,9 @@ module.exports = class SidebarContainer extends React.Component
     { curry } = kd.utils
 
     <Scroller className={curry 'activity-sidebar', @props.className}>
+
+      {@props.isDefaultStackUpdated and
+        <DefaultStackUpdated />}
 
       <SidebarResources
         loading={@state.loading}
