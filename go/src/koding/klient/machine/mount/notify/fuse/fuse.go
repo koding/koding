@@ -79,6 +79,13 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 			return
 		}
 
+		log.Println("---set inode attribs----")
+		log.Println("inode", op.Inode)
+		log.Println("size", op.Size)
+		log.Println("mode", op.Mode)
+		log.Println("atime", op.Atime)
+		log.Println("mtime", op.Mtime)
+
 		var handleID fuseops.HandleID
 		if handleID, err = fs.fileHandles.Open(fs.CacheDir, n); err != nil {
 			return
@@ -93,6 +100,7 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 
 		// Inode size has changed.
 		if op.Size != nil {
+			log.Println("size >>", *op.Size)
 			if err = fh.File.Truncate(int64(*op.Size)); err != nil {
 				fs.fileHandles.Release(handleID)
 				err = toErrno(err)
@@ -629,7 +637,7 @@ func (fs *Filesystem) syncFile(handleID fuseops.HandleID) error {
 				return
 			}
 
-			n.Entry.File.Size = info.Size()
+			n.Entry.File = node.NewEntryFileInfo(info).File
 			n.PromiseUpdate()
 			path = n.Path()
 		})
