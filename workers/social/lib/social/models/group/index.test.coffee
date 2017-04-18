@@ -300,7 +300,7 @@ runTests = -> describe 'workers.social.group.index', ->
 
           (next) ->
             group.modifyData client, { 'foo': 'bar' }, (err) ->
-              expect(err).to.exist
+              expect(err).to.not.exist
               next()
 
           (next) ->

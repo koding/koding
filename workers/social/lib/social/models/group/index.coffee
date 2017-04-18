@@ -554,15 +554,17 @@ module.exports = class JGroup extends Module
     JGroupData = require './groupdata'
     JGroupData.fetchData @slug, callback
 
+  fetchDataAt: (path, callback) ->
+    JGroupData = require './groupdata'
+    JGroupData.fetchDataAt @slug, path, callback
+
   fetchDataAt$: permit
     advanced: [
       { permission: 'grant permissions' }
       { permission: 'grant permissions', superadmin: yes }
     ]
     success: (client, path, callback) ->
-      JGroupData = require './groupdata'
-      JGroupData.fetchDataAt @slug, path, callback
-
+      @fetchDataAt path, callback
 
   sendNotification: (event, contents, callback) ->
     JGroup.sendNotification @getAt('slug'), event, contents, callback
@@ -1048,10 +1050,9 @@ module.exports = class JGroup extends Module
       { permission: 'edit own groups', validateWith : Validators.group.admin }
       { permission: 'edit groups',     superadmin   : yes }
     ]
-    success  : (client, _data, callback) ->
+    success  : (client, data, callback) ->
       JGroupData = require './groupdata'
-      JGroupData.modifyData @slug, _data, (err) ->
-        return callback err
+      JGroupData.modifyData @getAt('slug'), data, callback
 
 
   modify     : permit
@@ -1127,7 +1128,7 @@ module.exports = class JGroup extends Module
         return callback err  if err
 
         dataToUnset = {}
-        dataToUnset["data.#{provider}.applicationSecret"] = null
+        dataToUnset["payload.#{provider}.applicationSecret"] = null
         data.update { $unset: dataToUnset }, callback
 
 
@@ -1181,7 +1182,7 @@ module.exports = class JGroup extends Module
             return callback err  if err
 
             dataToSet = {}
-            dataToSet["data.#{provider}"] = { applicationSecret }
+            dataToSet["payload.#{provider}"] = { applicationSecret }
             data.update { $set: dataToSet }, (err) ->
               return callback err  if err
 
