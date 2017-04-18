@@ -326,6 +326,19 @@ func (g Guard) RmChild(n *Node, name string) {
 	g.t.rmChild(n, pos, child)
 }
 
+// RmOrphan removes orphan nodes.
+func (g Guard) RmOrphan(orphan *Node) {
+	orphan.Walk(func(_, n *Node) {
+		delete(g.t.inodes, n.Entry.Virtual.Inode)
+	})
+}
+
+// MvChild does the same job as MvChild. It is here for the sake of API
+// completeness.
+func (g Guard) MvChild(nSrc *Node, nameSrc string, nDst *Node, nameDst string) (*Node, bool) {
+	return MvChild(nSrc, nameSrc, nDst, nameDst)
+}
+
 // Predicate defines the read or write operation on the node. Node passed
 // as argument can be safely modified. Any predicate function must return true
 // in order to commit the changes.

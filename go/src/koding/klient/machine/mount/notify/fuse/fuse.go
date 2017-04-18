@@ -227,11 +227,8 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 
 		// Add new entry to the tree.
 		child := node.NewNodeEntry(op.Name, node.NewEntryFileInfo(info))
-		log.Println("A", child)
 		g.AddChild(n, child)
-		log.Println("B", child)
 		child.PromiseAdd()
-		log.Println("C", child)
 
 		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
 		op.Entry.Attributes = fs.newAttributes(child.Entry)
@@ -252,10 +249,7 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 // Note if a new name already exists, we still go ahead and rename it. While
 // the old and new entries are the same, we throw out the old one and create
 // new entry for it.
-//
-// Required for fuse.FileSystem.
 func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err error) {
-	var oldPath, newPath string
 	fs.Index.Tree().DoInode2(uint64(op.OldParent), uint64(op.NewParent),
 		func(g node.Guard, oldN, newN *node.Node) {
 			if err = checkDir(oldN); err != nil {
@@ -266,13 +260,13 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err err
 			}
 
 			oldChild := oldN.GetChild(op.OldName)
-			if oldChild == nil || !oldChild.Entry.Virtual.Promise.Exist() {
+			if !oldChild.Exist() {
 				err = fuse.ENOENT
 				return
 			}
 
 			newChild := newN.GetChild(op.NewName)
-			if newChild != nil && newChild.Entry.Virtual.Promise.Exist() {
+			if newChild.Exist() {
 				if newChild.Entry.File.Mode.IsDir() != oldChild.Entry.File.Mode.IsDir() {
 					err = fuse.EINVAL
 					return
@@ -284,27 +278,42 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err err
 				}
 			}
 
-			oldPath = filepath.Join(oldN.Path(), op.OldName)
-			newPath = filepath.Join(newN.Path(), op.NewName)
+			var (
+				oldPath = filepath.Join(oldN.Path(), op.OldName)
+				newPath = filepath.Join(newN.Path(), op.NewName)
+			)
 
-			if err = fs.move(ctx, oldPath, newPath); err != nil {
-				return
+			// Move the actual file only if it's present on disk.
+			if oldChild.Entry.Virtual.Promise.Exist() {
+				oldAbsPath := filepath.Join(fs.CacheDir, oldPath)
+				newAbsPath := filepath.Join(fs.CacheDir, newPath)
+				if err = os.Rename(oldAbsPath, newAbsPath); err != nil {
+					err = toErrno(err)
+					return
+				}
 			}
 
-			cloned := oldN.Clone()
-			cloned.Name = op.NewName
-			cloned.Entry.Virtual.Inode = fs.Index.Tree().GenerateInode()
+			replaced, ok := g.MvChild(oldN, op.OldName, newN, op.NewName)
+			if !ok {
+				// Panic here since we have a check for missing entry few lines
+				// above.
+				panic("source entry does not exist")
+			}
 
-			g.AddChild(newN, cloned)
+			if replaced != nil {
+				// Replaced is an orphan now, we can have it's path.
+				replaced.PromiseDel()
+				oldChild.PromiseUpdate()
+				fs.commit(newPath, index.ChangeMetaLocal|index.ChangeMetaUpdate)
+			} else {
+				// oldChild node is now under new path.
+				oldChild.PromiseAdd()
+				fs.commit(newPath, index.ChangeMetaLocal|index.ChangeMetaAdd)
+			}
 
-			oldChild.PromiseDel()
-			cloned.PromiseAdd()
+			// Data on old path was removed during move.
+			fs.commit(oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove)
 		})
-
-	if err == nil {
-		fs.commit(oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove)
-		fs.commit(newPath, index.ChangeMetaLocal|index.ChangeMetaAdd)
-	}
 
 	return
 }
@@ -382,9 +391,15 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 			return
 		}
 
-		log.Println(n, " >> ", op.N)
-
 		if count := decCountNoRoot(n, op.N); count > 0 {
+			return
+		}
+
+		// Orphan nodes are only entries needed by kernel, they are no real
+		// representation in underlying filesystem.
+		log.Println("Node: ", n.Orphan(), n)
+		if n.Orphan() {
+			g.RmOrphan(n)
 			return
 		}
 
@@ -405,6 +420,12 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 		// Clean up tree.
 		if parent := n.Parent(); parent != nil {
 			g.RmChild(parent, n.Name)
+		} else {
+			//log.Println(fs.Index.DebugString())
+			log.Println("n: parent", n.Parent())
+			log.Println("n: name", n.Name)
+			log.Println("n: path", n.Path())
+			panic("node marked to forget is an orphan")
 		}
 	})
 

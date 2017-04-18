@@ -78,17 +78,22 @@ func (n *Node) Parent() *Node {
 	return n.parent
 }
 
+// Orphan checks if node parent exist.
+func (n *Node) Orphan() bool {
+	return n.parent == nil
+}
+
 // Path uses node parents to create a full path. It starts from root node.
 func (n *Node) Path() string {
 	var (
 		root = n
-		toks []string
+		toks = []string{n.Name}
 	)
 
 	// Go till root node.
 	for root.parent != nil {
-		toks = append(toks, root.Name)
 		root = root.parent
+		toks = append(toks, root.Name)
 	}
 
 	// Reverse the slice.
@@ -137,6 +142,7 @@ func (n *Node) addChild(pos int, child *Node) (old *Node) {
 	if n.children[pos].Name == child.Name {
 		// Replace if the children already exist.
 		old = n.children[pos]
+		old.parent = nil
 		n.children[pos] = child
 		return
 	}
@@ -163,6 +169,8 @@ func (n *Node) rmChild(pos int, child *Node) {
 	copy(n.children[pos:], n.children[pos+1:])
 	n.children[len(n.children)-1] = nil // let GC decrease refcounter.
 	n.children = n.children[:len(n.children)-1]
+
+	child.parent = nil
 }
 
 // GetChild gets child node with a given name from called Node. If return value
@@ -299,6 +307,39 @@ func (n *Node) UnmarshalJSON(data []byte) (err error) {
 	})
 
 	return err
+}
+
+// MvChild moves source node child to destination node. The child name will be
+// replaced in destination node to destination name. This function returns
+// replaced node if present and if the move was successful.
+func MvChild(nSrc *Node, nameSrc string, nDst *Node, nameDst string) (replaced *Node, ok bool) {
+	if nSrc == nil {
+		panic("source node is nil")
+	}
+	if nDst == nil {
+		panic("destination node is nil")
+	}
+
+	posChildSrc, nChildSrc := nSrc.getChild(nameSrc)
+	if nChildSrc == nil {
+		// There is no source node, so nothing to move.
+		return nil, false
+	}
+
+	// Remove child from the source.
+	nSrc.rmChild(posChildSrc, nChildSrc)
+
+	// Change moved node name.
+	nChildSrc.Name = nameDst
+
+	// Get source name position in destination and replace destination node.
+	posChildDst, _ := nDst.getChild(nameDst)
+	replaced = nDst.addChild(posChildDst, nChildSrc)
+
+	// Change moved node parent to destination one.
+	nChildSrc.parent = nDst
+
+	return replaced, true
 }
 
 // NodeSlice attaches the methods of sortInterface to []*Node, sorting in
