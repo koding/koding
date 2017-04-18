@@ -18,7 +18,6 @@ require './styl/sidebar.styl'
 require './styl/sidebarmenu.styl'
 require './styl/sidebarsection.styl'
 require './styl/sidebarstacksection.styl'
-require './styl/sidebarstackwidgets.styl'
 require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
 
