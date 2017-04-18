@@ -87,9 +87,13 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			fmt.Printf("[%d] %s\n", i+1, cred.Title)
 		}
 
-		s, err := helper.Ask("\nChoose credential to use [0]: ")
+		s, err := helper.Ask("\nChoose credential to use [1]: ")
 		if err != nil {
 			return 1, err
+		}
+
+		if s == "" {
+			s = "1"
 		}
 
 		n, err := strconv.Atoi(s)
@@ -97,7 +101,7 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			return 1, fmt.Errorf("unrecognized credential chosen: %s", s)
 		}
 
-		if n < 0 || n >= len(creds) {
+		if n--; n < 0 || n >= len(creds) {
 			return 1, fmt.Errorf("invalid credential chosen: %d", n)
 		}
 
