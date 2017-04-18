@@ -14,6 +14,7 @@ import (
 	kstack "koding/kites/kloud/stack"
 	"koding/kites/kloud/utils/object"
 	"koding/klientctl/endpoint/credential"
+	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/stack"
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
@@ -127,9 +128,15 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	fmt.Fprintf(os.Stderr, "\nCreatad %q stack with %s ID.\n", resp.Title, resp.StackID)
+	fmt.Fprintf(os.Stderr, "\nCreatad %q stack with %s ID.\nWaiting for the stack to finish building...\n\n", resp.Title, resp.StackID)
 
-	// TODO(rjeczalik): wait for build
+	for e := range kloud.Wait(resp.EventID) {
+		if e.Error != nil {
+			return 1, fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
+		}
+
+		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	}
 
 	if err := writelock(resp.StackID, resp.Title); err != nil {
 		return 1, err

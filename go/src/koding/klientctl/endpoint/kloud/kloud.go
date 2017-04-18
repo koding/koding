@@ -100,10 +100,12 @@ func (c *Client) Wait(event string) <-chan *stack.EventResponse {
 		last := -1
 		defer close(ch)
 
+		id := stack.EventArgs{arg}
+
 		for {
 			var events []stack.EventResponse
 
-			if err := c.Call("event", arg, &events); err != nil {
+			if err := c.Call("event", id, &events); err != nil {
 				ch <- &stack.EventResponse{
 					EventId: arg.EventId,
 					Error:   newErr(err),
@@ -355,4 +357,7 @@ func Cache() *cfg.Cache { return DefaultClient.Cache() }
 func Username() string  { return DefaultClient.Username() }
 func Call(method string, arg, reply interface{}) error {
 	return DefaultClient.Call(method, arg, reply)
+}
+func Wait(event string) <-chan *stack.EventResponse {
+	return DefaultClient.Wait(event)
 }

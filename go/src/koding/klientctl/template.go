@@ -203,6 +203,10 @@ func templateInit(output string) error {
 			return err
 		}
 
+		if s == "" {
+			s = def
+		}
+
 		input[v.Name] = s
 	}
 
