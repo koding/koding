@@ -1,6 +1,7 @@
 kd = require 'kd'
 React = require 'app/react'
 SidebarWidget = require './widget'
+getMachineLinks = require 'app/util/getMachineLinks'
 
 
 module.exports = class ManagedMachineWidget extends React.Component
@@ -14,6 +15,8 @@ module.exports = class ManagedMachineWidget extends React.Component
 
 
   onButtonClick: ->
+
+    newPath = getMachineLinks @props.machine, 'ide'
 
     kd.singletons.router.handleRoute newPath
 
