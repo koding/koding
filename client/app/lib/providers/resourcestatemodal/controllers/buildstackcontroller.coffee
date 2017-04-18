@@ -27,17 +27,26 @@ module.exports = class BuildStackController extends kd.Controller
     { router, appManager } = kd.singletons
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @buildStackPage, 'ClosingRequested'
-    @forwardEvent @successPage, 'ClosingRequested'
+
     @successPage.on 'InstallRequested', =>
       router.handleRoute '/Home/koding-utilities#kd-cli'
       @emit 'ClosingRequested'
+
     @successPage.on 'CollaborationInvite', =>
       tooltipContent = '''
         <h3>Collaboration is starting...</h3>
         <p>You can invite your teammates when collaboration is started.</p>
       '''
-      appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
+      router.once 'RouteInfoHandled', -> kd.utils.wait 1000, ->
+        appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
+
+      router.handleRoute "/IDE/#{machine.getAt 'slug'}"
       @emit 'ClosingRequested'
+
+    @successPage.on 'ClosingRequested', =>
+      router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+      @emit 'ClosingRequested'
+
     @forwardErrorPageEvent 'CredentialsRequested'
     @forwardErrorPageEvent 'RebuildRequested'
     @forwardEvent @timeoutPage, 'ClosingRequested'
