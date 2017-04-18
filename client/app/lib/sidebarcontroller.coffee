@@ -31,7 +31,10 @@ module.exports = class SidebarController extends kd.Controller
 
     @updatedStack = null
 
+    @isDefaultStackUpdated = no
+
     @bindNotificationHandlers()
+    @bindComputeHandlers()
     @setStateFromStorage()
     @loadVisibilityFilters()
 
@@ -44,6 +47,18 @@ module.exports = class SidebarController extends kd.Controller
       notificationController
         .on 'MachineShare:Added', @bound 'onAddSharedMachine'
         .on 'MachineShare:Removed', @bound 'onRemoveSharedMachine'
+
+
+  bindComputeHandlers: ->
+
+    { computeController } = kd.singletons
+
+    computeController.ready =>
+      computeController.on 'GroupStacksInconsistent', =>
+        @setDefaultStackUpdated updated = yes
+
+      computeController.on 'GroupStacksConsistent', =>
+        @setDefaultStackUpdated updated = no
 
 
   setStateFromStorage: ->
@@ -195,6 +210,14 @@ module.exports = class SidebarController extends kd.Controller
     @emit 'change'
 
 
+  setDefaultStackUpdated: (state) ->
+
+    debug 'set default stack updated', { state }
+
+    @isDefaultStackUpdated = state
+    @emit 'change'
+
+
   getState: (selector = identity) ->
     return selector {
       selected: @selected
@@ -202,6 +225,7 @@ module.exports = class SidebarController extends kd.Controller
       invitedId: @invitedId
       managedId: @getManaged()
       updatedStackId: @updatedStack
+      isDefaultStackUpdated: @isDefaultStackUpdated
     }
 
 
