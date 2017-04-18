@@ -29,6 +29,8 @@ module.exports = class SidebarController extends kd.Controller
 
     @managed = {}
 
+    @updatedStack = null
+
     @bindNotificationHandlers()
     @setStateFromStorage()
     @loadVisibilityFilters()
@@ -185,12 +187,21 @@ module.exports = class SidebarController extends kd.Controller
     if first then first else null
 
 
+  setUpdatedStack: (id) ->
+
+    debug 'set updated stack', { id }
+
+    @updatedStack = id
+    @emit 'change'
+
+
   getState: (selector = identity) ->
     return selector {
       selected: @selected
       leavingId: @leavingId
       invitedId: @invitedId
       managedId: @getManaged()
+      updatedStackId: @updatedStack
     }
 
 
