@@ -35,7 +35,7 @@ type FileHandle struct {
 	InodeID fuseops.InodeID
 	File    *os.File
 
-	size int64
+	size *int64
 }
 
 // Close closes stored file handle.
@@ -55,11 +55,11 @@ func (fh *FileHandle) Close() error {
 // handle. Return value will contain the chosen one and should be set as new
 // inode size value.
 func (fh *FileHandle) GrowSize(new int64) int64 {
-	if new > fh.size {
-		fh.size = new
+	if new > *fh.size {
+		*fh.size = new
 	}
 
-	return fh.size
+	return *fh.size
 }
 
 // FileHandleGroup stores currently opened files.
@@ -87,15 +87,19 @@ func NewFileHandleGroup(gen func() uint64) *FileHandleGroup {
 func (fhg *FileHandleGroup) Add(inodeID fuseops.InodeID, f *os.File, size int64) fuseops.HandleID {
 	handleID := fuseops.HandleID(fhg.generator())
 
+	fh := FileHandle{
+		InodeID: inodeID,
+		File:    f,
+		size:    new(int64),
+	}
+
+	*fh.size = size
+
 	fhg.mu.Lock()
 	if _, ok := fhg.handles[handleID]; ok {
 		panic("duplicated handle identifier")
 	}
-	fhg.handles[handleID] = FileHandle{
-		InodeID: inodeID,
-		File:    f,
-		size:    size,
-	}
+	fhg.handles[handleID] = fh
 	fhg.mu.Unlock()
 
 	return handleID
