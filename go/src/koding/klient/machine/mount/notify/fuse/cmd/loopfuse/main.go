@@ -165,9 +165,7 @@ type printCache struct {
 
 func (pc *printCache) Commit(c *index.Change) context.Context {
 	log.Println("Commit:", c)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	return ctx //pc.sub.Commit(c)
+	return pc.sub.Commit(c)
 }
 
 type nullCache struct{}

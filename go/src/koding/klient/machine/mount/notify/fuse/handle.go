@@ -34,6 +34,8 @@ func generator(min uint64) func() uint64 {
 type FileHandle struct {
 	InodeID fuseops.InodeID
 	File    *os.File
+
+	size int64
 }
 
 // Close closes stored file handle.
@@ -47,6 +49,17 @@ func (fh *FileHandle) Close() error {
 	}
 
 	return nil
+}
+
+// GrowSize gets the highest of stored size and provided one and stores it to
+// handle. Return value will contain the chosen one and should be set as new
+// inode size value.
+func (fh *FileHandle) GrowSize(new int64) int64 {
+	if new > fh.size {
+		fh.size = new
+	}
+
+	return fh.size
 }
 
 // FileHandleGroup stores currently opened files.
@@ -71,7 +84,7 @@ func NewFileHandleGroup(gen func() uint64) *FileHandleGroup {
 
 // Add creates a file handle for already opened file. The provided file should
 // be closed by calling file handle group release method.
-func (fhg *FileHandleGroup) Add(inodeID fuseops.InodeID, f *os.File) fuseops.HandleID {
+func (fhg *FileHandleGroup) Add(inodeID fuseops.InodeID, f *os.File, size int64) fuseops.HandleID {
 	handleID := fuseops.HandleID(fhg.generator())
 
 	fhg.mu.Lock()
@@ -81,6 +94,7 @@ func (fhg *FileHandleGroup) Add(inodeID fuseops.InodeID, f *os.File) fuseops.Han
 	fhg.handles[handleID] = FileHandle{
 		InodeID: inodeID,
 		File:    f,
+		size:    size,
 	}
 	fhg.mu.Unlock()
 
@@ -105,7 +119,7 @@ func (fhg *FileHandleGroup) Open(root string, n *node.Node) (fuseops.HandleID, e
 		return 0, toErrno(err)
 	}
 
-	return fhg.Add(fuseops.InodeID(n.Entry.Virtual.Inode), f), nil
+	return fhg.Add(fuseops.InodeID(n.Entry.Virtual.Inode), f, n.Entry.File.Size), nil
 }
 
 // Get gets the FileHandle structure associated with provided handle ID.

@@ -13,7 +13,6 @@ import (
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"golang.org/x/net/context"
-	"log"
 )
 
 // StatFS sets filesystem metadata.
@@ -47,7 +46,6 @@ func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) 
 
 			// Increase reference counter for entry - fuse_reply_entry.
 			incCountNoRoot(child)
-			log.Println(child)
 			return
 		}
 
@@ -79,13 +77,6 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 			return
 		}
 
-		log.Println("---set inode attribs----")
-		log.Println("inode", op.Inode)
-		log.Println("size", op.Size)
-		log.Println("mode", op.Mode)
-		log.Println("atime", op.Atime)
-		log.Println("mtime", op.Mtime)
-
 		var handleID fuseops.HandleID
 		if handleID, err = fs.fileHandles.Open(fs.CacheDir, n); err != nil {
 			return
@@ -100,7 +91,6 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 
 		// Inode size has changed.
 		if op.Size != nil {
-			log.Println("size >>", *op.Size)
 			if err = fh.File.Truncate(int64(*op.Size)); err != nil {
 				fs.fileHandles.Release(handleID)
 				err = toErrno(err)
@@ -240,7 +230,7 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 
 		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
 		op.Entry.Attributes = fs.newAttributes(child.Entry)
-		op.Handle = fs.fileHandles.Add(fuseops.InodeID(child.Entry.Virtual.Inode), f)
+		op.Handle = fs.fileHandles.Add(fuseops.InodeID(child.Entry.Virtual.Inode), f, 0)
 
 		// Increase reference counter for entry - fuse_reply_create.
 		incCountNoRoot(child)
@@ -405,7 +395,6 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 
 		// Orphan nodes are only entries needed by kernel, they are no real
 		// representation in underlying filesystem.
-		log.Println("Node: ", n.Orphan(), n)
 		if n.Orphan() {
 			g.RmOrphan(n)
 			return
@@ -429,10 +418,6 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 		if parent := n.Parent(); parent != nil {
 			g.RmChild(parent, n.Name)
 		} else {
-			//log.Println(fs.Index.DebugString())
-			log.Println("n: parent", n.Parent())
-			log.Println("n: name", n.Name)
-			log.Println("n: path", n.Path())
 			panic("node marked to forget is an orphan")
 		}
 	})
@@ -597,15 +582,24 @@ func (fs *Filesystem) ReadFile(_ context.Context, op *fuseops.ReadFileOp) error 
 }
 
 // WriteFile write specified content to specified file at specified offset.
-func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
+func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) (err error) {
 	fh, err := fs.fileHandles.Get(op.Handle)
 	if err != nil {
 		return err
 	}
 
 	if _, err = fh.File.WriteAt(op.Data, op.Offset); err != nil {
-		return toErrno(err)
+		err = toErrno(err)
+		return
 	}
+
+	fs.Index.Tree().DoInode(uint64(fh.InodeID), func(_ node.Guard, n *node.Node) {
+		if n == nil {
+			return
+		}
+
+		n.Entry.File.Size = fh.GrowSize(int64(op.Offset) + int64(len(op.Data)))
+	})
 
 	return nil
 }
