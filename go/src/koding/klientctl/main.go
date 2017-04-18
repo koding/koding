@@ -411,6 +411,10 @@ func run(args []string) {
 				Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
 			}},
 		}, {
+			Name:   "init",
+			Usage:  "Initializes KD project.",
+			Action: ctlcli.ExitErrAction(Init, log, "init"),
+		}, {
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
