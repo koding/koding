@@ -44,12 +44,12 @@ module.exports = class SidebarContainer extends React.Component
 
     <Scroller className={curry 'activity-sidebar', @props.className}>
 
-      {not @state.loading and
-        <SidebarResources
-          hasTemplate={!!@props.templates.length}
-          disabled={isGroupDisabled()}
-          owned={@props.ownedResources}
-          shared={@props.sharedResources} /> }
+      <SidebarResources
+        loading={@state.loading}
+        hasTemplate={!!@props.templates.length}
+        disabled={isGroupDisabled()}
+        owned={@props.ownedResources}
+        shared={@props.sharedResources} />
 
       <SidebarFooterLogo
         src={DEFAULT_LOGOPATH} />
