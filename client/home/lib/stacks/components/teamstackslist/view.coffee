@@ -18,8 +18,6 @@ module.exports = class TeamStacksListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    { sidebar } = kd.singletons
-
     resource = @props.resources[rowIndex]
 
     { stack, template, isVisible } = resource
