@@ -151,6 +151,22 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	output := c.String("output")
+
+	if _, err := os.Stat(output); err == nil {
+		yn, err := helper.Ask("Do you want to overwrite %q file? [y/N]: ", output)
+		if err != nil {
+			return 1, err
+		}
+
+		switch strings.ToLower(yn) {
+		case "yes", "y":
+			fmt.Fprintln(os.Stderr)
+		default:
+			return 1, errors.New("aborted by user")
+		}
+	}
+
 	descs, err := credential.Describe()
 	if err != nil {
 		return 1, err
@@ -165,7 +181,7 @@ func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, fmt.Errorf("provider %q does not exist", name)
 	}
 
-	tmpl, err := remoteapi.SampleTemplate(name)
+	tmpl, defaults, err := remoteapi.SampleTemplate(name)
 	if err != nil {
 		return 1, err
 	}
@@ -178,7 +194,13 @@ func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			continue
 		}
 
-		s, err := helper.Ask("Set %q to []: ", v.Name[len("userInput_"):])
+		name := v.Name[len("userInput_"):]
+		def := ""
+		if v, ok := defaults[name]; ok && v != nil {
+			def = fmt.Sprintf("%v", v)
+		}
+
+		s, err := helper.Ask("Set %q to [%s]: ", name, def)
 		if err != nil {
 			return 1, err
 		}
