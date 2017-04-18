@@ -34,6 +34,8 @@ const (
 var environments = map[string]string{
 	"production":  "managed",
 	"development": "devmanaged",
+	"managed":     "managed",
+	"devmanaged":  "devmanaged",
 }
 
 func kd2klient(kdEnv string) string {
@@ -41,7 +43,7 @@ func kd2klient(kdEnv string) string {
 		return klientEnv
 	}
 
-	return "devmanaged"
+	return ""
 }
 
 var (
@@ -56,7 +58,7 @@ var (
 	// to register with Kontrol and to install klient.
 	//
 	// Environment is overwritten during deploy via linker flag.
-	Environment = "development"
+	Environment = ""
 
 	// KiteVersion is the version identifier used to connect to Kontrol.
 	KiteVersion = "0.0." + Version
@@ -67,12 +69,18 @@ var (
 	SegmentKey = ""
 )
 
-var Environments = &config.Environments{
-	Env:       Environment,
-	KlientEnv: kd2klient(Environment),
-}
+var (
+	Environments *config.Environments
+	Konfig       *config.Konfig
+)
 
-var Konfig = configstore.Read(Environments)
+func init() {
+	Environments = &config.Environments{
+		Env:       Environment,
+		KlientEnv: kd2klient(Environment),
+	}
+	Konfig = configstore.Read(Environments)
+}
 
 func dirURL(s, env string) string {
 	u, err := url.Parse(s)
