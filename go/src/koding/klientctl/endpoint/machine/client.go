@@ -1,12 +1,18 @@
 package machine
 
 import (
+	"sync"
+
 	"koding/kites/config"
+	"koding/kites/kloud/stack"
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
 	"koding/klient/os"
 	konfig "koding/klientctl/config"
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
+	koding "koding/klientctl/endpoint/remoteapi"
+	"koding/remoteapi/models"
 
 	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
@@ -14,6 +20,10 @@ import (
 
 // DefaultClient is a default client used by all machine functions.
 var DefaultClient = &Client{}
+
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
 
 // Client is responsible for machine operations like:
 //
@@ -24,9 +34,12 @@ type Client struct {
 	Konfig *config.Konfig
 	Klient kloud.Transport
 	Kloud  *kloud.Client
+	Koding *koding.Client
 	Log    logging.Logger
 
-	k kloud.Transport
+	k        kloud.Transport
+	once     sync.Once // for c.init()
+	machines map[string]*models.JMachine
 }
 
 // ExecOptions represents available parameters for the Exec method.
@@ -104,6 +117,90 @@ func (c *Client) Kill(opts *KillOptions) error {
 	return c.klient().Call("machine.kill", req, nil)
 }
 
+func (c *Client) Start(id string) (string, error) {
+	c.init()
+
+	return c.machineCall(id, "start")
+}
+
+func (c *Client) Stop(id string) (string, error) {
+	c.init()
+
+	return c.machineCall(id, "stop")
+}
+
+func (c *Client) machineCall(id, method string) (string, error) {
+	m, err := c.machine(id)
+	if err != nil {
+		return "", err
+	}
+
+	req := &machineReq{
+		MachineId: id,
+		Provider:  *m.Provider,
+	}
+	var resp machineResp
+
+	if err := c.kloud().Call(method, req, &resp); err != nil {
+		return "", err
+	}
+
+	return resp.EventId, nil
+}
+
+type machineReq struct {
+	MachineId string
+	Provider  string
+}
+
+type machineResp struct {
+	EventId string
+}
+
+func (c *Client) machine(id string) (*models.JMachine, error) {
+	if m, ok := c.machines[id]; ok {
+		return m, nil
+	}
+
+	f := &koding.Filter{
+		ID: id,
+	}
+
+	m, err := c.koding().ListMachines(f)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range m {
+		c.machines[m.ID] = m
+	}
+
+	if m, ok := c.machines[id]; ok {
+		return m, nil
+	}
+
+	return nil, koding.ErrNotFound
+}
+
+func (c *Client) Close() (err error) {
+	if len(c.machines) != 0 {
+		err = c.kloud().Cache().SetValue("machine", c.machines)
+	}
+	return err
+}
+
+func (c *Client) init() {
+	c.once.Do(c.readCache)
+}
+
+func (c *Client) readCache() {
+	c.machines = make(map[string]*models.JMachine)
+
+	// Ignoring read error, if it's non-nil then empty cache is going to
+	// be used instead.
+	_ = c.kloud().Cache().GetValue("machine", &c.machines)
+}
+
 func (c *Client) konfig() *config.Konfig {
 	if c.Konfig != nil {
 		return c.Konfig
@@ -123,6 +220,13 @@ func (c *Client) klient() kloud.Transport {
 	}
 
 	return c.k
+}
+
+func (c *Client) koding() *koding.Client {
+	if c.Koding != nil {
+		return c.Koding
+	}
+	return koding.DefaultClient
 }
 
 func (c *Client) kloud() *kloud.Client {
@@ -145,3 +249,17 @@ func Exec(opts *ExecOptions) (int, error) { return DefaultClient.Exec(opts) }
 // Kill terminates a command looked up by the given pid on a remote machine
 // using DefaultClient.
 func Kill(opts *KillOptions) error { return DefaultClient.Kill(opts) }
+
+// Start starts a remove vm given by the id.
+func Start(id string) (string, error) { return DefaultClient.Start(id) }
+
+// Stop stops a remove vm given by the id.
+func Stop(id string) (string, error) { return DefaultClient.Stop(id) }
+
+// Wait polls on event stream given by the event identifier.
+//
+// It closes the returned channel as soon as stream state reaches
+// 100% or an error occurs.
+func Wait(event string) <-chan *stack.EventResponse {
+	return DefaultClient.kloud().Wait(event)
+}
