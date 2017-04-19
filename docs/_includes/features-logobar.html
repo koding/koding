@@ -10,17 +10,13 @@
       {% endif %}
     </div>
     <div class='Homepage-LogoBar--logos'>
-      {% for logoData in logos %}
-      {% assign logo = logoData | strip | split: "--" %}
-      {% assign name = logo[0] %}
-      {% assign src = logo[1] | prepend: include.path | prepend: site.url %}
-      {% assign width = logo[2] %}
-      {% assign height = logo[3] %}
+      {% for service in site.data.services %}
+      {% assign src = service.image | prepend: include.path | prepend: site.url %}
       <img
               src="{{ src }}"
-              {% if width %}width="{{ width }}px" {% endif %}
-              {% if height %}height="{{ height }}px" {% endif %}
-              alt="{{ name }}"/>
+              {% if service.width %}width="{{ service.width }}px" {% endif %}
+              {% if service.height %}height="{{ service.height }}px" {% endif %}
+              alt="{{ service.name }}"/>
       {% endfor %}
     </div>
   </div>

@@ -48,6 +48,12 @@
   line-height: 1.5;
 }
 
+@media (max-width: 1200px) {
+  .FeatureContent img{
+    width: 100%;
+  }
+}
+
 @media (max-width: 767px) {
   .FeatureContent-Cols {
     flex-direction: column;
@@ -60,6 +66,9 @@
   .FeatureContent .lead {
     font-size: 20px;
     line-height: 1.4;
+  }
+  .FeatureContent img{
+    display: none;
   }
   .FeatureContent-Cols>div img {
     margin-top: 40px;
