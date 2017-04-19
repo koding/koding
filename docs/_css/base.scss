@@ -85,8 +85,8 @@ body {
     }
   }
   .Header--outer-wrapper {
-    background: url('/assets/img/landing/common/hero_bg_pyramids.svg') no-repeat;
-    background-size: cover;
+    background: url('/assets/img/landing/common/hero_bg_pyramids.svg') no-repeat right bottom;
+    background-size: contain;
     width: 100%;
     height: 100%;
   }
@@ -113,7 +113,7 @@ body {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      margin-right: 60px;
+      margin-right: 200px;
       @include tablet {
         margin-right: 30px;
       }
