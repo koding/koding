@@ -57,7 +57,10 @@
       flex-grow: 1;
       padding: 13px 20px;
       white-space: pre;
-      overflow-x: scroll;
+      overflow: hidden;
+      @media (max-width: 767px) {
+        overflow-x: scroll;
+      }
     }
   }
 }
