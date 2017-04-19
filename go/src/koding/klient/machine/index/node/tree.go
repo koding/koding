@@ -222,6 +222,7 @@ func (t *Tree) find(names []string) (pi int, p, live *Node, ci int, c, subj *Nod
 			}
 
 			n := NewNodeEntry(names[i], e)
+
 			if c == nil {
 				// First new node.
 				ci, c = idx, n
@@ -349,13 +350,19 @@ type Predicate func(*Node) bool
 // the first present node in the tree.
 func Insert(entry *Entry) Predicate {
 	return func(n *Node) bool {
-		if !n.IsShadowed() && n.Entry.Virtual.Inode == RootInodeID {
-			n.Entry = entry
-			n.Entry.Virtual.Inode = RootInodeID
-			return true
+		var inode uint64
+		if !n.IsShadowed() {
+			inode = n.Entry.Virtual.Inode
+			if inode == RootInodeID {
+				n.Entry = entry
+				n.Entry.Virtual.Inode = RootInodeID
+				return true
+			}
 		}
 
 		n.Entry = entry
+		n.Entry.Virtual.Inode = inode
+
 		return true
 	}
 }
