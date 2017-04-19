@@ -745,6 +745,7 @@ module.exports = class ComputeController extends KDController
         debug "revision info for stack #{stack.title}", status
         if not _revisionStatus or _revisionStatus.status isnt status
           debug 'checkStackRevisions stack changed!', stack
+          @storage.stacks.push stack
           @emit 'StackRevisionChecked', stack
 
     if stackTemplateId and not found

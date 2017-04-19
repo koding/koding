@@ -14,7 +14,8 @@ module.exports = calculateOwnedResources = (props, state) ->
     unless stacks.length
       return [{ stack: null, template, unreadCount: 0 }]
 
-    return stacks.map (stack) -> { stack, template, unreadCount: 0 }
+    return stacks.map (stack) ->
+      return { stack, template, unreadCount: stack.getUnreadCount() }
 
   debug 'resources are calculated before flatten', resources
 

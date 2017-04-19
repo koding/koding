@@ -46,15 +46,15 @@ module.exports = class SidebarResources extends React.Component
 
   render: ->
 
-    if @props.disabled
-      return <SidebarGroupDisabled />
+    <div className='SidebarResources'>
 
-    <div className='Sidebar-section-wrapper'>
+      {@props.disabled and
+        <SidebarGroupDisabled />}
 
-      <List
-        numberOfSections={@bound 'getSectionCount'}
-        numberOfRowsInSection={@bound 'getRowCount'}
-        renderRowAtIndex={@bound 'renderRowAtIndex'}
-      />
+      {not @props.loading and not @props.disabled and
+        <List
+          numberOfSections={@bound 'getSectionCount'}
+          numberOfRowsInSection={@bound 'getRowCount'}
+          renderRowAtIndex={@bound 'renderRowAtIndex'} />}
 
     </div>
