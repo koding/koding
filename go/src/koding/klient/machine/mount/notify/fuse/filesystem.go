@@ -2,7 +2,6 @@ package fuse
 
 import (
 	"bytes"
-	stdcontext "context"
 	"errors"
 	"fmt"
 	"log"
@@ -218,23 +217,4 @@ func Umount(dir string) error {
 	// Under Darwin fuse.Umount uses syscall.Umount without syscall.MNT_FORCE flag,
 	// so we replace that implementation with diskutil.
 	return umountCmd("diskutil", "unmount", "force", dir)
-}
-
-func (fs *Filesystem) move(ctx stdcontext.Context, oldrel, newrel string) error {
-	//absOld := fs.abs(oldrel)
-	//absNew := fs.abs(newrel)
-
-	// if _, err := os.Stat(absOld); os.IsNotExist(err) {
-	// 	if err = fs.yield(ctx, oldrel, index.ChangeMetaRemote|index.ChangeMetaAdd); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	// if err := os.MkdirAll(filepath.Dir(absNew), 0755); err != nil {
-	// 	return err
-	// }
-
-	// return os.Rename(absOld, absNew)
-
-	return nil
 }

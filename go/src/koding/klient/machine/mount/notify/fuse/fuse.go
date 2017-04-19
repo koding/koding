@@ -167,7 +167,7 @@ func (fs *Filesystem) MkDir(_ context.Context, op *fuseops.MkDirOp) (err error) 
 			return
 		}
 
-		var entry *node.Node
+		var entry *node.Entry
 		if entry, err = node.NewEntryFile(absPath); err != nil {
 			err = toErrno(err)
 			return
@@ -299,7 +299,7 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err err
 			}
 
 			if replaced != nil {
-				// Replaced is an orphan now, we can have it's path.
+				// Replaced is an orphan now, we can't have its path.
 				replaced.PromiseDel()
 				oldChild.PromiseUpdate()
 				fs.commit(newPath, index.ChangeMetaLocal|index.ChangeMetaUpdate)
@@ -393,7 +393,7 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 			return
 		}
 
-		// Orphan nodes are only entries needed by kernel, they are no real
+		// Orphan nodes are needed only by kernel, they are no real
 		// representation in underlying filesystem.
 		if n.Orphan() {
 			g.RmOrphan(n)
