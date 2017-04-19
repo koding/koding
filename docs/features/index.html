@@ -25,15 +25,14 @@ permalink: /features
 
 <style>{% include css/features-video.css %}</style>
 <style>{% include css/features-services.css %}</style>
-<div class="FeatureServices">
-  <div class="Homepage--container">
-    <h2 class="feature-title">If you need to build it in the cloud, you can build it with Koding.</h2>
-    <p>Integrate any service with a few lines of code. Whether you use Heroku with MongoDB & Node.js,
-      or AWS with Ruby and MySQL, Koding’s powerful configuration manager can handle it.
-      Just add the service you need to Koding’s stack script, and voilå — you're ready to roll.</p>
-  </div>
-  <div class="FeatureServices-logos" style="background-image:url('{{ path }}/services.png')"></div>
-</div>
+<link rel="stylesheet" href="{{ site.url }}/css/slick.css">
+{% include features-services.html
+  title="If you need to build it in the cloud, you can build it with Koding."
+  paragraph="Integrate any service with a few lines of code. Whether you use Heroku with MongoDB & Node.js,
+  or AWS with Ruby and MySQL, Koding’s powerful configuration manager can handle it.
+  Just add the service you need to Koding’s stack script, and voilå — you're ready to roll."
+  path="/assets/img/landing/company-logos/"
+%}
 
 
 <style>{% include css/features-content.css %}</style>
@@ -59,15 +58,6 @@ permalink: /features
 <link rel="stylesheet" href="{{ site.url }}/css/logobar.css">
 {% include features-logobar.html
    path="/assets/img/landing/company-logos/"
-   logos="Amazon AWS--logo_aws.svg--140--54||
-          Digital Ocean--logo_digitalocean.svg--100--75||
-          Openstack--logo_openstack.svg--155--29||
-          Vagrant--logo_vagrant.svg--180--46||
-          Microsoft Azure--logo_azure.svg--190--27||
-          Google Cloud Platform--logo_gcp.svg--300--33||
-          Docker--logo_docker.svg--180--43||
-          Softlayer--logo_softlayer.svg--180--15||
-          Mesospere--logo_mesos.svg--240--43"
    title="Seamless support for your favorite cloud providers"
    paragraph="loremLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
 %}
@@ -153,4 +143,36 @@ permalink: /features
   <style>{% include css/index-ie.css %}</style>
 <![endif]-->
 
-<script type="text/javascript" src="{{ site.url }}/js/service-code.js" /></script>
+<script type="text/javascript" src="{{ site.url }}/js/service-code.js"></script>
+<script type="text/javascript" src="{{ site.url }}/js/slick.min.js"></script>
+<script>
+  $(function () {
+      var activeSlide = $('.FeatureServices--list-item.active');
+      var initialSlideIndex = $('.FeatureServices--list-item').index(activeSlide);
+      var length = $('.FeatureServices--list-item').length;
+      var slidesToShow =  Math.round(length / 2);
+      $('.codeSource').animate({'opacity': 0}, 300, function(){
+          $(this).html(activeSlide.data('code')).animate({'opacity': 1}, 300);
+      });
+      $('.FeatureServices--list').slick({
+          dots: false,
+          arrows: false,
+          infinite: true,
+          speed: 300,
+          slidesToShow:  slidesToShow,
+          centerMode: true,
+          variableWidth: true,
+          draggable: false,
+          focusOnSelect: true,
+          responsive: true,
+          initialSlide: initialSlideIndex,
+          easing: 'cubic-bezier(0.215, 0.61, 0.355, 1)'
+      });
+      $('.FeatureServices--list-item').click(function() {
+          var code = $(this).data('code');
+          $('.codeSource').animate({'opacity': 0}, 300, function(){
+              $(this).html(code).animate({'opacity': 1}, 300);
+          });
+      });
+  });
+</script>
