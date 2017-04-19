@@ -19,17 +19,25 @@ const (
 	Region = "public-region"
 )
 
-var envs = &konfig.Environments{
-	Env: Environment,
-}
+var envs *konfig.Environments
 
 // Konfig represents a klient configuration.
-var Konfig = ReadKonfig()
+var Konfig *konfig.Konfig
 
 // Builtin represents a builtin configuration.
-var Builtin = konfig.NewKonfig(envs)
+var Builtin *konfig.Konfig
 
 // ReadKonfig reads klient configuration.
 func ReadKonfig() *konfig.Konfig {
 	return configstore.Read(envs)
+}
+
+func init() {
+	envs = &konfig.Environments{
+		Env: Environment,
+	}
+
+	Builtin = konfig.NewKonfig(envs)
+
+	Konfig = ReadKonfig()
 }

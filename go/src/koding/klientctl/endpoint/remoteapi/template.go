@@ -84,12 +84,13 @@ func (c *Client) DeleteTemplate(id string) error {
 
 // SampleTemplate returns a content of a sample stack template
 // for the given provider.
-func (c *Client) SampleTemplate(provider string) (string, error) {
+func (c *Client) SampleTemplate(provider string) (string, map[string]interface{}, error) {
 	c.init()
 
 	params := &stacktemplate.JStackTemplateSamplesParams{
 		Body: stacktemplate.JStackTemplateSamplesBody{
-			Provider: &provider,
+			Provider:    &provider,
+			UseDefaults: false,
 		},
 	}
 
@@ -97,22 +98,25 @@ func (c *Client) SampleTemplate(provider string) (string, error) {
 
 	resp, err := c.client().JStackTemplate.JStackTemplateSamples(params, nil)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	var v struct {
-		JSON string `json:"json,omitempty"`
+		JSON     string `json:"json"`
+		Defaults struct {
+			UserInputs map[string]interface{} `json:"userInputs,omitempty"`
+		} `json:"defaults"`
 	}
 
 	if err := remoteapi.Unmarshal(resp.Payload, &v); err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	if err := json.Unmarshal([]byte(v.JSON), &json.RawMessage{}); err != nil {
-		return "", errors.New("invalid template sample: " + err.Error())
+		return "", nil, errors.New("invalid template sample: " + err.Error())
 	}
 
-	return v.JSON, nil
+	return v.JSON, v.Defaults.UserInputs, nil
 }
 
 func (c *Client) buildFilter(f *Filter) error {
@@ -146,7 +150,7 @@ func (c *Client) buildFilter(f *Filter) error {
 // for the given provider.
 //
 // The functions uses DefaultClient.
-func SampleTemplate(provider string) (string, error) {
+func SampleTemplate(provider string) (string, map[string]interface{}, error) {
 	return DefaultClient.SampleTemplate(provider)
 }
 

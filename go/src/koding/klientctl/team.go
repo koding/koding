@@ -6,7 +6,9 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/team"
+	"koding/klientctl/endpoint/kloud"
 	epteam "koding/klientctl/endpoint/team"
 
 	"github.com/codegangsta/cli"
@@ -20,7 +22,7 @@ func TeamList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	teams, err := epteam.List(opts)
 	if err != nil {
-		return 0, err
+		return 1, err
 	}
 
 	if len(teams) == 0 {
@@ -47,6 +49,25 @@ func TeamList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
+func TeamWhoami(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	resp, err := epteam.Whoami()
+	if err != nil {
+		return 1, err
+	}
+
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(resp)
+
+		return 0, nil
+	}
+
+	printWhoami(resp)
+
+	return 0, nil
+}
+
 func printTeams(teams []*team.Team) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
@@ -56,6 +77,16 @@ func printTeams(teams []*team.Team) {
 	for _, t := range teams {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", t.Name, t.Slug, t.Privacy, t.SubStatus)
 	}
+}
+
+func printWhoami(resp *stack.WhoamiResponse) {
+	t := resp.Team
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "USERNAME\tTEAM\tSLUG\tPRIVACY\tSUBSCRIPTION")
+
+	fmt.Fprintln(w, "%s\t%s\t%s\t%s\t%s\n", kloud.Username(), t.Name, t.Slug, t.Privacy, t.SubStatus)
 }
 
 func TeamShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
