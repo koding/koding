@@ -114,10 +114,15 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	fmt.Printf("Create new stack...\n\n")
+	defTitle := strings.Title(fmt.Sprintf("%s %s Stack", kstack.Pokemon(), provider))
 
-	title, err := helper.Ask("Stack name []: ")
+	title, err := helper.Ask("Stack name [%s]: ", defTitle)
 	if err != nil {
 		return 1, err
+	}
+
+	if title == "" {
+		title = defTitle
 	}
 
 	opts := &stack.CreateOptions{
