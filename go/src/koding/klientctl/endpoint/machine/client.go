@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"fmt"
 	"sync"
 
 	"koding/kites/config"
@@ -39,7 +40,8 @@ type Client struct {
 
 	k        kloud.Transport
 	once     sync.Once // for c.init()
-	machines map[string]*models.JMachine
+	machines map[machine.ID]*models.JMachine
+	idents   map[string]machine.ID
 }
 
 // ExecOptions represents available parameters for the Exec method.
@@ -117,26 +119,26 @@ func (c *Client) Kill(opts *KillOptions) error {
 	return c.klient().Call("machine.kill", req, nil)
 }
 
-func (c *Client) Start(id string) (string, error) {
+func (c *Client) Start(ident string) (string, error) {
 	c.init()
 
-	return c.machineCall(id, "start")
+	return c.machineCall(ident, "start")
 }
 
-func (c *Client) Stop(id string) (string, error) {
+func (c *Client) Stop(ident string) (string, error) {
 	c.init()
 
-	return c.machineCall(id, "stop")
+	return c.machineCall(ident, "stop")
 }
 
-func (c *Client) machineCall(id, method string) (string, error) {
-	m, err := c.machine(id)
+func (c *Client) machineCall(ident, method string) (string, error) {
+	m, err := c.machine(ident)
 	if err != nil {
 		return "", err
 	}
 
 	req := &machineReq{
-		MachineId: id,
+		MachineId: m.ID,
 		Provider:  *m.Provider,
 	}
 	var resp machineResp
@@ -157,13 +159,26 @@ type machineResp struct {
 	EventId string
 }
 
-func (c *Client) machine(id string) (*models.JMachine, error) {
-	if m, ok := c.machines[id]; ok {
-		return m, nil
+func (c *Client) machine(ident string) (*models.JMachine, error) {
+	if id, ok := c.idents[ident]; ok {
+		return c.machines[id], nil
 	}
 
 	f := &koding.Filter{
-		ID: id,
+		ID: ident,
+	}
+	req := &machinegroup.IDRequest{
+		Identifier: ident,
+	}
+	var resp machinegroup.IDResponse
+
+	if err := c.klient().Call("machine.id", req, &resp); err == nil {
+		if m, ok := c.machines[resp.ID]; ok {
+			c.idents[ident] = resp.ID
+			return m, nil
+		}
+
+		f.ID = string(resp.ID)
 	}
 
 	m, err := c.koding().ListMachines(f)
@@ -171,15 +186,15 @@ func (c *Client) machine(id string) (*models.JMachine, error) {
 		return nil, err
 	}
 
-	for _, m := range m {
-		c.machines[m.ID] = m
+	if len(m) != 1 {
+		return nil, fmt.Errorf("invalid number of machines received; got %d", len(m))
 	}
 
-	if m, ok := c.machines[id]; ok {
-		return m, nil
-	}
+	c.machines[machine.ID(m[0].ID)] = m[0]
+	c.idents[ident] = machine.ID(m[0].ID)
+	c.idents[m[0].ID] = machine.ID(m[0].ID)
 
-	return nil, koding.ErrNotFound
+	return m[0], nil
 }
 
 func (c *Client) Close() (err error) {
@@ -194,11 +209,17 @@ func (c *Client) init() {
 }
 
 func (c *Client) readCache() {
-	c.machines = make(map[string]*models.JMachine)
+	c.machines = make(map[machine.ID]*models.JMachine)
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
 	_ = c.kloud().Cache().GetValue("machine", &c.machines)
+
+	c.idents = make(map[string]machine.ID, len(c.machines))
+
+	for id := range c.machines {
+		c.idents[string(id)] = id
+	}
 }
 
 func (c *Client) konfig() *config.Konfig {

@@ -294,20 +294,20 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 }
 
 func MachineStart(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	id := c.Args().Get(0)
+	ident := c.Args().Get(0)
 
-	if id == "" {
-		return 1, errors.New("machine ID is empty or missing")
+	if ident == "" {
+		return 1, errors.New("machine identifier is empty or missing")
 	}
 
-	event, err := machine.Start(id)
+	event, err := machine.Start(ident)
 	if err != nil {
 		return 1, err
 	}
 
 	for e := range machine.Wait(event) {
 		if e.Error != nil {
-			return 1, fmt.Errorf("Starting %q machine failed:\n%s\n", id, e.Error)
+			return 1, fmt.Errorf("Starting %q machine failed:\n%s\n", ident, e.Error)
 		}
 
 		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
@@ -317,20 +317,20 @@ func MachineStart(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func MachineStop(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	id := c.Args().Get(0)
+	ident := c.Args().Get(0)
 
-	if id == "" {
-		return 1, errors.New("machine ID is empty or missing")
+	if ident == "" {
+		return 1, errors.New("machine identifier is empty or missing")
 	}
 
-	event, err := machine.Stop(id)
+	event, err := machine.Stop(ident)
 	if err != nil {
 		return 1, err
 	}
 
 	for e := range machine.Wait(event) {
 		if e.Error != nil {
-			return 1, fmt.Errorf("Stopping %q machine failed:\n%s\n", id, e.Error)
+			return 1, fmt.Errorf("Stopping %q machine failed:\n%s\n", ident, e.Error)
 		}
 
 		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)

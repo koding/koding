@@ -554,11 +554,11 @@ func run(args []string) {
 				Flags:           []cli.Flag{},
 			}, {
 				Name:   "start",
-				Usage:  "Start a remove vm given by the ID.",
+				Usage:  "Start a remove vm given by the <machine ID> | <alias> | <slug>.",
 				Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
 			}, {
 				Name:   "stop",
-				Usage:  "Stop a remove vm given by the ID.",
+				Usage:  "Stop a remove vm given by the <machine ID> | <alias> | <slug>.",
 				Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
 			}},
 		}, {
