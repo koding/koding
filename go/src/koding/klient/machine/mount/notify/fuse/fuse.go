@@ -167,8 +167,8 @@ func (fs *Filesystem) MkDir(_ context.Context, op *fuseops.MkDirOp) (err error) 
 			return
 		}
 
-		entry, err := node.NewEntryFile(absPath)
-		if err != nil {
+		var entry *node.Node
+		if entry, err = node.NewEntryFile(absPath); err != nil {
 			err = toErrno(err)
 			return
 		}
@@ -407,10 +407,10 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 		}()
 
 		absPath := filepath.Join(fs.CacheDir, path)
-		if err := os.RemoveAll(absPath); os.IsNotExist(err) {
+		if rmErr := os.RemoveAll(absPath); os.IsNotExist(rmErr) {
 			return
-		} else if err != nil {
-			err = toErrno(err)
+		} else if rmErr != nil {
+			err = toErrno(rmErr)
 			return
 		}
 
