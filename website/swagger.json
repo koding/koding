@@ -8023,7 +8023,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "",
+        "description": "Method JGroup.fetchDataAt",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
