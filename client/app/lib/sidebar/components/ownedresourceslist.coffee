@@ -64,7 +64,7 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
 
     route = switch
       when stack?.isManaged() then '/Home/stacks/virtual-machines#connected-machines'
-      when stack then "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
+      when stack then "/Stack-Editor/#{template.getId()}" # /#{stack.getId()}" FIXME ~ US
       else "/Stack-Editor/#{template.getId()}"
 
     router.handleRoute route
@@ -88,7 +88,7 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
         template.generateStack { verify: yes }, (err, res) =>
           return @onMenuItemClickError 'initializing', err, template.getId()  if err
           { stack } = res
-          router.handleRoute "/Stack-Editor/#{template.getId()}/#{stack.getId()}"
+          router.handleRoute "/Stack-Editor/#{template.getId()}" # /#{stack.getId()}" FIXME ~ US
           appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), stack.getId()
           if machine = stack.results?.machines?[0]?.obj
             computeController.reloadIDE machine
@@ -260,9 +260,9 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
 
     { template, stack, unreadCount } = resource
 
-    selected = if stack
-    then stack.getId() is @props.selected?.stackId
-    else template.getId() is @props.selected?.templateId
+    selected = if template
+    then template.getId() is @props.selected?.templateId
+    else stack.getId() is @props.selected?.stackId
 
     updated = @props.updatedStackId and @props.updatedStackId is stack?.getId()
 

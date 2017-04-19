@@ -1006,22 +1006,28 @@ module.exports = class ComputeController extends KDController
 
   showBuildLogs: (machine, tailOffset) ->
 
-    # Path of cloud-init-output log
-    path = '/var/log/cloud-init-output.log'
-    file = FSHelper.createFileInstance { path, machine }
+    { router } = kd.singletons
 
-    { appManager } = kd.singletons
-    ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
-    return  unless ideApp
+    router.once 'RouteInfoHandled', -> kd.utils.wait 1000, ->
 
-    ideApp.tailFile {
-      file
-      description : '
-        Your Koding Stack has successfully been initialized. The log here
-        describes each executed step of the Stack creation process.
-      '
-      tailOffset
-    }
+      # Path of cloud-init-output log
+      path = '/var/log/cloud-init-output.log'
+      file = FSHelper.createFileInstance { path, machine }
+
+      { appManager } = kd.singletons
+      ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
+      return  unless ideApp
+
+      ideApp.tailFile {
+        file
+        description : '
+          Your Koding Stack has successfully been initialized. The log here
+          describes each executed step of the Stack creation process.
+        '
+        tailOffset
+      }
+
+    router.handleRoute "/IDE/#{machine.getAt 'slug'}"
 
 
   ###*
@@ -1301,7 +1307,7 @@ module.exports = class ComputeController extends KDController
 
 
   # FIXMERESET ~ GG
-  handleChangesOverAPI: (change) -> @reset yes, =>
+  handleChangesOverAPI: (change) ->
 
     # TODO implement better next to flows here ~ GG
 
@@ -1309,7 +1315,7 @@ module.exports = class ComputeController extends KDController
       stack = @findStackFromStackId change.payload.stackId
       @reloadIDE stack.machines.first
 
-    console.log '[Kloud:API]', change
+    debug '[Kloud:API]', change
 
 
   # Follow Payment changes

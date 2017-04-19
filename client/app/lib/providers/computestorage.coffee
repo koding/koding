@@ -48,9 +48,11 @@ module.exports = class ComputeStorage extends kd.Object
           stack.title = Encoder.htmlDecode stack.title
           stack.machines = stack.machines
             .map (machine) =>
-              if machine.bongo_
+              machine = if machine.bongo_
               then machine
               else @get 'machines', '_id', machine
+              machine._stackId = stack._id
+              return machine
 
             .filter (machine) ->
               machine?.bongo_?

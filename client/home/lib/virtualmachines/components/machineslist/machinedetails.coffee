@@ -284,10 +284,7 @@ module.exports = class MachineDetails extends React.Component
 
   onClickBuildLog: (e) ->
 
-    { router, computeController } = kd.singletons
-
-    router.handleRoute getMachineLinks @props.machine, 'ide'
-    computeController.showBuildLogs @props.machine, 0
+    kd.singletons.computeController.showBuildLogs @props.machine, 0
 
 
   render: ->
