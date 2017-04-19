@@ -620,6 +620,14 @@ func run(args []string) {
 						Usage: "Output template file.",
 						Value: "kd.yaml",
 					},
+					cli.BoolFlag{
+						Name:  "defaults",
+						Usage: "Use default values for stack variables.",
+					},
+					cli.StringFlag{
+						Name:  "provider, p",
+						Usage: "Cloud provider to use.",
+					},
 				},
 			}},
 		},

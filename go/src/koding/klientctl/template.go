@@ -150,8 +150,8 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func templateInit(output string) error {
-	if _, err := os.Stat(output); err == nil {
+func templateInit(output string, useDefaults bool, providerName string) error {
+	if _, err := os.Stat(output); err == nil && !useDefaults {
 		yn, err := helper.Ask("Do you want to overwrite %q file? [y/N]: ", output)
 		if err != nil {
 			return err
@@ -170,16 +170,17 @@ func templateInit(output string) error {
 		return err
 	}
 
-	name, err := helper.Ask("Provider type []: ")
-	if err != nil {
-		return err
+	if providerName == "" {
+		if providerName, err = helper.Ask("Provider type []: "); err != nil {
+			return err
+		}
 	}
 
-	if _, ok := descs[name]; !ok {
-		return fmt.Errorf("provider %q does not exist", name)
+	if _, ok := descs[providerName]; !ok {
+		return fmt.Errorf("provider %q does not exist", providerName)
 	}
 
-	tmpl, defaults, err := remoteapi.SampleTemplate(name)
+	tmpl, defaults, err := remoteapi.SampleTemplate(providerName)
 	if err != nil {
 		return err
 	}
@@ -193,21 +194,24 @@ func templateInit(output string) error {
 		}
 
 		name := v.Name[len("userInput_"):]
-		def := ""
+		defValue := ""
 		if v, ok := defaults[name]; ok && v != nil {
-			def = fmt.Sprintf("%v", v)
+			defValue = fmt.Sprintf("%v", v)
 		}
 
-		s, err := helper.Ask("Set %q to [%s]: ", name, def)
-		if err != nil {
-			return err
+		var value string
+
+		if !useDefaults {
+			if value, err = helper.Ask("Set %q to [%s]: ", name, defValue); err != nil {
+				return err
+			}
 		}
 
-		if s == "" {
-			s = def
+		if value == "" {
+			value = defValue
 		}
 
-		input[v.Name] = s
+		input[v.Name] = value
 	}
 
 	tmpl = provider.ReplaceVariablesFunc(tmpl, vars, func(v *provider.Variable) string {
@@ -247,7 +251,7 @@ func templateInit(output string) error {
 }
 
 func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	if err := templateInit(c.String("output")); err != nil {
+	if err := templateInit(c.String("output"), c.Bool("defaults"), c.String("provider")); err != nil {
 		return 1, err
 	}
 

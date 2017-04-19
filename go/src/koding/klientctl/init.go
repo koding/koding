@@ -32,7 +32,7 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	case os.IsNotExist(err):
 		fmt.Printf("Initializing with new kd.yaml template file...\n\n")
 
-		if err := templateInit("kd.yaml"); err != nil {
+		if err := templateInit("kd.yaml", false, ""); err != nil {
 			return 1, err
 		}
 	case err == nil:
