@@ -548,9 +548,18 @@ func run(args []string) {
 			}, {
 				Name:            "cp",
 				Description:     cmdDescriptions["cp"],
+				Usage:           "Copies a local file to a remote filesystem.",
 				Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
 				SkipFlagParsing: true,
 				Flags:           []cli.Flag{},
+			}, {
+				Name:   "start",
+				Usage:  "Start a remove vm given by the ID.",
+				Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
+			}, {
+				Name:   "stop",
+				Usage:  "Stop a remove vm given by the ID.",
+				Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
 			}},
 		}, {
 			Name:  "template",

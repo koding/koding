@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -289,6 +290,51 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 	enc.SetIndent("", "\t")
 	enc.Encode(records)
 
+	return 0, nil
+}
+
+func MachineStart(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	id := c.Args().Get(0)
+
+	if id == "" {
+		return 1, errors.New("machine ID is empty or missing")
+	}
+
+	event, err := machine.Start(id)
+	if err != nil {
+		return 1, err
+	}
+
+	for e := range machine.Wait(event) {
+		if e.Error != nil {
+			return 1, fmt.Errorf("Starting %q machine failed:\n%s\n", id, e.Error)
+		}
+
+		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	}
+
+	return 0, nil
+}
+
+func MachineStop(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	id := c.Args().Get(0)
+
+	if id == "" {
+		return 1, errors.New("machine ID is empty or missing")
+	}
+
+	event, err := machine.Stop(id)
+	if err != nil {
+		return 1, err
+	}
+
+	for e := range machine.Wait(event) {
+		if e.Error != nil {
+			return 1, fmt.Errorf("Stopping %q machine failed:\n%s\n", id, e.Error)
+		}
+
+		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	}
 	return 0, nil
 }
 
