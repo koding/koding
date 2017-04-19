@@ -69,16 +69,3 @@
     line-height: 1.2;
   }
 }
-
-.Homepage-LogoBar.features h3 {
-  color: #DB881F;
-  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
-  font-size: 32px;
-  font-weight: 300;
-  padding-top: 50px;
-  line-height: 1.4;
-}
-.Homepage-LogoBar.features h3 strong {
-  display: block;
-  font-weight: 600;
-}

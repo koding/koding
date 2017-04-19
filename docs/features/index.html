@@ -5,7 +5,7 @@ permalink: /features
 ---
 
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#EA8250' %}
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#F8A731' %}
 
 {% assign path = site.url | append: '/assets/img/landing/misc' %}
 
@@ -24,33 +24,13 @@ permalink: /features
 
 
 <style>{% include css/features-video.css %}</style>
-<div class="Homepage--container FeaturesVideo">
-  <h2 class="feature-title">A flawless replica of your dev project</h2>
-  <p class="feature-lead">A flawless replica of your dev project</p>
-  <a href="#"><img src="{{ path }}/video.png" width="1100" srcset="{{ path }}/video.png, {{ path }}/video_mobile.png 767w" alt="features video"></a>
-  <ul>
-    <li>Cloud VM<br />Create</li>
-    <li>Packages<br />Installed</li>
-    <li>Codebase<br />Pulled In</li>
-    <li>Configuration<br />Done</li>
-  </ul>
-</div>
-
-
 <style>{% include css/features-services.css %}</style>
 <div class="FeatureServices">
-  <div class="Homepage--container ">
-    <h2 class="feature-title">If you can build it in the cloud, you can build it with Koding for Teams.</h2>
-
-    <div class="FeatureServices-cols">
-      <div class="FeatureServices-cols--imageWrapper">
-        <img src="{{ path }}/code.png" srcset="{{ path }}/code2x.png 2x, {{ path }}/services-1.png 767w"/>
-      </div>
-      <div>
-        <h3>Integrate any service with a few lines of code.</h3>
-        <p>Whether you use Heroku with MongoDB & Node.js, or AWS with Ruby and MySQL, Koding’s powerful configuration manager can handle it. Just add the service you need to Koding’s stack script, and voilå — you're ready to roll.</p>
-      </div>
-    </div>
+  <div class="Homepage--container">
+    <h2 class="feature-title">If you need to build it in the cloud, you can build it with Koding.</h2>
+    <p>Integrate any service with a few lines of code. Whether you use Heroku with MongoDB & Node.js,
+      or AWS with Ruby and MySQL, Koding’s powerful configuration manager can handle it.
+      Just add the service you need to Koding’s stack script, and voilå — you're ready to roll.</p>
   </div>
   <div class="FeatureServices-logos" style="background-image:url('{{ path }}/services.png')"></div>
 </div>
@@ -76,17 +56,21 @@ permalink: /features
    column3="We don’t slice up hosting resources like LXC or Docker, so your environment will never be compromised."
    alternate_background="yes" %}
 
-<link rel="stylesheet" href="https://www.koding.com/css/logobar.css">
-{% include home-logobar.html
+<link rel="stylesheet" href="{{ site.url }}/css/logobar.css">
+{% include features-logobar.html
    path="/assets/img/landing/company-logos/"
-   logos="Amazon AWS--logo_aws.svg--140-53||
-          Openstack--logo_openstack.svg--155-28||
-          Docker--logo_docker.svg--180-43||
-          Digital Ocean--logo_digitalocean.svg--100-75||
-          GitHub--logo_github.svg--140-53||
-          GitLab--logo_gitlab.svg--140-53"
+   logos="Amazon AWS--logo_aws.svg--140--54||
+          Digital Ocean--logo_digitalocean.svg--100--75||
+          Openstack--logo_openstack.svg--155--29||
+          Vagrant--logo_vagrant.svg--180--46||
+          Microsoft Azure--logo_azure.svg--190--27||
+          Google Cloud Platform--logo_gcp.svg--300--33||
+          Docker--logo_docker.svg--180--43||
+          Softlayer--logo_softlayer.svg--180--15||
+          Mesospere--logo_mesos.svg--240--43"
    title="Seamless support for your favorite cloud providers"
-   cssClass="features" %}
+   paragraph="loremLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+%}
 
 {% include features-content.html
    title="You don't need to change your workflow."
@@ -143,17 +127,20 @@ permalink: /features
    title="Embrace infrastructure as code"
    column_1="
     <h3>Simple stack scripts</h3>
-    <p><span>The core of every Koding for Teams project is a simple, shareable stack script that serves as a blueprint for your app’s entire infrastructure.</span></p>
-    <h3>Connect your own machine</h3>
-    <p><span>Connect any Ubuntu Linux machine with a public IP address to your Koding account.</span></p>"
+    <p><span>The core of every Koding for Teams project is a simple, shareable stack script that serves as a blueprint for your app’s entire infrastructure.</span></p>"
    column_2="
     <h3>Stack-level version control</h3>
-    <p><span>Koding stack scripts are versionable, so you can manage low-level components like storage and networking as easily as conventional code.</span></p>
-    <h3>Deploy multiple VMs</h3>
-    <p><span>Run your app on an entire network of machines by simply adding a few lines of code to your stack script.</span></p>"
+    <p><span>Koding stack scripts are versionable, so you can manage low-level components like storage and networking as easily as conventional code.</span></p>"
    column_3="
     <h3>Secure user permissions</h3>
-    <p><span>Only administrators get write access to the stack script, keeping project configuration security manageable no matter how many people join your team.</span></p>
+    <p><span>Only administrators get write access to the stack script, keeping project configuration security manageable no matter how many people join your team.</span></p>"
+  column_4="
+    <h3>Connect your own machine</h3>
+    <p><span>Connect any Ubuntu Linux machine with a public IP address to your Koding account.</span></p>"
+  column_5="
+    <h3>Deploy multiple VMs</h3>
+    <p><span>Run your app on an entire network of machines by simply adding a few lines of code to your stack script.</span></p>"
+  column_6="
     <h3>SSH and Sudo access.</h3>
     <p><span>Full and easy SSH access to your VMs. Sudo access is available if you use your local machine.</span></p>"
 %}
@@ -165,3 +152,5 @@ permalink: /features
 <!--[if lte IE 9]>
   <style>{% include css/index-ie.css %}</style>
 <![endif]-->
+
+<script type="text/javascript" src="{{ site.url }}/js/service-code.js" /></script>

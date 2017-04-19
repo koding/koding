@@ -656,7 +656,8 @@ a:hover {
 }
 
 .Pricing-PriceSegments--sectionTitle {
-  font-weight: 600;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-weight: 400;
   font-size: 31px;
   color: #07AEC2;
   letter-spacing: 0px;

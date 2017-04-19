@@ -8,6 +8,15 @@
   margin-left: auto;
   margin-right: auto;
 }
+.FeatureServices p {
+  font-size: 20px;
+  font-weight: 300;
+  color: #617283;
+  max-width: 870px;
+  text-align: center;
+  line-height: 1.3;
+  margin: 40px auto 60px;
+}
 .FeatureServices-logos {
   background-size: auto 75px;
   height: 75px;
