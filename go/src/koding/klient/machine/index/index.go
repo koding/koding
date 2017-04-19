@@ -304,7 +304,7 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 		defer rn.Close()
 
 		var root Node
-		if err = json.NewDecoder(r).Decode(&root); err == nil {
+		if err = json.NewDecoder(rn).Decode(&root); err == nil {
 			idx.t = root.ToTree()
 		} else {
 			return err
