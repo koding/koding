@@ -361,13 +361,13 @@ func TestNodeMarshalJSON(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	node := &index.Node{}
-	if err := json.Unmarshal(data, node); err != nil {
+	nd := &index.Node{}
+	if err := json.Unmarshal(data, nd); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if !reflect.DeepEqual(root, node) {
-		t.Fatalf("want:\n%#v\ngot\n%#v\n", root, node)
+	if !reflect.DeepEqual(root, nd) {
+		t.Fatalf("want:\n%#v\ngot\n%#v\n", root, nd)
 	}
 }
 

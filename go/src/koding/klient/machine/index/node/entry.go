@@ -238,6 +238,9 @@ func (e *Entry) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	// Assuming that node exist and has at least one reference.
+	e.Virtual.nlink = 1
+
 	return nil
 }
 
