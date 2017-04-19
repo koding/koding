@@ -556,10 +556,22 @@ func run(args []string) {
 				Name:   "start",
 				Usage:  "Start a remove vm given by the <machine ID> | <alias> | <slug>.",
 				Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
 			}, {
 				Name:   "stop",
 				Usage:  "Stop a remove vm given by the <machine ID> | <alias> | <slug>.",
 				Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
 			}},
 		}, {
 			Name:  "template",
@@ -736,6 +748,25 @@ func run(args []string) {
 						cli.StringFlag{
 							Name:  "team",
 							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.StringFlag{
+							Name:  "title",
+							Usage: "Specify credential title.",
+						},
+					},
+				}, {
+					Name:   "init",
+					Usage:  "Create a credential file.",
+					Action: ctlcli.ExitErrAction(CredentialInit, log, "init"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "output, o",
+							Value: "credential.json",
+							Usage: "Output credential file.",
 						},
 						cli.StringFlag{
 							Name:  "title",
