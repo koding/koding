@@ -32,7 +32,7 @@ func TestRepo(t *testing.T) {
 	}
 
 	t.Logf("Index build time: %s", end.Sub(start))
-	t.Logf("Index file count: %d", idx.Count(-1))
+	t.Logf("Index file count: %d", idx.Tree().Count())
 	t.Logf("Index size: %.4f MiB", float64(buf.Len())/1024/1024)
 }
 

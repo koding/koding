@@ -59,7 +59,7 @@ func TestSyncNew(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(info, expected) {
-		t.Errorf("want info = %#v; got %#v", expected, info)
+		t.Fatalf("want info = %#v; got %#v", expected, info)
 	}
 
 	// Add files to remote and cache paths.

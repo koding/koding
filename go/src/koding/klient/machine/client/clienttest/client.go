@@ -131,7 +131,7 @@ func (c *Client) MountHeadIndex(path string) (string, int, int64, error) {
 		return "", 0, 0, err
 	}
 
-	return absPath, idx.Count(-1), idx.DiskSize(-1), nil
+	return absPath, idx.Tree().Count(), idx.Tree().DiskSize(), nil
 }
 
 // MountGetIndex creates an index from provided local path. Generated index is

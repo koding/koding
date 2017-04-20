@@ -127,11 +127,11 @@ func (nd *Node) PromiseAdd(path string, entry *node.Entry) {
 		newE = nd.Entry
 		newE.MergeIn(entry)
 	} else {
-		newE = node.NewEntry(entry.Size(), entry.Mode())
+		newE = node.NewEntry(entry.File.Size, entry.File.Mode)
 		newE.MergeIn(entry)
 	}
 
-	newE.SwapPromise(node.EntryPromiseAdd, node.EntryPromiseDel|node.EntryPromiseUnlink)
+	newE.Virtual.Promise.Swap(node.EntryPromiseAdd, node.EntryPromiseDel)
 	nd.Add(path, newE)
 }
 
@@ -151,26 +151,7 @@ func (nd *Node) PromiseDel(path string, n *Node) {
 		}
 	}
 
-	n.Entry.SwapPromise(node.EntryPromiseDel, node.EntryPromiseAdd|node.EntryPromiseUnlink)
-}
-
-// PromiseUnlink marks a node under the given path as unlinked.
-//
-// If the node does not exist or is already marked as unlinked, then
-// method is no-op.
-//
-// If node is non-nil, then it's used instead of looking it up
-// by the given path.
-func (nd *Node) PromiseUnlink(path string, n *Node) {
-	if n == nil {
-		var ok bool
-		n, ok = nd.Lookup(path)
-		if !ok {
-			return
-		}
-	}
-
-	n.Entry.SwapPromise(node.EntryPromiseUnlink, node.EntryPromiseAdd)
+	n.Entry.Virtual.Promise.Swap(node.EntryPromiseDel, node.EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -207,7 +188,7 @@ func (nd *Node) count(maxsize int64, all bool) (count int) {
 			continue
 		}
 
-		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size() <= maxsize) {
+		if cur.Entry != nil && (maxsize < 0 || cur.Entry.File.Size <= maxsize) {
 			count++
 		}
 
@@ -255,8 +236,8 @@ func (nd *Node) diskSize(maxsize int64, all bool) (size int64) {
 			continue
 		}
 
-		if nd.Entry != nil && (maxsize < 0 || nd.Entry.Size() <= maxsize) {
-			size += nd.Entry.Size()
+		if nd.Entry != nil && (maxsize < 0 || nd.Entry.File.Size <= maxsize) {
+			size += nd.Entry.File.Size
 		}
 
 		for _, nd := range nd.Sub {
@@ -350,21 +331,21 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 
 // IsDir tells whether a node is a directory.
 func (nd *Node) IsDir() bool {
-	return nd.Entry.Mode().IsDir()
+	return nd.Entry.File.Mode.IsDir()
 }
 
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
-	return nd.Entry.Deleted()
+	return nd.Entry.Virtual.Promise.Deleted()
 }
 
 // Virtual tells whether node is marked as virtual.
 func (nd *Node) Virtual() bool {
-	return nd.Entry.HasPromise(node.EntryPromiseVirtual)
+	return nd.Entry.Virtual.Promise&node.EntryPromiseVirtual != 0
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.SwapPromise(0, node.EntryPromiseDel|node.EntryPromiseUnlink)
+	nd.Entry.Virtual.Promise.Swap(0, node.EntryPromiseDel)
 }
 
 func (nd *Node) shallowCopy() *Node {
@@ -420,4 +401,21 @@ func (nd *Node) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// ToTree converts node to its equivalent node.Tree representation.
+func (nd *Node) ToTree() *node.Tree {
+	tree := node.NewTree()
+	nd.ForEachAll(func(path string, entry *node.Entry) {
+		tree.DoPath(path, node.Insert(entry))
+	})
+
+	tree.DoInode(node.RootInodeID, func(_ node.Guard, n *node.Node) {
+		if n == nil {
+			panic("root node cannot be nil")
+		}
+		n.UnsetPromises()
+	})
+
+	return tree
 }
