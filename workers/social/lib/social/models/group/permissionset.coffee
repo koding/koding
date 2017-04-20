@@ -60,11 +60,12 @@ module.exports = class JPermissionSet extends Module
     [{ permission, validateWith: require('./validators').any }]
 
 
-  fetchGroupAndPermissionSet = do (queue = {}) ->
+  memCache = cacheManager.caching
+    store  : 'memory'
+    ttl    : 60 # seconds
 
-    memCache = cacheManager.caching
-      store  : 'memory'
-      ttl    : 60 # seconds
+
+  fetchGroupAndPermissionSet = do (queue = {}) ->
 
     fetcher = (groupName, callback) ->
       JGroup = require '../group'
@@ -94,6 +95,9 @@ module.exports = class JPermissionSet extends Module
             cb null, data  for cb in queue[groupName]
 
           queue[groupName] = []
+
+
+  @expireCache = (group) -> memCache.del group
 
 
   getGroupnameFrom = (target, client) ->
