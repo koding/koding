@@ -240,7 +240,7 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 		fh, err := fs.fileHandles.Get(op.Handle)
 		if err != nil {
 			// Panic here since we added handle few lines above.
-			return panic("created file handle not found")
+			panic("created file handle not found")
 		}
 		fh.Write()
 	})
