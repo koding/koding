@@ -235,7 +235,14 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 		// Increase reference counter for entry - fuse_reply_create.
 		incCountNoRoot(child)
 
-		fs.commit(child.Path(), index.ChangeMetaLocal|index.ChangeMetaAdd)
+		// Set created file as written but not commmit any events. They will be
+		// sent anyway by filesystem's flush operation.
+		fh, err := fs.fileHandles.Get(op.Handle)
+		if err != nil {
+			// Panic here since we added handle few lines above.
+			return panic("created file handle not found")
+		}
+		fh.Write()
 	})
 
 	return
