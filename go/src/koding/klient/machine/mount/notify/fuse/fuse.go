@@ -82,7 +82,7 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 			return
 		}
 
-		var fh FileHandle
+		var fh *FileHandle
 		if fh, err = fs.fileHandles.Get(handleID); err != nil {
 			return
 		}
@@ -601,6 +601,9 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) (e
 		n.Entry.File.Size = fh.GrowSize(int64(op.Offset) + int64(len(op.Data)))
 	})
 
+	// Mark file handle as modified.
+	fh.Write()
+
 	return nil
 }
 
@@ -637,7 +640,8 @@ func (fs *Filesystem) syncFile(handleID fuseops.HandleID) error {
 		})
 	}
 
-	if err == nil && path != "" {
+	// We are not going to commit update events when the file was not modified.
+	if err == nil && path != "" && fh.IsModified() {
 		fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaUpdate)
 	}
 
