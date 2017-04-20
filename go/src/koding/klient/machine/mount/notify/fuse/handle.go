@@ -35,7 +35,8 @@ type FileHandle struct {
 	InodeID fuseops.InodeID
 	File    *os.File
 
-	size *int64
+	size  int64
+	write int64
 }
 
 // Close closes stored file handle.
@@ -55,11 +56,21 @@ func (fh *FileHandle) Close() error {
 // handle. Return value will contain the chosen one and should be set as new
 // inode size value.
 func (fh *FileHandle) GrowSize(new int64) int64 {
-	if new > *fh.size {
-		*fh.size = new
+	if new > fh.size {
+		fh.size = new
 	}
 
-	return *fh.size
+	return fh.size
+}
+
+// Write sets write flag to true. This function should be called on all write
+// operations performed on file descriptor.
+func (fh *FileHandle) Write() { fh.write = 1 }
+
+// IsModified returns true when the content pointed by file descriptor was
+// modified by write operations.
+func (fh *FileHandle) IsModified() bool {
+	return fh.write != 0
 }
 
 // FileHandleGroup stores currently opened files.
@@ -67,7 +78,7 @@ type FileHandleGroup struct {
 	generator func() uint64
 
 	mu      sync.Mutex
-	handles map[fuseops.HandleID]FileHandle
+	handles map[fuseops.HandleID]*FileHandle
 }
 
 // NewFileHandleGroup creates a new FileHandleGroup object.
@@ -78,7 +89,7 @@ func NewFileHandleGroup(gen func() uint64) *FileHandleGroup {
 
 	return &FileHandleGroup{
 		generator: gen,
-		handles:   make(map[fuseops.HandleID]FileHandle),
+		handles:   make(map[fuseops.HandleID]*FileHandle),
 	}
 }
 
@@ -87,13 +98,11 @@ func NewFileHandleGroup(gen func() uint64) *FileHandleGroup {
 func (fhg *FileHandleGroup) Add(inodeID fuseops.InodeID, f *os.File, size int64) fuseops.HandleID {
 	handleID := fuseops.HandleID(fhg.generator())
 
-	fh := FileHandle{
+	fh := &FileHandle{
 		InodeID: inodeID,
 		File:    f,
-		size:    new(int64),
+		size:    size,
 	}
-
-	*fh.size = size
 
 	fhg.mu.Lock()
 	if _, ok := fhg.handles[handleID]; ok {
@@ -127,7 +136,7 @@ func (fhg *FileHandleGroup) Open(root string, n *node.Node) (fuseops.HandleID, e
 }
 
 // Get gets the FileHandle structure associated with provided handle ID.
-func (fhg *FileHandleGroup) Get(handleID fuseops.HandleID) (fh FileHandle, err error) {
+func (fhg *FileHandleGroup) Get(handleID fuseops.HandleID) (fh *FileHandle, err error) {
 	fhg.mu.Lock()
 	fh, ok := fhg.handles[handleID]
 	fhg.mu.Unlock()
@@ -162,6 +171,10 @@ func (fhg *FileHandleGroup) Close() error {
 
 	var err error
 	for _, fh := range fhg.handles {
+		if fh == nil {
+			continue
+		}
+
 		if e := fh.Close(); e != nil && err == nil {
 			err = e
 		}
