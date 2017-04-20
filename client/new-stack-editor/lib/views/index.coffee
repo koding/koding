@@ -206,6 +206,20 @@ module.exports = class StackEditor extends kd.View
       @toolbar.actionButton.hideLoader()
 
 
+  setReadOnly: (readonly = true) ->
+
+    debug 'setReadOnly', readonly
+
+    if @readonly = readonly
+      @setClass 'readonly'
+      @sideView.hide()
+    else
+      @unsetClass 'readonly'
+
+    for view in EDITORS
+      @[view].setReadOnly @readonly
+
+
   _loadSnapshot: (id) ->
 
     return no  unless id
