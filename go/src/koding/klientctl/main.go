@@ -127,7 +127,7 @@ func run(args []string) {
 
 	if !daemon.Installed() && !requiresDaemon(os.Args[1:]) {
 		fmt.Fprintln(os.Stderr, "This command requires a daemon to be installed. Please install it "+
-			"with the following command:\n\n\tsudo kd install [--team <koding.com team name>]\n")
+			"with the following command:\n\n\tsudo kd install\n")
 		ctlcli.Close()
 		os.Exit(1)
 	}
@@ -816,6 +816,16 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 					},
+				}, {
+					Name:   "whoami",
+					Usage:  "Displays current authentication details.",
+					Action: ctlcli.ExitErrAction(TeamWhoami, log, "whoami"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
 				}},
 			},
 		)
@@ -882,7 +892,7 @@ func requiresDaemon(args []string) bool {
 	}
 
 	switch cmd {
-	case "install", "uninstall", "-version":
+	case "config", "version", "auth", "install", "uninstall", "-version":
 		return true
 	default:
 		return false

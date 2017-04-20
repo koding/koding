@@ -183,10 +183,10 @@ makeTitle = ({ template, stack }) ->
 
   return title  unless stack
 
-  if stack.getOldOwner()
-    title = stack.get 'title'
+  if owner = stack.getOldOwner()
+    title = "#{title} (@#{owner})"
 
-  return "#{title}"
+  return title
 
 
 ItemLink = ({ onClick, title }) ->

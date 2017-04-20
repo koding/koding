@@ -224,7 +224,7 @@ module.exports = class StackEditor extends kd.View
 
     @_snapshots[id] ?= {}
     for view in EDITORS
-      @_snapshots[id][view] = @[view]._dump()
+      @_snapshots[id][view] = @[view]._dump()  if @[view].readyState is 1
 
 
   _deleteSnapshot: (id) -> delete @_snapshots[id]

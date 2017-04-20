@@ -30,7 +30,11 @@ sidebarConnector = connectSidebar({
 
     sharedResources = calculateSharedResources props
 
-    return Object.assign {}, props, { ownedResources, sharedResources }
+    return Object.assign {}, props, {
+      ownedResources,
+      sharedResources,
+      isDefaultStackUpdated: sidebarState.isDefaultStackUpdated
+    }
 })
 
 ConnectedContainer = computeConnector sidebarConnector Container

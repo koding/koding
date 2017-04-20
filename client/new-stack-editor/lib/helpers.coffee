@@ -1,10 +1,12 @@
+debug = (require 'debug') 'nse:helpers'
 kd = require 'kd'
 
 module.exports = helpers =
 
-  markAsLoaded: (templateId, stackId) ->
+  markAsLoaded: (templateId, stackId, machineId) ->
 
-    kd.singletons.sidebar.setSelected { templateId, stackId, machineId: null }
+    debug 'markAsLoaded', templateId, stackId, machineId
+    kd.singletons.sidebar.setSelected { templateId, stackId, machineId }
 
 
   log: (rest...) ->

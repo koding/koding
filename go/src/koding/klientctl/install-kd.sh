@@ -106,40 +106,6 @@ install_vagrant_deps() {
   fi
 }
 
-test_vagrant() {
-  echo "VirtualBox and Vagrant versions must match in order" 1>&2
-  echo "to be able to build a Vagrant box." 1>&2
-  echo 1>&2
-  echo "Vagrant 1.7.x expects VirtualBox 4.x versions and" 1>&2
-  echo "Vagrant 1.8.x expects VirtualBox 5.x versions." 1>&2
-  echo 1>&2
-
-  if ! prompt_install "Do you want to test building Vagrant box with VirtualBox provider?"; then
-	  return
-  fi
-
-  pushd $(mktemp -d /tmp/XXXXX)
-
-  cat >Vagrantfile <<EOF
-VAGRANTFILE_API_VERSION = "2"
-
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "ubuntu/trusty64"
-    config.vm.hostname = "kd-install-test"
-end
-EOF
-
-  vagrant up || die "error: building Vagrant box failed"
-  vagrant destroy -f
-
-  popd
-
-  echo
-  echo
-  echo "Building Vagrant box was successful"
-  echo
-}
-
 install_virtualbox() {
   if is_virtualbox; then
     return 0
@@ -378,16 +344,21 @@ EOF
     ;;
 esac
 
-kontrolFlag=""
+kontrolFlag="--baseurl=https://sandbox.koding.com"
+
+if [ "$releaseChannel" = "production" ]; then
+  kontrolFlag="--baseurl=https://koding.com"
+fi
+
 if [ -n "$KONTROLURL" ]; then
   echo "Installing with custom Kontrol Url... '$KONTROLURL'"
-  kontrolFlag="--kontrol=$KONTROLURL"
+  kontrolFlag="--baseurl=${KONTROLURL%/kontrol/kite}"
 fi
 
 # No need to print Creating foo... because kd install handles that.
 
 # Install klient, piping stdin (the tty) to kd
-if ! sudo kd install $kontrolFlag "$1" < /dev/tty; then
+if ! sudo /usr/local/bin/kd install $kontrolFlag --token "$1" < /dev/tty; then
   exit $err
 fi
 
@@ -428,9 +399,6 @@ with Vagrant provider ensure it is installed:
     * Vagrant 1.7.4+ (https://www.vagrantup.com/downloads.html)
 
 EOF
-
-else
-  test_vagrant
 fi
 
 if [[ -n "$kiteQueryID" ]]; then

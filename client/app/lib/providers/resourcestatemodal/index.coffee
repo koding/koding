@@ -18,7 +18,7 @@ module.exports = class ResourceStateModal extends BaseModalView
     @controller = new ResourceStateController { container: this, initial }, @getData()
     @controller.on 'PaneDidShow', @bound 'setPositions'
     @controller.on 'ClosingRequested', @bound 'destroy'
-    @forwardEvent @controller, 'IDEBecameReady'
+    @forwardEvent @controller, 'OperationCompleted'
     @forwardEvent @controller, 'MachineTurnOnStarted'
     @controller.loadData()
 
@@ -40,6 +40,10 @@ module.exports = class ResourceStateModal extends BaseModalView
       container.addSubView @overlay
       container.addSubView this
 
+      @overlay.on 'click', if onClose = @getOption 'onClose'
+      then onClose
+      else @bound 'doBlockingAnimation'
+
     @setPositions()
 
 
@@ -51,6 +55,8 @@ module.exports = class ResourceStateModal extends BaseModalView
 
   setPositions: ->
 
+    return  if @hasClass 'hidden'
+
     { container } = @getOptions()
     { top, left } = container.getDomElement().offset()
 
@@ -60,7 +66,15 @@ module.exports = class ResourceStateModal extends BaseModalView
       top     : Math.round((container.getHeight() - @getHeight()) / 2 + top)
       left    : Math.round((container.getWidth()  - @getWidth()) / 2 + left)
       opacity : 1
+
+    if style.top is 0 and style.left is -300
+      return
+
     @setStyle style
+
+
+  _windowDidResize: ->
+    @setPositions()
 
 
   updateStatus: (event, task) ->

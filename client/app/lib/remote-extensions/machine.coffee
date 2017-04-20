@@ -184,6 +184,8 @@ module.exports = class JMachine extends remote.api.JMachine
   getOldOwner : -> @getAt 'meta.oldOwner'
   isAlwaysOn  : -> @getAt 'meta.alwaysOn'
 
+  getStackId  : ->
+    @_stackId ? kd.singletons.computeController.findStackFromMachineId @getId()
 
   getChannelId: -> @getAt 'channelId'
   setChannelId: (options, callback) ->

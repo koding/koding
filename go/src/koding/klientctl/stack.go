@@ -98,7 +98,7 @@ func printStacks(stacks []*models.JComputeStack) {
 	for _, stack := range stacks {
 		owner := *stack.OriginID
 		if owner != "" {
-			if account, err := remoteapi.Account(&models.JAccount{ID: owner}); err == nil {
+			if account, err := remoteapi.Account(&models.JAccount{ID: owner}); err == nil && account != nil && account.Profile != nil {
 				owner = account.Profile.Nickname
 			}
 		}

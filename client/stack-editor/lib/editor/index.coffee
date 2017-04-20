@@ -1111,9 +1111,6 @@ module.exports = class StackEditorView extends kd.View
 
     groupsController.setDefaultTemplate stackTemplate, (err) =>
 
-      reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-      reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
-
       @setAsDefaultButton.hideLoader()
 
       return  if @outputView.handleError err

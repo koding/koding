@@ -192,7 +192,7 @@ func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	if s := c.Args()[0]; strings.HasPrefix(s, "@") {
 		opts.MachineID = s[1:]
 	} else {
-		if filepath.IsAbs(s) {
+		if !filepath.IsAbs(s) {
 			var err error
 			if s, err = filepath.Abs(s); err != nil {
 				return 1, err

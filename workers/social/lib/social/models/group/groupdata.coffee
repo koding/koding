@@ -23,9 +23,8 @@ module.exports = class JGroupData extends Model
 
     sharedMethods :
       static      :
-        fetchByKey: [
-          (signature String, Function)
-        ]
+        fetchByKey: (signature String, Function)
+
 
   @create = (slug, callback) ->
     data = new JGroupData { slug }
@@ -38,8 +37,9 @@ module.exports = class JGroupData extends Model
       return callback err  if err
       callback null, data
 
-  @fetchData: (slug, callback) ->
-    return callback new Error 'slug is required' unless slug
+
+  @fetchData = (slug, callback) ->
+    return callback new Error 'slug is required'  unless slug
 
     JGroupData.one { slug }, (err, data) ->
       return callback err  if err
@@ -65,8 +65,8 @@ module.exports = class JGroupData extends Model
     JGroupData.fetchDataAt slug, path, callback
 
 
-  @fetchDataAt: (slug, path, callback) ->
-    return callback new Error 'slug is required' unless slug
+  @fetchDataAt = (slug, path, callback) ->
+    return callback new Error 'slug is required'  unless slug
 
     opts = {}
     opts["payload.#{path}"] = 1 if path
@@ -77,22 +77,25 @@ module.exports = class JGroupData extends Model
       payload = if data then getAt data.payload, path else null
       return callback null, payload
 
+
   # see docs on JGroup::modifyData
-  @modifyData : (slug, data, callback) ->
-    return callback new Error 'slug is required' unless slug
+  @modifyData = (slug, data, callback) ->
+    return callback new Error 'slug is required'  unless slug
 
     # it's only allowed to change followings
-    whitelist  = ['github.organizationToken', 'test_key__' ]
+    allowedPaths = [ 'github.organizationToken', 'test_key__' ]
 
     # handle $set and $unset cases in one
-    operation  = { $set: {}, $unset: {} }
+    operation = {}
 
-    for item in whitelist
-      key = "payload.#{item}"
-      val = getAt data, item
-      if val
-      then operation.$set[key]   = val
-      else operation.$unset[key] = ''
+    allowedPaths.forEach (path) ->
+      key = "payload.#{path}"
+      if val = data[path]
+        operation.$set ?= {}
+        operation.$set[key] = val
+      else
+        operation.$unset ?= {}
+        operation.$unset[key] = ''
 
     JGroupData.fetchData slug, (err, data) ->
       return callback err  if err
