@@ -24,19 +24,16 @@ import (
 )
 
 func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	if err := trylock(); err != nil {
+	if err := isLocked(); err != nil {
 		return 1, err
 	}
 
-	switch _, err := os.Stat("kd.yaml"); {
-	case os.IsNotExist(err):
+	if _, err := os.Stat("kd.yaml"); os.IsNotExist(err) {
 		fmt.Printf("Initializing with new kd.yaml template file...\n\n")
 
 		if err := templateInit("kd.yaml", false, ""); err != nil {
 			return 1, err
 		}
-	case err == nil:
-	default:
 	}
 
 	p, err := readTemplate("kd.yaml")
@@ -109,7 +106,7 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		ident = credential.Used()[provider]
 	}
 
-	fmt.Printf("Create new stack...\n\n")
+	fmt.Printf("Creating new stack...\n\n")
 	defTitle := strings.Title(fmt.Sprintf("%s %s Stack", kstack.Pokemon(), provider))
 
 	title, err := helper.Ask("Stack name [%s]: ", defTitle)
@@ -157,7 +154,7 @@ type lock struct {
 	} `yaml:"stack"`
 }
 
-func trylock() error {
+func isLocked() error {
 	p, err := ioutil.ReadFile(".kd.lock")
 	if os.IsNotExist(err) {
 		return nil
