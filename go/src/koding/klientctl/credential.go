@@ -51,16 +51,10 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
+func AskCredentialCreate(opts *credential.CreateOptions) (*credential.CreateOptions, error) {
 	descs, err := credential.Describe()
 	if err != nil {
 		return nil, err
-	}
-
-	opts := &credential.CreateOptions{
-		Provider: c.String("provider"),
-		Team:     c.String("team"),
-		Title:    c.String("title"),
 	}
 
 	if opts.Provider == "" {
@@ -169,16 +163,15 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 	return opts, nil
 }
 
-func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
+func credentialCreate(file string, opts *credential.CreateOptions, js bool) error {
 	var p []byte
 	var err error
-	var opts *credential.CreateOptions
 
-	switch file := c.String("file"); file {
+	switch file {
 	case "":
-		opts, err = AskCredentialCreate(c)
+		opts, err = AskCredentialCreate(opts)
 		if err != nil {
-			return 1, fmt.Errorf("error building credential data: %v", err)
+			return fmt.Errorf("error building credential data: %v", err)
 		}
 	case "-":
 		p, err = ioutil.ReadAll(os.Stdin)
@@ -187,37 +180,43 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	}
 
 	if err != nil {
-		return 1, fmt.Errorf("error reading credential file: %v", err)
+		return fmt.Errorf("error reading credential file: %v", err)
 	}
 
 	fmt.Fprintln(os.Stderr, "Creating credential... ")
 
-	if opts == nil {
-		opts = &credential.CreateOptions{
-			Provider: c.String("provider"),
-			Team:     c.String("team"),
-			Title:    c.String("title"),
-			Data:     p,
-		}
+	if len(opts.Data) == 0 {
+		opts.Data = p
 	}
 
 	cred, err := credential.Create(opts)
 	if err != nil {
-		return 1, fmt.Errorf("error creating credential: %v", err)
+		return fmt.Errorf("error creating credential: %v", err)
 	}
 
-	if c.Bool("json") {
-		p, err := json.MarshalIndent(cred, "", "\t")
-		if err != nil {
-			return 1, err
-		}
+	if js {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(cred)
 
-		fmt.Printf("%s\n", p)
-
-		return 0, nil
+		return nil
 	}
 
 	fmt.Fprintf(os.Stderr, "Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
+
+	return nil
+}
+
+func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	opts := &credential.CreateOptions{
+		Provider: c.String("provider"),
+		Team:     c.String("team"),
+		Title:    c.String("title"),
+	}
+
+	if err := credentialCreate(c.String("file"), opts, c.Bool("json")); err != nil {
+		return 1, err
+	}
 
 	return 0, nil
 }

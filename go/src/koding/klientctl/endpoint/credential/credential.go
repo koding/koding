@@ -95,6 +95,10 @@ func (c *Client) Create(opts *CreateOptions) (*stack.CredentialItem, error) {
 		Provider:   opts.Provider,
 	})
 
+	if _, ok := c.used[opts.Provider]; !ok {
+		c.used[opts.Provider] = resp.Identifier
+	}
+
 	return &stack.CredentialItem{
 		Title:      resp.Title,
 		Team:       req.Team,

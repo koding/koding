@@ -3,6 +3,7 @@ package stack
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -190,4 +191,24 @@ func ReadProviders(template []byte) ([]string, error) {
 	sort.Strings(providers)
 
 	return providers, nil
+}
+
+// ReadProvider reads exact one cloud provider from the given template.
+//
+// The function returns non-nil error if none or more than one provider
+// is read.
+func ReadProvider(template []byte) (string, error) {
+	providers, err := ReadProviders(template)
+	if err != nil {
+		return "", err
+	}
+
+	switch len(providers) {
+	case 0:
+		return "", errors.New("no provider found")
+	case 1:
+		return providers[0], nil
+	default:
+		return "", fmt.Errorf("multiple providers found: %v", providers)
+	}
 }
