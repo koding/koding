@@ -17,8 +17,8 @@ func defaultInodeIDGenerator() func() uint64 {
 	var current uint64 = RootInodeID
 	return func() uint64 {
 		inodeID := atomic.AddUint64(&current, 1)
-		if inodeID <= RootInodeID {
-			return atomic.AddUint64(&current, 1)
+		for inodeID <= RootInodeID {
+			inodeID = atomic.AddUint64(&current, 1)
 		}
 
 		return inodeID
