@@ -11,6 +11,7 @@ Scroller = require 'app/components/scroller'
 
 SidebarFlux = require 'app/flux/sidebar'
 
+DefaultStackUpdated = require './components/defaultstackupdated'
 SidebarResources = require './components/resources'
 SidebarFooterLogo = require './components/footerlogo'
 
@@ -18,7 +19,6 @@ require './styl/sidebar.styl'
 require './styl/sidebarmenu.styl'
 require './styl/sidebarsection.styl'
 require './styl/sidebarstacksection.styl'
-require './styl/sidebarstackwidgets.styl'
 require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
 
@@ -26,7 +26,6 @@ module.exports = class SidebarContainer extends React.Component
 
   constructor: (props) ->
     super props
-
     @state = { loading: yes }
 
 
@@ -45,12 +44,15 @@ module.exports = class SidebarContainer extends React.Component
 
     <Scroller className={curry 'activity-sidebar', @props.className}>
 
-      {not @state.loading and
-        <SidebarResources
-          hasTemplate={!!@props.templates.length}
-          disabled={isGroupDisabled()}
-          owned={@props.ownedResources}
-          shared={@props.sharedResources} /> }
+      {@props.isDefaultStackUpdated and
+        <DefaultStackUpdated />}
+
+      <SidebarResources
+        loading={@state.loading}
+        hasTemplate={!!@props.templates.length}
+        disabled={isGroupDisabled()}
+        owned={@props.ownedResources}
+        shared={@props.sharedResources} />
 
       <SidebarFooterLogo
         src={DEFAULT_LOGOPATH} />

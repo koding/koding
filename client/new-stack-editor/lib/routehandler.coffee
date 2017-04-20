@@ -16,6 +16,9 @@ module.exports = -> lazyrouter.bind 'stackeditor', (type, info, state, path, ctx
     kd.singletons.appManager.tell 'Stackeditor', 'openStackWizard'
   else
     kd.singletons.appManager.open 'Stackeditor', (app) ->
-      { stackTemplateId, stackId } = info.params
-      debug 'opening stack editor', { stackTemplateId, stackId }
-      app.openEditor stackTemplateId, stackId
+      { templateId, machineId } = info.params
+      debug 'opening stack editor', { templateId, machineId }
+      app.openEditor {
+        templateId, machineId
+        build: type is 'build'
+      }

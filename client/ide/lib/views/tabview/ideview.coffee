@@ -78,7 +78,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       { frontApp } = kd.singletons.appManager
       @updateStatusBar()
       frontApp?.writeSnapshot?()
-      @focusTab()  if frontApp?.isTabViewFocused @tabView
+      @focusTab()  if frontApp?.isTabViewFocused? @tabView
 
     @tabView.on 'PaneAdded', (pane) =>
       pane.tabHandle.setClass 'focus'
@@ -386,7 +386,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     terminalPane = new IDETerminalPane options
     { isActivePane } = options
 
-    terminalPane.ready -> frontApp.setRealtimeManager terminalPane
+    terminalPane.ready -> frontApp.setRealtimeManager? terminalPane
 
     { webtermView } = terminalPane
 

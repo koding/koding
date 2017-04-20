@@ -12,7 +12,9 @@ module.exports = class StackUpdatedWidget extends React.Component
 
   onClick: ->
 
-    { appManager, router } = kd.singletons
+    { appManager, router, computeController, sidebar } = kd.singletons
+
+    sidebar.setUpdatedStack null
     templateId =  @props.stack.baseStackId
 
     computeController.reinitStack @props.stack, (err) =>
