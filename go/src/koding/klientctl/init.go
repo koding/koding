@@ -79,10 +79,6 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			break
 		}
 
-		if len(creds) == 1 {
-			ident = creds[0].Identifier
-		}
-
 		for i, cred := range creds {
 			fmt.Printf("[%d] %s\n", i+1, cred.Title)
 		}
