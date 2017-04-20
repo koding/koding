@@ -58,6 +58,23 @@ func (e *Endpoints) Social() *Endpoint {
 	return e.Koding.WithPath("/api/social")
 }
 
+// Local describes configuration of local paths.
+type Local struct {
+	// Mount is a default home path of mounted directories.
+	//
+	// If empty, defaults to ~/koding/mnt/.
+	Mount string `json:"mount,omitempty"`
+
+	// Exports maps named mounts to local paths.
+	//
+	// The Exports["default"] export is used as
+	// a default one when caller does not specify
+	// a mount path.
+	//
+	// The Exports["default"] defaults to $HOME.
+	Exports map[string]string `json:"exports,omitempty"`
+}
+
 type Konfig struct {
 	Endpoints *Endpoints `json:"endpoints,omitempty"`
 
@@ -68,6 +85,9 @@ type Konfig struct {
 	Environment string `json:"environment,omitempty"`
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
 	KiteKey     string `json:"kiteKey,omitempty"`
+
+	// Local describes configuration of local paths.
+	Local *Local `json:"local,omitempty"`
 
 	// Koding networking configuration.
 	//
@@ -80,9 +100,6 @@ type Konfig struct {
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
 	Debug bool `json:"debug,string,omitempty"`
-
-	// Metadata keeps per-app configuration.
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
 func (k *Konfig) KiteHome() string {
@@ -252,6 +269,12 @@ func NewKonfig(e *Environments) *Konfig {
 					Host:   "127.0.0.1:56789",
 					Path:   "/kite",
 				}},
+			},
+		},
+		Local: &Local{
+			Mount: filepath.Join(CurrentUser.HomeDir, "koding", "mnt"),
+			Exports: map[string]string{
+				"default": CurrentUser.HomeDir,
 			},
 		},
 		PublicBucketName:   Builtin.Buckets.PublicLogs.Name,

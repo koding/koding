@@ -25,10 +25,27 @@ type MountOptions struct {
 	Log        logging.Logger
 }
 
+func (c *Client) mountPoint(ident string) (string, error) {
+	m, err := c.machine(ident)
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(c.konfig().Local.Mount, m.Label), nil
+}
+
 // Mount synchronizes directories between remote and local machines.
 func (c *Client) Mount(options *MountOptions) (err error) {
+	c.init()
+
 	if options == nil {
 		return errors.New("invalid nil options")
+	}
+
+	if options.Path == "" {
+		if options.Path, err = c.mountPoint(options.Identifier); err != nil {
+			return err
+		}
 	}
 
 	// Create and check mount point directory.
