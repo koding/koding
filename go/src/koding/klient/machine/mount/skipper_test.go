@@ -59,6 +59,16 @@ func TestIsSkip(t *testing.T) {
 			Sk:     mount.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
+		"git branch lock": {
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("notify/.git/refs/heads/master.lock", index.PriorityMedium, 0)),
+			Sk:     mount.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`),
+			IsSkip: true,
+		},
+		"git stash reference lock": {
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("notify/.git/index.stash.31012.lock", index.PriorityMedium, 0)),
+			Sk:     mount.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`),
+			IsSkip: true,
+		},
 	}
 
 	for name, test := range tests {

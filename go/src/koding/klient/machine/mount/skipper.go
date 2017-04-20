@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -12,8 +13,13 @@ import (
 
 // DefaultSkipper contains a default set of non-synced file rules.
 var DefaultSkipper Skipper = MultiSkipper{
-	OsSkip(DirectorySkip(".Trash"), "darwin"), // OSX trash directory.
-	PathSuffixSkip(".git/index.lock"),         // git index lock file.
+	OsSkip(DirectorySkip(".Trash"), "darwin"),      // OSX trash directory.
+	PathSuffixSkip(".git/index.lock"),              // git index lock file.
+	PathSuffixSkip(".git/refs/stash.lock"),         // git stash lock file.
+	PathSuffixSkip(".git/HEAD.lock"),               // git HEAD lock.
+	PathSuffixSkip(".git/ORIG_HEAD.lock"),          // git ORIG_HEAD lock.
+	NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`), // git branch lock.
+	NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`), // git stash ref. lock.
 }
 
 // Skipper describes a file or set of files which are not going to be synced.
@@ -108,4 +114,25 @@ func OsSkip(s Skipper, goos string) Skipper {
 	}
 
 	return NeverSkip{}
+}
+
+// RegexSkip skips all paths that matches stored regural expression.
+type RegexSkip struct {
+	re *regexp.Regexp
+}
+
+// NewRegexSkip creates a new RegexSkip object or panics if provided expression
+// cannot be compilled.
+func NewRegexSkip(expr string) *RegexSkip {
+	return &RegexSkip{
+		re: regexp.MustCompile(expr),
+	}
+}
+
+// Initialize always returns true.
+func (rs *RegexSkip) Initialize(_ string) error { return nil }
+
+// IsSkip returns true when provided event's path matches stored regexp.
+func (rs *RegexSkip) IsSkip(ev *msync.Event) bool {
+	return rs.re.MatchString(ev.Change().Path())
 }
