@@ -55,7 +55,8 @@ func (n *Node) Exist() bool {
 // Clone returns a deep copy of called node.
 func (n *Node) Clone() *Node {
 	c := &Node{
-		Name: n.Name,
+		Name:     n.Name,
+		children: make([]*Node, 0, len(n.children)),
 	}
 
 	if n.Entry != nil {
