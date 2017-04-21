@@ -87,9 +87,16 @@ func (ab *AddrBook) add(a Addr) {
 
 	// If Addr already exists, update only its Updated field.
 	for i := range ab.addrs {
-		if ab.addrs[i].Network == a.Network && ab.addrs[i].Value == a.Value && ab.addrs[i].UpdatedAt.Before(a.UpdatedAt) {
+		if ab.addrs[i].Network != a.Network || ab.addrs[i].Value != a.Value {
+			continue
+		}
+
+		if ab.addrs[i].UpdatedAt.Before(a.UpdatedAt) {
+			// New adress is the same and is newer.
 			ab.addrs[i].UpdatedAt = a.UpdatedAt
 		}
+
+		return
 	}
 
 	ab.addrs = append(ab.addrs, a)

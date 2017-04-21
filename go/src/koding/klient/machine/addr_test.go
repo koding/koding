@@ -185,7 +185,7 @@ func TestAddrLatest(t *testing.T) {
 		{
 			Network:   "ip",
 			Value:     "127.0.0.1",
-			UpdatedAt: time.Time{},
+			UpdatedAt: time.Date(2011, time.May, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
 			Network:   "tcp",
@@ -218,6 +218,10 @@ func TestAddrLatest(t *testing.T) {
 
 	for _, addr := range addrs {
 		ab.Add(addr)
+	}
+
+	if l := len(ab.All()); l != 2 {
+		t.Fatalf("want addresses count = 2; got %d", l)
 	}
 
 	for name, test := range tests {
