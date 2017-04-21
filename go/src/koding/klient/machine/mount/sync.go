@@ -226,10 +226,10 @@ func (s *Sync) Info() *Info {
 	return &Info{
 		ID:          s.mountID,
 		Mount:       s.m,
-		Count:       s.idx.Count(-1),
-		CountAll:    s.idx.CountAll(-1),
-		DiskSize:    s.idx.DiskSize(-1),
-		DiskSizeAll: s.idx.DiskSizeAll(-1),
+		Count:       s.idx.Tree().ExistCount(),
+		CountAll:    s.idx.Tree().Count(),
+		DiskSize:    s.idx.Tree().ExistDiskSize(),
+		DiskSizeAll: s.idx.Tree().DiskSize(),
 		Queued:      items,
 		Syncing:     synced,
 	}

@@ -214,6 +214,15 @@ func (g *Group) bootstrap() {
 		g.log.Info("Created alias for %s, %s", id, alias)
 	}
 
+	// Save newly generated aliases.
+	if len(noAliases) != 0 {
+		if cache, ok := g.alias.(machine.Cacher); ok {
+			if err := cache.Cache(); err != nil {
+				g.log.Warning("Regenerated aliases were not cached: %v", err)
+			}
+		}
+	}
+
 	// Start clients for all available addresses and for mounts even if they
 	// may have no address, they will need disconnected client.
 	for _, id := range idset.Union(addressIDs, mountsIDs) {

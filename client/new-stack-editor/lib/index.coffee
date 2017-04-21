@@ -2,9 +2,11 @@ debug = (require 'debug') 'nse'
 
 kd = require 'kd'
 async = require 'async'
-AppController = require 'app/appcontroller'
+
+isAdmin = require 'app/util/isAdmin'
 showError = require 'app/util/showError'
 
+AppController = require 'app/appcontroller'
 EnvironmentFlux = require 'app/flux/environment'
 
 Events = require './events'
@@ -78,6 +80,7 @@ module.exports = class StackEditorAppController extends AppController
         return callback err
 
       @stackEditor.setData template, reset
+      @stackEditor.setReadOnly not (isAdmin() or template.isMine())
 
       @showBuildFlow template, machineId  if build
 

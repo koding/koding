@@ -178,8 +178,8 @@ func TestNodeLookup(t *testing.T) {
 				t.Fatalf("Lookup(%q) failed", name)
 			}
 
-			if nd.Entry.Size() != size {
-				t.Fatalf("got %d, want %d", size, nd.Entry.Size())
+			if nd.Entry.File.Size != size {
+				t.Fatalf("got %d, want %d", size, nd.Entry.File.Size)
 			}
 		})
 	}
@@ -260,8 +260,8 @@ func TestNodeAdd(t *testing.T) {
 				t.Fatalf("got %d, want %d", count, cas.count)
 			}
 
-			if nd.Entry.Size() != entry.Size() {
-				t.Fatalf("got %d, want %d", nd.Entry.Size(), entry.Size())
+			if nd.Entry.File.Size != entry.File.Size {
+				t.Fatalf("got %d, want %d", nd.Entry.File.Size, entry.File.Size)
 			}
 		})
 	}
@@ -361,12 +361,32 @@ func TestNodeMarshalJSON(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	node := &index.Node{}
-	if err := json.Unmarshal(data, node); err != nil {
+	nd := &index.Node{}
+	if err := json.Unmarshal(data, nd); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if !reflect.DeepEqual(root, node) {
-		t.Fatalf("want:\n%#v\ngot\n%#v\n", root, node)
+	if !reflect.DeepEqual(root, nd) {
+		t.Fatalf("want:\n%#v\ngot\n%#v\n", root, nd)
+	}
+}
+
+func TestNodeToTree(t *testing.T) {
+	var gotNode, gotTree []string
+
+	root := fixture()
+	root.ForEach(func(name string, _ *node.Entry) {
+		gotNode = append(gotNode, name)
+	})
+
+	sort.Strings(gotNode)
+
+	tree := root.ToTree()
+	tree.DoPath("", node.WalkPath(func(nodePath string, _ *node.Node) {
+		gotTree = append(gotTree, nodePath)
+	}))
+
+	if !reflect.DeepEqual(gotTree, gotNode) {
+		t.Fatalf("want:\n%#v\ngot\n%#v\n", gotNode, gotTree)
 	}
 }

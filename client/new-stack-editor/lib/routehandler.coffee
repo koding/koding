@@ -8,7 +8,7 @@ module.exports = -> lazyrouter.bind 'stackeditor', (type, info, state, path, ctx
 
   debug 'routing', { type, info, state, path }
 
-  unless canCreateStacks() or type is 'edit-stack'
+  unless canCreateStacks() or type in ['edit-stack', 'build']
     new kd.NotificationView { title: 'You are not allowed to create/edit stacks!' }
     return kd.singletons.router.back()
 

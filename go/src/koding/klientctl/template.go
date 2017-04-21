@@ -150,40 +150,39 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	output := c.String("output")
-
-	if _, err := os.Stat(output); err == nil {
+func templateInit(output string, useDefaults bool, providerName string) error {
+	if _, err := os.Stat(output); err == nil && !useDefaults {
 		yn, err := helper.Ask("Do you want to overwrite %q file? [y/N]: ", output)
 		if err != nil {
-			return 1, err
+			return err
 		}
 
 		switch strings.ToLower(yn) {
 		case "yes", "y":
-			fmt.Fprintln(os.Stderr)
+			fmt.Println()
 		default:
-			return 1, errors.New("aborted by user")
+			return errors.New("aborted by user")
 		}
 	}
 
 	descs, err := credential.Describe()
 	if err != nil {
-		return 1, err
+		return err
 	}
 
-	name, err := helper.Ask("Provider type []: ")
+	if providerName == "" {
+		if providerName, err = helper.Ask("Provider type []: "); err != nil {
+			return err
+		}
+	}
+
+	if _, ok := descs[providerName]; !ok {
+		return fmt.Errorf("provider %q does not exist", providerName)
+	}
+
+	tmpl, defaults, err := remoteapi.SampleTemplate(providerName)
 	if err != nil {
-		return 1, err
-	}
-
-	if _, ok := descs[name]; !ok {
-		return 1, fmt.Errorf("provider %q does not exist", name)
-	}
-
-	tmpl, defaults, err := remoteapi.SampleTemplate(name)
-	if err != nil {
-		return 1, err
+		return err
 	}
 
 	vars := provider.ReadVariables(tmpl)
@@ -195,17 +194,24 @@ func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		}
 
 		name := v.Name[len("userInput_"):]
-		def := ""
+		defValue := ""
 		if v, ok := defaults[name]; ok && v != nil {
-			def = fmt.Sprintf("%v", v)
+			defValue = fmt.Sprintf("%v", v)
 		}
 
-		s, err := helper.Ask("Set %q to [%s]: ", name, def)
-		if err != nil {
-			return 1, err
+		var value string
+
+		if !useDefaults {
+			if value, err = helper.Ask("Set %q to [%s]: ", name, defValue); err != nil {
+				return err
+			}
 		}
 
-		input[v.Name] = s
+		if value == "" {
+			value = defValue
+		}
+
+		input[v.Name] = value
 	}
 
 	tmpl = provider.ReplaceVariablesFunc(tmpl, vars, func(v *provider.Variable) string {
@@ -219,27 +225,35 @@ func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	var m map[string]interface{}
 
 	if err := json.Unmarshal([]byte(tmpl), &m); err != nil {
-		return 1, err
-	}
-
-	f, err := os.Create(c.String("output"))
-	if err != nil {
-		return 1, err
+		return err
 	}
 
 	p, err := yaml.Marshal(m)
 	if err != nil {
-		return 1, err
+		return err
+	}
+
+	f, err := os.Create(output)
+	if err != nil {
+		return err
 	}
 
 	_, err = io.Copy(f, bytes.NewReader(p))
 	err = nonil(err, f.Close())
 
 	if err != nil {
-		return 1, err
+		return err
 	}
 
 	fmt.Printf("\nTemplate successfully written to %s.\n", f.Name())
+
+	return nil
+}
+
+func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if err := templateInit(c.String("output"), c.Bool("defaults"), c.String("provider")); err != nil {
+		return 1, err
+	}
 
 	return 0, nil
 }

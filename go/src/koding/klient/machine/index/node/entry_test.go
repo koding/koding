@@ -15,22 +15,22 @@ func TestEntryPromiseString(t *testing.T) {
 		{
 			// 0 //
 			EP:     node.EntryPromiseVirtual,
-			Result: "V----",
+			Result: "V---",
 		},
 		{
 			// 1 //
-			EP:     node.EntryPromiseVirtual | node.EntryPromiseDel | node.EntryPromiseUnlink,
-			Result: "V--DN",
+			EP:     node.EntryPromiseVirtual | node.EntryPromiseDel,
+			Result: "V--D",
 		},
 		{
 			// 2 //
 			EP:     node.EntryPromiseAdd,
-			Result: "-A---",
+			Result: "-A--",
 		},
 		{
 			// 3 //
 			EP:     0,
-			Result: "-----",
+			Result: "----",
 		},
 	}
 
