@@ -507,7 +507,7 @@ var Script = []InstallStep{{
 		Name: "osxfuse",
 		Install: func(c *Client, _ *Opts) (string, error) {
 			const volume = "/Volumes/FUSE for macOS"
-			const pkg = volume + "/Extras/FUSE for macOS 3.5.2.pkg"
+			const pkg = volume + "/Extras/FUSE for macOS 3.5.8.pkg"
 
 			if _, err := os.Stat("/Library/Filesystems/osxfuse.fs"); err == nil {
 				return "", ErrSkipInstall
