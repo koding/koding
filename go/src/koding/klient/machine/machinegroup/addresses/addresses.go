@@ -27,7 +27,9 @@ func (a *Addresses) Add(id machine.ID, addr machine.Addr) error {
 
 	ab, ok := a.m[id]
 	if !ok {
-		ab = &machine.AddrBook{}
+		ab = &machine.AddrBook{
+			MaxSize: 4, // maximum 4 records per address type.
+		}
 	}
 
 	ab.Add(addr)
@@ -45,7 +47,7 @@ func (a *Addresses) Drop(id machine.ID) error {
 	return nil
 }
 
-// Latests returns the latest known address for a given machine and network.
+// Latest returns the latest known address for a given machine and network.
 func (a *Addresses) Latest(id machine.ID, network string) (machine.Addr, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()

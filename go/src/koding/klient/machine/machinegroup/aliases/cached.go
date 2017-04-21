@@ -41,45 +41,19 @@ func NewCached(st storage.ValueInterface) (*Cached, error) {
 
 // Add binds custom alias to provided machine and updates the cache.
 func (c *Cached) Add(id machine.ID, alias string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if err := c.aliases.Add(id, alias); err != nil {
-		return err
-	}
-
-	return c.st.SetValue(storageKey, c.aliases.all())
+	return c.aliases.Add(id, alias)
 }
 
 // Create generates a new alias for provided machine ID and updates the cache.
 // If alias already exists, it will not be regenerated nor cached.
 func (c *Cached) Create(id machine.ID) (string, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	alias, err := c.aliases.Create(id)
-	if err != nil {
-		return "", err
-	}
-
-	if err = c.st.SetValue(storageKey, c.aliases.all()); err != nil {
-		return "", err
-	}
-
-	return alias, nil
+	return c.aliases.Create(id)
 }
 
 // Drop removes alias which is binded to provided machine ID and updates
 // the cache.
 func (c *Cached) Drop(id machine.ID) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if err := c.aliases.Drop(id); err != nil {
-		return err
-	}
-
-	return c.st.SetValue(storageKey, c.aliases.all())
+	return c.aliases.Drop(id)
 }
 
 // MachineID checks if there is a machine ID that is binded to provided alias.
@@ -92,4 +66,12 @@ func (c *Cached) MachineID(alias string) (machine.ID, error) {
 // Registered returns all machines that are stored in this object.
 func (c *Cached) Registered() machine.IDSlice {
 	return c.aliases.Registered()
+}
+
+// Cache saves aliases data to underlying storage.
+func (c *Cached) Cache() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.st.SetValue(storageKey, c.aliases.all())
 }
