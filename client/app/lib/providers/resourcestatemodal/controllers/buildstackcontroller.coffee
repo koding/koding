@@ -33,14 +33,21 @@ module.exports = class BuildStackController extends kd.Controller
       @emit 'ClosingRequested'
 
     @successPage.on 'CollaborationInvite', =>
+
       tooltipContent = '''
         <h3>Collaboration is starting...</h3>
         <p>You can invite your teammates when collaboration is started.</p>
       '''
-      router.once 'RouteInfoHandled', -> kd.utils.wait 1000, ->
+
+      startCollab = -> kd.utils.wait 1000, ->
         appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
 
-      router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+      if Cookies.get 'use-nse'
+        router.once 'RouteInfoHandled', startCollab
+        router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+      else
+        do startCollab
+
       @emit 'ClosingRequested'
 
     @successPage.on 'ClosingRequested', =>
