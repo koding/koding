@@ -16,7 +16,7 @@ module.exports = class JGroup extends Module
   { Inflector, ObjectId, ObjectRef, secure, signature } = require 'bongo'
 
   JPermissionSet = require './permissionset'
-  { permit }     = JPermissionSet
+  { permit, expireCache } = JPermissionSet
 
   JAccount       = require '../account'
   KodingError    = require '../../error'
@@ -1077,6 +1077,10 @@ module.exports = class JGroup extends Module
         return callback err  if err
         return callback new KodingError 'No such group!'  unless group
 
+        kallback = (rest...) ->
+          expireCache group.getAt 'slug'
+          callback rest...
+
         # we need to make sure if given stack template is
         # valid for the current group limit ~ GG
         templates = data.stackTemplates
@@ -1084,9 +1088,9 @@ module.exports = class JGroup extends Module
           ComputeProvider = require '../computeproviders/computeprovider'
           ComputeProvider.validateTemplates client, templates, group, (err) =>
             return callback err  if err
-            @updateAndNotify notifyOptions, { $set: data }, callback
+            @updateAndNotify notifyOptions, { $set: data }, kallback
         else
-          @updateAndNotify notifyOptions, { $set: data }, callback
+          @updateAndNotify notifyOptions, { $set: data }, kallback
 
 
   setLimit    : permit

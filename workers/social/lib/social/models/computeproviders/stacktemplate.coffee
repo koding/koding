@@ -301,7 +301,14 @@ module.exports = class JStackTemplate extends Module
   #   }
   #
   @create = ->
-  @create = permit 'create stack template',
+  @create = permit
+
+    advanced: [
+      {
+        permission   : 'create stack template',
+        validateWith : Validators.group.custom 'membersCanCreateStacks'
+      }
+    ]
 
     success: revive
 
@@ -548,8 +555,14 @@ module.exports = class JStackTemplate extends Module
   generateStack: permit
 
     advanced: [
-      { permission: 'update own stack template', validateWith: Validators.own }
-      { permission: 'update stack template' }
+      {
+        permission   : 'update stack template',
+        validateWith : Validators.group.custom 'membersCanCreateStacks'
+      }
+      {
+        permission   : 'update own stack template',
+        validateWith : Validators.own
+      }
     ]
 
     success: revive
@@ -716,8 +729,14 @@ module.exports = class JStackTemplate extends Module
   clone: permit
 
     advanced: [
-      { permission: 'update own stack template' }
-      { permission: 'update stack template' }
+      {
+        permission   : 'update own stack template',
+        validateWith : Validators.group.custom 'membersCanCreateStacks'
+      }
+      {
+        permission   : 'update own stack template',
+        validateWith : Validators.own
+      }
     ]
 
     success: (client, options, callback) ->

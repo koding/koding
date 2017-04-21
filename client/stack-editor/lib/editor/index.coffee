@@ -80,17 +80,18 @@ module.exports = class StackEditorView extends kd.View
       cssClass: 'warning-view hidden'
       partial: 'You must be an admin to edit this stack.'
 
-    @warningView.addSubView @cloneOption = new kd.CustomHTMLView
-      tagName: 'span'
-      partial: " However, you can
-        <span class='clone-button'>clone this template </span>
-          and create a private stack."
-      click: (event) =>
-        unless canCreateStacks()
-          return new kd.NotificationView
-            title: 'You are not allowed to create/edit stacks!'
-        if event.target?.className is 'clone-button'
-          @cloneStackTemplate()
+    if canCreateStacks()
+      @warningView.addSubView @cloneOption = new kd.CustomHTMLView
+        tagName: 'span'
+        partial: " However, you can
+          <span class='clone-button'>clone this template </span>
+            and create a private stack."
+        click: (event) =>
+          unless canCreateStacks()
+            return new kd.NotificationView
+              title: 'You are not allowed to create/edit stacks!'
+          if event.target?.className is 'clone-button'
+            @cloneStackTemplate()
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass : 'StackEditor-SecondaryActions'
@@ -345,11 +346,16 @@ module.exports = class StackEditorView extends kd.View
   cloneStackTemplate: ->
 
     { stackTemplate } = @getData()
+    { computeController, router } = kd.singletons
+
     computeController.fetchStackTemplate stackTemplate.getId(), (err, template) ->
-      return showError 'Error while cloning the template'  if err
+
+      if err or not template
+        return showError 'Failed to fetch template'
+
       template.clone (err, template) ->
-        return showError 'Error while cloning the template'  if err
-        router.handleRoute "/Stack-Editor/#{template.getId()}"
+        return  if showError err
+        router.handleRoute "/Stack-Editor/#{template.getId()}"  if template
 
 
   createStackNameInput: (generatedStackTemplateTitle) ->
