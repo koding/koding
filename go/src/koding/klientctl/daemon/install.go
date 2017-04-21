@@ -533,11 +533,11 @@ var Script = []InstallStep{{
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "VirtualBox",
-		Install: func(c *Client, _ *Opts) (string, error) {
+		Install: func(c *Client, opts *Opts) (string, error) {
 			const volume = "/Volumes/VirtualBox"
 			const pkg = volume + "/VirtualBox.pkg"
 
-			if hasVirtualBox() {
+			if hasVirtualBox() || !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 
@@ -552,8 +552,8 @@ var Script = []InstallStep{{
 	},
 	"linux": {
 		Name: "VirtualBox",
-		Install: func(c *Client, _ *Opts) (string, error) {
-			if hasVirtualBox() {
+		Install: func(c *Client, opts *Opts) (string, error) {
+			if hasVirtualBox() || !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 
