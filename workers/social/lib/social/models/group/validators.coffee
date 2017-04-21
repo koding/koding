@@ -108,6 +108,11 @@ module.exports = Validators =
 
       (client, group, rest..., callback) ->
 
-        Validators.group.admin client, group, rest..., (err, isAdmin) ->
-          callback null, yes  if isAdmin
-          callback null, !!group.getAt "customize.#{customPermission}"
+        Validators.any client, group, rest..., (err, allow) ->
+          if err or not allow
+            return callback err, no
+
+          Validators.group.admin client, group, rest..., (err, isAdmin) ->
+            callback null, if isAdmin
+            then yes
+            else !!group.getAt "customize.#{customPermission}"

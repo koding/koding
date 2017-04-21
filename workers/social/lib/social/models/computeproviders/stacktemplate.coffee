@@ -730,7 +730,7 @@ module.exports = class JStackTemplate extends Module
 
     advanced: [
       {
-        permission   : 'update stack template',
+        permission   : 'update own stack template',
         validateWith : Validators.group.custom 'membersCanCreateStacks'
       }
       {
