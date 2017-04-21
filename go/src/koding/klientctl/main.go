@@ -411,6 +411,10 @@ func run(args []string) {
 				Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
 			}},
 		}, {
+			Name:   "init",
+			Usage:  "Initializes KD project.",
+			Action: ctlcli.ExitErrAction(Init, log, "init"),
+		}, {
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
@@ -615,6 +619,14 @@ func run(args []string) {
 						Name:  "output, o",
 						Usage: "Output template file.",
 						Value: "kd.yaml",
+					},
+					cli.BoolFlag{
+						Name:  "defaults",
+						Usage: "Use default values for stack variables.",
+					},
+					cli.StringFlag{
+						Name:  "provider, p",
+						Usage: "Cloud provider to use.",
 					},
 				},
 			}},

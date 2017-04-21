@@ -14,7 +14,7 @@ func (All) Weight() int { return 0 }
 
 // Scan gets size and number of prefetched files.
 func (All) Scan(idx *index.Index) (suffix string, count, diskSize int64, err error) {
-	count, diskSize = int64(idx.CountAll(-1)), idx.DiskSizeAll(-1)
+	count, diskSize = int64(idx.Tree().Count()), idx.Tree().DiskSize()
 	return
 }
 

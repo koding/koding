@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/index/node"
 )
 
 // Git prefetcher uses git to reduce the amount of prefetched data. The strategy
@@ -29,13 +30,23 @@ func (Git) Available() bool {
 func (Git) Weight() int { return 100 }
 
 // Scan gets size and number of prefetched files.
-func (Git) Scan(idx *index.Index) (suffix string, count, diskSize int64, err error) {
-	n, ok := idx.LookupAll(".git")
-	if !ok || !n.IsDir() {
+func (Git) Scan(idx *index.Index) (string, int64, int64, error) {
+	var isGit bool
+	idx.Tree().DoPath(".git", func(n *node.Node) bool {
+		isGit = !n.IsShadowed() && n.Entry.File.Mode.IsDir()
+
+		return !n.IsShadowed()
+	})
+
+	if isGit {
 		return "", 0, 0, errors.New("remote directory is not a git repository")
 	}
 
-	return ".git/", int64(n.CountAll(-1)), n.DiskSizeAll(-1), nil
+	count, diskSize := 0, int64(0)
+	idx.Tree().DoPath(".git", node.Count(&count))
+	idx.Tree().DoPath(".git", node.DiskSize(&diskSize))
+
+	return ".git/", int64(count), diskSize, nil
 }
 
 // PostRun runs git executable in order to restore downloaded state in working

@@ -61,10 +61,10 @@ func TestHeadMount(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if resc, idxc := headMountRes.AllCount, idx.Count(-1); resc != idxc {
+	if resc, idxc := headMountRes.AllCount, idx.Tree().Count(); resc != idxc {
 		t.Errorf("want file count = %d; got %d", idxc, resc)
 	}
-	if resds, idxds := headMountRes.AllDiskSize, idx.DiskSize(-1); resds != idxds {
+	if resds, idxds := headMountRes.AllDiskSize, idx.Tree().DiskSize(); resds != idxds {
 		t.Errorf("want disk size = %d; got %d", idxds, resds)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/remoteapi"
 	"koding/klientctl/endpoint/stack"
 	"koding/klientctl/endpoint/team"
@@ -56,7 +57,15 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 0, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "Creatad %q stack with %s ID.\n", resp.Title, resp.StackID)
+	fmt.Fprintf(os.Stderr, "\nCreatad %q stack with %s ID.\nWaiting for the stack to finish building...\n\n", resp.Title, resp.StackID)
+
+	for e := range kloud.Wait(resp.EventID) {
+		if e.Error != nil {
+			return 1, fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
+		}
+
+		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	}
 
 	return 0, nil
 }
