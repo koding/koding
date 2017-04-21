@@ -2,6 +2,7 @@ package machine
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -237,6 +238,85 @@ func TestAddrLatest(t *testing.T) {
 				t.Fatalf("want updated = %v; got %v", test.UpdatedAt, addr.UpdatedAt)
 			}
 		})
+	}
+}
+
+func TestAddrMaxSize(t *testing.T) {
+	addrs := []Addr{
+		{
+			Network:   "ip",
+			Value:     "127.0.0.0",
+			UpdatedAt: time.Time{},
+		},
+		{
+			Network:   "ip",
+			Value:     "127.0.0.1",
+			UpdatedAt: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "ip",
+			Value:     "127.0.0.2",
+			UpdatedAt: time.Date(2011, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "ip",
+			Value:     "127.0.0.4",
+			UpdatedAt: time.Date(2009, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "tunnel",
+			Value:     "urjn784c4563.aaaaaa.1d54476f2.dev.koding.me",
+			UpdatedAt: time.Date(1997, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "tunnel",
+			Value:     "urjn784c4563.bbbbb.1d54476f2.dev.koding.me",
+			UpdatedAt: time.Date(2000, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "tunnel",
+			Value:     "urjn784c4563.ccccc.1d54476f2.dev.koding.me",
+			UpdatedAt: time.Date(1900, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	want := []Addr{
+		{
+			Network:   "ip",
+			Value:     "127.0.0.1",
+			UpdatedAt: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "ip",
+			Value:     "127.0.0.2",
+			UpdatedAt: time.Date(2011, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "tunnel",
+			Value:     "urjn784c4563.aaaaaa.1d54476f2.dev.koding.me",
+			UpdatedAt: time.Date(1997, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			Network:   "tunnel",
+			Value:     "urjn784c4563.bbbbb.1d54476f2.dev.koding.me",
+			UpdatedAt: time.Date(2000, time.May, 1, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	ab := &AddrBook{
+		MaxSize: 2,
+	}
+
+	for _, addr := range addrs {
+		ab.Add(addr)
+	}
+
+	if l := len(ab.All()); l != 4 {
+		t.Fatalf("want addresses count = 4; got %d", l)
+	}
+
+	if got := ab.All(); !reflect.DeepEqual(got, want) {
+		t.Fatalf("want addrs = %#v\n; got\n%#v", want, got)
 	}
 }
 

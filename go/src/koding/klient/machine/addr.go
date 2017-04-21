@@ -33,6 +33,8 @@ func (a Addr) String() string { return a.Network + " address " + a.Value }
 // can change its end point address over time. This can store all of these
 // addresses which allows to bind old resources with new address.
 type AddrBook struct {
+	MaxSize int // The max size of each stored address types, 0 means unlimited.
+
 	mu    sync.RWMutex
 	addrs []Addr
 }
@@ -100,6 +102,33 @@ func (ab *AddrBook) add(a Addr) {
 	}
 
 	ab.addrs = append(ab.addrs, a)
+	ab.keepMaxSize(a)
+}
+
+func (ab *AddrBook) keepMaxSize(a Addr) {
+	if ab.MaxSize <= 0 || len(ab.addrs) <= ab.MaxSize || len(ab.addrs) == 0 {
+		return
+	}
+
+	size := 0
+	for i := range ab.addrs {
+		if a.Network == ab.addrs[i].Network {
+			size++
+		}
+	}
+
+	for ab.MaxSize < size {
+		// Remove oldest entry.
+		t, i := ab.addrs[0].UpdatedAt, 0
+		for j := range ab.addrs {
+			if a.Network == ab.addrs[j].Network && t.After(ab.addrs[j].UpdatedAt) {
+				t, i = ab.addrs[j].UpdatedAt, j
+			}
+		}
+
+		ab.addrs = append(ab.addrs[:i], ab.addrs[i+1:]...)
+		size--
+	}
 }
 
 // Updated reports when provided address was updated. It returns ErrAddrNotFound
