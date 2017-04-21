@@ -981,10 +981,7 @@ module.exports = class ComputeController extends KDController
 
   fetchStackTemplate: (id, callback = kd.noop) ->
 
-    @storage.templates.fetch id
-      .then (template) ->
-        callback null, template
-      .catch callback
+    @storage.templates.fetch(id).nodeify callback
 
 
   fetchStackTemplates: (callback) ->

@@ -86,6 +86,9 @@ func TestMachineGroupNoAliases(t *testing.T) {
 	if err := address.Add(id, clienttest.TurnOnAddr()); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
+	if err := address.Cache(); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 	if len(address.Registered()) != 1 {
 		t.Errorf("want one registered machine; got %v", address.Registered())
 	}
@@ -142,6 +145,9 @@ func TestMachineGroupMount(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if err := address.Add(id, clienttest.TurnOnAddr()); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if err := address.Cache(); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 

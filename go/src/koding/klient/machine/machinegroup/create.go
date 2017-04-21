@@ -61,6 +61,22 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 		g.log.Debug("Successfully added %s with alias %s", id, alias)
 	}
 
+	// Update cache asynchronously.
+	go func() {
+		if cache, ok := g.address.(machine.Cacher); ok {
+			if err := cache.Cache(); err != nil {
+				g.log.Warning("Cannot cache machine addresses: %v", err)
+			}
+		}
+		if cache, ok := g.alias.(machine.Cacher); ok {
+			if err := cache.Cache(); err != nil {
+				g.log.Warning("Cannot cache machine aliases: %v", err)
+			}
+		}
+
+		g.log.Debug("Updating machine cache finished")
+	}()
+
 	// Get machine statuses.
 	ids := make(machine.IDSlice, 0, len(req.Addresses))
 	for id := range req.Addresses {

@@ -252,6 +252,7 @@ fetchOrCreateGroup = (client, opts, callback) ->
     groupData = _.extend
       slug           : slug
       title          : slug
+      customize      : { membersCanCreateStacks: yes }
       visibility     : 'visible'
       allowedDomains : [ 'koding.com' ]
     , opts.groupData
