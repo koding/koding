@@ -33,7 +33,7 @@ func (a Addr) String() string { return a.Network + " address " + a.Value }
 // can change its end point address over time. This can store all of these
 // addresses which allows to bind old resources with new address.
 type AddrBook struct {
-	MaxSize int // The max size of each stored address types, 0 means unlimited.
+	MaxSize int // Max size of each stored address types, 0 means unlimited.
 
 	mu    sync.RWMutex
 	addrs []Addr
@@ -94,7 +94,6 @@ func (ab *AddrBook) add(a Addr) {
 		}
 
 		if ab.addrs[i].UpdatedAt.Before(a.UpdatedAt) {
-			// New adress is the same and is newer.
 			ab.addrs[i].UpdatedAt = a.UpdatedAt
 		}
 

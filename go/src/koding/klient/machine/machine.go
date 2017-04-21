@@ -18,6 +18,11 @@ var (
 // a fallback logger when Log option is not provided.
 var DefaultLogger = logging.NewCustom("machine", config.Konfig.Debug)
 
+// Cacher defines objects that can be cached.
+type Cacher interface {
+	Cache() error // Commit underlying data to external cache.
+}
+
 // ID is a unique identifier of the machine.
 type ID string
 

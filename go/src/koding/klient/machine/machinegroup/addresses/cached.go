@@ -41,30 +41,16 @@ func NewCached(st storage.ValueInterface) (*Cached, error) {
 
 // Add adds provided address to a given machine and updates the cache.
 func (c *Cached) Add(id machine.ID, addr machine.Addr) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if err := c.addresses.Add(id, addr); err != nil {
-		return err
-	}
-
-	return c.st.SetValue(storageKey, c.addresses.all())
+	return c.addresses.Add(id, addr)
 }
 
 // Drop removes addresses which are binded to provided machine ID and updates
 // the cache.
 func (c *Cached) Drop(id machine.ID) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if err := c.addresses.Drop(id); err != nil {
-		return err
-	}
-
-	return c.st.SetValue(storageKey, c.addresses.all())
+	return c.addresses.Drop(id)
 }
 
-// Latests returns the latest known address for a given machine and network.
+// Latest returns the latest known address for a given machine and network.
 func (c *Cached) Latest(id machine.ID, network string) (machine.Addr, error) {
 	return c.addresses.Latest(id, network)
 }
@@ -79,4 +65,12 @@ func (c *Cached) MachineID(addr machine.Addr) (machine.ID, error) {
 // Registered returns all machines that are stored in this object.
 func (c *Cached) Registered() machine.IDSlice {
 	return c.addresses.Registered()
+}
+
+// Cache saves addresses data to underlying storage.
+func (c *Cached) Cache() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.st.SetValue(storageKey, c.addresses.all())
 }
