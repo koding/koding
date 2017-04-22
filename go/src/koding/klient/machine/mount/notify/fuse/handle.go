@@ -11,6 +11,7 @@ import (
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
+	"github.com/jacobsa/fuse/fuseutil"
 )
 
 // MinHandleID defines the minimum value of file handle.
@@ -186,6 +187,131 @@ func (fhg *FileHandleGroup) Close() error {
 // DirHandle describes the underlying filesystem's opened directory.
 type DirHandle struct {
 	InodeID fuseops.InodeID
+
+	mu     sync.Mutex
+	stream []fuseutil.Dirent
+
+	offset fuseops.DirOffset
+
+	// Index node of mount parrent.
+	mDirParentInode fuseops.InodeID
+}
+
+// NewDirHandle creates a new DirHandle instance.
+func NewDirHandle(mDirParentInode fuseops.InodeID, n *node.Node) *DirHandle {
+	dh := &DirHandle{
+		InodeID:         fuseops.InodeID(n.Entry.Virtual.Inode),
+		mDirParentInode: mDirParentInode,
+	}
+	dh.stream = dh.readDirents(n)
+
+	return dh
+}
+
+// Offset returns current directory stream offset.
+func (dh *DirHandle) Offset() (offset fuseops.DirOffset) {
+	dh.mu.Lock()
+	offset = dh.offset
+	dh.mu.Unlock()
+
+	return
+}
+
+// ReadDir writes dirents do provided destination slice. It returns the number
+// of read bytes.
+func (dh *DirHandle) ReadDir(offset fuseops.DirOffset, dst []byte) (n int, err error) {
+	dh.mu.Lock()
+	if offset > fuseops.DirOffset(len(dh.stream)) {
+		dh.mu.Unlock()
+		return 0, fuse.EINVAL
+	}
+
+	var chunkN int
+	for _, dirent := range dh.stream[int(offset):] {
+		if dirent.Name == "" {
+			continue
+		}
+
+		if chunkN = fuseutil.WriteDirent(dst[n:], dirent); chunkN == 0 {
+			break
+		}
+
+		dh.offset = dirent.Offset
+		n += chunkN
+	}
+
+	dh.mu.Unlock()
+
+	return n, nil
+}
+
+// Rewind behaves like rewinddir(), it resets directory steram.
+func (dh *DirHandle) Rewind(n *node.Node) {
+	// Sanity check. There is a logic error when we rewinding different inodes.
+	if dh.InodeID != fuseops.InodeID(n.Entry.Virtual.Inode) {
+		panic("called rewind on invalid node")
+	}
+
+	dh.mu.Lock()
+	dh.stream = dh.readDirents(n)
+	dh.offset = 0
+	dh.mu.Unlock()
+}
+
+// readDirents reads node child names and converts them to dirents adding
+// dot and dot-dot dirents.
+func (dh *DirHandle) readDirents(n *node.Node) (ds []fuseutil.Dirent) {
+	ds = make([]fuseutil.Dirent, 0, n.ChildN()+2)
+
+	var offset fuseops.DirOffset = 1
+	n.Children(0, func(child *node.Node) {
+		if !child.Exist() {
+			return
+		}
+
+		ds = append(ds, fuseutil.Dirent{
+			Offset: offset,
+			Inode:  fuseops.InodeID(child.Entry.Virtual.Inode),
+			Name:   child.Name,
+			Type:   direntType(child.Entry),
+		})
+
+		offset++
+	})
+
+	// Add "." directory.
+	ds = append(ds, fuseutil.Dirent{
+		Offset: offset,
+		Inode:  fuseops.InodeID(n.Entry.Virtual.Inode),
+		Name:   ".",
+		Type:   fuseutil.DT_Directory,
+	})
+	offset++
+
+	// Add ".." directory.
+	inode := dh.mDirParentInode
+	if parent := n.Parent(); parent != nil {
+		inode = fuseops.InodeID(parent.Entry.Virtual.Inode)
+	} else if inode == 0 {
+		return ds
+	}
+
+	ds = append(ds, fuseutil.Dirent{
+		Offset: offset,
+		Inode:  inode,
+		Name:   "..",
+		Type:   fuseutil.DT_Directory,
+	})
+
+	return ds
+}
+
+// direntType gets dirent type from a given node.
+func direntType(entry *node.Entry) fuseutil.DirentType {
+	if entry.File.Mode.IsDir() {
+		return fuseutil.DT_Directory
+	}
+	return fuseutil.DT_File
 }
 
 // DirHandleGroup stores currently opened directories.
@@ -193,37 +319,41 @@ type DirHandleGroup struct {
 	generator func() uint64
 
 	mu      sync.Mutex
-	handles map[fuseops.HandleID]DirHandle
+	handles map[fuseops.HandleID]*DirHandle
+
+	// Index node of mount parrent.
+	mDirParentInode fuseops.InodeID
 }
 
 // NewDirHandleGroup creates a new DirHandleGroup object.
-func NewDirHandleGroup(gen func() uint64) *DirHandleGroup {
+func NewDirHandleGroup(mountDir string, gen func() uint64) *DirHandleGroup {
 	if gen == nil {
 		panic("generator must be non-nil")
 	}
 
 	return &DirHandleGroup{
-		generator: gen,
-		handles:   make(map[fuseops.HandleID]DirHandle),
+		generator:       gen,
+		handles:         make(map[fuseops.HandleID]*DirHandle),
+		mDirParentInode: getMountPointParentInode(mountDir),
 	}
 }
 
 // Open opens or creates a file under provided path and returns its handle.
-func (dhg *DirHandleGroup) Open(inodeID fuseops.InodeID) fuseops.HandleID {
+func (dhg *DirHandleGroup) Open(n *node.Node) fuseops.HandleID {
 	handleID := fuseops.HandleID(dhg.generator())
 
 	dhg.mu.Lock()
 	if _, ok := dhg.handles[handleID]; ok {
 		panic("duplicated handle identifier")
 	}
-	dhg.handles[handleID] = DirHandle{InodeID: inodeID}
+	dhg.handles[handleID] = NewDirHandle(dhg.mDirParentInode, n)
 	dhg.mu.Unlock()
 
 	return handleID
 }
 
 // Get gets the DirHandle structure associated with provided handle ID.
-func (dhg *DirHandleGroup) Get(handleID fuseops.HandleID) (dh DirHandle, err error) {
+func (dhg *DirHandleGroup) Get(handleID fuseops.HandleID) (dh *DirHandle, err error) {
 	dhg.mu.Lock()
 	dh, ok := dhg.handles[handleID]
 	dhg.mu.Unlock()

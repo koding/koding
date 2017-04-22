@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"koding/klient/machine/index"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
-	"github.com/jacobsa/fuse/fuseutil"
 	"golang.org/x/net/context"
 )
 
@@ -361,7 +361,7 @@ func (fs *Filesystem) RmDir(_ context.Context, op *fuseops.RmDirOp) (err error) 
 // Nlink counter and, when it reaches 0, it marks the node as deleted but not
 // remove any data since this should be done in ForgetInode method.
 func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Parent), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
 		// Allow deleted nodes.
 		if n == nil {
 			err = fuse.ENOENT
@@ -379,8 +379,19 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 			return
 		}
 
+		// Remove name from the
+
+		if !n.Orphan() {
+			if e := syscall.Unlink(filepath.Join(fs.CacheDir, child.Path())); e != nil {
+				err = toErrno(e)
+				return
+			}
+		}
+
 		child.PromiseDel()
-		child.Entry.Virtual.NLinkDec()
+		if nlink := child.Entry.Virtual.NLinkDec(); nlink <= 0 {
+			g.Repudiate(n, op.Name)
+		}
 	})
 
 	return
@@ -442,7 +453,7 @@ func (fs *Filesystem) OpenDir(_ context.Context, op *fuseops.OpenDirOp) (err err
 		}
 
 		// Create a new directory handle.
-		op.Handle = fs.dirHandles.Open(op.Inode)
+		op.Handle = fs.dirHandles.Open(n)
 	})
 
 	return
@@ -450,82 +461,21 @@ func (fs *Filesystem) OpenDir(_ context.Context, op *fuseops.OpenDirOp) (err err
 
 // ReadDir reads entries in a specific directory.
 func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err error) {
-	var (
-		dirents   []fuseutil.Dirent
-		dotOffset = op.Offset
-	)
-
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
-		if err = checkDir(n); err != nil {
-			return
-		}
-
-		parent, shift := n.Parent(), 1
-		if parent != nil || fs.mDirParentInode != 0 {
-			shift++
-		}
-
-		// Add "." directory.
-		if dotOffset == 0 {
-			dotOffset++
-			dirents = append(dirents, fuseutil.Dirent{
-				Offset: dotOffset,
-				Inode:  fuseops.InodeID(n.Entry.Virtual.Inode),
-				Name:   ".",
-				Type:   direntType(n.Entry),
-			})
-		}
-
-		// Add ".." directory.
-		if dotOffset == 1 && shift > 1 {
-			dotOffset++
-			inode := fs.mDirParentInode
-			if parent != nil {
-				inode = fuseops.InodeID(parent.Entry.Virtual.Inode)
-			}
-
-			dirents = append(dirents, fuseutil.Dirent{
-				Offset: dotOffset,
-				Inode:  inode,
-				Name:   "..",
-				Type:   fuseutil.DT_Directory,
-			})
-		}
-
-		offset := int(dotOffset) - shift
-		if offset > n.ChildN() {
-			err = fuse.EINVAL
-			return
-		} else if offset == n.ChildN() {
-			return
-		}
-
-		var i = 1
-		n.Children(offset, func(child *node.Node) {
-			if !child.Exist() {
-				return
-			}
-
-			dirents = append(dirents, fuseutil.Dirent{
-				Offset: dotOffset + fuseops.DirOffset(i),
-				Inode:  fuseops.InodeID(child.Entry.Virtual.Inode),
-				Name:   child.Name,
-				Type:   direntType(child.Entry),
-			})
-
-			i++
-		})
-	})
-
-	var n, bytesRead int
-	for i := range dirents {
-		if n = fuseutil.WriteDirent(op.Dst[bytesRead:], dirents[i]); n == 0 {
-			break
-		}
-		bytesRead += n
+	dh, err := fs.dirHandles.Get(op.Handle)
+	if err != nil {
+		return err
 	}
 
-	op.BytesRead += bytesRead
+	if op.Offset == 0 && dh.Offset() > 0 {
+		fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+			dh.Rewind(n)
+			return
+		})
+
+		return
+	}
+
+	op.BytesRead, err = dh.ReadDir(op.Offset, op.Dst)
 
 	return
 }
@@ -729,14 +679,6 @@ func checkDir(n *node.Node) error {
 	}
 
 	return nil
-}
-
-// direntType gets dirent type from a given node.
-func direntType(entry *node.Entry) fuseutil.DirentType {
-	if entry.File.Mode.IsDir() {
-		return fuseutil.DT_Directory
-	}
-	return fuseutil.DT_File
 }
 
 // incCountNoRoot increases node reference counter by one but not for root node
