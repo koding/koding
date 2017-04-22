@@ -327,6 +327,11 @@ func (g Guard) RmChild(n *Node, name string) {
 	g.t.rmChild(n, pos, child)
 }
 
+// Repudiate makes child with given name an orphan.
+func (g Guard) Repudiate(n *Node, name string) {
+	n.RmChild(name)
+}
+
 // RmOrphan removes orphan nodes.
 func (g Guard) RmOrphan(orphan *Node) {
 	orphan.Walk(func(_, n *Node) {
