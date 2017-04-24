@@ -63,16 +63,16 @@ type Local struct {
 	// Mount is a default home path of mounted directories.
 	//
 	// If empty, defaults to ~/koding/mnt/.
-	Mount string `json:"mount,omitempty"`
+	MountHome string `json:"mountHome,omitempty"`
 
-	// Exports maps named mounts to local paths.
+	// Mounts maps named mounts to local paths.
 	//
-	// The Exports["default"] export is used as
+	// The Mounts["default"] export is used as
 	// a default one when caller does not specify
 	// a mount path.
 	//
-	// The Exports["default"] defaults to $HOME.
-	Exports map[string]string `json:"exports,omitempty"`
+	// The Mounts["default"] defaults to $HOME.
+	Mounts map[string]string `json:"mounts,omitempty"`
 }
 
 type Konfig struct {
@@ -272,8 +272,8 @@ func NewKonfig(e *Environments) *Konfig {
 			},
 		},
 		Local: &Local{
-			Mount: filepath.Join(CurrentUser.HomeDir, "koding", "mnt"),
-			Exports: map[string]string{
+			MountHome: filepath.Join(CurrentUser.HomeDir, "koding", "mnt"),
+			Mounts: map[string]string{
 				"default": CurrentUser.HomeDir,
 			},
 		},

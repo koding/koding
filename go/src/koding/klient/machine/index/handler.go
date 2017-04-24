@@ -93,7 +93,7 @@ func replaceWithExport(path string) string {
 	}
 
 	if config.Konfig.Local != nil {
-		if export, ok := config.Konfig.Local.Exports[path]; ok {
+		if export, ok := config.Konfig.Local.Mounts[path]; ok {
 			return export
 		}
 	}
