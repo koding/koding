@@ -548,7 +548,7 @@ func run(args []string) {
 			}, {
 				Name:            "cp",
 				Description:     cmdDescriptions["cp"],
-				Usage:           "Copies a local file to a remote filesystem.",
+				Usage:           "Copies a file between hosts on a network.",
 				Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
 				SkipFlagParsing: true,
 				Flags:           []cli.Flag{},
