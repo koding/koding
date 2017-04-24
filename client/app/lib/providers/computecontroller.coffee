@@ -1003,9 +1003,7 @@ module.exports = class ComputeController extends KDController
 
   showBuildLogs: (machine, tailOffset) ->
 
-    { router } = kd.singletons
-
-    router.once 'RouteInfoHandled', -> kd.utils.wait 1000, ->
+    showLogs = -> kd.utils.wait 1000, ->
 
       # Path of cloud-init-output log
       path = '/var/log/cloud-init-output.log'
@@ -1024,7 +1022,12 @@ module.exports = class ComputeController extends KDController
         tailOffset
       }
 
-    router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+    if Cookies.get 'use-nse'
+      { router } = kd.singletons
+      router.once 'RouteInfoHandled', showLogs
+      router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+    else
+      do showLogs
 
 
   ###*
