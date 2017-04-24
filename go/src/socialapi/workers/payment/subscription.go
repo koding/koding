@@ -121,7 +121,7 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, ErrCustomerNotExists
 	}
 
-	if err := CheckCustomerHasSource(group.Payment.Customer.ID); err != nil {
+	if err = CheckCustomerHasSource(group.Payment.Customer.ID); err != nil {
 		return nil, err
 	}
 
@@ -150,6 +150,10 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		quantity = uint64(activeCount)
 		params.Plan = GetPlanID(activeCount)
 		params.TrialEnd = 0
+	}
+
+	// stripe API omits the zero values, force trial end.
+	if params.TrialEnd == 0 {
 		params.TrialEndNow = true
 	}
 
