@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"sort"
@@ -73,6 +74,18 @@ type Local struct {
 	//
 	// The Mounts["default"] defaults to $HOME.
 	Mounts map[string]string `json:"mounts,omitempty"`
+}
+
+func (l *Local) MountPath(name string) (string, bool) {
+	if l == nil {
+		return "", false
+	}
+
+	if dir, ok := l.Mounts[name]; ok {
+		return expandHome(dir), true
+	}
+
+	return "", false
 }
 
 type Konfig struct {
@@ -280,5 +293,18 @@ func NewKonfig(e *Environments) *Konfig {
 		PublicBucketName:   Builtin.Buckets.PublicLogs.Name,
 		PublicBucketRegion: Builtin.Buckets.PublicLogs.Region,
 		Debug:              false,
+	}
+}
+
+func expandHome(path string) string {
+	const home = "~" + string(os.PathSeparator)
+
+	switch {
+	case path == "~":
+		return CurrentUser.HomeDir
+	case strings.HasPrefix(path, home):
+		return filepath.Join(CurrentUser.HomeDir, path[len(home):])
+	default:
+		return path
 	}
 }
