@@ -219,7 +219,6 @@ func (c *Client) readCache() {
 	_ = c.kloud().Cache().GetValue("credential.used", &c.used)
 	_ = c.kloud().Cache().GetValue("credential.describe", &c.describe)
 
-	// Flush cache on exit.
 	ctlcli.CloseOnExit(c)
 }
 

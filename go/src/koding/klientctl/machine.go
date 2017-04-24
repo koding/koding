@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -42,9 +43,7 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	}
 
 	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(infos)
+		printJSON(infos)
 		return 0, nil
 	}
 
@@ -131,9 +130,7 @@ func MachineListMountCommand(c *cli.Context, log logging.Logger, _ string) (int,
 	}
 
 	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(mounts)
+		printJSON(mounts)
 		return 0, nil
 	}
 
@@ -285,11 +282,53 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 		return 1, err
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "\t")
-	enc.Encode(records)
+	printJSON(records)
 
 	return 0, nil
+}
+
+func MachineStart(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	if err := machineCommand(c, machine.Start); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+func MachineStop(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	if err := machineCommand(c, machine.Stop); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+func machineCommand(c *cli.Context, fn func(string) (string, error)) error {
+	ident := c.Args().Get(0)
+	json := c.Bool("json")
+
+	if ident == "" {
+		return errors.New("machine identifier is empty or missing")
+	}
+
+	event, err := fn(ident)
+	if err != nil {
+		return err
+	}
+
+	for e := range machine.Wait(event) {
+		if e.Error != nil {
+			err = e.Error
+		}
+
+		if json {
+			printJSON(e)
+		} else {
+			fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+		}
+	}
+
+	return err
 }
 
 // getIdentifiers extracts identifiers and validate provided arguments.
@@ -433,6 +472,12 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]mount.Info) {
 		}
 	}
 	tw.Flush()
+}
+
+func printJSON(v interface{}) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+	enc.Encode(v)
 }
 
 func errorIfNegative(val int) string {
