@@ -30,7 +30,7 @@ func New(t ProxyType) Proxy {
     switch (t) {
         case Kubernetes:
             return &KubernetesProxy{
-                client: nil
+                client: nil,
             }
         default:
             return &LocalProxy{}
@@ -53,7 +53,7 @@ func Singleton() Proxy {
         proxy = New(t)
 
         // Allow proxy instance to setup any config it might have.
-        proxy.Init()
+        _ = proxy.Init()
     }
 
     return proxy

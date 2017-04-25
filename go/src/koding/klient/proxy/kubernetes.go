@@ -3,9 +3,6 @@ package proxy
 import (
     "encoding/json"
     "fmt"
-    "os"
-
-    kos "koding/klient/os"
 
     "github.com/koding/kite"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

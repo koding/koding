@@ -60,6 +60,9 @@ export COMMANDS=(
 	vendor/github.com/wadey/gocovmerge
 	vendor/github.com/opennota/check/cmd/varcheck
 	vendor/gopkg.in/alecthomas/gometalinter.v1
+	vendor/k8s.io/apimachinery/pkg/apis/meta/v1
+	vendor/k8s.io/client-go/kubernetes
+	vendor/k8s.io/client-go/rest
 )
 
 export TERRAFORM_COMMANDS=(

@@ -18,6 +18,10 @@ func TestKuberentesType(t *testing.T) {
 func TestKubernetesList(t *testing.T) {
     p := proxy.New(proxy.Kubernetes)
 
+    if err := p.Init(); err != nil {
+        t.Skip("Skipping test due to missing Kubernetes pod environment context.")
+    }
+
     iface, err := p.List(nil)
     if err != nil {
         t.Fatal(err)
