@@ -112,25 +112,6 @@ module.exports = class StackTemplateItem extends React.Component
     />
 
 
-  renderDisabledStack: (stack, onOpen) ->
-
-    <div className='HomeAppViewListItem StackTemplateItem'>
-      <a
-        ref='stackTemplateItem'
-        className='HomeAppViewListItem-label disabled'
-        onClick={onOpen}
-        children={makeTitle({ stack })} />
-
-      <div className='HomeAppViewListItem-description disabled'>
-        Last Updated <TimeAgo from={stack.meta.modifiedAt}
-      </div>
-
-      <div className='HomeAppViewListItem-SecondaryContainer'>
-        {@renderButton()}
-      </div>
-    </div>
-
-
   renderTags: ->
 
     { template, onCloneFromDashboard } = @props
@@ -147,8 +128,8 @@ module.exports = class StackTemplateItem extends React.Component
 
     { template, stack, onOpen } = @props
 
-    if stack?.disabled
-      return renderDisabledStack stack, onOpen
+    if stack?.getOldOwner()
+      return <DisabledStack stack={stack} onOpen={onOpen} />
 
     if not template
       return null
@@ -175,6 +156,19 @@ module.exports = class StackTemplateItem extends React.Component
         {@renderButton()}
       </div>
     </div>
+
+
+DisabledStack = ({ stack, onOpen }) ->
+  <div className='HomeAppViewListItem StackTemplateItem'>
+    <a
+      className='HomeAppViewListItem-label disabled'
+      onClick={onOpen}
+      children={makeTitle({ stack })} />
+
+    <div className='HomeAppViewListItem-description disabled'>
+      Last Updated <TimeAgo from={stack.meta.modifiedAt} />
+    </div>
+  </div>
 
 
 makeTitle = ({ template, stack }) ->

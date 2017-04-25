@@ -507,7 +507,7 @@ var Script = []InstallStep{{
 		Name: "osxfuse",
 		Install: func(c *Client, _ *Opts) (string, error) {
 			const volume = "/Volumes/FUSE for macOS"
-			const pkg = volume + "/Extras/FUSE for macOS 3.5.2.pkg"
+			const pkg = volume + "/Extras/FUSE for macOS 3.5.8.pkg"
 
 			if _, err := os.Stat("/Library/Filesystems/osxfuse.fs"); err == nil {
 				return "", ErrSkipInstall
@@ -533,11 +533,11 @@ var Script = []InstallStep{{
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "VirtualBox",
-		Install: func(c *Client, _ *Opts) (string, error) {
+		Install: func(c *Client, opts *Opts) (string, error) {
 			const volume = "/Volumes/VirtualBox"
 			const pkg = volume + "/VirtualBox.pkg"
 
-			if hasVirtualBox() {
+			if hasVirtualBox() || !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 
@@ -552,8 +552,8 @@ var Script = []InstallStep{{
 	},
 	"linux": {
 		Name: "VirtualBox",
-		Install: func(c *Client, _ *Opts) (string, error) {
-			if hasVirtualBox() {
+		Install: func(c *Client, opts *Opts) (string, error) {
+			if hasVirtualBox() || !c.needVagrant(opts) {
 				return "", ErrSkipInstall
 			}
 

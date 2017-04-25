@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"koding/klient/config"
 	"koding/klient/fs"
 )
 
@@ -72,7 +73,7 @@ func Get(req *Request) (*GetResponse, error) {
 }
 
 func preparePath(path string) (string, error) {
-	absPath, isDir, exist, err := fs.DefaultFS.Abs(path)
+	absPath, isDir, exist, err := fs.DefaultFS.Abs(replaceWithExport(path))
 	if err != nil {
 		return "", err
 	}
@@ -84,4 +85,16 @@ func preparePath(path string) (string, error) {
 	}
 
 	return absPath, nil
+}
+
+func replaceWithExport(path string) string {
+	if path == "" {
+		path = "default"
+	}
+
+	if dir, ok := config.Konfig.Local.MountPath(path); ok {
+		return dir
+	}
+
+	return path
 }

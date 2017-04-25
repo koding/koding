@@ -47,11 +47,12 @@ module.exports = class ComputeStorage extends kd.Object
           stack = remote.revive stack  unless stack.ಠ_ಠ
           stack.title = Encoder.htmlDecode stack.title
           stack.machines = stack.machines
+            .filter Boolean
             .map (machine) =>
               machine = if machine.bongo_
               then machine
               else @get 'machines', '_id', machine
-              machine._stackId = stack._id
+              machine._stackId = stack._id  if machine
               return machine
 
             .filter (machine) ->

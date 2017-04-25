@@ -58,10 +58,7 @@ var signals = []os.Signal{
 // cli rewrite.
 var log logging.Logger
 
-var (
-	debug        = os.Getenv("KD_DEBUG") == "1"
-	experimental = os.Getenv("KD_EXPERIMENTAL") == "1" || config.Konfig.Environment == "development"
-)
+var debug = os.Getenv("KD_DEBUG") == "1"
 
 func main() {
 	run(os.Args)
@@ -149,6 +146,37 @@ func run(args []string) {
 
 	app.Commands = []cli.Command{
 		{
+			Name:  "auth",
+			Usage: "User authorization.",
+			Subcommands: []cli.Command{
+				{
+					Name:   "login",
+					Usage:  "Log in to your kd.io or koding.com account.",
+					Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "team",
+							Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
+						},
+						cli.StringFlag{
+							Name:  "baseurl",
+							Usage: "Specify a Koding endpoint to log in.",
+							Value: config.Konfig.Endpoints.Koding.Public.String(),
+						},
+						cli.StringFlag{
+							Name:  "token",
+							Usage: "Use temporary token to authenticate to your Koding account.",
+						},
+					},
+				},
+				// command: kd auth register
+				auth.NewRegisterSubCommand(log),
+			},
+		}, {
 			Name:  "compat",
 			Usage: "Compatibility commands for use with old mounts.",
 			Subcommands: []cli.Command{{
@@ -334,6 +362,94 @@ func run(args []string) {
 					cli.BoolFlag{
 						Name:  "force",
 						Usage: "Force retrieving configuration from Koding.",
+					},
+				},
+			}},
+		}, {
+			Name:      "credential",
+			ShortName: "c",
+			Usage:     "Manage stack credentials.",
+			Subcommands: []cli.Command{{
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List imported stack credentials.",
+				Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+					cli.StringFlag{
+						Name:  "provider, p",
+						Usage: "Specify credential provider.",
+					},
+					cli.StringFlag{
+						Name:  "team",
+						Usage: "Specify team which the credential belongs to.",
+					},
+				},
+			}, {
+				Name:   "create",
+				Usage:  "Create new stack credential.",
+				Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+					cli.StringFlag{
+						Name:  "provider, p",
+						Usage: "Specify credential provider.",
+					},
+					cli.StringFlag{
+						Name:  "file, f",
+						Value: "",
+						Usage: "Read credential from a file.",
+					},
+					cli.StringFlag{
+						Name:  "team",
+						Usage: "Specify team which the credential belongs to.",
+					},
+					cli.StringFlag{
+						Name:  "title",
+						Usage: "Specify credential title.",
+					},
+				},
+			}, {
+				Name:   "init",
+				Usage:  "Create a credential file.",
+				Action: ctlcli.ExitErrAction(CredentialInit, log, "init"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "provider, p",
+						Usage: "Specify credential provider.",
+					},
+					cli.StringFlag{
+						Name:  "output, o",
+						Value: "credential.json",
+						Usage: "Output credential file.",
+					},
+					cli.StringFlag{
+						Name:  "title",
+						Usage: "Specify credential title.",
+					},
+				},
+			}, {
+				Name:   "use",
+				Usage:  "Change default credential per provider.",
+				Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
+			}, {
+				Name:   "describe",
+				Usage:  "Describe credential documents.",
+				Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+					cli.StringFlag{
+						Name:  "provider, p",
+						Usage: "Specify credential provider.",
 					},
 				},
 			}},
@@ -548,9 +664,115 @@ func run(args []string) {
 			}, {
 				Name:            "cp",
 				Description:     cmdDescriptions["cp"],
+				Usage:           "Copies a file between hosts on a network.",
 				Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
 				SkipFlagParsing: true,
 				Flags:           []cli.Flag{},
+			}, {
+				Name:   "start",
+				Usage:  "Start a remove vm given by the <machine ID> | <alias> | <slug>.",
+				Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:   "stop",
+				Usage:  "Stop a remove vm given by the <machine ID> | <alias> | <slug>.",
+				Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}},
+		}, {
+			Name:  "stack",
+			Usage: "Manage stacks.",
+			Subcommands: []cli.Command{{
+				Name:   "create",
+				Usage:  "Create new stack.",
+				Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "provider, p",
+						Usage: "Specify stack provider.",
+					},
+					cli.StringSliceFlag{
+						Name:  "credential, c",
+						Usage: "Specify stack credentials.",
+					},
+					cli.StringFlag{
+						Name:  "team",
+						Usage: "Specify team which the stack belongs to.",
+					},
+					cli.StringFlag{
+						Name:  "file, f",
+						Value: "kd.yml",
+						Usage: "Read stack template from a file.",
+					},
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:      "list",
+				ShortName: "ls",
+				Usage:     "List all stacks.",
+				Action:    ctlcli.ExitErrAction(StackList, log, "list"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+					cli.StringFlag{
+						Name:  "team",
+						Usage: "Limit to stack for the given team.",
+					},
+				},
+			}},
+		}, {
+			Name:  "team",
+			Usage: "List available teams and set team context.",
+			Subcommands: []cli.Command{{
+				Name:   "show",
+				Usage:  "Shows your currently used team.",
+				Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:   "list",
+				Usage:  "Lists user's teams.",
+				Action: ctlcli.ExitErrAction(TeamList, log, "list"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "slug",
+						Value: "",
+						Usage: "Limits the output to the specified team slug",
+					},
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:   "whoami",
+				Usage:  "Displays current authentication details.",
+				Action: ctlcli.ExitErrAction(TeamWhoami, log, "whoami"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
 			}},
 		}, {
 			Name:  "template",
@@ -648,200 +870,6 @@ func run(args []string) {
 		find(app.Commands, "daemon", "stop"),
 		find(app.Commands, "daemon", "restart"),
 	)
-
-	if experimental {
-		app.Commands = append(app.Commands,
-			cli.Command{
-				Name:  "auth",
-				Usage: "User authorization.",
-				Subcommands: []cli.Command{
-					{
-						Name:   "login",
-						Usage:  "Log in to your kd.io or koding.com account.",
-						Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
-						Flags: []cli.Flag{
-							cli.BoolFlag{
-								Name:  "json",
-								Usage: "Output in JSON format.",
-							},
-							cli.StringFlag{
-								Name:  "team",
-								Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
-							},
-							cli.StringFlag{
-								Name:  "baseurl",
-								Usage: "Specify a Koding endpoint to log in.",
-								Value: config.Konfig.Endpoints.Koding.Public.String(),
-							},
-							cli.StringFlag{
-								Name:  "token",
-								Usage: "Use temporary token to authenticate to your Koding account.",
-							},
-						},
-					},
-					// command: kd auth register
-					auth.NewRegisterSubCommand(log),
-				},
-			},
-			cli.Command{
-				Name:      "credential",
-				ShortName: "c",
-				Usage:     "Manage stack credentials.",
-				Subcommands: []cli.Command{{
-					Name:      "list",
-					ShortName: "ls",
-					Usage:     "List imported stack credentials.",
-					Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "provider, p",
-							Usage: "Specify credential provider.",
-						},
-						cli.StringFlag{
-							Name:  "team",
-							Usage: "Specify team which the credential belongs to.",
-						},
-					},
-				}, {
-					Name:   "create",
-					Usage:  "Create new stack credential.",
-					Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "provider, p",
-							Usage: "Specify credential provider.",
-						},
-						cli.StringFlag{
-							Name:  "file, f",
-							Value: "",
-							Usage: "Read credential from a file.",
-						},
-						cli.StringFlag{
-							Name:  "team",
-							Usage: "Specify team which the credential belongs to.",
-						},
-						cli.StringFlag{
-							Name:  "title",
-							Usage: "Specify credential title.",
-						},
-					},
-				}, {
-					Name:   "use",
-					Usage:  "Change default credential per provider.",
-					Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
-				}, {
-					Name:   "describe",
-					Usage:  "Describe credential documents.",
-					Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "provider, p",
-							Usage: "Specify credential provider.",
-						},
-					},
-				}},
-			},
-			cli.Command{
-				Name:  "stack",
-				Usage: "Manage stacks.",
-				Subcommands: []cli.Command{{
-					Name:   "create",
-					Usage:  "Create new stack.",
-					Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "provider, p",
-							Usage: "Specify stack provider.",
-						},
-						cli.StringSliceFlag{
-							Name:  "credential, c",
-							Usage: "Specify stack credentials.",
-						},
-						cli.StringFlag{
-							Name:  "team",
-							Usage: "Specify team which the stack belongs to.",
-						},
-						cli.StringFlag{
-							Name:  "file, f",
-							Value: "kd.yml",
-							Usage: "Read stack template from a file.",
-						},
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:      "list",
-					ShortName: "ls",
-					Usage:     "List all stacks.",
-					Action:    ctlcli.ExitErrAction(StackList, log, "list"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "team",
-							Usage: "Limit to stack for the given team.",
-						},
-					},
-				}},
-			},
-			cli.Command{
-				Name:  "team",
-				Usage: "List available teams and set team context.",
-				Subcommands: []cli.Command{{
-					Name:   "show",
-					Usage:  "Shows your currently used team.",
-					Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:   "list",
-					Usage:  "Lists user's teams.",
-					Action: ctlcli.ExitErrAction(TeamList, log, "list"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "slug",
-							Value: "",
-							Usage: "Limits the output to the specified team slug",
-						},
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:   "whoami",
-					Usage:  "Displays current authentication details.",
-					Action: ctlcli.ExitErrAction(TeamWhoami, log, "whoami"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}},
-			},
-		)
-	}
 
 	app.Commands = wrapActions(app.Commands)
 	app.Run(args)

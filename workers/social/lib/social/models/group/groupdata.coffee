@@ -54,15 +54,16 @@ module.exports = class JGroupData extends Model
   #   Provide the path you would like to fetch.
   #
   # @return {Object} persisted value.
-  @fetchByKey = secure (client, path, callback) ->
-    # for more granular control, specify each sub key as well.
-    availableKeys = [ 'countly' ]
+  @fetchByKey = permit 'open group',
+    success: (client, path, callback) ->
+      # for more granular control, specify each sub key as well.
+      availableKeys = [ 'countly' ]
 
-    unless path in availableKeys
-      return callback new Error 'path is forbidden'
+      unless path in availableKeys
+        return callback new Error 'path is forbidden'
 
-    slug = client?.context?.group
-    JGroupData.fetchDataAt slug, path, callback
+      slug = client?.context?.group
+      JGroupData.fetchDataAt slug, path, callback
 
 
   @fetchDataAt = (slug, path, callback) ->

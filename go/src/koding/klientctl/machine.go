@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -42,9 +43,7 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	}
 
 	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(infos)
+		printJSON(infos)
 		return 0, nil
 	}
 
@@ -87,10 +86,10 @@ func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, err
 	if len(idents) == 0 {
 		return 0, cli.ShowSubcommandHelp(c)
 	}
-	if err := identifiersLimit(idents, "argument", 2, 2); err != nil {
+	if err := identifiersLimit(idents, "argument", 1, 2); err != nil {
 		return 1, err
 	}
-	ident, remotePath, path, err := mountAddress(idents)
+	ident, remotePath, path, err := mountExport(idents)
 	if err != nil {
 		return 1, err
 	}
@@ -131,9 +130,7 @@ func MachineListMountCommand(c *cli.Context, log logging.Logger, _ string) (int,
 	}
 
 	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(mounts)
+		printJSON(mounts)
 		return 0, nil
 	}
 
@@ -285,11 +282,53 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 		return 1, err
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "\t")
-	enc.Encode(records)
+	printJSON(records)
 
 	return 0, nil
+}
+
+func MachineStart(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	if err := machineCommand(c, machine.Start); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+func MachineStop(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	if err := machineCommand(c, machine.Stop); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+func machineCommand(c *cli.Context, fn func(string) (string, error)) error {
+	ident := c.Args().Get(0)
+	json := c.Bool("json")
+
+	if ident == "" {
+		return errors.New("machine identifier is empty or missing")
+	}
+
+	event, err := fn(ident)
+	if err != nil {
+		return err
+	}
+
+	for e := range machine.Wait(event) {
+		if e.Error != nil {
+			err = e.Error
+		}
+
+		if json {
+			printJSON(e)
+		} else {
+			fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+		}
+	}
+
+	return err
 }
 
 // getIdentifiers extracts identifiers and validate provided arguments.
@@ -320,8 +359,7 @@ func getIdentifiers(c *cli.Context) (idents []string, err error) {
 // identifiersLimit checks if the number of identifiers is in specified limits.
 // If max is -1, there are no limits for the maximum number of identifiers.
 func identifiersLimit(idents []string, kind string, min, max int) error {
-	l := len(idents)
-	switch {
+	switch l := len(idents); {
 	case l > 0 && min == 0:
 		return fmt.Errorf("this command does not use %s identifiers", kind)
 	case l < min:
@@ -329,7 +367,6 @@ func identifiersLimit(idents []string, kind string, min, max int) error {
 	case max != -1 && l > max:
 		return fmt.Errorf("too many %ss: %s", kind, strings.Join(idents, ", "))
 	}
-
 	return nil
 }
 
@@ -353,6 +390,31 @@ func mountAddress(idents []string) (ident, remotePath, path string, err error) {
 	}
 
 	return remote[0], remote[1], path, nil
+}
+
+// mountExport checks if provided identifiers are valid from the mount
+// perspective. The identifiers should satisfy the following format:
+//
+//   (ID|Alias|IP)[:remote_directory/path] [local_directory/path]
+//
+func mountExport(idents []string) (ident, remotePath, path string, err error) {
+	if len(idents) != 1 && len(idents) != 2 {
+		return "", "", "", fmt.Errorf("invalid number of arguments: %s", strings.Join(idents, ", "))
+	}
+
+	ident = idents[0]
+
+	if i := strings.IndexRune(ident, ':'); i != -1 {
+		ident, remotePath = ident[:i], ident[i+1:]
+	}
+
+	if len(idents) == 2 {
+		if path, err = filepath.Abs(idents[1]); err != nil {
+			return "", "", "", fmt.Errorf("invalid format of local path %q: %s", idents[1], err)
+		}
+	}
+
+	return
 }
 
 // cpAddress checks if provided identifiers are valid from the cp command
@@ -433,6 +495,12 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]mount.Info) {
 		}
 	}
 	tw.Flush()
+}
+
+func printJSON(v interface{}) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+	enc.Encode(v)
 }
 
 func errorIfNegative(val int) string {

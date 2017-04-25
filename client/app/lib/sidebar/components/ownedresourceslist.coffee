@@ -90,7 +90,8 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
           { stack } = res
           router.handleRoute "/Stack-Editor/#{template.getId()}" # /#{stack.getId()}" FIXME ~ US
           appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), stack.getId()
-          if machine = stack.results?.machines?[0]?.obj
+          debug 'got the result on initialize', res
+          if machine = stack.machines?.first
             computeController.reloadIDE machine
 
       when 'Reinitialize', 'Update'
