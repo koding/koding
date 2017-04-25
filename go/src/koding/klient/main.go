@@ -20,7 +20,6 @@ import (
 	"koding/klient/app"
 	konfig "koding/klient/config"
 	"koding/klient/klientsvc"
-	"koding/klient/proxy"
 	"koding/klient/registration"
 )
 
@@ -67,9 +66,6 @@ var (
 	// Metadata flags.
 	flagMetadata     = f.String("metadata", "", "Base64-encoded Koding metadata")
 	flagMetadataFile = f.String("metadata-file", "", "Koding metadata file")
-
-	// Machine proxy flags
-	flagMachineProxy = f.String("machine-proxy", proxy.ProxyType2String[proxy.Local], "proxy specific kite methods via 3rd party API.")
 )
 
 func defaultNoTunnel() bool {

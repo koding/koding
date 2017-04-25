@@ -1,7 +1,7 @@
 package proxy
 
 import (
-    "encoding/json"
+    "koding/klient/registrar"
 
     "github.com/koding/kite"
 )
@@ -10,22 +10,22 @@ var _ Proxy = (*LocalProxy)(nil)
 
 type LocalProxy struct {}
 
-func (p *LocalProxy) Init() error {
-    return nil
-}
-
 func (p *LocalProxy) Type() ProxyType {
     return Local
+}
+
+func (p *LocalProxy) Methods(r *kite.Request) (interface{}, error) {
+    data := &MethodsResponse{}
+
+    for _, e := range registrar.Methods() {
+        data.Methods = append(data.Methods, e)
+    }
+
+    return data, nil
 }
 
 func (p *LocalProxy) List(r *kite.Request) (interface{}, error) {
     data := ContainersResponse{}
 
-    res, err := json.Marshal(data)
-
-    if err != nil {
-        return nil, err
-    }
-
-    return res, nil
+    return data, nil
 }

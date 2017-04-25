@@ -1,13 +1,13 @@
 package proxy
 
 import (
-    "encoding/json"
     "fmt"
+
+    "koding/klient/registrar"
 
     "github.com/koding/kite"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
 var _ Proxy = (*KubernetesProxy)(nil)
@@ -20,41 +20,34 @@ func (p *KubernetesProxy) Type() ProxyType {
     return Kubernetes
 }
 
-func (p *KubernetesProxy) Init() error {
+func (p *KubernetesProxy) Methods(r *kite.Request) (interface{}, error) {
+    data := &MethodsResponse{}
 
-    // If klient is running in Kubernetes proxy mode, then we expect
-    // to exist inside the same pod that comprises the Stack. Thus
-    // our environment should be configured just like any other member
-    // of this pod, and we will pull necessary config accordingly.
-    conf, err := rest.InClusterConfig()
-	if err != nil {
-		return err
-	}
-
-    // Initialize a client for our hosting Kubernetes API.
-    p.client, err = kubernetes.NewForConfig(conf)
-    if err != nil {
-        return err
+    for _, e := range registrar.Methods() {
+        data.Methods = append(data.Methods, e)
     }
 
-    return nil
+    // TODO (acbodine): Strip out methods that we can't support atm.
+
+    return data, nil
 }
 
 func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
     data := ContainersResponse{}
 
-    // TODO: Query a K8s endpoint to actually get container data.
-    pods, err := p.client.CoreV1().Pods("").List(metav1.ListOptions{})
-    if err != nil {
-        return nil, err
-    }
-    fmt.Println(pods)
-
-    res, err := json.Marshal(data)
-
+    // Query a K8s endpoint to actually get container data.
+    list, err := p.client.CoreV1().Pods("").List(metav1.ListOptions{})
     if err != nil {
         return nil, err
     }
 
-    return res, nil
+    for _, e := range list.Items {
+        // TODO (acbodine): Make this pull the actual hostname.
+        fmt.Println(e)
+        data.Containers = append(data.Containers, Container{
+            Hostname: "localhost",
+        })
+    }
+
+    return data, nil
 }

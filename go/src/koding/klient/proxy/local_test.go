@@ -1,37 +1,62 @@
 package proxy_test
 
 import (
-    "encoding/json"
     "testing"
 
     "koding/klient/proxy"
+    "koding/klient/testutil"
+
+    "github.com/koding/kite"
 )
 
 func TestLocalType(t *testing.T) {
-    p := proxy.New(proxy.Local)
+    p := proxy.NewLocal()
 
     if p.Type() != proxy.Local {
         t.Fatal("Local proxy didn't return the correct ProxyType.")
     }
 }
 
-func TestLocalList(t *testing.T) {
-    p := proxy.New(proxy.Local)
+func TestLocalMethods(t *testing.T) {
+    p := proxy.NewLocal()
 
-    iface, err := p.List(nil)
+    mapping := map[string]kite.HandlerFunc {
+        "proxy.methods": p.Methods,
+    }
+
+    k, client := testutil.GetKites(mapping)
+    defer k.Close()
+
+	dnode, err := client.Tell("proxy.methods")
     if err != nil {
         t.Fatal(err)
     }
 
-    res, ok := iface.([]byte)
-    if !ok {
-        t.Fatal("Failed to assert type of response.")
+    var data proxy.MethodsResponse
+
+    if err = dnode.Unmarshal(data); err != nil {
+        t.Fatal("Response should be of type proxy.MethodsResponse.")
+    }
+}
+
+func TestLocalList(t *testing.T) {
+    p := proxy.NewLocal()
+
+    mapping := map[string]kite.HandlerFunc {
+        "proxy.list": p.List,
+    }
+
+    k, client := testutil.GetKites(mapping)
+    defer k.Close()
+
+    dnode, err := client.Tell("proxy.list")
+    if err != nil {
+        t.Fatal(err)
     }
 
     var data proxy.ContainersResponse
 
-    err = json.Unmarshal(res, &data)
-    if err != nil {
-        t.Fatal(err)
+    if err = dnode.Unmarshal(data); err != nil {
+        t.Fatal("Response should be of type proxy.ContainersResponse.")
     }
 }

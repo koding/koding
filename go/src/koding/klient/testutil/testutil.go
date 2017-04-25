@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -10,6 +11,9 @@ import (
 	"strconv"
 	"time"
 
+	"koding/klient/registrar"
+
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
 
@@ -97,4 +101,26 @@ func GenKiteURL() URL {
 			Path:   "/kite",
 		},
 	}
+}
+
+// GetKites creates a test pair of kites with the provided method/handler
+// mapping. This method will create a kite server that is running on a
+// currently free port, and sets up the corresponding kite client that is
+// configured to talk to said kite server.
+func GetKites(m map[string]kite.HandlerFunc) (*kite.Kite, *kite.Client) {
+    k := kite.New("proxy_test", "0.0.1")
+
+    for name, handler := range m {
+        k.HandleFunc(name, handler).DisableAuthentication()
+        registrar.Register(name)
+    }
+
+    go k.Run()
+    <-k.ServerReadyNotify()
+
+    url := fmt.Sprintf("http://localhost:%d/kite", k.Port())
+    client := k.NewClient(url)
+	client.Dial()
+
+    return k, client
 }

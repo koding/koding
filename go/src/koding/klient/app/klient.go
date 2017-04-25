@@ -38,6 +38,7 @@ import (
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/sync/rsync"
 	kos "koding/klient/os"
+	"koding/klient/registrar"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
@@ -596,6 +597,11 @@ func (k *Klient) RegisterMethods() {
 
 func (k *Klient) handleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
 	f = metrics.WrapKiteHandler(k.metrics, pattern, f)
+
+	// Register the pattern so we can return a dynamic list of supported
+	// kite methods via the `klient.info` kite handler.
+	registrar.Register(pattern)
+
 	return k.kite.HandleFunc(pattern, f)
 }
 
@@ -617,6 +623,8 @@ func (k *Klient) handleWithSub(method string, fn kite.HandlerFunc) {
 
 		return fn(r)
 	})
+
+	registrar.Register(method)
 }
 
 func (k *Klient) PublicIP() (net.IP, error) {

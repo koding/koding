@@ -1,5 +1,9 @@
 package proxy
 
+type MethodsResponse struct {
+    Methods []string
+}
+
 type Container struct {
     Hostname    string
 }

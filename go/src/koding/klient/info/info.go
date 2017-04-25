@@ -10,7 +10,7 @@ import (
 	"github.com/koding/kite"
 )
 
-type info struct {
+type InfoResponse struct {
 	// ProviderName is the name of the machine (vm or otherwise) provider,
 	// as identified by the
 	ProviderName	string		`json:"providerName"`
@@ -21,14 +21,13 @@ type info struct {
 	OS              string		`json:"os"`
 	Arch            string		`json:"arch"`
 
-	// MachineProxy determines how a klient kite accesses the machine(s)
-	// it is bound to. This controls proxy logic for specific kite
-	// methods in klient, delegating to a 3rd party service for
-	// the transport.
+	// ContainerProxy determines how a klient kite accesses the container(s)
+	// it is bound to. This controls proxy logic for specific kite methods
+	// in klient, delegating to a 3rd party service for the transport.
 	//
-	// This is the case when we have container based stacks; klient
-	// is not in the same context as it's containers(s).
-	MachineProxy    proxy.ProxyType	`json:"machineproxy"`
+	// In the case when we have container based stacks; klient is not in the
+	// same context as it's containers(s).
+	ContainerProxy	proxy.ProxyType	`json:"containerproxy"`
 }
 
 // Info implements the klient.info method, returning klient specific
@@ -38,19 +37,19 @@ type info struct {
 func Info(r *kite.Request) (interface{}, error) {
 	providerName, err := CheckProvider()
 	if err != nil {
-		return info{}, err
+		return InfoResponse{}, err
 	}
 
-	prox := proxy.Singleton()
+	prox := proxy.Factory()
 
-	i := &info{
+	i := &InfoResponse{
 		ProviderName: 	providerName.String(),
 		Username:     	config.CurrentUser.Username,
 		Home:         	config.CurrentUser.HomeDir,
 		OS:           	runtime.GOOS,
 		Arch:         	runtime.GOARCH,
 
-		MachineProxy:	prox.Type(),
+		ContainerProxy:	prox.Type(),
 	}
 
 	for _, group := range config.CurrentUser.Groups {

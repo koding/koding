@@ -1,24 +1,22 @@
 package proxy
 
 import (
-    // "os"
-    //
-    // kos "koding/klient/os"
-
     "github.com/koding/kite"
+    "k8s.io/client-go/kubernetes"
+    "k8s.io/client-go/rest"
 )
 
 type Proxy interface {
 
     Type() ProxyType
 
-    // TODO (acbodine): Probably temporary
+    // Methods is a kite handler for the "proxy.methods" call.
     //
-    // Init is a temporary method to allow runtime configuration
-    // for an object that implements a Proxy.
-    Init() error
+    // Returns a *MethodsResponse representing the kite methods
+    // this proxy supports.
+    Methods(*kite.Request) (interface{}, error)
 
-    // List is a kite handler for the "proxy.list" method.
+    // List is a kite handler for the "proxy.list" call.
     //
     // Returns a *MachinesResponse representing machines that klient
     // is responsible for proxying commands to.
@@ -26,53 +24,39 @@ type Proxy interface {
 
 }
 
-func New(t ProxyType) Proxy {
-    switch (t) {
-        case Kubernetes:
-            return &KubernetesProxy{
-                client: nil,
-            }
-        default:
-            return &LocalProxy{}
+// Factory provides a batteries included way of accessing a container proxy
+// instance that is suited to klient's current environment and context.
+func Factory() Proxy {
+    if p, err := NewKubernetes(); err == nil {
+        return p
     }
+
+    return NewLocal()
 }
 
-var proxy Proxy
-
-// TODO (acbodine): This is most likely temporary
-//
-// Singleton exposes a read-only instance of a Proxy to the rest of klient.
-func Singleton() Proxy {
-    if proxy == nil {
-        t := Local
-
-        // if v, ok := kos.NewEnviron(os.Environ())["KLIENT_MACHINE_PROXY"]; ok {
-        //     t = String2ProxyType[v]
-        // }
-
-        proxies := map[ProxyType]Proxy {
-            Kubernetes: New(Kubernetes),
-        }
-
-        for typ, p := range proxies {
-
-            // Let the proxy run any init routines
-            err := p.Init()
-
-            if err != nil {
-                continue
-            }
-
-            // If there is no error, we can safely run with
-            // this proxy type.
-            t = typ
-        }
-
-        proxy = New(t)
-
-        // Allow proxy instance to setup any config it might have.
-        _ = proxy.Init()
+func NewKubernetes() (Proxy, error) {
+    p := &KubernetesProxy{
+        client: nil,
     }
 
-    return proxy
+    // If klient is running in Kubernetes proxy mode, then we expect
+    // to exist inside the same pod that comprises the Stack. Thus
+    // our environment should be configured just like any other member
+    // of this pod, and we will pull necessary config accordingly.
+    conf, err := rest.InClusterConfig()
+	if err != nil {
+		return nil, err
+	}
+
+    // Initialize a client for our hosting Kubernetes API.
+    p.client, err = kubernetes.NewForConfig(conf)
+    if err != nil {
+        return nil, err
+    }
+
+    return p, nil
+}
+
+func NewLocal() Proxy {
+    return &LocalProxy{}
 }

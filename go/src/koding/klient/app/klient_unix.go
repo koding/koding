@@ -3,6 +3,7 @@ package app
 
 import (
 	"koding/kites/metrics"
+	"koding/klient/registrar"
 
 	"github.com/koding/kite"
 )
@@ -49,4 +50,6 @@ func (k *Klient) handleRemoteFunc(method string, fn kite.HandlerFunc) {
 
 		return resp, nil
 	})
+
+	registrar.Register(method)
 }

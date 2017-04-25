@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"koding/klient/proxy"
-
 	"github.com/boltdb/bolt"
 	jwt "github.com/dgrijalva/jwt-go"
 	konfig "github.com/koding/kite/config"
