@@ -1,22 +1,17 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="1178px" height="549px" viewBox="0 0 1178 549" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <defs>
-        <linearGradient x1="37.0558321%" y1="100%" x2="37.0558314%" y2="61.7535511%" id="linearGradient-1">
-            <stop stop-color="#FFFFFF" stop-opacity="0" offset="0%"></stop>
-            <stop stop-color="#FFFFFF" stop-opacity="0.1" offset="100%"></stop>
-        </linearGradient>
-        <linearGradient x1="89.8388824%" y1="61.7535532%" x2="37.0558314%" y2="61.7535511%" id="linearGradient-2">
-            <stop stop-color="#FFFFFF" stop-opacity="0" offset="0%"></stop>
-            <stop stop-color="#FFFFFF" stop-opacity="0.1" offset="100%"></stop>
-        </linearGradient>
-    </defs>
-    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="02-Features" transform="translate(-262.000000, -1.000000)">
-            <g id="hero-pyrmaid-filter" transform="translate(262.000000, -1.000000)">
-                <polygon id="Rectangle-8-Copy-2" fill="url(#linearGradient-1)" opacity="0.25" transform="translate(589.000000, 360.000000) scale(-1, 1) rotate(90.000000) translate(-589.000000, -360.000000) " points="780 -229 780 949 398 949"></polygon>
-                <polygon id="Rectangle-8-Copy-3" fill="url(#linearGradient-1)" opacity="0.25" transform="translate(765.000000, 275.500000) rotate(90.000000) translate(-765.000000, -275.500000) " points="1040 -138 1040 689 490 689"></polygon>
-                <polygon id="Rectangle-8" fill="url(#linearGradient-2)" opacity="0.5" points="929 1 929 551 379 551"></polygon>
-            </g>
-        </g>
-    </g>
+<svg width="1178" height="549" viewBox="0 0 1178 549" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient x1="37.056%" y1="100%" x2="37.056%" y2="61.754%" id="a">
+      <stop stop-color="#FFF" stop-opacity="0" offset="0%"/>
+      <stop stop-color="#FFF" stop-opacity=".1" offset="100%"/>
+    </linearGradient>
+    <linearGradient x1="89.839%" y1="61.754%" x2="37.056%" y2="61.754%" id="b">
+      <stop stop-color="#FFF" stop-opacity="0" offset="0%"/>
+      <stop stop-color="#FFF" stop-opacity=".1" offset="100%"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <path fill="url(#a)" opacity=".25" transform="matrix(0 1 1 0 229 -231)" d="M780-229V949H398"/>
+    <path fill="url(#a)" opacity=".25" transform="rotate(90 766 274.5)" d="M1040-138v827H490"/>
+    <path fill="url(#b)" opacity=".5" d="M929 1v550H379" transform="translate(0 -2)"/>
+  </g>
 </svg>
