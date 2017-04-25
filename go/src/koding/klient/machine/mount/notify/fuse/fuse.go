@@ -466,13 +466,10 @@ func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err err
 		return err
 	}
 
-	if op.Offset == 0 && dh.Offset() > 0 {
+	if op.Offset != dh.Offset() {
 		fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
 			dh.Rewind(n)
-			return
 		})
-
-		return
 	}
 
 	op.BytesRead, err = dh.ReadDir(op.Offset, op.Dst)
