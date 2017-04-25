@@ -35,10 +35,11 @@ func mustAsset(file string) []byte {
 // in order to install klient service on a remote vm
 // and authenticate and connect to Koding.
 type Config struct {
-	Konfig   *config.Konfig // Koding endpoints configuration
-	KiteKey  string         // KiteKey used by klient to authenticate with Koding
-	Userdata string         // User script to run after provisioning, if any
-	Debug    bool           // Whether klient should be started in debug mode; configurable by debug field in stack template
+	Konfig   *config.Konfig    // Koding endpoints configuration
+	KiteKey  string            // KiteKey used by klient to authenticate with Koding
+	Userdata string            // User script to run after provisioning, if any
+	Mounts   map[string]string // Maps names with mount paths, for use with kd mount.
+	Debug    bool              // Whether klient should be started in debug mode; configurable by debug field in stack template
 }
 
 // New builds new cloud-init for the given configuration.
@@ -84,7 +85,10 @@ func newMetadata(cfg *Config) ([]byte, error) {
 	konfig := &config.Konfig{
 		Endpoints: cfg.Konfig.Endpoints,
 		KiteKey:   cfg.KiteKey,
-		Debug:     cfg.Debug,
+		Local: &config.Local{
+			Mounts: cfg.Mounts,
+		},
+		Debug: cfg.Debug,
 	}
 
 	m := map[string]interface{}{
