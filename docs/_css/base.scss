@@ -57,6 +57,7 @@ body {
     }
   }
   &.BlogHome-Header {
+    height: 480px;
     @include verticalGradient($header-blog-top, $header-blog-bottom);
   }
   &.FeaturesHome-Header {
