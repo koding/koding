@@ -1,5 +1,6 @@
 React = require 'app/react'
 kd = require 'kd'
+{ isFunction } = require 'lodash'
 
 debug = require('debug')('compute:connect')
 
@@ -29,6 +30,11 @@ makeState = (config, props) ->
 
     return acc
   , {}
+
+  # allow a final props transition to be made by passing a transformState
+  # function to config.
+  if isFunction config.transformState
+    state = config.transformState state, props
 
   return Object.assign({}, state, props)
 

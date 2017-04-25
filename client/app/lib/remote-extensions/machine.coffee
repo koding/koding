@@ -60,14 +60,6 @@ module.exports = class JMachine extends remote.api.JMachine
         options.machine = this
         require('../util/fs/fsitem').create options, callback
 
-    @on 'update', =>
-
-      { reactor } = kd.singletons
-      actions     = require 'app/flux/environment/actiontypes'
-      reactor.dispatch actions.MACHINE_UPDATED, {
-        id: @_id, machine: this
-      }
-
     @once 'ready', => @readyState = yes
     @fetchInfo => @emit 'ready'
 
@@ -286,9 +278,9 @@ module.exports = class JMachine extends remote.api.JMachine
     { Own, Shared, Reassigned, Collaboration } = JMachine.Type
 
     switch
-      when @isMine()      then Own
       when @isPermanent() then Shared
       when @getOldOwner() then Reassigned
+      when @isMine()      then Own
       else Collaboration
 
 
