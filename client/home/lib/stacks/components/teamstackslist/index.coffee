@@ -23,6 +23,8 @@ sidebarConnector = connectSidebar({
         resource.stack and resource.template?.accessLevel isnt 'private'
       .filter (resource) ->
         resource.stack.title isnt 'Managed VMs'
+      .filter (resource) ->
+        not resource.stack?.getOldOwner()
       .map (resource) ->
         isVisible = if resource.stack
         then sidebar.isVisible 'stack', resource.stack.getId()

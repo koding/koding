@@ -56,6 +56,11 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 		delete(vm, "koding_debug")
 	}
 
+	if v, ok := vm["koding_mounts"]; ok {
+		cfg.Mounts = tomap(v)
+		delete(vm, "koding_mounts")
+	}
+
 	var meta map[string]interface{}
 
 	if b, ok := vm["koding_always_on"].(bool); ok {
@@ -96,4 +101,56 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 	}
 
 	return nil
+}
+
+// TODO(rjeczalik): move to utils/object package
+func tomap(v interface{}) map[string]string {
+	m := make(map[string]string)
+
+	switch v := v.(type) {
+	case []map[string]interface{}:
+		for _, v := range v {
+			mergemap(m, v)
+		}
+	case []map[interface{}]interface{}:
+		for _, v := range v {
+			mergemap(m, v)
+		}
+	case []interface{}:
+		for _, v := range v {
+			mergemap(m, v)
+		}
+	default:
+		mergemap(m, v)
+	}
+
+	return m
+}
+
+func mergemap(m map[string]string, v interface{}) {
+	switch v := v.(type) {
+	case map[string]string:
+		for k, v := range v {
+			m[k] = v
+		}
+	case map[string]interface{}:
+		for k, v := range v {
+			m[k] = tostring(v)
+		}
+	case map[interface{}]interface{}:
+		for k, v := range v {
+			m[tostring(k)] = tostring(v)
+		}
+	}
+}
+
+func tostring(v interface{}) string {
+	switch v := v.(type) {
+	case string:
+		return v
+	case fmt.Stringer:
+		return v.String()
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

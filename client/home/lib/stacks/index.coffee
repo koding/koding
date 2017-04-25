@@ -109,7 +109,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
   createStacksViews: ->
 
-    { reactor } = kd.singletons
+    { reactor, computeController } = kd.singletons
     { actions, getters } = EnvironmentFlux
 
     actions.loadStackTemplates()
@@ -138,15 +138,21 @@ module.exports = class HomeStacks extends kd.CustomScrollView
       disabledUsersHeader.hide()
       disabledUsersSection.hide()
 
+    { storage } = computeController
 
-    cleanObserver = reactor.observe getters.disabledUsersStacks, (templates) ->
-      if templates.size
+    checkStorage = ->
+      disabledUserStacks = storage.stacks.get().filter (s) -> s.getOldOwner()
+
+      if disabledUserStacks.length
       then showDisabledUsers()
       else hideDisabledUsers()
 
-    hideDisabledUsers()
+    # check disabled user stacks initially
+    checkStorage()
 
-    @once 'KDObjectWillBeDestroyed', cleanObserver
+    # check disabled user stacks on each change
+    storage.on 'change', checkStorage
+    @once 'KDObjectWillBeDestroyed', -> storage.off 'change', checkStorage
 
     @stacks.addSubView headerize 'Drafts'
     @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts, { delegate : this }

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"sort"
@@ -58,6 +59,35 @@ func (e *Endpoints) Social() *Endpoint {
 	return e.Koding.WithPath("/api/social")
 }
 
+// Local describes configuration of local paths.
+type Local struct {
+	// Mount is a default home path of mounted directories.
+	//
+	// If empty, defaults to ~/koding/mnt/.
+	MountHome string `json:"mountHome,omitempty"`
+
+	// Mounts maps named mounts to local paths.
+	//
+	// The Mounts["default"] export is used as
+	// a default one when caller does not specify
+	// a mount path.
+	//
+	// The Mounts["default"] defaults to $HOME.
+	Mounts map[string]string `json:"mounts,omitempty"`
+}
+
+func (l *Local) MountPath(name string) (string, bool) {
+	if l == nil {
+		return "", false
+	}
+
+	if dir, ok := l.Mounts[name]; ok {
+		return expandHome(dir), true
+	}
+
+	return "", false
+}
+
 type Konfig struct {
 	Endpoints *Endpoints `json:"endpoints,omitempty"`
 
@@ -68,6 +98,9 @@ type Konfig struct {
 	Environment string `json:"environment,omitempty"`
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
 	KiteKey     string `json:"kiteKey,omitempty"`
+
+	// Local describes configuration of local paths.
+	Local *Local `json:"local,omitempty"`
 
 	// Koding networking configuration.
 	//
@@ -80,9 +113,6 @@ type Konfig struct {
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
 	Debug bool `json:"debug,string,omitempty"`
-
-	// Metadata keeps per-app configuration.
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
 func (k *Konfig) KiteHome() string {
@@ -254,8 +284,27 @@ func NewKonfig(e *Environments) *Konfig {
 				}},
 			},
 		},
+		Local: &Local{
+			MountHome: filepath.Join(CurrentUser.HomeDir, "koding", "mnt"),
+			Mounts: map[string]string{
+				"default": CurrentUser.HomeDir,
+			},
+		},
 		PublicBucketName:   Builtin.Buckets.PublicLogs.Name,
 		PublicBucketRegion: Builtin.Buckets.PublicLogs.Region,
 		Debug:              false,
+	}
+}
+
+func expandHome(path string) string {
+	const home = "~" + string(os.PathSeparator)
+
+	switch {
+	case path == "~":
+		return CurrentUser.HomeDir
+	case strings.HasPrefix(path, home):
+		return filepath.Join(CurrentUser.HomeDir, path[len(home):])
+	default:
+		return path
 	}
 }

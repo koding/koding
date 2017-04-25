@@ -464,6 +464,35 @@ func TestResubscribingAfterTrialEndsChargesUser(t *testing.T) {
 	})
 }
 
+func TestResubscribingAfterTrialEndsChargesUserWithoutPresenceInfo(t *testing.T) {
+	Convey("Given stub data", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				withTrialTestPlan(func(planID string) {
+					addCreditCardToUserWithChecks(endpoint, sessionID)
+
+					var firstSub *stripe.Sub
+					// create and cancel sub, because we will resubscribe again.
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+						firstSub = sub
+					})
+
+					travelInTimeForGroupID(groupName, -time.Hour*24*31) // trial period is 30 days
+
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+						So(sub.TrialEnd, ShouldBeLessThan, time.Now().UTC().Unix())
+						So(sub.Status, ShouldEqual, "active")
+					})
+				})
+			})
+		})
+	})
+}
+
 func travelInTimeForGroupID(groupName string, dur time.Duration) {
 	group, err := modelhelper.GetGroup(groupName)
 	tests.ResultedWithNoErrorCheck(group, err)
