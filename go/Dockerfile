@@ -9,8 +9,8 @@ MAINTAINER Rafal Jeczalik <rafal@koding.com>
 # a minified Docker image, like the go/src/koding/klient/Dockerfile does.
 
 # Packages installed here are common packages throughout this image's Go tree.
-RUN apt-get update \
- && apt-get install -y \
+RUN apt-get -qq update \
+ && apt-get -qq install -y \
     build-essential \
     curl \
     dh-make \
