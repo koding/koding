@@ -46,9 +46,7 @@
     .codeLineNumbers {
       padding: 13px;
       max-width: 32px;
-      -webkit-box-sizing: border-box;
-      -moz-box-sizing: border-box;
-      box-sizing: border-box;
+      @include border-box;
       background-color: rgba(152, 152, 152, 0.1);
       opacity: 0.51;
     }
