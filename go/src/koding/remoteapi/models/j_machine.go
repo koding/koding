@@ -4,6 +4,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"time"
+
 	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
@@ -25,7 +27,7 @@ type JMachine struct {
 	ChannelID string `json:"channelId,omitempty"`
 
 	// created at
-	CreatedAt strfmt.Date `json:"createdAt,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
 
 	// credential
 	Credential string `json:"credential,omitempty"`
@@ -237,7 +239,7 @@ func (m *JMachine) validateUsers(formats strfmt.Registry) error {
 type JMachineAssignee struct {
 
 	// assigned at
-	AssignedAt strfmt.Date `json:"assignedAt,omitempty"`
+	AssignedAt time.Time `json:"assignedAt,omitempty"`
 
 	// in progress
 	InProgress bool `json:"inProgress,omitempty"`
@@ -279,7 +281,7 @@ func (m *JMachineGeneratedFrom) Validate(formats strfmt.Registry) error {
 type JMachineStatus struct {
 
 	// modified at
-	ModifiedAt strfmt.Date `json:"modifiedAt,omitempty"`
+	ModifiedAt time.Time `json:"modifiedAt,omitempty"`
 
 	// reason
 	Reason string `json:"reason,omitempty"`

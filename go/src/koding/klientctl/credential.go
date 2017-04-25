@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -205,6 +207,34 @@ func credentialCreate(file string, opts *credential.CreateOptions, js bool) erro
 	fmt.Fprintf(os.Stderr, "Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
 
 	return nil
+}
+
+func CredentialInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	opts := &credential.CreateOptions{
+		Provider: c.String("provider"),
+		Title:    c.String("title"),
+	}
+
+	opts, err := AskCredentialCreate(opts)
+	if err != nil {
+		return 1, err
+	}
+
+	output := c.String("output")
+
+	f, err := os.Create(output)
+	if err != nil {
+		return 1, err
+	}
+
+	_, err = io.Copy(f, bytes.NewReader(opts.Data))
+	if err = nonil(err, f.Close()); err != nil {
+		return 1, err
+	}
+
+	fmt.Fprintf(os.Stderr, "Credentials successfully written to %s.\n", output)
+
+	return 0, nil
 }
 
 func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {

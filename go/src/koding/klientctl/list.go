@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koding/klient/remote/machine"
-	"koding/klientctl/klient"
-	"koding/klientctl/list"
 	"os"
 	"sort"
 	"strings"
 	"text/tabwriter"
 	"time"
+
+	"koding/klient/remote/machine"
+	"koding/klientctl/klient"
+	"koding/klientctl/list"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
