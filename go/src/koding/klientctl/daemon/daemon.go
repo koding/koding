@@ -59,7 +59,7 @@ func newDetails() *Details {
 		KodingHome: config.KodingHome(),
 		KlientHome: klientHome,
 		Osxfuse: &Package{
-			URL:     mustURL("https://s3.amazonaws.com/koding-dl/osxfuse-3.5.8.dmg"),
+			URL:     mustURL("https://koding.com/d/osxfuse-3.5.8.dmg"),
 			Version: "3.5.8",
 		},
 		Virtualbox: map[string]*Package{
