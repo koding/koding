@@ -50,6 +50,9 @@ module.exports = class OwnedResourceHeader extends React.Component
       'active': !!selected
     }]
 
+    if oldOwner = stack.getOldOwner()
+      title = "#{title} (@#{oldOwner})"
+
     <header ref={(header) => @_header = header} className={className}>
       <h4 className='SidebarSection-headerTitle'>
 
