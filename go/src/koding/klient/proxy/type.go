@@ -3,20 +3,7 @@ package proxy
 import (
     "bytes"
     "encoding/json"
-    "os"
-
-    kos "koding/klient/os"
 )
-
-func GetType() ProxyType {
-    t := Local
-
-    if v, ok := kos.NewEnviron(os.Environ())["KLIENT_MACHINE_PROXY"]; ok {
-        t = String2ProxyType[v]
-    }
-
-    return t
-}
 
 type ProxyType int
 
@@ -38,12 +25,12 @@ var String2ProxyType = map[string]ProxyType{
     "kubernetes":   Kubernetes,
 }
 
-// fmt.Stringer interface
+// fmt.Stringer
 func (t ProxyType) String() string {
     return ProxyType2String[t]
 }
 
-// json.Marshaler interface
+// json.Marshaler
 func (t *ProxyType) MarshalJSON() ([]byte, error) {
     b := bytes.NewBufferString(`"`)
 	b.WriteString(ProxyType2String[*t])
@@ -52,7 +39,7 @@ func (t *ProxyType) MarshalJSON() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// Implement the json.Unmarshaler interface.
+// json.Unmarshaler
 func (t *ProxyType) UnmarshalJSON(b []byte) error {
     var s string
 

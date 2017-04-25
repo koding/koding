@@ -41,6 +41,8 @@ func Info(r *kite.Request) (interface{}, error) {
 		return info{}, err
 	}
 
+	prox := proxy.Singleton()
+
 	i := &info{
 		ProviderName: 	providerName.String(),
 		Username:     	config.CurrentUser.Username,
@@ -48,7 +50,7 @@ func Info(r *kite.Request) (interface{}, error) {
 		OS:           	runtime.GOOS,
 		Arch:         	runtime.GOARCH,
 
-		MachineProxy:	proxy.GetType(),
+		MachineProxy:	prox.Type(),
 	}
 
 	for _, group := range config.CurrentUser.Groups {

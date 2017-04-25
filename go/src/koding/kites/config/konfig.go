@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"koding/klient/proxy"
+
 	"github.com/boltdb/bolt"
 	jwt "github.com/dgrijalva/jwt-go"
 	konfig "github.com/koding/kite/config"
@@ -168,10 +170,11 @@ type Konfig struct {
 	// Public S3 bucket for writing logs.
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
-
 	LockTimeout    time.Duration `json:"lockTimeout,omitempty"`
 	DisableMetrics bool          `json:"disableMetrics,string,omitempty"`
 	Debug          bool          `json:"debug,string,omitempty"`
+
+	MachineProxy proxy.ProxyType `json:"machineproxy"`
 }
 
 // KiteHome gives directory of the kite.key file.
