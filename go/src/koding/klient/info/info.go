@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"koding/kites/config"
+	"koding/klient/proxy"
 
 	"github.com/koding/kite"
 )
@@ -12,19 +13,22 @@ import (
 type info struct {
 	// ProviderName is the name of the machine (vm or otherwise) provider,
 	// as identified by the
-	ProviderName 	string	 `json:"providerName"`
+	ProviderName	string		`json:"providerName"`
 
-	Username 		string   `json:"username"`
-	Home     		string   `json:"home"`
-	Groups   		[]string `json:"groups"`
-	OS       		string   `json:"os"`
-	Arch     		string   `json:"arch"`
+	Username        string  	`json:"username"`
+	Home            string  	`json:"home"`
+	Groups          []string	`json:"groups"`
+	OS              string		`json:"os"`
+	Arch            string		`json:"arch"`
 
-	// Proxy tells whether or not this klient will proxy specific
-	// API actions to separate machines in order to satisfy the API
-	// result. This is the case when we have container based stacks;
-	// klient is not in the same "machine" as other stack resources.
-	Proxy			string	 `json:"proxy"`
+	// MachineProxy determines how a klient kite accesses the machine(s)
+	// it is bound to. This controls proxy logic for specific kite
+	// methods in klient, delegating to a 3rd party service for
+	// the transport.
+	//
+	// This is the case when we have container based stacks; klient
+	// is not in the same context as it's containers(s).
+	MachineProxy    proxy.ProxyType	`json:"machineproxy"`
 }
 
 // Info implements the klient.info method, returning klient specific
@@ -38,14 +42,13 @@ func Info(r *kite.Request) (interface{}, error) {
 	}
 
 	i := &info{
-		ProviderName: providerName.String(),
-		Username:     config.CurrentUser.Username,
-		Home:         config.CurrentUser.HomeDir,
-		OS:           runtime.GOOS,
-		Arch:         runtime.GOARCH,
+		ProviderName: 	providerName.String(),
+		Username:     	config.CurrentUser.Username,
+		Home:         	config.CurrentUser.HomeDir,
+		OS:           	runtime.GOOS,
+		Arch:         	runtime.GOARCH,
 
-		// TODO (acbodine): Make this change based on ./klient parameters.
-		Proxy: 		  "local",
+		MachineProxy:	proxy.GetType(),
 	}
 
 	for _, group := range config.CurrentUser.Groups {

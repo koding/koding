@@ -20,6 +20,7 @@ import (
 	"koding/klient/app"
 	konfig "koding/klient/config"
 	"koding/klient/klientsvc"
+	"koding/klient/proxy"
 	"koding/klient/registration"
 )
 
@@ -68,8 +69,7 @@ var (
 	flagMetadataFile = f.String("metadata-file", "", "Koding metadata file")
 
 	// Machine proxy flags
-	// flagK8sProxy 	= f.Bool("k8s-proxy", false, "Proxy commands to machines via Kubernetes")
-	// flagDockerProxy	= f.Bool("docker-proxy", false, "Proxy commands to machines via Docker")
+	flagMachineProxy = f.String("machine-proxy", proxy.Local, "proxy specific kite methods via 3rd party API.")
 )
 
 func defaultNoTunnel() bool {
@@ -153,7 +153,6 @@ func realMain() int {
 		LogUploadInterval: *flagLogUploadInterval,
 		Metadata:          *flagMetadata,
 		MetadataFile:      *flagMetadataFile,
-		// MachineProxy:      *flagMachineProxy,
 	}
 
 	if err := handleMetadata(conf); err != nil {
