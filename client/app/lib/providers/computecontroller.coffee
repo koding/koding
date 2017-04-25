@@ -862,6 +862,7 @@ module.exports = class ComputeController extends KDController
     existents = 0
     for stackTemplateId in stackTemplates
       existentStacks = @storage.stacks.query 'baseStackId', stackTemplateId
+      existentStacks = existentStacks.filter (stack) -> not stack.getOldOwner()
       existents += existentStacks.length
 
     debug 'checkGroupStackRevisions existents', existents, stackTemplates.length
