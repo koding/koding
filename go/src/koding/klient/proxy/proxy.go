@@ -1,9 +1,9 @@
 package proxy
 
 import (
-    "os"
-
-    kos "koding/klient/os"
+    // "os"
+    //
+    // kos "koding/klient/os"
 
     "github.com/koding/kite"
 )
@@ -12,7 +12,7 @@ type Proxy interface {
 
     Type() ProxyType
 
-    // NOTE: Probably temporary
+    // TODO (acbodine): Probably temporary
     //
     // Init is a temporary method to allow runtime configuration
     // for an object that implements a Proxy.
@@ -46,8 +46,26 @@ func Singleton() Proxy {
     if proxy == nil {
         t := Local
 
-        if v, ok := kos.NewEnviron(os.Environ())["KLIENT_MACHINE_PROXY"]; ok {
-            t = String2ProxyType[v]
+        // if v, ok := kos.NewEnviron(os.Environ())["KLIENT_MACHINE_PROXY"]; ok {
+        //     t = String2ProxyType[v]
+        // }
+
+        proxies := map[ProxyType]Proxy {
+            Kubernetes: New(Kubernetes),
+        }
+
+        for typ, p := range proxies {
+
+            // Let the proxy run any init routines
+            err := p.Init()
+
+            if err != nil {
+                continue
+            }
+
+            // If there is no error, we can safely run with
+            // this proxy type.
+            t = typ
         }
 
         proxy = New(t)

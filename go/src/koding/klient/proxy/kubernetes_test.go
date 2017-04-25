@@ -38,4 +38,6 @@ func TestKubernetesList(t *testing.T) {
     if err != nil {
         t.Fatal(err)
     }
+
+    // TODO (acbodine): Assert response is a slice of a specific type of object.
 }

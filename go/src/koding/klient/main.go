@@ -69,7 +69,7 @@ var (
 	flagMetadataFile = f.String("metadata-file", "", "Koding metadata file")
 
 	// Machine proxy flags
-	flagMachineProxy = f.String("machine-proxy", proxy.Local, "proxy specific kite methods via 3rd party API.")
+	flagMachineProxy = f.String("machine-proxy", proxy.ProxyType2String[proxy.Local], "proxy specific kite methods via 3rd party API.")
 )
 
 func defaultNoTunnel() bool {
