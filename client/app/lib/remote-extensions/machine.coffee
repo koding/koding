@@ -278,9 +278,9 @@ module.exports = class JMachine extends remote.api.JMachine
     { Own, Shared, Reassigned, Collaboration } = JMachine.Type
 
     switch
-      when @isMine()      then Own
       when @isPermanent() then Shared
       when @getOldOwner() then Reassigned
+      when @isMine()      then Own
       else Collaboration
 
 
