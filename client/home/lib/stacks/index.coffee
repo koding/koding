@@ -143,7 +143,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     checkStorage = ->
       disabledUserStacks = storage.stacks.get().filter (s) -> s.getOldOwner()
 
-      if disabledUsersStacks.length
+      if disabledUserStacks.length
       then showDisabledUsers()
       else hideDisabledUsers()
 
