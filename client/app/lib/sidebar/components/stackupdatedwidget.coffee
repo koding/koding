@@ -21,9 +21,15 @@ module.exports = class StackUpdatedWidget extends React.Component
       appManager.tell 'Stackeditor', 'reloadEditor', templateId
 
 
+  onClose: ->
+
+    { sidebar } = kd.singletons
+    sidebar.setUpdatedStack null
+
+
   render: ->
 
-    <SidebarWidget {...@props} onClose={@props.onClose}>
+    <SidebarWidget {...@props} onClose={@bound 'onClose'}>
       <span>STACK UPDATED</span>
       <p className='SidebarWidget-Title'>
         You need to reinitialize your machines before booting.
