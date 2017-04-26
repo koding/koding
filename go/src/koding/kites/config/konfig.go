@@ -54,12 +54,12 @@ func (e *Endpoints) Kloud() *Endpoint {
 	return e.Koding.WithPath("/kloud/kite")
 }
 
-// Kontrl gives an endpoint for Kontrol kite.
+// Kontrol gives an endpoint for Kontrol kite.
 func (e *Endpoints) Kontrol() *Endpoint {
 	return e.Koding.WithPath("/kontrol/kite")
 }
 
-// Remtoe gives an endpoint for remote.api.
+// Remote gives an endpoint for remote.api.
 func (e *Endpoints) Remote() *Endpoint {
 	return e.Koding.WithPath("/remote.api")
 }
@@ -184,13 +184,15 @@ func (k *Konfig) Valid() error {
 
 // ID gives an identifier of the Konfig value.
 //
-// The konfig.bolt stores multiple configuration, one for each
-// baseurl. The ID is unique per baseurl.
+// The konfig.bolt stores multiple configurations, one for each
+// baseurl.
+//
+// The ID is unique per baseurl.
 func (k *Konfig) ID() string {
 	return ID(k.KodingPublic().String())
 }
 
-// ID create an identifier for the given Koding base URL.
+// ID creates an identifier for the given Koding base URL.
 func ID(kodingURL string) string {
 	if kodingURL == "" {
 		return ""
