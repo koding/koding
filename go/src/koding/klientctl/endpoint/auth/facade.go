@@ -117,6 +117,7 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 
 		opts.Token = ""
 		kiteKey = resp.KiteKey
+		f.Konfig.KiteKey = resp.KiteKey
 	} else if newLogin {
 		if err := opts.AskUserPass(); err != nil {
 			return nil, err

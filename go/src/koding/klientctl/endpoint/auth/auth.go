@@ -96,9 +96,9 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		Metadata:  true,
 	}
 
-	resp, _ := stack.PasswordLoginResponse{}, error(nil)
-
+	var resp stack.PasswordLoginResponse
 	var err error
+
 	// We ignore any cached session for the given login request,
 	// as it might be already invalid from a different client.
 	if opts.Token != "" {

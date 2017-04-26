@@ -255,6 +255,10 @@ func (kt *KiteTransport) Connect(url string) (Transport, error) {
 }
 
 func (kt *KiteTransport) SetKiteKey(kiteKey string) {
+	if kt.kCfg != nil {
+		kt.kCfg.KiteKey = kiteKey
+	}
+
 	if kt.kClient != nil {
 		kt.kClient.Auth = &kite.Auth{
 			Type: "kiteKey",
