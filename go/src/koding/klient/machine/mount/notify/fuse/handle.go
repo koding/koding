@@ -246,7 +246,7 @@ func (dh *DirHandle) ReadDir(offset fuseops.DirOffset, dst []byte) (n int, err e
 }
 
 // Rewind behaves like rewinddir(), it resets directory steram.
-func (dh *DirHandle) Rewind(n *node.Node) {
+func (dh *DirHandle) Rewind(offset fuseops.DirOffset, n *node.Node) {
 	// Sanity check. There is a logic error when we rewinding different inodes.
 	if dh.InodeID != fuseops.InodeID(n.Entry.Virtual.Inode) {
 		panic("called rewind on invalid node")
@@ -254,7 +254,7 @@ func (dh *DirHandle) Rewind(n *node.Node) {
 
 	dh.mu.Lock()
 	dh.stream = dh.readDirents(n)
-	dh.offset = 0
+	dh.offset = offset
 	dh.mu.Unlock()
 }
 
