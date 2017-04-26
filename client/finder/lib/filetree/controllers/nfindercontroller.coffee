@@ -173,6 +173,10 @@ module.exports = class NFinderController extends KDViewController
 
     computeController.fetchMachine { uid }, (err, machine) =>
       return showError err  if err
+
+      if machineItem = @getMachineNode uid
+        @unmountMachine uid  if machineItem.data.path isnt "[#{uid}]#{path}"
+
       @mountMachine machine
 
 
