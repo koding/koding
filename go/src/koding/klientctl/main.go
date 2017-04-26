@@ -171,6 +171,10 @@ func run(args []string) {
 							Name:  "token",
 							Usage: "Use temporary token to authenticate to your Koding account.",
 						},
+						cli.BoolFlag{
+							Name:  "force",
+							Usage: "Force new session instead of using existing one.",
+						},
 					},
 				},
 				// command: kd auth register
