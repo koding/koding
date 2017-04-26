@@ -104,6 +104,11 @@ func (l *Local) MountPath(name string) (string, bool) {
 	return "", false
 }
 
+// Template represents a KD template configuration.
+type Template struct {
+	File string `json:"file,omitempty"`
+}
+
 // Konfig represents a single configuration stored
 // in a konfig.bolt database.
 type Konfig struct {
@@ -119,6 +124,9 @@ type Konfig struct {
 
 	// Local describes configuration of local paths.
 	Local *Local `json:"local,omitempty"`
+
+	// Template describes configuration of KD template.
+	Template *Template `json:"template,omitempty"`
 
 	// Koding networking configuration.
 	//
@@ -324,6 +332,9 @@ func NewKonfig(e *Environments) *Konfig {
 			Mounts: map[string]string{
 				"default": CurrentUser.HomeDir,
 			},
+		},
+		Template: &Template{
+			File: "kd.yaml",
 		},
 		PublicBucketName:   Builtin.Buckets.PublicLogs.Name,
 		PublicBucketRegion: Builtin.Buckets.PublicLogs.Region,
