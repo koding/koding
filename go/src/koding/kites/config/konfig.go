@@ -20,6 +20,10 @@ import (
 	"github.com/koding/kite/kitekey"
 )
 
+// KonfigCache is a default konfig.bolt configuration.
+//
+// The konfig.bolt stores user configuration for
+// KD / Klient apps.
 var KonfigCache = &CacheOptions{
 	File: filepath.Join(KodingHome(), "konfig.bolt"),
 	BoltDB: &bolt.Options{
@@ -28,6 +32,8 @@ var KonfigCache = &CacheOptions{
 	Bucket: []byte("konfig"),
 }
 
+// Endpoints represents a configuration of Koding
+// endpoints, which are used by KD / Klient.
 type Endpoints struct {
 	// Koding base endpoint.
 	Koding *Endpoint `json:"koding,omitempty"`
@@ -43,18 +49,22 @@ type Endpoints struct {
 	Klient       *Endpoint `json:"klient,omitempty"`
 }
 
+// Kloud gives an endpoint for Kloud kite.
 func (e *Endpoints) Kloud() *Endpoint {
 	return e.Koding.WithPath("/kloud/kite")
 }
 
+// Kontrl gives an endpoint for Kontrol kite.
 func (e *Endpoints) Kontrol() *Endpoint {
 	return e.Koding.WithPath("/kontrol/kite")
 }
 
+// Remtoe gives an endpoint for remote.api.
 func (e *Endpoints) Remote() *Endpoint {
 	return e.Koding.WithPath("/remote.api")
 }
 
+// Social gives an endpoint for social.api.
 func (e *Endpoints) Social() *Endpoint {
 	return e.Koding.WithPath("/api/social")
 }
@@ -76,6 +86,12 @@ type Local struct {
 	Mounts map[string]string `json:"mounts,omitempty"`
 }
 
+// MountPath gives a path for the named mount.
+//
+// If the named mount does not exist, it returns false.
+//
+// If the path contains '~' - it is expended to
+// a home directory of a current user.
 func (l *Local) MountPath(name string) (string, bool) {
 	if l == nil {
 		return "", false
@@ -88,6 +104,8 @@ func (l *Local) MountPath(name string) (string, bool) {
 	return "", false
 }
 
+// Konfig represents a single configuration stored
+// in a konfig.bolt database.
 type Konfig struct {
 	Endpoints *Endpoints `json:"endpoints,omitempty"`
 
@@ -115,20 +133,29 @@ type Konfig struct {
 	Debug bool `json:"debug,string,omitempty"`
 }
 
+// KiteHome gives directory of the kite.key file.
+//
+// Deprecated: Use KiteKeyFile instead.
 func (k *Konfig) KiteHome() string {
 	return filepath.Dir(k.KiteKeyFile)
 }
 
+// KiteConfig build *kite.Config value which is used
+// to initialize new kite.Kite values.
 func (k *Konfig) KiteConfig() *konfig.Config {
 	return k.buildKiteConfig()
 }
 
+// KlientGzURL gives an URL for Klient binary.
+//
+// TODO(rjeczalik): Rework into lookup and move to kloud/metadata package.
 func (k *Konfig) KlientGzURL() string {
 	u := *k.Endpoints.KlientLatest.Public.URL
 	u.Path = path.Join(path.Dir(u.Path), "latest", "klient.gz")
 	return u.String()
 }
 
+// Valid implements the stack.Validator interface.
 func (k *Konfig) Valid() error {
 	// TODO(rjeczalik): remove when KontrolURL is gone
 	if _, err := url.Parse(k.KontrolURL); err == nil && k.KontrolURL != "" {
@@ -147,10 +174,15 @@ func (k *Konfig) Valid() error {
 	return nil
 }
 
+// ID gives an identifier of the Konfig value.
+//
+// The konfig.bolt stores multiple configuration, one for each
+// baseurl. The ID is unique per baseurl.
 func (k *Konfig) ID() string {
 	return ID(k.KodingPublic().String())
 }
 
+// ID create an identifier for the given Koding base URL.
 func ID(kodingURL string) string {
 	if kodingURL == "" {
 		return ""
@@ -213,6 +245,7 @@ func (k *Konfig) buildKiteConfig() *konfig.Config {
 	return NewKiteConfig(k.Debug)
 }
 
+// NewKonfigURL gives new configuration for the given base URL.
 func NewKonfigURL(koding *url.URL) *Konfig {
 	return &Konfig{
 		Endpoints: &Endpoints{
@@ -266,6 +299,8 @@ func (e *Environments) kdEnv() string {
 	return e.Env
 }
 
+// NewKonfig creates new configuration by reading
+// embedded kites/config/config.json file.
 func NewKonfig(e *Environments) *Konfig {
 	return &Konfig{
 		Environment: e.Env,
