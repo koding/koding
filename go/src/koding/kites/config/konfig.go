@@ -203,9 +203,9 @@ func ID(kodingURL string) string {
 		u.Path = strings.TrimRight(path.Clean(u.Path), "/")
 		switch u.Scheme {
 		case "http":
-			u.Host = trimRight(u.Host, ":80")
+			u.Host = strings.TrimSuffix(u.Host, ":80")
 		case "https":
-			u.Host = trimRight(u.Host, ":443")
+			u.Host = strings.TrimSuffix(u.Host, ":443")
 		}
 		kodingURL = u.String()
 	}
@@ -361,11 +361,4 @@ func expandHome(path string) string {
 	default:
 		return path
 	}
-}
-
-func trimRight(str, substr string) string {
-	if strings.HasSuffix(str, substr) {
-		return str[:len(str)-len(substr)]
-	}
-	return str
 }
