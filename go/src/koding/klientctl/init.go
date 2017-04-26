@@ -9,10 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
-
 	kstack "koding/kites/kloud/stack"
 	"koding/kites/kloud/utils/object"
+	"koding/klientctl/config"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/stack"
@@ -21,6 +20,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
@@ -28,15 +28,15 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	if _, err := os.Stat("kd.yaml"); os.IsNotExist(err) {
-		fmt.Printf("Initializing with new kd.yaml template file...\n\n")
+	if _, err := os.Stat(config.Konfig.Template.File); os.IsNotExist(err) {
+		fmt.Printf("Initializing with new %s template file...\n\n", config.Konfig.Template.File)
 
-		if err := templateInit("kd.yaml", false, ""); err != nil {
+		if err := templateInit(config.Konfig.Template.File, false, ""); err != nil {
 			return 1, err
 		}
 	}
 
-	p, err := readTemplate("kd.yaml")
+	p, err := readTemplate(config.Konfig.Template.File)
 	if err != nil {
 		return 1, err
 	}
