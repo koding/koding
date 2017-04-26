@@ -12,6 +12,10 @@ import (
 
 var DefaultClient = &Client{}
 
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 type ListOptions struct {
 	Team     string
 	Provider string
@@ -218,8 +222,6 @@ func (c *Client) readCache() {
 	_ = c.kloud().Cache().GetValue("credential", &c.cached)
 	_ = c.kloud().Cache().GetValue("credential.used", &c.used)
 	_ = c.kloud().Cache().GetValue("credential.describe", &c.describe)
-
-	ctlcli.CloseOnExit(c)
 }
 
 func (c *Client) kloud() *kloud.Client {

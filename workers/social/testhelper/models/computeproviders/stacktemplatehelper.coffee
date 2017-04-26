@@ -74,7 +74,7 @@ generateStackTemplateData = (client, data) ->
     rawContent      : rawContent
     description     : 'test stack template'
     accessLevel     : 'private'
-    credentials     : 'credentials'
+    credentials     : data.credentials ? { aws: [] }
     templateDetails : details
 
   stackTemplate = _.extend stackTemplate, data

@@ -1,6 +1,6 @@
 debug = require('debug')('sidebar:controller')
 kd = require 'kd'
-EnvironmentFlux = require 'app/flux/environment'
+ComputeStack = require 'app/remote-extensions/computestack'
 remote = require 'app/remote'
 { isObject } = require 'lodash'
 
@@ -59,6 +59,9 @@ module.exports = class SidebarController extends kd.Controller
 
       computeController.on 'GroupStacksConsistent', =>
         @setDefaultStackUpdated updated = no
+
+      computeController.on 'StackRevisionUpdated', (stack) =>
+        @setUpdatedStack stack.getId()
 
 
   setStateFromStorage: ->
