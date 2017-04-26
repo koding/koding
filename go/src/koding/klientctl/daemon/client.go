@@ -36,9 +36,10 @@ type Client struct {
 	Script  []InstallStep       // installation script to use; by default Script is used
 	Timeout time.Duration       // max time to wait for daemon to be ready; by default 20s
 
-	once    sync.Once
-	d       *Details
-	vagrant *bool
+	once      sync.Once
+	d         *Details
+	vagrant   *bool
+	uninstall bool
 }
 
 // Starts starts KD daemon.
@@ -140,7 +141,7 @@ func (c *Client) Ping() error {
 func (c *Client) Close() (err error) {
 	if c.d != nil {
 		err = c.store().Commit(func(cache *config.Cache) error {
-			if c.d == nil {
+			if c.uninstall {
 				return cache.Delete("daemon.details")
 			}
 
@@ -165,7 +166,7 @@ func (c *Client) readCache() {
 }
 
 func (c *Client) newFacade() (*auth.Facade, error) {
-	return auth.NewFacade(&auth.FacadeOpts{
+	return auth.NewFacade(&auth.FacadeOptions{
 		Base: c.d.base(),
 		Log:  c.log(),
 	})

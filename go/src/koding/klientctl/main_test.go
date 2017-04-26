@@ -69,8 +69,6 @@ func TestMainHelper(t *testing.T) {
 		}()
 	}
 
-	force = false
-
 	run(append(os.Args[:1], args...))
 }
 

@@ -201,6 +201,12 @@ func ID(kodingURL string) string {
 		// Since id is input sensitive we clean the path so "example.com/koding"
 		// "example.com/koding/" are effectively the same urls.
 		u.Path = strings.TrimRight(path.Clean(u.Path), "/")
+		switch u.Scheme {
+		case "http":
+			u.Host = strings.TrimSuffix(u.Host, ":80")
+		case "https":
+			u.Host = strings.TrimSuffix(u.Host, ":443")
+		}
 		kodingURL = u.String()
 	}
 	hash := sha1.Sum([]byte(kodingURL))

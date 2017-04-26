@@ -16,6 +16,14 @@ import (
 	"github.com/koding/logging"
 )
 
+// Facade provides a mean for auth.Client to create
+// and work with new configuration in konfig.bolt
+// database.
+//
+// It allows for switching between multiple
+// configurations, which may use conflicting
+// sessions (e.g. kite.key file created with
+// different Kontrol keys).
 type Facade struct {
 	*Client
 
@@ -23,15 +31,23 @@ type Facade struct {
 	Kloud  *kloud.Client
 	Team   *team.Client
 	Log    logging.Logger
+
+	force bool // whether force new session; if true, overrides LoginOptions.Force
 }
 
-type FacadeOpts struct {
+// FacadeOptions is used to create new Facade value.
+type FacadeOptions struct {
 	Base *url.URL
 	Log  logging.Logger
 }
 
-func NewFacade(opts *FacadeOpts) (*Facade, error) {
-	k, err := newKonfig(opts.Base)
+// NewFacade gives new Facade value.
+//
+// It returns non-nil error if it is unable to
+// create new configuration out of the provided
+// options.
+func NewFacade(opts *FacadeOptions) (*Facade, error) {
+	k, force, err := newKonfig(opts.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -56,12 +72,18 @@ func NewFacade(opts *FacadeOpts) (*Facade, error) {
 		Team: &team.Client{
 			Kloud: kloud,
 		},
-		Log: opts.Log,
+		Log:   opts.Log,
+		force: force,
 	}, nil
 }
 
+// Login authorizes with Koding in order to obtain:
+//
+//   - kite.key for use with Kontrol / Terraformer / Kloud / Klient kites
+//   - ClientID for use with SocialAPI / remote.api
+//
 func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
-	newLogin := opts.Force
+	newLogin := opts.Force || f.force
 
 	if !newLogin {
 		// If we already own a valid kite.key, it means we were already
@@ -75,7 +97,7 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	var kiteKey string
 
 	if opts.Token != "" {
-		// TODO(rjeczalik): Backward compatibility with token-based authentication.
+		// NOTE(rjeczalik): Backward compatibility with token-based authentication.
 		//
 		// The workflow:
 		//
@@ -96,6 +118,7 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 
 		opts.Token = ""
 		kiteKey = resp.KiteKey
+		f.Konfig.KiteKey = resp.KiteKey
 	} else if newLogin {
 		if err := opts.AskUserPass(); err != nil {
 			return nil, err
@@ -103,12 +126,15 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	}
 
 	if opts.Team == "" {
-		team, err := helper.Ask("\tTeam name [kd.io]: ")
+		var err error
+		opts.Team, err = helper.Ask("%sTeam name [%s]: ", opts.Prefix, f.Team.Used().Name)
 		if err != nil {
 			return nil, err
 		}
 
-		opts.Team = team
+		if opts.Team == "" {
+			opts.Team = f.Team.Used().Name
+		}
 	}
 
 	resp, err := f.Client.Login(opts)
@@ -144,7 +170,14 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	}
 
 	return resp, nil
+}
 
+func (f *Facade) Close() error {
+	return nonil(
+		f.Team.Close(),
+		f.Client.Close(),
+		f.Kloud.Close(),
+	)
 }
 
 func (f *Facade) log() logging.Logger {
@@ -154,8 +187,15 @@ func (f *Facade) log() logging.Logger {
 	return kloud.DefaultLog
 }
 
-func newKonfig(base *url.URL) (*config.Konfig, error) {
-	k, ok := configstore.List()[config.ID(base.String())]
+func newKonfig(base *url.URL) (*config.Konfig, bool, error) {
+	force := false
+	newID := config.ID(base.String())
+
+	if k, err := configstore.Used(); err == nil {
+		force = k.ID() != newID
+	}
+
+	k, ok := configstore.List()[newID]
 	if !ok {
 		k = &config.Konfig{
 			Endpoints: &config.Endpoints{
@@ -166,10 +206,10 @@ func newKonfig(base *url.URL) (*config.Konfig, error) {
 	}
 
 	if err := configstore.Use(k); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return k, nil
+	return k, force, nil
 }
 
 // fixKlientEndpoint fixes klient latest endpoint - kloud always installs
