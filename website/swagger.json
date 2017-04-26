@@ -3649,6 +3649,42 @@
         }
       }
     },
+    "/ComputeProvider.setGroupStack": {
+      "post": {
+        "tags": [
+          "ComputeProvider"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "setGroupStack",
+        "parameters": [
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Method ComputeProvider.setGroupStack",
+        "responses": {
+          "200": {
+            "description": "Request processed successfully",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
     "/JCredential.one": {
       "post": {
         "tags": [
