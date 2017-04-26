@@ -10,6 +10,8 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/node"
 
+	"log"
+
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"golang.org/x/net/context"
@@ -380,7 +382,6 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 		}
 
 		// Remove name from the
-
 		if !n.Orphan() {
 			if e := syscall.Unlink(filepath.Join(fs.CacheDir, child.Path())); e != nil {
 				err = toErrno(e)
@@ -466,13 +467,15 @@ func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err err
 		return err
 	}
 
-	if op.Offset != dh.Offset() {
-		fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
-			dh.Rewind(n)
-		})
-	}
+	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+		if op.Offset != dh.Offset() {
+			dh.Rewind(op.Offset, n)
+		}
 
-	op.BytesRead, err = dh.ReadDir(op.Offset, op.Dst)
+		log.Println("Bytes read: ", op.BytesRead, " offset: ", op.Offset, "dh destination:", dh.offset)
+		op.BytesRead, err = dh.ReadDir(op.Offset, op.Dst)
+		log.Println("Bytes read ~POST: ", op.BytesRead, "dh destination:", dh.offset)
+	})
 
 	return
 }
