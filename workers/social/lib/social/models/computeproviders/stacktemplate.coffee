@@ -885,6 +885,18 @@ module.exports = class JStackTemplate extends Module
 
   verifyCredentials: (client, callback) ->
 
+    @fetchProviderCredential client, (err, credential) ->
+      return callback err  if err
+
+      credential.isBootstrapped client, (err, bootstrapped) ->
+        return callback err   if err
+        return callback null  if bootstrapped
+
+        credential.bootstrap client, callback
+
+
+  fetchProviderCredential: (client, callback) ->
+
     [ err, provider ] = @getProvider()
     return callback err  if err
 
@@ -898,11 +910,7 @@ module.exports = class JStackTemplate extends Module
       if err or not credential
         return callback new KodingError 'Credential is not accessible'
 
-      credential.isBootstrapped client, (err, bootstrapped) ->
-        return callback err   if err
-        return callback null  if bootstrapped
-
-        credential.bootstrap client, callback
+      callback null, credential
 
 
   forceStacksToReinit: permit 'force stacks to reinit',
