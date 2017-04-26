@@ -23,7 +23,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, fmt.Errorf("%q is not a valid URL value: %s\n", c.String("koding"), err)
 	}
 
-	f, err := auth.NewFacade(&auth.FacadeOpts{
+	f, err := auth.NewFacade(&auth.FacadeOptions{
 		Base: kodingURL,
 		Log:  log,
 	})

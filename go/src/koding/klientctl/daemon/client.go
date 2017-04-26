@@ -165,7 +165,7 @@ func (c *Client) readCache() {
 }
 
 func (c *Client) newFacade() (*auth.Facade, error) {
-	return auth.NewFacade(&auth.FacadeOpts{
+	return auth.NewFacade(&auth.FacadeOptions{
 		Base: c.d.base(),
 		Log:  c.log(),
 	})

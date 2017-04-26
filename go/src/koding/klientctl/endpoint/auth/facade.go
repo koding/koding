@@ -16,6 +16,14 @@ import (
 	"github.com/koding/logging"
 )
 
+// Facade provides a mean for auth.Client to create
+// and work with new configuration in konfig.bolt
+// database.
+//
+// It allows for switching between multiple
+// configurations, which may use conflicting
+// sessions (e.g. kite.key file created with
+// different Kontrol keys).
 type Facade struct {
 	*Client
 
@@ -23,14 +31,22 @@ type Facade struct {
 	Kloud  *kloud.Client
 	Team   *team.Client
 	Log    logging.Logger
+
+	force bool // whether force new session; if true, overrides LoginOptions.Force
 }
 
-type FacadeOpts struct {
+// FacadeOptions is used to create new Facade value.
+type FacadeOptions struct {
 	Base *url.URL
 	Log  logging.Logger
 }
 
-func NewFacade(opts *FacadeOpts) (*Facade, error) {
+// NewFacade gives new Facade value.
+//
+// It returns non-nil error if it is unable to
+// create new configuration out of the provided
+// options.
+func NewFacade(opts *FacadeOptions) (*Facade, error) {
 	k, err := newKonfig(opts.Base)
 	if err != nil {
 		return nil, err
@@ -60,6 +76,11 @@ func NewFacade(opts *FacadeOpts) (*Facade, error) {
 	}, nil
 }
 
+// Login authorizes with Koding in order to obtain:
+//
+//   - kite.key for use with Kontrol / Terraformer / Kloud / Klient kites
+//   - ClientID for use with SocialAPI / remote.api
+//
 func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
 	newLogin := opts.Force
 
@@ -75,7 +96,7 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	var kiteKey string
 
 	if opts.Token != "" {
-		// TODO(rjeczalik): Backward compatibility with token-based authentication.
+		// NOTE(rjeczalik): Backward compatibility with token-based authentication.
 		//
 		// The workflow:
 		//
