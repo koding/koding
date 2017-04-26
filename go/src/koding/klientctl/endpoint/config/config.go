@@ -12,6 +12,10 @@ import (
 
 var DefaultClient = &Client{}
 
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 type Client struct {
 	Kloud *kloud.Client
 	Store *configstore.Client
@@ -126,9 +130,6 @@ func (c *Client) initClient() {
 	_ = c.store().Commit(func(cache *config.Cache) error {
 		return cache.GetValue("konfigs.default", &c.defaults)
 	})
-
-	// Flush cache on exit.
-	ctlcli.CloseOnExit(c)
 }
 
 func (c *Client) kloud() *kloud.Client {

@@ -39,6 +39,10 @@ var DefaultClient = &Client{
 	Transport: &KiteTransport{},
 }
 
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 // Client is responsible for communication with Kloud kite.
 type Client struct {
 	// Transport is used for RPC communication.
@@ -60,7 +64,6 @@ func (c *Client) Cache() *cfg.Cache {
 	}
 
 	c.cache = cfg.NewCache(configstore.CacheOptions("kd"))
-	ctlcli.CloseOnExit(c.cache)
 
 	return c.cache
 }
@@ -74,6 +77,13 @@ func (c *Client) Username() string {
 
 func (c *Client) Call(method string, arg, reply interface{}) error {
 	return c.Transport.Call(method, arg, reply)
+}
+
+func (c *Client) Close() (err error) {
+	if c.cache != nil {
+		err = c.cache.Close()
+	}
+	return err
 }
 
 func (c *Client) Wait(event string) <-chan *stack.EventResponse {

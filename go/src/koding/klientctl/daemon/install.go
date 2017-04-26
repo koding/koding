@@ -665,7 +665,7 @@ var Script = []InstallStep{{
 
 		fmt.Println()
 
-		return "", err
+		return "", nonil(err, f.Close())
 	},
 }, {
 	Name: "KD Daemon",

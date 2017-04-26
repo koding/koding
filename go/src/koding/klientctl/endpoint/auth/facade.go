@@ -124,12 +124,15 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	}
 
 	if opts.Team == "" {
-		team, err := helper.Ask("\tTeam name [kd.io]: ")
+		var err error
+		opts.Team, err = helper.Ask("%sTeam name [%s]: ", opts.Prefix, f.Team.Used().Name)
 		if err != nil {
 			return nil, err
 		}
 
-		opts.Team = team
+		if opts.Team == "" {
+			opts.Team = f.Team.Used().Name
+		}
 	}
 
 	resp, err := f.Client.Login(opts)
@@ -165,7 +168,14 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	}
 
 	return resp, nil
+}
 
+func (f *Facade) Close() error {
+	return nonil(
+		f.Team.Close(),
+		f.Client.Close(),
+		f.Kloud.Close(),
+	)
 }
 
 func (f *Facade) log() logging.Logger {

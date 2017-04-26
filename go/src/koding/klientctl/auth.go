@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 
@@ -32,6 +33,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
+	ctlcli.CloseOnExit(f)
 	testKloudHook(f.Kloud)
 
 	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
