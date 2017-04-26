@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 
@@ -14,7 +15,6 @@ import (
 )
 
 var testKloudHook = nop
-var force = true
 
 func nop(*kloud.Client) {}
 
@@ -24,7 +24,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, fmt.Errorf("%q is not a valid URL value: %s\n", c.String("koding"), err)
 	}
 
-	f, err := auth.NewFacade(&auth.FacadeOpts{
+	f, err := auth.NewFacade(&auth.FacadeOptions{
 		Base: kodingURL,
 		Log:  log,
 	})
@@ -33,6 +33,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
+	ctlcli.CloseOnExit(f)
 	testKloudHook(f.Kloud)
 
 	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
@@ -40,7 +41,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	opts := &auth.LoginOptions{
 		Team:  c.String("team"),
 		Token: c.String("token"),
-		Force: force,
+		Force: c.Bool("force"),
 	}
 
 	resp, err := f.Login(opts)

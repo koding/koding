@@ -12,6 +12,10 @@ import (
 
 var DefaultClient = &Client{}
 
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 // ListOptions are options available for `team list` command.
 type ListOptions struct {
 	Slug string // Limit to a specific team with a given name.
@@ -92,9 +96,6 @@ func (c *Client) readCache() {
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
 	_ = c.kloud().Cache().GetValue("team.used", &c.used)
-
-	// Flush cache on exit.
-	ctlcli.CloseOnExit(c)
 }
 
 func (c *Client) kloud() *kloud.Client {

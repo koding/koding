@@ -171,6 +171,10 @@ func run(args []string) {
 							Name:  "token",
 							Usage: "Use temporary token to authenticate to your Koding account.",
 						},
+						cli.BoolFlag{
+							Name:  "force",
+							Usage: "Force new session instead of using existing one.",
+						},
 					},
 				},
 				// command: kd auth register
@@ -711,7 +715,7 @@ func run(args []string) {
 					},
 					cli.StringFlag{
 						Name:  "file, f",
-						Value: "kd.yml",
+						Value: config.Konfig.Template.File,
 						Usage: "Read stack template from a file.",
 					},
 					cli.BoolFlag{
@@ -840,7 +844,7 @@ func run(args []string) {
 					cli.StringFlag{
 						Name:  "output, o",
 						Usage: "Output template file.",
-						Value: "kd.yaml",
+						Value: config.Konfig.Template.File,
 					},
 					cli.BoolFlag{
 						Name:  "defaults",

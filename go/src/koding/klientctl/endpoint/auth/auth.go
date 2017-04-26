@@ -10,12 +10,17 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
+	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
 	"github.com/koding/kite"
 )
 
 var DefaultClient = &Client{}
+
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
 
 type Session struct {
 	ClientID string `json:"clientID"`
@@ -77,6 +82,7 @@ func (opts *LoginOptions) AskUserPass() (err error) {
 type Client struct {
 	Kloud   *kloud.Client
 	Kontrol *kontrol.Client
+	Team    *team.Client
 
 	once     sync.Once // for c.init()
 	sessions Sessions
@@ -90,9 +96,9 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		Metadata:  true,
 	}
 
-	resp, _ := stack.PasswordLoginResponse{}, error(nil)
-
+	var resp stack.PasswordLoginResponse
 	var err error
+
 	// We ignore any cached session for the given login request,
 	// as it might be already invalid from a different client.
 	if opts.Token != "" {
@@ -168,9 +174,6 @@ func (c *Client) readCache() {
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
 	_ = c.kloud().Cache().GetValue("auth.sessions", &c.sessions)
-
-	// Flush cache on exit.
-	ctlcli.CloseOnExit(c)
 }
 
 func (c *Client) kloud() *kloud.Client {
@@ -185,6 +188,22 @@ func (c *Client) kontrol() *kontrol.Client {
 		return c.Kontrol
 	}
 	return kontrol.DefaultClient
+}
+
+func (c *Client) team() *team.Client {
+	if c.Team != nil {
+		return c.Team
+	}
+	return team.DefaultClient
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) { return DefaultClient.Login(opts) }
