@@ -61,6 +61,8 @@ module.exports = class ComputeProvider extends Base
           (signature Function)
         updateTeamCounters:
           (signature String, Function)
+        setGroupStack     :
+          (signature Object, Function)
 
 
   @providers      = PROVIDERS
@@ -791,6 +793,74 @@ module.exports = class ComputeProvider extends Base
         }, next
 
       async.series queue, (err) -> callback err
+
+
+  @setGroupStack = (client, options, callback) ->
+
+    { user, group } = client.r
+    { templateId, shareCredential = no } = options
+
+    unless templateId
+      return callback new KodingError 'Template Id is required'
+
+    if group.getAt('slug') in ['guests', 'koding']
+      return callback new KodingError 'Access denied'
+
+    credential    = null
+    stackTemplate = null
+
+    async.series [
+
+      # Fetch stacktemplate with requester session
+      (next) ->
+        JStackTemplate = require './stacktemplate'
+        JStackTemplate.one$ client, { _id: templateId }, (err, template) ->
+          return next err  if err
+          return next new KodingError 'No such template found'  unless template
+          stackTemplate = template
+          do next
+
+      # Fetch provider credential with requester session
+      (next) ->
+        stackTemplate.fetchProviderCredential client, (err, _credential) ->
+          return next err  if err
+          credential = _credential
+          do next
+
+      # Set accessLevel of template to 'group'
+      (next) ->
+        stackTemplate.setAccess client, 'group', next
+
+      # Set template to group
+      (next) ->
+        group.modify client, {
+          stackTemplates: [ stackTemplate.getId() ]
+        }, next
+
+      # Share credential with team
+      (next) ->
+        if shareCredential
+          credential.shareWith$ client, { target: group.getAt 'slug' }, next
+        else
+          do next
+
+      # Notify members about the stack template change
+      (next) ->
+        group.sendNotification \
+          'StackTemplateChanged', stackTemplate.getId(), next
+
+    ], (err) ->
+      callback err
+
+
+  @setGroupStack$ = permit
+
+    advanced: [
+      { permission: 'sudoer' }
+      { permission: 'sudoer', superadmin: yes }
+    ]
+
+    success: revive { shouldReviveProvider: no }, @setGroupStack
 
 
   do ->
