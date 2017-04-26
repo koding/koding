@@ -47,7 +47,7 @@ type FacadeOptions struct {
 // create new configuration out of the provided
 // options.
 func NewFacade(opts *FacadeOptions) (*Facade, error) {
-	k, err := newKonfig(opts.Base)
+	k, force, err := newKonfig(opts.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,8 @@ func NewFacade(opts *FacadeOptions) (*Facade, error) {
 		Team: &team.Client{
 			Kloud: kloud,
 		},
-		Log: opts.Log,
+		Log:   opts.Log,
+		force: force,
 	}, nil
 }
 
@@ -82,7 +83,7 @@ func NewFacade(opts *FacadeOptions) (*Facade, error) {
 //   - ClientID for use with SocialAPI / remote.api
 //
 func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
-	newLogin := opts.Force
+	newLogin := opts.Force || f.force
 
 	if !newLogin {
 		// If we already own a valid kite.key, it means we were already
@@ -186,8 +187,15 @@ func (f *Facade) log() logging.Logger {
 	return kloud.DefaultLog
 }
 
-func newKonfig(base *url.URL) (*config.Konfig, error) {
-	k, ok := configstore.List()[config.ID(base.String())]
+func newKonfig(base *url.URL) (*config.Konfig, bool, error) {
+	force := false
+	newID := config.ID(base.String())
+
+	if k, err := configstore.Used(); err == nil {
+		force = k.ID() != newID
+	}
+
+	k, ok := configstore.List()[newID]
 	if !ok {
 		k = &config.Konfig{
 			Endpoints: &config.Endpoints{
@@ -198,10 +206,10 @@ func newKonfig(base *url.URL) (*config.Konfig, error) {
 	}
 
 	if err := configstore.Use(k); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return k, nil
+	return k, force, nil
 }
 
 // fixKlientEndpoint fixes klient latest endpoint - kloud always installs
