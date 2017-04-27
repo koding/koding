@@ -129,7 +129,13 @@ module.exports = class StackTemplateItem extends React.Component
     { template, stack, onOpen } = @props
 
     if stack?.getOldOwner()
-      return <DisabledStack stack={stack} onOpen={onOpen} />
+      return (
+        <DisabledStack
+          template={template}
+          stack={stack}
+          onOpen={onOpen}
+        />
+      )
 
     if not template
       return null
@@ -158,12 +164,12 @@ module.exports = class StackTemplateItem extends React.Component
     </div>
 
 
-DisabledStack = ({ stack, onOpen }) ->
+DisabledStack = ({ template, stack, onOpen }) ->
   <div className='HomeAppViewListItem StackTemplateItem'>
     <a
       className='HomeAppViewListItem-label disabled'
       onClick={onOpen}
-      children={makeTitle({ stack })} />
+      children={makeTitle({ stack, template })} />
 
     <div className='HomeAppViewListItem-description disabled'>
       Last Updated <TimeAgo from={stack.meta.modifiedAt} />
