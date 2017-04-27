@@ -113,6 +113,10 @@ type Sync struct {
 	iu  *IdxUpdate   // local index updater.
 }
 
+func (s *Sync) Idx() *index.Index {
+	return s.idx
+}
+
 // NewSync creates a new sync instance for a given mount. It ensures basic mount
 // directory structure. This function is blocking.
 func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
