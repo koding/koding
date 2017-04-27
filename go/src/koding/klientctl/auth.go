@@ -68,3 +68,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	return 0, nil
 }
+
+func AuthShow(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	return 0, nil
+}
