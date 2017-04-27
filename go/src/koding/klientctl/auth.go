@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
+	"text/tabwriter"
 
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/auth"
@@ -50,9 +50,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(resp)
+		printJSON(resp)
 
 		return 0, nil
 	}
@@ -70,5 +68,26 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func AuthShow(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	info := auth.Used()
+
+	if c.Bool("json") {
+		printJSON(info)
+	} else {
+		printInfo(info)
+	}
+
 	return 0, nil
+}
+
+func printInfo(info *auth.Info) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	team := "-"
+	if info.Session != nil && info.Session.Team != "" {
+		team = info.Session.Team
+	}
+
+	fmt.Fprintln(w, "USERNAME\tTEAM\tBASEURL")
+	fmt.Fprintf(w, "%s\t%s\t%s\n", info.Username, team, info.BaseURL)
 }

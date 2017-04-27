@@ -5,8 +5,9 @@ import (
 	"sort"
 	"sync"
 
-	"koding/kites/config"
+	conf "koding/kites/config"
 	"koding/kites/kloud/stack"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
@@ -53,6 +54,14 @@ func (s Sessions) Slice() []*Session {
 	return slice
 }
 
+// Info represents authentication details.
+type Info struct {
+	*Session
+
+	Username string `json:"username,omitempty"`
+	BaseURL  string `json:"baseurl,omitempty"`
+}
+
 // LoginOptions represents arguments for the Login method.
 type LoginOptions struct {
 	Team     string // team to authenticate to
@@ -65,13 +74,13 @@ type LoginOptions struct {
 
 // AskUserPass asks user for Username and Password in an interactive mode.
 func (opts *LoginOptions) AskUserPass() (err error) {
-	opts.Username, err = helper.Ask("%sUsername [%s]: ", opts.Prefix, config.CurrentUser.Username)
+	opts.Username, err = helper.Ask("%sUsername [%s]: ", opts.Prefix, conf.CurrentUser.Username)
 	if err != nil {
 		return err
 	}
 
 	if opts.Username == "" {
-		opts.Username = config.CurrentUser.Username
+		opts.Username = conf.CurrentUser.Username
 	}
 
 	for {
@@ -93,6 +102,7 @@ type Client struct {
 	Kloud   *kloud.Client   // optional; if nil, kloud.DefaultClient is used
 	Kontrol *kontrol.Client // optional; if nil, kontrol.DefaultClient is used
 	Team    *team.Client    // optional; if nil, team.DefaultClient is used
+	Konfig  *conf.Konfig    // optional; if nil, config.Konfig is used
 
 	once     sync.Once // for c.init()
 	sessions Sessions
@@ -176,6 +186,24 @@ func (c *Client) Use(s *Session) {
 	c.sessions[s.Team] = s
 }
 
+// Used gives current authentication details.
+func (c *Client) Used() *Info {
+	session := c.Sessions()[c.team().Used().Name]
+	if session == nil {
+		session = &Session{}
+	}
+
+	if session.Team == "" {
+		session.Team = c.team().Used().Name
+	}
+
+	return &Info{
+		Session:  session,
+		Username: c.kloud().Username(),
+		BaseURL:  c.konfig().KodingPublic().String(),
+	}
+}
+
 // Close implements the io.Closer interface.
 //
 // It closes any resources used by the Client.
@@ -220,6 +248,13 @@ func (c *Client) team() *team.Client {
 	return team.DefaultClient
 }
 
+func (c *Client) konfig() *conf.Konfig {
+	if c.Konfig != nil {
+		return c.Konfig
+	}
+	return config.Konfig
+}
+
 func nonil(err ...error) error {
 	for _, e := range err {
 		if e != nil {
@@ -248,7 +283,7 @@ func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
 // The function forwards call to the DefaultClient.
 func Use(s *Session) { DefaultClient.Use(s) }
 
-// Sessions gives all the authenticated sessions.
+// Used gives current authentication details.
 //
 // The function forwards call to the DefaultClient.
-func Sessions() Sessions { return DefaultClient.Sessions() }
+func Used() *Info { return DefaultClient.Used() }
