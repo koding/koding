@@ -2,6 +2,7 @@ _ = require 'lodash'
 $ = require 'jquery'
 kd = require 'kd'
 React = require 'app/react'
+cx = require 'classnames'
 
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
@@ -57,11 +58,12 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { onAddToSidebar, onRemoveFromSidebar,
+    { onAddToSidebar, onRemoveFromSidebar, canCreateStacks
       isVisibleOnSidebar, onCloneFromDashboard, template } = @props
 
     if onCloneFromDashboard and not template.isMine()
       <ItemLink
+        disabled={not canCreateStacks}
         onClick={onCloneFromDashboard}
         title='CLONE STACK' />
 
@@ -73,6 +75,24 @@ module.exports = class StackTemplateItem extends React.Component
       <ItemLink
         onClick={onAddToSidebar}
         title='ADD TO SIDEBAR' />
+
+
+  canClone: ->
+    { canCreateStacks, template, onCloneFromDashboard } = @props
+
+    return not onCloneFromDashboard or template.isMine() or canCreateStacks
+
+
+  renderCloningDisabledMessage: ->
+
+    { canCreateStacks, template, onCloneFromDashboard } = @props
+
+    return null  if @canClone()
+
+    <div className='cloning-disabled-msg'>
+      Cloning is disabled for members.
+      Please ask one of your admins to enable stack creation permission.
+    </div>
 
 
   renderUnreadCount: ->
@@ -129,7 +149,13 @@ module.exports = class StackTemplateItem extends React.Component
     { template, stack, onOpen } = @props
 
     if stack?.getOldOwner()
-      return <DisabledStack stack={stack} onOpen={onOpen} />
+      return (
+        <DisabledStack
+          template={template}
+          stack={stack}
+          onOpen={onOpen}
+        />
+      )
 
     if not template
       return null
@@ -154,16 +180,17 @@ module.exports = class StackTemplateItem extends React.Component
       </div>
       <div className='HomeAppViewListItem-SecondaryContainer'>
         {@renderButton()}
+        {@renderCloningDisabledMessage()}
       </div>
     </div>
 
 
-DisabledStack = ({ stack, onOpen }) ->
+DisabledStack = ({ template, stack, onOpen }) ->
   <div className='HomeAppViewListItem StackTemplateItem'>
     <a
       className='HomeAppViewListItem-label disabled'
       onClick={onOpen}
-      children={makeTitle({ stack })} />
+      children={makeTitle({ stack, template })} />
 
     <div className='HomeAppViewListItem-description disabled'>
       Last Updated <TimeAgo from={stack.meta.modifiedAt} />
@@ -183,9 +210,15 @@ makeTitle = ({ template, stack }) ->
   return title
 
 
-ItemLink = ({ onClick, title }) ->
+ItemLink = ({ onClick, title, disabled }) ->
+  className = cx 'HomeAppView--button',
+    'primary': not disabled
+    'inactive': disabled
+
+  onClick = kd.noop  if disabled
+
   <a
     href="#"
-    className="HomeAppView--button primary"
+    className={className}
     onClick={onClick}
     children={title} />

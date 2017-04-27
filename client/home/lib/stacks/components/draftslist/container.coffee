@@ -1,12 +1,9 @@
 kd = require 'kd'
 React = require 'app/react'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin = require 'app/flux/base/reactormixin'
-remote = require 'app/remote'
 View = require './view'
-SidebarFlux = require 'app/flux/sidebar'
 
 calculateOwnedResources = require 'app/util/calculateOwnedResources'
+canCreateStacks = require 'app/util/canCreateStacks'
 
 module.exports = class DraftsListContainer extends React.Component
 
@@ -39,6 +36,7 @@ module.exports = class DraftsListContainer extends React.Component
   render: ->
     <View
       resources={@props.resources}
+      canCreateStacks={canCreateStacks()}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
