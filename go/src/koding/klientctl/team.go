@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -64,6 +65,40 @@ func TeamWhoami(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	}
 
 	printWhoami(resp)
+
+	return 0, nil
+}
+
+func TeamUse(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	ident := c.Args().Get(0)
+
+	if ident == "" {
+		cli.ShowCommandHelp(c, "use")
+		return 1, errors.New("missing argument")
+	}
+
+	teams, err := epteam.List(&epteam.ListOptions{})
+	if err != nil {
+		return 1, err
+	}
+
+	var team *team.Team
+	for _, t := range teams {
+		if t.Name == ident || t.Slug == ident {
+			team = t
+			break
+		}
+	}
+
+	if team == nil {
+		return 1, fmt.Errorf("unable to find %q team", ident)
+	}
+
+	epteam.Use(&epteam.Team{
+		Name: team.Name,
+	})
+
+	fmt.Fprintln(os.Stderr, "You are currently logged in to the following team:", team.Name)
 
 	return 0, nil
 }
