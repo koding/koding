@@ -17,7 +17,10 @@ type Proxy interface {
 
     // List is a kite handler for the "proxy.list" call.
     //
-    // Returns a *MachinesResponse representing machines that klient
+    // Expects args of type ListParams to filter response
+    // from Kubernetes.
+    //
+    // Returns a ListResponse representing containers that klient
     // is responsible for proxying commands to.
     List(*kite.Request) (interface{}, error)
 

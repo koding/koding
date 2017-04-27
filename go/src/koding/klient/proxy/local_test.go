@@ -38,9 +38,9 @@ func TestLocalList(t *testing.T) {
         t.Fatal(err)
     }
 
-    var data proxy.ContainersResponse
+    var data proxy.ListResponse
 
     if err = dnode.Unmarshal(data); err != nil {
-        t.Fatal("Response should be of type proxy.ContainersResponse.")
+        t.Fatal("Response should be of type proxy.ListResponse.")
     }
 }

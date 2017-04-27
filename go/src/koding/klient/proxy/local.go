@@ -25,7 +25,7 @@ func (p *LocalProxy) Methods() []string {
 }
 
 func (p *LocalProxy) List(r *kite.Request) (interface{}, error) {
-    data := ContainersResponse{}
+    data := ListResponse{}
 
     return data, nil
 }

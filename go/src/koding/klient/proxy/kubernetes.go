@@ -1,6 +1,7 @@
 package proxy
 
 import (
+    "fmt"
     "regexp"
 
     "koding/klient/registrar"
@@ -47,10 +48,16 @@ func (p *KubernetesProxy) Methods() []string {
 }
 
 func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
-    data := ContainersResponse{}
+    var params ListParams
+
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+    data := ListResponse{}
 
     // Query a K8s endpoint to actually get container data.
-    list, err := p.client.CoreV1().Pods("").List(metav1.ListOptions{})
+    list, err := p.client.CoreV1().Pods(params.Pod).List(metav1.ListOptions{})
     if err != nil {
         return nil, err
     }
@@ -59,6 +66,7 @@ func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
         spec := pod.Spec
 
         for _, c := range spec.Containers {
+            fmt.Println(c)
             data.Containers = append(data.Containers, c)
         }
     }
