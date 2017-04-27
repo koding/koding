@@ -10,8 +10,6 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/node"
 
-	"log"
-
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"golang.org/x/net/context"
@@ -22,7 +20,7 @@ import (
 // Required for fuse.FileSystem.
 func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 	if fs.Disk == nil {
-		return fuse.ENOENT
+		return fuse.EINVAL
 	}
 
 	op.Blocks = fs.Disk.BlocksTotal
@@ -132,7 +130,8 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 			}
 		}
 
-		n.Entry.File.MTime = op.Attributes.Mtime.UnixNano()
+		n.Entry.File.CTime = op.Attributes.Mtime.UnixNano()
+		n.Entry.File.MTime = n.Entry.File.CTime
 		n.Entry.File.Mode = op.Attributes.Mode
 		n.Entry.File.Size = int64(op.Attributes.Size)
 
@@ -164,13 +163,14 @@ func (fs *Filesystem) MkDir(_ context.Context, op *fuseops.MkDirOp) (err error) 
 		// According to fuse specs mode&os.ModeDir can be zero.
 		mode := op.Mode | os.ModeDir
 		absPath := filepath.Join(fs.CacheDir, path)
-		if err = os.MkdirAll(absPath, mode); err != nil {
+		if err = os.Mkdir(absPath, mode); err != nil {
 			err = toErrno(err)
 			return
 		}
 
 		var entry *node.Entry
 		if entry, err = node.NewEntryFile(absPath); err != nil {
+			_ = os.Remove(absPath)
 			err = toErrno(err)
 			return
 		}
@@ -200,19 +200,23 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 			return
 		}
 
-		// Provided name should not exist.
+		// Provided name should not exist, but on OSX it may due to not atomic
+		// calls from kernel.
 		if child := n.GetChild(op.Name); child != nil {
 			err = fuse.EEXIST
 			return
 		}
 
+		path := filepath.Join(fs.CacheDir, n.Path(), op.Name)
+
 		var f *os.File
-		if f, err = os.Create(filepath.Join(fs.CacheDir, n.Path(), op.Name)); err != nil {
+		if f, err = os.Create(path); err != nil {
 			err = toErrno(err)
 			return
 		}
 
 		if err = f.Chmod(op.Mode); err != nil {
+			_ = os.Remove(path)
 			err = toErrno(err)
 			f.Close()
 			return
@@ -220,6 +224,7 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 
 		var info os.FileInfo
 		if info, err = f.Stat(); err != nil {
+			_ = os.Remove(path)
 			err = toErrno(err)
 			f.Close()
 			return
@@ -328,35 +333,11 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) (err err
 // RmDir unlinks a directory from its parent. Since it is not possible to have
 // hardlinks to directories, the unlinked directory will be deleted by
 // ForgetInode method called by fuse after all reference counters are released.
-func (fs *Filesystem) RmDir(_ context.Context, op *fuseops.RmDirOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Parent), func(_ node.Guard, n *node.Node) {
-		// Allow deleted nodes.
-		if n == nil {
-			err = fuse.ENOENT
-			return
-		}
-
-		if !n.Entry.File.Mode.IsDir() {
-			err = fuse.ENOTDIR
-			return
-		}
-
-		child := n.GetChild(op.Name)
-		if child == nil {
-			err = fuse.ENOENT
-			return
-		}
-
-		if !child.Entry.File.Mode.IsDir() {
-			err = fuse.ENOTDIR
-			return
-		}
-
-		child.PromiseDel()
-		child.Entry.Virtual.NLinkDec()
+func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
+	return fs.Unlink(ctx, &fuseops.UnlinkOp{
+		Parent: op.Parent,
+		Name:   op.Name,
 	})
-
-	return
 }
 
 // Unlink removes entry from specified parent directory. It decreases node
@@ -471,11 +452,9 @@ func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err err
 		if op.Offset != dh.Offset() {
 			dh.Rewind(op.Offset, n)
 		}
-
-		log.Println("Bytes read: ", op.BytesRead, " offset: ", op.Offset, "dh destination:", dh.offset)
-		op.BytesRead, err = dh.ReadDir(op.Offset, op.Dst)
-		log.Println("Bytes read ~POST: ", op.BytesRead, "dh destination:", dh.offset)
 	})
+
+	op.BytesRead, err = dh.ReadDir(op.Offset, op.Dst)
 
 	return
 }
@@ -494,9 +473,7 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 			return
 		}
 
-		if err = fs.dirHandles.Release(op.Handle); err != nil {
-			return
-		}
+		err = fs.dirHandles.Release(op.Handle)
 	})
 
 	return err
