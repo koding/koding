@@ -16,19 +16,25 @@ import (
 	"github.com/koding/kite"
 )
 
+// DefaultClient is the default client used by Login, Use and Show.
 var DefaultClient = &Client{}
 
 func init() {
 	ctlcli.CloseOnExit(DefaultClient)
 }
 
+// Session represents user session details required
+// for authentication with SocialAPI and remote.api
+// endpoints.
 type Session struct {
-	ClientID string `json:"clientID"`
-	Team     string `json:"team"`
+	ClientID string `json:"clientID"` // authentication token
+	Team     string `json:"team"`     // authenticated scope
 }
 
+// Sessions stores session details for multiple teams.
 type Sessions map[string]*Session
 
+// Slice converts the map to a sorted slice.
 func (s Sessions) Slice() []*Session {
 	keys := make([]string, 0, len(s))
 
@@ -47,15 +53,17 @@ func (s Sessions) Slice() []*Session {
 	return slice
 }
 
+// LoginOptions represents arguments for the Login method.
 type LoginOptions struct {
-	Team     string
-	Token    string
-	Username string
-	Password string
-	Prefix   string
-	Force    bool
+	Team     string // team to authenticate to
+	Token    string // optional; use token-based authentication
+	Username string // username for password-based authentication
+	Password string // password for password-based authentication
+	Prefix   string // optional; prefix for interactive mode
+	Force    bool   // whether to force new session
 }
 
+// AskUserPass asks user for Username and Password in an interactive mode.
 func (opts *LoginOptions) AskUserPass() (err error) {
 	opts.Username, err = helper.Ask("%sUsername [%s]: ", opts.Prefix, config.CurrentUser.Username)
 	if err != nil {
@@ -79,15 +87,25 @@ func (opts *LoginOptions) AskUserPass() (err error) {
 	return nil
 }
 
+// Client is responsible for authentication by communicating
+// with Kloud and Kontrol kites.
 type Client struct {
-	Kloud   *kloud.Client
-	Kontrol *kontrol.Client
-	Team    *team.Client
+	Kloud   *kloud.Client   // optional; if nil, kloud.DefaultClient is used
+	Kontrol *kontrol.Client // optional; if nil, kontrol.DefaultClient is used
+	Team    *team.Client    // optional; if nil, team.DefaultClient is used
 
 	once     sync.Once // for c.init()
 	sessions Sessions
 }
 
+// Login authenticates to Koding.
+//
+// If opts.Token is no empty, token-based authentication is used.
+//
+// If both opts.Username and opts.Password are not empty, password-based
+// authentication is used.
+//
+// Otherwise Login uses kite-based authentication.
 func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
 	c.init()
 
@@ -144,18 +162,23 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	return &resp, nil
 }
 
+// Sessions gives all the authenticated sessions.
 func (c *Client) Sessions() Sessions {
 	c.init()
 
 	return c.sessions
 }
 
+// Use caches new user session.
 func (c *Client) Use(s *Session) {
 	c.init()
 
 	c.sessions[s.Team] = s
 }
 
+// Close implements the io.Closer interface.
+//
+// It closes any resources used by the Client.
 func (c *Client) Close() (err error) {
 	if len(c.sessions) != 0 {
 		err = c.kloud().Cache().SetValue("auth.sessions", c.sessions)
@@ -206,5 +229,26 @@ func nonil(err ...error) error {
 	return nil
 }
 
-func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) { return DefaultClient.Login(opts) }
-func Use(s *Session)                                                 { DefaultClient.Use(s) }
+// Login authenticates to Koding.
+//
+// If opts.Token is no empty, token-based authentication is used.
+//
+// If both opts.Username and opts.Password are not empty, password-based
+// authentication is used.
+//
+// Otherwise Login uses kite-based authentication.
+//
+// The function forwards call to the DefaultClient.
+func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
+	return DefaultClient.Login(opts)
+}
+
+// Use caches new user session.
+//
+// The function forwards call to the DefaultClient.
+func Use(s *Session) { DefaultClient.Use(s) }
+
+// Sessions gives all the authenticated sessions.
+//
+// The function forwards call to the DefaultClient.
+func Sessions() Sessions { return DefaultClient.Sessions() }

@@ -58,9 +58,9 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if resp.GroupName != "" {
-		fmt.Fprintln(os.Stdout, "Successfully logged in to the following team:", resp.GroupName)
+		fmt.Println("Successfully logged in to the following team:", resp.GroupName)
 	} else {
-		fmt.Fprintf(os.Stdout, "Successfully authenticated to Koding.\n\nPlease run \"kd auth login "+
+		fmt.Printf("Successfully authenticated to Koding.\n\nPlease run \"kd auth login " +
 			"[--team myteam]\" in order to login to your team.\n")
 	}
 
