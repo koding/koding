@@ -64,6 +64,11 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
+		// Don't include OSX trashes to scanned files.
+		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
+			return filepath.SkipDir
+		}
+
 		fC <- &fileDesc{path: path, info: info}
 		return nil
 	}
@@ -197,6 +202,11 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 
 		if _, ok := visited[path]; ok {
 			return nil
+		}
+
+		// Don't include OSX trashes to scanned files.
+		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
+			return filepath.SkipDir
 		}
 
 		// File exists in local but not in remote.

@@ -50,11 +50,11 @@ func TestSyncNew(t *testing.T) {
 	expected := &mount.Info{
 		ID:          mountID,
 		Mount:       m,
-		Count:       2,
-		CountAll:    3,
+		Count:       1,
+		CountAll:    2,
 		DiskSize:    info.DiskSize,
 		DiskSizeAll: info.DiskSizeAll,
-		Queued:      3,
+		Queued:      2,
 		Syncing:     info.Syncing,
 	}
 
@@ -85,11 +85,11 @@ func TestSyncNew(t *testing.T) {
 	expected = &mount.Info{
 		ID:          mountID,
 		Mount:       m,
-		Count:       3,
-		CountAll:    4,
+		Count:       2,
+		CountAll:    3,
 		DiskSize:    info.DiskSize,
 		DiskSizeAll: info.DiskSizeAll,
-		Queued:      4,
+		Queued:      3,
 		Syncing:     info.Syncing,
 	}
 
