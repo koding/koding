@@ -2,6 +2,7 @@ _ = require 'lodash'
 $ = require 'jquery'
 kd = require 'kd'
 React = require 'app/react'
+cx = require 'classnames'
 
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
@@ -57,11 +58,12 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { onAddToSidebar, onRemoveFromSidebar,
+    { onAddToSidebar, onRemoveFromSidebar, canCreateStacks
       isVisibleOnSidebar, onCloneFromDashboard, template } = @props
 
     if onCloneFromDashboard and not template.isMine()
       <ItemLink
+        disabled={not canCreateStacks}
         onClick={onCloneFromDashboard}
         title='CLONE STACK' />
 
@@ -189,9 +191,15 @@ makeTitle = ({ template, stack }) ->
   return title
 
 
-ItemLink = ({ onClick, title }) ->
+ItemLink = ({ onClick, title, disabled }) ->
+  className = cx 'HomeAppView--button',
+    'primary': not disabled
+    'inactive': disabled
+
+  onClick = kd.noop  if disabled
+
   <a
     href="#"
-    className="HomeAppView--button primary"
+    className={className}
     onClick={onClick}
     children={title} />
