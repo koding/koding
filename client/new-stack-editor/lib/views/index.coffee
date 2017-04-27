@@ -139,7 +139,7 @@ module.exports = class StackEditor extends kd.View
 
   handleActions: (event, rest...) ->
 
-    { router } = kd.singletons
+    { router, computeController } = kd.singletons
 
     switch event
       when Events.Menu.Logs
@@ -149,6 +149,8 @@ module.exports = class StackEditor extends kd.View
         @logs.resize { percentage: 40, store: yes }
       when Events.Menu.Credentials
         @sideView.show 'credentials'
+      when Events.Menu.MakeTeamDefault
+        computeController.makeTeamDefault @getData()
       when Events.ShowSideView
         @sideView.show rest...
       when Events.ToggleSideView
