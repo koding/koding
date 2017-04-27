@@ -784,6 +784,7 @@ module.exports = class ComputeController extends KDController
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
         @removeRevisionFromUnSharedStackTemplate _id, stackTemplate
+        @storage.templates.pop stackTemplate  unless stackTemplate.isMine()
         new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
