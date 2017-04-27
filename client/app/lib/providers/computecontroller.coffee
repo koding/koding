@@ -70,15 +70,7 @@ module.exports = class ComputeController extends KDController
 
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
-      groupsController.on 'StackTemplateChanged', (event) =>
-        return  unless templateId = event?.contents
-
-        @once 'StackRevisionChecked', (stack, oldRevision) =>
-          if stack.baseStackId is templateId
-            @emit 'StackRevisionUpdated', stack, oldRevision
-
-        @checkGroupStacks event?.contents
-
+      groupsController.on 'StackTemplateChanged', (event) => @checkGroupStacks event?.contents
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
@@ -754,7 +746,7 @@ module.exports = class ComputeController extends KDController
         if not _revisionStatus or _revisionStatus.status isnt status
           debug 'checkStackRevisions stack changed!', stack
           @storage.stacks.push stack
-          @emit 'StackRevisionChecked', stack, _revisionStatus
+          @emit 'StackRevisionChecked', stack
 
     if stackTemplateId and not found
       @createDefaultStack()
