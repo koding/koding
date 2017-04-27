@@ -77,6 +77,24 @@ module.exports = class StackTemplateItem extends React.Component
         title='ADD TO SIDEBAR' />
 
 
+  canClone: ->
+    { canCreateStacks, template, onCloneFromDashboard } = @props
+
+    return not onCloneFromDashboard or template.isMine() or canCreateStacks
+
+
+  renderCloningDisabledMessage: ->
+
+    { canCreateStacks, template, onCloneFromDashboard } = @props
+
+    return null  if @canClone()
+
+    <div className='cloning-disabled-msg'>
+      Cloning is disabled for members.
+      Please ask one of your admins to enable stack creation permission.
+    </div>
+
+
   renderUnreadCount: ->
 
     return null  unless count = @props.stack?.getUnreadCount()
@@ -162,6 +180,7 @@ module.exports = class StackTemplateItem extends React.Component
       </div>
       <div className='HomeAppViewListItem-SecondaryContainer'>
         {@renderButton()}
+        {@renderCloningDisabledMessage()}
       </div>
     </div>
 
