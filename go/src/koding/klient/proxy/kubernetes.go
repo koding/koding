@@ -1,7 +1,6 @@
 package proxy
 
 import (
-    "fmt"
     "regexp"
 
     "koding/klient/registrar"
@@ -56,12 +55,12 @@ func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
         return nil, err
     }
 
-    for _, e := range list.Items {
-        // TODO (acbodine): Make this pull the actual hostname.
-        fmt.Println(e)
-        data.Containers = append(data.Containers, Container{
-            Hostname: "localhost",
-        })
+    for _, pod := range list.Items {
+        spec := pod.Spec
+
+        for _, c := range spec.Containers {
+            data.Containers = append(data.Containers, c)
+        }
     }
 
     return data, nil
