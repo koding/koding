@@ -20,23 +20,7 @@ func TestLocalType(t *testing.T) {
 func TestLocalMethods(t *testing.T) {
     p := proxy.NewLocal()
 
-    mapping := map[string]kite.HandlerFunc {
-        "proxy.methods": p.Methods,
-    }
-
-    k, client := testutil.GetKites(mapping)
-    defer k.Close()
-
-	dnode, err := client.Tell("proxy.methods")
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    var data proxy.MethodsResponse
-
-    if err = dnode.Unmarshal(data); err != nil {
-        t.Fatal("Response should be of type proxy.MethodsResponse.")
-    }
+    _ = p.Methods()
 }
 
 func TestLocalList(t *testing.T) {

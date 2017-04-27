@@ -10,11 +10,10 @@ type Proxy interface {
 
     Type() ProxyType
 
-    // Methods is a kite handler for the "proxy.methods" call.
-    //
-    // Returns a *MethodsResponse representing the kite methods
-    // this proxy supports.
-    Methods(*kite.Request) (interface{}, error)
+    // Methods allows a Proxy to provide a subset of the kite methods
+    // that are supported by the klient instance, based on environment
+    // characteristics at runtime.
+    Methods() []string
 
     // List is a kite handler for the "proxy.list" call.
     //

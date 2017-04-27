@@ -14,14 +14,14 @@ func (p *LocalProxy) Type() ProxyType {
     return Local
 }
 
-func (p *LocalProxy) Methods(r *kite.Request) (interface{}, error) {
-    data := &MethodsResponse{}
+func (p *LocalProxy) Methods() []string {
+    data := []string{}
 
     for _, e := range registrar.Methods() {
-        data.Methods = append(data.Methods, e)
+        data = append(data, e)
     }
 
-    return data, nil
+    return data
 }
 
 func (p *LocalProxy) List(r *kite.Request) (interface{}, error) {

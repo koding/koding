@@ -38,6 +38,7 @@ import (
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/sync/rsync"
 	kos "koding/klient/os"
+	"koding/klient/proxy"
 	"koding/klient/registrar"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -171,7 +172,7 @@ type KlientConfig struct {
 	Metadata     string
 	MetadataFile string
 
-	// MachineProxy bool
+	// ContainerProxy proxy.ProxyType
 }
 
 func (conf *KlientConfig) logBucketName() string {
@@ -523,6 +524,9 @@ func (k *Klient) RegisterMethods() {
 	// Machine index handlers.
 	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
 	k.handleWithSub("machine.index.get", index.KiteHandlerGet())
+
+	prox := proxy.Factory()
+	k.handleWith("proxy.list", prox.List)
 
 	// Vagrant
 	k.handleFunc("vagrant.create", k.vagrant.Create)

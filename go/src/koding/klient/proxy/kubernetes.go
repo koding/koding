@@ -2,6 +2,7 @@ package proxy
 
 import (
     "fmt"
+    "regexp"
 
     "koding/klient/registrar"
 
@@ -20,16 +21,30 @@ func (p *KubernetesProxy) Type() ProxyType {
     return Kubernetes
 }
 
-func (p *KubernetesProxy) Methods(r *kite.Request) (interface{}, error) {
-    data := &MethodsResponse{}
+// TODO (acbodine): there should be more regexes in here to begin
+// with, and this list could possibly go away over time.
+var blacklist = []string{
+    "fs.*",
+}
+
+func (p *KubernetesProxy) Methods() []string {
+    data := []string{}
 
     for _, e := range registrar.Methods() {
-        data.Methods = append(data.Methods, e)
+        matched := false
+
+        for _, v := range blacklist {
+            if matched, _ = regexp.MatchString(v, e); matched {
+                break
+            }
+        }
+
+        if !matched {
+            data = append(data, e)
+        }
     }
 
-    // TODO (acbodine): Strip out methods that we can't support atm.
-
-    return data, nil
+    return data
 }
 
 func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
