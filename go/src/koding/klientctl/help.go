@@ -56,8 +56,8 @@ var cmdDescriptions = map[string]string{
 		"Unmount folder which was previously mounted.",
 	),
 	"umount": fmtDesc(
-		"<mount-id>",
-		"Unmount existing mount with given ID.",
+		"<mount-id>...",
+		"Unmount existing mounts.",
 	),
 	"remount": fmtDesc(
 		"<alias>",

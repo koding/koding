@@ -17,7 +17,7 @@ import (
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -146,13 +146,17 @@ func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, er
 	if err != nil {
 		return 1, err
 	}
-	if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
+
+	all := c.Bool("all")
+	if err := identifiersLimit(idents, "mount", 1, -1); !all && err != nil {
 		return 1, err
 	}
 
 	opts := &machine.UmountOptions{
-		Identifier: idents[0],
-		Log:        log.New("machine:umount"),
+		Identifiers: idents,
+		Force:       c.Bool("force"),
+		All:         all,
+		Log:         log.New("machine:umount"),
 	}
 
 	if err := machine.Umount(opts); err != nil {

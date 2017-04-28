@@ -664,7 +664,16 @@ func run(args []string) {
 			Usage:       "Unmount remote directory.",
 			Description: cmdDescriptions["umount"],
 			Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
-			Flags:       []cli.Flag{},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Forces execution of all unmounting steps.",
+				},
+				cli.BoolFlag{
+					Name:  "all, a",
+					Usage: "Unmount all mounts.",
+				},
+			},
 		}, {
 			Name:            "exec",
 			ShortName:       "e",

@@ -3,11 +3,11 @@ package mounts
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
-	"strings"
 )
 
 // Mounts store mounts of all machines in the group.
