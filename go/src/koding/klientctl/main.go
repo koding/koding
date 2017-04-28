@@ -777,6 +777,10 @@ func run(args []string) {
 						Usage: "Output in JSON format.",
 					},
 				},
+			}, {
+				Name:   "use",
+				Usage:  "Switch team context.",
+				Action: ctlcli.ExitErrAction(TeamUse, log, "use"),
 			}},
 		}, {
 			Name:  "template",
