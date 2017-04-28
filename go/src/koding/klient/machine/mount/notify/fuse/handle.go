@@ -37,7 +37,7 @@ type FileHandle struct {
 	File    *os.File
 
 	size  int64
-	write int64
+	write bool
 }
 
 // Close closes stored file handle.
@@ -66,12 +66,12 @@ func (fh *FileHandle) GrowSize(new int64) int64 {
 
 // Write sets write flag to true. This function should be called on all write
 // operations performed on file descriptor.
-func (fh *FileHandle) Write() { fh.write = 1 }
+func (fh *FileHandle) Write() { fh.write = true }
 
 // IsModified returns true when the content pointed by file descriptor was
 // modified by write operations.
 func (fh *FileHandle) IsModified() bool {
-	return fh.write != 0
+	return fh.write
 }
 
 // FileHandleGroup stores currently opened files.
@@ -221,7 +221,7 @@ func (dh *DirHandle) Offset() (offset fuseops.DirOffset) {
 // of read bytes.
 func (dh *DirHandle) ReadDir(offset fuseops.DirOffset, dst []byte) (n int, err error) {
 	dh.mu.Lock()
-	if offset > fuseops.DirOffset(len(dh.stream)) {
+	if int(offset) > len(dh.stream) {
 		dh.mu.Unlock()
 		return 0, fuse.EINVAL
 	}
@@ -263,30 +263,26 @@ func (dh *DirHandle) Rewind(offset fuseops.DirOffset, n *node.Node) {
 func (dh *DirHandle) readDirents(n *node.Node) (ds []fuseutil.Dirent) {
 	ds = make([]fuseutil.Dirent, 0, n.ChildN()+2)
 
-	var offset fuseops.DirOffset = 1
 	n.Children(0, func(child *node.Node) {
 		if !child.Exist() {
 			return
 		}
 
 		ds = append(ds, fuseutil.Dirent{
-			Offset: offset,
+			Offset: fuseops.DirOffset(len(ds)) + 1,
 			Inode:  fuseops.InodeID(child.Entry.Virtual.Inode),
 			Name:   child.Name,
 			Type:   direntType(child.Entry),
 		})
-
-		offset++
 	})
 
 	// Add "." directory.
 	ds = append(ds, fuseutil.Dirent{
-		Offset: offset,
+		Offset: fuseops.DirOffset(len(ds)) + 1,
 		Inode:  fuseops.InodeID(n.Entry.Virtual.Inode),
 		Name:   ".",
 		Type:   fuseutil.DT_Directory,
 	})
-	offset++
 
 	// Add ".." directory.
 	inode := dh.mDirParentInode
@@ -297,7 +293,7 @@ func (dh *DirHandle) readDirents(n *node.Node) (ds []fuseutil.Dirent) {
 	}
 
 	ds = append(ds, fuseutil.Dirent{
-		Offset: offset,
+		Offset: fuseops.DirOffset(len(ds)) + 1,
 		Inode:  inode,
 		Name:   "..",
 		Type:   fuseutil.DT_Directory,
