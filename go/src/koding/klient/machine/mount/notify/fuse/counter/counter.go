@@ -7,6 +7,7 @@ import (
 	"sort"
 	"sync"
 	"syscall"
+	"text/tabwriter"
 	"time"
 
 	"github.com/jacobsa/fuse/fuseops"
@@ -271,6 +272,9 @@ func (c *CounterFS) loop() {
 	for range ch {
 		fmt.Fprintln(os.Stderr, "Printing method execution statuses:")
 
+		w := tabwriter.NewWriter(os.Stderr, 2, 0, 2, ' ', 0)
+		fmt.Fprintf(w, "METHOD\tCALLS\tAVERAGE_TIME\n")
+
 		c.mu.Lock()
 		names := make([]string, 0, len(c.methods))
 		for name := range c.methods {
@@ -282,9 +286,11 @@ func (c *CounterFS) loop() {
 			m := c.methods[name]
 
 			count, averageTime := m.Status()
-			fmt.Fprintf(os.Stderr, "%s\t\t%d\t%v", name, count, averageTime)
+			fmt.Fprintf(w, "%s\t%d\t%v\n", name, count, averageTime)
 		}
 		c.mu.Unlock()
+
+		w.Flush()
 
 		select {
 		case <-ch:
