@@ -1,4 +1,4 @@
-package fusetest
+package counter
 
 import (
 	"fmt"
@@ -14,6 +14,11 @@ import (
 	"github.com/jacobsa/fuse/fuseutil"
 	"golang.org/x/net/context"
 )
+
+// Wrap wraps provided filesystem with calls counter.
+func Wrap(fs fuseutil.FileSystem) fuseutil.FileSystem {
+	return newCounterFS(fs)
+}
 
 type measurement struct {
 	mu sync.Mutex
@@ -43,9 +48,9 @@ func (m *measurement) Status() (uint64, time.Duration) {
 	return m.count, time.Duration(m.averageTime)
 }
 
-// CounterFS implements fuseutil.FileSystem. It counts function invocation
+// counterFS implements fuseutil.FileSystem. It counts function invocation
 // times and the number of their calls.
-type CounterFS struct {
+type counterFS struct {
 	fuseutil.NotImplementedFileSystem
 	watched fuseutil.FileSystem
 
@@ -53,11 +58,11 @@ type CounterFS struct {
 	methods map[string]*measurement
 }
 
-// NewCounterFS creates ad returns new CounterFS instance. It also starts
+// newCounterFS creates ad returns new counterFS instance. It also starts
 // listening for SIGTSTP signal and prints current status when the signal is
 // trapped. Sending SIGTSTP twice will reset the counters.
-func NewCounterFS(watched fuseutil.FileSystem) *CounterFS {
-	cfs := &CounterFS{
+func newCounterFS(watched fuseutil.FileSystem) *counterFS {
+	cfs := &counterFS{
 		watched: watched,
 		methods: make(map[string]*measurement),
 	}
@@ -68,7 +73,7 @@ func NewCounterFS(watched fuseutil.FileSystem) *CounterFS {
 }
 
 // StatFS is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) (err error) {
+func (c *counterFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) (err error) {
 	c.watch("StatFS", func(watched fuseutil.FileSystem) {
 		err = watched.StatFS(ctx, op)
 	})
@@ -76,7 +81,7 @@ func (c *CounterFS) StatFS(ctx context.Context, op *fuseops.StatFSOp) (err error
 }
 
 // LookUpInode is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) (err error) {
+func (c *counterFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) (err error) {
 	c.watch("LookUpInode", func(watched fuseutil.FileSystem) {
 		err = watched.LookUpInode(ctx, op)
 	})
@@ -84,7 +89,7 @@ func (c *CounterFS) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) 
 }
 
 // GetInodeAttributes is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) (err error) {
+func (c *counterFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) (err error) {
 	c.watch("GetInodeAttributes", func(watched fuseutil.FileSystem) {
 		err = watched.GetInodeAttributes(ctx, op)
 	})
@@ -92,7 +97,7 @@ func (c *CounterFS) GetInodeAttributes(ctx context.Context, op *fuseops.GetInode
 }
 
 // SetInodeAttributes is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) (err error) {
+func (c *counterFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) (err error) {
 	c.watch("SetInodeAttributes", func(watched fuseutil.FileSystem) {
 		err = watched.SetInodeAttributes(ctx, op)
 	})
@@ -100,7 +105,7 @@ func (c *CounterFS) SetInodeAttributes(ctx context.Context, op *fuseops.SetInode
 }
 
 // ForgetInode is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) (err error) {
+func (c *counterFS) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) (err error) {
 	c.watch("ForgetInode", func(watched fuseutil.FileSystem) {
 		err = watched.ForgetInode(ctx, op)
 	})
@@ -108,7 +113,7 @@ func (c *CounterFS) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) 
 }
 
 // MkDir is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error) {
+func (c *counterFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error) {
 	c.watch("MkDir", func(watched fuseutil.FileSystem) {
 		err = watched.MkDir(ctx, op)
 	})
@@ -116,7 +121,7 @@ func (c *CounterFS) MkDir(ctx context.Context, op *fuseops.MkDirOp) (err error) 
 }
 
 // MkNode is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) MkNode(ctx context.Context, op *fuseops.MkNodeOp) (err error) {
+func (c *counterFS) MkNode(ctx context.Context, op *fuseops.MkNodeOp) (err error) {
 	c.watch("MkNode", func(watched fuseutil.FileSystem) {
 		err = watched.MkNode(ctx, op)
 	})
@@ -124,7 +129,7 @@ func (c *CounterFS) MkNode(ctx context.Context, op *fuseops.MkNodeOp) (err error
 }
 
 // CreateFile is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) (err error) {
+func (c *counterFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) (err error) {
 	c.watch("CreateFile", func(watched fuseutil.FileSystem) {
 		err = watched.CreateFile(ctx, op)
 	})
@@ -132,7 +137,7 @@ func (c *CounterFS) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) (e
 }
 
 // CreateSymlink is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) CreateSymlink(ctx context.Context, op *fuseops.CreateSymlinkOp) (err error) {
+func (c *counterFS) CreateSymlink(ctx context.Context, op *fuseops.CreateSymlinkOp) (err error) {
 	c.watch("CreateSymlink", func(watched fuseutil.FileSystem) {
 		err = watched.CreateSymlink(ctx, op)
 	})
@@ -140,7 +145,7 @@ func (c *CounterFS) CreateSymlink(ctx context.Context, op *fuseops.CreateSymlink
 }
 
 // Rename is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) Rename(ctx context.Context, op *fuseops.RenameOp) (err error) {
+func (c *counterFS) Rename(ctx context.Context, op *fuseops.RenameOp) (err error) {
 	c.watch("Rename", func(watched fuseutil.FileSystem) {
 		err = watched.Rename(ctx, op)
 	})
@@ -148,7 +153,7 @@ func (c *CounterFS) Rename(ctx context.Context, op *fuseops.RenameOp) (err error
 }
 
 // RmDir is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error) {
+func (c *counterFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error) {
 	c.watch("RmDir", func(watched fuseutil.FileSystem) {
 		err = watched.RmDir(ctx, op)
 	})
@@ -156,7 +161,7 @@ func (c *CounterFS) RmDir(ctx context.Context, op *fuseops.RmDirOp) (err error) 
 }
 
 // Unlink is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) (err error) {
+func (c *counterFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) (err error) {
 	c.watch("Unlink", func(watched fuseutil.FileSystem) {
 		err = watched.Unlink(ctx, op)
 	})
@@ -164,7 +169,7 @@ func (c *CounterFS) Unlink(ctx context.Context, op *fuseops.UnlinkOp) (err error
 }
 
 // OpenDir is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) (err error) {
+func (c *counterFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) (err error) {
 	c.watch("OpenDir", func(watched fuseutil.FileSystem) {
 		err = watched.OpenDir(ctx, op)
 	})
@@ -172,7 +177,7 @@ func (c *CounterFS) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) (err err
 }
 
 // ReadDir is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) (err error) {
+func (c *counterFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) (err error) {
 	c.watch("ReadDir", func(watched fuseutil.FileSystem) {
 		err = watched.ReadDir(ctx, op)
 	})
@@ -180,7 +185,7 @@ func (c *CounterFS) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) (err err
 }
 
 // ReleaseDirHandle is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseDirHandleOp) (err error) {
+func (c *counterFS) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseDirHandleOp) (err error) {
 	c.watch("ReleaseDirHandle", func(watched fuseutil.FileSystem) {
 		err = watched.ReleaseDirHandle(ctx, op)
 	})
@@ -188,7 +193,7 @@ func (c *CounterFS) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseDir
 }
 
 // OpenFile is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err error) {
+func (c *counterFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err error) {
 	c.watch("OpenFile", func(watched fuseutil.FileSystem) {
 		err = watched.OpenFile(ctx, op)
 	})
@@ -196,7 +201,7 @@ func (c *CounterFS) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err e
 }
 
 // ReadFile is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) (err error) {
+func (c *counterFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) (err error) {
 	c.watch("ReadFile", func(watched fuseutil.FileSystem) {
 		err = watched.ReadFile(ctx, op)
 	})
@@ -204,7 +209,7 @@ func (c *CounterFS) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) (err e
 }
 
 // WriteFile is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) (err error) {
+func (c *counterFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) (err error) {
 	c.watch("WriteFile", func(watched fuseutil.FileSystem) {
 		err = watched.WriteFile(ctx, op)
 	})
@@ -212,7 +217,7 @@ func (c *CounterFS) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) (err
 }
 
 // SyncFile is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) (err error) {
+func (c *counterFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) (err error) {
 	c.watch("SyncFile", func(watched fuseutil.FileSystem) {
 		err = watched.SyncFile(ctx, op)
 	})
@@ -220,7 +225,7 @@ func (c *CounterFS) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) (err e
 }
 
 // FlushFile is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) (err error) {
+func (c *counterFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) (err error) {
 	c.watch("FlushFile", func(watched fuseutil.FileSystem) {
 		err = watched.FlushFile(ctx, op)
 	})
@@ -228,7 +233,7 @@ func (c *CounterFS) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) (err
 }
 
 // ReleaseFileHandle is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFileHandleOp) (err error) {
+func (c *counterFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFileHandleOp) (err error) {
 	c.watch("ReleaseFileHandle", func(watched fuseutil.FileSystem) {
 		err = watched.ReleaseFileHandle(ctx, op)
 	})
@@ -236,7 +241,7 @@ func (c *CounterFS) ReleaseFileHandle(ctx context.Context, op *fuseops.ReleaseFi
 }
 
 // ReadSymlink is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) ReadSymlink(ctx context.Context, op *fuseops.ReadSymlinkOp) (err error) {
+func (c *counterFS) ReadSymlink(ctx context.Context, op *fuseops.ReadSymlinkOp) (err error) {
 	c.watch("ReadSymlink", func(watched fuseutil.FileSystem) {
 		err = watched.ReadSymlink(ctx, op)
 	})
@@ -244,14 +249,14 @@ func (c *CounterFS) ReadSymlink(ctx context.Context, op *fuseops.ReadSymlinkOp) 
 }
 
 // Destroy is a part of fuseutil.FileSystem interface.
-func (c *CounterFS) Destroy() {
+func (c *counterFS) Destroy() {
 	c.watch("Destroy", func(watched fuseutil.FileSystem) {
 		watched.Destroy()
 	})
 	return
 }
 
-func (c *CounterFS) watch(name string, f func(watched fuseutil.FileSystem)) {
+func (c *counterFS) watch(name string, f func(watched fuseutil.FileSystem)) {
 	c.mu.RLock()
 	ms := c.methods[name]
 	if ms == nil {
@@ -265,7 +270,7 @@ func (c *CounterFS) watch(name string, f func(watched fuseutil.FileSystem)) {
 	})
 }
 
-func (c *CounterFS) loop() {
+func (c *counterFS) loop() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTSTP)
 
@@ -300,7 +305,7 @@ func (c *CounterFS) loop() {
 			c.mu.Unlock()
 			fmt.Fprintln(os.Stderr, "OK")
 		case <-time.After(500 * time.Millisecond):
-			fmt.Fprintf(os.Stderr, "Method counter - Done")
+			fmt.Fprintln(os.Stderr, "Method counter - Done")
 		}
 	}
 }

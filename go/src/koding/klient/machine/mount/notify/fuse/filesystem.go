@@ -135,8 +135,11 @@ type Filesystem struct {
 	mDirParentInode fuseops.InodeID
 }
 
+// FSWrapFunc allows to attach middlerares to underling filesystems.
+type FSWrapFunc func(fuseutil.FileSystem) fuseutil.FileSystem
+
 // NewFilesystem creates new Filesystem value.
-func NewFilesystem(opts *Options) (*Filesystem, error) {
+func NewFilesystem(opts *Options, wraps ...FSWrapFunc) (*Filesystem, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
@@ -159,7 +162,13 @@ func NewFilesystem(opts *Options) (*Filesystem, error) {
 		mDirParentInode: getMountPointParentInode(opts.MountDir),
 	}
 
-	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
+	// Attach additional filesystem wrappers if any.
+	var fuseFS fuseutil.FileSystem = fs
+	for _, wrap := range wraps {
+		fuseFS = wrap(fuseFS)
+	}
+
+	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fuseFS), fs.Config())
 	if err != nil {
 		return nil, err
 	}
