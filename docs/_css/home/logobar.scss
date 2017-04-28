@@ -13,7 +13,47 @@
     padding: 0 28px;
     line-height: 22px;
   }
+  .Homepage-LogoBar--content {
+    flex: 1;
+    max-width: 500px;
+    margin-right: 50px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  &.features {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 100px 15px;
+    flex-direction: row;
+    h3 {
+      color: #DB881F;
+      font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+      font-size: 32px;
+      font-weight: 400;
+      padding: 0;
+      line-height: 1.4;
+      text-align: left;
+      margin-bottom: 40px;
+    }
+    .Homepage-LogoBar--logos {
+      flex: 1;
+      img {
+        margin: 0 25px 50px;
+      }
+    }
+  }
+  p {
+    color: #1E2E42;
+    opacity: 0.8;
+    font-family: "proxima-nova", Helvetica, Arial, sans-serif;
+    font-size: 20px;
+    line-height: 1.4;
+  }
 }
+
 .Homepage-LogoBar--logos {
   display: flex;
   align-items: center;
@@ -24,19 +64,21 @@
     margin: 0 30px 30px;
   }
 }
+
 .Homepage-LogoBar-Gray {
-  background-color: #F5F9FB;
-  border-top: 1px solid #E8ECEE;
-  border-bottom: 1px solid #E8ECEE;
-  padding-bottom: 75px;
+  background-color: #FBF9FC;
+  padding: 90px 0;
 }
+
 .Homepage-LogoBar-Gray h3 {
-  font-size: 18px;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 28px;
   padding: 0;
   margin-top: 30px;
   margin-bottom: 40px;
-  color: #989898;
+  color: #9B75B0;
 }
+
 @media (max-width: 1200px) {
   .Homepage-LogoBar--logos {
     img {
@@ -44,7 +86,25 @@
       width: 30%;
     }
   }
+  .Homepage-LogoBar {
+    &.features {
+      flex-direction: column;
+      .Homepage-LogoBar--content {
+        max-width: none;
+        margin: 0 0 50px;
+        h3, p {
+          text-align: center;
+        }
+      }
+      .Homepage-LogoBar--logos {
+        img {
+          margin: 0 0 30px;
+        }
+      }
+    }
+  }
 }
+
 @media (max-width: 660px) {
   .Homepage-LogoBar--logos {
     img {

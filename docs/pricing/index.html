@@ -3,12 +3,12 @@ layout: default
 title: Pricing
 permalink: /pricing
 ---
-
+<style>{% include css/pricing.css %}</style>
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#07AEC2' %}
 
 <link rel="stylesheet" href="{{ site.url }}/css/dropdown.css">
-<style>{% include css/pricing.css %}</style>
+
 
 <svg style="display: none;">
   <symbol id="minus-icon" viewBox="-1 -1 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -26,12 +26,17 @@ permalink: /pricing
   </symbol>
 </svg>
 
-<section class="m-hero m-hero--pricing">
-  <div class="m-hero__content-group">
-    <h1 class="c-heading-1">Pricing</h1>
-    <p class="c-subheading-1">Trusted by teams of developers and companies all over the world.<br>Choose the right option for you. </p>
+<div class="Header PricingHome-Header">
+  <div class="Header--outer-wrapper">
+    <div class="Header--wrapper">
+      <div class="Header--content">
+        <h1>Pricing</h1>
+        <p>Trusted by teams of developers and companies all over the world. Choose the right option for you.</p>
+      </div>
+      <img src="{{ site.url }}/assets/img/landing/heroes/hero_icon_pricing.svg" alt="Pricing">
+    </div>
   </div>
-</section>
+</div>
 
 <div class="Pricing-PriceSegments">
 
@@ -274,7 +279,7 @@ permalink: /pricing
   <div class="m-content-placement">
     <div class="m-content-placement__item">
       <div class="m-content-placement__content">
-        <img class="context-svg-icon" src="{{ site.url }}/assets/img/landing/misc/icon_spheres.svg" alt="icon_spheres.svg">
+        <img class="context-svg-icon" src="{{ site.url }}/assets/img/landing/pricing/reduce_time.svg" alt="Reduce time" width="70px">
       </div>
       <div class="m-content-placement__content">
         <p class="c-heading-5">Reduce developer down time</p>
@@ -285,7 +290,7 @@ permalink: /pricing
     </div>
     <div class="m-content-placement__item">
       <div class="m-content-placement__content">
-        <img class="context-svg-icon" src="{{ site.url }}/assets/img/landing/misc/icon_stacks.svg" alt="icon_stacks.svg">
+        <img class="context-svg-icon" src="{{ site.url }}/assets/img/landing/pricing/reduce_onboarding.svg" alt="Reduce onboarding" width="54px">
       </div>
       <div class="m-content-placement__content">
         <p class="c-heading-5">Reduce onboarding costs</p>
@@ -296,7 +301,7 @@ permalink: /pricing
     </div>
     <div class="m-content-placement__item">
       <div class="m-content-placement__content">
-        <img class="context-svg-icon" src="{{ site.url }}/assets/img/landing/misc/icon_code.svg" alt="icon_code.svg">
+        <img class="context-svg-icon" src="{{ site.url }}/assets/img/landing/pricing/dev_ops.svg" alt="Dev ops" width="74px">
       </div>
       <div class="m-content-placement__content">
         <p class="c-heading-5">Let dev ops do dev ops.</p>

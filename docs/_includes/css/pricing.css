@@ -115,9 +115,9 @@ a:hover {
 }
 
 .c-heading-2 {
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 28px;
-  color: #7F7E9E;
-  line-height: 1;
+  color: #07AEC2;
   font-weight: 300;
   line-height: 1.2em;
 }
@@ -135,9 +135,10 @@ a:hover {
 }
 
 .c-heading-5 {
-  font-size: 26px;
-  color: #7F7E9E;
-  font-weight: 300;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: #1E2E42;
 }
 
 .c-subheading-1 {
@@ -147,7 +148,9 @@ a:hover {
 }
 
 .c-subheading-5 {
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 18px;
+  line-height: 26px;
   font-weight: 300;
 }
 
@@ -318,8 +321,7 @@ a:hover {
 .Homepage-Header .social,
 .Homepage-Header .spacer,
 .Homepage-Header .logo,
-.Homepage-Header .burger,
-.Homepage-Header .signup {
+.Homepage-Header .burger{
   border-width: 0;
 }
 
@@ -393,7 +395,7 @@ a:hover {
 }
 
 .m-feature .f-value {
-  color: #48BA7D;
+  color: #07AEC2;
   display: inline-block;
 }
 
@@ -603,17 +605,17 @@ a:hover {
 }
 
 .m-content-placement__item [class*="c-subheading"] {
-  color: #48BA7D;
+  color: #07AEC2;
   margin-bottom: 1.5rem;
 }
 
 .m-content-placement__item .c-paragraph-1 {
-  color: #989898;
+  color: #617283;
   line-height: 1.5rem;
 }
 
 .m-content-placement .context-svg-icon {
-  width: 52px;
+  height: 73px;
   margin-bottom: 2rem;
 }
 
@@ -621,7 +623,7 @@ a:hover {
 /* PRICING SEGMENTS */
 
 .Pricing-PriceSegments {
-  background-color: #F9F9FB;
+  background-color: #F7FCFD;
   padding: 60px 0;
 }
 .Pricing-PriceSegments section {
@@ -654,9 +656,10 @@ a:hover {
 }
 
 .Pricing-PriceSegments--sectionTitle {
-  font-weight: 600;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-weight: 400;
   font-size: 31px;
-  color: #F2778A;
+  color: #07AEC2;
   letter-spacing: 0px;
   margin: 5px 0 22px;
 }
@@ -685,7 +688,7 @@ a:hover {
 
 .Pricing-PriceSegments--featureSection cite {
   /* Rectangle 4: */
-  background: #48BA7D;
+  background: #07AEC2;
   font-weight: 500;
   font-size: 14px;
   color: #FFFFFF;
@@ -708,7 +711,7 @@ a:hover {
 }
 .Pricing-PriceSegments--featureSection span.footprint.prominent i{
   font-weight: 400;
-  background: #48BA7D;
+  background: #07AEC2;
   color: white;
   padding: 0 8px;
   border-radius: 4px;
@@ -901,7 +904,7 @@ a:hover {
   text-decoration: none !important;
   text-transform: uppercase;
   background-color: #F2778A;
-  padding: 13px 50px;
+  padding: 13px 30px;
   font-size: 16px !important;
   display: inline-block;
   border-radius: 3px;
@@ -912,7 +915,6 @@ a:hover {
 }
 .GenericButton.bottom {
   margin: 46px auto 0;
-  width: 300px;
   box-sizing: border-box;
 }
 
@@ -1010,7 +1012,7 @@ a:hover {
   margin-bottom: 24px;
 }
 #Pricing-PriceSegments--more h3 strong {
-  color: #48BA7D;
+  color: #07AEC2;
   font-weight: 600;
 }
 
@@ -1033,7 +1035,6 @@ a:hover {
 /* DEV TEAMS */
 
 .Pricing-PriceSegments section#Pricing-PriceSegments--kodingLite {
-  margin-top: -150px;
   margin-bottom: 0;
 }
 
@@ -1048,30 +1049,31 @@ a:hover {
 /* SUPPORT PLANS */
 
 .Pricing-SupportPlans {
-  background-color: #F9F9FB;
+  background-color: #F7FCFD;
   padding-bottom: 85px;
-  border-bottom: 1px solid #EBEBEB;
 }
 
 .Pricing-SupportPlans > h2 {
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
   font-weight: 500;
   font-size: 36px;
-  color: #727272;
+  color: #07AEC2;
   letter-spacing: 0.13px;
   text-align: center;
   margin-bottom: 6px;
 }
 
 .Pricing-SupportPlans > h3 {
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 18px;
-  color: #727272;
+  color: #617283;
   letter-spacing: 0.06px;
   line-height: 24px;
   text-align: center;
 }
 
 .Pricing-SupportPlans--support {
-  background: rgba(72,186,125,0.05);
+  background: white;
   border: 1px solid #D6D6D6;
   border-radius: 4px;
   max-width: 1176px;
@@ -1093,9 +1095,10 @@ a:hover {
 }
 
 .Pricing-SupportPlans--support div h3 {
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
   font-weight: 500;
   font-size: 30px;
-  color: #F2778A;
+  color: #07AEC2;
   line-height: 1.3;
 }
 
@@ -1106,6 +1109,7 @@ a:hover {
 }
 
 .Pricing-SupportPlans--support div span.price {
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-weight: 600;
   font-size: 28px;
   letter-spacing: -1.17px;
@@ -1189,8 +1193,7 @@ a:hover {
 }
 
 .Pricing-Footnotes {
-  background-color: #F9F9FB;
-  border-top: 1px solid #EBEBEB;
+  background-color: #F7FDFD;
   padding: 60px 0 80px;
 }
 .Pricing-Footnotes section {
@@ -1199,13 +1202,15 @@ a:hover {
   text-align: left;
 }
 .Pricing-Footnotes h2 {
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
   font-weight: 300;
-  font-size: 28px;
-  color: #7F7E9E;
+  font-size: 32px;
+  color: #07AEC2;
   letter-spacing: -0.34px;
   line-height: 46px;
 }
 .Pricing-Footnotes h3 {
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-weight: 300;
   font-size: 18px;
   color: #727272;
@@ -1221,6 +1226,7 @@ a:hover {
   margin-top: 20px;
 }
 .Pricing-Footnotes ul li {
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 14px;
   color: rgba(127,126,157,0.70);
   letter-spacing: -0.17px;

@@ -1,0 +1,41 @@
+<div class="FeatureServices">
+  <div class="Homepage--container">
+    {% if include.title %}
+    <h2 class="feature-title">{{ include.title }}</h2>
+    {% endif %}
+    {% if include.paragraph %}
+    <p>{{ include.paragraph }}</p>
+    {% endif %}
+  </div>
+  <div class="FeatureServices--examples">
+    <div class="codeWrapper">
+      <div class="codeInnerWrapper">
+        <div class="codeLineNumbers">
+          <div class="codeLineNumber">1</div>
+          <div class="codeLineNumber">2</div>
+          <div class="codeLineNumber">3</div>
+          <div class="codeLineNumber">4</div>
+          <div class="codeLineNumber">5</div>
+          <div class="codeLineNumber">6</div>
+          <div class="codeLineNumber">7</div>
+          <div class="codeLineNumber">8</div>
+        </div>
+        <div class="codeSource">
+        </div>
+      </div>
+    </div>
+
+    <ul class="FeatureServices--list">
+      {% for service in site.data.services %}
+      {% assign src = service.image | prepend: include.path | prepend: site.url %}
+      <li class="FeatureServices--list-item {% if service.active == true %} active {% endif %}"
+          data-code="{{ service.code }}">
+        <img src="{{ src }}"
+             {% if service.width %}width="{{ service.width }}px" {% endif %}
+             {% if service.height %}height="{{ service.height }}px" {% endif %}
+             alt="{{ service.name }}"/>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
