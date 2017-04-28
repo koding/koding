@@ -38,7 +38,7 @@ func (Git) Scan(idx *index.Index) (string, int64, int64, error) {
 		return !n.IsShadowed()
 	})
 
-	if isGit {
+	if !isGit {
 		return "", 0, 0, errors.New("remote directory is not a git repository")
 	}
 
