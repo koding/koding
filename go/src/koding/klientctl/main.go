@@ -625,6 +625,24 @@ func run(args []string) {
 				},
 			},
 		}, {
+			Name:  "config",
+			Usage: "Manage remote machine configuration.",
+			Subcommands: []cli.Command{{
+				Name:   "set",
+				Usage:  "Set a value for a given key.",
+				Action: ctlcli.ExitErrAction(MachineConfigSet, log, "set"),
+			}, {
+				Name:   "show",
+				Usage:  "Show configuration.",
+				Action: ctlcli.ExitErrAction(MachineConfigShow, log, "show"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}},
+		}, {
 			Name:        "mount",
 			Aliases:     []string{"m"},
 			Usage:       "Mount remote directory.",

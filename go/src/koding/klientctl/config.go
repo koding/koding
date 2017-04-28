@@ -90,7 +90,7 @@ func ConfigShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 0, nil
 	}
 
-	printKonfig(used)
+	printKeyVal(used, ignoredFields...)
 
 	return 0, nil
 }
@@ -210,17 +210,17 @@ var ignoredFields = []string{
 	"tunnelID",
 }
 
-func printKonfig(konfig *konfig.Konfig) {
+func printKeyVal(v interface{}, ignoredFields ...string) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
 
 	fmt.Fprintln(w, "KEY\tVALUE")
 
-	obj := b.Build(konfig, ignoredFields...)
+	obj := b.Build(v, ignoredFields...)
 
 	for _, key := range obj.Keys() {
 		value := obj[key]
-		if value == nil || fmt.Sprintf("%v", value) == "" {
+		if s := fmt.Sprintf("%v", value); value == nil || s == "" || s == "0" {
 			value = "-"
 		}
 		fmt.Fprintf(w, "%s\t%v\n", key, value)
