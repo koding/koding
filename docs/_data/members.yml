@@ -17,7 +17,7 @@
 - title: Business Team
   positions:
     count: 1
-    link: https://jobs.lever.co/koding/4ee5df76-953e-4922-b8fb-dfb82d2fe5a9
+    link: https://koding.breezy.hr
   members:
 
     - name: Alan McMillan
@@ -31,7 +31,7 @@
 - title: Engineering
   positions:
     count: 5
-    link: https://jobs.lever.co/koding
+    link: https://koding.breezy.hr
   members:
     - name: Gokmen Goksel
       title: Engineering Lead
@@ -87,7 +87,7 @@
 - title: Creative
   positions:
     count: 1
-    link: https://jobs.lever.co/koding/930587d8-6c62-4d62-b827-ee9b83614e33
+    link: https://koding.breezy.hr
   members:
 
     - name: Fahrettin Tasdelen
@@ -102,7 +102,7 @@
 - title: QA / Support
   positions:
     count: 2
-    link: https://jobs.lever.co/koding
+    link: https://koding.breezy.hr
   members:
     - name: Khaled Wagdy
       title: Support Engineer
