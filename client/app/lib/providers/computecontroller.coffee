@@ -70,15 +70,7 @@ module.exports = class ComputeController extends KDController
 
       @on 'StackAdminMessageDeleted', @bound 'handleStackAdminMessageDeleted'
 
-      groupsController.on 'StackTemplateChanged', (event) =>
-        return  unless templateId = event?.contents
-
-        @once 'StackRevisionChecked', (stack, oldRevision) =>
-          if stack.baseStackId is templateId
-            @emit 'StackRevisionUpdated', stack, oldRevision
-
-        @checkGroupStacks event?.contents
-
+      groupsController.on 'StackTemplateChanged', (event) => @checkGroupStacks event?.contents
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
@@ -754,7 +746,7 @@ module.exports = class ComputeController extends KDController
         if not _revisionStatus or _revisionStatus.status isnt status
           debug 'checkStackRevisions stack changed!', stack
           @storage.stacks.push stack
-          @emit 'StackRevisionChecked', stack, _revisionStatus
+          @emit 'StackRevisionChecked', stack
 
     if stackTemplateId and not found
       @createDefaultStack()
@@ -784,6 +776,7 @@ module.exports = class ComputeController extends KDController
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
         @removeRevisionFromUnSharedStackTemplate _id, stackTemplate
+        @storage.templates.pop stackTemplate  unless stackTemplate.isMine()
         new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
@@ -1078,43 +1071,25 @@ module.exports = class ComputeController extends KDController
     router.handleRoute route
 
 
-  makeTeamDefault: (stackTemplate, revive) ->
+  makeTeamDefault: (stackTemplate) ->
 
-    { credentials, config: { requiredProviders } } = stackTemplate
+    { reactor } = kd.singletons
 
-    { groupsController, reactor } = kd.singletons
+    createShareModal (needShare, modal) ->
 
-    createShareModal (needShare, modal) =>
+      remote.api.ComputeProvider.setGroupStack {
+        templateId: stackTemplate._id
+        shareCredential: needShare
+      }, (err) ->
 
-      groupsController.setDefaultTemplate stackTemplate, (err) =>
+        return  if showError err
 
         reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
         reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
 
         Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
-        if needShare
-        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
-        else modal.destroy()
-
-
-  shareCredentials: (credentials, requiredProviders, callback) ->
-
-    selectedProvider = null
-    for provider in requiredProviders when provider in PROVIDERS
-      selectedProvider = provider
-    selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
-
-    creds = Object.keys credentials
-    { groupsController } = kd.singletons
-
-    if creds.length > 0 and credential = credentials["#{selectedProvider}"]?.first
-      remote.api.JCredential.one credential, (err, credential) ->
-        { slug } = groupsController.getCurrentGroup()
-        credential.shareWith { target: slug, accessLevel: 'write' }, (err) ->
-          showError 'Failed to share credential'  if err
-          callback()
-    else showError 'Failed to share credential'
+        modal.destroy()
 
 
   removeClonedFromAttr: (stackTemplate, callback = kd.noop) ->

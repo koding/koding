@@ -156,6 +156,10 @@ module.exports = class ComputeStorage extends kd.Object
     return null
 
 
+  _deleteHandler: (type, value) ->
+    => @pop type, value._id
+
+
   push: (type, value) ->
 
     debug 'push', type, value
@@ -183,6 +187,8 @@ module.exports = class ComputeStorage extends kd.Object
       value = cached
     else
       @storage[type].push value
+      value.off? 'deleteInstance', @_deleteHandler type, value
+      value.on?  'deleteInstance', @_deleteHandler type, value
 
     postPush?.call this, value
 

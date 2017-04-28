@@ -5,7 +5,7 @@ ProfileLinkContainer = require 'app/components/profile/profilelinkcontainer'
 
 module.exports = SidebarWidgetUser = ({ size = {}, owner }) ->
 
-  { width, height } = size
+  { width = 36, height = 36 } = size
 
   <div className='SidebarWidget-UserView'>
     <ProfileLinkContainer origin={owner}>
