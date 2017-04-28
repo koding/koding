@@ -5,6 +5,20 @@ app.aceeditor.styl
 */
 }
 
+panel-find-replace-bg           = #000000
+panel-find-replace-border       = #232327
+
+input-bg                        = #333339
+input-border                    = #515151
+input-active-border             = #A8CEFF
+input-placeholder               = #989898
+input-color                     = #FFFFFF
+btn-color                       = #919191
+btn-hover-bg                    = #67A2EE
+btn-hover-color                 = #FFFFFF
+btn-transparent-active-color    = #67A2EE
+
+
 #kdmaincontainer.fullscreen
   .ace .application-page
     aside
@@ -231,143 +245,221 @@ body.ace
     font-weight             bold
 
 
+btn-transition()
+  -webkit-transition                -webkit-transform .1s ease,
+  background                                          .1s ease
+  -moz-transition                   -moz-transform    .1s ease,
+  background                                          .1s ease
+  transition                        transform         .1s ease,
+  background                                          .1s ease
+
+btn-icon-before-after()
+  content                           ''
+  position                          absolute
+  width                             100%
+  height                            100%
+  top                               0
+  left                              0
+  bg                                color, btn-color
+  btn-transition()
+
 .ace-find-replace-view
-  display                   block
-  bottom                    20px
-  bg                        color, #252E30
-  color                     #5e7074
-  z-index                   10001 // to make it bigger than fullscreen ide panes
-  padding-top               8px
-  border-bottom             1px solid #2b3638
-  height                    40px
-  overflow                  hidden
-  shadow                    inset 0 -1px 0 #1f2729
+  display                           flex
+  flex-direction                    row
+  align-items                       flex-start
+  justify-content                   space-between
+  min-height                        50px
+  bottom                            40px
+  bg                                color, panel-find-replace-bg
+  z-index                           10001 // to make it bigger than fullscreen ide panes
+  padding                           10px 15px 0
+  border-bottom                     2px solid panel-find-replace-border
+  height                            auto
+  overflow                          hidden
   borderBox()
   abs()
 
-  &.with-replace-view
-    height                  66px
+  a, input, button
+    height                          30px
+    bg                              color, input-bg
+    font-size                       13px
+    outline                         none
+    shadow                          none
+    border                          none
+    rounded                         4px
+    btn-transition()
 
-    .ace-replace-input
-      margin-top            3px !important
-
-    .ace-replace-button
-      top                   0 !important
+  a,
+  button
+    &:hover,
+    &:focus
+      bg                            color, btn-hover-bg !important
+      color                         btn-hover-color !important
+      border                        none
 
   .ace-find-replace-settings
-    width                 100px
-    abs()
-    left                  0
+    display                         inline-flex
+    margin-bottom                   10px
+
+    .multiple-choice
+      display                       inline-flex
+      position                      relative
+
+      a
+        position                    relative
+        cursor                      pointer
+        size                        30px, 30px
+        background                  transparent
+        bg                          color, transparent
+        border                      none
+        text-indent                 -10000px
+        shadow                      none
+        rounded                     4px
+        borderBox()
+        btn-transition()
+
+        &:before
+          btn-icon-before-after()
+
+        &:hover:before,
+        &.active:hover:before
+          bg                        color, btn-hover-color
+
+        &.active:before
+          bg                        color, btn-hover-bg
+
+        &.multiple-choice-case-sensitive:before
+          mask-sprite               ace 'search_case'
+        &.multiple-choice-regex:before
+          mask-sprite               ace 'search_regex'
+        &.multiple-choice-whole-word:before
+          mask-sprite               ace 'search_whole'
 
   .ace-find-replace-inputs
-    padding               0 213px 0 86px
-    width                 auto
+    display                         inline-flex
+    flex                            1
+    margin-right                    10px
+    flex-wrap                       wrap
 
     .kdinput
-      height              24px
-      padding             0 5px
-      font-size           12px
-      rounded             2px
-      line-height         24px
-      color               #7e9ea3
-      bg                  color, #2f3b3d
-      shadow              0 1px 0 #374447
-      border              1px solid #14181a
+      height                        30px
+      padding                       0 13px
+      font-size                     12px
+      line-height                   30px
+      rounded                       4px
+      color                         input-color
+      bg                            color, input-bg
+      border                        1px solid input-border
+      placeholder-color             input-placeholder
       borderBox()
+      bg                            image, none
+      bg                            position, center right 10px
+      bg                            repeat, no-repeat
 
-      &:nth-child(2)
-        margin-top        8px
-
-      &:hover
-        border            1px solid #14181a
-        background        #354245
+      &:hover,
+      &:focus
+        border-color                input-active-border
+        shadow                      none
 
       &:focus
-        background        #354245
-        border            1px solid #7e9ea3
-        shadow            0 0 3px #7e9ea3
+        s-sprite                    ace 'search_enter'
+
+    .ace-find-replace-find-wrapper,
+    .ace-find-replace-replace-wrapper
+      display                       inline-flex
+      flex-direction                row
+      min-width                     245px
+      flex                          1
+      margin-left                   10px
+      margin-bottom                 10px
+
+    .ace-find-replace-find-wrapper
+
+      .kdinput
+        margin-right                1px
+        rounded                     4px 0 0 4px
+        s-sprite                    ace 'search_icon'
+
+        &:focus
+          s-sprite                  ace 'search_enter'
+
+      .kdbutton
+        size                        30px, 30px
+        bg                          color, input-bg
+
+        &:before
+          content                   ''
+          position                  absolute
+          width                     100%
+          height                    100%
+          top                       0
+          left                      0
+          bg                        color, btn-color
+          btn-transition()
+
+        &:hover:before,
+        &.active:hover:before
+          bg                        color, #ffffff
+
+        &.active:before
+          bg                        color, #67A2EE
+
+        &.find-next
+          rounded                   0
+          margin-right              1px
+
+          &:before
+            mask-sprite             ace 'arrow_down'
+
+        &.find-prev
+          rounded                   0 4px 4px 0
+
+          &:before
+            mask-sprite             ace 'arrow_up'
+
+    .ace-find-replace-replace-wrapper
+      display                       none
 
   .ace-find-replace-buttons
-    width                 207px
-    abs()
-    right                 0
-    top                   8px
+    display                         none
+    margin-left                     10px
+    margin-bottom                   10px
 
-    .kdbutton
-      cursor              pointer
-      rounded             3px
-      size                91px, 24px
-      border              1px solid #374447
-      margin-bottom       3px
-      color               #7e9ea3
-      bg                  color, #212a2b
-      shadow              0 1px 0 #14181a
-      -webkit-transition  -webkit-transform .1s ease,
-                          background        .1s ease
-      -moz-transition     -moz-transform    .1s ease,
-                          background        .1s ease
-      transition          transform         .1s ease,
-                          background        .1s ease
+    .ace-replace-button
+      padding                       6px 17px 8px
+      color                         input-color
+      font-weight                   500
+      btn-transition()
       borderBox()
 
-      &:hover
-        bg                color, #2b3638
-      &:active
-        shadow            none
-        vendor            transform, translateY(1px)
+      &:first-of-type
+        rounded                     4px 0 0 4px
+        margin-right                1px
 
-  .ace-replace-button
-    position                relative
-    top                     5px
+      &:last-of-type
+        rounded                     0 4px 4px 0
 
-  .kdinput
-    width                 100%
+  .ace-find-replace-close-wrapper
+    display                         none
+    height                          30px
+    float                           right
+    justify-content                 center
+    align-items                     center
+    margin-bottom                   10px
 
-  .close-icon
-    r-sprite              app "20_close_tab"
+    .close-icon
+      position                      relative
+      size                          10px, 10px
+      top                           0
 
-  .multiple-choice
-    fl()
-    position              relative
-    margin-left           4px
-    a
-      cursor              pointer
-      size                26px, 24px
-      border              1px solid #374447
-      margin-bottom       3px
-      color               #7e9ea3
-      bg                  color, #212a2b
-      shadow              0 1px 0 #14181a
-      -webkit-transition  -webkit-transform .1s ease,
-                          background        .1s ease
-      -moz-transition     -moz-transform    .1s ease,
-                          background        .1s ease
-      transition          transform         .1s ease,
-                          background        .1s ease
-      text-indent         -10000px
-      borderBox()
+      &:before
+        btn-icon-before-after()
+        mask-sprite                 ace "search_close"
 
-      &:nth-child(1)
-      &:nth-child(2)
-        border-right            none
-
-      &:nth-child(3)
-        border-right-color      #374447
-
-      &.multiple-choice-case-sensitive
-        r-sprite            ace '26_search_case'
-        &.active
-          r-sprite          ace '26_search_case_active'
-      &.multiple-choice-regex
-        r-sprite            ace '26_search_regex'
-        &.active
-          r-sprite          ace '26_search_regex_active'
-      &.multiple-choice-whole-word
-        r-sprite            ace '26_search_whole'
-        &.active
-          r-sprite          ace '26_search_whole_active'
-      &.active
-        border-color      #374447 !important
+  &.with-replace-view
+    .ace-find-replace-replace-wrapper,
+    .ace-find-replace-buttons
+      display                       inline-flex
 
 .kdmodal.goto
   .kdmodal-content
