@@ -129,7 +129,7 @@ module.exports = class AceFindAndReplaceView extends JView
 
     @findInput = new KDHitEnterInputView
       type         : 'text'
-      placeholder  : 'Find...'
+      placeholder  : 'Find in the file...'
       validate     :
         rules      :
           required : yes
@@ -137,19 +137,17 @@ module.exports = class AceFindAndReplaceView extends JView
       callback     : => @findNext()
 
     @findNextButton = new KDButtonView
-      cssClass     : 'editor-button'
-      title        : 'Find Next'
+      cssClass     : 'editor-button find-next'
       callback     : => @findNext()
 
     @findPrevButton = new KDButtonView
-      cssClass     : 'editor-button'
-      title        : 'Find Prev'
+      cssClass     : 'editor-button find-prev'
       callback     : => @findPrev()
 
     @replaceInput = new KDHitEnterInputView
       type         : 'text'
       cssClass     : 'ace-replace-input'
-      placeholder  : 'Replace...'
+      placeholder  : 'Replace with...'
       validate     :
         rules      :
           required : yes
@@ -184,14 +182,20 @@ module.exports = class AceFindAndReplaceView extends JView
         {{> @choices}}
       </div>
       <div class="ace-find-replace-inputs">
-        {{> @findInput}}
-        {{> @replaceInput}}
+        <div class="ace-find-replace-find-wrapper">
+          {{> @findInput}}
+          {{> @findNextButton}}
+          {{> @findPrevButton}}
+        </div>
+        <div class="ace-find-replace-replace-wrapper">
+          {{> @replaceInput}}
+        </div>
+        <div class="ace-find-replace-buttons">
+          {{> @replaceButton}}
+          {{> @replaceAllButton}}
+        </div>
       </div>
-      <div class="ace-find-replace-buttons">
-        {{> @findNextButton}}
-        {{> @findPrevButton}}
-        {{> @replaceButton}}
-        {{> @replaceAllButton}}
+      <div class="ace-find-replace-close-wrapper">
+        {{> @closeButton}}
       </div>
-      {{> @closeButton}}
     '''
