@@ -5466,6 +5466,77 @@
         }
       }
     },
+    "/JStackTemplate.preview": {
+      "post": {
+        "tags": [
+          "JStackTemplate"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "preview",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "template": {
+                  "type": "string",
+                  "default": "Hello ${var.koding_user_username} -- ${var.custom_foo}"
+                },
+                "custom": {
+                  "type": "object",
+                  "properties": {
+                    "foo": {
+                      "type": "string",
+                      "default": "bar"
+                    }
+                  }
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "returns preview stack template for given template and custom variables",
+        "responses": {
+          "200": {
+            "description": "stacktemplate preview in provided format",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "template": {
+                  "type": "string",
+                  "default": "Hello gokmen -- bar"
+                },
+                "errors": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "warnings": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
     "/JStackTemplate.one": {
       "post": {
         "tags": [
