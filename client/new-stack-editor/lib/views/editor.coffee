@@ -15,18 +15,21 @@ module.exports = class Editor extends BaseView
     options.filename   ?= 'untitled.yaml'
     options.showgutter ?= yes
     options.readonly   ?= no
+    options.preview    ?= no
 
     super options, data
 
     @_initialContent = ''
 
-    { filename } = @getOptions()
+    { filename, preview } = @getOptions()
 
     @aceView = new AceView {
       cssClass: 'editor'
       useStorage: no
       createBottomBar: no
     }, FSHelper.createFileInstance { path: "localfile:/#{filename}" }
+
+    @getPreview = preview  if preview
 
 
   getContent: ->
