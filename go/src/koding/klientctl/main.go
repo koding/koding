@@ -144,724 +144,730 @@ func run(args []string) {
 	app.Version = getReadableVersion(config.Version)
 	app.EnableBashCompletion = true
 
-	app.Commands = []cli.Command{
-		{
-			Name:  "auth",
-			Usage: "User authorization.",
+	app.Commands = []cli.Command{{
+		Name:  "auth",
+		Usage: "User authorization.",
+		Subcommands: []cli.Command{{
+			Name:   "login",
+			Usage:  "Log in to your kd.io or koding.com account.",
+			Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+				cli.StringFlag{
+					Name:  "team",
+					Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
+				},
+				cli.StringFlag{
+					Name:  "baseurl",
+					Usage: "Specify a Koding endpoint to log in.",
+					Value: config.Konfig.Endpoints.Koding.Public.String(),
+				},
+				cli.StringFlag{
+					Name:  "token",
+					Usage: "Use temporary token to authenticate to your Koding account.",
+				},
+				cli.BoolFlag{
+					Name:  "force",
+					Usage: "Force new session instead of using existing one.",
+				},
+			},
+		}, {
+			Name:   "show",
+			Usage:  "Show current session details.",
+			Action: ctlcli.ExitErrAction(AuthShow, log, "show"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		},
+			auth.NewRegisterSubCommand(log), // command: kd auth register
+		},
+	}, {
+		Name:  "compat",
+		Usage: "Compatibility commands for use with old mounts.",
+		Subcommands: []cli.Command{{
+			Name:      "list",
+			ShortName: "ls",
+			Usage:     "List running machines for user.",
+			Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format",
+				},
+				cli.BoolFlag{
+					Name:  "all",
+					Usage: "Include machines that have been offline for more than 24h.",
+				},
+			},
 			Subcommands: []cli.Command{
 				{
-					Name:   "login",
-					Usage:  "Log in to your kd.io or koding.com account.",
-					Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
+					Name:   "mounts",
+					Usage:  "List the mounted machines.",
+					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "team",
-							Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
-						},
-						cli.StringFlag{
-							Name:  "baseurl",
-							Usage: "Specify a Koding endpoint to log in.",
-							Value: config.Konfig.Endpoints.Koding.Public.String(),
-						},
-						cli.StringFlag{
-							Name:  "token",
-							Usage: "Use temporary token to authenticate to your Koding account.",
-						},
-						cli.BoolFlag{
-							Name:  "force",
-							Usage: "Force new session instead of using existing one.",
+							Usage: "Output in JSON format",
 						},
 					},
 				},
-				// command: kd auth register
-				auth.NewRegisterSubCommand(log),
 			},
 		}, {
-			Name:  "compat",
-			Usage: "Compatibility commands for use with old mounts.",
-			Subcommands: []cli.Command{{
-				Name:      "list",
-				ShortName: "ls",
-				Usage:     "List running machines for user.",
-				Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format",
-					},
-					cli.BoolFlag{
-						Name:  "all",
-						Usage: "Include machines that have been offline for more than 24h.",
-					},
-				},
-				Subcommands: []cli.Command{
-					{
-						Name:   "mounts",
-						Usage:  "List the mounted machines.",
-						Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
-						Flags: []cli.Flag{
-							cli.BoolFlag{
-								Name:  "json",
-								Usage: "Output in JSON format",
-							},
-						},
-					},
-				},
-			}, {
-				Name:        "mount",
-				ShortName:   "m",
-				Usage:       "Mount a remote folder to a local folder.",
-				Description: cmdDescriptions["compat-mount"],
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "remotepath, r",
-						Usage: "Full path of remote folder in machine to mount.",
-					},
-					cli.BoolFlag{
-						Name:  "oneway-sync, s",
-						Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
-					},
-					cli.IntFlag{
-						Name:  "oneway-interval",
-						Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
-						Value: 2,
-					},
-					cli.BoolFlag{
-						Name:  "fuse, f",
-						Usage: "Mount the remote folder via Fuse.",
-					},
-					cli.BoolFlag{
-						Name:  "noprefetch-meta, p",
-						Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
-					},
-					cli.BoolFlag{
-						Name:  "prefetch-all, a",
-						Usage: "For fuse: Prefetch all contents of the remote directory up front.",
-					},
-					cli.IntFlag{
-						Name:  "prefetch-interval",
-						Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
-					},
-					cli.BoolFlag{
-						Name:  "nowatch, w",
-						Usage: "For fuse: Disable watching for changes on remote machine.",
-					},
-					cli.BoolFlag{
-						Name:  "noignore, i",
-						Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
-					},
-					cli.BoolFlag{
-						Name:  "trace, t",
-						Usage: "Turn on trace logs.",
-					},
-				},
-				Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
-				BashComplete: ctlcli.FactoryCompletion(
-					MountCommandFactory, log, "mount",
-				),
-			}, {
-				Name:        "ssh",
-				ShortName:   "s",
-				Usage:       "SSH into the machine.",
-				Description: cmdDescriptions["ssh"],
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name: "debug",
-					},
-					cli.StringFlag{
-						Name:  "username",
-						Usage: "The username to ssh into on the remote machine.",
-					},
-				},
-				Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
-			}, {
-				Name:            "run",
-				Usage:           "Run command on remote or local machine.",
-				Description:     cmdDescriptions["run"],
-				Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
-				SkipFlagParsing: true,
-			}, {
-				Name:   "repair",
-				Usage:  "Repair the given mount",
-				Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
-			}, {
-				Name: "cp",
-				Usage: fmt.Sprintf(
-					"Copy a file from one one machine to another",
-				),
-				Description: cmdDescriptions["compat-cp"],
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name: "debug",
-					},
-				},
-				Action: ctlcli.FactoryAction(
-					CpCommandFactory, log, "cp",
-				),
-				BashComplete: ctlcli.FactoryCompletion(
-					CpCommandFactory, log, "cp",
-				),
-			}, {
-				Name:        "unmount",
-				ShortName:   "u",
-				Usage:       "Unmount previously mounted machine.",
-				Description: cmdDescriptions["compat-unmount"],
-				Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
-			}, {
-				Name:        "remount",
-				ShortName:   "r",
-				Usage:       "Remount previously mounted machine using same settings.",
-				Description: cmdDescriptions["remount"],
-				Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
-			}},
-		}, {
-			Name:  "config",
-			Usage: "Manage tool configuration.",
-			Subcommands: []cli.Command{{
-				Name:   "show",
-				Usage:  "Show configuration.",
-				Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "defaults",
-						Usage: "Show also default configuration",
-					},
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-				},
-			}, {
-				Name:      "list",
-				ShortName: "ls",
-				Usage:     "List all available configurations.",
-				Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-				},
-			}, {
-				Name:   "use",
-				Usage:  "Change active configuration.",
-				Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
-			}, {
-				Name:   "set",
-				Usage:  "Set a value for the given key, overwriting default one.",
-				Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
-			}, {
-				Name:   "unset",
-				Usage:  "Unset the given key, restoring the defaut value.",
-				Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
-			}, {
-				Name:   "reset",
-				Usage:  "Resets configuration to the default value fetched from Koding.",
-				Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "force",
-						Usage: "Force retrieving configuration from Koding.",
-					},
-				},
-			}},
-		}, {
-			Name:      "credential",
-			ShortName: "c",
-			Usage:     "Manage stack credentials.",
-			Subcommands: []cli.Command{{
-				Name:      "list",
-				ShortName: "ls",
-				Usage:     "List imported stack credentials.",
-				Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-					cli.StringFlag{
-						Name:  "provider, p",
-						Usage: "Specify credential provider.",
-					},
-					cli.StringFlag{
-						Name:  "team",
-						Usage: "Specify team which the credential belongs to.",
-					},
-				},
-			}, {
-				Name:   "create",
-				Usage:  "Create new stack credential.",
-				Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-					cli.StringFlag{
-						Name:  "provider, p",
-						Usage: "Specify credential provider.",
-					},
-					cli.StringFlag{
-						Name:  "file, f",
-						Value: "",
-						Usage: "Read credential from a file.",
-					},
-					cli.StringFlag{
-						Name:  "team",
-						Usage: "Specify team which the credential belongs to.",
-					},
-					cli.StringFlag{
-						Name:  "title",
-						Usage: "Specify credential title.",
-					},
-				},
-			}, {
-				Name:   "init",
-				Usage:  "Create a credential file.",
-				Action: ctlcli.ExitErrAction(CredentialInit, log, "init"),
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "provider, p",
-						Usage: "Specify credential provider.",
-					},
-					cli.StringFlag{
-						Name:  "output, o",
-						Value: "credential.json",
-						Usage: "Output credential file.",
-					},
-					cli.StringFlag{
-						Name:  "title",
-						Usage: "Specify credential title.",
-					},
-				},
-			}, {
-				Name:   "use",
-				Usage:  "Change default credential per provider.",
-				Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
-			}, {
-				Name:   "describe",
-				Usage:  "Describe credential documents.",
-				Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-					cli.StringFlag{
-						Name:  "provider, p",
-						Usage: "Specify credential provider.",
-					},
-				},
-			}},
-		}, {
-			Name:  "daemon",
-			Usage: "Manage KD Daemon service.",
-			Subcommands: []cli.Command{{
-				Name:   "install",
-				Usage:  "Install the daemon and dependencies.",
-				Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "force, f",
-						Usage: "Forces execution of all installation steps.",
-					},
-					cli.StringFlag{
-						Name:  "prefix",
-						Usage: "Overwrite installation directory.",
-					},
-					cli.StringFlag{
-						Name:  "baseurl",
-						Usage: "Specify a Koding endpoint to log in.",
-						Value: config.Konfig.Endpoints.Koding.Public.String(),
-					},
-					cli.StringFlag{
-						Name:  "token",
-						Usage: "Temporary token to logging in into your Koding account.",
-					},
-					cli.StringFlag{
-						Name:  "team",
-						Usage: "Provide explicit Koding team to log into.",
-					},
-					cli.StringSliceFlag{
-						Name:  "skip",
-						Usage: "List steps to skip during installation.",
-					},
-				},
-			}, {
-				Name:   "uninstall",
-				Usage:  "Uninstall the daemon and dependencies.",
-				Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "force, f",
-						Usage: "Forces execution of all uninstallation steps.",
-					},
-				},
-			}, {
-				Name:   "update",
-				Usage:  "Update KD and KD Daemon to the latest versions.",
-				Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "force",
-						Usage: "Force retrieving configuration from Koding.",
-					},
-					// TODO(rjeczalik): Left here for compatibility reasons, remove in future.
-					cli.BoolFlag{
-						Name:   "continue",
-						Usage:  "Internal use only.",
-						Hidden: true,
-					},
-				},
-			}, {
-				Name:   "start",
-				Usage:  "Start the daemon service.",
-				Action: ctlcli.ExitErrAction(DaemonStart, log, "start"),
-			}, {
-				Name:   "restart",
-				Usage:  "Restart the daemon service.",
-				Action: ctlcli.ExitErrAction(DaemonRestart, log, "restart"),
-			}, {
-				Name:   "stop",
-				Usage:  "Stop the daemon service.",
-				Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
-			}},
-		}, {
-			Name:   "init",
-			Usage:  "Initializes KD project.",
-			Action: ctlcli.ExitErrAction(Init, log, "init"),
-		}, {
-			Name:        "version",
-			Usage:       "Display version information.",
-			HideHelp:    true,
-			Description: cmdDescriptions["version"],
-			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
-		}, {
-			Name:        "status",
-			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
-			Description: cmdDescriptions["status"],
-			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
-		}, {
-			Name:        "autocompletion",
-			Usage:       "Enable autocompletion support for bash and fish shells",
-			Description: cmdDescriptions["autocompletion"],
+			Name:        "mount",
+			ShortName:   "m",
+			Usage:       "Mount a remote folder to a local folder.",
+			Description: cmdDescriptions["compat-mount"],
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "fish-dir",
-					Usage: "The name of directory to add fish autocompletion script.",
+					Name:  "remotepath, r",
+					Usage: "Full path of remote folder in machine to mount.",
 				},
 				cli.BoolFlag{
-					Name:  "no-bashrc",
-					Usage: "Disable appending autocompletion source command to your bash config file.",
+					Name:  "oneway-sync, s",
+					Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
+				},
+				cli.IntFlag{
+					Name:  "oneway-interval",
+					Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
+					Value: 2,
+				},
+				cli.BoolFlag{
+					Name:  "fuse, f",
+					Usage: "Mount the remote folder via Fuse.",
+				},
+				cli.BoolFlag{
+					Name:  "noprefetch-meta, p",
+					Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
+				},
+				cli.BoolFlag{
+					Name:  "prefetch-all, a",
+					Usage: "For fuse: Prefetch all contents of the remote directory up front.",
+				},
+				cli.IntFlag{
+					Name:  "prefetch-interval",
+					Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
+				},
+				cli.BoolFlag{
+					Name:  "nowatch, w",
+					Usage: "For fuse: Disable watching for changes on remote machine.",
+				},
+				cli.BoolFlag{
+					Name:  "noignore, i",
+					Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
+				},
+				cli.BoolFlag{
+					Name:  "trace, t",
+					Usage: "Turn on trace logs.",
+				},
+			},
+			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
+			BashComplete: ctlcli.FactoryCompletion(
+				MountCommandFactory, log, "mount",
+			),
+		}, {
+			Name:        "ssh",
+			ShortName:   "s",
+			Usage:       "SSH into the machine.",
+			Description: cmdDescriptions["ssh"],
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
 				},
 				cli.StringFlag{
-					Name:  "bash-dir",
-					Usage: "The name of directory to add bash autocompletion script.",
+					Name:  "username",
+					Usage: "The username to ssh into on the remote machine.",
+				},
+			},
+			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
+		}, {
+			Name:            "run",
+			Usage:           "Run command on remote or local machine.",
+			Description:     cmdDescriptions["run"],
+			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
+			SkipFlagParsing: true,
+		}, {
+			Name:   "repair",
+			Usage:  "Repair the given mount",
+			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
+		}, {
+			Name: "cp",
+			Usage: fmt.Sprintf(
+				"Copy a file from one one machine to another",
+			),
+			Description: cmdDescriptions["compat-cp"],
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name: "debug",
 				},
 			},
 			Action: ctlcli.FactoryAction(
-				AutocompleteCommandFactory, log, "autocompletion",
+				CpCommandFactory, log, "cp",
 			),
 			BashComplete: ctlcli.FactoryCompletion(
-				AutocompleteCommandFactory, log, "autocompletion",
+				CpCommandFactory, log, "cp",
 			),
 		}, {
-			Name:  "log",
-			Usage: "Display logs.",
-			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "debug", Hidden: true},
-				cli.BoolFlag{Name: "no-kd-log"},
-				cli.BoolFlag{Name: "no-klient-log"},
-				cli.StringFlag{Name: "kd-log-file"},
-				cli.StringFlag{Name: "klient-log-file"},
-				cli.IntFlag{Name: "lines, n"},
-			},
-			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
+			Name:        "unmount",
+			ShortName:   "u",
+			Usage:       "Unmount previously mounted machine.",
+			Description: cmdDescriptions["compat-unmount"],
+			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
 		}, {
-			Name: "open",
-			Usage: fmt.Sprintf(
-				"Open the given file(s) on the Koding UI",
-			),
-			Description: cmdDescriptions["open"],
+			Name:        "remount",
+			ShortName:   "r",
+			Usage:       "Remount previously mounted machine using same settings.",
+			Description: cmdDescriptions["remount"],
+			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
+		}},
+	}, {
+		Name:  "config",
+		Usage: "Manage tool configuration.",
+		Subcommands: []cli.Command{{
+			Name:   "show",
+			Usage:  "Show configuration.",
+			Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
 			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "debug"},
+				cli.BoolFlag{
+					Name:  "defaults",
+					Usage: "Show also default configuration",
+				},
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
 			},
-			Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
 		}, {
-			Name:         "machine",
-			Usage:        "Manage remote machines.",
-			BashComplete: func(c *cli.Context) {},
-			Subcommands: []cli.Command{{
-				Name:      "list",
-				ShortName: "ls",
-				Usage:     "List available machines.",
-				Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
+			Name:      "list",
+			ShortName: "ls",
+			Usage:     "List all available configurations.",
+			Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
 				},
-			}, {
-				Name:      "ssh",
-				ShortName: "s",
-				Usage:     "SSH into provided remote machine.",
-				Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "username",
-						Usage: "Remote machine username.",
-					},
+			},
+		}, {
+			Name:   "use",
+			Usage:  "Change active configuration.",
+			Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
+		}, {
+			Name:   "set",
+			Usage:  "Set a value for the given key, overwriting default one.",
+			Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
+		}, {
+			Name:   "unset",
+			Usage:  "Unset the given key, restoring the defaut value.",
+			Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+		}, {
+			Name:   "reset",
+			Usage:  "Resets configuration to the default value fetched from Koding.",
+			Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "force",
+					Usage: "Force retrieving configuration from Koding.",
 				},
-			}, {
-				Name:        "mount",
-				Aliases:     []string{"m"},
-				Usage:       "Mount remote directory.",
-				Description: cmdDescriptions["mount"],
-				Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
-				Flags:       []cli.Flag{},
-				Subcommands: []cli.Command{{
-					Name:    "list",
-					Aliases: []string{"ls"},
-					Usage:   "List available mounts.",
-					Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "filter",
-							Usage: "Limits the output to a specific `<mount-id>`.",
-						},
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-					},
-				}, {
-					Name:   "inspect",
+			},
+		}},
+	}, {
+		Name:      "credential",
+		ShortName: "c",
+		Usage:     "Manage stack credentials.",
+		Subcommands: []cli.Command{{
+			Name:      "list",
+			ShortName: "ls",
+			Usage:     "List imported stack credentials.",
+			Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+				cli.StringFlag{
+					Name:  "provider, p",
+					Usage: "Specify credential provider.",
+				},
+				cli.StringFlag{
+					Name:  "team",
+					Usage: "Specify team which the credential belongs to.",
+				},
+			},
+		}, {
+			Name:   "create",
+			Usage:  "Create new stack credential.",
+			Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+				cli.StringFlag{
+					Name:  "provider, p",
+					Usage: "Specify credential provider.",
+				},
+				cli.StringFlag{
+					Name:  "file, f",
+					Value: "",
+					Usage: "Read credential from a file.",
+				},
+				cli.StringFlag{
+					Name:  "team",
+					Usage: "Specify team which the credential belongs to.",
+				},
+				cli.StringFlag{
+					Name:  "title",
+					Usage: "Specify credential title.",
+				},
+			},
+		}, {
+			Name:   "init",
+			Usage:  "Create a credential file.",
+			Action: ctlcli.ExitErrAction(CredentialInit, log, "init"),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "provider, p",
+					Usage: "Specify credential provider.",
+				},
+				cli.StringFlag{
+					Name:  "output, o",
+					Value: "credential.json",
+					Usage: "Output credential file.",
+				},
+				cli.StringFlag{
+					Name:  "title",
+					Usage: "Specify credential title.",
+				},
+			},
+		}, {
+			Name:   "use",
+			Usage:  "Change default credential per provider.",
+			Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
+		}, {
+			Name:   "describe",
+			Usage:  "Describe credential documents.",
+			Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+				cli.StringFlag{
+					Name:  "provider, p",
+					Usage: "Specify credential provider.",
+				},
+			},
+		}},
+	}, {
+		Name:  "daemon",
+		Usage: "Manage KD Daemon service.",
+		Subcommands: []cli.Command{{
+			Name:   "install",
+			Usage:  "Install the daemon and dependencies.",
+			Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Forces execution of all installation steps.",
+				},
+				cli.StringFlag{
+					Name:  "prefix",
+					Usage: "Overwrite installation directory.",
+				},
+				cli.StringFlag{
+					Name:  "baseurl",
+					Usage: "Specify a Koding endpoint to log in.",
+					Value: config.Konfig.Endpoints.Koding.Public.String(),
+				},
+				cli.StringFlag{
+					Name:  "token",
+					Usage: "Temporary token to logging in into your Koding account.",
+				},
+				cli.StringFlag{
+					Name:  "team",
+					Usage: "Provide explicit Koding team to log into.",
+				},
+				cli.StringSliceFlag{
+					Name:  "skip",
+					Usage: "List steps to skip during installation.",
+				},
+			},
+		}, {
+			Name:   "uninstall",
+			Usage:  "Uninstall the daemon and dependencies.",
+			Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "force, f",
+					Usage: "Forces execution of all uninstallation steps.",
+				},
+			},
+		}, {
+			Name:   "update",
+			Usage:  "Update KD and KD Daemon to the latest versions.",
+			Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "force",
+					Usage: "Force retrieving configuration from Koding.",
+				},
+				// TODO(rjeczalik): Left here for compatibility reasons, remove in future.
+				cli.BoolFlag{
+					Name:   "continue",
+					Usage:  "Internal use only.",
 					Hidden: true,
-					Usage:  "Advanced utilities for mount command.",
-					Action: ctlcli.ExitErrAction(MachineInspectMountCommand, log, "mount inspect"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "sync",
-							Usage: "Displays syncing history up to 100 records.",
-						},
-					},
-				}},
-			}, {
-				Name:        "umount",
-				ShortName:   "u",
-				Usage:       "Unmount remote directory.",
-				Description: cmdDescriptions["umount"],
-				Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
-				Flags:       []cli.Flag{},
-			}, {
-				Name:            "exec",
-				ShortName:       "e",
-				Description:     cmdDescriptions["exec"],
-				Usage:           "Run a command in a started machine.",
-				Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
-				SkipFlagParsing: true,
-			}, {
-				Name:            "cp",
-				Description:     cmdDescriptions["cp"],
-				Usage:           "Copies a file between hosts on a network.",
-				Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
-				SkipFlagParsing: true,
-				Flags:           []cli.Flag{},
-			}, {
-				Name:   "start",
-				Usage:  "Start a remove vm given by the <machine ID> | <alias> | <slug>.",
-				Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
 				},
-			}, {
-				Name:   "stop",
-				Usage:  "Stop a remove vm given by the <machine ID> | <alias> | <slug>.",
-				Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-				},
-			}},
+			},
 		}, {
-			Name:  "stack",
-			Usage: "Manage stacks.",
-			Subcommands: []cli.Command{{
-				Name:   "create",
-				Usage:  "Create new stack.",
-				Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "provider, p",
-						Usage: "Specify stack provider.",
-					},
-					cli.StringSliceFlag{
-						Name:  "credential, c",
-						Usage: "Specify stack credentials.",
-					},
-					cli.StringFlag{
-						Name:  "team",
-						Usage: "Specify team which the stack belongs to.",
-					},
-					cli.StringFlag{
-						Name:  "file, f",
-						Value: config.Konfig.Template.File,
-						Usage: "Read stack template from a file.",
-					},
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-				},
-			}, {
-				Name:      "list",
-				ShortName: "ls",
-				Usage:     "List all stacks.",
-				Action:    ctlcli.ExitErrAction(StackList, log, "list"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-					cli.StringFlag{
-						Name:  "team",
-						Usage: "Limit to stack for the given team.",
-					},
-				},
-			}},
+			Name:   "start",
+			Usage:  "Start the daemon service.",
+			Action: ctlcli.ExitErrAction(DaemonStart, log, "start"),
 		}, {
-			Name:  "team",
-			Usage: "List available teams and set team context.",
-			Subcommands: []cli.Command{{
-				Name:   "show",
-				Usage:  "Shows your currently used team.",
-				Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-				},
-			}, {
-				Name:   "list",
-				Usage:  "Lists user's teams.",
-				Action: ctlcli.ExitErrAction(TeamList, log, "list"),
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "slug",
-						Value: "",
-						Usage: "Limits the output to the specified team slug",
-					},
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-				},
-			}, {
-				Name:   "whoami",
-				Usage:  "Displays current authentication details.",
-				Action: ctlcli.ExitErrAction(TeamWhoami, log, "whoami"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-				},
-			}, {
-				Name:   "use",
-				Usage:  "Switch team context.",
-				Action: ctlcli.ExitErrAction(TeamUse, log, "use"),
-			}},
+			Name:   "restart",
+			Usage:  "Restart the daemon service.",
+			Action: ctlcli.ExitErrAction(DaemonRestart, log, "restart"),
 		}, {
-			Name:  "template",
-			Usage: "Manage stack templates.",
-			Subcommands: []cli.Command{{
-				Name:      "list",
-				ShortName: "ls",
-				Usage:     "List all stack templates.",
-				Action:    ctlcli.ExitErrAction(TemplateList, log, "list"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-					cli.StringFlag{
-						Name:  "template, t",
-						Usage: "Limit to templates with the given name.",
-					},
-					cli.StringFlag{
-						Name:  "team",
-						Usage: "Limit to templates for the given team.",
-					},
-				},
-			}, {
-				Name:   "show",
-				Usage:  "Show details of a stack template.",
-				Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
-				Flags: []cli.Flag{
-					cli.BoolFlag{
-						Name:  "json",
-						Usage: "Output in JSON format.",
-					},
-					cli.StringFlag{
-						Name:  "id",
-						Usage: "Limit to a template that matches the ID.",
-					},
-					cli.BoolFlag{
-						Name:  "hcl",
-						Usage: "Output in HCL format.",
-					},
-				},
-			}, {
-				Name:   "delete",
-				Usage:  "Delete a stack template.",
-				Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "template, t",
-						Usage: "Show template with a given name.",
-					},
-					cli.StringFlag{
-						Name:  "id",
-						Usage: "Limit to a template that matches the ID.",
-					},
-					cli.StringFlag{
-						Name:  "force",
-						Usage: "Do not ask form confirmation.",
-					},
-				},
-			}, {
-				Name:   "init",
-				Usage:  "Generate a new stack template file.",
-				Action: ctlcli.ExitErrAction(TemplateInit, log, "init"),
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "output, o",
-						Usage: "Output template file.",
-						Value: config.Konfig.Template.File,
-					},
-					cli.BoolFlag{
-						Name:  "defaults",
-						Usage: "Use default values for stack variables.",
-					},
-					cli.StringFlag{
-						Name:  "provider, p",
-						Usage: "Cloud provider to use.",
-					},
-				},
-			}},
+			Name:   "stop",
+			Usage:  "Stop the daemon service.",
+			Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
+		}},
+	}, {
+		Name:   "init",
+		Usage:  "Initializes KD project.",
+		Action: ctlcli.ExitErrAction(Init, log, "init"),
+	}, {
+		Name:        "version",
+		Usage:       "Display version information.",
+		HideHelp:    true,
+		Description: cmdDescriptions["version"],
+		Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
+	}, {
+		Name:        "status",
+		Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
+		Description: cmdDescriptions["status"],
+		Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
+	}, {
+		Name:        "autocompletion",
+		Usage:       "Enable autocompletion support for bash and fish shells",
+		Description: cmdDescriptions["autocompletion"],
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "fish-dir",
+				Usage: "The name of directory to add fish autocompletion script.",
+			},
+			cli.BoolFlag{
+				Name:  "no-bashrc",
+				Usage: "Disable appending autocompletion source command to your bash config file.",
+			},
+			cli.StringFlag{
+				Name:  "bash-dir",
+				Usage: "The name of directory to add bash autocompletion script.",
+			},
 		},
-	}
+		Action: ctlcli.FactoryAction(
+			AutocompleteCommandFactory, log, "autocompletion",
+		),
+		BashComplete: ctlcli.FactoryCompletion(
+			AutocompleteCommandFactory, log, "autocompletion",
+		),
+	}, {
+		Name:  "log",
+		Usage: "Display logs.",
+		Flags: []cli.Flag{
+			cli.BoolFlag{Name: "debug", Hidden: true},
+			cli.BoolFlag{Name: "no-kd-log"},
+			cli.BoolFlag{Name: "no-klient-log"},
+			cli.StringFlag{Name: "kd-log-file"},
+			cli.StringFlag{Name: "klient-log-file"},
+			cli.IntFlag{Name: "lines, n"},
+		},
+		Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
+	}, {
+		Name: "open",
+		Usage: fmt.Sprintf(
+			"Open the given file(s) on the Koding UI",
+		),
+		Description: cmdDescriptions["open"],
+		Flags: []cli.Flag{
+			cli.BoolFlag{Name: "debug"},
+		},
+		Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
+	}, {
+		Name:         "machine",
+		Usage:        "Manage remote machines.",
+		BashComplete: func(c *cli.Context) {},
+		Subcommands: []cli.Command{{
+			Name:      "list",
+			ShortName: "ls",
+			Usage:     "List available machines.",
+			Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		}, {
+			Name:      "ssh",
+			ShortName: "s",
+			Usage:     "SSH into provided remote machine.",
+			Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "username",
+					Usage: "Remote machine username.",
+				},
+			},
+		}, {
+			Name:        "mount",
+			Aliases:     []string{"m"},
+			Usage:       "Mount remote directory.",
+			Description: cmdDescriptions["mount"],
+			Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
+			Flags:       []cli.Flag{},
+			Subcommands: []cli.Command{{
+				Name:    "list",
+				Aliases: []string{"ls"},
+				Usage:   "List available mounts.",
+				Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "filter",
+						Usage: "Limits the output to a specific `<mount-id>`.",
+					},
+					cli.BoolFlag{
+						Name:  "json",
+						Usage: "Output in JSON format.",
+					},
+				},
+			}, {
+				Name:   "inspect",
+				Hidden: true,
+				Usage:  "Advanced utilities for mount command.",
+				Action: ctlcli.ExitErrAction(MachineInspectMountCommand, log, "mount inspect"),
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "sync",
+						Usage: "Displays syncing history up to 100 records.",
+					},
+				},
+			}},
+		}, {
+			Name:        "umount",
+			ShortName:   "u",
+			Usage:       "Unmount remote directory.",
+			Description: cmdDescriptions["umount"],
+			Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
+			Flags:       []cli.Flag{},
+		}, {
+			Name:            "exec",
+			ShortName:       "e",
+			Description:     cmdDescriptions["exec"],
+			Usage:           "Run a command in a started machine.",
+			Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
+			SkipFlagParsing: true,
+		}, {
+			Name:            "cp",
+			Description:     cmdDescriptions["cp"],
+			Usage:           "Copies a file between hosts on a network.",
+			Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
+			SkipFlagParsing: true,
+			Flags:           []cli.Flag{},
+		}, {
+			Name:   "start",
+			Usage:  "Start a remove vm given by the <machine ID> | <alias> | <slug>.",
+			Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		}, {
+			Name:   "stop",
+			Usage:  "Stop a remove vm given by the <machine ID> | <alias> | <slug>.",
+			Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		}},
+	}, {
+		Name:  "stack",
+		Usage: "Manage stacks.",
+		Subcommands: []cli.Command{{
+			Name:   "create",
+			Usage:  "Create new stack.",
+			Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "provider, p",
+					Usage: "Specify stack provider.",
+				},
+				cli.StringSliceFlag{
+					Name:  "credential, c",
+					Usage: "Specify stack credentials.",
+				},
+				cli.StringFlag{
+					Name:  "team",
+					Usage: "Specify team which the stack belongs to.",
+				},
+				cli.StringFlag{
+					Name:  "file, f",
+					Value: config.Konfig.Template.File,
+					Usage: "Read stack template from a file.",
+				},
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		}, {
+			Name:      "list",
+			ShortName: "ls",
+			Usage:     "List all stacks.",
+			Action:    ctlcli.ExitErrAction(StackList, log, "list"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+				cli.StringFlag{
+					Name:  "team",
+					Usage: "Limit to stack for the given team.",
+				},
+			},
+		}},
+	}, {
+		Name:  "team",
+		Usage: "List available teams and set team context.",
+		Subcommands: []cli.Command{{
+			Name:   "show",
+			Usage:  "Shows your currently used team.",
+			Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		}, {
+			Name:   "list",
+			Usage:  "Lists user's teams.",
+			Action: ctlcli.ExitErrAction(TeamList, log, "list"),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "slug",
+					Value: "",
+					Usage: "Limits the output to the specified team slug",
+				},
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		}, {
+			Name:   "whoami",
+			Usage:  "Displays current authentication details.",
+			Action: ctlcli.ExitErrAction(TeamWhoami, log, "whoami"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+			},
+		}, {
+			Name:   "use",
+			Usage:  "Switch team context.",
+			Action: ctlcli.ExitErrAction(TeamUse, log, "use"),
+		}},
+	}, {
+		Name:  "template",
+		Usage: "Manage stack templates.",
+		Subcommands: []cli.Command{{
+			Name:      "list",
+			ShortName: "ls",
+			Usage:     "List all stack templates.",
+			Action:    ctlcli.ExitErrAction(TemplateList, log, "list"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+				cli.StringFlag{
+					Name:  "template, t",
+					Usage: "Limit to templates with the given name.",
+				},
+				cli.StringFlag{
+					Name:  "team",
+					Usage: "Limit to templates for the given team.",
+				},
+			},
+		}, {
+			Name:   "show",
+			Usage:  "Show details of a stack template.",
+			Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format.",
+				},
+				cli.StringFlag{
+					Name:  "id",
+					Usage: "Limit to a template that matches the ID.",
+				},
+				cli.BoolFlag{
+					Name:  "hcl",
+					Usage: "Output in HCL format.",
+				},
+			},
+		}, {
+			Name:   "delete",
+			Usage:  "Delete a stack template.",
+			Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "template, t",
+					Usage: "Show template with a given name.",
+				},
+				cli.StringFlag{
+					Name:  "id",
+					Usage: "Limit to a template that matches the ID.",
+				},
+				cli.StringFlag{
+					Name:  "force",
+					Usage: "Do not ask form confirmation.",
+				},
+			},
+		}, {
+			Name:   "init",
+			Usage:  "Generate a new stack template file.",
+			Action: ctlcli.ExitErrAction(TemplateInit, log, "init"),
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "output, o",
+					Usage: "Output template file.",
+					Value: config.Konfig.Template.File,
+				},
+				cli.BoolFlag{
+					Name:  "defaults",
+					Usage: "Use default values for stack variables.",
+				},
+				cli.StringFlag{
+					Name:  "provider, p",
+					Usage: "Cloud provider to use.",
+				},
+			},
+		}},
+	}}
 
 	// Alias commands.
 	app.Commands = append(app.Commands,
