@@ -200,7 +200,20 @@ generateMethodPaths = (model, definitions, paths, docs) ->
             }
           ]
         else if example.title is 'return'
-          response.schema = example.schema
+          response.schema =
+            type: 'object'
+            properties:
+              ok:
+                type: 'boolean'
+                description: 'If the request processed by endpoint'
+                example: true
+              error:
+                type: 'object'
+                description: 'Error description'
+                example:
+                  message: 'Something went wrong'
+                  name: 'SomethingWentWrong'
+              data: example.schema
 
     else
       parameters = null
