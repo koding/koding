@@ -1,6 +1,7 @@
 kd = require 'kd'
 
 whoami = require 'app/util/whoami'
+applyMarkdown = require 'app/util/applyMarkdown'
 generatePreview = require 'app/util/stacks/generatepreview'
 
 Editor = require './editor'
@@ -37,5 +38,15 @@ module.exports =
       getPreview options
 
       customVariables.aceView.ace.on 'FileContentChanged', getPreview
+
+    return preview
+
+
+  readme: (preview) ->
+
+    preview ?= new kd.View { cssClass: 'has-markdown' }
+
+    @ready =>
+      preview.updatePartial applyMarkdown @getContent()
 
     return preview

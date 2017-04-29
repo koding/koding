@@ -82,6 +82,7 @@ module.exports = class StackEditor extends kd.View
       title: 'Readme'
       filename: 'readme.md'
       help: Help.readme
+      preview: Preview.readme
       @statusbar
     }
 
@@ -197,6 +198,8 @@ module.exports = class StackEditor extends kd.View
       @_current = id
 
     @editor.unsetClass 'preview-mode'
+    @readme.unsetClass 'preview-mode'
+
     kd.utils.defer @editor.bound 'focus'
 
     return data
