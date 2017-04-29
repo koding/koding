@@ -5,6 +5,8 @@ FSHelper = require 'app/util/fs/fshelper'
 Events = require '../events'
 BaseView = require './baseview'
 
+yamlutils = require 'app/util/stacks/yamlutils'
+
 
 module.exports = class Editor extends BaseView
 
@@ -32,9 +34,24 @@ module.exports = class Editor extends BaseView
     @getPreview = preview  if preview
 
 
-  getContent: ->
+  getContent: (as = 'is') ->
 
-    @aceView.ace.getContents()
+    content = @aceView.ace.getContents()
+    return content  if as is 'is'
+
+    switch as
+      when 'json'
+        { content } = yamlutils.yamlToJson content
+      when 'yaml'
+        { content } = yamlutils.jsonToYaml content
+
+    return content
+
+
+  parseContent: ->
+
+    { err, content, contentObject } = yamlutils.yamlToJson @getContent()
+    return [ err, contentObject ]
 
 
   setContent: (content, type = 'text') -> @ready =>
@@ -68,6 +85,9 @@ module.exports = class Editor extends BaseView
 
 
   setReadOnly: (state) -> @ready =>
+
+    if intialState = @getOption 'readonly'
+      state = intialState
 
     @aceView.ace.setReadOnly state, no
     state = if state then 'none' else 'block'
