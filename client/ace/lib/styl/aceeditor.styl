@@ -291,11 +291,14 @@ btn-icon-before-after()
 
   a,
   button
-    &:hover,
-    &:focus
+    &:hover
       bg                            color, btn-hover-bg !important
       color                         btn-hover-color !important
       border                        none
+
+    &:focus
+      border                        none
+      shadow                        none
 
   .ace-find-replace-settings
     display                         inline-flex
