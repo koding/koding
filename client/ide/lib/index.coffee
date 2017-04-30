@@ -21,7 +21,7 @@ splashMarkups                 = require './util/splashmarkups'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
 IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
-IDEContentSearch              = require './views/contentsearch/idecontentsearch'
+IDEContentSearchView          = require './views/contentsearch/idecontentsearchview'
 IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 CollaborationController       = require './collaborationcontroller'
@@ -157,6 +157,7 @@ module.exports = class IDEAppController extends AppController
     splitViewPanel = ideView.parent.parent
     @createStatusBar splitViewPanel
     @createFindAndReplaceView splitViewPanel
+    @splitViewPanel = splitViewPanel
 
     appView.emit 'KeyViewIsSet'
 
@@ -1170,7 +1171,7 @@ module.exports = class IDEAppController extends AppController
 
     data = { machine: @mountedMachine }
     rootPath = '/' # FIXME ~ GG
-    @contentSearch = new IDEContentSearch { rootPath }, data
+    @splitViewPanel.addSubView @contentSearch = new IDEContentSearchView  { rootPath }, data
     @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
