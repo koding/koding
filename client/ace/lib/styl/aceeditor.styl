@@ -16,7 +16,6 @@ input-color                     = #FFFFFF
 btn-color                       = #919191
 btn-hover-bg                    = #67A2EE
 btn-hover-color                 = #FFFFFF
-btn-transparent-active-color    = #67A2EE
 
 
 #kdmaincontainer.fullscreen
@@ -246,12 +245,9 @@ body.ace
 
 
 btn-transition()
-  -webkit-transition                -webkit-transform .1s ease,
-  background                                          .1s ease
-  -moz-transition                   -moz-transform    .1s ease,
-  background                                          .1s ease
-  transition                        transform         .1s ease,
-  background                                          .1s ease
+  -webkit-transition                all .1s ease
+  -moz-transition                   all .1s ease
+  transition                        all .1s ease
 
 btn-icon-before-after()
   content                           ''
@@ -263,7 +259,7 @@ btn-icon-before-after()
   bg                                color, btn-color
   btn-transition()
 
-.ace-find-replace-view
+.search-view
   display                           flex
   flex-direction                    row
   align-items                       flex-start
@@ -300,7 +296,7 @@ btn-icon-before-after()
       border                        none
       shadow                        none
 
-  .ace-find-replace-settings
+  .search-options-button-group
     display                         inline-flex
     margin-bottom                   10px
 
@@ -338,13 +334,14 @@ btn-icon-before-after()
         &.multiple-choice-whole-word:before
           mask-sprite               ace 'search_whole'
 
-  .ace-find-replace-inputs
+  .search-inputs
     display                         inline-flex
     flex                            1
     margin-right                    10px
     flex-wrap                       wrap
 
-    .kdinput
+    .search-input,
+    .search-input-with-icon
       height                        30px
       padding                       0 13px
       font-size                     12px
@@ -352,12 +349,15 @@ btn-icon-before-after()
       rounded                       4px
       color                         input-color
       bg                            color, input-bg
-      border                        1px solid input-border
-      placeholder-color             input-placeholder
-      borderBox()
       bg                            image, none
       bg                            position, center right 10px
       bg                            repeat, no-repeat
+      border                        1px solid input-border
+      placeholder-color             input-placeholder
+      borderBox()
+
+      &.search-input-with-icon
+        s-sprite                      ace 'search_icon'
 
       &:hover,
       &:focus
@@ -367,8 +367,7 @@ btn-icon-before-after()
       &:focus
         s-sprite                    ace 'search_enter'
 
-    .ace-find-replace-find-wrapper,
-    .ace-find-replace-replace-wrapper
+    .search-input-wrapper
       display                       inline-flex
       flex-direction                row
       min-width                     245px
@@ -376,17 +375,14 @@ btn-icon-before-after()
       margin-left                   10px
       margin-bottom                 10px
 
-    .ace-find-replace-find-wrapper
+    .search-input-group
 
-      .kdinput
+      .search-input,
+      .search-input-with-icon
         margin-right                1px
         rounded                     4px 0 0 4px
-        s-sprite                    ace 'search_icon'
 
-        &:focus
-          s-sprite                  ace 'search_enter'
-
-      .kdbutton
+      .find-button
         size                        30px, 30px
         bg                          color, input-bg
 
@@ -405,7 +401,7 @@ btn-icon-before-after()
           bg                        color, #ffffff
 
         &.active:before
-          bg                        color, #67A2EE
+          bg                        color, btn-hover-bg
 
         &.find-next
           rounded                   0
@@ -420,30 +416,35 @@ btn-icon-before-after()
           &:before
             mask-sprite             ace 'arrow_up'
 
-    .ace-find-replace-replace-wrapper
+    .search-replace-wrapper
       display                       none
 
-  .ace-find-replace-buttons
-    display                         none
+  .search-buttons
     margin-left                     10px
     margin-bottom                   10px
 
-    .ace-replace-button
+    .search-button
       padding                       6px 17px 8px
       color                         input-color
       font-weight                   500
       btn-transition()
       borderBox()
 
-      &:first-of-type
-        rounded                     4px 0 0 4px
-        margin-right                1px
+    &.search-replace-button-group
+      display                       none
 
-      &:last-of-type
-        rounded                     0 4px 4px 0
+    &.search-button-group
+      .search-button
+        &.search-button-replace:first-of-type
+          rounded                     4px 0 0 4px
+          margin-right                1px
 
-  .ace-find-replace-close-wrapper
-    display                         none
+        &.search-button-replace:last-of-type
+          rounded                     0 4px 4px 0
+
+
+  .search-view-close-wrapper
+    display                         inline-flex
     height                          30px
     float                           right
     justify-content                 center
@@ -459,9 +460,12 @@ btn-icon-before-after()
         btn-icon-before-after()
         mask-sprite                 ace "search_close"
 
+      &:hover:before
+        bg                          color, btn-hover-bg
+
   &.with-replace-view
-    .ace-find-replace-replace-wrapper,
-    .ace-find-replace-buttons
+    .search-replace-wrapper,
+    .search-replace-button-group
       display                       inline-flex
 
 .kdmodal.goto
