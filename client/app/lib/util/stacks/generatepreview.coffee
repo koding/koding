@@ -22,9 +22,9 @@ module.exports = generatePreview = (options = {}, callback) ->
           continue
 
         if content = jspath.getAt availableData[type], field
-          search   = if type is 'custom'  \
-            then ///\${var.#{type}_#{field}}///g
-            else ///\${var.koding_#{type}_#{field}}///g
+          search   = if type is 'custom'
+          then ///\${var\.#{type}_#{field}}///g
+          else ///\${var\.koding_#{type}_#{field}}///g
           template = template.replace search, content.replace /\n/g, '\\n'
         else
           errors[type] ?= []

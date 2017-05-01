@@ -34,10 +34,9 @@ module.exports = class Editor extends BaseView
     @getPreview = preview  if preview
 
 
-  getContent: (as = 'is') ->
+  getContent: (as) ->
 
     content = @aceView.ace.getContents()
-    return content  if as is 'is'
 
     switch as
       when 'json'
