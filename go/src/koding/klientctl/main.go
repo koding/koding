@@ -141,7 +141,7 @@ func run(args []string) {
 
 	app := cli.NewApp()
 	app.Name = config.Name
-	app.Version = getReadableVersion(config.Version)
+	app.Version = getReadableVersion(config.VersionNum())
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{{
@@ -547,6 +547,12 @@ func run(args []string) {
 		HideHelp:    true,
 		Description: cmdDescriptions["version"],
 		Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "json",
+				Usage: "Output in JSON format.",
+			},
+		},
 	}, {
 		Name:        "status",
 		Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
