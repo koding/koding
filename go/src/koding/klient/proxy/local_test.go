@@ -44,3 +44,7 @@ func TestLocalList(t *testing.T) {
         t.Fatal("Response should be of type proxy.ListResponse.")
     }
 }
+
+func TestLocalExec(t *testing.T) {
+    t.Skip("Not implemented.")
+}

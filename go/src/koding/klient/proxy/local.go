@@ -29,3 +29,7 @@ func (p *LocalProxy) List(r *kite.Request) (interface{}, error) {
 
     return data, nil
 }
+
+func (p *LocalProxy) Exec(r *ExecRequest) error {
+    return nil
+}

@@ -1,6 +1,7 @@
 package proxy_test
 
 import (
+    "bytes"
     "testing"
 
     "koding/klient/proxy"
@@ -47,8 +48,8 @@ func TestKubernetesList(t *testing.T) {
     k, client := testutil.GetKites(mapping)
     defer k.Close()
 
-    dnode, err := client.Tell("proxy.list", proxy.ListParams{
-        Pod: "koding",
+    dnode, err := client.Tell("proxy.list", proxy.ListRequest{
+        Pod: "",
     })
     if err != nil {
         t.Fatal(err)
@@ -59,4 +60,24 @@ func TestKubernetesList(t *testing.T) {
     if err = dnode.Unmarshal(data); err != nil {
         t.Fatal("Response should be of type proxy.ListResponse.")
     }
+}
+
+func TestKubernetesExec(t *testing.T) {
+    p, err := proxy.NewKubernetes()
+    if err != nil {
+        t.Skip(skipMessage)
+    }
+
+    r := &proxy.ExecRequest{
+        Args:   []string{"/bin/echo", "Hello", "World"},
+        In:     bytes.NewBuffer([]byte{}),
+        Out:    bytes.NewBuffer([]byte{}),
+        Err:    bytes.NewBuffer([]byte{}),
+    }
+
+    if err := p.Exec(r); err != nil {
+        t.Fatal(err)
+    }
+
+    // TODO:
 }

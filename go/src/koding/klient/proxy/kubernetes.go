@@ -9,12 +9,17 @@ import (
     "github.com/koding/kite"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+    //"k8s.io/client-go/kubernetes/scheme"
+    //"k8s.io/client-go/pkg/api/v1"
+    "k8s.io/client-go/rest"
 )
 
 var _ Proxy = (*KubernetesProxy)(nil)
 
 type KubernetesProxy struct {
+    config *rest.Config
     client *kubernetes.Clientset
+    rest   *rest.RESTClient
 }
 
 func (p *KubernetesProxy) Type() ProxyType {
@@ -48,16 +53,25 @@ func (p *KubernetesProxy) Methods() []string {
 }
 
 func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
-    var params ListParams
+    var req ListRequest
 
-	if err := r.Args.One().Unmarshal(&params); err != nil {
+	if err := r.Args.One().Unmarshal(&req); err != nil {
 		return nil, err
 	}
 
-    data := ListResponse{}
+    res, err := p.list(&req)
+    if err != nil {
+        return nil, err
+    }
+
+    return res, nil
+}
+
+func (p *KubernetesProxy) list(r *ListRequest) (*ListResponse, error) {
+    data := &ListResponse{}
 
     // Query a K8s endpoint to actually get container data.
-    list, err := p.client.CoreV1().Pods(params.Pod).List(metav1.ListOptions{})
+    list, err := p.client.CoreV1().Pods(r.Pod).List(metav1.ListOptions{})
     if err != nil {
         return nil, err
     }
@@ -66,10 +80,45 @@ func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
         spec := pod.Spec
 
         for _, c := range spec.Containers {
-            fmt.Println(c)
             data.Containers = append(data.Containers, c)
         }
     }
 
     return data, nil
+}
+
+func (p *KubernetesProxy) Exec(r *ExecRequest) error {
+
+    // opts := &v1.PodExecOptions{
+    //     Stdin: false,
+    //     Stdout: true,
+    //     Stderr: true,
+    //     TTY: false,
+    //     Container: "klient",
+    //     Command: []string{"/bin/hostname"},
+    // }
+
+    // opts := metav1.ListOptions{}
+
+    result, err := p.rest.Get().
+            // TODO: Get namespace. Kubernetes default namespace is default?
+            Namespace("default").
+            Resource("pods").
+            // TODO: Get pod name
+            Name("koding").
+            SubResource("exec").
+            Param("Container", "klient").
+            Param("Command", "/bin/hostname").
+            // Body(opts).
+            // VersionedParams(&opts, scheme.ParameterCodec).
+            Do().
+            Get()
+
+    if err != nil {
+        fmt.Println("Failed to do the resty stuff. ", err)
+    }
+
+    fmt.Println("result: ", result)
+
+    return nil
 }
