@@ -184,7 +184,7 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 
 	// Progress logic needs verbose mode with itemized changes.
 	if c.Progress != nil {
-		c.Cmd.Args = append(c.Cmd.Args, "--bwlimit=20", "-Piv")
+		c.Cmd.Args = append(c.Cmd.Args, "-Piv")
 		if c.Change == nil {
 			// Do not use recursive downloads for index changes.
 			c.Cmd.Args = append(c.Cmd.Args, "-r")
