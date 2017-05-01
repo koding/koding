@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/mitchellh/ioprogress"
 )
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"koding/klient/machine"
@@ -13,7 +14,7 @@ import (
 	"koding/klient/machine/mount/prefetch"
 	"koding/klient/machine/mount/sync/history"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -129,6 +130,10 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot prefetch mount files: %s\n", err)
+		options.Log.Error("Prefetching failed: %s\n", err)
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			options.Log.Error("Output: %q", exitErr.Stderr)
+		}
 	}
 
 	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)
