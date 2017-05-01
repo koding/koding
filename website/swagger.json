@@ -5513,17 +5513,35 @@
             "schema": {
               "type": "object",
               "properties": {
-                "template": {
-                  "type": "string",
-                  "default": "Hello gokmen -- bar"
+                "ok": {
+                  "type": "boolean",
+                  "description": "If the request processed by endpoint",
+                  "example": true
                 },
-                "errors": {
+                "error": {
                   "type": "object",
-                  "properties": {}
+                  "description": "Error description",
+                  "example": {
+                    "message": "Something went wrong",
+                    "name": "SomethingWentWrong"
+                  }
                 },
-                "warnings": {
+                "data": {
                   "type": "object",
-                  "properties": {}
+                  "properties": {
+                    "template": {
+                      "type": "string",
+                      "default": "Hello gokmen -- bar"
+                    },
+                    "errors": {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    "warnings": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
                 }
               }
             }
