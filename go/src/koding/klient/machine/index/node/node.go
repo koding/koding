@@ -44,7 +44,7 @@ func NewNodeEntry(name string, entry *Entry) *Node {
 }
 
 // IsShadowed returns true when node is not present in tree.
-func (n *Node) IsShadowed() bool { return n.Entry == nil }
+func (n *Node) IsShadowed() bool { return n.Entry == nil || *n.Entry == emptyEntry }
 
 // Exist returns true for nodes that are considered as existing files. This
 // method can be called on nil nodes.
