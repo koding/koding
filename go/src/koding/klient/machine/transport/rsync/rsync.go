@@ -243,7 +243,7 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 
 var (
 	rmComma = strings.NewReplacer(",", "")
-	bitRe   = regexp.MustCompile(`^[.><ch*].......... .`)
+	bitRe   = regexp.MustCompile(`^[.><ch*].{7,11} .`)
 	sizeRe  = regexp.MustCompile(`^\s*([\d,]+)\s+\d+%.*$`)
 	totalRe = regexp.MustCompile(`^[^\d]*([\d,]+).*DRY\sRUN.*$`)
 )

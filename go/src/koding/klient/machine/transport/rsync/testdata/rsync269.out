@@ -1,0 +1,314 @@
+receiving file list ...
+ 100 files...
+115 files to consider
+.d..t.... ./
+>f+++++++ .bash_logout
+           0   0%    0.00kB/s    0:00:00
+         220 100%  214.84kB/s    0:00:00 (xfer#1, to-check=113/115)
+>f+++++++ .bashrc0% (0/116), 220 B/1.1 MiB | 65 B/s
+           0   0%    0.00kB/s    0:00:00
+        3637 100%    3.47MB/s    0:00:00 (xfer#2, to-check=112/115)
+>f+++++++ .profile% (0/116), 3.6 KiB/1.1 MiB | 1.1 KiB/s
+           0   0%    0.00kB/s    0:00:00
+         675 100%  659.18kB/s    0:00:00 (xfer#3, to-check=111/115)
+cd+++++++ .cache/1% (0/116), 675 B/1.1 MiB | 201 B/s
+>f+++++++ .cache/motd.legal-displayed
+           0 100%    0.00kB/s    0:00:00 (xfer#4, to-check=109/115)
+cd+++++++ .config/% (0/116), 0 B/1.1 MiB | 0 B/s
+cd+++++++ .config/koding/
+>f+++++++ .config/koding/klient.86766c7d.bolt
+           0   0%    0.00kB/s    0:00:00
+       65536 100%   12.50MB/s    0:00:00 (xfer#5, to-check=106/115)
+>f+++++++ .config/koding/konfig.bolt1.1 MiB | 19 KiB/s
+           0   0%    0.00kB/s    0:00:00
+       65536 100%   10.42MB/s    0:00:00 (xfer#6, to-check=105/115)
+cd+++++++ .ssh/5.9% (0/116), 64 KiB/1.1 MiB | 19 KiB/s
+>f+++++++ .ssh/authorized_keys
+           0   0%    0.00kB/s    0:00:00
+         398 100%   55.52kB/s    0:00:00 (xfer#7, to-check=103/115)
+cd+++++++ notify/0% (0/116), 398 B/1.1 MiB | 118 B/s
+>f+++++++ notify/.gitignore
+           0   0%    0.00kB/s    0:00:00
+        1015 100%  141.60kB/s    0:00:00 (xfer#8, to-check=101/115)
+>f+++++++ notify/.travis.yml 1015 B/1.1 MiB | 301 B/s
+           0   0%    0.00kB/s    0:00:00
+         359 100%   50.08kB/s    0:00:00 (xfer#9, to-check=100/115)
+>f+++++++ notify/AUTHORS16), 359 B/1.1 MiB | 107 B/s
+           0   0%    0.00kB/s    0:00:00
+         302 100%   36.87kB/s    0:00:00 (xfer#10, to-check=99/115)
+>f+++++++ notify/LICENSE16), 302 B/1.1 MiB | 90 B/s
+           0   0%    0.00kB/s    0:00:00
+        1090 100%  133.06kB/s    0:00:00 (xfer#11, to-check=98/115)
+>f+++++++ notify/README.md), 1.1 KiB/1.1 MiB | 323 B/s
+           0   0%    0.00kB/s    0:00:00
+        1149 100%  140.26kB/s    0:00:00 (xfer#12, to-check=97/115)
+>f+++++++ notify/appveyor.yml1.1 KiB/1.1 MiB | 341 B/s
+           0   0%    0.00kB/s    0:00:00
+         342 100%   37.11kB/s    0:00:00 (xfer#13, to-check=96/115)
+>f+++++++ notify/debug.go6), 342 B/1.1 MiB | 101 B/s
+           0   0%    0.00kB/s    0:00:00
+         279 100%   30.27kB/s    0:00:00 (xfer#14, to-check=95/115)
+>f+++++++ notify/debug_debug.go9 B/1.1 MiB | 83 B/s
+           0   0%    0.00kB/s    0:00:00
+         866 100%   93.97kB/s    0:00:00 (xfer#15, to-check=94/115)
+>f+++++++ notify/doc.go116), 866 B/1.1 MiB | 257 B/s
+           0   0%    0.00kB/s    0:00:00
+        2104 100%  228.30kB/s    0:00:00 (xfer#16, to-check=93/115)
+>f+++++++ notify/event.go6), 2.1 KiB/1.1 MiB | 624 B/s
+           0   0%    0.00kB/s    0:00:00
+        4642 100%  453.32kB/s    0:00:00 (xfer#17, to-check=92/115)
+>f+++++++ notify/event_fen.go4.5 KiB/1.1 MiB | 1.3 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        2090 100%  204.10kB/s    0:00:00 (xfer#18, to-check=91/115)
+>f+++++++ notify/event_fsevents.goiB/1.1 MiB | 620 B/s
+           0   0%    0.00kB/s    0:00:00
+        2719 100%  265.53kB/s    0:00:00 (xfer#19, to-check=90/115)
+>f+++++++ notify/event_inotify.goKiB/1.1 MiB | 806 B/s
+           0   0%    0.00kB/s    0:00:00
+        2726 100%  266.21kB/s    0:00:00 (xfer#20, to-check=89/115)
+>f+++++++ notify/event_kqueue.go KiB/1.1 MiB | 808 B/s
+           0   0%    0.00kB/s    0:00:00
+        2086 100%  185.19kB/s    0:00:00 (xfer#21, to-check=88/115)
+>f+++++++ notify/event_readdcw.goKiB/1.1 MiB | 619 B/s
+           0   0%    0.00kB/s    0:00:00
+        4351 100%  386.27kB/s    0:00:00 (xfer#22, to-check=87/115)
+>f+++++++ notify/event_stub.go.2 KiB/1.1 MiB | 1.3 KiB/s
+           0   0%    0.00kB/s    0:00:00
+         955 100%   84.78kB/s    0:00:00 (xfer#23, to-check=86/115)
+>f+++++++ notify/event_test.go55 B/1.1 MiB | 283 B/s
+           0   0%    0.00kB/s    0:00:00
+         903 100%   73.49kB/s    0:00:00 (xfer#24, to-check=85/115)
+>f+++++++ notify/event_trigger.goB/1.1 MiB | 268 B/s
+           0   0%    0.00kB/s    0:00:00
+         521 100%   42.40kB/s    0:00:00 (xfer#25, to-check=84/115)
+>f+++++++ notify/example_fsevents_test.goB | 154 B/s
+           0   0%    0.00kB/s    0:00:00
+        4098 100%  333.50kB/s    0:00:00 (xfer#26, to-check=83/115)
+>f+++++++ notify/example_inotify_test.go MiB | 1.2 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        2655 100%  199.44kB/s    0:00:00 (xfer#27, to-check=82/115)
+>f+++++++ notify/example_readdcw_test.go MiB | 787 B/s
+           0   0%    0.00kB/s    0:00:00
+        1226 100%   92.10kB/s    0:00:00 (xfer#28, to-check=81/115)
+>f+++++++ notify/example_test.go KiB/1.1 MiB | 363 B/s
+           0   0%    0.00kB/s    0:00:00
+        2473 100%  185.77kB/s    0:00:00 (xfer#29, to-check=80/115)
+>f+++++++ notify/node.go16), 2.4 KiB/1.1 MiB | 733 B/s
+           0   0%    0.00kB/s    0:00:00
+        5467 100%  410.68kB/s    0:00:00 (xfer#30, to-check=79/115)
+>f+++++++ notify/notify.go), 5.3 KiB/1.1 MiB | 1.6 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        3502 100%  244.28kB/s    0:00:00 (xfer#31, to-check=78/115)
+>f+++++++ notify/notify_inotify_test.go1 MiB | 1.0 KiB/s
+           0   0%    0.00kB/s    0:00:00
+         829 100%   57.83kB/s    0:00:00 (xfer#32, to-check=77/115)
+>f+++++++ notify/notify_readdcw_test.goMiB | 246 B/s
+           0   0%    0.00kB/s    0:00:00
+        1430 100%   99.75kB/s    0:00:00 (xfer#33, to-check=76/115)
+>f+++++++ notify/notify_test.go4 KiB/1.1 MiB | 424 B/s
+           0   0%    0.00kB/s    0:00:00
+        2300 100%  149.74kB/s    0:00:00 (xfer#34, to-check=75/115)
+>f+++++++ notify/sync_readdcw_test.go1.1 MiB | 681 B/s
+           0   0%    0.00kB/s    0:00:00
+         946 100%   61.59kB/s    0:00:00 (xfer#35, to-check=74/115)
+>f+++++++ notify/sync_unix_test.go/1.1 MiB | 280 B/s
+           0   0%    0.00kB/s    0:00:00
+         401 100%   26.11kB/s    0:00:00 (xfer#36, to-check=73/115)
+>f+++++++ notify/testing_test.go B/1.1 MiB | 119 B/s
+           0   0%    0.00kB/s    0:00:00
+       23544 100%    1.40MB/s    0:00:00 (xfer#37, to-check=72/115)
+>f+++++++ notify/tree.go16), 23 KiB/1.1 MiB | 6.8 KiB/s
+           0   0%    0.00kB/s    0:00:00
+         538 100%   30.91kB/s    0:00:00 (xfer#38, to-check=71/115)
+>f+++++++ notify/tree_nonrecursive.go1 MiB | 159 B/s
+           0   0%    0.00kB/s    0:00:00
+        7228 100%  415.21kB/s    0:00:00 (xfer#39, to-check=70/115)
+>f+++++++ notify/tree_nonrecursive_test.goiB | 2.1 KiB/s
+           0   0%    0.00kB/s    0:00:00
+       10608 100%  609.38kB/s    0:00:00 (xfer#40, to-check=69/115)
+>f+++++++ notify/tree_recursive.goB/1.1 MiB | 3.1 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        8934 100%  484.70kB/s    0:00:00 (xfer#41, to-check=68/115)
+>f+++++++ notify/tree_recursive_test.go1 MiB | 2.6 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        9589 100%  520.24kB/s    0:00:00 (xfer#42, to-check=67/115)
+>f+++++++ notify/util.go16), 9.4 KiB/1.1 MiB | 2.8 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        2884 100%  156.47kB/s    0:00:00 (xfer#43, to-check=66/115)
+>f+++++++ notify/util_darwin_test.go/1.1 MiB | 853 B/s
+           0   0%    0.00kB/s    0:00:00
+         921 100%   47.34kB/s    0:00:00 (xfer#44, to-check=65/115)
+>f+++++++ notify/util_test.go921 B/1.1 MiB | 272 B/s
+           0   0%    0.00kB/s    0:00:00
+        3764 100%  193.46kB/s    0:00:00 (xfer#45, to-check=64/115)
+>f+++++++ notify/util_unix_test.goiB/1.1 MiB | 1.1 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        3031 100%  155.79kB/s    0:00:00 (xfer#46, to-check=63/115)
+>f+++++++ notify/watcher.go, 3.0 KiB/1.1 MiB | 896 B/s
+           0   0%    0.00kB/s    0:00:00
+        3676 100%  179.49kB/s    0:00:00 (xfer#47, to-check=62/115)
+>f+++++++ notify/watcher_fen.go6 KiB/1.1 MiB | 1.1 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        4313 100%  210.60kB/s    0:00:00 (xfer#48, to-check=61/115)
+>f+++++++ notify/watcher_fen_cgo.goB/1.1 MiB | 1.2 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        4155 100%  202.88kB/s    0:00:00 (xfer#49, to-check=60/115)
+>f+++++++ notify/watcher_fen_test.go/1.1 MiB | 1.2 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        2887 100%  134.25kB/s    0:00:00 (xfer#50, to-check=59/115)
+>f+++++++ notify/watcher_fsevents.go/1.1 MiB | 854 B/s
+           0   0%    0.00kB/s    0:00:00
+        9207 100%  428.15kB/s    0:00:00 (xfer#51, to-check=58/115)
+>f+++++++ notify/watcher_fsevents_cgo.go MiB | 2.7 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        5219 100%  242.70kB/s    0:00:00 (xfer#52, to-check=57/115)
+>f+++++++ notify/watcher_fsevents_test.goMiB | 1.5 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        2690 100%  119.41kB/s    0:00:00 (xfer#53, to-check=56/115)
+>f+++++++ notify/watcher_inotify.goB/1.1 MiB | 795 B/s
+           0   0%    0.00kB/s    0:00:00
+       11518 100%  511.27kB/s    0:00:00 (xfer#54, to-check=55/115)
+>f+++++++ notify/watcher_inotify_test.goMiB | 3.3 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        2887 100%  122.58kB/s    0:00:00 (xfer#55, to-check=54/115)
+>f+++++++ notify/watcher_kqueue.goiB/1.1 MiB | 853 B/s
+           0   0%    0.00kB/s    0:00:00
+        5088 100%    4.85MB/s    0:00:00 (xfer#56, to-check=53/115)
+>f+++++++ notify/watcher_kqueue_test.go1 MiB | 806 B/s
+           0   0%    0.00kB/s    0:00:00
+        3369 100%    3.21MB/s    0:00:00 (xfer#57, to-check=52/115)
+>f+++++++ notify/watcher_readdcw.goB/1.1 MiB | 534 B/s
+           0   0%    0.00kB/s    0:00:00
+       16427 100%    3.13MB/s    0:00:00 (xfer#58, to-check=51/115)
+>f+++++++ notify/watcher_readdcw_test.goMiB | 2.5 KiB/s
+           0   0%    0.00kB/s    0:00:00
+        1729 100%  281.41kB/s    0:00:00 (xfer#59, to-check=50/115)
+>f+++++++ notify/watcher_recursive_test.goiB | 274 B/s
+           0   0%    0.00kB/s    0:00:00
+        2784 100%  453.12kB/s    0:00:00 (xfer#60, to-check=49/115)
+>f+++++++ notify/watcher_stub.go KiB/1.1 MiB | 440 B/s
+           0   0%    0.00kB/s    0:00:00
+         756 100%  123.05kB/s    0:00:00 (xfer#61, to-check=48/115)
+>f+++++++ notify/watcher_test.go B/1.1 MiB | 120 B/s
+           0   0%    0.00kB/s    0:00:00
+        1007 100%  140.49kB/s    0:00:00 (xfer#62, to-check=47/115)
+>f+++++++ notify/watcher_trigger.go/1.1 MiB | 159 B/s
+           0   0%    0.00kB/s    0:00:00
+       10605 100%    1.44MB/s    0:00:00 (xfer#63, to-check=46/115)
+>f+++++++ notify/watcher_trigger_test.goMiB | 1.6 KiB/s
+           0   0%    0.00kB/s    0:00:00
+         476 100%   66.41kB/s    0:00:00 (xfer#64, to-check=45/115)
+>f+++++++ notify/watchpoint.go76 B/1.1 MiB | 75 B/s
+           0   0%    0.00kB/s    0:00:00
+        2475 100%  302.12kB/s    0:00:00 (xfer#65, to-check=44/115)
+>f+++++++ notify/watchpoint_other.go/1.1 MiB | 391 B/s
+           0   0%    0.00kB/s    0:00:00
+         749 100%   91.43kB/s    0:00:00 (xfer#66, to-check=43/115)
+>f+++++++ notify/watchpoint_readdcw.go MiB | 118 B/s
+           0   0%    0.00kB/s    0:00:00
+        1259 100%  153.69kB/s    0:00:00 (xfer#67, to-check=42/115)
+>f+++++++ notify/watchpoint_test.goB/1.1 MiB | 199 B/s
+           0   0%    0.00kB/s    0:00:00
+        3689 100%  450.32kB/s    0:00:00 (xfer#68, to-check=41/115)
+cd+++++++ notify/.git//116), 3.6 KiB/1.1 MiB | 583 B/s
+>f+++++++ notify/.git/HEAD
+           0   0%    0.00kB/s    0:00:00
+          23 100%    2.50kB/s    0:00:00 (xfer#69, to-check=39/115)
+>f+++++++ notify/.git/config 23 B/1.1 MiB | 4 B/s
+           0   0%    0.00kB/s    0:00:00
+         264 100%   28.65kB/s    0:00:00 (xfer#70, to-check=38/115)
+>f+++++++ notify/.git/descriptionB/1.1 MiB | 42 B/s
+           0   0%    0.00kB/s    0:00:00
+          73 100%    7.92kB/s    0:00:00 (xfer#71, to-check=37/115)
+>f+++++++ notify/.git/index, 73 B/1.1 MiB | 12 B/s
+           0   0%    0.00kB/s    0:00:00
+        5120 100%  555.56kB/s    0:00:00 (xfer#72, to-check=36/115)
+>f+++++++ notify/.git/packed-refsKiB/1.1 MiB | 810 B/s
+           0   0%    0.00kB/s    0:00:00
+         416 100%   40.62kB/s    0:00:00 (xfer#73, to-check=35/115)
+cd+++++++ notify/.git/branches/6 B/1.1 MiB | 66 B/s
+cd+++++++ notify/.git/hooks/
+>f+++++++ notify/.git/hooks/applypatch-msg.sample
+           0   0%    0.00kB/s    0:00:00
+         452 100%   44.14kB/s    0:00:00 (xfer#74, to-check=32/115)
+>f+++++++ notify/.git/hooks/commit-msg.sample71 B/s
+           0   0%    0.00kB/s    0:00:00
+         896 100%   87.50kB/s    0:00:00 (xfer#75, to-check=31/115)
+>f+++++++ notify/.git/hooks/post-update.sample42 B/s
+           0   0%    0.00kB/s    0:00:00
+         189 100%   16.78kB/s    0:00:00 (xfer#76, to-check=30/115)
+>f+++++++ notify/.git/hooks/pre-applypatch.sample/s
+           0   0%    0.00kB/s    0:00:00
+         398 100%   35.33kB/s    0:00:00 (xfer#77, to-check=29/115)
+>f+++++++ notify/.git/hooks/pre-commit.sample63 B/s
+           0   0%    0.00kB/s    0:00:00
+        1642 100%  145.77kB/s    0:00:00 (xfer#78, to-check=28/115)
+>f+++++++ notify/.git/hooks/pre-push.sampleB | 260 B/s
+           0   0%    0.00kB/s    0:00:00
+        1352 100%  120.03kB/s    0:00:00 (xfer#79, to-check=27/115)
+>f+++++++ notify/.git/hooks/pre-rebase.sample| 214 B/s
+           0   0%    0.00kB/s    0:00:00
+        4898 100%  434.84kB/s    0:00:00 (xfer#80, to-check=26/115)
+>f+++++++ notify/.git/hooks/prepare-commit-msg.samples
+           0   0%    0.00kB/s    0:00:00
+        1239 100%  100.83kB/s    0:00:00 (xfer#81, to-check=25/115)
+>f+++++++ notify/.git/hooks/update.sampleMiB | 196 B/s
+           0   0%    0.00kB/s    0:00:00
+        3611 100%  293.86kB/s    0:00:00 (xfer#82, to-check=24/115)
+cd+++++++ notify/.git/info/, 3.5 KiB/1.1 MiB | 571 B/s
+>f+++++++ notify/.git/info/exclude
+           0   0%    0.00kB/s    0:00:00
+         240 100%   19.53kB/s    0:00:00 (xfer#83, to-check=22/115)
+cd+++++++ notify/.git/logs/, 240 B/1.1 MiB | 38 B/s
+>f+++++++ notify/.git/logs/HEAD
+           0   0%    0.00kB/s    0:00:00
+         181 100%   13.60kB/s    0:00:00 (xfer#84, to-check=20/115)
+cd+++++++ notify/.git/logs/refs/ B/1.1 MiB | 29 B/s
+cd+++++++ notify/.git/logs/refs/heads/
+>f+++++++ notify/.git/logs/refs/heads/master
+           0   0%    0.00kB/s    0:00:00
+         181 100%   13.60kB/s    0:00:00 (xfer#85, to-check=17/115)
+cd+++++++ notify/.git/logs/refs/remotes/iB | 29 B/s
+cd+++++++ notify/.git/logs/refs/remotes/origin/
+>f+++++++ notify/.git/logs/refs/remotes/origin/HEAD
+           0   0%    0.00kB/s    0:00:00
+         181 100%   13.60kB/s    0:00:00 (xfer#86, to-check=14/115)
+cd+++++++ notify/.git/objects/81 B/1.1 MiB | 29 B/s
+cd+++++++ notify/.git/objects/info/
+cd+++++++ notify/.git/objects/pack/
+>f+++++++ notify/.git/objects/pack/pack-d33cbd10b3732b26f1c96a7cc8fa98763efc0a4d.idx
+           0   0%    0.00kB/s    0:00:00
+       33267  51%   10.57kB/s    0:00:02 | 0 B/s
+       64184 100%   20.36kB/s    0:00:03 (xfer#87, to-check=10/115)
+>f+++++++ notify/.git/objects/pack/pack-d33cbd10b3732b26f1c96a7cc8fa98763efc0a4d.pack
+           0   0%    0.00kB/s    0:00:00
+       33698   5%   13.46kB/s    0:00:46 | 0 B/s
+       86077  13%   17.18kB/s    0:00:33MiB | 2.8 KiB/s
+      135825  20%   18.07kB/s    0:00:28MiB | 5.9 KiB/s
+      185219  28%   18.59kB/s    0:00:251 MiB | 7.9 KiB/s
+      238723  36%   20.59kB/s    0:00:201 MiB | 9.5 KiB/s
+      288235  43%   20.30kB/s    0:00:181 MiB | 11 KiB/s
+      338177  51%   20.32kB/s    0:00:151 MiB | 12 KiB/s
+      389207  59%   20.50kB/s    0:00:131 MiB | 12 KiB/s
+      440580  67%   20.27kB/s    0:00:101 MiB | 13 KiB/s
+      492342  74%   20.49kB/s    0:00:081 MiB | 14 KiB/s
+      543560  82%   20.63kB/s    0:00:051 MiB | 14 KiB/s
+      595361  90%   19.79kB/s    0:00:031 MiB | 15 KiB/s
+      656496 100%   21.64kB/s    0:00:29 (xfer#88, to-check=9/115)
+cd+++++++ notify/.git/refs/), 641 KiB/1.1 MiB | 16 KiB/s
+cd+++++++ notify/.git/refs/heads/
+>f+++++++ notify/.git/refs/heads/master
+           0   0%    0.00kB/s    0:00:00
+          41 100%    5.72kB/s    0:00:00 (xfer#89, to-check=6/115)
+cd+++++++ notify/.git/refs/remotes/.1 MiB | 1 B/s
+cd+++++++ notify/.git/refs/remotes/origin/
+>f+++++++ notify/.git/refs/remotes/origin/HEAD
+           0   0%    0.00kB/s    0:00:00
+          32 100%    4.46kB/s    0:00:00 (xfer#90, to-check=3/115)
+cd+++++++ notify/.git/refs/tags/B/1.1 MiB | 1 B/s
+cd+++++++ notify/testdata/
+>f+++++++ notify/testdata/vfs.txt
+           0   0%    0.00kB/s    0:00:00
+        2834 100%  345.95kB/s    0:00:00 (xfer#91, to-check=0/115)
+sent 2162 bytes  received 798793 bytes  19776.67 bytes/sec
+total size is 1102777  speedup is 1.38
