@@ -17,6 +17,8 @@ import (
 	"koding/klient/machine/mount/sync/history"
 	"koding/klient/machine/mount/sync/supervised"
 
+	"log"
+
 	"github.com/koding/logging"
 )
 
@@ -241,6 +243,8 @@ func (s *Sync) Info() *Info {
 
 // History gets recent history of synchronized files.
 func (s *Sync) History() ([]*history.Record, error) {
+	log.Println("------INDEX-----")
+	log.Println(s.idx.DebugString())
 	if h, ok := s.s.(*history.History); ok {
 		return h.Get(), nil
 	}
