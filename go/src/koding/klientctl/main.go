@@ -603,10 +603,11 @@ func run(args []string) {
 		Usage:        "Manage remote machines.",
 		BashComplete: func(c *cli.Context) {},
 		Subcommands: []cli.Command{{
-			Name:      "list",
-			ShortName: "ls",
-			Usage:     "List available machines.",
-			Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+			Name:         "list",
+			ShortName:    "ls",
+			Usage:        "List available machines.",
+			Action:       ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+			BashComplete: func(c *cli.Context) {},
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "json",
@@ -614,10 +615,11 @@ func run(args []string) {
 				},
 			},
 		}, {
-			Name:      "ssh",
-			ShortName: "s",
-			Usage:     "SSH into provided remote machine.",
-			Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
+			Name:         "ssh",
+			ShortName:    "s",
+			Usage:        "SSH into provided remote machine.",
+			Action:       ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
+			BashComplete: func(c *cli.Context) {},
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "username",
@@ -625,12 +627,13 @@ func run(args []string) {
 				},
 			},
 		}, {
-			Name:        "mount",
-			Aliases:     []string{"m"},
-			Usage:       "Mount remote directory.",
-			Description: cmdDescriptions["mount"],
-			Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
-			Flags:       []cli.Flag{},
+			Name:         "mount",
+			Aliases:      []string{"m"},
+			Usage:        "Mount remote directory.",
+			Description:  cmdDescriptions["mount"],
+			Action:       ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
+			Flags:        []cli.Flag{},
+			BashComplete: func(c *cli.Context) {},
 			Subcommands: []cli.Command{{
 				Name:    "list",
 				Aliases: []string{"ls"},
@@ -659,18 +662,20 @@ func run(args []string) {
 				},
 			}},
 		}, {
-			Name:        "umount",
-			ShortName:   "u",
-			Usage:       "Unmount remote directory.",
-			Description: cmdDescriptions["umount"],
-			Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
-			Flags:       []cli.Flag{},
+			Name:         "umount",
+			ShortName:    "u",
+			Usage:        "Unmount remote directory.",
+			Description:  cmdDescriptions["umount"],
+			Action:       ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
+			BashComplete: func(c *cli.Context) {},
+			Flags:        []cli.Flag{},
 		}, {
 			Name:            "exec",
 			ShortName:       "e",
 			Description:     cmdDescriptions["exec"],
 			Usage:           "Run a command in a started machine.",
 			Action:          ctlcli.ExitErrAction(MachineExecCommand, log, "exec"),
+			BashComplete:    func(c *cli.Context) {},
 			SkipFlagParsing: true,
 		}, {
 			Name:            "cp",
@@ -678,6 +683,7 @@ func run(args []string) {
 			Usage:           "Copies a file between hosts on a network.",
 			Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
 			SkipFlagParsing: true,
+			BashComplete:    func(c *cli.Context) {},
 			Flags:           []cli.Flag{},
 		}, {
 			Name:   "start",
