@@ -7,6 +7,7 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
+	"strings"
 )
 
 // Mounts store mounts of all machines in the group.
@@ -37,6 +38,15 @@ func (ms *Mounts) Add(id machine.ID, mountID mount.ID, m mount.Mount) error {
 		return fmt.Errorf("local directory is already used by mount %s", exMountID)
 	} else if err != mount.ErrMountNotFound {
 		return err
+	}
+
+	// Check if remote directory of given machine is already mounted.
+	if mids, err := ms.remotePath(id, m.RemotePath); err != mount.ErrMountNotFound {
+		if len(mids) == 0 {
+			panic("found non existing mounts")
+		}
+
+		return fmt.Errorf("remote directory is already mounted in %s", strings.Join(mids.StringSlice(), ", "))
 	}
 
 	mb, ok := ms.m[id]
@@ -111,7 +121,15 @@ func (ms *Mounts) RemotePath(path string) (ids mount.IDSlice, err error) {
 	ms.mu.RLock()
 	defer ms.mu.RUnlock()
 
-	for _, mb := range ms.m {
+	return ms.remotePath("", path)
+}
+
+func (ms *Mounts) remotePath(id machine.ID, path string) (ids mount.IDSlice, err error) {
+	for machineID, mb := range ms.m {
+		if id != "" && id != machineID {
+			continue
+		}
+
 		if mids, err := mb.RemotePath(path); err == nil {
 			ids = append(ids, mids...)
 		}
