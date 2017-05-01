@@ -63,6 +63,8 @@ module.exports = class JStackTemplate extends Module
           (signature Object, Function)
         samples       :
           (signature Object, Function)
+        preview       :
+          (signature Object, Function)
         one           : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -356,33 +358,35 @@ module.exports = class JStackTemplate extends Module
           else callback null, stackTemplate
 
 
-  # returns sample stack template for given provider
-  #
-  # @param {Object} options
-  #   options for fetching sample template
-  #
-  # @option options [String] provider provider name for fetching sample
-  # @option options [Boolean] useDefaults if it's true templates will be provided with default values
-  #
-  # @return {Object} stacktemplate sample in json and yaml format with default values
-  #
-  # @example api
-  #
-  #   {
-  #     "provider": "aws",
-  #     "useDefaults": true
-  #   }
-  #
-  # @example return
-  #
-  #   {
-  #     "json": "{}",
-  #     "yaml": "--",
-  #     "defaults": {
-  #       "userInputs": {}
-  #     }
-  #   }
-  #
+  ###
+  returns sample stack template for given provider
+
+  @param {Object} options
+    options for fetching sample template
+
+  @option options [String] provider provider name for fetching sample
+  @option options [Boolean] useDefaults if it's true templates will be provided with default values
+
+  @return {Object} stacktemplate sample in json and yaml format with default values
+
+  @example api
+
+    {
+      "provider": "aws",
+      "useDefaults": true
+    }
+
+  @example return
+
+    {
+      "json": "{}",
+      "yaml": "--",
+      "defaults": {
+        "userInputs": {}
+      }
+    }
+
+  ###
   @samples = ->
   @samples = permit 'list stack templates',
 
@@ -398,6 +402,55 @@ module.exports = class JStackTemplate extends Module
       if useDefaults
       then callback null, provider.templateWithDefaults
       else callback null, provider.template
+
+
+  # returns preview stack template for given template and custom variables
+  #
+  # @param {Object} options
+  #   options for generating template preview
+  #
+  # @option options [String] template content
+  # @option options [Object] custom variables
+  #
+  # @return {Object} stacktemplate preview in provided format
+  #
+  # @example api
+  #
+  #   {
+  #     "template": "Hello ${var.koding_user_username} -- ${var.custom_foo}",
+  #     "custom": {"foo": "bar"}
+  #   }
+  #
+  # @example return
+  #
+  #   {
+  #     "template": "Hello gokmen -- bar",
+  #     "errors": {},
+  #     "warnings": {}
+  #   }
+  #
+  @preview = ->
+  @preview = permit 'list stack templates',
+
+    success: revive
+
+      shouldReviveClient    : yes
+      shouldReviveProvider  : no
+
+    , (client, options, callback) ->
+
+      generatePreview = clientRequire 'app/lib/util/stacks/generatepreview'
+
+      { template, custom } = options
+      { account, group }   = client.r
+
+      accountWrapper =
+        fetchFromUser: (data, callback) ->
+          account.fetchFromUser client, data, callback
+
+      generatePreview {
+        account: accountWrapper, group, template, custom
+      }, callback
 
 
   getNotifyOptions: (client) ->

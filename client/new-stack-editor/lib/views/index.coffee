@@ -22,6 +22,7 @@ VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
 
 Help = require './help'
+Preview = require './preview'
 
 
 module.exports = class StackEditor extends kd.View
@@ -48,10 +49,20 @@ module.exports = class StackEditor extends kd.View
     @statusbar = new Statusbar
 
     # Editor views
+    @variables = customVariables = new Editor {
+      cssClass: 'variables'
+      title: 'Custom Variables'
+      filename: 'variables.yaml'
+      help: Help.variables
+      @statusbar
+    }
+
     @editor = new Editor {
       cssClass: 'editor'
       help: Help.stack
       filename: 'template.yaml'
+      preview: (view) ->
+        Preview.stack.call this, view, customVariables
       @statusbar
     }
 
@@ -66,19 +77,12 @@ module.exports = class StackEditor extends kd.View
       @statusbar
     }
 
-    @variables = new Editor {
-      cssClass: 'variables'
-      title: 'Custom Variables'
-      filename: 'variables.yaml'
-      help: Help.variables
-      @statusbar
-    }
-
     @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
       filename: 'readme.md'
       help: Help.readme
+      preview: Preview.readme
       @statusbar
     }
 
@@ -192,6 +196,9 @@ module.exports = class StackEditor extends kd.View
 
       @_saveSnapshot id
       @_current = id
+
+    @editor.unsetClass 'preview-mode'
+    @readme.unsetClass 'preview-mode'
 
     kd.utils.defer @editor.bound 'focus'
 
