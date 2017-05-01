@@ -250,12 +250,12 @@ func (c *Client) Umount(options *UmountOptions) (err error) {
 		}
 		var umountRes machinegroup.UmountResponse
 
-		if err := c.klient().Call("machine.umount", umountReq, &umountRes); err != nil {
-			return err
+		err := c.klient().Call("machine.umount", umountReq, &umountRes)
+		if err != nil {
+			fmt.Fprintf(os.Stdout, "Cannot unmount %s (ID: %s): %s\n", umountRes.Mount, umountRes.MountID, err)
+		} else {
+			fmt.Fprintf(os.Stdout, "Successfully unmounted %s (ID: %s)\n", umountRes.Mount, umountRes.MountID)
 		}
-
-		fmt.Fprintf(os.Stdout, "Successfully unmounted %s (ID: %s)\n",
-			umountRes.Mount, umountRes.MountID)
 	}
 
 	return nil
