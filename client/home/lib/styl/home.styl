@@ -191,15 +191,27 @@ $subtleColor                = #A59999
 
 .HomeAppViewListItem-SecondaryContainer
   width                     50%
-  abs                       13px 0px
+  height                    100%
+  abs                       0px 0px
   text-align                right
+  display                   flex
+  flex-direction            column
+  justify-content           center
 
   .HomeAppView--button
     line-height             20px
     display                 inline-block
 
+    &.inactive
+      cursor                not-allowed
+      color                 $subtleColor
+
   .SecondaryContainerItem
     margin-left             40px
+
+.HomeAppViewListItem .cloning-disabled-msg
+  font-size                 12px
+  color                     $subtleColor
 
 
 .HomeAppView--button

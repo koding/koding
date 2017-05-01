@@ -20,6 +20,7 @@ sidebarConnector = connectSidebar({
     { sidebar } = kd.singletons
 
     ownedResources = calculateOwnedResources(props)
+      .filter ({ stack, template }) -> stack or template?.isMine()
       .map (resource) ->
         isVisible = if resource.stack
         then sidebar.isVisible 'stack', resource.stack.getId()

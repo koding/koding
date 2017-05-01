@@ -23,7 +23,7 @@ import (
 // RPC round trip.
 //
 // Default implementation used in this package is
-// a kiteTransport, but plain net/rpc can also be
+// a KiteTransport, but plain net/rpc can also be
 // used.
 type Transport interface {
 	Connect(url string) (Transport, error)
@@ -33,8 +33,8 @@ type Transport interface {
 // DefaultLog is a logger used by Client with nil Log.
 var DefaultLog logging.Logger = logging.NewCustom("endpoint-kloud", false)
 
-// DefaultClient is a default client used by Cache, Kite,
-// KiteConfig and Kloud functions.
+// DefaultClient is a default client used by Cache, Username,
+// Call and Wait functions.
 var DefaultClient = &Client{
 	Transport: &KiteTransport{},
 }
@@ -58,6 +58,7 @@ type Client struct {
 	cache *cfg.Cache
 }
 
+// Cache gives new kd.bolt cache.
 func (c *Client) Cache() *cfg.Cache {
 	if c.cache != nil {
 		return c.cache
@@ -68,6 +69,11 @@ func (c *Client) Cache() *cfg.Cache {
 	return c.cache
 }
 
+// Username gives the username by:
+//
+//   - reading username from kite.key if available
+//   - giving current system username otherwise
+//
 func (c *Client) Username() string {
 	if kt, ok := c.Transport.(*KiteTransport); ok {
 		return kt.kiteConfig().Username
@@ -75,10 +81,18 @@ func (c *Client) Username() string {
 	return cfg.CurrentUser.Username
 }
 
+// Call calls the given method with provided arguments
+// on the underlying transport.
+//
+// If reply argument is non-nil, it will contain response
+// value.
 func (c *Client) Call(method string, arg, reply interface{}) error {
 	return c.Transport.Call(method, arg, reply)
 }
 
+// Close implements the io.Closer interface.
+//
+// It closes any resources used by the client.
 func (c *Client) Close() (err error) {
 	if c.cache != nil {
 		err = c.cache.Close()
@@ -86,6 +100,13 @@ func (c *Client) Close() (err error) {
 	return err
 }
 
+// Wait polls on even stream identified by the given event string.
+//
+// If the event string is invalid or receiving the events fails,
+// the returned chan will receive an event with non-nil error.
+//
+// The returned channel will be closed as soon as the operation
+// finishes or error occurs.
 func (c *Client) Wait(event string) <-chan *stack.EventResponse {
 	ch := make(chan *stack.EventResponse, 1)
 
@@ -171,16 +192,6 @@ func (c *Client) waitInterval() time.Duration {
 	return 10 * time.Second
 }
 
-func newErr(err error) *kite.Error {
-	if e, ok := err.(*kite.Error); ok {
-		return e
-	}
-	return &kite.Error{
-		Type:    "endpoint/kloud",
-		Message: err.Error(),
-	}
-}
-
 // KiteTransport is a default transport that uses github.com/koding/kite
 // for underlying communication.
 //
@@ -224,6 +235,10 @@ var (
 	_ stack.Validator = (*KiteTransport)(nil)
 )
 
+// Call calls the given method with provided arguments.
+//
+// If reply argument is non-nil, it will contain response
+// value.
 func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
 	k, err := kt.client()
 	if err != nil {
@@ -242,6 +257,8 @@ func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
 	return nil
 }
 
+// Connect creates new kite transport by connecting
+// to kite given by the url.
 func (kt *KiteTransport) Connect(url string) (Transport, error) {
 	k, err := kt.newClient(url)
 	if err != nil {
@@ -254,6 +271,8 @@ func (kt *KiteTransport) Connect(url string) (Transport, error) {
 	return &ktCopy, nil
 }
 
+// SetKiteKey sets or replaces kite.key value used for
+// kiteKey-authentication.
 func (kt *KiteTransport) SetKiteKey(kiteKey string) {
 	if kt.kCfg != nil {
 		kt.kCfg.KiteKey = kiteKey
@@ -359,6 +378,18 @@ func (kt *KiteTransport) clientURL() string {
 	return kt.konfig().Endpoints.Kloud().Public.String()
 }
 
+func newErr(err error) *kite.Error {
+	if e, ok := err.(*kite.Error); ok {
+		return e
+	}
+	return &kite.Error{
+		Type:    "endpoint/kloud",
+		Message: err.Error(),
+	}
+}
+
+// Valid is used to test whether the transport is authenticated
+// and authorized to call methods on a remote kite.
 func (kt *KiteTransport) Valid() error {
 	// In order to test whether we're able to authenticate with kloud
 	// we need to call some kite method. For that purpose we
@@ -367,11 +398,39 @@ func (kt *KiteTransport) Valid() error {
 	return kt.Call("kite.print", "", nil)
 }
 
+// Cache gives new kd.bolt cache.
+//
+// The function forwards the call to the DefaultClient.
 func Cache() *cfg.Cache { return DefaultClient.Cache() }
-func Username() string  { return DefaultClient.Username() }
+
+// Username gives the username by:
+//
+//   - reading username from kite.key if available
+//   - giving current system username otherwise
+//
+// The function forwards the call to the DefaultClient.
+func Username() string { return DefaultClient.Username() }
+
+// Call calls the given method with provided arguments
+// on the underlying transport.
+//
+// If reply argument is non-nil, it will contain response
+// value.
+//
+// The function forwards the call to the DefaultClient.
 func Call(method string, arg, reply interface{}) error {
 	return DefaultClient.Call(method, arg, reply)
 }
+
+// Wait polls on even stream identified by the given event string.
+//
+// If the event string is invalid or receiving the events fails,
+// the returned chan will receive an event with non-nil error.
+//
+// The returned channel will be closed as soon as the operation
+// finishes or error occurs.
+//
+// The function forwards the call to the DefaultClient.
 func Wait(event string) <-chan *stack.EventResponse {
 	return DefaultClient.Wait(event)
 }

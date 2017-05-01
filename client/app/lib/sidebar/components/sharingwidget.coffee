@@ -38,7 +38,7 @@ Buttons = ({ children }) ->
 Button = ({ type, children, onClick }) ->
 
   <button onClick={onClick} className={cx 'kdbutton', 'GenericButton', type}>
-    <span children={type.toUpperCase()} />
+    <span className='button-title' children={type.toUpperCase()} />
   </button>
 
 

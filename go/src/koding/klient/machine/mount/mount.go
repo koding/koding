@@ -44,6 +44,15 @@ func (ids IDSlice) Len() int           { return len(ids) }
 func (ids IDSlice) Swap(i, j int)      { ids[i], ids[j] = ids[j], ids[i] }
 func (ids IDSlice) Less(i, j int) bool { return ids[i] < ids[j] }
 
+// StringSlice converts mount ID slice to string slice.
+func (ids IDSlice) StringSlice() (res []string) {
+	for _, id := range ids {
+		res = append(res, string(id))
+	}
+
+	return res
+}
+
 // Mount stores information about a single local to remote machine mount.
 type Mount struct {
 	Path       string `json:"path"`       // Mount point.
