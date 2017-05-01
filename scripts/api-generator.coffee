@@ -96,14 +96,7 @@ swagger =
       required: true
       description: 'body of the request'
 
-  paths:
-    '../-/version':
-      get:
-        tags: [ 'system' ]
-        responses:
-          '200':
-            description: 'OK'
-
+  paths: {}
 
 parseType = (type) ->
 

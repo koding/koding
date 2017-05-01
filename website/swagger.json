@@ -1507,18 +1507,6 @@
     }
   },
   "paths": {
-    "../-/version": {
-      "get": {
-        "tags": [
-          "system"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/JAccount.one": {
       "post": {
         "tags": [
