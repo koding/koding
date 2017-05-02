@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -15,7 +16,15 @@ import (
 	"unicode"
 
 	"koding/klient/machine/index"
+	kos "koding/klient/os"
 )
+
+// englishEnv contains current environment with C locale.
+var englishEnv []string
+
+func init() {
+	englishEnv = kos.NewEnviron(os.Environ()).Encode(kos.ParseEnviron("LANG=C,LC_ALL=C"))
+}
 
 // Command describes rsync executable.
 type Command struct {
@@ -131,6 +140,11 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 
 	// Add default arguments.
 	c.Cmd.Args = append(c.Cmd.Args, "-zlptgoDd")
+	if c.Cmd.Env == nil {
+		c.Cmd.Env = englishEnv
+	} else {
+		c.Cmd.Env = kos.NewEnviron(englishEnv).Encode(kos.NewEnviron(c.Cmd.Env))
+	}
 
 	// Use remote shell if SSH private key path is set.
 	if c.PrivateKeyPath != "" {
@@ -140,6 +154,7 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 			"ssh", "-T", "-x", "-i", c.PrivateKeyPath,
 			"-oCompression=no",
 			"-oStrictHostKeychecking=no",
+			"-oUserKnownHostsFile=/dev/null",
 		}
 
 		if c.SSHPort > 0 {
@@ -190,7 +205,8 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 		c.Cmd.Args = append(c.Cmd.Args, c.SourcePath, c.DestinationPath)
 	}
 
-	c.Cmd.Stderr = noNilMultiWriter(c.Cmd.Stderr, c.Output)
+	var errBuf bytes.Buffer
+	c.Cmd.Stderr = noNilMultiWriter(c.Cmd.Stderr, c.Output, &errBuf)
 	if c.Progress == nil {
 		c.Cmd.Stdout = noNilMultiWriter(c.Cmd.Stdout, c.Output)
 		return c.Cmd.Run()
@@ -215,6 +231,9 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 	scan(r)
 	if err = c.Cmd.Wait(); err != nil {
 		c.Progress(0, 0, 0, err)
+		if ee, ok := err.(*exec.ExitError); ok {
+			ee.Stderr = errBuf.Bytes()
+		}
 	} else {
 		c.Progress(0, 0, 0, io.EOF)
 	}

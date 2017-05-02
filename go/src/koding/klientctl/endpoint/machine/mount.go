@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -131,6 +132,10 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot prefetch mount files: %s\n", err)
+		options.Log.Error("Prefetching failed: %s\n", err)
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			options.Log.Error("Output: %q", exitErr.Stderr)
+		}
 	}
 
 	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)
