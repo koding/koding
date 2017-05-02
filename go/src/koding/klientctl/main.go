@@ -594,6 +594,11 @@ func run(args []string) {
 			cli.IntFlag{Name: "lines, n"},
 		},
 		Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
+		Subcommands: []cli.Command{{
+			Name:   "upload",
+			Usage:  "Share a text file.",
+			Action: ctlcli.ExitErrAction(LogUpload, log, "upload"),
+		}},
 	}, {
 		Name: "open",
 		Usage: fmt.Sprintf(

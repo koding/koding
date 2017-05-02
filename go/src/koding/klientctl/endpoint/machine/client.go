@@ -21,6 +21,8 @@ import (
 	"github.com/koding/logging"
 )
 
+// TODO(rjeczalik): rename to klient package
+
 // DefaultClient is a default client used by all machine functions.
 var DefaultClient = &Client{}
 
