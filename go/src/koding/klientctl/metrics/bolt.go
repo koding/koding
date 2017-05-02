@@ -8,14 +8,13 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-const bucketName = "metrics"
+var bucket = []byte("metrics")
 
 var _ io.WriteCloser = &BoltQueue{}
 
 // BoltQueue writes and reads to BoltDB
 type BoltQueue struct {
-	db         *bolt.DB
-	bucketName []byte
+	db *bolt.DB
 }
 
 // NewBoltQueue implements Writer and Closer interfaces.
@@ -29,8 +28,6 @@ func NewBoltQueue(path string) (*BoltQueue, error) {
 		return nil, err
 	}
 
-	bucket := []byte(bucketName)
-
 	if err := db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(bucket)
 		return err
@@ -39,8 +36,7 @@ func NewBoltQueue(path string) (*BoltQueue, error) {
 	}
 
 	return &BoltQueue{
-		db:         db,
-		bucketName: bucket,
+		db: db,
 	}, nil
 }
 
@@ -48,7 +44,7 @@ func NewBoltQueue(path string) (*BoltQueue, error) {
 func (b *BoltQueue) Write(d []byte) (n int, err error) {
 	// Start a write transaction.
 	if err := b.db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(b.bucketName)
+		bucket := tx.Bucket(bucket)
 		id, err := bucket.NextSequence()
 		if err != nil {
 			return err
@@ -69,7 +65,7 @@ func (b *BoltQueue) Close() error {
 	return b.db.Close()
 }
 
-// OperatorFunc is the contract for ForEach operations
+// OperatorFunc is the contract for ConsumeN operations
 type OperatorFunc func([][]byte) error
 
 // ConsumeN reads first n records from boltdb and deletes them permanently if
@@ -89,7 +85,7 @@ func (b *BoltQueue) ConsumeN(n int, f OperatorFunc) (int, error) {
 
 	res := make([][]byte, 0, cap)
 	err := b.db.Update(func(tx *bolt.Tx) error {
-		c := tx.Bucket(b.bucketName).Cursor()
+		c := tx.Bucket(bucket).Cursor()
 
 		for k, v := c.First(); k != nil && n != 0; k, v = c.Next() {
 			res = append(res, v)
