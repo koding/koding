@@ -11,7 +11,7 @@ import (
 
 // Metrics wraps metric
 type Metrics struct {
-	bolt    *BoltConn
+	bolt    *BoltQueue
 	Datadog *statsd.Client
 }
 
@@ -24,7 +24,7 @@ func New() (*Metrics, error) {
 
 // NewWithPath creates new metrics collector with storing data to given path.
 func NewWithPath(boltPath string) (*Metrics, error) {
-	boltConn, err := NewBoltConn(boltPath)
+	boltConn, err := NewBoltQueue(boltPath)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func NewWithPath(boltPath string) (*Metrics, error) {
 
 // Process gets the records and deletes them after operation.
 func (m *Metrics) Process(f OperatorFunc) error {
-	_, err := m.bolt.ForEachN(-1, f)
+	_, err := m.bolt.ConsumeN(-1, f)
 	return err
 }
 
@@ -53,7 +53,7 @@ func (m *Metrics) ProcessContext(ctx context.Context, n int, f OperatorFunc) err
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			processedCount, err := m.bolt.ForEachN(n, f)
+			processedCount, err := m.bolt.ConsumeN(n, f)
 			if err != nil {
 				return err
 			}

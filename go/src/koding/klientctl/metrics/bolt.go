@@ -10,16 +10,16 @@ import (
 
 const bucketName = "metrics"
 
-var _ io.WriteCloser = &BoltConn{}
+var _ io.WriteCloser = &BoltQueue{}
 
-// BoltConn writes and reads to BoltDB
-type BoltConn struct {
+// BoltQueue writes and reads to BoltDB
+type BoltQueue struct {
 	db         *bolt.DB
 	bucketName []byte
 }
 
-// NewBoltConn implements Writer and Closer interfaces.
-func NewBoltConn(path string) (*BoltConn, error) {
+// NewBoltQueue implements Writer and Closer interfaces.
+func NewBoltQueue(path string) (*BoltQueue, error) {
 	options := &bolt.Options{
 		Timeout: 5 * time.Second,
 	}
@@ -38,14 +38,14 @@ func NewBoltConn(path string) (*BoltConn, error) {
 		return nil, err
 	}
 
-	return &BoltConn{
+	return &BoltQueue{
 		db:         db,
 		bucketName: bucket,
 	}, nil
 }
 
 // Write writes incoming data to boltdb
-func (b *BoltConn) Write(d []byte) (n int, err error) {
+func (b *BoltQueue) Write(d []byte) (n int, err error) {
 	// Start a write transaction.
 	if err := b.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(b.bucketName)
@@ -65,19 +65,19 @@ func (b *BoltConn) Write(d []byte) (n int, err error) {
 }
 
 // Close closes the underlying db connection
-func (b *BoltConn) Close() error {
+func (b *BoltQueue) Close() error {
 	return b.db.Close()
 }
 
 // OperatorFunc is the contract for ForEach operations
 type OperatorFunc func([][]byte) error
 
-// ForEachN reads first n records from boltdb and deletes them permanently if
+// ConsumeN reads first n records from boltdb and deletes them permanently if
 // OperatorFunc run successfully.
 // If n < 0 process all the records available.
 // If n == 0 this call is noop.
 // If n > 0 process up to n available records.
-func (b *BoltConn) ForEachN(n int, f OperatorFunc) (int, error) {
+func (b *BoltQueue) ConsumeN(n int, f OperatorFunc) (int, error) {
 	if n == 0 {
 		return 0, nil
 	}

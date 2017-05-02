@@ -34,15 +34,15 @@ func TestBoltRead(t *testing.T) {
 
 		want := readCount
 		n := readCount
-		checkforEach(t, m.bolt, want, n)
+		checkConsumeN(t, m.bolt, want, n)
 
 		want = readCount
 		n = readCount
-		checkforEach(t, m.bolt, want, n)
+		checkConsumeN(t, m.bolt, want, n)
 
 		want = 1
 		n = readCount
-		checkforEach(t, m.bolt, want, n)
+		checkConsumeN(t, m.bolt, want, n)
 
 		if err := m.bolt.Close(); err != nil {
 			t.Fatalf("m.bolt.Close() error = %v, want %v", err, nil)
@@ -73,19 +73,19 @@ func TestBoltForEachN(t *testing.T) {
 		// try < 0
 		want := 0
 		n := -1
-		checkforEach(t, m.bolt, want, n)
+		checkConsumeN(t, m.bolt, want, n)
 
 		// try 0
 		want = 0
 		n = want
-		checkforEach(t, m.bolt, want, n)
+		checkConsumeN(t, m.bolt, want, n)
 
 		_ = m.Datadog.Count("name", 1, nil, 1)
 
 		// try > 0
 		want = 1
 		n = want
-		checkforEach(t, m.bolt, want, n)
+		checkConsumeN(t, m.bolt, want, n)
 
 		_ = m.Datadog.Count("name", 1, nil, 1)
 		_ = m.Datadog.Count("name", 1, nil, 1)
@@ -93,12 +93,12 @@ func TestBoltForEachN(t *testing.T) {
 		// try < 0 for consuming
 		want = 2
 		n = -1
-		checkforEach(t, m.bolt, want, n)
+		checkConsumeN(t, m.bolt, want, n)
 	})
 }
 
-func checkforEach(t *testing.T, b *BoltConn, want, n int) {
-	got, err := b.ForEachN(n, func(res [][]byte) error {
+func checkConsumeN(t *testing.T, b *BoltQueue, want, n int) {
+	got, err := b.ConsumeN(n, func(res [][]byte) error {
 		return nil
 	})
 	if err != nil {
