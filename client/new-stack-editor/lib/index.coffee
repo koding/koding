@@ -80,7 +80,7 @@ module.exports = class StackEditorAppController extends AppController
         return callback err
 
       @stackEditor.setData template, reset
-      @stackEditor.setReadOnly not (isAdmin() or template.isMine())
+      do @_setPermission
 
       @showBuildFlow template, machineId  if build
 
@@ -229,7 +229,8 @@ module.exports = class StackEditorAppController extends AppController
         return existingBuild.show()
       delete @builds[templateId]
 
-    onClose = ->
+    onClose = =>
+      do @_setPermission
       router.handleRoute "/Stack-Editor/#{templateId}"
 
     if machine.isBuilt()
@@ -247,6 +248,8 @@ module.exports = class StackEditorAppController extends AppController
     modal.once 'OperationCompleted', ->
       debug 'OperationCompleted', machineId
 
+    modal.on 'shown', => @stackEditor.setReadOnly()
+
     handleDeleteMachine = ({ operation, value }) ->
       if value is machineId and operation is 'pop'
         storage.off 'change:machines', handleDeleteMachine
@@ -255,6 +258,7 @@ module.exports = class StackEditorAppController extends AppController
     storage.on 'change:machines', handleDeleteMachine
 
     @builds[templateId] = modal
+    @stackEditor.setReadOnly()
 
     return
 
@@ -262,3 +266,8 @@ module.exports = class StackEditorAppController extends AppController
   hideBuildFlow: ->
 
     builder.hide()  for templateId, builder of @builds
+
+
+  _setPermission: ->
+
+    @stackEditor.setReadOnly not (isAdmin() or template.isMine())

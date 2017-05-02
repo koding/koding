@@ -44,6 +44,7 @@ module.exports = class ResourceStateModal extends BaseModalView
       then onClose
       else @bound 'doBlockingAnimation'
 
+    @emit 'shown'
     @setPositions()
 
 

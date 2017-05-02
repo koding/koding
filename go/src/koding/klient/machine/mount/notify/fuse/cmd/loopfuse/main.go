@@ -21,6 +21,7 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount/notify"
 	"koding/klient/machine/mount/notify/fuse"
+	"koding/klient/machine/mount/notify/fuse/counter"
 	"koding/klient/machine/mount/notify/fuse/fusetest"
 )
 
@@ -29,18 +30,20 @@ const sep = string(os.PathSeparator)
 var (
 	verbose = flag.Bool("v", false, "Turn on verbose logging.")
 	tmp     = flag.String("tmp", "", "Existing cache directory to use.")
-	change  = flag.Bool("c", false, "Print produced FS changes.")
+	change  = flag.Bool("change", false, "Print produced FS changes.")
 	null    = flag.Bool("null", false, "Ignore all changes and report them as completed")
+	count   = flag.Bool("count", false, "Count fuse calls. Use Ctrl+Z to display counters.")
 )
 
-const usage = `usage: loopfuse [-v] [-tmp] [-c] [-null] <src> <dst>
+const usage = `usage: loopfuse [-v] [-tmp] [-change] [-null] <src> <dst>
 
 Flags
 
-	-v     Turns on verbose logging.
-	-tmp   Existing cache directory to use.
-	-c     Print produced FS changes.
-	-null  Ignore all changes and report them as completed.
+	-v      Turns on verbose logging.
+	-tmp    Existing cache directory to use.
+	-change Print produced FS changes.
+	-null   Ignore all changes and report them as completed.
+	-count  Count fuse calls. Use Ctrl+Z to display counters.
 
 Arguments
 
@@ -124,7 +127,13 @@ func main() {
 
 	log.Printf("mounting filesystem: %s", dst)
 
-	fs, err := fuse.NewFilesystem(opts)
+	var fs *fuse.Filesystem
+	if *count {
+		log.Printf("filesystem's method call counter is enabled")
+		fs, err = fuse.NewFilesystem(opts, counter.Wrap)
+	} else {
+		fs, err = fuse.NewFilesystem(opts)
+	}
 	if err != nil {
 		die(err)
 	}
