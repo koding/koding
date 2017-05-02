@@ -1,3 +1,5 @@
+debug = (require 'debug') 'nse:editor'
+
 kd = require 'kd'
 AceView = require 'ace/aceview'
 FSHelper = require 'app/util/fs/fshelper'

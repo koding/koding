@@ -87,7 +87,6 @@ module.exports = class StackEditorAppController extends AppController
       callback null
 
 
-
   openStackWizard: (handleRoute = yes) ->
 
     new StackWizardModal { handleRoute }
@@ -135,12 +134,15 @@ module.exports = class StackEditorAppController extends AppController
         callback err
 
 
-
   initializeStack: (templateId) ->
 
     debug 'initializeStack called for', templateId
 
     { editor, logs, stack, credentials, variables } = @stackEditor.controllers
+
+    { computeController: cc } = kd.singletons
+    hasGeneratedStack = !!(cc.findStackFromTemplateId templateId)
+    debug 'has generated stack from this template?', hasGeneratedStack
 
     currentTemplate = @stackEditor.getData()
     logs.add 'updating stack template...'
@@ -176,10 +178,6 @@ module.exports = class StackEditorAppController extends AppController
         logs.add 'saving template...'
         editor.save next
 
-      (next) ->
-        logs.add 'generating stack...'
-        stack.save next
-
     ]
 
     async.series queue, (err, result) =>
@@ -190,15 +188,27 @@ module.exports = class StackEditorAppController extends AppController
 
       return logs.handleError err  if err
 
-      [ ..., updatedTemplate, generatedStack ] = result
+      [ ..., updatedTemplate ] = result
       logs.add 'stack initialized successfully'
 
       debug 'updated template instance', updatedTemplate
-      debug 'generated stack', generatedStack
 
-      { stack: { machines } } = generatedStack
-      { router } = kd.singletons
-      router.handleRoute "/Stack-Editor/Build/#{machines.first.getId()}"
+      options = { template: updatedTemplate, hasGeneratedStack }
+
+      cc.checkStackRevisions updatedTemplate._id
+
+      @askForTeamDefault options, (err) ->
+
+        logs.add 'generating stack...'
+        stack.save (err, generatedStack) ->
+          debug 'generated stack', generatedStack
+          return  if logs.handleError err, ''
+
+          logs.add 'stack generated successfully'
+
+          { stack: { machines } } = generatedStack
+          { router } = kd.singletons
+          router.handleRoute "/Stack-Editor/Build/#{machines.first.getId()}"
 
 
   createStackTemplate: (provider) ->
@@ -271,3 +281,60 @@ module.exports = class StackEditorAppController extends AppController
   _setPermission: ->
 
     @stackEditor.setReadOnly not (isAdmin() or template.isMine())
+
+
+  askForTeamDefault: (options, callback) ->
+
+    # if user is not an admin this part is not necessary
+    return callback null  unless isAdmin()
+
+    { logs } = @stackEditor.controllers
+    { groupsController, computeController } = kd.singletons
+    { template, hasGeneratedStack } = options
+
+    # Find out if stackTemplate is already set as default for the team
+    { stackTemplates }  = groupsController.getCurrentGroup()
+    template.isDefault ?= template._id in (stackTemplates or [])
+    hasGroupTemplates   = stackTemplates?.length
+
+    if hasGeneratedStack
+
+      # admin is editing a team stack
+      if template.isDefault
+        logs.add 'Setting as default team stack...'
+        computeController.makeTeamDefault { template, force: yes }, (err) ->
+          if err
+            callback err
+          else
+            logs.add '''
+              Your stack script is saved successfully and all your new team
+              members now will see this stack by default. Existing users
+              of the previous default-stack will be notified that
+              default-stack has changed.
+            '''
+            callback null
+
+      # admin is editing a private stack
+      else
+        logs.add '''
+          If you want to auto-initialize this template when new users join
+          your team, you need to select "Make Team Default" from the menu.
+        '''
+        callback null
+
+    else
+      # admin is creating a new stack
+      return callback null  if hasGroupTemplates
+
+      logs.add 'Setting as default team stack...'
+      computeController.makeTeamDefault { template }, (err) ->
+        if err
+          callback err
+        else
+          logs.add '''
+            Your stack script is saved successfully and all your new team
+            members now will see this stack by default. Existing users
+            of the previous default-stack will be notified that default-stack
+            has changed.
+          '''
+          callback null
