@@ -16,13 +16,14 @@ import (
 	"unicode"
 
 	"koding/klient/machine/index"
+	kos "koding/klient/os"
 )
 
 // englishEnv contains current environment with C locale.
 var englishEnv []string
 
 func init() {
-	englishEnv = append(os.Environ(), "LC_ALL=C")
+	englishEnv = kos.NewEnviron(os.Environ()).Encode(kos.ParseEnviron("LANG=C,LC_ALL=C"))
 }
 
 // Command describes rsync executable.
@@ -142,7 +143,7 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 	if c.Cmd.Env == nil {
 		c.Cmd.Env = englishEnv
 	} else {
-		c.Cmd.Env = append(englishEnv, c.Cmd.Env...)
+		c.Cmd.Env = kos.NewEnviron(englishEnv).Encode(kos.NewEnviron(c.Cmd.Env))
 	}
 
 	// Use remote shell if SSH private key path is set.
