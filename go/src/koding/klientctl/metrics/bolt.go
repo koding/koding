@@ -8,6 +8,8 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+const bucketName = "metrics"
+
 var _ io.WriteCloser = &BoltConn{}
 
 // BoltConn writes and reads to BoltDB
@@ -17,7 +19,7 @@ type BoltConn struct {
 }
 
 // NewBoltConn implements Writer and Closer interfaces.
-func NewBoltConn(path, bucket string) (*BoltConn, error) {
+func NewBoltConn(path string) (*BoltConn, error) {
 	options := &bolt.Options{
 		Timeout: 5 * time.Second,
 	}
@@ -27,8 +29,10 @@ func NewBoltConn(path, bucket string) (*BoltConn, error) {
 		return nil, err
 	}
 
+	bucket := []byte(bucketName)
+
 	if err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(bucket))
+		_, err := tx.CreateBucketIfNotExists(bucket)
 		return err
 	}); err != nil {
 		return nil, err
@@ -36,7 +40,7 @@ func NewBoltConn(path, bucket string) (*BoltConn, error) {
 
 	return &BoltConn{
 		db:         db,
-		bucketName: []byte(bucket),
+		bucketName: bucket,
 	}, nil
 }
 
@@ -65,13 +69,29 @@ func (b *BoltConn) Close() error {
 	return b.db.Close()
 }
 
-// ReadN reads n records from boltdb and deletes them permanently if run successfully.
-func (b *BoltConn) ReadN(n int) ([][]byte, error) {
-	res := make([][]byte, 0, n)
-	if err := b.db.Update(func(tx *bolt.Tx) error {
+// OperatorFunc is the contract for ForEach operations
+type OperatorFunc func([][]byte) error
+
+// ForEachN reads first n records from boltdb and deletes them permanently if
+// OperatorFunc run successfully.
+// If n < 0 process all the records available.
+// If n == 0 this call is noop.
+// If n > 0 process up to n available records.
+func (b *BoltConn) ForEachN(n int, f OperatorFunc) (int, error) {
+	if n == 0 {
+		return 0, nil
+	}
+
+	cap := n
+	if n < 0 {
+		cap = 0
+	}
+
+	res := make([][]byte, 0, cap)
+	err := b.db.Update(func(tx *bolt.Tx) error {
 		c := tx.Bucket(b.bucketName).Cursor()
 
-		for k, v := c.First(); k != nil && n > 0; k, v = c.Next() {
+		for k, v := c.First(); k != nil && n != 0; k, v = c.Next() {
 			res = append(res, v)
 			// clean up after ourselves.
 			if err := c.Delete(); err != nil {
@@ -79,11 +99,12 @@ func (b *BoltConn) ReadN(n int) ([][]byte, error) {
 			}
 			n--
 		}
+		return f(res)
+	})
 
-		return nil
-	}); err != nil {
-		return nil, err
+	if err != nil {
+		return 0, err
 	}
 
-	return res, nil
+	return len(res), nil
 }
