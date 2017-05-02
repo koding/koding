@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"koding/klient/machine"
+	"koding/klient/machine/index"
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/prefetch"
@@ -408,12 +409,18 @@ type InspectMountRequest struct {
 
 	// Sync indicates whether inspect should attach sync history or not.
 	Sync bool `json:"sync"`
+
+	// Tree indicates whether inspect should attach index tree or not.
+	Tree bool `json:"tree"`
 }
 
 // InspectMountResponse defines machine group mount inspect response.
 type InspectMountResponse struct {
-	// History contains information about recently synchronized files.
-	History []*history.Record `json:"history"`
+	// Sync contains information about recently synchronized files.
+	Sync []*history.Record `json:"sync,omitempty"`
+
+	// Tree contains the entire index tree with its current state.
+	Tree []index.Debug `json:"tree,omitempty"`
 }
 
 // InspectMount gets detailed information about mount current state.
@@ -429,16 +436,22 @@ func (g *Group) InspectMount(req *InspectMountRequest) (*InspectMountResponse, e
 	}
 
 	res := &InspectMountResponse{}
-	if !req.Sync {
-		return res, nil
+	sc, err := g.sync.Sync(mountID)
+	if err != nil {
+		g.log.Warning("Mount %s is not synchronized: %s", mountID, err)
+		return nil, err
 	}
 
-	if sc, err := g.sync.Sync(mountID); err == nil {
-		if res.History, err = sc.History(); err != nil {
+	// Get synchronization status if requested.
+	if req.Sync {
+		if res.Sync, err = sc.History(); err != nil {
 			g.log.Error("Cannot get mount %s syncing history: %s", mountID, err)
 		}
-	} else {
-		g.log.Warning("Mount %s is not synchronized: %s", mountID, err)
+	}
+
+	// Get tree if requested.
+	if req.Tree {
+		res.Tree = sc.IndexDebug()
 	}
 
 	return res, nil

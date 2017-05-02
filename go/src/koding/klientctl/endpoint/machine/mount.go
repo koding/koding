@@ -13,7 +13,6 @@ import (
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/prefetch"
-	"koding/klient/machine/mount/sync/history"
 	"koding/klientctl/helper"
 
 	humanize "github.com/dustin/go-humanize"
@@ -169,27 +168,26 @@ func (c *Client) ListMount(options *ListMountOptions) (map[string][]mount.Info, 
 type InspectMountOptions struct {
 	Identifier string // Mount identifier.
 	Sync       bool   // Get syncing history.
+	Tree       bool   // Show index tree.
 	Log        logging.Logger
 }
 
 // InspectMount inspects provided mount.
-func (c *Client) InspectMount(options *InspectMountOptions) ([]*history.Record, error) {
+func (c *Client) InspectMount(options *InspectMountOptions) (machinegroup.InspectMountResponse, error) {
+	var inspectMountRes machinegroup.InspectMountResponse
 	if options == nil {
-		return nil, errors.New("invalid nil options")
+		return inspectMountRes, errors.New("invalid nil options")
 	}
 
 	// Inspect mount.
 	inspectMountReq := &machinegroup.InspectMountRequest{
 		Identifier: options.Identifier,
 		Sync:       options.Sync,
-	}
-	var inspectMountRes machinegroup.InspectMountResponse
-
-	if err := c.klient().Call("machine.mount.inspect", inspectMountReq, &inspectMountRes); err != nil {
-		return nil, err
+		Tree:       options.Tree,
 	}
 
-	return inspectMountRes.History, nil
+	err := c.klient().Call("machine.mount.inspect", inspectMountReq, &inspectMountRes)
+	return inspectMountRes, err
 }
 
 // UmountOptions stores options for `machine umount` call.
@@ -354,7 +352,7 @@ func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 }
 
 // InspectMount inspects existing mount using DefaultClient.
-func InspectMount(opts *InspectMountOptions) ([]*history.Record, error) {
+func InspectMount(opts *InspectMountOptions) (machinegroup.InspectMountResponse, error) {
 	return DefaultClient.InspectMount(opts)
 }
 
