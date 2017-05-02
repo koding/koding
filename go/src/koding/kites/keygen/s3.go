@@ -91,7 +91,7 @@ func (ub *UserBucket) Put(key string, rs io.ReadSeeker) (*url.URL, error) {
 func (ub *UserBucket) URL(key string) *url.URL {
 	return &url.URL{
 		Scheme: "https",
-		Path:   "/" + key,
+		Path:   "/" + ub.cfg.username() + "/" + key,
 		Host:   ub.cfg.Bucket + ".s3.amazonaws.com",
 	}
 }
@@ -130,7 +130,11 @@ func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) (*url.URL, error) {
 		return nil, err
 	}
 
-	return ub.URL(path), nil
+	return &url.URL{
+		Scheme: "https",
+		Path:   "/" + path,
+		Host:   ub.cfg.Bucket + ".s3.amazonaws.com",
+	}, nil
 }
 
 // mustJSON returns a JSON representation of v as a string,
