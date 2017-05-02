@@ -198,8 +198,6 @@ func handleInternalCommand(conf *app.KlientConfig, cmd string, args ...string) (
 		}
 
 		err = klientsvc.Start()
-	case "upload":
-		err = app.Upload(app.NewUploader(conf), args...)
 	default:
 		return fmt.Errorf("unrecognized command: %s", cmd)
 	}
