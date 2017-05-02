@@ -269,15 +269,17 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 		return 1, err
 	}
 
-	// Enable all options when none of them are set.
-	isSync := c.Bool("sync")
-	if !isSync {
+	// Enable sync option when there is none set explicitly. Tree may be too
+	// large to show it implicitly.
+	isSync, isTree := c.Bool("sync"), c.Bool("tree")
+	if !isSync && !isTree {
 		isSync = true
 	}
 
 	opts := &machine.InspectMountOptions{
 		Identifier: idents[0],
 		Sync:       isSync,
+		Tree:       isTree,
 		Log:        log.New("machine:inspect"),
 	}
 

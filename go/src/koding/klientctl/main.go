@@ -680,6 +680,10 @@ func run(args []string) {
 						Name:  "sync",
 						Usage: "Displays syncing history up to 100 records.",
 					},
+					cli.BoolFlag{
+						Name:  "tree",
+						Usage: "Displays the entire mount index tree.",
+					},
 				},
 			}},
 		}, {

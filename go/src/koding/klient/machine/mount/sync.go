@@ -244,6 +244,11 @@ func (s *Sync) History() ([]*history.Record, error) {
 	return nil, errors.New("synchronization history is unavailable")
 }
 
+// IndexDebug gets current index tree debug information.
+func (s *Sync) IndexDebug() []index.Debug {
+	return s.idx.Debug()
+}
+
 // CacheDir returns the name of mount cache directory.
 func (s *Sync) CacheDir() string {
 	return filepath.Join(s.opts.WorkDir, "data")
