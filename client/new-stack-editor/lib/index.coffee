@@ -189,15 +189,16 @@ module.exports = class StackEditorAppController extends AppController
       return logs.handleError err  if err
 
       [ ..., updatedTemplate ] = result
-      logs.add 'stack initialized successfully'
-
+      logs.add 'template updateed successfully'
       debug 'updated template instance', updatedTemplate
 
       options = { template: updatedTemplate, hasGeneratedStack }
 
-      cc.checkStackRevisions updatedTemplate._id
+      cc.checkStackRevisions updatedTemplate._id, createIfNotFound = no
 
-      @askForTeamDefault options, (err) ->
+      @askForTeamDefault options, (err, generated) ->
+
+        return  if generated
 
         logs.add 'generating stack...'
         stack.save (err, generatedStack) ->
@@ -286,7 +287,7 @@ module.exports = class StackEditorAppController extends AppController
   askForTeamDefault: (options, callback) ->
 
     # if user is not an admin this part is not necessary
-    return callback null  unless isAdmin()
+    return callback null, generated = no  unless isAdmin()
 
     { logs } = @stackEditor.controllers
     { groupsController, computeController } = kd.singletons
@@ -312,7 +313,7 @@ module.exports = class StackEditorAppController extends AppController
               of the previous default-stack will be notified that
               default-stack has changed.
             '''
-            callback null
+            callback null, generated = yes
 
       # admin is editing a private stack
       else
@@ -320,7 +321,7 @@ module.exports = class StackEditorAppController extends AppController
           If you want to auto-initialize this template when new users join
           your team, you need to select "Make Team Default" from the menu.
         '''
-        callback null
+        callback null, generated = no
 
     else
       # admin is creating a new stack
@@ -337,4 +338,4 @@ module.exports = class StackEditorAppController extends AppController
             of the previous default-stack will be notified that default-stack
             has changed.
           '''
-          callback null
+          callback null, generated = yes

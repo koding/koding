@@ -711,7 +711,7 @@ module.exports = class ComputeController extends KDController
     delete kontrol.kites?.klient?[machine.uid]
 
 
-  checkStackRevisions: (stackTemplateId) ->
+  checkStackRevisions: (stackTemplateId, createIfNotFound = yes) ->
 
     debug 'checkStackRevisions', stackTemplateId
     found = no
@@ -748,7 +748,7 @@ module.exports = class ComputeController extends KDController
           @storage.stacks.push stack
           @emit 'StackRevisionChecked', stack
 
-    if stackTemplateId and not found
+    if stackTemplateId and not found and createIfNotFound
       @createDefaultStack()
 
 
