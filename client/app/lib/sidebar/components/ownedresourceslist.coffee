@@ -127,8 +127,7 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
       when 'Make Team Default'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
           return @onMenuItemClickError 'making team default', err  if err
-          if template
-            computeController.makeTeamDefault template
+          computeController.makeTeamDefault { template }  if template
 
       when 'Share With Team'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
