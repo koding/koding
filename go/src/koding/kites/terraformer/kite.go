@@ -3,10 +3,12 @@ package terraformer
 import (
 	"errors"
 	"koding/artifact"
+	"koding/kites/common"
 	"koding/kites/config"
 
 	"github.com/koding/kite"
-	"github.com/koding/metrics"
+
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
 )
 
 // NewKite creates a new kite for serving terraformer
@@ -21,13 +23,10 @@ func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
 	// handle current status of terraformer
 	k.PostHandleFunc(t.handleState)
 
-	// track every kind of call
-	k.PreHandleFunc(createTracker(t.Metrics))
-
 	// Terraformer handling methods
-	k.HandleFunc("apply", t.Apply)
-	k.HandleFunc("destroy", t.Destroy)
-	k.HandleFunc("plan", t.Plan)
+	k.HandleFunc(wrapHandler(t.Metrics, "apply", t.Apply))
+	k.HandleFunc(wrapHandler(t.Metrics, "destroy", t.Destroy))
+	k.HandleFunc(wrapHandler(t.Metrics, "plan", t.Plan))
 
 	// artifact handling
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
@@ -44,6 +43,10 @@ func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
 	}
 
 	return k, nil
+}
+
+func wrapHandler(dd *dogstatsd.Client, metricName string, handler kite.HandlerFunc) (string, kite.HandlerFunc) {
+	return metricName, common.WrapKiteHandler(dd, "terraformer", metricName, handler)
 }
 
 func setupKite(k *kite.Kite, conf *Config) *kite.Kite {
@@ -67,24 +70,4 @@ func setupKite(k *kite.Kite, conf *Config) *kite.Kite {
 	}
 
 	return k
-}
-
-func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
-	return func(r *kite.Request) (interface{}, error) {
-		// if metrics not set, act as noop
-		if metrics == nil {
-			return true, nil
-		}
-
-		if err := metrics.Count(
-			"callCount", // metric name
-			1,           // count
-			[]string{"funcName:" + r.Method}, // tags for metric call
-			1.0, // rate
-		); err != nil {
-			// TODO(cihangir) should we log/return error?
-		}
-
-		return true, nil
-	}
 }
