@@ -46,7 +46,7 @@ func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
 }
 
 func wrapHandler(dd *dogstatsd.Client, metricName string, handler kite.HandlerFunc) (string, kite.HandlerFunc) {
-	return metricName, common.WrapKiteHandler(dd, "terraformer", metricName, handler)
+	return metricName, common.WrapKiteHandler(dd, metricName, handler)
 }
 
 func setupKite(k *kite.Kite, conf *Config) *kite.Kite {
