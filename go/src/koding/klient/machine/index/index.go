@@ -64,6 +64,11 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
+		// Don't include OSX trashes to scanned files.
+		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
+			return filepath.SkipDir
+		}
+
 		fC <- &fileDesc{path: path, info: info}
 		return nil
 	}
@@ -199,6 +204,11 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return nil
 		}
 
+		// Don't include OSX trashes to scanned files.
+		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
+			return filepath.SkipDir
+		}
+
 		// File exists in local but not in remote.
 		name, err := filepath.Rel(root, path)
 		if err != nil {
@@ -314,8 +324,14 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// DebugString dumps content of the index as a string, suitable for debugging.
-func (idx *Index) DebugString() string {
+// Debug contains information about internal state of single index node.
+type Debug struct {
+	Path string `json:"path"`
+	Info string `json:"info"`
+}
+
+// Debug returns the debug information about index.
+func (idx *Index) Debug() (dbg []Debug) {
 	m := make(map[string]*node.Entry)
 	idx.t.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
 		m[nodePath] = n.Entry
@@ -327,10 +343,22 @@ func (idx *Index) DebugString() string {
 	}
 	sort.Strings(paths)
 
+	for _, path := range paths {
+		dbg = append(dbg, Debug{
+			Path: path,
+			Info: m[path].String(),
+		})
+	}
+
+	return dbg
+}
+
+// DebugString dumps content of the index as a string, suitable for debugging.
+func (idx *Index) DebugString() string {
 	var buf bytes.Buffer
 	tw := tabwriter.NewWriter(&buf, 0, 0, 1, ' ', 0)
-	for i, path := range paths {
-		fmt.Fprintf(tw, "%5d %s\t%v\n", i+1, path, m[path])
+	for i, d := range idx.Debug() {
+		fmt.Fprintf(tw, "%5d %s\t%s\n", i+1, d.Path, d.Info)
 	}
 	tw.Flush()
 

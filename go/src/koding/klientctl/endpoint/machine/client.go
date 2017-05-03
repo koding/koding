@@ -1,7 +1,9 @@
 package machine
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 
 	"koding/kites/config"
@@ -119,16 +121,60 @@ func (c *Client) Kill(opts *KillOptions) error {
 	return c.klient().Call("machine.kill", req, nil)
 }
 
+// Start turns a vm on given by the identifier.
 func (c *Client) Start(ident string) (string, error) {
 	c.init()
 
 	return c.machineCall(ident, "start")
 }
 
+// Stop turns a vm off given by the identifier.
 func (c *Client) Stop(ident string) (string, error) {
 	c.init()
 
 	return c.machineCall(ident, "stop")
+}
+
+// Show gets JMachine.meta value of a vm given by the identifier.
+func (c *Client) Show(ident string) (map[string]interface{}, error) {
+	c.init()
+
+	m, err := c.machine(ident)
+	if err != nil {
+		return nil, err
+	}
+
+	if meta, ok := m.Meta.(map[string]interface{}); ok && len(meta) > 0 {
+		return meta, nil
+	}
+
+	return nil, errors.New("no configuration found")
+}
+
+// Set sets JMachine.meta.key=value for a vm given by the identifier.
+func (c *Client) Set(ident string, key, value string) error {
+	c.init()
+
+	switch key {
+	case "alwaysOn":
+		return c.setAlwaysOn(ident, value)
+	default:
+		return fmt.Errorf(`unsupported %q key; supported ones: "alwaysOn"`, key)
+	}
+}
+
+func (c *Client) setAlwaysOn(ident, key string) error {
+	on, err := strconv.ParseBool(key)
+	if err != nil {
+		return err
+	}
+
+	m, err := c.machine(ident)
+	if err != nil {
+		return err
+	}
+
+	return c.koding().UpdateMachineAlwaysOn(m, on)
 }
 
 func (c *Client) machineCall(ident, method string) (string, error) {
@@ -283,4 +329,14 @@ func Stop(id string) (string, error) { return DefaultClient.Stop(id) }
 // 100% or an error occurs.
 func Wait(event string) <-chan *stack.EventResponse {
 	return DefaultClient.kloud().Wait(event)
+}
+
+// Show gets JMachine.meta value of a vm given by the identifier.
+func Show(ident string) (map[string]interface{}, error) {
+	return DefaultClient.Show(ident)
+}
+
+// Set sets JMachine.meta.key=value for a vm given by the identifier.
+func Set(ident string, key, value string) error {
+	return DefaultClient.Set(ident, key, value)
 }

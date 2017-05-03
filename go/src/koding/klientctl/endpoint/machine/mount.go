@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/prefetch"
-	"koding/klient/machine/mount/sync/history"
+	"koding/klientctl/helper"
 
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -129,6 +132,10 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot prefetch mount files: %s\n", err)
+		options.Log.Error("Prefetching failed: %s\n", err)
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			options.Log.Error("Output: %q", exitErr.Stderr)
+		}
 	}
 
 	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)
@@ -166,33 +173,34 @@ func (c *Client) ListMount(options *ListMountOptions) (map[string][]mount.Info, 
 type InspectMountOptions struct {
 	Identifier string // Mount identifier.
 	Sync       bool   // Get syncing history.
+	Tree       bool   // Show index tree.
 	Log        logging.Logger
 }
 
 // InspectMount inspects provided mount.
-func (c *Client) InspectMount(options *InspectMountOptions) ([]*history.Record, error) {
+func (c *Client) InspectMount(options *InspectMountOptions) (machinegroup.InspectMountResponse, error) {
+	var inspectMountRes machinegroup.InspectMountResponse
 	if options == nil {
-		return nil, errors.New("invalid nil options")
+		return inspectMountRes, errors.New("invalid nil options")
 	}
 
 	// Inspect mount.
 	inspectMountReq := &machinegroup.InspectMountRequest{
 		Identifier: options.Identifier,
 		Sync:       options.Sync,
-	}
-	var inspectMountRes machinegroup.InspectMountResponse
-
-	if err := c.klient().Call("machine.mount.inspect", inspectMountReq, &inspectMountRes); err != nil {
-		return nil, err
+		Tree:       options.Tree,
 	}
 
-	return inspectMountRes.History, nil
+	err := c.klient().Call("machine.mount.inspect", inspectMountReq, &inspectMountRes)
+	return inspectMountRes, err
 }
 
 // UmountOptions stores options for `machine umount` call.
 type UmountOptions struct {
-	Identifier string // Mount identifier.
-	Log        logging.Logger
+	Identifiers []string // Mount identifiers.
+	Force       bool     // Disable interactive mode.
+	All         bool     // Unmount all.
+	Log         logging.Logger
 }
 
 // Umount removes existing mount.
@@ -201,23 +209,78 @@ func (c *Client) Umount(options *UmountOptions) (err error) {
 		return errors.New("invalid nil options")
 	}
 
-	// TODO: ask user to confirm unmounting.
-	fmt.Fprintf(os.Stdout, "Unmounting %s...\n", options.Identifier)
-
-	// Remove mount.
-	umountReq := &machinegroup.UmountRequest{
-		Identifier: options.Identifier,
-	}
-	var umountRes machinegroup.UmountResponse
-
-	if err := c.klient().Call("machine.umount", umountReq, &umountRes); err != nil {
-		return err
+	// Get all mounts if all option is set.
+	identifiers := options.Identifiers
+	if options.All {
+		mids, err := c.allMounts()
+		if err != nil {
+			return err
+		}
+		identifiers = mids
 	}
 
-	fmt.Fprintf(os.Stdout, "Successfully unmounted %s (ID: %s)\n",
-		umountRes.Mount, umountRes.MountID)
+	// If there are no mounts we return nil.
+	if len(identifiers) == 0 {
+		fmt.Fprintf(os.Stdout, "There is nothing to unmount\n")
+		return nil
+	}
+
+	// Do not be too verbose.
+	promptSuffix := strings.Join(identifiers, ", ")
+	if n := len(identifiers); n > 2 {
+		promptSuffix = strconv.Itoa(n) + " mounts"
+	}
+
+	fmt.Fprintf(os.Stdout, "Unmounting %s...\n", promptSuffix)
+
+	var yn = "yes"
+	// TODO(ppknap): remove second condition when atom package implements "force" flag.
+	if !options.Force && len(identifiers) > 1 {
+		yn, err = helper.Ask("This operation will remove all cached data. Do you want to continue [y/N]: ")
+		if err != nil {
+			return err
+		}
+	}
+
+	if yn = strings.ToLower(yn); yn != "yes" && yn != "y" {
+		return errors.New("aborted by user")
+	}
+
+	// Remove mounts.
+	for _, identifier := range identifiers {
+		umountReq := &machinegroup.UmountRequest{
+			Identifier: identifier,
+		}
+		var umountRes machinegroup.UmountResponse
+
+		err := c.klient().Call("machine.umount", umountReq, &umountRes)
+		if err != nil {
+			fmt.Fprintf(os.Stdout, "Cannot unmount %s (ID: %s): %s\n", umountRes.Mount, umountRes.MountID, err)
+		} else {
+			fmt.Fprintf(os.Stdout, "Successfully unmounted %s (ID: %s)\n", umountRes.Mount, umountRes.MountID)
+		}
+	}
 
 	return nil
+}
+
+func (c *Client) allMounts() (mids []string, err error) {
+	var (
+		listMountReq machinegroup.ListMountRequest
+		listMountRes machinegroup.ListMountResponse
+	)
+
+	if err := c.klient().Call("machine.mount.list", listMountReq, &listMountRes); err != nil {
+		return nil, err
+	}
+
+	for _, infos := range listMountRes.Mounts {
+		for _, info := range infos {
+			mids = append(mids, string(info.ID))
+		}
+	}
+
+	return mids, nil
 }
 
 // mountPointDirectory checks and prepares local directory for mounting.
@@ -294,7 +357,7 @@ func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 }
 
 // InspectMount inspects existing mount using DefaultClient.
-func InspectMount(opts *InspectMountOptions) ([]*history.Record, error) {
+func InspectMount(opts *InspectMountOptions) (machinegroup.InspectMountResponse, error) {
 	return DefaultClient.InspectMount(opts)
 }
 

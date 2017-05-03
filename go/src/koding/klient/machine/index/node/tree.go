@@ -17,8 +17,8 @@ func defaultInodeIDGenerator() func() uint64 {
 	var current uint64 = RootInodeID
 	return func() uint64 {
 		inodeID := atomic.AddUint64(&current, 1)
-		if inodeID <= RootInodeID {
-			return atomic.AddUint64(&current, 1)
+		for inodeID <= RootInodeID {
+			inodeID = atomic.AddUint64(&current, 1)
 		}
 
 		return inodeID
@@ -325,6 +325,11 @@ func (g Guard) AddChild(n, child *Node) {
 func (g Guard) RmChild(n *Node, name string) {
 	pos, child := n.getChild(name)
 	g.t.rmChild(n, pos, child)
+}
+
+// Repudiate makes child with given name an orphan.
+func (g Guard) Repudiate(n *Node, name string) {
+	n.RmChild(name)
 }
 
 // RmOrphan removes orphan nodes.

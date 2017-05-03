@@ -154,7 +154,7 @@ module.exports = class StackEditor extends kd.View
       when Events.Menu.Credentials
         @sideView.show 'credentials'
       when Events.Menu.MakeTeamDefault
-        computeController.makeTeamDefault @getData()
+        computeController.makeTeamDefault { template: @getData() }
       when Events.ShowSideView
         @sideView.show rest...
       when Events.ToggleSideView

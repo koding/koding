@@ -26,6 +26,9 @@ module.exports = class FlexSplit extends kd.View
 
     @setupViews()
 
+    @on Flex.EVENT_RESIZED, =>
+      view._windowDidResize?()  for view in @getOption 'views'
+
     storage?.addView this, @name
 
 
@@ -47,6 +50,13 @@ module.exports = class FlexSplit extends kd.View
     @resizer.on Flex.EVENT_COLLAPSE, ->
       if FlexSplit.isInstance view.parent
         view.parent.emit Flex.EVENT_COLLAPSE
+
+    @resizer.on Flex.EVENT_RESIZED, =>
+      { views } = @getOptions()
+      views.forEach (view) ->
+        view._windowDidResize?()
+        if FlexSplit.isInstance view
+          view.emit Flex.EVENT_RESIZED
 
 
   setupViews: ->

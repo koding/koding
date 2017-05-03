@@ -14,6 +14,7 @@ require './resurrection.anims.styl'
 require './resurrection.commons.styl'
 require './resurrection.sidebar.styl'
 require './resurrection.styl'
+require './sharemodal.styl'
 require './onboardingcongratmodal.styl'
 require '../components/common/styl/toggle.styl'
 
