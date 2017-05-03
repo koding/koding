@@ -29,7 +29,7 @@ ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
-ContentModal = require 'app/components/contentModal'
+ContentModal                  = require 'app/components/contentModal'
 
 NoStackFoundView = require 'app/nostackfoundview'
 
@@ -891,6 +891,8 @@ module.exports = class IDEAppController extends AppController
   goToLine: ->
 
     @activeTabView.emit 'GoToLineRequested'
+    @contentSearch.destroy()  if @contentSearch
+    @findAndReplaceView.hide()  if @findAndReplaceView
 
 
   closeTab: ->
@@ -1172,7 +1174,10 @@ module.exports = class IDEAppController extends AppController
     data = { machine: @mountedMachine }
     rootPath = '/' # FIXME ~ GG
     @splitViewPanel.addSubView @contentSearch = new IDEContentSearchView  { rootPath }, data
-    @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
+    @findAndReplaceView.hide()  if @findAndReplaceView
+    @activeTabView.emit 'GotoLineNeedsToBeClosed'
+    @contentSearch.once 'KDObjectWillBeDestroyed', =>
+      @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
 
@@ -1196,8 +1201,9 @@ module.exports = class IDEAppController extends AppController
       @isFindAndReplaceViewVisible = no
 
       windowController.notifyWindowResizeListeners()
-
     @findAndReplaceView.on 'FindAndReplaceViewShown', (withReplace) =>
+      @contentSearch.destroy()  if @contentSearch
+      @activeTabView.emit 'GotoLineNeedsToBeClosed'
       view = @getView()
       if withReplace then view.setClass cssName else view.unsetClass cssName
 
