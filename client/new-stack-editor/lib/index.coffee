@@ -5,6 +5,7 @@ async = require 'async'
 
 isAdmin = require 'app/util/isAdmin'
 showError = require 'app/util/showError'
+canCreateStacks = require 'app/util/canCreateStacks'
 
 AppController = require 'app/appcontroller'
 EnvironmentFlux = require 'app/flux/environment'
@@ -80,7 +81,7 @@ module.exports = class StackEditorAppController extends AppController
         return callback err
 
       @stackEditor.setData template, reset
-      do @_setPermission
+      @_setPermission template
 
       @showBuildFlow template, machineId  if build
 
@@ -241,7 +242,7 @@ module.exports = class StackEditorAppController extends AppController
       delete @builds[templateId]
 
     onClose = =>
-      do @_setPermission
+      @_setPermission template
       router.handleRoute "/Stack-Editor/#{templateId}"
 
     if machine.isBuilt()
@@ -279,9 +280,31 @@ module.exports = class StackEditorAppController extends AppController
     builder.hide()  for templateId, builder of @builds
 
 
-  _setPermission: ->
+  _setPermission: (template) ->
 
-    @stackEditor.setReadOnly not (isAdmin() or template.isMine())
+    @stackEditor.setReadOnly readonly = not (isAdmin() or template.isMine())
+
+    if readonly
+
+      message = 'You must be an admin to edit this stack.'
+      if canCreateStacks()
+        message += ' However, you can clone this stack.'
+        action = {
+          title : 'Clone'
+          event : Events.Menu.Clone
+        }
+      else
+        action = null
+
+      @stackEditor.toolbar.setBanner {
+        sticky  : yes
+        message
+        action
+      }
+
+    else
+      @stackEditor.toolbar.setBanner { sticky: no }
+
 
 
   askForTeamDefault: (options, callback) ->
