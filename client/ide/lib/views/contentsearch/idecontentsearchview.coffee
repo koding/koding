@@ -45,7 +45,7 @@ module.exports = class IDEContentSearchView extends JView
     uber = JView::destroy.bind this
     @findInput.setValue    ''
     uber()
-    @emit 'KDModalViewDestroyed', this
+    @emit 'KDObjectWillBeDestroyed', this
 
 
   showPreviousSearchLocations: (direction) ->

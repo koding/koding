@@ -667,7 +667,7 @@ module.exports = class Ace extends kd.View
 
   showGotoLine: ->
 
-    return @gotoLineBar.findInput.setFocus()  if @contentSearch
+    return @gotoLineBar.findInput.setFocus()  if @gotoLineBar
 
     @addSubView @gotoLineBar = new GotoLineView
       callback : (lineNumber) =>
@@ -677,4 +677,8 @@ module.exports = class Ace extends kd.View
     @gotoLineBar.once 'KDObjectWillBeDestroyed', =>
       @gotoLineBar = null
       @focus()
+
+  hideGotoLine: ->
+
+    @gotoLineBar.destroy()  if @gotoLineBar
 

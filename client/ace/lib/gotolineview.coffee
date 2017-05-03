@@ -30,7 +30,7 @@ module.exports = class GotoLineView extends JView
     uber = JView::destroy.bind this
     @lineInput.setValue    ''
     uber()
-    @emit 'KDModalViewDestroyed', this
+    @emit 'KDObjectWillBeDestroyed', this
 
 
   gotoLine: ->
