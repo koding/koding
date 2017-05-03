@@ -99,8 +99,12 @@ type UploadRequest struct {
 
 // Valid validates the request.
 func (req *UploadRequest) Valid() error {
-	if req.File == "" && len(req.Content) != 0 && req.Key == "" {
-		return errors.New("missing key")
+	if req.File == "" && req.Key == "" {
+		if len(req.Content) != 0 {
+			return errors.New("missing key")
+		} else {
+			return errors.New("missing file")
+		}
 	}
 
 	if req.File != "" {

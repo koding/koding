@@ -1,9 +1,6 @@
 package mount
 
 import (
-	"errors"
-	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
@@ -14,6 +11,7 @@ import (
 // DefaultSkipper contains a default set of non-synced file rules.
 var DefaultSkipper Skipper = MultiSkipper{
 	OsSkip(DirectorySkip(".Trash"), "darwin"),      // OSX trash directory.
+	OsSkip(DirectorySkip(".Trashes"), "darwin"),    // OSX trash directory.
 	PathSuffixSkip(".git/index.lock"),              // git index lock file.
 	PathSuffixSkip(".git/refs/stash.lock"),         // git stash lock file.
 	PathSuffixSkip(".git/HEAD.lock"),               // git HEAD lock.
@@ -74,16 +72,6 @@ type DirectorySkip string
 // Initialize checks if stored file exists and if it is a directory. If not
 // exist directory will be created. If not a directory, an error is returned.
 func (ds DirectorySkip) Initialize(wd string) error {
-	path := filepath.Join(wd, filepath.FromSlash(string(ds)))
-	info, err := os.Lstat(path)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(path, 0755)
-	}
-
-	if !info.IsDir() {
-		return errors.New("path " + path + " exists and is not a directory")
-	}
-
 	return nil
 }
 

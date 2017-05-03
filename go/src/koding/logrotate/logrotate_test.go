@@ -122,7 +122,7 @@ func TestLogrotate_Upload(t *testing.T) {
 	for i, part := range parts {
 		c := reader(0, part.Size)
 
-		if _, err := l.Upload("content.gz", c); err != nil {
+		if _, err := l.Upload("content", c); err != nil {
 			t.Fatalf("%d: Put()=%s", i, err)
 		}
 
@@ -130,7 +130,7 @@ func TestLogrotate_Upload(t *testing.T) {
 
 		p, ok := ub[key]
 		if !ok {
-			t.Fatalf("%d: %q does not exist", key)
+			t.Fatalf("%d: %q does not exist", i, key)
 		}
 
 		got := bytes.NewReader(p)

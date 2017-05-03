@@ -46,6 +46,7 @@ import (
 	"koding/klient/usage"
 	"koding/klient/vagrant"
 	"koding/klientctl/daemon"
+	"koding/logrotate"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
@@ -159,6 +160,7 @@ type KlientConfig struct {
 	LogBucketRegion   string
 	LogBucketName     string
 	LogUploadInterval time.Duration
+	LogLevel          kite.Level
 
 	Metadata     string
 	MetadataFile string
@@ -246,12 +248,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	}
 
 	k := newKite(conf)
-	k.Config.VerifyAudienceFunc = verifyAudience
-
-	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
-		!konfig.Konfig.Endpoints.Kontrol().Equal(konfig.Builtin.Endpoints.Kontrol()) {
-		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
-	}
 
 	term := terminal.New(k.Log, conf.ScreenrcPath, usg.Reset)
 
@@ -729,7 +725,7 @@ func (k *Klient) Run() {
 
 		for _, file := range uploader.LogFiles {
 			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
-			if err != nil && !os.IsNotExist(err) {
+			if err != nil && !os.IsNotExist(err) && !logrotate.IsNop(err) {
 				k.log.Warning("failed to upload %q: %s", file, err)
 			}
 		}
@@ -844,6 +840,20 @@ func (k *Klient) Close() {
 	k.kite.Close()
 }
 
+// NewUploader creates new uploader value from the given klient configuration.
+func NewUploader(kconf *KlientConfig) *uploader.Uploader {
+	k := newKite(kconf)
+	k.SetLogLevel(kite.ERROR)
+
+	return uploader.New(&uploader.Options{
+		KeygenURL: konfig.Konfig.Endpoints.Kloud().Public.String(),
+		Kite:      k,
+		Bucket:    kconf.logBucketName(),
+		Region:    kconf.logBucketRegion(),
+		Log:       k.Log,
+	})
+}
+
 func newKite(kconf *KlientConfig) *kite.Kite {
 	k := kite.NewWithConfig(kconf.Name, kconf.Version, konfig.Konfig.KiteConfig())
 
@@ -859,6 +869,13 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	// replace kontrolURL if's being overidden
 	if kconf.KontrolURL != "" {
 		k.Config.KontrolURL = kconf.KontrolURL
+	}
+
+	k.Config.VerifyAudienceFunc = verifyAudience
+
+	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
+		!konfig.Konfig.Endpoints.Kontrol().Equal(konfig.Builtin.Endpoints.Kontrol()) {
+		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
 	return k

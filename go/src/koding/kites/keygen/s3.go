@@ -87,6 +87,15 @@ func (ub *UserBucket) Put(key string, rs io.ReadSeeker) (*url.URL, error) {
 	return ub.userPut(ub.cfg.username()+"/"+key, rs)
 }
 
+// URL gives the remote URL of the key.
+func (ub *UserBucket) URL(key string) *url.URL {
+	return &url.URL{
+		Scheme: "https",
+		Path:   "/" + ub.cfg.username() + "/" + key,
+		Host:   ub.cfg.Bucket + ".s3.amazonaws.com",
+	}
+}
+
 func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) (*url.URL, error) {
 	type lener interface {
 		Len() int
