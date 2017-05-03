@@ -14,7 +14,6 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/kontrol"
-	"github.com/koding/metrics"
 	"gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 )
@@ -59,35 +58,35 @@ func New(c *Config) *kontrol.Kontrol {
 	kon.TokenNoNBF = true
 
 	kon.Kite.HandleFunc("register",
-		metricKiteHandler(met, "HandleRegister", kon.HandleRegister),
+		common.WrapKiteHandler(met, "HandleRegister", kon.HandleRegister),
 	)
 
 	kon.Kite.HandleFunc("registerMachine",
-		metricKiteHandler(met, "HandleMachine", kon.HandleMachine),
+		common.WrapKiteHandler(met, "HandleMachine", kon.HandleMachine),
 	).DisableAuthentication()
 
 	kon.Kite.HandleFunc("getKodingKites",
-		metricKiteHandler(
+		common.WrapKiteHandler(
 			met, "HandleGetKodingKites", HandleGetKodingKites(kon.HandleGetKites, kiteConf.Environment),
 		),
 	)
 
 	kon.Kite.HandleFunc("getKites",
-		metricKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
+		common.WrapKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
 	)
 	kon.Kite.HandleFunc("getToken",
-		metricKiteHandler(met, "HandleGetToken", kon.HandleGetToken),
+		common.WrapKiteHandler(met, "HandleGetToken", kon.HandleGetToken),
 	)
 	kon.Kite.HandleFunc("getKey",
-		metricKiteHandler(met, "HandleGetKey", kon.HandleGetKey),
+		common.WrapKiteHandler(met, "HandleGetKey", kon.HandleGetKey),
 	)
 
 	kon.Kite.HandleHTTPFunc("/heartbeat",
-		metricHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
+		common.WrapHTTPHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
 	)
 
 	kon.Kite.HandleHTTP("/register", throttledHandler(
-		metricHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
+		common.WrapHTTPHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
 	))
 
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
@@ -156,37 +155,6 @@ func throttledHandler(h http.HandlerFunc) http.Handler {
 	}
 
 	return httpRateLimiter.RateLimit(http.HandlerFunc(h))
-}
-
-// metricHandler records the execution time of the given handler on
-// the provided metrics.
-func metricHandler(m *metrics.DogStatsD, funcName string, h http.HandlerFunc) http.HandlerFunc {
-	if m == nil {
-		return h
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		h(w, r)
-		logGaugeMetric(m, "kontrolHandlerTimes", funcName, float64(time.Since(start)))
-		logCountMetric(m, "kontrolCallCount", funcName, 1)
-	}
-}
-
-// metricKiteHandler records the execution time of the given handler on
-// the provided metrics.
-func metricKiteHandler(m *metrics.DogStatsD, funcName string, h kite.HandlerFunc) kite.HandlerFunc {
-	if m == nil {
-		return h
-	}
-
-	return func(r *kite.Request) (interface{}, error) {
-		start := time.Now()
-		hRes, hErr := h(r)
-		logGaugeMetric(m, "kontrolHandlerTimes", funcName, float64(time.Since(start)))
-		logCountMetric(m, "kontrolCallCount", funcName, 1)
-		return hRes, hErr
-	}
 }
 
 // func newMachineKeyPicker(pg *kontrol.Postgres) func(*kite.Request) (*kontrol.KeyPair, error) {
@@ -291,27 +259,4 @@ func authenticateMachine(authType string, r *kite.Request) error {
 
 	// everything is ok, succefully validated
 	return nil
-}
-
-func logCountMetric(m *metrics.DogStatsD, name, funcName string, value int64) {
-	if err := m.Count(
-		name,  // metric name
-		value, // count
-		[]string{"funcName:" + funcName}, // tags for metric call
-		1.0, // rate
-	); err != nil {
-		// TODO(cihangir) should we log/return error?
-	}
-}
-
-func logGaugeMetric(m *metrics.DogStatsD, name, funcName string, value float64) {
-	if err := m.Gauge(
-		name,  // metric name
-		value, // count
-		// using funcName: for consistency with callCount
-		[]string{"funcName:" + funcName},
-		1.0, // rate
-	); err != nil {
-		// TODO(cihangir) should we log/return error?
-	}
 }
