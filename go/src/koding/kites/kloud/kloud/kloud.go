@@ -31,7 +31,6 @@ import (
 	"koding/kites/kloud/team"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
-	kitemetrics "koding/kites/metrics"
 	"koding/remoteapi"
 	"koding/tools/util"
 	"socialapi/workers/presence/client"
@@ -407,7 +406,7 @@ func New(conf *Config) (*Kloud, error) {
 
 // HandleFunc adds our middlewares into kite handlers.
 func (k *Kloud) HandleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
-	f = kitemetrics.WrapKiteHandler(k.Stats, pattern, f)
+	f = common.WrapKiteHandler(k.Stats, pattern, f)
 	return k.Kite.HandleFunc(pattern, f)
 }
 
