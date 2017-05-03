@@ -11,7 +11,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/common"
 	konfig "koding/kites/config"
-	"koding/kites/metrics"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/kontrol"
@@ -59,35 +58,35 @@ func New(c *Config) *kontrol.Kontrol {
 	kon.TokenNoNBF = true
 
 	kon.Kite.HandleFunc("register",
-		metrics.WrapKiteHandler(met, "HandleRegister", kon.HandleRegister),
+		common.WrapKiteHandler(met, "HandleRegister", kon.HandleRegister),
 	)
 
 	kon.Kite.HandleFunc("registerMachine",
-		metrics.WrapKiteHandler(met, "HandleMachine", kon.HandleMachine),
+		common.WrapKiteHandler(met, "HandleMachine", kon.HandleMachine),
 	).DisableAuthentication()
 
 	kon.Kite.HandleFunc("getKodingKites",
-		metrics.WrapKiteHandler(
+		common.WrapKiteHandler(
 			met, "HandleGetKodingKites", HandleGetKodingKites(kon.HandleGetKites, kiteConf.Environment),
 		),
 	)
 
 	kon.Kite.HandleFunc("getKites",
-		metrics.WrapKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
+		common.WrapKiteHandler(met, "HandleGetKites", kon.HandleGetKites),
 	)
 	kon.Kite.HandleFunc("getToken",
-		metrics.WrapKiteHandler(met, "HandleGetToken", kon.HandleGetToken),
+		common.WrapKiteHandler(met, "HandleGetToken", kon.HandleGetToken),
 	)
 	kon.Kite.HandleFunc("getKey",
-		metrics.WrapKiteHandler(met, "HandleGetKey", kon.HandleGetKey),
+		common.WrapKiteHandler(met, "HandleGetKey", kon.HandleGetKey),
 	)
 
 	kon.Kite.HandleHTTPFunc("/heartbeat",
-		metrics.WrapHTTPHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
+		common.WrapHTTPHandler(met, "HandleHeartbeat", kon.HandleHeartbeat),
 	)
 
 	kon.Kite.HandleHTTP("/register", throttledHandler(
-		metrics.WrapHTTPHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
+		common.WrapHTTPHandler(met, "HandleRegisterHTTP", kon.HandleRegisterHTTP),
 	))
 
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
