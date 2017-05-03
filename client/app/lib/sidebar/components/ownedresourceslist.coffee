@@ -100,11 +100,8 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
           appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), newStack.stack.getId()
 
       when 'Clone'
-        computeController.fetchStackTemplate template.getId(), (err, template) =>
+        computeController.cloneTemplate template, (err) =>
           return @onMenuItemClickError 'cloning', err  if err
-          template.clone (err, template) =>
-            return @onMenuItemClickError 'cloning', err  if err
-            router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Destroy VMs'
         computeController.ui.askFor 'deleteStack', {}, (status) =>

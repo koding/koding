@@ -12,6 +12,7 @@ showError            = require 'app/util/showError'
 showNotification     = require 'app/util/showNotification'
 isLoggedIn           = require 'app/util/isLoggedIn'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
+canCreateStacks      = require 'app/util/canCreateStacks'
 actions              = require 'app/flux/environment/actions'
 
 remote               = require '../remote'
@@ -1320,3 +1321,22 @@ module.exports = class ComputeController extends KDController
     # /cc @cihangir: not sure if this is the right way to bind the event.
     groupsController.on 'payment_status_changed', =>
       @storage.initialize()
+
+
+  cloneTemplate: (stackTemplate) ->
+
+    return  unless stackTemplate
+
+    unless canCreateStacks()
+      return showError 'You are not allowed to create/edit stacks!'
+
+    stackTemplate.clone (err, clonedTemplate) ->
+      return  if showError err
+
+      if clonedTemplate
+        { reactor, router } = kd.singletons
+        Tracker.track Tracker.STACKS_CLONED_TEMPLATE
+        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        router.handleRoute "/Stack-Editor/#{clonedTemplate.getId()}"
+      else
+        showError 'Failed to clone stack'
