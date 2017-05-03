@@ -30,6 +30,7 @@ KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
 ContentModal                  = require 'app/components/contentModal'
+KDOverlayView                 = kd.OverlayView
 
 NoStackFoundView = require 'app/nostackfoundview'
 
@@ -1164,7 +1165,14 @@ module.exports = class IDEAppController extends AppController
     return @fileFinder.input.setFocus()  if @fileFinder
 
     @fileFinder = new IDEFileFinder
-    @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
+    @findAndReplaceView.hide()  if @findAndReplaceView
+    @contentSearch.destroy()  if @contentSearch
+    @activeTabView.emit 'GotoLineNeedsToBeClosed'
+    @splitViewPanel.addSubView @fileFinderOverlay = new KDOverlayView
+      cssClass : 'file-finder-overlay'
+    @fileFinder.once 'KDObjectWillBeDestroyed', =>
+      @fileFinder = null
+      @fileFinderOverlay.remove()
 
 
   showContentSearch: ->
