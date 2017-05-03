@@ -163,8 +163,6 @@ func (l *Uploader) Upload(key string, content io.ReadSeeker) (*url.URL, error) {
 
 	uniqKey = fmt.Sprintf("%s.%d", uniqKey, len(meta.Parts))
 
-	fmt.Println(gzip, key, uniqKey)
-
 	if !gzip {
 		content, err = l.gzip(uniqKey, content, &part.CompressedSize)
 		if err != nil {

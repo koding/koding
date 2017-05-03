@@ -186,9 +186,13 @@ func (fs *Filesystem) Config() *fuse.MountConfig {
 		VolumeName:              filepath.Base(fs.MountDir),
 		DisableWritebackCaching: true,
 		EnableVnodeCaching:      false,
-		Options:                 map[string]string{"allow_other": ""},
-		DebugLogger:             logger,
-		ErrorLogger:             logger,
+		Options: map[string]string{
+			"allow_other": "",
+			"local":       "",
+			"auto_xattr":  "",
+		},
+		DebugLogger: logger,
+		ErrorLogger: logger,
 	}
 }
 

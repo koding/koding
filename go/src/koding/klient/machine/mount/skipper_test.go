@@ -2,9 +2,6 @@ package mount_test
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"koding/klient/machine/index"
@@ -80,25 +77,5 @@ func TestIsSkip(t *testing.T) {
 				t.Fatalf("want isSkip = %t; got %t", test.IsSkip, isSkip)
 			}
 		})
-	}
-}
-
-func TestDirectorySkip(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "skipper")
-	if err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	var (
-		ds = mount.DirectorySkip("dir")
-	)
-
-	if err := ds.Initialize(tmpDir); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-
-	if _, err := os.Lstat(filepath.Join(tmpDir, string(ds))); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
 	}
 }
