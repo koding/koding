@@ -25,7 +25,7 @@ func TestPublishEndpoint(t *testing.T) {
 
 	pub := NewPublisherWithConn(conn)
 
-	tsrv.HandleFunc("metrics.publish", pub.Publish)
+	tsrv.HandleFunc(pub.Pattern(), pub.Publish)
 
 	ts := httptest.NewServer(tsrv)
 	tcli := kite.New("test-client", "0.0.0")
@@ -40,7 +40,7 @@ func TestPublishEndpoint(t *testing.T) {
 
 	gzm := newRandomPublishReq(20)
 
-	_, err = c.Tell("metrics.publish", gzm)
+	_, err = c.Tell(pub.Pattern(), gzm)
 	if err != nil {
 		t.Fatalf("Tell()=%s", err)
 	}

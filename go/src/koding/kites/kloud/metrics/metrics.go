@@ -41,6 +41,11 @@ type PublishRequest struct {
 	Data GzippedPayload `json:"data"`
 }
 
+// Pattern returns the endpoint name for kite.
+func (Publisher) Pattern() string {
+	return "metrics.publish"
+}
+
 // Publish is a kite.Handler for "metrics.publish" kite method.
 func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 	var req PublishRequest
