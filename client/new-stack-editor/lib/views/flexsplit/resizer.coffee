@@ -155,7 +155,6 @@ module.exports = class FlexSplitResizer extends kd.View
     @emit Flex.EVENT_RESIZED, @_fractions
     for view in @views
       view.unsetClass 'ondrag'
-      view._windowDidResize?()
 
 
   dragStarted: (event, dragState) ->

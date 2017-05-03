@@ -100,11 +100,8 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
           appManager.tell 'Stackeditor', 'reloadEditor', template.getId(), newStack.stack.getId()
 
       when 'Clone'
-        computeController.fetchStackTemplate template.getId(), (err, template) =>
+        computeController.cloneTemplate template, (err) =>
           return @onMenuItemClickError 'cloning', err  if err
-          template.clone (err, template) =>
-            return @onMenuItemClickError 'cloning', err  if err
-            router.handleRoute "/Stack-Editor/#{template.getId()}"
 
       when 'Destroy VMs'
         computeController.ui.askFor 'deleteStack', {}, (status) =>
@@ -127,8 +124,7 @@ module.exports = sidebarConnector class OwnedResourcesList extends React.Compone
       when 'Make Team Default'
         computeController.fetchStackTemplate template.getId(), (err, template) =>
           return @onMenuItemClickError 'making team default', err  if err
-          if template
-            computeController.makeTeamDefault template
+          computeController.makeTeamDefault { template }  if template
 
       when 'Share With Team'
         computeController.fetchStackTemplate template.getId(), (err, template) =>

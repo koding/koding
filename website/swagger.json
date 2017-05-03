@@ -1507,18 +1507,6 @@
     }
   },
   "paths": {
-    "../-/version": {
-      "get": {
-        "tags": [
-          "system"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/JAccount.one": {
       "post": {
         "tags": [
@@ -5431,18 +5419,125 @@
             "schema": {
               "type": "object",
               "properties": {
-                "json": {
-                  "type": "string",
-                  "default": "{}"
+                "ok": {
+                  "type": "boolean",
+                  "description": "If the request processed by endpoint",
+                  "example": true
                 },
-                "yaml": {
-                  "type": "string",
-                  "default": "--"
+                "error": {
+                  "type": "object",
+                  "description": "Error description",
+                  "example": {
+                    "message": "Something went wrong",
+                    "name": "SomethingWentWrong"
+                  }
                 },
-                "defaults": {
+                "data": {
                   "type": "object",
                   "properties": {
-                    "userInputs": {
+                    "json": {
+                      "type": "string",
+                      "default": "{}"
+                    },
+                    "yaml": {
+                      "type": "string",
+                      "default": "--"
+                    },
+                    "defaults": {
+                      "type": "object",
+                      "properties": {
+                        "userInputs": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
+    "/JStackTemplate.preview": {
+      "post": {
+        "tags": [
+          "JStackTemplate"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "operationId": "preview",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "template": {
+                  "type": "string",
+                  "default": "Hello ${var.koding_user_username} -- ${var.custom_foo}"
+                },
+                "custom": {
+                  "type": "object",
+                  "properties": {
+                    "foo": {
+                      "type": "string",
+                      "default": "bar"
+                    }
+                  }
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "returns preview stack template for given template and custom variables",
+        "responses": {
+          "200": {
+            "description": "stacktemplate preview in provided format",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "type": "boolean",
+                  "description": "If the request processed by endpoint",
+                  "example": true
+                },
+                "error": {
+                  "type": "object",
+                  "description": "Error description",
+                  "example": {
+                    "message": "Something went wrong",
+                    "name": "SomethingWentWrong"
+                  }
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "template": {
+                      "type": "string",
+                      "default": "Hello gokmen -- bar"
+                    },
+                    "errors": {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    "warnings": {
                       "type": "object",
                       "properties": {}
                     }

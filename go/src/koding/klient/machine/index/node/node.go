@@ -44,7 +44,7 @@ func NewNodeEntry(name string, entry *Entry) *Node {
 }
 
 // IsShadowed returns true when node is not present in tree.
-func (n *Node) IsShadowed() bool { return n.Entry == nil }
+func (n *Node) IsShadowed() bool { return n.Entry == nil || *n.Entry == emptyEntry }
 
 // Exist returns true for nodes that are considered as existing files. This
 // method can be called on nil nodes.
@@ -55,7 +55,8 @@ func (n *Node) Exist() bool {
 // Clone returns a deep copy of called node.
 func (n *Node) Clone() *Node {
 	c := &Node{
-		Name: n.Name,
+		Name:     n.Name,
+		children: make([]*Node, 0, len(n.children)),
 	}
 
 	if n.Entry != nil {

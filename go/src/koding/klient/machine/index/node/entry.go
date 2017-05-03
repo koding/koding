@@ -120,6 +120,8 @@ var (
 	_ json.Unmarshaler = (*Entry)(nil)
 )
 
+var emptyEntry Entry
+
 // Entry represents a single file registered to index.
 type Entry struct {
 	File    File

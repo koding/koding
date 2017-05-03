@@ -17,7 +17,7 @@ import (
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -146,13 +146,17 @@ func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, er
 	if err != nil {
 		return 1, err
 	}
-	if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
+
+	all := c.Bool("all")
+	if err := identifiersLimit(idents, "mount", 1, -1); !all && err != nil {
 		return 1, err
 	}
 
 	opts := &machine.UmountOptions{
-		Identifier: idents[0],
-		Log:        log.New("machine:umount"),
+		Identifiers: idents,
+		Force:       c.Bool("force"),
+		All:         all,
+		Log:         log.New("machine:umount"),
 	}
 
 	if err := machine.Umount(opts); err != nil {
@@ -265,15 +269,17 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 		return 1, err
 	}
 
-	// Enable all options when none of them are set.
-	isSync := c.Bool("sync")
-	if !isSync {
+	// Enable sync option when there is none set explicitly. Tree may be too
+	// large to show it implicitly.
+	isSync, isTree := c.Bool("sync"), c.Bool("tree")
+	if !isSync && !isTree {
 		isSync = true
 	}
 
 	opts := &machine.InspectMountOptions{
 		Identifier: idents[0],
 		Sync:       isSync,
+		Tree:       isTree,
 		Log:        log.New("machine:inspect"),
 	}
 
@@ -287,6 +293,7 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 	return 0, nil
 }
 
+// MachineStart turns a vm on.
 func MachineStart(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	if err := machineCommand(c, machine.Start); err != nil {
 		return 1, err
@@ -295,9 +302,55 @@ func MachineStart(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
+// MachineStop turns a vm off.
 func MachineStop(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	if err := machineCommand(c, machine.Stop); err != nil {
 		return 1, err
+	}
+
+	return 0, nil
+}
+
+// MachineConfigSet sets key=value pair for a machine.
+func MachineConfigSet(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	ident := c.Args().Get(0)
+	key := c.Args().Get(1)
+	value := c.Args().Get(2)
+
+	switch {
+	case ident == "":
+		return 1, errors.New("machine identifier is empty or missing")
+	case key == "":
+		return 1, errors.New("configuration key is empty or missing")
+	case value == "":
+		return 1, errors.New("configuration value is empty or missing")
+	}
+
+	if err := machine.Set(ident, key, value); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+// MachineCondifShow displays machine's key=value pairs.
+func MachineConfigShow(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	ident := c.Args().Get(0)
+	json := c.Bool("json")
+
+	if ident == "" {
+		return 1, errors.New("machine identifier is empty or missing")
+	}
+
+	conf, err := machine.Show(ident)
+	if err != nil {
+		return 1, err
+	}
+
+	if json {
+		printJSON(conf)
+	} else {
+		printKeyVal(conf)
 	}
 
 	return 0, nil

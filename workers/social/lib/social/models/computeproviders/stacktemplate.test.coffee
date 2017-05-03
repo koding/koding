@@ -513,6 +513,71 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           async.series queue, done
 
 
+  describe 'preview()', ->
+
+    it 'should be able to generate preview for given stacktemplate content', (done) ->
+
+      withConvertedUser ({ client }) ->
+
+        { connection: { delegate } } = client
+        { profile: { nickname } } = delegate
+
+        JStackTemplate.preview client, {
+          template: '''
+            foo bar baz
+            ${var.koding_user_username}
+            ${var.custom_foo}
+          '''
+          custom:
+            foo: 'bar'
+        }, (err, data) ->
+          expect(err)           .to.not.exist
+          expect(data)          .to.exist
+          expect(data.errors)   .to.be.deep.equal {}
+          expect(data.warnings) .to.be.deep.equal {}
+          expect(data.template) .to.be.equal """
+            foo bar baz
+            #{nickname}
+            bar
+          """
+          done()
+
+    it 'should generate warnings and errors for missing data', (done) ->
+
+      withConvertedUser ({ client }) ->
+
+        { connection: { delegate } } = client
+        { profile: { nickname } } = delegate
+
+        JStackTemplate.preview client, {
+          template: '''
+            ${var.userInput_test}
+            foo bar baz
+            ${var.koding_user_username}
+            ${var.custom_foo}
+            ${var.custom_baz}
+          '''
+          custom:
+            foo: 'bar'
+        }, (err, data) ->
+          expect(err)           .to.not.exist
+          expect(data)          .to.exist
+          expect(data.errors)   .to.be.deep.equal {
+            custom: ['baz']
+          }
+          expect(data.warnings) .to.be.deep.equal {
+            userInput: ['test']
+          }
+          expect(data.template) .to.be.equal """
+            ${var.userInput_test}
+            foo bar baz
+            #{nickname}
+            bar
+            ${var.custom_baz}
+          """
+          done()
+
+
   describe 'clone()', ->
 
     describe 'when user doesnt have the permission', ->

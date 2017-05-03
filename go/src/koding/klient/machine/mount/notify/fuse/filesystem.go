@@ -17,7 +17,6 @@ import (
 	"koding/klient/machine/mount/notify"
 
 	"github.com/jacobsa/fuse"
-	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"golang.org/x/net/context"
 )
@@ -130,13 +129,13 @@ type Filesystem struct {
 	// Dynamic filesystem state.
 	dirHandles  *DirHandleGroup
 	fileHandles *FileHandleGroup
-
-	// Index node of mount parrent.
-	mDirParentInode fuseops.InodeID
 }
 
+// FSWrapFunc allows to attach middlerares to underling filesystems.
+type FSWrapFunc func(fuseutil.FileSystem) fuseutil.FileSystem
+
 // NewFilesystem creates new Filesystem value.
-func NewFilesystem(opts *Options) (*Filesystem, error) {
+func NewFilesystem(opts *Options, wraps ...FSWrapFunc) (*Filesystem, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
@@ -152,14 +151,19 @@ func NewFilesystem(opts *Options) (*Filesystem, error) {
 
 	gen := generator(MinHandleID)
 	fs := &Filesystem{
-		Options:         *opts,
-		cancel:          cancel,
-		dirHandles:      NewDirHandleGroup(gen),
-		fileHandles:     NewFileHandleGroup(gen),
-		mDirParentInode: getMountPointParentInode(opts.MountDir),
+		Options:     *opts,
+		cancel:      cancel,
+		dirHandles:  NewDirHandleGroup(opts.MountDir, gen),
+		fileHandles: NewFileHandleGroup(gen),
 	}
 
-	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
+	// Attach additional filesystem wrappers if any.
+	var fuseFS fuseutil.FileSystem = fs
+	for _, wrap := range wraps {
+		fuseFS = wrap(fuseFS)
+	}
+
+	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fuseFS), fs.Config())
 	if err != nil {
 		return nil, err
 	}
@@ -182,9 +186,13 @@ func (fs *Filesystem) Config() *fuse.MountConfig {
 		VolumeName:              filepath.Base(fs.MountDir),
 		DisableWritebackCaching: true,
 		EnableVnodeCaching:      false,
-		Options:                 map[string]string{"allow_other": ""},
-		DebugLogger:             logger,
-		ErrorLogger:             logger,
+		Options: map[string]string{
+			"allow_other": "",
+			"local":       "",
+			"auto_xattr":  "",
+		},
+		DebugLogger: logger,
+		ErrorLogger: logger,
 	}
 }
 
