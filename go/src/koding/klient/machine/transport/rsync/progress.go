@@ -21,7 +21,7 @@ func Progress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, err e
 
 		drawFunc := ioprogress.DrawTerminalf(w, func(_, _ int64) string {
 			line := fmt.Sprintf("Copying files: %.1f%% (%d/%d), %s/%s | %s/s",
-				float64(size)/float64(sizeAll)*100.0, // percentage status.
+				percentage(size, sizeAll), // percentage status.
 				n,    // number of downloaded files.
 				nAll, // number of all files being downloaded.
 				humanize.IBytes(uint64(size)),    // size of downloaded files.
@@ -42,4 +42,12 @@ func Progress(w io.Writer, nAll, sizeAll int64) func(n, size, speed int64, err e
 			drawFunc(-1, -1) // Finish drawing.
 		}
 	}
+}
+
+func percentage(size, sizeAll int64) float64 {
+	if sizeAll == 0 {
+		return 0.0
+	}
+
+	return float64(size) / float64(sizeAll) * 100.0
 }
