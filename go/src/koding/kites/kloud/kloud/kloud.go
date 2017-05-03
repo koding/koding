@@ -24,6 +24,7 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/machine"
+	"koding/kites/kloud/metrics"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -34,6 +35,7 @@ import (
 	"koding/tools/util"
 	"socialapi/workers/presence/client"
 
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -59,6 +61,9 @@ type Kloud struct {
 	// shutting down a non-always-on vm when it idles for more
 	// than 1h.
 	Queue *queue.Queue
+
+	Stats        *statsd.Client
+	metricsProxy *metrics.Publisher
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -269,6 +274,7 @@ func New(conf *Config) (*Kloud, error) {
 		return session.NewContext(ctx, sess)
 	}
 
+	kloud.Stats = stats
 	kloud.Stack.Metrics = stats
 
 	// RSA key pair that we add to the newly created machine for
@@ -310,42 +316,50 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
+	publisher, err := metrics.NewPublisher()
+	if err != nil {
+		return nil, err
+	}
+
+	kloud.metricsProxy = publisher
+
 	// Teams/stack handling methods.
-	k.HandleFunc("plan", kloud.Stack.Plan)
-	k.HandleFunc("apply", kloud.Stack.Apply)
-	k.HandleFunc("describeStack", kloud.Stack.Status)
-	k.HandleFunc("authenticate", kloud.Stack.Authenticate)
-	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
-	k.HandleFunc("import", kloud.Stack.Import)
+	kloud.HandleFunc("plan", kloud.Stack.Plan)
+	kloud.HandleFunc("apply", kloud.Stack.Apply)
+	kloud.HandleFunc("describeStack", kloud.Stack.Status)
+	kloud.HandleFunc("authenticate", kloud.Stack.Authenticate)
+	kloud.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
+	kloud.HandleFunc("import", kloud.Stack.Import)
 
 	// Credential handling.
-	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
-	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
-	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
+	kloud.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
+	kloud.HandleFunc("credential.list", kloud.Stack.CredentialList)
+	kloud.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
 
 	// Authorization handling.
-	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
-	k.HandleFunc("auth.passwordLogin", kloud.Stack.AuthPasswordLogin).DisableAuthentication()
+	kloud.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+	kloud.HandleFunc("auth.passwordLogin", kloud.Stack.AuthPasswordLogin).DisableAuthentication()
 
 	// Configuration handling.
-	k.HandleFunc("config.metadata", kloud.Stack.ConfigMetadata)
+	kloud.HandleFunc("config.metadata", kloud.Stack.ConfigMetadata)
 
 	// Team handling.
-	k.HandleFunc("team.list", kloud.Stack.TeamList)
-	k.HandleFunc("team.whoami", kloud.Stack.TeamWhoami)
+	kloud.HandleFunc("team.list", kloud.Stack.TeamList)
+	kloud.HandleFunc("team.whoami", kloud.Stack.TeamWhoami)
 
 	// Machine handling.
-	k.HandleFunc("machine.list", kloud.Stack.MachineList)
+	kloud.HandleFunc("machine.list", kloud.Stack.MachineList)
 
 	// Single machine handling.
-	k.HandleFunc("stop", kloud.Stack.Stop)
-	k.HandleFunc("start", kloud.Stack.Start)
-	k.HandleFunc("info", kloud.Stack.Info)
-	k.HandleFunc("event", kloud.Stack.Event)
+	kloud.HandleFunc("stop", kloud.Stack.Stop)
+	kloud.HandleFunc("start", kloud.Stack.Start)
+	kloud.HandleFunc("info", kloud.Stack.Info)
+	kloud.HandleFunc("event", kloud.Stack.Event)
 
 	// Klient proxy methods.
-	k.HandleFunc("admin.add", kloud.Stack.AdminAdd)
-	k.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
+	kloud.HandleFunc("admin.add", kloud.Stack.AdminAdd)
+	kloud.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
+	kloud.HandleFunc(publisher.Pattern(), publisher.Publish)
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
@@ -387,6 +401,11 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	return kloud, nil
+}
+
+func (k *Kloud) HandleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
+	f = common.WrapKiteHandler(k.Stats, pattern, f)
+	return k.Kite.HandleFunc(pattern, f)
 }
 
 // Close closes the underlying connections.
