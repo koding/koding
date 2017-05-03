@@ -389,6 +389,18 @@ func New(conf *Config) (*Kloud, error) {
 	return kloud, nil
 }
 
+// Close closes the underlying connections.
+func (k *Kloud) Close() error {
+	if k.metricsProxy != nil {
+		return k.metricsProxy.Close()
+	}
+
+	k.Kite.Close()
+	k.Stats.Close()
+
+	return nil
+}
+
 func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
 
