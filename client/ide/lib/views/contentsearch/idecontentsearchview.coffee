@@ -1,7 +1,6 @@
 kd                          = require 'kd'
 KDButtonView                = kd.ButtonView
 KDCustomHTMLView            = kd.CustomHTMLView
-KDInputView                 = kd.InputView
 KDHitEnterInputView         = kd.HitEnterInputView
 KDMultipleChoice            = kd.MultipleChoice
 JView                       = require 'app/jview'
@@ -90,6 +89,7 @@ module.exports = class IDEContentSearchView extends JView
 
     return @searchButton.hideLoader()  if searchText is ''
 
+    @searchButton.showLoader()
     @searchText     = searchText
     @rootPath       = Encoder.XSSEncode @whereInput.getValue()
     @selections     = @choices.getValue()
@@ -141,50 +141,11 @@ module.exports = class IDEContentSearchView extends JView
     @localStorageController.setValue 'PreviousSearchTerms', terms
 
 
-  createElements: ->
-
-    @findInput = new KDHitEnterInputView
-      type         : 'text'
-      cssClass     : 'search-input-with-icon'
-      placeholder  : 'Search in all files...'
-      validate     :
-        rules      :
-          required : yes
-      keydown      : _.bind @handleKeyDown, this
-      callback     : @bound 'search'
-
-    @whereInput = new KDInputView
-      type         : 'text'
-      cssClass     : 'search-input'
-      placeholder  : @rootPath
-      defaultValue : @rootPath
-      validate     :
-        rules      :
-          required : yes
-      keydown      : _.bind @handleKeyDown, this
-
-    @searchButton = new KDButtonView
-      title        : 'Search'
-      cssClass     : 'search-button'
-      loader       :
-        color      : '#FFFFFF'
-      callback     : @bound 'search'
-
-    @closeButton = new KDCustomHTMLView
-      tagName      : 'span'
-      cssClass     : 'close-icon'
-      click        : @bound 'destroy'
-
-    @choices = new KDMultipleChoice
-      cssClass     : ''
-      labels       : ['case-sensitive', 'whole-word', 'regex']
-      multiple     : yes
-      defaultValue : 'fakeValueToDeselectFirstOne'
-
-
   escapeRegExp: (str) -> str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
 
+
   escapeShell: (str) -> str.replace /([\\"'`$\s\(\)<>])/g, '\\$1'
+
 
   grepEscapeRegExp: (str) -> str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
 
@@ -260,11 +221,54 @@ module.exports = class IDEContentSearchView extends JView
 
     @searchButton.hideLoader()
 
+  createElements: ->
+
+    @findInput = new KDHitEnterInputView
+      type         : 'text'
+      cssClass     : 'search-input-with-icon'
+      placeholder  : 'Search in all files...'
+      validate     :
+        rules      :
+          required : yes
+      keydown      : _.bind @handleKeyDown, this
+      callback     : @bound 'search'
+
+    @whereInput = new KDHitEnterInputView
+      type         : 'text'
+      cssClass     : 'search-input'
+      placeholder  : @rootPath
+      defaultValue : @rootPath
+      validate     :
+        rules      :
+          required : yes
+      keydown      : _.bind @handleKeyDown, this
+      callback     : @bound 'search'
+
+    @searchButton = new KDButtonView
+      title        : 'Search'
+      cssClass     : 'search-button'
+      loader       :
+        color      : '#FFFFFF'
+      callback     : @bound 'search'
+
+    @closeButton = new KDCustomHTMLView
+      tagName      : 'span'
+      cssClass     : 'close-icon'
+      click        : @bound 'destroy'
+
+    @choices = new KDMultipleChoice
+      cssClass     : ''
+      labels       : ['case-sensitive', 'whole-word', 'regex']
+      multiple     : yes
+      defaultValue : 'fakeValueToDeselectFirstOne'
+
+
   viewAppended: ->
 
     super
 
     @findInput.setFocus()
+
 
   pistachio: ->
     return '''
