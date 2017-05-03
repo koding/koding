@@ -1,12 +1,10 @@
 package filter
 
 import (
+	"errors"
 	"regexp"
 	"runtime"
 	"strings"
-
-	msync "koding/klient/machine/mount/sync"
-	"errors"
 )
 
 /*
@@ -22,7 +20,7 @@ var DefaultSkipper Skipper = MultiSkipper{
 	NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`), // git stash ref. lock.
 }
 */
-// ErrSkip indicates that provided filter does not want provided path to pass.
+// SkipPath indicates that provided filter does not want provided path to pass.
 var SkipPath = errors.New("skip this path")
 
 // Filter defines interface for checking if provided file or path is filtered.
@@ -35,7 +33,7 @@ type Filter interface {
 // filters.
 type MultiFilter []Filter
 
-// IsSkip runs all underlying Filters and returns first non-nil error it gets.
+// Check runs all underlying Filters and returns first non-nil error it gets.
 func (mf MultiFilter) Check(path string) (err error) {
 	for _, f := range mf {
 		if err = f.Check(path); err != nil {
@@ -57,7 +55,9 @@ type DirectorySkip string
 
 // Check returns SkipPath error when provided path contains skipped directory.
 func (ds DirectorySkip) Check(path string) error {
-	if strings.HasSuffix(path, string(ds)) || strings.Index(path, "/" + string(ds)) {
+	if strings.HasSuffix(path, string(ds)) ||
+		strings.Index(path, "/"+string(ds)+"/") >= 0 ||
+		strings.HasPrefix(path, string(ds)+"/") {
 		return SkipPath
 	}
 
@@ -111,14 +111,14 @@ func (rs *RegexSkip) Check(path string) error {
 // WithError implements Filter interface. It replaces returned non-nil wrapped
 // skipper error with provided one.
 type WithError struct {
-	f Filter
+	f   Filter
 	err error
 }
 
 // NewWithError creates a new WithError object.
 func NewWithError(f Filter, errmsg string) *WithError {
 	return &WithError{
-		f: f,
+		f:   f,
 		err: errors.New(errmsg),
 	}
 }

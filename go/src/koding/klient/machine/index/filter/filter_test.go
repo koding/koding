@@ -1,69 +1,65 @@
 package filter_test
 
 import (
-	"context"
 	"testing"
 
-	"koding/klient/machine/index"
-	"koding/klient/machine/mount"
-	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/index/filter"
 )
 
-func TestIsSkip(t *testing.T) {
-	ctx := context.Background()
+func TestFilter(t *testing.T) {
 	tests := map[string]struct {
-		Ev     *msync.Event
-		Sk     mount.Skipper
+		Path   string
+		F      filter.Filter
 		IsSkip bool
 	}{
 		"directory itself": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash", index.PriorityMedium, 0)),
-			Sk:     mount.DirectorySkip(".Trash"),
+			Path:   ".Trash",
+			F:      filter.DirectorySkip(".Trash"),
 			IsSkip: true,
 		},
 		"file inside directory": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trash/file.txt", index.PriorityMedium, 0)),
-			Sk:     mount.DirectorySkip(".Trash"),
+			Path:   ".Trash/file.txt",
+			F:      filter.DirectorySkip(".Trash"),
 			IsSkip: true,
 		},
 		"similar prefix": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".Trasher/file.txt", index.PriorityMedium, 0)),
-			Sk:     mount.DirectorySkip(".Trash"),
+			Path:   ".Trasher/file.txt",
+			F:      filter.DirectorySkip(".Trash"),
 			IsSkip: false,
 		},
-		"in the middle": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("aa/.Trasher/file.txt", index.PriorityMedium, 0)),
-			Sk:     mount.DirectorySkip(".Trash"),
+		"in the middle similar": {
+			Path:   "aa/.Trasher/file.txt",
+			F:      filter.DirectorySkip(".Trash"),
 			IsSkip: false,
 		},
 		"path suffix equal": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange(".git/index.lock", index.PriorityMedium, 0)),
-			Sk:     mount.PathSuffixSkip(".git/index.lock"),
+			Path:   ".git/index.lock",
+			F:      filter.PathSuffixSkip(".git/index.lock"),
 			IsSkip: true,
 		},
 		"path suffix": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/.git/index.lock", index.PriorityMedium, 0)),
-			Sk:     mount.PathSuffixSkip(".git/index.lock"),
+			Path:   "somerepo/.git/index.lock",
+			F:      filter.PathSuffixSkip(".git/index.lock"),
 			IsSkip: true,
 		},
 		"path suffix part": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("somerepo/troll.git/index.lock", index.PriorityMedium, 0)),
-			Sk:     mount.PathSuffixSkip(".git/index.lock"),
+			Path:   "somerepo/troll.git/index.lock",
+			F:      filter.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
 		"path suffix too short": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("git/index.lock", index.PriorityMedium, 0)),
-			Sk:     mount.PathSuffixSkip(".git/index.lock"),
+			Path:   "git/index.lock",
+			F:      filter.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
 		"git branch lock": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("notify/.git/refs/heads/master.lock", index.PriorityMedium, 0)),
-			Sk:     mount.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`),
+			Path:   "notify/.git/refs/heads/master.lock",
+			F:      filter.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`),
 			IsSkip: true,
 		},
 		"git stash reference lock": {
-			Ev:     msync.NewEvent(ctx, nil, index.NewChange("notify/.git/index.stash.31012.lock", index.PriorityMedium, 0)),
-			Sk:     mount.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`),
+			Path:   "notify/.git/index.stash.31012.lock",
+			F:      filter.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`),
 			IsSkip: true,
 		},
 	}
@@ -73,9 +69,16 @@ func TestIsSkip(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if isSkip := test.Sk.IsSkip(test.Ev); isSkip != test.IsSkip {
-				t.Fatalf("want isSkip = %t; got %t", test.IsSkip, isSkip)
+			if err := test.F.Check(test.Path); test.IsSkip != (err == filter.SkipPath) {
+				t.Fatalf("want (err == filter.SkipPath) = %t; got %v", test.IsSkip, err)
 			}
 		})
+	}
+}
+
+func TestWithError(t *testing.T) {
+	const errmsg = "test error"
+	if e := filter.NewWithError(filter.DirectorySkip(".Trash"), errmsg).Check(".Trash"); e.Error() != errmsg {
+		t.Fatalf("want err = %s; got %s", errmsg, e)
 	}
 }
