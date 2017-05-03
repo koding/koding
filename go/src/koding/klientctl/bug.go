@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"time"
 
 	"koding/kites/config"
 	"koding/klient/uploader"
 	konfig "koding/klientctl/config"
 	"koding/klientctl/endpoint/machine"
+	"koding/klientctl/helper"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -91,7 +93,13 @@ func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	s := signature(report.URL)
-	t := fmt.Sprintf(issueBody, s)
+	t := ""
+
+	if u, ok := askScreencast(); ok {
+		t = fmt.Sprintf(asciicastBody, u, s)
+	} else {
+		t = fmt.Sprintf(issueBody, s)
+	}
 
 	if err := open.Start("https://github.com/koding/koding/issues/new?body=" + url.QueryEscape(t)); err != nil {
 		return 1, err
@@ -153,4 +161,32 @@ func signature(uri string) string {
 	return hex.EncodeToString([]byte(u.Path))
 }
 
-var issueBody = string(append(MustAsset("ISSUE_TEMPLATE.md"), []byte("\n### Signature\n```\n%s\n```\n")...))
+func askScreencast() (*url.URL, bool) {
+	if _, err := exec.LookPath("asciinema"); err != nil {
+		return nil, false
+	}
+
+	link, err := helper.Ask("Did you record your shell with asciinema? If yes, please provide a URL of the recording [none]: ")
+	if err != nil {
+		return nil, false
+	}
+
+	if link == "" {
+		return nil, false
+	}
+
+	u, err := url.Parse(link)
+	if err != nil || u.Host != "asciinema.org" {
+		fmt.Fprintln(os.Stderr, "Invalid asciinema link, ignoring.")
+		return nil, false
+	}
+
+	return u, true
+}
+
+const sign = "\n### Signature\n```\n%s\n```\n"
+
+var (
+	issueBody     = string(append(MustAsset("ISSUE_TEMPLATE.md"), []byte(sign)...))
+	asciicastBody = "<!--- Provide a general summary of the issue in the Title above -->\n\n## Steps to reproduce\n[![asciicast](%[1]s.png)](%[1]s)\n" + sign
+)
