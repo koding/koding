@@ -72,7 +72,7 @@ type MetadataPart struct {
 //
 // It is used by Upload to not stream empty content.
 type NopError struct {
-	Key string //content's key
+	Key string // content's key
 	N   int    // part number
 }
 
@@ -87,9 +87,10 @@ func IsNop(err error) bool {
 	return ok
 }
 
-// Putter is responsible for streaming the content under the given key path.
-type Putter interface {
+// Bucket is responsible for streaming the content under the given key path.
+type Bucket interface {
 	Put(key string, content io.ReadSeeker) (*url.URL, error)
+	URL(key string) *url.URL
 }
 
 // Uploader is used to stream logs' contents.
@@ -98,7 +99,7 @@ type Putter interface {
 type Uploader struct {
 	// UserBucket is used to stream log contents.
 	// Required.
-	UserBucket Putter
+	UserBucket Bucket
 
 	// MetaStore is used for caching metadata.
 	// Required.
@@ -141,30 +142,41 @@ func (l *Uploader) Upload(key string, content io.ReadSeeker) (*url.URL, error) {
 		defer c.Close()
 	}
 
+	gzip := isGzip(key)
 	meta := l.meta(key)
+	uniqKey := key
+
+	if !gzip {
+		uniqKey += ".gz"
+	}
+
 	part, err := rotate(content, meta)
+	if e, ok := err.(*NopError); ok && e.N > 0 {
+		// Early return: if content was already uploaded and
+		// has not changed since last upload, do not return
+		// error and return previous URL instead.
+		return l.UserBucket.URL(fmt.Sprintf("%s.%d", uniqKey, e.N-1)), nil
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	var uniqueKey string
+	uniqKey = fmt.Sprintf("%s.%d", uniqKey, len(meta.Parts))
 
-	if !isGzip(key) {
-		c, err := l.gzip(uniqueKey, content, &part.CompressedSize)
+	fmt.Println(gzip, key, uniqKey)
+
+	if !gzip {
+		content, err = l.gzip(uniqKey, content, &part.CompressedSize)
 		if err != nil {
 			return nil, err
 		}
-
-		content = c
-		uniqueKey = fmt.Sprintf("%s.gz.%d", key, len(meta.Parts))
 	} else {
 		part.CompressedSize = part.Size
-		uniqueKey = fmt.Sprintf("%s.%d", key, len(meta.Parts))
 	}
 
-	l.log().Debug("uploading %q...", uniqueKey)
+	l.log().Debug("uploading %q...", uniqKey)
 
-	url, err := l.UserBucket.Put(uniqueKey, content)
+	url, err := l.UserBucket.Put(uniqKey, content)
 	if err != nil {
 		return nil, err
 	}

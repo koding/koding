@@ -17,6 +17,7 @@ import (
 type UserBucket map[string][]byte
 
 func (ub UserBucket) Put(key string, rs io.ReadSeeker) (u *url.URL, err error) {
+
 	var r io.Reader = rs
 	var origKey = key
 
@@ -37,10 +38,14 @@ func (ub UserBucket) Put(key string, rs io.ReadSeeker) (u *url.URL, err error) {
 
 	ub[key] = p
 
+	return ub.URL(key), nil
+}
+
+func (ub UserBucket) URL(string) *url.URL {
 	return &url.URL{
 		Scheme: "memory",
 		Path:   "0xDD",
-	}, nil
+	}
 }
 
 func reader(offset, size int64) io.ReadSeeker {
