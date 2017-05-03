@@ -93,7 +93,7 @@ func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	s := signature(report.URL)
-	t := ""
+	var t string
 
 	if u, ok := askScreencast(); ok {
 		t = fmt.Sprintf(asciicastBody, u, s)
