@@ -155,6 +155,12 @@ module.exports = class StackEditor extends kd.View
         @sideView.show 'credentials'
       when Events.Menu.MakeTeamDefault
         computeController.makeTeamDefault { template: @getData() }
+      when Events.Menu.Clone
+        @toolbar.setBanner {
+          message  : 'Clonning...'
+          autohide : 3000
+        }
+        computeController.cloneTemplate @getData()
       when Events.ShowSideView
         @sideView.show rest...
       when Events.ToggleSideView

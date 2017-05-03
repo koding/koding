@@ -61,8 +61,11 @@ module.exports = class Toolbar extends JView
 
     @banner = new Banner
     @banner.on Events.Banner.Close, =>
-      @unsetClass 'has-message'
-      kd.utils.wait 500, @banner.bound 'hide'
+      if sticky = @banner.isSticky()
+        sticky.sticky = yes
+        @banner.setData sticky
+      else
+        @hideBanner()
 
     @forwardEvent @banner, Events.Action
 
@@ -105,6 +108,8 @@ module.exports = class Toolbar extends JView
 
     debug 'handling banner message', data.message, data.action
 
+    data.message ?= ''
+
     if data.showlogs
       data.action   ?=
         title : 'Show Logs'
@@ -112,8 +117,17 @@ module.exports = class Toolbar extends JView
       data.autohide ?= 2500
 
     @banner.setData data
-    @banner.show()
-    @setClass 'has-message'
+
+    if data.sticky is no
+      @hideBanner()
+    else
+      @banner.show()
+      @setClass 'has-message'
+
+
+  hideBanner: ->
+    @unsetClass 'has-message'
+    kd.utils.wait 500, @banner.bound 'hide'
 
 
   click: (event) ->

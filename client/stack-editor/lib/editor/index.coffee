@@ -346,16 +346,7 @@ module.exports = class StackEditorView extends kd.View
   cloneStackTemplate: ->
 
     { stackTemplate } = @getData()
-    { computeController, router } = kd.singletons
-
-    computeController.fetchStackTemplate stackTemplate.getId(), (err, template) ->
-
-      if err or not template
-        return showError 'Failed to fetch template'
-
-      template.clone (err, template) ->
-        return  if showError err
-        router.handleRoute "/Stack-Editor/#{template.getId()}"  if template
+    kd.singletons.computeController.cloneTemplate stackTemplate
 
 
   createStackNameInput: (generatedStackTemplateTitle) ->
