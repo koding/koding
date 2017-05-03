@@ -61,6 +61,21 @@ module.exports = class BaseView extends kd.View
         cssClass: 'help-content has-markdown'
         partial: help
 
+    if (preview = @getOption 'preview') and @getPreview?
+
+      @wrapper.addSubView contentWrapper = new kd.View
+        cssClass: 'preview-content'
+
+      contentWrapper.addSubView previewView = @getPreview()
+
+      @controls.addSubView new kd.ButtonView
+        cssClass: 'preview'
+        callback: =>
+          @toggleClass 'preview-mode'
+          @getPreview previewView  if @hasClass 'preview-mode'
+
+          @emit Events.GotFocus
+
     if @getOption 'pinnable'
 
       @controls.addSubView new kd.ButtonView

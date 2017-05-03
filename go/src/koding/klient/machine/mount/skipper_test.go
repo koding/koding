@@ -2,9 +2,6 @@ package mount_test
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"koding/klient/machine/index"
@@ -59,6 +56,16 @@ func TestIsSkip(t *testing.T) {
 			Sk:     mount.PathSuffixSkip(".git/index.lock"),
 			IsSkip: false,
 		},
+		"git branch lock": {
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("notify/.git/refs/heads/master.lock", index.PriorityMedium, 0)),
+			Sk:     mount.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`),
+			IsSkip: true,
+		},
+		"git stash reference lock": {
+			Ev:     msync.NewEvent(ctx, nil, index.NewChange("notify/.git/index.stash.31012.lock", index.PriorityMedium, 0)),
+			Sk:     mount.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`),
+			IsSkip: true,
+		},
 	}
 
 	for name, test := range tests {
@@ -70,25 +77,5 @@ func TestIsSkip(t *testing.T) {
 				t.Fatalf("want isSkip = %t; got %t", test.IsSkip, isSkip)
 			}
 		})
-	}
-}
-
-func TestDirectorySkip(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "skipper")
-	if err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	var (
-		ds = mount.DirectorySkip("dir")
-	)
-
-	if err := ds.Initialize(tmpDir); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-
-	if _, err := os.Lstat(filepath.Join(tmpDir, string(ds))); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
 	}
 }

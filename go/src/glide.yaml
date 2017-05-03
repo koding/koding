@@ -307,6 +307,7 @@ import:
 - package: github.com/jacobsa/reqtrace
 - package: github.com/kylelemons/godebug
 - package: github.com/mitchellh/ioprogress
+- package: github.com/skratchdot/open-golang
 ignore:
 - koding/tools/logger
 - config

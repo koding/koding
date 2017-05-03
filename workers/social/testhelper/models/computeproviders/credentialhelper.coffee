@@ -47,10 +47,13 @@ createCredential = (client, options, callback) ->
   options.meta     ?= generateMetaData options.provider
   options.title    ?= 'koding'
 
-  JCredential.create client, options, (err, credential) ->
-    addToRemoveList client, credential.identifier  if credential
-    console.error 'createCredential:', err  if err
-    callback err, { credential }
+  maxTry = 3
+  do create = ->
+    JCredential.create client, options, (err, credential) ->
+      return create()  if err?.description is 'not logged in' and maxTry--
+      addToRemoveList client, credential.identifier  if credential
+      console.error 'createCredential:', err  if err
+      callback err, { credential }
 
 
 withConvertedUserAndCredential = (options, callback) ->

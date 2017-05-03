@@ -551,23 +551,6 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
-cloneStackTemplate = (template) ->
-
-  unless canCreateStacks()
-    return new kd.NotificationView { title: 'You are not allowed to create/edit stacks!' }
-
-  new kd.NotificationView { title:'Cloning Stack Template' }
-
-  { reactor } = kd.singletons
-
-  template.clone (err, stackTemplate) ->
-    if err
-      return new kd.NotificationView
-        title: 'Error occured while cloning template'
-
-    Tracker.track Tracker.STACKS_CLONED_TEMPLATE
-    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
-    kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
 loadExpandedMachineLabel = (label) ->
 
@@ -680,6 +663,5 @@ module.exports = {
   disconnectMachine
   setLabel
   fetchAndUpdateStackTemplate
-  cloneStackTemplate
   loadExpandedMachineLabel
 }

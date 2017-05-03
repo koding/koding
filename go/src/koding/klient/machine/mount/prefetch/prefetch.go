@@ -100,12 +100,7 @@ func (p *Prefetch) Run(w io.Writer, s Strategy, privPath string) error {
 	// Create initial progess report and run the command.
 	cmd.Progress(0, 0, 0, nil)
 
-	var err error
-	if err = cmd.Run(context.Background()); err != nil {
-		err = fmt.Errorf("file prefetching interrupted (%s)", err)
-	}
-
-	return nonil(err, pref.PostRun(p.WorkDir))
+	return nonil(cmd.Run(context.Background()), pref.PostRun(p.WorkDir))
 }
 
 func nonil(err ...error) error {

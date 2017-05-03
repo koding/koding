@@ -1,9 +1,13 @@
+debug = (require 'debug') 'nse:editor'
+
 kd = require 'kd'
 AceView = require 'ace/aceview'
 FSHelper = require 'app/util/fs/fshelper'
 
 Events = require '../events'
 BaseView = require './baseview'
+
+yamlutils = require 'app/util/stacks/yamlutils'
 
 
 module.exports = class Editor extends BaseView
@@ -15,12 +19,13 @@ module.exports = class Editor extends BaseView
     options.filename   ?= 'untitled.yaml'
     options.showgutter ?= yes
     options.readonly   ?= no
+    options.preview    ?= no
 
     super options, data
 
     @_initialContent = ''
 
-    { filename } = @getOptions()
+    { filename, preview } = @getOptions()
 
     @aceView = new AceView {
       cssClass: 'editor'
@@ -28,10 +33,26 @@ module.exports = class Editor extends BaseView
       createBottomBar: no
     }, FSHelper.createFileInstance { path: "localfile:/#{filename}" }
 
+    @getPreview = preview  if preview
 
-  getContent: ->
 
-    @aceView.ace.getContents()
+  getContent: (as) ->
+
+    content = @aceView.ace.getContents()
+
+    switch as
+      when 'json'
+        { content } = yamlutils.yamlToJson content
+      when 'yaml'
+        { content } = yamlutils.jsonToYaml content
+
+    return content
+
+
+  parseContent: ->
+
+    { err, content, contentObject } = yamlutils.yamlToJson @getContent()
+    return [ err, contentObject ]
 
 
   setContent: (content, type = 'text') -> @ready =>
@@ -65,6 +86,9 @@ module.exports = class Editor extends BaseView
 
 
   setReadOnly: (state) -> @ready =>
+
+    if intialState = @getOption 'readonly'
+      state = intialState
 
     @aceView.ace.setReadOnly state, no
     state = if state then 'none' else 'block'

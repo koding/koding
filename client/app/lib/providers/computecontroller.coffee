@@ -12,6 +12,7 @@ showError            = require 'app/util/showError'
 showNotification     = require 'app/util/showNotification'
 isLoggedIn           = require 'app/util/isLoggedIn'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
+canCreateStacks      = require 'app/util/canCreateStacks'
 actions              = require 'app/flux/environment/actions'
 
 remote               = require '../remote'
@@ -711,7 +712,7 @@ module.exports = class ComputeController extends KDController
     delete kontrol.kites?.klient?[machine.uid]
 
 
-  checkStackRevisions: (stackTemplateId) ->
+  checkStackRevisions: (stackTemplateId, createIfNotFound = yes) ->
 
     debug 'checkStackRevisions', stackTemplateId
     found = no
@@ -748,7 +749,7 @@ module.exports = class ComputeController extends KDController
           @storage.stacks.push stack
           @emit 'StackRevisionChecked', stack
 
-    if stackTemplateId and not found
+    if stackTemplateId and not found and createIfNotFound
       @createDefaultStack()
 
 
@@ -1071,25 +1072,33 @@ module.exports = class ComputeController extends KDController
     router.handleRoute route
 
 
-  makeTeamDefault: (stackTemplate) ->
+  makeTeamDefault: (options, callback = kd.noop) ->
 
+    { template, force = no } = options
     { reactor } = kd.singletons
 
-    createShareModal (needShare, modal) ->
+    @ui.createShareModal ({ modal, shareStack, shareCredential }) ->
+
+      unless shareStack
+        return callback { message: 'User cancelled' }
 
       remote.api.ComputeProvider.setGroupStack {
-        templateId: stackTemplate._id
-        shareCredential: needShare
+        templateId: template._id
+        shareCredential
       }, (err) ->
+
+        callback err
 
         return  if showError err
 
-        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate: template }
+        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: template._id }
 
         Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
-        modal.destroy()
+        modal?.destroy()
+
+    , force
 
 
   removeClonedFromAttr: (stackTemplate, callback = kd.noop) ->
@@ -1312,3 +1321,22 @@ module.exports = class ComputeController extends KDController
     # /cc @cihangir: not sure if this is the right way to bind the event.
     groupsController.on 'payment_status_changed', =>
       @storage.initialize()
+
+
+  cloneTemplate: (stackTemplate) ->
+
+    return  unless stackTemplate
+
+    unless canCreateStacks()
+      return showError 'You are not allowed to create/edit stacks!'
+
+    stackTemplate.clone (err, clonedTemplate) ->
+      return  if showError err
+
+      if clonedTemplate
+        { reactor, router } = kd.singletons
+        Tracker.track Tracker.STACKS_CLONED_TEMPLATE
+        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        router.handleRoute "/Stack-Editor/#{clonedTemplate.getId()}"
+      else
+        showError 'Failed to clone stack'

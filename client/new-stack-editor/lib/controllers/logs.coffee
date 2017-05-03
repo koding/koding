@@ -13,6 +13,8 @@ module.exports = class LogsController extends BaseController
 
   stringify = (content) ->
 
+    content = content.filter Boolean
+
     for item, i in content
       content[i] = if typeof item is 'object'
       then objectToString item else item
