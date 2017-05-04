@@ -35,6 +35,18 @@ func NewBoltQueue(path string) (*BoltQueue, error) {
 		return nil, err
 	}
 
+	return NewBoltQueueWithDB(db)
+}
+
+// NewBoltQueueWithDB creates a new bolt queue for metrics into given db.
+func NewBoltQueueWithDB(db *bolt.DB) (*BoltQueue, error) {
+	if err := db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists(bucket)
+		return err
+	}); err != nil {
+		return nil, err
+	}
+
 	return &BoltQueue{
 		db: db,
 	}, nil
