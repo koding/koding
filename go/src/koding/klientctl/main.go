@@ -188,6 +188,10 @@ func run(args []string) {
 			auth.NewRegisterSubCommand(log), // command: kd auth register
 		},
 	}, {
+		Name:   "bug",
+		Usage:  "Helps in sending a bug report.",
+		Action: ctlcli.ExitErrAction(Bug, log, "bug"),
+	}, {
 		Name:  "compat",
 		Usage: "Compatibility commands for use with old mounts.",
 		Subcommands: []cli.Command{{

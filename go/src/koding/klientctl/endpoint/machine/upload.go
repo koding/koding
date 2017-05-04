@@ -58,5 +58,5 @@ func (c *Client) upload(files []*UploadedFile, force bool) (err error) {
 	return err
 }
 
-func Upload(files []*UploadedFile) error      { return DefaultClient.Upload(files) }
-func UploadForce(files []*UploadedFile) error { return DefaultClient.UploadForce(files) }
+func Upload(files ...*UploadedFile) error      { return DefaultClient.Upload(files) }
+func UploadForce(files ...*UploadedFile) error { return DefaultClient.UploadForce(files) }
