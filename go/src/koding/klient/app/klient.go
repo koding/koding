@@ -49,6 +49,8 @@ import (
 	"koding/klientctl/daemon"
 	"koding/logrotate"
 
+	endpointkloud "koding/klientctl/endpoint/kloud"
+
 	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
@@ -259,10 +261,15 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
-	metrics, err := metrics.NewWithDB(db, "klient")
+	m, err := metrics.NewWithDB(db, "klient")
 	if err != nil {
 		return nil, err
 	}
+
+	// consume kd events
+	go metrics.StartCron(endpointkloud.DefaultClient, logging.NewCustom("klient-cron", conf.Debug))
+	// consume klient events
+	go metrics.StartCronWithMetrics(endpointkloud.DefaultClient, logging.NewCustom("klient-cron", conf.Debug), m)
 
 	up := uploader.New(&uploader.Options{
 		KeygenURL: konfig.Konfig.Endpoints.Kloud().Public.String(),
@@ -378,7 +385,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		},
 		presenceEvery: onceevery.New(1 * time.Hour),
 		kloud:         kloud,
-		metrics:       metrics.Datadog,
+		metrics:       m.Datadog,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
