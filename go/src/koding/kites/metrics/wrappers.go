@@ -94,11 +94,8 @@ func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, tagsFn func(stri
 			tags = AppendTag(tags, "err_message", msg)
 		}
 
-		go func() {
-			dd.Count(metricName+"_call_count", 1, tags, 1)
-			dd.Timing(metricName+"_timing", dur, tags, 1)
-		}()
-
+		dd.Count(metricName+"_call_count", 1, tags, 1)
+		dd.Timing(metricName+"_timing", dur, tags, 1)
 		return err
 	}
 }

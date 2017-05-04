@@ -1,7 +1,11 @@
 // +build darwin,linux
 package app
 
-import "github.com/koding/kite"
+import (
+	"koding/kites/metrics"
+
+	"github.com/koding/kite"
+)
 
 func (k *Klient) addRemoteHandlers() {
 	// Remote handles interaction specific to remote Klient machines.
@@ -30,6 +34,7 @@ func (k *Klient) initRemote() {
 }
 
 func (k *Klient) handleRemoteFunc(method string, fn kite.HandlerFunc) {
+	fn = metrics.WrapKiteHandler(k.metrics, method, fn)
 	k.kite.HandleFunc(method, func(r *kite.Request) (interface{}, error) {
 		resp, err := fn(r)
 		if err != nil {
