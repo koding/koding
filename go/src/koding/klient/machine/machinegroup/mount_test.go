@@ -56,7 +56,7 @@ func TestHeadMount(t *testing.T) {
 	}
 
 	// Compare indexes.
-	idx, err := index.NewIndexFiles(m.RemotePath)
+	idx, err := index.NewIndexFiles(m.RemotePath, nil)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
