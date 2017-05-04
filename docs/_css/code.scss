@@ -1,0 +1,64 @@
+.codeWrapper {
+  padding: 0 10px;
+  overflow: hidden;
+  .codeInnerWrapper {
+    position: relative;
+    display: flex;
+    max-width: 530px;
+    border: 1px solid #DCDCDC;
+    border-radius: 6px;
+    background-color: #FFFFFF;
+    color: #727272;
+    flex-direction: row;
+    margin: 0 auto 40px;
+    font-family: Courier;
+    font-size: 16px;
+    line-height: 24px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      display: block;
+      width: 0;
+      bottom: -14px;
+      margin: 0 auto;
+      left: 0;
+      right: 0;
+      border-width: 14px 14px 0;
+      border-style: solid;
+      border-color: #DCDCDC transparent;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      display: block;
+      width: 0;
+      bottom: -13px;
+      margin: 0 auto;
+      left: 0;
+      right: 0;
+      border-width: 13px 13px 0;
+      border-style: solid;
+      border-color: #fff transparent;
+    }
+
+    .codeLineNumbers {
+      padding: 13px;
+      max-width: 32px;
+      @include border-box;
+      background-color: rgba(152, 152, 152, 0.1);
+      opacity: 0.51;
+    }
+
+    .codeSource {
+      flex-grow: 1;
+      padding: 13px 20px;
+      white-space: pre;
+      overflow: hidden;
+      @media (max-width: 767px) {
+        overflow-x: scroll;
+      }
+    }
+  }
+}

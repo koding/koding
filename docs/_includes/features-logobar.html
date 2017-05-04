@@ -1,0 +1,23 @@
+<div class="Homepage--container">
+  <div class='Homepage-LogoBar features'>
+    {% assign logos = include.logos | split: "||" %}
+    <div class="Homepage-LogoBar--content">
+      {% if include.title %}
+      <h3>{{ include.title }}</h3>
+      {% endif %}
+      {% if include.paragraph %}
+      <p>{{ include.paragraph }}</p>
+      {% endif %}
+    </div>
+    <div class='Homepage-LogoBar--logos'>
+      {% for service in site.data.services %}
+      {% assign src = service.image | prepend: include.path | prepend: site.url %}
+      <img
+              src="{{ src }}"
+              {% if service.width %}width="{{ service.width }}px" {% endif %}
+              {% if service.height %}height="{{ service.height }}px" {% endif %}
+              alt="{{ service.name }}"/>
+      {% endfor %}
+    </div>
+  </div>
+</div>
