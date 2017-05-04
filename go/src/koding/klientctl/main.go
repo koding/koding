@@ -1040,7 +1040,10 @@ func generateTagsForCLI(full string) []string {
 		tags = metrics.AppendTag(tags, "teamName", t.Name)
 	}
 
-	// TODO: add whoami
+	if info := authendpoint.Used(); info != nil && info.Username != "" {
+		tags = metrics.AppendTag(tags, "username", info.Username)
+	}
+
 	tags = metrics.AppendTag(tags, "version", config.VersionNum())
 
 	// TODO: add guest OS info
