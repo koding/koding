@@ -28,13 +28,6 @@ func NewBoltQueue(path string) (*BoltQueue, error) {
 		return nil, err
 	}
 
-	if err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(bucket)
-		return err
-	}); err != nil {
-		return nil, err
-	}
-
 	return NewBoltQueueWithDB(db)
 }
 
@@ -98,7 +91,6 @@ func (b *BoltQueue) ConsumeN(n int, f OperatorFunc) (int, error) {
 	res := make([][]byte, 0, cap)
 	err := b.db.Update(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bucket).Cursor()
-
 		for k, v := c.First(); k != nil && n != 0; k, v = c.Next() {
 			res = append(res, v)
 			// clean up after ourselves.
