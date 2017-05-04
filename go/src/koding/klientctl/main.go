@@ -26,6 +26,7 @@ import (
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
+	authendpoint "koding/klientctl/endpoint/auth"
 	endpointconfig "koding/klientctl/endpoint/config"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/team"
