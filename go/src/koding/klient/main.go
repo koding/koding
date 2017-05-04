@@ -14,12 +14,16 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/koding/logging"
+
 	"koding/kites/config"
 	"koding/kites/config/configstore"
+	"koding/kites/metrics"
 	"koding/klient/app"
 	konfig "koding/klient/config"
 	"koding/klient/klientsvc"
 	"koding/klient/registration"
+	endpointkloud "koding/klientctl/endpoint/kloud"
 )
 
 // TODO: workaround for #10057
@@ -168,6 +172,7 @@ func realMain() int {
 	}
 
 	defer a.Close()
+	go metrics.StartCron(endpointkloud.DefaultClient, logging.NewCustom("klient-cron", conf.Debug))
 	a.Run()
 
 	return 0
