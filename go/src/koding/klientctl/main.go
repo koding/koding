@@ -18,12 +18,17 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 
+	"koding/kites/kloud/utils/object"
+	"koding/kites/metrics"
 	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
+	endpointconfig "koding/klientctl/endpoint/config"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/team"
 	"koding/klientctl/util"
 
 	"github.com/codegangsta/cli"
@@ -947,29 +952,14 @@ func run(args []string) {
 		find(app.Commands, "daemon", "restart"),
 	)
 
-	app.Commands = wrapActions(app.Commands)
+	m, err := metrics.New("kd")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "metrics wont be collected: ", err)
+	}
+	defer m.Close()
+
+	app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, generateTagsForCLI)
 	app.Run(args)
-}
-
-func wrapActions(commands []cli.Command) []cli.Command {
-	for i, command := range commands {
-		if command.Action != nil {
-			commands[i].Action = createActionFunc(command.Action.(cli.ActionFunc))
-		}
-		if len(command.Subcommands) > 0 {
-			commands[i].Subcommands = wrapActions(command.Subcommands)
-		}
-	}
-	return commands
-}
-
-func createActionFunc(action cli.ActionFunc) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		// do things before for c.Command.FullName()
-		err := action(c)
-		// do things after for the command.
-		return err
-	}
 }
 
 func find(cmds cli.Commands, names ...string) cli.Command {
@@ -1013,4 +1003,53 @@ func requiresDaemon(args []string) bool {
 	default:
 		return false
 	}
+}
+
+func generateTagsForCLI(full string) []string {
+	tags := make([]string, 0)
+
+	// add commands
+	names := strings.Split(full, " ")
+	tags = metrics.AppendTag(tags, "commandName", full)
+	tags = metrics.AppendTag(tags, "rootCommandName", names[0])
+	for _, n := range names[1:] {
+		tags = metrics.AppendTag(tags, "subCommandName", n)
+	}
+
+	// add current config
+	configs, err := endpointconfig.Used()
+	if err == nil {
+		var ignoredFields = []string{
+			"kiteKey",
+			"kiteKeyFile",
+			"environment",
+			"tunnelID",
+		}
+		obj := ob.Build(configs, ignoredFields...)
+		for _, key := range obj.Keys() {
+			val := obj[key]
+			if val == nil || fmt.Sprintf("%v", val) == "" {
+				continue
+			}
+			tags = metrics.AppendTag(tags, key, val)
+		}
+	}
+
+	// add current team info
+	if t := team.Used(); t != nil && t.Valid() == nil {
+		tags = metrics.AppendTag(tags, "teamName", t.Name)
+	}
+
+	// TODO: add whoami
+
+	// TODO: add guest OS info
+
+	return tags
+}
+
+var ob = &object.Builder{
+	Tag:           "json",
+	Sep:           "_",
+	Recursive:     true,
+	FlatStringers: true,
 }
