@@ -7,19 +7,6 @@ import (
 	"strings"
 )
 
-/*
-// DefaultSkipper contains a default set of non-synced file rules.
-var DefaultSkipper Skipper = MultiSkipper{
-	OsSkip(DirectorySkip(".Trash"), "darwin"),      // OSX trash directory.
-	OsSkip(DirectorySkip(".Trashes"), "darwin"),    // OSX trash directory.
-	PathSuffixSkip(".git/index.lock"),              // git index lock file.
-	PathSuffixSkip(".git/refs/stash.lock"),         // git stash lock file.
-	PathSuffixSkip(".git/HEAD.lock"),               // git HEAD lock.
-	PathSuffixSkip(".git/ORIG_HEAD.lock"),          // git ORIG_HEAD lock.
-	NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`), // git branch lock.
-	NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`), // git stash ref. lock.
-}
-*/
 // SkipPath indicates that provided filter does not want provided path to pass.
 var SkipPath = errors.New("skip this path")
 
