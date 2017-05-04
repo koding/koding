@@ -111,15 +111,15 @@ func (rs *RegexSkip) Check(path string) error {
 // WithError implements Filter interface. It replaces returned non-nil wrapped
 // skipper error with provided one.
 type WithError struct {
-	f   Filter
-	err error
+	f      Filter
+	errmsg string
 }
 
 // NewWithError creates a new WithError object.
 func NewWithError(f Filter, errmsg string) *WithError {
 	return &WithError{
-		f:   f,
-		err: errors.New(errmsg),
+		f:      f,
+		errmsg: errmsg,
 	}
 }
 
@@ -127,7 +127,7 @@ func NewWithError(f Filter, errmsg string) *WithError {
 // is non-nil.
 func (we *WithError) Check(path string) error {
 	if err := we.f.Check(path); err != nil {
-		return we.err
+		return errors.New(we.errmsg + " (path: " + path + ")")
 	}
 
 	return nil

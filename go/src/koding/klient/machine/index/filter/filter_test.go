@@ -77,8 +77,12 @@ func TestFilter(t *testing.T) {
 }
 
 func TestWithError(t *testing.T) {
-	const errmsg = "test error"
-	if e := filter.NewWithError(filter.DirectorySkip(".Trash"), errmsg).Check(".Trash"); e.Error() != errmsg {
-		t.Fatalf("want err = %s; got %s", errmsg, e)
+	const (
+		errmsg  = "test error"
+		fullmsg = errmsg + " (path: .Trash)"
+	)
+
+	if e := filter.NewWithError(filter.DirectorySkip(".Trash"), errmsg).Check(".Trash"); e.Error() != fullmsg {
+		t.Fatalf("want err.Error() = %s; got %s", fullmsg, e)
 	}
 }

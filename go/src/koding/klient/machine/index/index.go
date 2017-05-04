@@ -119,8 +119,8 @@ func (idx *Index) Tree() *node.Tree {
 }
 
 // Merge calls MergeBranch on all nodes pointed by root path.
-func (idx *Index) Merge(root string) ChangeSlice {
-	return idx.MergeBranch(root, "")
+func (idx *Index) Merge(root string, f filter.Filter) (ChangeSlice, error) {
+	return idx.MergeBranch(root, "", f)
 }
 
 // MergeBranch rereads the given file tree rooted at root and merges its
@@ -142,7 +142,7 @@ func (idx *Index) Merge(root string) ChangeSlice {
 //
 // All detected changes will be stored in returned Change slice.
 // If branch is empty, the comparison is made against root of the index.
-func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSlice) {
+func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSlice, err error) {
 	rootBranch := filepath.Join(root, branch)
 	visited := map[string]struct{}{
 		rootBranch: {}, // Skip root file.
@@ -235,12 +235,12 @@ func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSl
 	}
 
 	if err := filepath.Walk(rootBranch, walkFn); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Put sortest paths to the end.
 	sort.Sort(sort.Reverse(cs))
-	return cs
+	return cs, nil
 }
 
 // Sync modifies index according to provided change path. It checks the file
