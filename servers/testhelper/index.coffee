@@ -21,9 +21,10 @@ checkBongoConnectivity = (callback) ->
   bongo.once 'dbClientReady', ->
     callback()
 
+rack = hat.rack()
 
 # returns 20 characters by default
-generateRandomString = (length = 20) -> hat().slice(32 - length)
+generateRandomString = (length = 20) -> rack()[(32 - length)...]
 
 
 generateRandomEmail = (domain = 'koding.com') ->

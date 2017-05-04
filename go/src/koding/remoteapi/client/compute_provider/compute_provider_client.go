@@ -23,226 +23,234 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIComputeProviderCreate creates a JMachine for requested provider with the provided options
+ComputeProviderCreate creates a JMachine for requested provider with the provided options
 */
-func (a *Client) PostRemoteAPIComputeProviderCreate(params *PostRemoteAPIComputeProviderCreateParams) (*PostRemoteAPIComputeProviderCreateOK, error) {
+func (a *Client) ComputeProviderCreate(params *ComputeProviderCreateParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderCreateParams()
+		params = NewComputeProviderCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderCreate",
+		ID:                 "ComputeProvider.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderCreateReader{formats: a.formats},
+		Reader:             &ComputeProviderCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderCreateOK), nil
+	return result.(*ComputeProviderCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIComputeProviderCreateGroupStack Method ComputeProvider.createGroupStack
+ComputeProviderCreateGroupStack Method ComputeProvider.createGroupStack
 */
-func (a *Client) PostRemoteAPIComputeProviderCreateGroupStack(params *PostRemoteAPIComputeProviderCreateGroupStackParams) (*PostRemoteAPIComputeProviderCreateGroupStackOK, error) {
+func (a *Client) ComputeProviderCreateGroupStack(params *ComputeProviderCreateGroupStackParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderCreateGroupStackOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderCreateGroupStackParams()
+		params = NewComputeProviderCreateGroupStackParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderCreateGroupStack",
+		ID:                 "ComputeProvider.createGroupStack",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.createGroupStack",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderCreateGroupStackReader{formats: a.formats},
+		Reader:             &ComputeProviderCreateGroupStackReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderCreateGroupStackOK), nil
+	return result.(*ComputeProviderCreateGroupStackOK), nil
 
 }
 
 /*
-PostRemoteAPIComputeProviderFetchAvailable post remote API compute provider fetch available API
+ComputeProviderFetchAvailable compute provider fetch available API
 */
-func (a *Client) PostRemoteAPIComputeProviderFetchAvailable(params *PostRemoteAPIComputeProviderFetchAvailableParams) (*PostRemoteAPIComputeProviderFetchAvailableOK, error) {
+func (a *Client) ComputeProviderFetchAvailable(params *ComputeProviderFetchAvailableParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderFetchAvailableOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderFetchAvailableParams()
+		params = NewComputeProviderFetchAvailableParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderFetchAvailable",
+		ID:                 "ComputeProvider.fetchAvailable",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.fetchAvailable",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderFetchAvailableReader{formats: a.formats},
+		Reader:             &ComputeProviderFetchAvailableReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderFetchAvailableOK), nil
+	return result.(*ComputeProviderFetchAvailableOK), nil
 
 }
 
 /*
-PostRemoteAPIComputeProviderFetchProviders post remote API compute provider fetch providers API
+ComputeProviderFetchProviders compute provider fetch providers API
 */
-func (a *Client) PostRemoteAPIComputeProviderFetchProviders(params *PostRemoteAPIComputeProviderFetchProvidersParams) (*PostRemoteAPIComputeProviderFetchProvidersOK, error) {
+func (a *Client) ComputeProviderFetchProviders(params *ComputeProviderFetchProvidersParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderFetchProvidersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderFetchProvidersParams()
+		params = NewComputeProviderFetchProvidersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderFetchProviders",
+		ID:                 "ComputeProvider.fetchProviders",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.fetchProviders",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderFetchProvidersReader{formats: a.formats},
+		Reader:             &ComputeProviderFetchProvidersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderFetchProvidersOK), nil
+	return result.(*ComputeProviderFetchProvidersOK), nil
 
 }
 
 /*
-PostRemoteAPIComputeProviderPing pings to requested provider implementation
+ComputeProviderPing pings to requested provider implementation
 */
-func (a *Client) PostRemoteAPIComputeProviderPing(params *PostRemoteAPIComputeProviderPingParams) (*PostRemoteAPIComputeProviderPingOK, error) {
+func (a *Client) ComputeProviderPing(params *ComputeProviderPingParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderPingOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderPingParams()
+		params = NewComputeProviderPingParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderPing",
+		ID:                 "ComputeProvider.ping",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.ping",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderPingReader{formats: a.formats},
+		Reader:             &ComputeProviderPingReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderPingOK), nil
+	return result.(*ComputeProviderPingOK), nil
 
 }
 
 /*
-PostRemoteAPIComputeProviderRemove post remote API compute provider remove API
+ComputeProviderRemove compute provider remove API
 */
-func (a *Client) PostRemoteAPIComputeProviderRemove(params *PostRemoteAPIComputeProviderRemoveParams) (*PostRemoteAPIComputeProviderRemoveOK, error) {
+func (a *Client) ComputeProviderRemove(params *ComputeProviderRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderRemoveParams()
+		params = NewComputeProviderRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderRemove",
+		ID:                 "ComputeProvider.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.remove",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderRemoveReader{formats: a.formats},
+		Reader:             &ComputeProviderRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderRemoveOK), nil
+	return result.(*ComputeProviderRemoveOK), nil
 
 }
 
 /*
-PostRemoteAPIComputeProviderUpdate post remote API compute provider update API
+ComputeProviderUpdate compute provider update API
 */
-func (a *Client) PostRemoteAPIComputeProviderUpdate(params *PostRemoteAPIComputeProviderUpdateParams) (*PostRemoteAPIComputeProviderUpdateOK, error) {
+func (a *Client) ComputeProviderUpdate(params *ComputeProviderUpdateParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderUpdateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderUpdateParams()
+		params = NewComputeProviderUpdateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderUpdate",
+		ID:                 "ComputeProvider.update",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.update",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderUpdateReader{formats: a.formats},
+		Reader:             &ComputeProviderUpdateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderUpdateOK), nil
+	return result.(*ComputeProviderUpdateOK), nil
 
 }
 
 /*
-PostRemoteAPIComputeProviderUpdateTeamCounters Method ComputeProvider.updateTeamCounters
+ComputeProviderUpdateTeamCounters Method ComputeProvider.updateTeamCounters
 */
-func (a *Client) PostRemoteAPIComputeProviderUpdateTeamCounters(params *PostRemoteAPIComputeProviderUpdateTeamCountersParams) (*PostRemoteAPIComputeProviderUpdateTeamCountersOK, error) {
+func (a *Client) ComputeProviderUpdateTeamCounters(params *ComputeProviderUpdateTeamCountersParams, authInfo runtime.ClientAuthInfoWriter) (*ComputeProviderUpdateTeamCountersOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIComputeProviderUpdateTeamCountersParams()
+		params = NewComputeProviderUpdateTeamCountersParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIComputeProviderUpdateTeamCounters",
+		ID:                 "ComputeProvider.updateTeamCounters",
 		Method:             "POST",
 		PathPattern:        "/remote.api/ComputeProvider.updateTeamCounters",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIComputeProviderUpdateTeamCountersReader{formats: a.formats},
+		Reader:             &ComputeProviderUpdateTeamCountersReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIComputeProviderUpdateTeamCountersOK), nil
+	return result.(*ComputeProviderUpdateTeamCountersOK), nil
 
 }
 

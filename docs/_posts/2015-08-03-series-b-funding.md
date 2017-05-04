@@ -29,5 +29,5 @@ Edit: [VentureBeat covered this news as well][9]!
 [5]: http://www.rtp.vc/
 [6]: https://www.linkedin.com/pub/ari-zilka/0/97/857
 [7]: https://koding.com/Teams
-[8]: https://jobs.lever.co/koding
+[8]: https://koding.breezy.hr
 [9]: http://venturebeat.com/2015/08/03/koding-funding/

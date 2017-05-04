@@ -162,13 +162,8 @@ module.exports = class NFinderController extends KDViewController
     return kd.warn 'Machine uid and new path required!'  unless uid or path
 
     machineRoots = (@appStorage.getValue 'machineRoots') or {}
-
-    if machineRoots[uid] is path
-      return callback?()
-
     machineRoots[uid] = path
 
-    @unmountMachine uid
     callback?()
 
     if @getOptions().useStorage
@@ -178,6 +173,10 @@ module.exports = class NFinderController extends KDViewController
 
     computeController.fetchMachine { uid }, (err, machine) =>
       return showError err  if err
+
+      if machineItem = @getMachineNode uid
+        @unmountMachine uid  if machineItem.data.path isnt "[#{uid}]#{path}"
+
       @mountMachine machine
 
 

@@ -72,7 +72,7 @@ func (c *Cached) HeadCachedIndex(root string) (count int, diskSize int64, err er
 		return 0, 0, err
 	}
 
-	return idx.Count(-1), idx.DiskSize(-1), nil
+	return idx.Tree().Count(), idx.Tree().DiskSize(), nil
 }
 
 // getCachedIndex looks up for index stored in one of temporary directories.

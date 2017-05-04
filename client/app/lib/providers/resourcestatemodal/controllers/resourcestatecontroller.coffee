@@ -97,7 +97,7 @@ module.exports = class ResourceStateController extends kd.Controller
       return
 
     initial = reason is 'BuildCompleted'
-    @emit 'IDEBecameReady', machine, initial
+    @emit 'OperationCompleted', machine, initial
     @emit 'ClosingRequested'  unless reason
 
     return machine

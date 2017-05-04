@@ -12,6 +12,7 @@ showError            = require 'app/util/showError'
 showNotification     = require 'app/util/showNotification'
 isLoggedIn           = require 'app/util/isLoggedIn'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
+canCreateStacks      = require 'app/util/canCreateStacks'
 actions              = require 'app/flux/environment/actions'
 
 remote               = require '../remote'
@@ -310,10 +311,10 @@ module.exports = class ComputeController extends KDController
           content  : 'A new stack generated and ready to build!'
           type     : 'success'
           duration : 3000
+        callback null, newStack
 
       @checkGroupStacks newStack.stack.getId()
 
-      callback null
 
     mainController.ready =>
 
@@ -545,7 +546,7 @@ module.exports = class ComputeController extends KDController
 
     .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-    .catch (err) ->
+    .catch (err) =>
 
       stack.machines.forEach (machine) =>
         @storage.machines.push machine
@@ -711,7 +712,7 @@ module.exports = class ComputeController extends KDController
     delete kontrol.kites?.klient?[machine.uid]
 
 
-  checkStackRevisions: (stackTemplateId) ->
+  checkStackRevisions: (stackTemplateId, createIfNotFound = yes) ->
 
     debug 'checkStackRevisions', stackTemplateId
     found = no
@@ -745,9 +746,10 @@ module.exports = class ComputeController extends KDController
         debug "revision info for stack #{stack.title}", status
         if not _revisionStatus or _revisionStatus.status isnt status
           debug 'checkStackRevisions stack changed!', stack
+          @storage.stacks.push stack
           @emit 'StackRevisionChecked', stack
 
-    if stackTemplateId and not found
+    if stackTemplateId and not found and createIfNotFound
       @createDefaultStack()
 
 
@@ -775,6 +777,7 @@ module.exports = class ComputeController extends KDController
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
         @removeRevisionFromUnSharedStackTemplate _id, stackTemplate
+        @storage.templates.pop stackTemplate  unless stackTemplate.isMine()
         new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
@@ -861,6 +864,7 @@ module.exports = class ComputeController extends KDController
     existents = 0
     for stackTemplateId in stackTemplates
       existentStacks = @storage.stacks.query 'baseStackId', stackTemplateId
+      existentStacks = existentStacks.filter (stack) -> not stack.getOldOwner()
       existents += existentStacks.length
 
     debug 'checkGroupStackRevisions existents', existents, stackTemplates.length
@@ -980,10 +984,7 @@ module.exports = class ComputeController extends KDController
 
   fetchStackTemplate: (id, callback = kd.noop) ->
 
-    @storage.templates.fetch id
-      .then (template) ->
-        callback null, template
-      .catch callback
+    @storage.templates.fetch(id).nodeify callback
 
 
   fetchStackTemplates: (callback) ->
@@ -1005,22 +1006,31 @@ module.exports = class ComputeController extends KDController
 
   showBuildLogs: (machine, tailOffset) ->
 
-    # Path of cloud-init-output log
-    path = '/var/log/cloud-init-output.log'
-    file = FSHelper.createFileInstance { path, machine }
+    showLogs = -> kd.utils.wait 1000, ->
 
-    { appManager } = kd.singletons
-    ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
-    return  unless ideApp
+      # Path of cloud-init-output log
+      path = '/var/log/cloud-init-output.log'
+      file = FSHelper.createFileInstance { path, machine }
 
-    ideApp.tailFile {
-      file
-      description : '
-        Your Koding Stack has successfully been initialized. The log here
-        describes each executed step of the Stack creation process.
-      '
-      tailOffset
-    }
+      { appManager } = kd.singletons
+      ideApp = appManager.getInstance 'IDE', 'mountedMachineUId', machine.uid
+      return  unless ideApp
+
+      ideApp.tailFile {
+        file
+        description : '
+          Your Koding Stack has successfully been initialized. The log here
+          describes each executed step of the Stack creation process.
+        '
+        tailOffset
+      }
+
+    if Cookies.get 'use-nse'
+      { router } = kd.singletons
+      router.once 'RouteInfoHandled', showLogs
+      router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+    else
+      do showLogs
 
 
   ###*
@@ -1062,43 +1072,33 @@ module.exports = class ComputeController extends KDController
     router.handleRoute route
 
 
-  makeTeamDefault: (stackTemplate, revive) ->
+  makeTeamDefault: (options, callback = kd.noop) ->
 
-    { credentials, config: { requiredProviders } } = stackTemplate
+    { template, force = no } = options
+    { reactor } = kd.singletons
 
-    { groupsController, reactor } = kd.singletons
+    @ui.createShareModal ({ modal, shareStack, shareCredential }) ->
 
-    createShareModal (needShare, modal) =>
+      unless shareStack
+        return callback { message: 'User cancelled' }
 
-      groupsController.setDefaultTemplate stackTemplate, (err) =>
+      remote.api.ComputeProvider.setGroupStack {
+        templateId: template._id
+        shareCredential
+      }, (err) ->
 
-        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+        callback err
+
+        return  if showError err
+
+        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate: template }
+        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: template._id }
 
         Tracker.track Tracker.STACKS_MAKE_DEFAULT
 
-        if needShare
-        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
-        else modal.destroy()
+        modal?.destroy()
 
-
-  shareCredentials: (credentials, requiredProviders, callback) ->
-
-    selectedProvider = null
-    for provider in requiredProviders when provider in PROVIDERS
-      selectedProvider = provider
-    selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
-
-    creds = Object.keys credentials
-    { groupsController } = kd.singletons
-
-    if creds.length > 0 and credential = credentials["#{selectedProvider}"]?.first
-      remote.api.JCredential.one credential, (err, credential) ->
-        { slug } = groupsController.getCurrentGroup()
-        credential.shareWith { target: slug, accessLevel: 'write' }, (err) ->
-          showError 'Failed to share credential'  if err
-          callback()
-    else showError 'Failed to share credential'
+    , force
 
 
   removeClonedFromAttr: (stackTemplate, callback = kd.noop) ->
@@ -1167,6 +1167,8 @@ module.exports = class ComputeController extends KDController
 
       debug 'reinitStack question answered', status
 
+      return  if status.cancelled
+
       unless status.confirmed
         callback new Error 'Stack is not reinitialized'
         return
@@ -1205,7 +1207,7 @@ module.exports = class ComputeController extends KDController
           }
           new kd.NotificationView { title : 'Stack reinitialized' }
 
-          if template and stackProvided and template._id not in currentGroup.stackTemplates
+          if template and stackProvided and template._id not in (currentGroup.stackTemplates ? [])
             debug 'reinitStack will generate new stack', { template }
             @createDefaultStack { force: no, template }, callback
           else
@@ -1298,7 +1300,7 @@ module.exports = class ComputeController extends KDController
 
 
   # FIXMERESET ~ GG
-  handleChangesOverAPI: (change) -> @reset yes, =>
+  handleChangesOverAPI: (change) ->
 
     # TODO implement better next to flows here ~ GG
 
@@ -1306,7 +1308,7 @@ module.exports = class ComputeController extends KDController
       stack = @findStackFromStackId change.payload.stackId
       @reloadIDE stack.machines.first
 
-    console.log '[Kloud:API]', change
+    debug '[Kloud:API]', change
 
 
   # Follow Payment changes
@@ -1319,3 +1321,22 @@ module.exports = class ComputeController extends KDController
     # /cc @cihangir: not sure if this is the right way to bind the event.
     groupsController.on 'payment_status_changed', =>
       @storage.initialize()
+
+
+  cloneTemplate: (stackTemplate) ->
+
+    return  unless stackTemplate
+
+    unless canCreateStacks()
+      return showError 'You are not allowed to create/edit stacks!'
+
+    stackTemplate.clone (err, clonedTemplate) ->
+      return  if showError err
+
+      if clonedTemplate
+        { reactor, router } = kd.singletons
+        Tracker.track Tracker.STACKS_CLONED_TEMPLATE
+        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        router.handleRoute "/Stack-Editor/#{clonedTemplate.getId()}"
+      else
+        showError 'Failed to clone stack'

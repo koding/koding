@@ -1,9 +1,11 @@
+// +build !windows
+
 package terminal
 
 import (
 	"bytes"
 	"crypto/rand"
-	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -12,23 +14,70 @@ import (
 	"runtime"
 	"strings"
 
+	"koding/kites/config"
+	kos "koding/klient/os"
+
 	"github.com/koding/passwd"
 )
 
-const (
+var (
 	sessionPrefix      = "koding"
 	defaultShell       = "/bin/bash"
-	randomStringLength = 24 // 144 bit base64 encoded
+	randomStringLength = 24 // 144 bit hex encoded
+	screenEnv          []string
 )
 
 var defaultScreenPath = "/usr/bin/screen"
 
 func init() {
+	Reset()
+}
+
+// Reset is used to reconfigure terminal package when state of its dependencies
+// changed in the runtime, e.g. embedded screen was installed.
+func Reset() {
 	const embeddedScreen = "/opt/kite/klient/embedded/bin/screen"
+
+	term := ""
 
 	if fi, err := os.Stat(embeddedScreen); err == nil && !fi.IsDir() {
 		defaultScreenPath = embeddedScreen
+		term = "screen-256color"
 	}
+
+	SetTerm(term)
+}
+
+// SetTerm changes the TERM environment variable used with
+// screen processes.
+//
+// The function cannot be called after Terminal starts
+// accepting kite requets.
+func SetTerm(term string) {
+	if term == "" {
+		term = guessTerm()
+	}
+
+	screenEnv = (kos.Environ{
+		"TERM": term,
+		"HOME": config.CurrentUser.HomeDir,
+	}).Encode(nil)
+}
+
+func guessTerm() string {
+	terms := [][2]string{
+		{"xterm-256color", "/usr/share/terminfo/x/xterm-256color"},
+		{"xterm-256color", "/usr/share/terminfo/78/xterm-256color"},
+		{"xterm-color", "/usr/share/terminfo/x/xterm-color"},
+	}
+
+	for _, term := range terms {
+		if _, err := os.Stat(term[1]); err == nil {
+			return term[0]
+		}
+	}
+
+	return "xterm"
 }
 
 type Command struct {
@@ -82,7 +131,7 @@ func getDefaultShell(username string) string {
 
 // newCmd returns a new command instance that is used to start the terminal.
 // The command line is created differently based on the incoming mode.
-func newCommand(mode, session, username string) (*Command, error) {
+func (t *terminal) newCommand(mode, session, username string) (*Command, error) {
 	// let's assume by default its Screen
 	name := defaultScreenPath
 	defaultShell := getDefaultShell(username)
@@ -97,7 +146,7 @@ func newCommand(mode, session, username string) (*Command, error) {
 			return nil, errors.New("session is needed for 'shared' or 'resume' mode")
 		}
 
-		if !sessionExists(session, username) {
+		if !t.sessionExists(session, username) {
 			return nil, ErrNoSession
 		}
 
@@ -139,20 +188,21 @@ func newCommand(mode, session, username string) (*Command, error) {
 // username.  The sessions are in the form of ["k7sdjv12344", "askIj12sas12",
 // ...]
 // TODO: socket directory is different under darwin, it will not work probably
-func screenSessions(username string) []string {
+func (t *terminal) screenSessions(username string) []string {
 	// Do not include dead sessions in our result
-	exec.Command(defaultScreenPath, "-wipe").Run()
+	t.run(defaultScreenPath, "-wipe")
 
-	// We need to use ls here, because /var/run/screen mount is only
+	// We need to use ls here, because /tmp/uscreens mount is only
 	// visible from inside of container. Errors are ignored.
-	out, err := exec.Command("ls", "/var/run/screen/S-"+username).Output()
+	stdout, stderr, err := t.run("ls", "/tmp/uscreens/S-"+username)
 	if err != nil {
-		log.Printf("terminal: listing sessions failed: %s", err)
+		t.Log.Error("terminal: listing sessions failed: %s:\n%s\n", err, stderr)
+		return nil
 	}
 
-	shellOut := string(bytes.TrimSpace(out))
+	shellOut := string(bytes.TrimSpace(stdout))
 	if shellOut == "" {
-		return []string{}
+		return nil
 	}
 
 	names := strings.Split(shellOut, "\n")
@@ -169,8 +219,8 @@ func screenSessions(username string) []string {
 
 // screenExists checks whether the given session exists in the running list of
 // screen sessions.
-func sessionExists(session, username string) bool {
-	for _, s := range screenSessions(username) {
+func (t *terminal) sessionExists(session, username string) bool {
+	for _, s := range t.screenSessions(username) {
 		if s == session {
 			return true
 		}
@@ -180,9 +230,9 @@ func sessionExists(session, username string) bool {
 }
 
 // killSessions kills all screen sessions for given username
-func killSessions(username string) error {
-	for _, session := range screenSessions(username) {
-		if err := killSession(session); err != nil {
+func (t *terminal) killSessions(username string) error {
+	for _, session := range t.screenSessions(username) {
+		if err := t.killSession(session); err != nil {
 			return err
 		}
 	}
@@ -191,30 +241,47 @@ func killSessions(username string) error {
 }
 
 // killSession kills the given SessionID
-func killSession(session string) error {
-	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill").Output()
+func (t *terminal) killSession(session string) error {
+	stdout, stderr, err := t.run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill")
 	if err != nil {
-		return commandError("screen kill failed", err, out)
+		return commandError("screen kill failed", err, stdout, stderr)
 	}
 
 	return nil
 }
 
-func renameSession(oldName, newName string) error {
-	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", sessionPrefix+"."+newName).Output()
+func (t *terminal) renameSession(oldName, newName string) error {
+	stdout, stderr, err := t.run(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", sessionPrefix+"."+newName)
 	if err != nil {
-		return commandError("screen renaming failed", err, out)
+		return commandError("screen renaming failed", err, stdout, stderr)
 	}
 
 	return nil
 }
 
-func commandError(message string, err error, out []byte) error {
-	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
+func commandError(message string, err error, stdout, stderr []byte) error {
+	return fmt.Errorf("%s\n%s\n%s\n%s\n", message, err, stdout, stderr)
+}
+
+func (t *terminal) run(cmd string, args ...string) (stdout, stderr []byte, err error) {
+	var bufout, buferr bytes.Buffer
+
+	c := exec.Command(cmd, args...)
+	c.Stdout = &bufout
+	c.Stderr = &buferr
+	c.Env = screenEnv
+
+	t.Log.Debug("terminal: running: %v (%v)", c.Args, screenEnv)
+
+	if err := c.Run(); err != nil {
+		return nil, buferr.Bytes(), err
+	}
+
+	return bufout.Bytes(), nil, nil
 }
 
 func randomString() string {
-	r := make([]byte, randomStringLength*6/8)
-	rand.Read(r)
-	return base64.URLEncoding.EncodeToString(r)
+	p := make([]byte, randomStringLength/2+1)
+	rand.Read(p)
+	return hex.EncodeToString(p)[:randomStringLength]
 }

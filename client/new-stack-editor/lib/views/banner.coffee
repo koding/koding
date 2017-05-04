@@ -35,6 +35,18 @@ module.exports = class Banner extends JView
 
   setData: (data) ->
 
+    closable = data.closable ? yes
+
+    unless data._initial
+
+      if data.sticky is yes
+        closable = no
+        delete data.sticky
+        data.sticky = data
+
+      else if not data.sticky? and sticky = @isSticky()
+        data.sticky = sticky
+
     super data
 
     { action, autohide, _initial } = @getData()
@@ -58,11 +70,19 @@ module.exports = class Banner extends JView
       if autohide
         @_wait = kd.utils.wait autohide, @bound 'close'
 
+      if not closable
+      then @closeButton.hide()
+      else @closeButton.show()
+
     return data
 
 
   close: ->
     @emit Events.Banner.Close
+
+
+  isSticky: ->
+    @getData().sticky
 
 
   pistachio: ->

@@ -48,21 +48,12 @@ type Group struct {
 	// channels
 	DefaultChannels []string `bson:"defaultChannels,omitempty" json:"defaultChannels"`
 	Payment         Payment  `bson:"payment" json:"payment"`
-	Countly         Countly  `bson:"countly" json:"countly"`
 }
 
 // Payment is general container for payment info
 type Payment struct {
 	Subscription Subscription
 	Customer     Customer
-}
-
-// Countly is general container for Countly info
-type Countly struct {
-	APIKey string `bson:"apiKey" json:"apiKey"`
-	AppKey string `bson:"appKey" json:"appKey"`
-	AppID  string `bson:"appId" json:"appId"`
-	UserID string `bson:"userId" json:"userId"`
 }
 
 // Subscription holds customer-plan subscription related info
@@ -93,9 +84,4 @@ func (g *Group) IsSubActive(env string) bool {
 func IsSubActive(env string, subStatus SubStatus) bool {
 	const defaultEnv = "default"
 	return env == defaultEnv || subStatus.Active()
-}
-
-// HasCountly checks if group has countly data.
-func (g *Group) HasCountly() bool {
-	return g.Countly.APIKey != "" && g.Countly.AppKey != ""
 }

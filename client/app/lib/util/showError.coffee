@@ -3,7 +3,7 @@ sendDataDogEvent = require 'app/util/sendDataDogEvent'
 showNotification = require './showNotification'
 Encoder = require 'htmlencode'
 
-fn = (err) ->
+module.exports = showError = (err) ->
   return no  unless err
 
   if Array.isArray err
@@ -38,6 +38,3 @@ fn = (err) ->
     sendDataDogEvent 'ApplicationError', { prefix: 'app-error' }
 
   return yes
-
-
-module.exports = fn

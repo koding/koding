@@ -1,26 +1,41 @@
 package auth
 
 import (
+	"errors"
 	"sort"
 	"sync"
 
-	"koding/kites/config"
+	conf "koding/kites/config"
 	"koding/kites/kloud/stack"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
+	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
+
+	"github.com/koding/kite"
 )
 
+// DefaultClient is the default client used by Login, Use and Show.
 var DefaultClient = &Client{}
 
-type Session struct {
-	ClientID string `json:"clientID"`
-	Team     string `json:"team"`
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
 }
 
+// Session represents user session details required
+// for authentication with SocialAPI and remote.api
+// endpoints.
+type Session struct {
+	ClientID string `json:"clientID"` // authentication token
+	Team     string `json:"team"`     // authenticated scope
+}
+
+// Sessions stores session details for multiple teams.
 type Sessions map[string]*Session
 
+// Slice converts the map to a sorted slice.
 func (s Sessions) Slice() []*Session {
 	keys := make([]string, 0, len(s))
 
@@ -39,22 +54,33 @@ func (s Sessions) Slice() []*Session {
 	return slice
 }
 
-type LoginOptions struct {
-	Team     string
-	Token    string
-	Username string
-	Password string
-	Prefix   string
+// Info represents authentication details.
+type Info struct {
+	*Session
+
+	Username string `json:"username,omitempty"`
+	BaseURL  string `json:"baseurl,omitempty"`
 }
 
+// LoginOptions represents arguments for the Login method.
+type LoginOptions struct {
+	Team     string // team to authenticate to
+	Token    string // optional; use token-based authentication
+	Username string // username for password-based authentication
+	Password string // password for password-based authentication
+	Prefix   string // optional; prefix for interactive mode
+	Force    bool   // whether to force new session
+}
+
+// AskUserPass asks user for Username and Password in an interactive mode.
 func (opts *LoginOptions) AskUserPass() (err error) {
-	opts.Username, err = helper.Ask("%sUsername [%s]: ", opts.Prefix, config.CurrentUser.Username)
+	opts.Username, err = helper.Ask("%sUsername [%s]: ", opts.Prefix, conf.CurrentUser.Username)
 	if err != nil {
 		return err
 	}
 
 	if opts.Username == "" {
-		opts.Username = config.CurrentUser.Username
+		opts.Username = conf.CurrentUser.Username
 	}
 
 	for {
@@ -70,14 +96,26 @@ func (opts *LoginOptions) AskUserPass() (err error) {
 	return nil
 }
 
+// Client is responsible for authentication by communicating
+// with Kloud and Kontrol kites.
 type Client struct {
-	Kloud   *kloud.Client
-	Kontrol *kontrol.Client
+	Kloud   *kloud.Client   // optional; if nil, kloud.DefaultClient is used
+	Kontrol *kontrol.Client // optional; if nil, kontrol.DefaultClient is used
+	Team    *team.Client    // optional; if nil, team.DefaultClient is used
+	Konfig  *conf.Konfig    // optional; if nil, config.Konfig is used
 
 	once     sync.Once // for c.init()
 	sessions Sessions
 }
 
+// Login authenticates to Koding.
+//
+// If opts.Token is no empty, token-based authentication is used.
+//
+// If both opts.Username and opts.Password are not empty, password-based
+// authentication is used.
+//
+// Otherwise Login uses kite-based authentication.
 func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
 	c.init()
 
@@ -86,9 +124,9 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		Metadata:  true,
 	}
 
-	resp, _ := stack.PasswordLoginResponse{}, error(nil)
-
+	var resp stack.PasswordLoginResponse
 	var err error
+
 	// We ignore any cached session for the given login request,
 	// as it might be already invalid from a different client.
 	if opts.Token != "" {
@@ -108,6 +146,10 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		err = c.kloud().Call("auth.passwordLogin", req, &resp)
 	} else {
 		err = c.kloud().Call("auth.login", req, &resp.LoginResponse)
+	}
+
+	if e, ok := err.(*kite.Error); ok && e.Type == "kloudError" && e.CodeVal == "415" {
+		return nil, errors.New("invalid team name or user does not belong to the team")
 	}
 
 	if err != nil {
@@ -130,18 +172,41 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	return &resp, nil
 }
 
+// Sessions gives all the authenticated sessions.
 func (c *Client) Sessions() Sessions {
 	c.init()
 
 	return c.sessions
 }
 
+// Use caches new user session.
 func (c *Client) Use(s *Session) {
 	c.init()
 
 	c.sessions[s.Team] = s
 }
 
+// Used gives current authentication details.
+func (c *Client) Used() *Info {
+	session := c.Sessions()[c.team().Used().Name]
+	if session == nil {
+		session = &Session{}
+	}
+
+	if session.Team == "" {
+		session.Team = c.team().Used().Name
+	}
+
+	return &Info{
+		Session:  session,
+		Username: c.kloud().Username(),
+		BaseURL:  c.konfig().KodingPublic().String(),
+	}
+}
+
+// Close implements the io.Closer interface.
+//
+// It closes any resources used by the Client.
 func (c *Client) Close() (err error) {
 	if len(c.sessions) != 0 {
 		err = c.kloud().Cache().SetValue("auth.sessions", c.sessions)
@@ -160,9 +225,6 @@ func (c *Client) readCache() {
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
 	_ = c.kloud().Cache().GetValue("auth.sessions", &c.sessions)
-
-	// Flush cache on exit.
-	ctlcli.CloseOnExit(c)
 }
 
 func (c *Client) kloud() *kloud.Client {
@@ -179,5 +241,49 @@ func (c *Client) kontrol() *kontrol.Client {
 	return kontrol.DefaultClient
 }
 
-func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) { return DefaultClient.Login(opts) }
-func Use(s *Session)                                                 { DefaultClient.Use(s) }
+func (c *Client) team() *team.Client {
+	if c.Team != nil {
+		return c.Team
+	}
+	return team.DefaultClient
+}
+
+func (c *Client) konfig() *conf.Konfig {
+	if c.Konfig != nil {
+		return c.Konfig
+	}
+	return config.Konfig
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+// Login authenticates to Koding.
+//
+// If opts.Token is no empty, token-based authentication is used.
+//
+// If both opts.Username and opts.Password are not empty, password-based
+// authentication is used.
+//
+// Otherwise Login uses kite-based authentication.
+//
+// The function forwards call to the DefaultClient.
+func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
+	return DefaultClient.Login(opts)
+}
+
+// Use caches new user session.
+//
+// The function forwards call to the DefaultClient.
+func Use(s *Session) { DefaultClient.Use(s) }
+
+// Used gives current authentication details.
+//
+// The function forwards call to the DefaultClient.
+func Used() *Info { return DefaultClient.Used() }

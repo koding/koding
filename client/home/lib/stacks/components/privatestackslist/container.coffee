@@ -1,35 +1,32 @@
 kd              = require 'kd'
 React           = require 'app/react'
 EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
 View            = require './view'
-SidebarFlux = require 'app/flux/sidebar'
-
 
 module.exports = class PrivateStacksListContainer extends React.Component
 
-  getDataBindings: ->
-    return {
-      stacks: EnvironmentFlux.getters.privateStacks
-      templates: EnvironmentFlux.getters.inUsePrivateStackTemplates
-      sidebarStacks: SidebarFlux.getters.sidebarStacks
-    }
+  onAddToSidebar: ({ stack, template }) ->
+
+    { sidebar } = kd.singletons
+
+    if stack
+    then sidebar.makeVisible 'stack', stack.getId()
+    else sidebar.makeVisible 'draft', template.getId()
 
 
-  onAddToSidebar: (stackId) -> SidebarFlux.actions.makeVisible 'stack', stackId
+  onRemoveFromSidebar: ({ stack, template }) ->
 
+    { sidebar } = kd.singletons
 
-  onRemoveFromSidebar: (stackId) -> SidebarFlux.actions.makeHidden 'stack', stackId
+    if stack
+    then sidebar.makeHidden 'stack', stack.getId()
+    else sidebar.makeHidden 'draft', template.getId()
 
 
   render: ->
     <View
-      stacks={@state.stacks}
-      templates={@state.templates}
-      sidebarStacks={@state.sidebarStacks}
+      resources={@props.resources}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
     />
-
-PrivateStacksListContainer.include [KDReactorMixin]

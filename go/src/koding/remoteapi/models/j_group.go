@@ -30,6 +30,9 @@ type JGroup struct {
 	// config
 	Config interface{} `json:"config,omitempty"`
 
+	// countly
+	Countly interface{} `json:"countly,omitempty"`
+
 	// customize
 	Customize *JGroupCustomize `json:"customize,omitempty"`
 

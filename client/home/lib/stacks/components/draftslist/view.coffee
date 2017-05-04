@@ -1,3 +1,4 @@
+debug = require('debug')('dashboard:draftslist')
 kd = require 'kd'
 React = require 'app/react'
 
@@ -7,19 +8,13 @@ StackTemplateItem = require '../stacktemplateitem'
 
 module.exports = class DraftsListView extends React.Component
 
-  onAddToSidebar: (template) -> @props.onAddToSidebar template.get '_id'
-
-
-  onRemoveFromSidebar: (template) -> @props.onRemoveFromSidebar template.get '_id'
-
-
   onCloneHandler: (template) -> @props.onCloneFromDashboard template
 
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.templates?.size or 0
+  numberOfRowsInSection: -> @props.resources?.length or 0
 
 
   renderSectionHeaderAtIndex: -> null
@@ -27,23 +22,25 @@ module.exports = class DraftsListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    template = @props.templates.toList().get(rowIndex)
-    onAddToSidebar = @lazyBound 'onAddToSidebar', template
-    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', template
-    onCloneHandler = @lazyBound 'onCloneHandler', template
-    isVisible = @props.sidebarDrafts.get template.get('_id')
+    { sidebar } = kd.singletons
+    { template, isVisible } = resource = @props.resources[rowIndex]
 
     <StackTemplateItem
       isVisibleOnSidebar={isVisible}
       template={template}
+      canCreateStacks={@props.canCreateStacks}
       onOpen={@props.onOpenItem}
-      onAddToSidebar={onAddToSidebar}
-      onRemoveFromSidebar={onRemoveFromSidebar}
-      onCloneFromDashboard={onCloneHandler}
+      onAddToSidebar={@props.onAddToSidebar.bind null, resource}
+      onRemoveFromSidebar={@props.onRemoveFromSidebar.bind null, resource}
+      onCloneFromDashboard={@props.onCloneFromDashboard.bind null, resource}
     />
 
 
-  renderEmptySectionAtIndex: -> <div>You don't have any draft stack templates.</div>
+  renderEmptySectionAtIndex: ->
+
+    children = "You don't have any draft stack templates."
+
+    <div>{children}</div>
 
 
   render: ->

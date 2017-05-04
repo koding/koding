@@ -8,147 +8,148 @@ import (
 	"testing"
 
 	"koding/klient/machine/index"
+	"koding/klient/machine/index/node"
 )
 
 func fixture() *index.Node {
 	return &index.Node{
-		Entry: index.NewEntry(0, 0),
+		Entry: node.NewEntry(0, 0),
 		Sub: map[string]*index.Node{
 			"addresses": {
-				Entry: index.NewEntry(0, 0),
+				Entry: node.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"addresser.go": {
-						Entry: index.NewEntry(714, 0),
+						Entry: node.NewEntry(714, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"addresses.go": {
-						Entry: index.NewEntry(2428, 0),
+						Entry: node.NewEntry(2428, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"addresses_test.go": {
-						Entry: index.NewEntry(3095, 0),
+						Entry: node.NewEntry(3095, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"cached.go": {
-						Entry: index.NewEntry(2036, 0),
+						Entry: node.NewEntry(2036, 0),
 						Sub:   map[string]*index.Node{},
 					},
 				},
 			},
 			"aliases": {
-				Entry: index.NewEntry(0, 0),
+				Entry: node.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"aliaser.go": {
-						Entry: index.NewEntry(596, 0),
+						Entry: node.NewEntry(596, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"aliases.go": {
-						Entry: index.NewEntry(3218, 0),
+						Entry: node.NewEntry(3218, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"aliases_test.go": {
-						Entry: index.NewEntry(1831, 0),
+						Entry: node.NewEntry(1831, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"cached.go": {
-						Entry: index.NewEntry(2196, 0),
+						Entry: node.NewEntry(2196, 0),
 						Sub:   map[string]*index.Node{},
 					},
 				},
 			},
 			"clients": {
-				Entry: index.NewEntry(0, 0),
+				Entry: node.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"clients.go": {
-						Entry: index.NewEntry(4003, 0),
+						Entry: node.NewEntry(4003, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"clients_test.go": {
-						Entry: index.NewEntry(1783, 0),
+						Entry: node.NewEntry(1783, 0),
 						Sub:   map[string]*index.Node{},
 					},
 				},
 			},
 			"create.go": {
-				Entry: index.NewEntry(3660, 0),
+				Entry: node.NewEntry(3660, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"create_test.go": {
-				Entry: index.NewEntry(4582, 0),
+				Entry: node.NewEntry(4582, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"id.go": {
-				Entry: index.NewEntry(1272, 0),
+				Entry: node.NewEntry(1272, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"id_test.go": {
-				Entry: index.NewEntry(1979, 0),
+				Entry: node.NewEntry(1979, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"idset": {
-				Entry: index.NewEntry(0, 0),
+				Entry: node.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"idset.go": {
-						Entry: index.NewEntry(1288, 0),
+						Entry: node.NewEntry(1288, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"idset_test.go": {
-						Entry: index.NewEntry(4231, 0),
+						Entry: node.NewEntry(4231, 0),
 						Sub:   map[string]*index.Node{},
 					},
 				},
 			},
 			"empty": {
-				Entry: index.NewEntry(0, 0),
+				Entry: node.NewEntry(0, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"kite.go": {
-				Entry: index.NewEntry(4152, 0),
+				Entry: node.NewEntry(4152, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"machinegroup.go": {
-				Entry: index.NewEntry(6839, 0),
+				Entry: node.NewEntry(6839, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"machinegroup_test.go": {
-				Entry: index.NewEntry(6592, 0),
+				Entry: node.NewEntry(6592, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"mount.go": {
-				Entry: index.NewEntry(9346, 0),
+				Entry: node.NewEntry(9346, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"mount_test.go": {
-				Entry: index.NewEntry(8824, 0),
+				Entry: node.NewEntry(8824, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"mounts": {
-				Entry: index.NewEntry(0, 0),
+				Entry: node.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"cached.go": {
-						Entry: index.NewEntry(2465, 0),
+						Entry: node.NewEntry(2465, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"mounter.go": {
-						Entry: index.NewEntry(1000, 0),
+						Entry: node.NewEntry(1000, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"mounts.go": {
-						Entry: index.NewEntry(4133, 0),
+						Entry: node.NewEntry(4133, 0),
 						Sub:   map[string]*index.Node{},
 					},
 					"mounts_test.go": {
-						Entry: index.NewEntry(5330, 0),
+						Entry: node.NewEntry(5330, 0),
 						Sub:   map[string]*index.Node{},
 					},
 				},
 			},
 			"ssh.go": {
-				Entry: index.NewEntry(2831, 0),
+				Entry: node.NewEntry(2831, 0),
 				Sub:   map[string]*index.Node{},
 			},
 			"ssh_test.go": {
-				Entry: index.NewEntry(3567, 0),
+				Entry: node.NewEntry(3567, 0),
 				Sub:   map[string]*index.Node{},
 			},
 		},
@@ -177,8 +178,8 @@ func TestNodeLookup(t *testing.T) {
 				t.Fatalf("Lookup(%q) failed", name)
 			}
 
-			if nd.Entry.Size() != size {
-				t.Fatalf("got %d, want %d", size, nd.Entry.Size())
+			if nd.Entry.File.Size != size {
+				t.Fatalf("got %d, want %d", size, nd.Entry.File.Size)
 			}
 		})
 	}
@@ -242,7 +243,7 @@ func TestNodeAdd(t *testing.T) {
 	}
 
 	root := fixture()
-	entry := index.NewEntry(0xD, 0)
+	entry := node.NewEntry(0xD, 0)
 
 	for _, cas := range cases {
 		t.Run(cas.name, func(t *testing.T) {
@@ -259,8 +260,8 @@ func TestNodeAdd(t *testing.T) {
 				t.Fatalf("got %d, want %d", count, cas.count)
 			}
 
-			if nd.Entry.Size() != entry.Size() {
-				t.Fatalf("got %d, want %d", nd.Entry.Size(), entry.Size())
+			if nd.Entry.File.Size != entry.File.Size {
+				t.Fatalf("got %d, want %d", nd.Entry.File.Size, entry.File.Size)
 			}
 		})
 	}
@@ -341,7 +342,7 @@ func TestNodeForEach(t *testing.T) {
 
 	var got []string
 
-	root.ForEach(func(name string, _ *index.Entry) {
+	root.ForEach(func(name string, _ *node.Entry) {
 		got = append(got, name)
 	})
 
@@ -360,12 +361,32 @@ func TestNodeMarshalJSON(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	node := &index.Node{}
-	if err := json.Unmarshal(data, node); err != nil {
+	nd := &index.Node{}
+	if err := json.Unmarshal(data, nd); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if !reflect.DeepEqual(root, node) {
-		t.Fatalf("want:\n%#v\ngot\n%#v\n", root, node)
+	if !reflect.DeepEqual(root, nd) {
+		t.Fatalf("want:\n%#v\ngot\n%#v\n", root, nd)
+	}
+}
+
+func TestNodeToTree(t *testing.T) {
+	var gotNode, gotTree []string
+
+	root := fixture()
+	root.ForEach(func(name string, _ *node.Entry) {
+		gotNode = append(gotNode, name)
+	})
+
+	sort.Strings(gotNode)
+
+	tree := root.ToTree()
+	tree.DoPath("", node.WalkPath(func(nodePath string, _ *node.Node) {
+		gotTree = append(gotTree, nodePath)
+	}))
+
+	if !reflect.DeepEqual(gotTree, gotNode) {
+		t.Fatalf("want:\n%#v\ngot\n%#v\n", gotNode, gotTree)
 	}
 }

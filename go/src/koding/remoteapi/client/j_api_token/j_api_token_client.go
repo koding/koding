@@ -23,58 +23,60 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIJAPITokenCreate Method JApiToken.create
+JAPITokenCreate Method JApiToken.create
 */
-func (a *Client) PostRemoteAPIJAPITokenCreate(params *PostRemoteAPIJAPITokenCreateParams) (*PostRemoteAPIJAPITokenCreateOK, error) {
+func (a *Client) JAPITokenCreate(params *JAPITokenCreateParams, authInfo runtime.ClientAuthInfoWriter) (*JAPITokenCreateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAPITokenCreateParams()
+		params = NewJAPITokenCreateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAPITokenCreate",
+		ID:                 "JApiToken.create",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JApiToken.create",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAPITokenCreateReader{formats: a.formats},
+		Reader:             &JAPITokenCreateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAPITokenCreateOK), nil
+	return result.(*JAPITokenCreateOK), nil
 
 }
 
 /*
-PostRemoteAPIJAPITokenRemoveID post remote API j API token remove ID API
+JAPITokenRemove j Api token remove API
 */
-func (a *Client) PostRemoteAPIJAPITokenRemoveID(params *PostRemoteAPIJAPITokenRemoveIDParams) (*PostRemoteAPIJAPITokenRemoveIDOK, error) {
+func (a *Client) JAPITokenRemove(params *JAPITokenRemoveParams, authInfo runtime.ClientAuthInfoWriter) (*JAPITokenRemoveOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIJAPITokenRemoveIDParams()
+		params = NewJAPITokenRemoveParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAPITokenRemoveID",
+		ID:                 "JApiToken.remove",
 		Method:             "POST",
 		PathPattern:        "/remote.api/JApiToken.remove/{id}",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIJAPITokenRemoveIDReader{formats: a.formats},
+		Reader:             &JAPITokenRemoveReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIJAPITokenRemoveIDOK), nil
+	return result.(*JAPITokenRemoveOK), nil
 
 }
 

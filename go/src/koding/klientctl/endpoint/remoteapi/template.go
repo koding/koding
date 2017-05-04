@@ -1,15 +1,18 @@
 package remoteapi
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+
+	"koding/kites/config"
 	"koding/remoteapi"
 	stacktemplate "koding/remoteapi/client/j_stack_template"
 	"koding/remoteapi/models"
-	"strings"
 )
 
-// TemplateFilter is used to request some of the templates,
+// Filter is used to request some of the templates,
 // basing on the filter value.
 //
 // TODO(rjeczalik): Fix swagger.json:
@@ -19,7 +22,7 @@ import (
 //   - slug field
 //
 // And use models.JStackTemplate instead.
-type TemplateFilter struct {
+type Filter struct {
 	ID       string `json:"_id,omitempty"`
 	Slug     string `json:"slug,omitempty"`
 	Provider string `json:"provider,omitempty"`
@@ -28,22 +31,22 @@ type TemplateFilter struct {
 }
 
 // ListTemplates gives all templates filtered with use of the given filter.
-func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, error) {
+func (c *Client) ListTemplates(f *Filter) ([]*models.JStackTemplate, error) {
 	c.init()
 
-	params := &stacktemplate.PostRemoteAPIJStackTemplateSomeParams{}
+	params := &stacktemplate.JStackTemplateSomeParams{}
 
-	if tf != nil {
-		if err := c.buildTF(tf); err != nil {
+	if f != nil {
+		if err := c.buildFilter(f); err != nil {
 			return nil, err
 		}
 
-		params.Body = tf
+		params.Body = f
 	}
 
 	params.SetTimeout(c.timeout())
 
-	resp, err := c.client().JStackTemplate.PostRemoteAPIJStackTemplateSome(params)
+	resp, err := c.client().JStackTemplate.JStackTemplateSome(params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +68,13 @@ func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, er
 func (c *Client) DeleteTemplate(id string) error {
 	c.init()
 
-	params := &stacktemplate.PostRemoteAPIJStackTemplateDeleteIDParams{
+	params := &stacktemplate.JStackTemplateDeleteParams{
 		ID: id,
 	}
 
 	params.SetTimeout(c.timeout())
 
-	resp, err := c.client().JStackTemplate.PostRemoteAPIJStackTemplateDeleteID(params)
+	resp, err := c.client().JStackTemplate.JStackTemplateDelete(params, nil)
 	if err != nil {
 		return err
 	}
@@ -79,10 +82,52 @@ func (c *Client) DeleteTemplate(id string) error {
 	return remoteapi.Unmarshal(&resp.Payload.DefaultResponse, nil)
 }
 
-func (c *Client) buildTF(tf *TemplateFilter) error {
-	if tf.Slug != "" {
-		fields := strings.Split(tf.Slug, "/")
-		if len(fields) != 2 {
+// SampleTemplate returns a content of a sample stack template
+// for the given provider.
+func (c *Client) SampleTemplate(provider string) (string, map[string]interface{}, error) {
+	c.init()
+
+	params := &stacktemplate.JStackTemplateSamplesParams{
+		Body: stacktemplate.JStackTemplateSamplesBody{
+			Provider:    &provider,
+			UseDefaults: false,
+		},
+	}
+
+	params.SetTimeout(c.timeout())
+
+	resp, err := c.client().JStackTemplate.JStackTemplateSamples(params, nil)
+	if err != nil {
+		return "", nil, err
+	}
+
+	var v struct {
+		JSON     string `json:"json"`
+		Defaults struct {
+			UserInputs map[string]interface{} `json:"userInputs,omitempty"`
+		} `json:"defaults"`
+	}
+
+	if err := remoteapi.Unmarshal(resp.Payload, &v); err != nil {
+		return "", nil, err
+	}
+
+	if err := json.Unmarshal([]byte(v.JSON), &json.RawMessage{}); err != nil {
+		return "", nil, errors.New("invalid template sample: " + err.Error())
+	}
+
+	return v.JSON, v.Defaults.UserInputs, nil
+}
+
+func (c *Client) buildFilter(f *Filter) error {
+	if f.Slug != "" {
+		fields := strings.Split(f.Slug, "/")
+		switch len(fields) {
+		case 1:
+			fields = []string{config.CurrentUser.Username, fields[0]}
+		case 2:
+			// ok
+		default:
 			return errors.New(`invalid slug format - expected "user/template"`)
 		}
 
@@ -92,20 +137,28 @@ func (c *Client) buildTF(tf *TemplateFilter) error {
 				return fmt.Errorf("unable to look up user %q: %s", fields[0], err)
 			}
 
-			tf.OriginID = account.ID
+			f.OriginID = account.ID
 		}
 
-		tf.Slug = fields[1]
+		f.Slug = fields[1]
 	}
 
 	return nil
 }
 
+// SampleTemplate returns a content of a sample stack template
+// for the given provider.
+//
+// The functions uses DefaultClient.
+func SampleTemplate(provider string) (string, map[string]interface{}, error) {
+	return DefaultClient.SampleTemplate(provider)
+}
+
 // ListTemplates gives all templates filtered with use of the given filter.
 //
 // The functions uses DefaultClient.
-func ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, error) {
-	return DefaultClient.ListTemplates(tf)
+func ListTemplates(f *Filter) ([]*models.JStackTemplate, error) {
+	return DefaultClient.ListTemplates(f)
 }
 
 // DeleteTemplate deletes a template given by the id.

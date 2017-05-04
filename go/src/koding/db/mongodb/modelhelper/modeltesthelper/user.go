@@ -8,10 +8,19 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// CreateUserWithNick creates a test user.
 func CreateUser(username string) (*models.User, *models.Account, error) {
+	accID := bson.NewObjectId()
+	accHex := accID.Hex()
 	user := &models.User{
-		ObjectId: bson.NewObjectId(), Name: username,
-		Email: username + "@" + username + ".com",
+		ObjectId:       accID,
+		Password:       accHex,
+		Salt:           accHex,
+		Name:           username,
+		Email:          accHex + "@koding.com",
+		SanitizedEmail: accHex + "@koding.com",
+		Status:         "confirmed",
+		EmailFrequency: &models.EmailFrequency{},
 	}
 
 	account, err := CreateUserWithQuery(user)

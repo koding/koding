@@ -188,7 +188,6 @@ $stack-border-width         = 2px
       min-height            80px !important
 
   .content
-    background              $stack-bg-color
     &.safari-flex-fix
       // just because of a bug in safari
       // https://bugs.webkit.org/show_bug.cgi?id=137730 ~ GG
@@ -232,6 +231,8 @@ $stack-border-width         = 2px
       .wrapper
         .editor, .help-content
           height            calc(100% - 42px)
+        .preview-content
+          height            calc(100% - 42px)
         .help-content
           padding           0px 20px
 
@@ -240,7 +241,7 @@ $stack-border-width         = 2px
 
     &:hover, &.show-controls
       .controls .kdbutton
-        &.expand, &.help, &.pin, &.close
+        &.expand, &.help, &.pin, &.close, &.preview
           display           block
 
     &.expanded
@@ -259,9 +260,23 @@ $stack-border-width         = 2px
       .wrapper .help-content
         display             block
 
-      .controls .kdbutton.help
+      .controls
+        .kdbutton.help
+          display           block
+          color             $stack-fg-color-yellow
+        .kdbutton.preview
+          display           none
+
+    &.preview-mode
+      .wrapper .preview-content
+        display             block
+
+      .controls .kdbutton.preview
         display             block
         color               $stack-fg-color-yellow
+
+      .wrapper .preview-content .controls
+        display             none
 
     .wrapper
 
@@ -283,7 +298,6 @@ $stack-border-width         = 2px
       .controls
         abs                 10px, 15px
         z-index             10
-        width               50%
         height              20px
         display             flex
         flex-direction      row-reverse
@@ -295,6 +309,7 @@ $stack-border-width         = 2px
           margin-left       10px
 
       .help-content
+      .preview-content
         height              100%
         color               #999
         padding             20px
@@ -304,8 +319,15 @@ $stack-border-width         = 2px
         overflow            auto
         borderBox()
 
-        code
-          border            none !important
+      .help-content pre code
+        background-color    rgba(0, 0, 0, 0.37) !important
+        border              1px solid #2b2b30   !important
+
+      .preview-content
+        padding             0
+        .has-markdown
+          padding           0 20px
+          borderBox()
 
     .controls .kdbutton
       margin                0
@@ -340,6 +362,10 @@ $stack-border-width         = 2px
 
       &.help
         fa                  question-circle
+        display             none
+
+      &.preview
+        fa                  eye
         display             none
 
 

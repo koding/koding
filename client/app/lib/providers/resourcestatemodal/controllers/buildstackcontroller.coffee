@@ -16,28 +16,44 @@ module.exports = class BuildStackController extends kd.Controller
 
     super options, data
 
-    { stack } = @getData()
+    { stack, machine } = @getData()
     { container } = @getOptions()
 
     @buildStackPage = new BuildStackPageView {}, { stack, file : @getLogFile() }
     @errorPage = new BuildStackErrorPageView {}, { stack }
-    @successPage = new BuildStackSuccessPageView {}, { stack }
+    @successPage = new BuildStackSuccessPageView {}, { stack, machine }
     @timeoutPage = new BuildStackTimeoutPageView {}, { stack }
 
     { router, appManager } = kd.singletons
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @buildStackPage, 'ClosingRequested'
-    @forwardEvent @successPage, 'ClosingRequested'
+
     @successPage.on 'InstallRequested', =>
       router.handleRoute '/Home/koding-utilities#kd-cli'
       @emit 'ClosingRequested'
+
     @successPage.on 'CollaborationInvite', =>
+
       tooltipContent = '''
         <h3>Collaboration is starting...</h3>
         <p>You can invite your teammates when collaboration is started.</p>
       '''
-      appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
+
+      startCollab = -> kd.utils.wait 1000, ->
+        appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
+
+      if Cookies.get 'use-nse'
+        router.once 'RouteInfoHandled', startCollab
+        router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+      else
+        do startCollab
+
       @emit 'ClosingRequested'
+
+    @successPage.on 'ClosingRequested', =>
+      router.handleRoute "/IDE/#{machine.getAt 'slug'}"
+      @emit 'ClosingRequested'
+
     @forwardErrorPageEvent 'CredentialsRequested'
     @forwardErrorPageEvent 'RebuildRequested'
     @forwardEvent @timeoutPage, 'ClosingRequested'

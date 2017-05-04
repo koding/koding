@@ -11,10 +11,19 @@ import (
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/endpoint/team"
+	"koding/klientctl/helper"
 
 	"github.com/koding/logging"
 )
 
+// Facade provides a mean for auth.Client to create
+// and work with new configuration in konfig.bolt
+// database.
+//
+// It allows for switching between multiple
+// configurations, which may use conflicting
+// sessions (e.g. kite.key file created with
+// different Kontrol keys).
 type Facade struct {
 	*Client
 
@@ -22,15 +31,23 @@ type Facade struct {
 	Kloud  *kloud.Client
 	Team   *team.Client
 	Log    logging.Logger
+
+	force bool // whether force new session; if true, overrides LoginOptions.Force
 }
 
-type FacadeOpts struct {
+// FacadeOptions is used to create new Facade value.
+type FacadeOptions struct {
 	Base *url.URL
 	Log  logging.Logger
 }
 
-func NewFacade(opts *FacadeOpts) (*Facade, error) {
-	k, err := newKonfig(opts.Base)
+// NewFacade gives new Facade value.
+//
+// It returns non-nil error if it is unable to
+// create new configuration out of the provided
+// options.
+func NewFacade(opts *FacadeOptions) (*Facade, error) {
+	k, force, err := newKonfig(opts.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -55,20 +72,68 @@ func NewFacade(opts *FacadeOpts) (*Facade, error) {
 		Team: &team.Client{
 			Kloud: kloud,
 		},
-		Log: opts.Log,
+		Log:   opts.Log,
+		force: force,
 	}, nil
 }
 
+// Login authorizes with Koding in order to obtain:
+//
+//   - kite.key for use with Kontrol / Terraformer / Kloud / Klient kites
+//   - ClientID for use with SocialAPI / remote.api
+//
 func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
-	// If we already own a valid kite.key, it means we were already
-	// authenticated and we just call kloud using kite.key authentication.
-	err := f.Kloud.Transport.(stack.Validator).Valid()
+	newLogin := opts.Force || f.force
 
-	f.log().Debug("auth: transport test: %s", err)
+	if !newLogin {
+		// If we already own a valid kite.key, it means we were already
+		// authenticated and we just call kloud using kite.key authentication.
+		err := f.Kloud.Transport.(stack.Validator).Valid()
+		f.log().Debug("auth: transport test: %s", err)
 
-	if err != nil && opts.Token == "" {
-		if err = opts.AskUserPass(); err != nil {
+		newLogin = err != nil
+	}
+
+	var kiteKey string
+
+	if opts.Token != "" {
+		// NOTE(rjeczalik): Backward compatibility with token-based authentication.
+		//
+		// The workflow:
+		//
+		//   - call Kontrol's "registerMachine" in order to obtain kite.key
+		//   - using the kite.key call Kloud's "auth.login" in order to obtain
+		//     ClientID for remote.api
+		//
+		// This should be removed once we get rid of temporary token-based auth
+		// (otaToken, do not confuse with not kite.key's tokenAuth).
+		resp, err := f.Client.Login(opts)
+		if err != nil {
 			return nil, err
+		}
+
+		if kt, ok := f.Kloud.Transport.(*kloud.KiteTransport); ok {
+			kt.SetKiteKey(resp.KiteKey)
+		}
+
+		opts.Token = ""
+		kiteKey = resp.KiteKey
+		f.Konfig.KiteKey = resp.KiteKey
+	} else if newLogin {
+		if err := opts.AskUserPass(); err != nil {
+			return nil, err
+		}
+	}
+
+	if opts.Team == "" {
+		var err error
+		opts.Team, err = helper.Ask("%sTeam name [%s]: ", opts.Prefix, f.Team.Used().Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if opts.Team == "" {
+			opts.Team = f.Team.Used().Name
 		}
 	}
 
@@ -77,8 +142,12 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		return nil, err
 	}
 
-	if resp.KiteKey != "" {
-		f.Konfig.KiteKey = resp.KiteKey
+	if kiteKey == "" {
+		kiteKey = resp.KiteKey
+	}
+
+	if kiteKey != "" {
+		f.Konfig.KiteKey = kiteKey
 		if resp.Metadata != nil {
 			fixKlientEndpoint(f.Konfig.Endpoints)
 
@@ -92,7 +161,7 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		}
 
 		if kt, ok := f.Kloud.Transport.(*kloud.KiteTransport); ok {
-			kt.SetKiteKey(resp.KiteKey)
+			kt.SetKiteKey(kiteKey)
 		}
 	}
 
@@ -101,7 +170,14 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 	}
 
 	return resp, nil
+}
 
+func (f *Facade) Close() error {
+	return nonil(
+		f.Team.Close(),
+		f.Client.Close(),
+		f.Kloud.Close(),
+	)
 }
 
 func (f *Facade) log() logging.Logger {
@@ -111,8 +187,15 @@ func (f *Facade) log() logging.Logger {
 	return kloud.DefaultLog
 }
 
-func newKonfig(base *url.URL) (*config.Konfig, error) {
-	k, ok := configstore.List()[config.ID(base.String())]
+func newKonfig(base *url.URL) (*config.Konfig, bool, error) {
+	force := false
+	newID := config.ID(base.String())
+
+	if k, err := configstore.Used(); err == nil {
+		force = k.ID() != newID
+	}
+
+	k, ok := configstore.List()[newID]
 	if !ok {
 		k = &config.Konfig{
 			Endpoints: &config.Endpoints{
@@ -123,10 +206,10 @@ func newKonfig(base *url.URL) (*config.Konfig, error) {
 	}
 
 	if err := configstore.Use(k); err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return k, nil
+	return k, force, nil
 }
 
 // fixKlientEndpoint fixes klient latest endpoint - kloud always installs

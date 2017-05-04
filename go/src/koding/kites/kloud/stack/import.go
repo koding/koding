@@ -230,8 +230,8 @@ type stackBuilder struct {
 }
 
 func (sb *stackBuilder) buildTemplate() error {
-	params := &stacktemplate.PostRemoteAPIJStackTemplateCreateParams{
-		Body: stacktemplate.PostRemoteAPIJStackTemplateCreateBody{
+	params := &stacktemplate.JStackTemplateCreateParams{
+		Body: stacktemplate.JStackTemplateCreateBody{
 			Template:    sb.reqTemplate(),
 			Title:       &sb.req.Title,
 			Credentials: sb.req.Credentials,
@@ -245,7 +245,7 @@ func (sb *stackBuilder) buildTemplate() error {
 
 	params.SetTimeout(sb.timeout)
 
-	resp, err := sb.api.JStackTemplate.PostRemoteAPIJStackTemplateCreate(params)
+	resp, err := sb.api.JStackTemplate.JStackTemplateCreate(params, nil)
 	if err != nil {
 		return err
 	}
@@ -276,14 +276,14 @@ func (sb *stackBuilder) setVerified(machines []*Machine) error {
 		body["machines"] = machines
 	}
 
-	params := &stacktemplate.PostRemoteAPIJStackTemplateUpdateIDParams{
+	params := &stacktemplate.JStackTemplateUpdateParams{
 		ID:   sb.resp.TemplateID,
 		Body: body,
 	}
 
 	params.SetTimeout(sb.timeout)
 
-	resp, err := sb.api.JStackTemplate.PostRemoteAPIJStackTemplateUpdateID(params)
+	resp, err := sb.api.JStackTemplate.JStackTemplateUpdate(params, nil)
 	if err != nil {
 		return err
 	}
@@ -294,13 +294,16 @@ func (sb *stackBuilder) setVerified(machines []*Machine) error {
 }
 
 func (sb *stackBuilder) buildStack() error {
-	params := &stacktemplate.PostRemoteAPIJStackTemplateGenerateStackIDParams{
+	params := &stacktemplate.JStackTemplateGenerateStackParams{
 		ID: sb.resp.TemplateID,
+		Body: map[string]interface{}{
+			"_id": sb.resp.TemplateID,
+		},
 	}
 
 	params.SetTimeout(sb.timeout)
 
-	resp, err := sb.api.JStackTemplate.PostRemoteAPIJStackTemplateGenerateStackID(params)
+	resp, err := sb.api.JStackTemplate.JStackTemplateGenerateStack(params, nil)
 	if err != nil {
 		return err
 	}

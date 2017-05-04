@@ -5,8 +5,6 @@ import (
 	"socialapi/workers/countly/api"
 	"socialapi/workers/countly/client"
 
-	mgo "gopkg.in/mgo.v2"
-
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
 	"github.com/koding/runner"
@@ -14,12 +12,12 @@ import (
 
 // CountlyExporter exports events to countly..
 type CountlyExporter struct {
-	client      *client.Client
-	log         logging.Logger
-	globalOwner string
-	groupCache  *groupCache
-	disabled    bool // if countly integration is disabled.
-	fixApps     bool // if we should create non existing apps.
+	client         *client.Client
+	log            logging.Logger
+	globalOwner    string
+	groupDataCache *groupDataCache
+	disabled       bool // if countly integration is disabled.
+	fixApps        bool // if we should create non existing apps.
 }
 
 // NewCountlyExporter creates exporter for countly.
@@ -31,11 +29,11 @@ func NewCountlyExporter(cfg *config.Config) *CountlyExporter {
 			client.SetBaseURL(cfg.Countly.Host),
 			client.SetLogger(logger),
 		),
-		log:         logger,
-		globalOwner: cfg.Countly.AppOwner,
-		groupCache:  newGroupCache(),
-		disabled:    cfg.Countly.Disabled,
-		fixApps:     cfg.Countly.FixApps,
+		log:            logger,
+		globalOwner:    cfg.Countly.AppOwner,
+		groupDataCache: newGroupCache(),
+		disabled:       cfg.Countly.Disabled,
+		fixApps:        cfg.Countly.FixApps,
 	}
 }
 
@@ -52,24 +50,24 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		return nil
 	}
 
-	group, err := c.groupCache.BySlug(slug)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil
-		}
-		return err
+	groupData, _ := c.groupDataCache.BySlug(slug)
+	appKey := ""
+	if groupData != nil {
+		appKey, _ = groupData.Payload.GetString("countly.appKey")
 	}
 
-	if !group.HasCountly() {
+	if appKey == "" {
 		if !c.fixApps {
 			return nil
 		}
 
-		if _, err := api.NewCountlyAPI(config.MustGet()).CreateApp(slug); err != nil {
+		cres, err := api.NewCountlyAPI(config.MustGet()).CreateApp(slug)
+		if err != nil {
 			return err
 		}
 
-		group, err = c.groupCache.Refresh(slug)
+		appKey = cres.AppID
+		groupData, err = c.groupDataCache.Refresh(slug)
 		if err != nil {
 			return err
 		}
@@ -80,7 +78,8 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		Count:        1,
 		Segmentation: event.Properties,
 	}}
-	return c.client.WriteEvent(group.Countly.AppKey, group.Id.Hex(), events)
+
+	return c.client.WriteEvent(appKey, slug, events)
 }
 
 // Close closes the exporter.

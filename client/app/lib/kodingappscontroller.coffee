@@ -13,6 +13,7 @@ AppClasses =
   ace: require 'ace'
   finder: require 'finder'
   home: require 'home'
+  analytics: require 'analytics'
   ide: require 'ide'
   'stack-editor': do ->
     if Cookies.get 'use-nse'

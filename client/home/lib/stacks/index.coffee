@@ -97,20 +97,19 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
       if action is 'virtual-machines'
-        { reactor } = kd.singletons
-        machine = reactor.evaluate ['MachinesStore']
-          .toList()
-          .filter (machine) -> machine.get('_id') is identifier
-          .get(0)
+        { sidebar, computeController } = kd.singletons
+        { storage } = computeController
+
+        if machine = storage.machines.get '_id', identifier
+          machine.reviveUsers { permanentOnly: yes }
 
         setSelectedMachineId identifier
-        loadMachineSharedUsers machine.get '_id'  if machine
         onboarding.run 'VMsViewed', yes
       break
 
   createStacksViews: ->
 
-    { reactor } = kd.singletons
+    { reactor, computeController } = kd.singletons
     { actions, getters } = EnvironmentFlux
 
     actions.loadStackTemplates()
@@ -139,15 +138,21 @@ module.exports = class HomeStacks extends kd.CustomScrollView
       disabledUsersHeader.hide()
       disabledUsersSection.hide()
 
+    { storage } = computeController
 
-    cleanObserver = reactor.observe getters.disabledUsersStacks, (templates) ->
-      if templates.size
+    checkStorage = ->
+      disabledUserStacks = storage.stacks.get().filter (s) -> s.getOldOwner()
+
+      if disabledUserStacks.length
       then showDisabledUsers()
       else hideDisabledUsers()
 
-    hideDisabledUsers()
+    # check disabled user stacks initially
+    checkStorage()
 
-    @once 'KDObjectWillBeDestroyed', cleanObserver
+    # check disabled user stacks on each change
+    storage.on 'change', checkStorage
+    @once 'KDObjectWillBeDestroyed', -> storage.off 'change', checkStorage
 
     @stacks.addSubView headerize 'Drafts'
     @stacks.addSubView sectionize 'Drafts', HomeStacksDrafts, { delegate : this }

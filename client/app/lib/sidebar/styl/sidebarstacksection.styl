@@ -1,0 +1,94 @@
+.SidebarTeamSection
+  rel()
+
+  > .SidebarSection-headerTitle
+    margin                  0 0 15px 0
+    color                   #656565
+    vendor                  transition, all .3s ease
+
+  .SidebarStackSection
+    max-width               220px
+    color                   #818181
+
+    &.active
+      color                 #E1E1E1
+
+    .SidebarSection-body
+      rel()
+      left                  13px
+      vendor                transition, all .3s ease
+
+      .SidebarMachinesListItem--MainLink
+        color               #818181
+        width               205px
+
+        &.active
+          color             #E1E1E1
+
+        .SidebarListItem-unreadCount
+          margin            0
+
+  .menu-icon
+    content             ''
+    r-sprite            'app' '20_chevron_gray'
+    margin-left         1px
+    opacity             .7
+    position            absolute
+    right               -3px
+    top                 -3px
+    dIBlock()
+
+  .SidebarSection-headerTitle
+    dBlock()
+    width                   100%
+    text-transform          capitalize
+    noTextDeco()
+
+    a
+      width                 172px
+
+    &:hover .SidebarSection-secondaryLink
+      visible()
+
+    .SidebarSection-secondaryLink
+      top                   10px
+
+  .SidebarSection
+
+    &.draft
+      margin-bottom         0px
+
+    .SidebarSection-headerTitle a:before
+      content               ''
+      rel()
+      borderBox()
+      dIBlock()
+      border                2px solid rgba(255, 255, 255, .2)
+      height                6px
+      rounded               100%
+      top                   -1px
+      width                 6px
+      margin-right          5px
+
+    .ListView-row.SidebarSection-body:last-child
+      margin-bottom         20px
+
+
+#kdmaincontainer
+  &.collapsed
+    .SidebarTeamSection
+
+      > .SidebarSection-headerTitle
+        opacity             0
+
+      .SidebarSection-body
+        left                0
+
+      .SidebarMachinesListItem--MainLink
+        rel()
+        width               100%
+        padding-right       0
+
+        .SidebarListItem-unreadCount
+          right             2px !important
+          top               -2px !important

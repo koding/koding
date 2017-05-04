@@ -94,13 +94,8 @@ func TestLookupGroup(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
 
-	user := &models.User{
-		ObjectId: bson.NewObjectId(),
-		Name:     bson.NewObjectId().Hex(),
-		Email:    bson.NewObjectId().Hex(),
-	}
-
-	if err := modelhelper.CreateUser(user); err != nil {
+	user, _, err := modeltesthelper.CreateUser(bson.NewObjectId().Hex())
+	if err != nil {
 		t.Fatalf("CreateUser()=%s", err)
 	}
 

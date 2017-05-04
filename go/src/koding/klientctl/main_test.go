@@ -12,9 +12,34 @@ import (
 	"sync"
 	"testing"
 
+	"koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
 )
+
+func init() {
+	// Fake installation.
+	d := &daemon.Details{
+		Installation: make([]daemon.InstallResult, len(daemon.Script)),
+	}
+
+	err := configstore.Commit(func(cache *config.Cache) error {
+		return cache.SetValue("daemon.details", d)
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Cleanup.
+	ctlcli.CloseOnExit(ctlcli.CloseFunc(func() error {
+		return configstore.Commit(func(cache *config.Cache) error {
+			return cache.Delete("daemon.details")
+		})
+	}))
+}
 
 func TestMainHelper(t *testing.T) {
 	if os.Getenv("TEST_MAIN_HELPER") == "" {
@@ -24,12 +49,6 @@ func TestMainHelper(t *testing.T) {
 	// Close stdout as soon as command finishes, so Go's testing command
 	// does not pollute it.
 	defer os.Stdout.Close()
-
-	ctlcli.ExitFunc = func(code int) {
-		if code != 0 {
-			os.Exit(code)
-		}
-	}
 
 	var args []string
 
@@ -200,12 +219,3 @@ func (ft *FakeTransport) Call(method string, arg, reply interface{}) error {
 func (ft *FakeTransport) Connect(string) (kloud.Transport, error) { return ft, nil }
 
 func (*FakeTransport) Valid() (_ error) { return }
-
-func nonil(err ...error) error {
-	for _, e := range err {
-		if e != nil {
-			return e
-		}
-	}
-	return nil
-}

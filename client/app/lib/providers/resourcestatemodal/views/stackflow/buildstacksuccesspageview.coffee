@@ -10,7 +10,10 @@ module.exports = class BuildStackSuccessPageView extends JView
     @logsButton = new kd.ButtonView
       title    : 'View Logs'
       cssClass : 'GenericButton secondary'
-      callback : @lazyBound 'emit', 'ClosingRequested'
+      callback : =>
+        if Cookies.get 'use-nse'
+          kd.singletons.computeController.showBuildLogs @getData().machine, 0
+        @emit 'ClosingRequested'
 
     @installButton = new kd.ButtonView
       title    : 'Install'

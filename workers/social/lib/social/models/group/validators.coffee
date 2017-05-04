@@ -103,3 +103,16 @@ module.exports = Validators =
         as         : { $in: [ 'owner', 'admin' ] }
 
       Relationship.count relSelector, createExistenceCallback callback
+
+    custom: (customPermission) ->
+
+      (client, group, rest..., callback) ->
+
+        Validators.any client, group, rest..., (err, allow) ->
+          if err or not allow
+            return callback err, no
+
+          Validators.group.admin client, group, rest..., (err, isAdmin) ->
+            callback null, if isAdmin
+            then yes
+            else !!group.getAt "customize.#{customPermission}"

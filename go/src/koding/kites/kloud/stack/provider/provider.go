@@ -201,6 +201,7 @@ type BaseStack struct {
 	Planner   *Planner
 	KlientIDs stack.KiteMap
 	Klients   map[string]*DialState
+	Metas     map[string]map[string]interface{}
 	TunnelURL string
 
 	Debug   bool
@@ -250,12 +251,12 @@ func (bs *BaseStack) plan() (stack.Machines, error) {
 	return bs.Plan()
 }
 
-func (bs *BaseStack) state(state *terraform.State, klients map[string]*DialState) (map[string]*stack.Machine, error) {
+func (bs *BaseStack) state(state *terraform.State) (map[string]*stack.Machine, error) {
 	if bs.StateFunc != nil {
-		return bs.StateFunc(state, klients)
+		return bs.StateFunc(state, bs.Klients)
 	}
 
-	return bs.Planner.MachinesFromState(state, klients)
+	return bs.Planner.MachinesFromState(state, bs.Klients, bs.Metas)
 }
 
 type BaseMachine struct {

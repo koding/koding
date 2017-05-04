@@ -47,10 +47,13 @@ module.exports = class ComputeStorage extends kd.Object
           stack = remote.revive stack  unless stack.ಠ_ಠ
           stack.title = Encoder.htmlDecode stack.title
           stack.machines = stack.machines
+            .filter Boolean
             .map (machine) =>
-              if machine.bongo_
+              machine = if machine.bongo_
               then machine
               else @get 'machines', '_id', machine
+              machine._stackId = stack._id  if machine
+              return machine
 
             .filter (machine) ->
               machine?.bongo_?
@@ -113,6 +116,9 @@ module.exports = class ComputeStorage extends kd.Object
 
     @storage[type] = data
 
+    @emit 'change', { operation: 'set', type, data }
+    @emit "change:#{type}", { operation: 'set', data }
+
     return this
 
 
@@ -150,6 +156,10 @@ module.exports = class ComputeStorage extends kd.Object
     return null
 
 
+  _deleteHandler: (type, value) ->
+    => @pop type, value._id
+
+
   push: (type, value) ->
 
     debug 'push', type, value
@@ -177,6 +187,8 @@ module.exports = class ComputeStorage extends kd.Object
       value = cached
     else
       @storage[type].push value
+      value.off? 'deleteInstance', @_deleteHandler type, value
+      value.on?  'deleteInstance', @_deleteHandler type, value
 
     postPush?.call this, value
 

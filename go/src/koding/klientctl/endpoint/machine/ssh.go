@@ -88,12 +88,24 @@ func sshGetKeyPath() (pubKey, pubPath, privPath string, err error) {
 		return "", "", "", err
 	}
 
+	switch _, err := ssh.PrivateKey(privPath); err {
+	case nil:
+	case ssh.ErrPrivateKeyNotFound:
+		// Private key is missing, remove the public one
+		// to force keypair generation.
+		//
+		// TODO(rjeczalik): remove pubKey from remote
+		_ = os.Remove(pubPath)
+	default:
+		return "", "", "", err
+	}
+
 	pubKey, err = ssh.PublicKey(pubPath)
 	if err != nil && err != ssh.ErrPublicKeyNotFound {
 		return "", "", "", err
 	}
 
-	// Generate new key pair if it does not exist.
+	// Generate new key pair if either public or private key does not exist.
 	if err == ssh.ErrPublicKeyNotFound {
 		if pubKey, _, err = ssh.GenerateSaved(pubPath, privPath); err != nil {
 			return "", "", "", err

@@ -28,10 +28,9 @@ func dumpFile(name string) *exec.Cmd {
 	return cmd
 }
 
-func dumpArgs(w io.Writer) *exec.Cmd {
+func dumpArgs() *exec.Cmd {
 	cmd := exec.Command(os.Args[0], "-test.run=TestHelperProcess", "--", "args")
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
-	cmd.Stdout = w
 	return cmd
 }
 
@@ -73,17 +72,19 @@ func TestRsyncArgs(t *testing.T) {
 
 			var buf = &bytes.Buffer{}
 			cmd := &rsync.Command{
-				Cmd:             dumpArgs(buf),
+				Cmd:             dumpArgs(),
 				SourcePath:      "/A",
 				DestinationPath: "/B",
 				Username:        "usr",
 				Host:            "host",
 				Change:          index.NewChange("x.txt", index.PriorityLow, test.Meta),
+				Output:          buf,
 			}
 
 			if err := cmd.Run(context.Background()); err != nil {
 				t.Fatalf("want err = nil; got %v", err)
 			}
+
 			got := strings.Split(buf.String(), "\n")
 			if !reflect.DeepEqual(got, test.Expected) {
 				t.Fatalf("want exec args = %v; got %v", test.Expected, got)

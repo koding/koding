@@ -545,16 +545,12 @@ module.exports = class IDEAppController extends AppController
         machineLabel = machine.slug or machine.label
         splashes     = splashMarkups
 
-        @splitTabView { type: 'horizontal', dontSave: yes }
-
-        @fakeEditor       = @ideViews.first.createEditor()
         @fakeTabView      = @activeTabView
         fakeTerminalView  = new kd.CustomHTMLView { partial: splashes.getTerminal nickname }
         @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
         @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname, machineLabel }
 
         @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
-        @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
 
       else
 
@@ -569,9 +565,9 @@ module.exports = class IDEAppController extends AppController
           # After that, get participant's snapshot from collaboration data and build workspace.
           @silent = yes  if @isInSession and not @amIHost and not @mountedMachine.isPermanent()
 
-          @splitTabView { type: 'horizontal', dontSave: yes }
-
           @addInitialViews()
+
+          return
 
 
   setMountedMachine: (machine) ->
@@ -644,9 +640,6 @@ module.exports = class IDEAppController extends AppController
               state, container, machineItem, initial: yes
             }
 
-            if state is NotInitialized
-              @setupFakeActivityNotification()
-
           @once 'IDEReady', =>
             @prepareCollaboration()
             @runOnboarding()
@@ -718,7 +711,7 @@ module.exports = class IDEAppController extends AppController
 
     @machineStateModal = new ResourceStateModal modalOptions, machineItem
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
-    @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'
+    @machineStateModal.once 'OperationCompleted', @bound 'handleIDEBecameReady'
 
     @emit 'MachineStateModalReady', @machineStateModal
 
@@ -958,6 +951,7 @@ module.exports = class IDEAppController extends AppController
     kite = machine.getBaseKite()
     kite.init().then ->
       kite.storageSetQueued key, value
+      return kite
     .catch kd.noop
 
 
@@ -1284,22 +1278,20 @@ module.exports = class IDEAppController extends AppController
 
   removeFakeViews: ->
 
-    fakeEditorPane = @fakeEditor?.parent
-    fakeEditorPane?.parent?.removePane fakeEditorPane
-
     @fakeTerminalPane?.parent?.removePane @fakeTerminalPane
     @fakeFinderView?.destroy()
 
 
   addInitialViews: ->
 
-    @ideViews.first.createEditor()  unless @isNewRegister
-    @ideViews.last.createTerminal { machine: @mountedMachine }
+    @ideViews.first.createTerminal { machine: @mountedMachine }
     @setActiveTabView @ideViews.first.tabView
     @initialViewsReady = yes
 
     @forEachSubViewInIDEViews_ (pane) ->
       pane.isInitial = yes
+
+    return
 
 
   toggleFullscreenIDEView: ->
@@ -1801,23 +1793,11 @@ module.exports = class IDEAppController extends AppController
     @showModal options
 
 
-  setupFakeActivityNotification: ->
-
-    return  unless kookies.get('newRegister') is 'true'
-
-    @isNewRegister = yes
-
-    @machineStateModal?.once 'MachineTurnOnStarted', =>
-      kookies.expire 'newRegister', { path: '/' }
-      kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
-
-      # open README.md for the first time for newly registered users.
-      @machineStateModal.once 'IDEBecameReady', @bound 'openReadme'
-
-
   fetchSnapshot: (callback, username = nick()) ->
 
     @fetchFromKiteStorage callback, username
+
+    return
 
 
   fetchFromKiteStorage: (callback, prefix) ->
@@ -1829,6 +1809,8 @@ module.exports = class IDEAppController extends AppController
 
       console.warn 'Failed to fetch data:', err
       callback null
+
+      return err
 
     fetch = (prefix) =>
 

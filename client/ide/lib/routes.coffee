@@ -29,17 +29,20 @@ loadIDE = (data, done = kd.noop) ->
 
   if showInstance
 
-    actions.setSelectedMachineId machine._id
+    { sidebar } = kd.singletons
 
-    actions.setSelectedTemplateId  if machine.data?.generatedFrom?
-    then machine.data.generatedFrom.templateId
-    else null
+    sidebar.setSelected 'machineId', machine.getId()
+
+    if parent = machine.generatedFrom
+    then sidebar.setSelected 'templateId', parent.templateId
+    else sidebar.setSelected 'templateId', null
 
   appManager = kd.getSingleton 'appManager'
   ideApps    = appManager.appControllers.IDE
   machineUId = machine.uid
 
   callback   = ->
+
     appManager.open 'IDE', { forceNew: yes, showInstance }, (app) ->
       app.mountedMachineUId   = machineUId
 
@@ -54,6 +57,11 @@ loadIDE = (data, done = kd.noop) ->
         app.amIHost           = yes
 
       app.mountMachineByMachineUId machineUId, done
+
+  if Cookies.get('use-nse') and not machine.isBuilt()
+    debug 'new build flow', "/Stack-Editor/Build/#{machine.getId()}"
+    kd.singletons.router.handleRoute "/Stack-Editor/Build/#{machine.getId()}"
+    return
 
   return callback()  unless ideApps?.instances
 
@@ -146,11 +154,6 @@ routeToMachine = (options = {}) ->
           loadIDENotFound()
         else
           router.handleRoute '/IDE'
-
-
-      # if machine.isPermanent() or machine.meta?.oldOwner
-      #   identifier = machine.uid
-      # kd.getSingleton('router').handleRoute "/IDE/#{identifier}"
 
 
 routeHandler = (type, info, state, path, ctx) ->

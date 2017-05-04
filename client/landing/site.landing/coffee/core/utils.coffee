@@ -230,12 +230,16 @@ module.exports = utils = {
     kd.team              ?= {}
     { team }              = kd
     team[formName]        = formData
-    localStorage.teamData = JSON.stringify team
+
+    try
+      localStorage.teamData = JSON.stringify team
 
 
   clearTeamData: ->
 
-    localStorage.teamData = null
+    try
+      localStorage.teamData = null
+
     kd.team = null
 
 

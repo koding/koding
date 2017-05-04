@@ -7,7 +7,7 @@ jobs:
     resource_class: large
 
     docker:
-      - image: koding/circle@sha256:dec761b93b060282748019f40012988f4f4677f40827fd763579358f17e3c8ea
+      - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
 
       - image: mongo:3.2.8
         cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
@@ -15,8 +15,16 @@ jobs:
       - image: koding/postgres
 
       - image: rabbitmq:3
+        env:
+            RABBITMQ_VM_MEMORY_HIGH_WATERMARK: "2048MB"
 
       - image: redis
+
+      # countly will listen at port 80 till we can give -p "$KONFIG_COUNTLY_APIPORT:80"
+      - image: koding/countly-server:latest
+        environment:
+          COUNTLY_PATH: /countly
+          COUNTLY_WITH_DEFAULT_DATA: 1
 
     working_directory: ~/koding
 
@@ -72,7 +80,7 @@ jobs:
 
       - run:
           name: configure
-          command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com
+          command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort "80"
 
       - run:
           name: launch test hosts
@@ -171,18 +179,24 @@ jobs:
             koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
 
       - run:
-          name: test mongo models
-          command: ./run exec go test koding/db/mongodb/modelhelper
-
-      - run:
           name: run database migration
           command: ./run migrations up
+
+      - run:
+          name: test mongo models
+          command: ./run exec go test koding/db/mongodb/modelhelper
 
       - run:
           name: run
           command: |
             ./run exec supervisord -c supervisord.conf
+
+            # kill previous nginx
+            rm -rf /etc/nginx/sites-enabled || echo "does not exist"
+            rm -rf /etc/nginx/conf.d || echo "does not exist"
+            pkill nginx
             nginx -c $(pwd)/nginx.conf
+
             ./run health-check 30 600
 
       - run:

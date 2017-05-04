@@ -1,6 +1,7 @@
 package marathon_test
 
 import (
+	"flag"
 	"io/ioutil"
 	"reflect"
 	"regexp"
@@ -30,6 +31,8 @@ func init() {
 	}
 }
 
+var update = flag.Bool("update-golden", false, "Update golden files.")
+
 // stripNondeterministicResources sets the following fields to "...",
 // as they change between test runs:
 //
@@ -44,6 +47,8 @@ func stripNondeterministicResources(s string) string {
 }
 
 func TestApplyTemplate(t *testing.T) {
+	flag.Parse()
+
 	log := logging.NewCustom("test", true)
 
 	cred := &stack.Credential{
@@ -99,16 +104,8 @@ func TestApplyTemplate(t *testing.T) {
 	}
 
 	for name, cas := range cases {
-		// capture range variable here
-		cas := cas
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			pStack, err := ioutil.ReadFile(cas.stack)
-			if err != nil {
-				t.Fatalf("ReadFile()=%s", err)
-			}
-
-			pWant, err := ioutil.ReadFile(cas.want)
 			if err != nil {
 				t.Fatalf("ReadFile()=%s", err)
 			}
@@ -150,6 +147,19 @@ func TestApplyTemplate(t *testing.T) {
 			stack, err := s.ApplyTemplate(cred)
 			if err != nil {
 				t.Fatalf("ApplyTemplate()=%s", err)
+			}
+
+			if *update {
+				if err := providertest.Write(cas.want, stack.Content, stripNondeterministicResources); err != nil {
+					t.Fatalf("Write()=%s", err)
+				}
+
+				return
+			}
+
+			pWant, err := ioutil.ReadFile(cas.want)
+			if err != nil {
+				t.Fatalf("ReadFile()=%s", err)
 			}
 
 			if err := providertest.Equal(stack.Content, string(pWant), stripNondeterministicResources); err != nil {

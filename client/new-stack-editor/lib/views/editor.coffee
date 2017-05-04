@@ -1,9 +1,13 @@
+debug = (require 'debug') 'nse:editor'
+
 kd = require 'kd'
 AceView = require 'ace/aceview'
 FSHelper = require 'app/util/fs/fshelper'
 
 Events = require '../events'
 BaseView = require './baseview'
+
+yamlutils = require 'app/util/stacks/yamlutils'
 
 
 module.exports = class Editor extends BaseView
@@ -15,15 +19,40 @@ module.exports = class Editor extends BaseView
     options.filename   ?= 'untitled.yaml'
     options.showgutter ?= yes
     options.readonly   ?= no
+    options.preview    ?= no
 
     super options, data
 
     @_initialContent = ''
 
+    { filename, preview } = @getOptions()
 
-  getContent: ->
+    @aceView = new AceView {
+      cssClass: 'editor'
+      useStorage: no
+      createBottomBar: no
+    }, FSHelper.createFileInstance { path: "localfile:/#{filename}" }
 
-    @aceView.ace.getContents()
+    @getPreview = preview  if preview
+
+
+  getContent: (as) ->
+
+    content = @aceView.ace.getContents()
+
+    switch as
+      when 'json'
+        { content } = yamlutils.yamlToJson content
+      when 'yaml'
+        { content } = yamlutils.jsonToYaml content
+
+    return content
+
+
+  parseContent: ->
+
+    { err, content, contentObject } = yamlutils.yamlToJson @getContent()
+    return [ err, contentObject ]
 
 
   setContent: (content, type = 'text') -> @ready =>
@@ -58,6 +87,9 @@ module.exports = class Editor extends BaseView
 
   setReadOnly: (state) -> @ready =>
 
+    if intialState = @getOption 'readonly'
+      state = intialState
+
     @aceView.ace.setReadOnly state, no
     state = if state then 'none' else 'block'
     @aceView.ace.editor.renderer.$cursorLayer.element.style.display = state
@@ -67,15 +99,7 @@ module.exports = class Editor extends BaseView
 
     super
 
-    { filename, showgutter, readonly, theme = 'base16' } = @getOptions()
-
-    file = FSHelper.createFileInstance { path: "localfile:/#{filename}" }
-
-    @aceView = new AceView {
-      cssClass: 'editor'
-      useStorage: no
-      createBottomBar: no
-    }, file
+    { showgutter, readonly, theme = 'base16' } = @getOptions()
 
     { ace } = @aceView
 

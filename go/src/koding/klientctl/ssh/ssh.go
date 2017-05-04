@@ -25,6 +25,9 @@ const (
 var (
 	// ErrPublicKeyNotFound indicates that provided public key does not exist.
 	ErrPublicKeyNotFound = errors.New("public key not found")
+
+	// ErrPublicKeyNotFound indicates that provided public key does not exist.
+	ErrPrivateKeyNotFound = errors.New("private key not found")
 )
 
 // GetKeyPath returns default SSH keys directory for a given user. If user is
@@ -103,6 +106,29 @@ func PublicKey(pubPath string) (pubKey string, err error) {
 	}
 
 	return string(content), nil
+}
+
+// PrivateKey returns a private key stored under the given path.
+func PrivateKey(privPath string) (privKey interface{}, err error) {
+	_, err = os.Stat(privPath)
+	if os.IsNotExist(err) {
+		return nil, ErrPrivateKeyNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := ioutil.ReadFile(privPath)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := ssh.ParseRawPrivateKey(p)
+	if err != nil {
+		return nil, errors.New(privPath + ": " + err.Error())
+	}
+
+	return key, nil
 }
 
 // Keypaths generates a public and private keys paths from a given argument. If

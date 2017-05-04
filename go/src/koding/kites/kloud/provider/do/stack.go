@@ -188,13 +188,8 @@ func (s *Stack) modifyDroplets(keyID int) (map[string]map[string]interface{}, er
 			droplet["image"] = defaultUbuntuImage
 		}
 
-		ub, err := s.BuildUserdata(dropletName, droplet)
-		if err != nil {
+		if err := s.BuildUserdata(dropletName, droplet); err != nil {
 			return nil, err
-		}
-
-		s.Builder.Template.Variable[ub.KiteKeyName] = map[string]interface{}{
-			"default": ub.KiteKeys,
 		}
 
 		resource.Droplet[dropletName] = droplet

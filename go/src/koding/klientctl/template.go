@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"text/tabwriter"
 
+	"koding/kites/kloud/stack/provider"
+	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/remoteapi"
 	"koding/klientctl/helper"
@@ -20,15 +25,16 @@ import (
 )
 
 func TemplateList(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	tf := &remoteapi.TemplateFilter{
+	f := &remoteapi.Filter{
 		Slug: c.String("template"),
+		Team: c.String("team"),
 	}
 
-	if tf.Slug == "" {
-		tf.Slug = kloud.Username() + "/"
+	if f.Slug == "" {
+		f.Slug = kloud.Username() + "/"
 	}
 
-	tmpls, err := remoteapi.ListTemplates(tf)
+	tmpls, err := remoteapi.ListTemplates(f)
 	if err != nil {
 		return 1, err
 	}
@@ -48,16 +54,16 @@ func TemplateList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	tf := &remoteapi.TemplateFilter{
+	f := &remoteapi.Filter{
 		ID:   c.String("id"),
-		Slug: c.String("template"),
+		Slug: c.Args().Get(0),
 	}
 
-	if tf.ID == "" && tf.Slug == "" {
+	if f.ID == "" && f.Slug == "" {
 		return 1, errors.New("error requesting template - missing slug name")
 	}
 
-	tmpls, err := remoteapi.ListTemplates(tf)
+	tmpls, err := remoteapi.ListTemplates(f)
 	if err != nil {
 		return 1, err
 	}
@@ -102,17 +108,17 @@ func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	tf := &remoteapi.TemplateFilter{
+	f := &remoteapi.Filter{
 		ID:   c.String("id"),
 		Slug: c.String("template"),
 	}
 
-	if tf.ID == "" && tf.Slug == "" {
+	if f.ID == "" && f.Slug == "" {
 		return 1, errors.New("error deleting template - missing slug name")
 	}
 
-	if tf.ID == "" {
-		tmpls, err := remoteapi.ListTemplates(tf)
+	if f.ID == "" {
+		tmpls, err := remoteapi.ListTemplates(f)
 		if err != nil {
 			return 1, err
 		}
@@ -121,7 +127,7 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			return 1, fmt.Errorf("error deleting template - got %d templates, expecting only one", len(tmpls))
 		}
 
-		tf.ID = tmpls[0].ID
+		f.ID = tmpls[0].ID
 	}
 
 	if !c.Bool("force") {
@@ -135,13 +141,130 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		}
 	}
 
-	if err := remoteapi.DeleteTemplate(tf.ID); err != nil {
+	if err := remoteapi.DeleteTemplate(f.ID); err != nil {
 		return 1, err
 	}
 
-	fmt.Printf("Stack template with %q ID deleted successfully.\n", tf.ID)
+	fmt.Printf("Stack template with %q ID deleted successfully.\n", f.ID)
 
 	return 0, nil
+}
+
+func templateInit(output string, useDefaults bool, providerName string) error {
+	if _, err := os.Stat(output); err == nil && !useDefaults {
+		yn, err := helper.Ask("Do you want to overwrite %q file? [y/N]: ", output)
+		if err != nil {
+			return err
+		}
+
+		switch strings.ToLower(yn) {
+		case "yes", "y":
+			fmt.Println()
+		default:
+			return errors.New("aborted by user")
+		}
+	}
+
+	descs, err := credential.Describe()
+	if err != nil {
+		return err
+	}
+
+	if providerName == "" {
+		if providerName, err = helper.Ask("Provider type []: "); err != nil {
+			return err
+		}
+	}
+
+	if _, ok := descs[providerName]; !ok {
+		return fmt.Errorf("provider %q does not exist", providerName)
+	}
+
+	tmpl, defaults, err := remoteapi.SampleTemplate(providerName)
+	if err != nil {
+		return err
+	}
+
+	vars := provider.ReadVariables(tmpl)
+	input := make(map[string]string)
+
+	for _, v := range vars {
+		if !strings.HasPrefix(v.Name, "userInput_") {
+			continue
+		}
+
+		name := v.Name[len("userInput_"):]
+		defValue := ""
+		if v, ok := defaults[name]; ok && v != nil {
+			defValue = fmt.Sprintf("%v", v)
+		}
+
+		var value string
+
+		if !useDefaults {
+			if value, err = helper.Ask("Set %q to [%s]: ", name, defValue); err != nil {
+				return err
+			}
+		}
+
+		if value == "" {
+			value = defValue
+		}
+
+		input[v.Name] = value
+	}
+
+	tmpl = provider.ReplaceVariablesFunc(tmpl, vars, func(v *provider.Variable) string {
+		if s, ok := input[v.Name]; ok {
+			return s
+		}
+
+		return v.String()
+	})
+
+	var m map[string]interface{}
+
+	if err := json.Unmarshal([]byte(tmpl), &m); err != nil {
+		return err
+	}
+
+	p, err := yaml.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.Create(output)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(f, bytes.NewReader(p))
+	err = nonil(err, f.Close())
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\nTemplate successfully written to %s.\n", f.Name())
+
+	return nil
+}
+
+func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if err := templateInit(c.String("output"), c.Bool("defaults"), c.String("provider")); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 func printTemplates(templates []*models.JStackTemplate) {
@@ -158,6 +281,13 @@ func printTemplates(templates []*models.JStackTemplate) {
 			}
 		}
 
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", tmpl.ID, *tmpl.Title, *tmpl.Slug, owner, *tmpl.Group, tmpl.AccessLevel, len(tmpl.Machines))
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", tmpl.ID, str(tmpl.Title), str(tmpl.Slug), owner, str(tmpl.Group), tmpl.AccessLevel, len(tmpl.Machines))
 	}
+}
+
+func str(s *string) string {
+	if s == nil || *s == "" {
+		return "-"
+	}
+	return *s
 }

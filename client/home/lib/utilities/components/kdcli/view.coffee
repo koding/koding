@@ -17,6 +17,6 @@ module.exports = class KDCliView extends React.Component
         For detailed instructions:
       </p>
       <p className='view-guide'>
-        <a className='HomeAppView--button primary' href='https://www.koding.com/docs/connect-your-machine' target='_blank'>VIEW GUIDE</a>
+        <a className='HomeAppView--button primary' href='https://www.koding.com/docs/use-your-own-ide' target='_blank'>VIEW GUIDE</a>
       </p>
     </div>

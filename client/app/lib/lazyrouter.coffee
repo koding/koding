@@ -1,3 +1,4 @@
+debug = require('debug')('app:lazyrouter')
 Emitter = require('events').EventEmitter
 registerRoutes = require './util/registerRoutes'
 _ = require 'lodash'
@@ -6,7 +7,12 @@ emitter = new Emitter
 
 
 dispatch = (m, type, info, state, path) ->
-  emitter.emit m.name.toLowerCase(), type, info, state, path, this
+
+  name = m.name.toLowerCase()
+
+  debug 'dispatch', { name, type, info, state, path }
+
+  emitter.emit name, type, info, state, path, this
 
 
 exports.bind = (name, fn) ->

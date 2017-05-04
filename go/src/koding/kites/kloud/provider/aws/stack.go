@@ -128,13 +128,8 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			instance["security_groups"] = []string{bootstrap.SG}
 		}
 
-		ud, err := s.BuildUserdata(resourceName, instance)
-		if err != nil {
+		if err := s.BuildUserdata(resourceName, instance); err != nil {
 			return nil, err
-		}
-
-		t.Variable[ud.KiteKeyName] = map[string]interface{}{
-			"default": ud.KiteKeys,
 		}
 
 		resource.AwsInstance[resourceName] = instance

@@ -30,7 +30,9 @@ module.exports = class StackController extends BaseController
     } else null
 
 
-  save: (callback) ->
+  save: (callback) -> @check (err) =>
+
+    return callback err  if err
 
     stackTemplate = @getData()
     debug 'generating stack', stackTemplate

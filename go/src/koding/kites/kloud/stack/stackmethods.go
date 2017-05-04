@@ -114,10 +114,11 @@ type Machine struct {
 	Credential *Credential       `json:"-"`
 
 	// Fields set by kloud.apply:
-	QueryString string             `json:"queryString,omitempty"`
-	RegisterURL string             `json:"registerURL,omitempty"`
-	State       machinestate.State `json:"state,omitempty"`
-	StateReason string             `json:"stateReason,omitempty"`
+	QueryString string                 `json:"queryString,omitempty"`
+	RegisterURL string                 `json:"registerURL,omitempty"`
+	State       machinestate.State     `json:"state,omitempty"`
+	StateReason string                 `json:"stateReason,omitempty"`
+	Meta        map[string]interface{} `json:"meta,omitempty"`
 }
 
 // Machines represents group of machines mapped by a label.

@@ -16,7 +16,7 @@ module.exports = class JGroup extends Module
   { Inflector, ObjectId, ObjectRef, secure, signature } = require 'bongo'
 
   JPermissionSet = require './permissionset'
-  { permit }     = JPermissionSet
+  { permit, expireCache } = JPermissionSet
 
   JAccount       = require '../account'
   KodingError    = require '../../error'
@@ -551,31 +551,12 @@ module.exports = class JGroup extends Module
     @byRelevance client, seed, options, callback
 
   fetchData: (callback) ->
-
-    slug = @getAt 'slug'
-
     JGroupData = require './groupdata'
-    JGroupData.one { slug }, (err, data) ->
-      return callback err  if err
-
-      if not data
-        data = new JGroupData { slug }
-        data.save (err) ->
-          return callback err  if err
-          callback null, data
-      else
-        callback null, data
-
+    JGroupData.fetchData @slug, callback
 
   fetchDataAt: (path, callback) ->
-
-    @fetchData (err, data) ->
-
-      return callback err  if err
-
-      path = "data.#{path}"  if path.indexOf 'data.' isnt 0
-      callback null, data.getAt path
-
+    JGroupData = require './groupdata'
+    JGroupData.fetchDataAt @slug, path, callback
 
   fetchDataAt$: permit
     advanced: [
@@ -584,7 +565,6 @@ module.exports = class JGroup extends Module
     ]
     success: (client, path, callback) ->
       @fetchDataAt path, callback
-
 
   sendNotification: (event, contents, callback) ->
     JGroup.sendNotification @getAt('slug'), event, contents, callback
@@ -1070,24 +1050,9 @@ module.exports = class JGroup extends Module
       { permission: 'edit own groups', validateWith : Validators.group.admin }
       { permission: 'edit groups',     superadmin   : yes }
     ]
-    success  : (client, _data, callback) ->
-
-      # it's only allowed to change followings
-      whitelist  = ['github.organizationToken']
-
-      # handle $set and $unset cases in one
-      operation  = { $set: {}, $unset: {} }
-      for item in whitelist
-        key = "data.#{item}"
-        if _data[item]?
-        then operation.$set[key]   = _data[item]
-        else operation.$unset[key] = _data[item]
-
-      @fetchData (err, data) ->
-        return callback err  if err
-
-        data.update operation, (err) ->
-          callback err
+    success  : (client, data, callback) ->
+      JGroupData = require './groupdata'
+      JGroupData.modifyData @getAt('slug'), data, callback
 
 
   modify     : permit
@@ -1112,6 +1077,10 @@ module.exports = class JGroup extends Module
         return callback err  if err
         return callback new KodingError 'No such group!'  unless group
 
+        kallback = (rest...) ->
+          expireCache group.getAt 'slug'
+          callback rest...
+
         # we need to make sure if given stack template is
         # valid for the current group limit ~ GG
         templates = data.stackTemplates
@@ -1119,9 +1088,9 @@ module.exports = class JGroup extends Module
           ComputeProvider = require '../computeproviders/computeprovider'
           ComputeProvider.validateTemplates client, templates, group, (err) =>
             return callback err  if err
-            @updateAndNotify notifyOptions, { $set: data }, callback
+            @updateAndNotify notifyOptions, { $set: data }, kallback
         else
-          @updateAndNotify notifyOptions, { $set: data }, callback
+          @updateAndNotify notifyOptions, { $set: data }, kallback
 
 
   setLimit    : permit
@@ -1163,7 +1132,7 @@ module.exports = class JGroup extends Module
         return callback err  if err
 
         dataToUnset = {}
-        dataToUnset["data.#{provider}.applicationSecret"] = null
+        dataToUnset["payload.#{provider}.applicationSecret"] = null
         data.update { $unset: dataToUnset }, callback
 
 
@@ -1217,7 +1186,7 @@ module.exports = class JGroup extends Module
             return callback err  if err
 
             dataToSet = {}
-            dataToSet["data.#{provider}"] = { applicationSecret }
+            dataToSet["payload.#{provider}"] = { applicationSecret }
             data.update { $set: dataToSet }, (err) ->
               return callback err  if err
 

@@ -177,60 +177,57 @@ func (ci CloudInit) String() string {
 // a kloud's cloud-init that is used to deploy
 // a klient service on a remote instance.
 type CloudConfig struct {
-	Username  string
-	Metadata  string
-	Userdata  string
-	KiteKey   string
-	Provision string
+	Metadata string
+	Userdata string
 }
 
 // NewCloudInit creates new cloud-init content from
 // the given configuration.
 func NewCloudInit(cfg *CloudConfig) CloudInit {
+	var files, cmd []interface{}
+
+	files = append(files, map[string]interface{}{
+		"path":        "/var/lib/koding/provision.sh",
+		"permissions": "0755",
+		"content":     provision,
+	})
+
+	cmd = append(cmd, "/var/lib/koding/provision.sh")
+
+	if cfg.Metadata != "" {
+		files = append(files, map[string]interface{}{
+			"path":        "/var/lib/koding/metadata.json",
+			"content":     cfg.Metadata,
+			"permissions": "0644",
+		})
+	}
+
+	if cfg.Userdata != "" {
+		files = append(files, map[string]interface{}{
+			"path":        "/var/lib/koding/user-data.sh",
+			"permissions": "0755",
+			"content":     cfg.Userdata,
+		})
+	}
+
 	return CloudInit{
 		"output": map[string]interface{}{
 			"all": "| tee -a /var/log/cloud-init-output.log",
 		},
+		"hostname": "${var.koding_account_profile_nickname}",
 		"users": []interface{}{
 			"default",
 			map[string]interface{}{
-				"name":        cfg.Username,
+				"name":        "${var.koding_account_profile_nickname}",
 				"lock_passwd": bool(true),
 				"gecos":       "Koding",
-				"groups": []interface{}{
-					"sudo",
-				},
-				"sudo": []interface{}{
-					"ALL=(ALL) NOPASSWD:ALL",
-				},
-				"shell": "/bin/bash",
+				"groups":      []interface{}{"sudo"},
+				"sudo":        []interface{}{"ALL=(ALL) NOPASSWD:ALL"}, // TODO(rjeczalik): limit to only screen + klient
+				"shell":       "/bin/bash",
 			},
 		},
-		"write_files": []interface{}{
-			map[string]interface{}{
-				"path":    "/etc/kite/kite.key",
-				"content": cfg.KiteKey,
-			},
-			map[string]interface{}{
-				"path":        "/var/lib/koding/metadata.json",
-				"content":     cfg.Metadata,
-				"permissions": "0644",
-			},
-			map[string]interface{}{
-				"path":        "/var/lib/koding/user-data.sh",
-				"permissions": "0755",
-				"encoding":    "b64",
-				"content":     cfg.Userdata,
-			},
-			map[string]interface{}{
-				"path":        "/var/lib/koding/provision.sh",
-				"permissions": "0755",
-				"content":     cfg.Provision,
-			},
-		},
-		"runcmd": []interface{}{
-			"/var/lib/koding/provision.sh",
-		},
+		"write_files": files,
+		"runcmd":      cmd,
 	}
 }
 
@@ -240,7 +237,7 @@ func NewCloudInit(cfg *CloudConfig) CloudInit {
 // If p does not look like cloud-init content,
 // the function returns the ErrNotCloudInit error.
 func ParseCloudInit(p []byte) (CloudInit, error) {
-	if !bytes.HasPrefix(p, header) {
+	if !bytes.HasPrefix(bytes.TrimSpace(p), header) {
 		return nil, ErrNotCloudInit
 	}
 

@@ -1,14 +1,18 @@
-kd = require 'kd'
 _ = require 'lodash'
 $ = require 'jquery'
+kd = require 'kd'
 React = require 'app/react'
-TimeAgo = require 'app/components/common/timeago'
-UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
-getBoundingClientReact = require 'app/util/getBoundingClientReact'
-StackUpdatedWidget = require 'app/components/sidebarstacksection/stackupdatedwidget'
+cx = require 'classnames'
+
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
+getBoundingClientReact = require 'app/util/getBoundingClientReact'
+
+TimeAgo = require 'app/components/common/timeago'
+UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
+StackUpdatedWidget = require 'app/sidebar/components/stackupdatedwidget'
+
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -16,33 +20,31 @@ module.exports = class StackTemplateItem extends React.Component
 
     super
 
-    @state        =
-      coordinates :
-        left      : 0
-        top       : 0
-      showWidget  : no
+    @state =
+      widgetVisible: no
+      coordinates: { left: 0, top: 0 }
 
 
   componentWillReceiveProps: (nextProps) ->
 
-    nextStackUnreadCount = @getStackUnreadCount nextProps.stack
-    @setState { showWidget : yes }  if nextStackUnreadCount > @getStackUnreadCount()
+    if @props.stack?.getUnreadCount() < nextProps.stack?.getUnreadCount()
+      @setState { widgetVisible: yes }
 
     @setCoordinates()
 
 
   componentDidMount: ->
 
-    $('.kdscrollview').on 'scroll', @bound 'scrollOnPage'
+    $('.kdscrollview').on 'scroll', @bound 'onScrollPage'
     @setCoordinates()
 
 
   componentWillUnmount: ->
-    $('.kdscrollview').off 'scroll', @bound 'scrollOnPage'
+    $('.kdscrollview').off 'scroll', @bound 'onScrollPage'
 
 
-  scrollOnPage: -> _.debounce =>
-    @setState({ showWidget: no })
+  onScrollPage: -> _.debounce =>
+    @setState({ widgetVisible: no })
   , 500, { leading: yes, trailing: no }
 
 
@@ -56,56 +58,67 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar, onCloneFromDashboard, template } = @props
+    { onAddToSidebar, onRemoveFromSidebar, canCreateStacks
+      isVisibleOnSidebar, onCloneFromDashboard, template } = @props
 
-    if onCloneFromDashboard and template.get('originId') isnt whoami()._id
-      <a href="#" className="HomeAppView--button primary" onClick={onCloneFromDashboard}>CLONE STACK</a>
+    if onCloneFromDashboard and not template.isMine()
+      <ItemLink
+        disabled={not canCreateStacks}
+        onClick={onCloneFromDashboard}
+        title='CLONE STACK' />
+
+    else if isVisibleOnSidebar
+      <ItemLink
+        onClick={onRemoveFromSidebar}
+        title='REMOVE FROM SIDEBAR' />
     else
-
-      if isVisibleOnSidebar
-        <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
-      else
-        <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
+      <ItemLink
+        onClick={onAddToSidebar}
+        title='ADD TO SIDEBAR' />
 
 
-  renderCloneButton: ->
+  canClone: ->
+    { canCreateStacks, template, onCloneFromDashboard } = @props
 
-    { template, onCloneFromDashboard } = @props
-    return  if template.get('accessLevel') is 'private'
-    return  if template.get('originId') is whoami()._id
-
+    return not onCloneFromDashboard or template.isMine() or canCreateStacks
 
 
-  getStackUnreadCount: (stack = @props.stack) ->
+  renderCloningDisabledMessage: ->
 
-    stack?.getIn [ '_revisionStatus', 'status', 'code' ]
+    { canCreateStacks, template, onCloneFromDashboard } = @props
+
+    return null  if @canClone()
+
+    <div className='cloning-disabled-msg'>
+      Cloning is disabled for members.
+      Please ask one of your admins to enable stack creation permission.
+    </div>
 
 
   renderUnreadCount: ->
 
-    return null  unless @getStackUnreadCount()
+    return null  unless count = @props.stack?.getUnreadCount()
 
-    <UnreadCount
-      count={@getStackUnreadCount()}
-      onClick={@bound 'handleUnreadCountClick'} />
+    <UnreadCount count={count} onClick={@bound 'handleUnreadCountClick'} />
 
 
   handleUnreadCountClick: ->
 
     @setCoordinates()
-    @setState { showWidget: yes }
+    @setState { widgetVisible: yes }
 
 
   onWidgetClose: ->
 
-    @setState { showWidget: no }
+    @setState { widgetVisible: no }
 
 
   renderStackUpdatedWidget: ->
 
-    { coordinates, showWidget } = @state
+    { coordinates, widgetVisible } = @state
 
-    return null  unless @getStackUnreadCount()
+    return null  unless widgetVisible
+    return null  unless @props.stack?.getUnreadCount()
     return null  if not coordinates.left and coordinates.top
 
     coordinates.top = coordinates.top - 160
@@ -115,34 +128,17 @@ module.exports = class StackTemplateItem extends React.Component
       className='StackTemplate'
       coordinates={coordinates}
       stack={@props.stack}
-      visible={showWidget}
       onClose={@bound 'onWidgetClose'}
     />
 
-  renderDisabledStack: (stack, onOpen) ->
-
-    <div className='HomeAppViewListItem StackTemplateItem'>
-      <a
-        ref='stackTemplateItem'
-        className='HomeAppViewListItem-label disabled'
-        onClick={onOpen}>
-        { makeTitle { stack } }
-      </a>
-      <div className='HomeAppViewListItem-description disabled'>
-        Last updated <TimeAgo from={stack.getIn ['meta', 'modifiedAt']} />
-      </div>
-      <div className='HomeAppViewListItem-SecondaryContainer'>
-        {@renderButton()}
-      </div>
-    </div>
 
   renderTags: ->
 
     { template, onCloneFromDashboard } = @props
 
-    if isDefaultTeamStack template.get '_id'
+    if isDefaultTeamStack template.getId()
       <div className='tag default'>DEFAULT</div>
-    else if onCloneFromDashboard and template.get('accessLevel') is 'group'
+    else if onCloneFromDashboard and template.accessLevel is 'group'
       <div className='tag shared'>SHARED</div>
     else
       null
@@ -152,10 +148,19 @@ module.exports = class StackTemplateItem extends React.Component
 
     { template, stack, onOpen } = @props
 
-    return @renderDisabledStack(stack, onOpen)  if stack?.get 'disabled'
-    return null  unless template
+    if stack?.getOldOwner()
+      return (
+        <DisabledStack
+          template={template}
+          stack={stack}
+          onOpen={onOpen}
+        />
+      )
 
-    editorUrl = "/Stack-Editor/#{template.get '_id'}"
+    if not template
+      return null
+
+    editorUrl = "/Stack-Editor/#{template.getId()}"
 
     <div className='HomeAppViewListItem StackTemplateItem'>
       <div className='HomeAppViewListItem-label--wrapper'>
@@ -163,28 +168,57 @@ module.exports = class StackTemplateItem extends React.Component
           ref='stackTemplateItem'
           href={editorUrl}
           className='HomeAppViewListItem-label'
-          onClick={onOpen}>
-          { makeTitle { template, stack } }
+          onClick={onOpen}
+          children={ makeTitle { template, stack } }>
         </a>
         {@renderUnreadCount()}
         {@renderTags()}
       </div>
       {@renderStackUpdatedWidget()}
       <div className='HomeAppViewListItem-description'>
-        Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
+        Last updated <TimeAgo from={template.meta.modifiedAt} />
       </div>
       <div className='HomeAppViewListItem-SecondaryContainer'>
         {@renderButton()}
+        {@renderCloningDisabledMessage()}
       </div>
     </div>
 
 
+DisabledStack = ({ template, stack, onOpen }) ->
+  <div className='HomeAppViewListItem StackTemplateItem'>
+    <a
+      className='HomeAppViewListItem-label disabled'
+      onClick={onOpen}
+      children={makeTitle({ stack, template })} />
+
+    <div className='HomeAppViewListItem-description disabled'>
+      Last Updated <TimeAgo from={stack.meta.modifiedAt} />
+    </div>
+  </div>
+
+
 makeTitle = ({ template, stack }) ->
 
-  title = _.unescape template?.get 'title'
+  title = _.unescape template?.title
 
   return title  unless stack
-  if stack.getIn(['config', 'oldOwner'])
-    title = stack.get 'title'
 
-  return "#{title}"
+  if owner = stack.getOldOwner()
+    title = "#{title} (@#{owner})"
+
+  return title
+
+
+ItemLink = ({ onClick, title, disabled }) ->
+  className = cx 'HomeAppView--button',
+    'primary': not disabled
+    'inactive': disabled
+
+  onClick = kd.noop  if disabled
+
+  <a
+    href="#"
+    className={className}
+    onClick={onClick}
+    children={title} />

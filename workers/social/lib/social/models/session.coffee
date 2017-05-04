@@ -94,9 +94,7 @@ module.exports = class JSession extends Model
         clientId
       }
 
-      session = new JSession sessionOptions
-
-      session.save (err) ->
+      @createNewSession sessionOptions, (err, session) ->
         if err then callback err
         else callback null, { session, account }
 
@@ -184,3 +182,7 @@ module.exports = class JSession extends Model
       return callback new KodingError 'Access denied'
 
     @remove callback
+
+
+  isGuestSession: ->
+    !!(@getAt('guestSessionBegan') or /^guest\-/.test @getAt('username'))

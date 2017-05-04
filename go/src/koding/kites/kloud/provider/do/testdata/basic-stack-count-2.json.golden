@@ -17,14 +17,6 @@
         ],
         "user_data": "..."
       }
-    },
-    "null_resource": {
-      "do-instance": {
-        "depends_on": [],
-        "triggers": {
-          "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
-        }
-      }
     }
   },
   "variable": {

@@ -99,7 +99,8 @@ type Planner struct {
 //
 // It ignores any other resources than those specified by p.ResourceType
 // and p.Provider.
-func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*DialState) (map[string]*stack.Machine, error) {
+func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*DialState,
+	metas map[string]map[string]interface{}) (map[string]*stack.Machine, error) {
 	if len(state.Modules) == 0 {
 		return nil, errors.New("state modules is empty")
 	}
@@ -125,7 +126,9 @@ func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*
 
 			attrs := make(map[string]string, len(r.Primary.Attributes))
 			for key, val := range r.Primary.Attributes {
-				attrs[key] = val
+				if !strings.ContainsAny(key, "#.") && val != "" {
+					attrs[key] = val
+				}
 			}
 
 			state, ok := klients[label]
@@ -141,6 +144,10 @@ func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*
 				RegisterURL: state.KiteURL,
 				State:       machinestate.Running,
 				StateReason: "Created with kloud.apply",
+			}
+
+			if meta, ok := metas[label]; ok && len(meta) != 0 {
+				machine.Meta = meta
 			}
 
 			if state.Err != nil {
@@ -190,8 +197,10 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (stack.Machines, error)
 			}
 
 			attrs := make(map[string]string, len(r.Attributes))
-			for name, a := range r.Attributes {
-				attrs[name] = a.New
+			for key, val := range r.Attributes {
+				if !strings.ContainsAny(key, "#.") && val.New != "" {
+					attrs[key] = val.New
+				}
 			}
 
 			machines[label] = &stack.Machine{

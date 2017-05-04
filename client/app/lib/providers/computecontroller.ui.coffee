@@ -419,7 +419,7 @@ module.exports = class ComputeControllerUI
           type       : 'button'
           callback   : ->
             modal.destroy()
-            callback { confirmed: no }
+            callback { confirmed: no, cancelled: yes }
         ok           :
           title      : button ? 'Yes, remove'
           style      : 'solid medium'
@@ -597,3 +597,75 @@ module.exports = class ComputeControllerUI
     else
 
       modal.addSubView errorDetails
+
+
+  createConfirmationModal = (callback) ->
+
+    modal = new ContentModal
+      cssClass     : 'content-modal ShareConfirmationModal'
+      overlay      : yes
+      title        : 'Sharing Credentials'
+      content      : '''
+        <h2>Do you really want to share your own credentials?</h2>
+        <p>When you share your own credentials with your team,
+        they will be able to create resources with it. If you don’t share,
+        your team members will need to put their own credentials.</p>
+      '''
+      buttons      :
+        cancel     :
+          title    : 'No'
+          cssClass : 'kdbutton solid medium'
+          callback : ->
+            callback { shareStack: yes, shareCredential: no }
+            modal.destroy()
+        ok         :
+          title    : 'Yes'
+          loader   : yes
+          cssClass : 'kdbutton solid medium'
+          callback : ->
+            callback { shareStack: yes, shareCredential: yes, modal }
+
+
+  @createShareModal = (callback, force = no) ->
+
+    return callback yes  if force
+
+    content = new kd.CustomHTMLView
+      partial  : '''
+        <div class="background"></div>
+        <h1>Share your stack template with your team members</h1>
+        <p>When you share your stack template, we will notify team members.</p>
+      '''
+    content.addSubView checkboxWrapper = new kd.CustomHTMLView
+      tagName  : 'p'
+      cssClass : 'checkbox-wrapper'
+    checkboxWrapper.addSubView checkbox = new kd.CustomCheckBox()
+    checkbox.setValue yes
+    checkboxWrapper.addSubView label = new kd.CustomHTMLView
+      tagName  : 'span'
+      partial  : 'Share the credentials I used for this stack with my team.'
+      click    : -> checkbox.setValue not checkbox.getValue()
+
+    modal = new ContentModal
+      cssClass     : 'content-modal ShareModal'
+      overlay      : yes
+      width        : 700
+      title        : 'Share Your Stack'
+      content      : content
+      buttons      :
+        cancel     :
+          title    : 'Cancel'
+          cssClass : 'kdbutton solid medium'
+          callback : ->
+            callback { shareStack: no, shareCredential: no }
+            modal.destroy()
+        share      :
+          title    : 'Share With the Team'
+          loader   : yes
+          cssClass : 'kdbutton solid medium'
+          callback : ->
+            if checkbox.getValue()
+              modal.destroy()
+              createConfirmationModal callback
+            else
+              callback { shareStack: yes, shareCredential: no, modal }

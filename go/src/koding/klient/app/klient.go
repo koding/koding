@@ -45,6 +45,8 @@ import (
 	"koding/klient/uploader"
 	"koding/klient/usage"
 	"koding/klient/vagrant"
+	"koding/klientctl/daemon"
+	"koding/logrotate"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
@@ -70,7 +72,7 @@ type Klient struct {
 	storage *storage.Storage
 
 	// terminal provides wmethods
-	terminal *terminal.Terminal
+	terminal terminal.Terminal
 
 	// vagrant handlers
 	vagrant *vagrant.Handlers
@@ -139,6 +141,7 @@ type KlientConfig struct {
 	Debug       bool
 
 	ScreenrcPath string
+	ScreenTerm   string
 
 	UpdateInterval time.Duration
 	UpdateURL      string
@@ -157,6 +160,7 @@ type KlientConfig struct {
 	LogBucketRegion   string
 	LogBucketName     string
 	LogUploadInterval time.Duration
+	LogLevel          kite.Level
 
 	Metadata     string
 	MetadataFile string
@@ -244,15 +248,8 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	}
 
 	k := newKite(conf)
-	k.Config.VerifyAudienceFunc = verifyAudience
 
-	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
-		!konfig.Konfig.Endpoints.Kontrol().Equal(konfig.Builtin.Endpoints.Kontrol()) {
-		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
-	}
-
-	term := terminal.New(k.Log, conf.ScreenrcPath)
-	term.InputHook = usg.Reset
+	term := terminal.New(k.Log, conf.ScreenrcPath, usg.Reset)
 
 	db, err := openBoltDB(configstore.CacheOptions("klient"))
 	if err != nil {
@@ -286,7 +283,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	t, err := tunnel.New(tunOpts)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if conf.UpdateInterval < time.Minute {
@@ -495,6 +492,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
 	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
 	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
+	k.kite.HandleFunc("machine.mount.inspect", machinegroup.KiteHandlerInspectMount(k.machines))
 	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
 	k.kite.HandleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))
 	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)
@@ -727,11 +725,23 @@ func (k *Klient) Run() {
 
 		for _, file := range uploader.LogFiles {
 			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
-			if err != nil && !os.IsNotExist(err) {
+			if err != nil && !os.IsNotExist(err) && !logrotate.IsNop(err) {
 				k.log.Warning("failed to upload %q: %s", file, err)
 			}
 		}
 	}()
+
+	switch err := daemon.InstallScreen(); err {
+	case nil:
+		terminal.Reset()
+	case daemon.ErrSkipInstall:
+	default:
+		k.log.Error("%s", err)
+	}
+
+	if k.config.ScreenTerm != "" {
+		terminal.SetTerm(k.config.ScreenTerm)
+	}
 
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
@@ -830,6 +840,20 @@ func (k *Klient) Close() {
 	k.kite.Close()
 }
 
+// NewUploader creates new uploader value from the given klient configuration.
+func NewUploader(kconf *KlientConfig) *uploader.Uploader {
+	k := newKite(kconf)
+	k.SetLogLevel(kite.ERROR)
+
+	return uploader.New(&uploader.Options{
+		KeygenURL: konfig.Konfig.Endpoints.Kloud().Public.String(),
+		Kite:      k,
+		Bucket:    kconf.logBucketName(),
+		Region:    kconf.logBucketRegion(),
+		Log:       k.Log,
+	})
+}
+
 func newKite(kconf *KlientConfig) *kite.Kite {
 	k := kite.NewWithConfig(kconf.Name, kconf.Version, konfig.Konfig.KiteConfig())
 
@@ -845,6 +869,13 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	// replace kontrolURL if's being overidden
 	if kconf.KontrolURL != "" {
 		k.Config.KontrolURL = kconf.KontrolURL
+	}
+
+	k.Config.VerifyAudienceFunc = verifyAudience
+
+	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
+		!konfig.Konfig.Endpoints.Kontrol().Equal(konfig.Builtin.Endpoints.Kontrol()) {
+		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
 	return k

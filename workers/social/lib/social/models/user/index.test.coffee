@@ -930,14 +930,14 @@ runTests = -> describe 'workers.social.user.index', ->
         queue = [
 
           (next) ->
-            generateDummyClient { gorup : 'koding' }, (err, client_) ->
+            generateDummyClient { group: 'koding' }, (err, client_) ->
               expect(err).to.not.exist
               { sessionToken } = client_
               next()
 
           (next) ->
-            selector = { clientId : sessionToken }
-            modifier = { $set : { username : invalidUsername } }
+            selector = { clientId: sessionToken }
+            modifier = { $set: { username: invalidUsername }, $unset: { guestSessionBegan: 1 } }
             JSession.update selector, modifier, (err) ->
               expect(err).to.not.exist
               next()

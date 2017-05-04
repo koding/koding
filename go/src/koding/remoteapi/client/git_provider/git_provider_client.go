@@ -23,86 +23,89 @@ type Client struct {
 }
 
 /*
-PostRemoteAPIGitProviderCreateImportedStackTemplate post remote API git provider create imported stack template API
+GitProviderCreateImportedStackTemplate git provider create imported stack template API
 */
-func (a *Client) PostRemoteAPIGitProviderCreateImportedStackTemplate(params *PostRemoteAPIGitProviderCreateImportedStackTemplateParams) (*PostRemoteAPIGitProviderCreateImportedStackTemplateOK, error) {
+func (a *Client) GitProviderCreateImportedStackTemplate(params *GitProviderCreateImportedStackTemplateParams, authInfo runtime.ClientAuthInfoWriter) (*GitProviderCreateImportedStackTemplateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIGitProviderCreateImportedStackTemplateParams()
+		params = NewGitProviderCreateImportedStackTemplateParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIGitProviderCreateImportedStackTemplate",
+		ID:                 "GitProvider.createImportedStackTemplate",
 		Method:             "POST",
 		PathPattern:        "/remote.api/GitProvider.createImportedStackTemplate",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIGitProviderCreateImportedStackTemplateReader{formats: a.formats},
+		Reader:             &GitProviderCreateImportedStackTemplateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIGitProviderCreateImportedStackTemplateOK), nil
+	return result.(*GitProviderCreateImportedStackTemplateOK), nil
 
 }
 
 /*
-PostRemoteAPIGitProviderFetchConfig post remote API git provider fetch config API
+GitProviderFetchConfig git provider fetch config API
 */
-func (a *Client) PostRemoteAPIGitProviderFetchConfig(params *PostRemoteAPIGitProviderFetchConfigParams) (*PostRemoteAPIGitProviderFetchConfigOK, error) {
+func (a *Client) GitProviderFetchConfig(params *GitProviderFetchConfigParams, authInfo runtime.ClientAuthInfoWriter) (*GitProviderFetchConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIGitProviderFetchConfigParams()
+		params = NewGitProviderFetchConfigParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIGitProviderFetchConfig",
+		ID:                 "GitProvider.fetchConfig",
 		Method:             "POST",
 		PathPattern:        "/remote.api/GitProvider.fetchConfig",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIGitProviderFetchConfigReader{formats: a.formats},
+		Reader:             &GitProviderFetchConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIGitProviderFetchConfigOK), nil
+	return result.(*GitProviderFetchConfigOK), nil
 
 }
 
 /*
-PostRemoteAPIGitProviderImportStackTemplateData post remote API git provider import stack template data API
+GitProviderImportStackTemplateData git provider import stack template data API
 */
-func (a *Client) PostRemoteAPIGitProviderImportStackTemplateData(params *PostRemoteAPIGitProviderImportStackTemplateDataParams) (*PostRemoteAPIGitProviderImportStackTemplateDataOK, error) {
+func (a *Client) GitProviderImportStackTemplateData(params *GitProviderImportStackTemplateDataParams, authInfo runtime.ClientAuthInfoWriter) (*GitProviderImportStackTemplateDataOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPostRemoteAPIGitProviderImportStackTemplateDataParams()
+		params = NewGitProviderImportStackTemplateDataParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIGitProviderImportStackTemplateData",
+		ID:                 "GitProvider.importStackTemplateData",
 		Method:             "POST",
 		PathPattern:        "/remote.api/GitProvider.importStackTemplateData",
 		ProducesMediaTypes: []string{""},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},
 		Params:             params,
-		Reader:             &PostRemoteAPIGitProviderImportStackTemplateDataReader{formats: a.formats},
+		Reader:             &GitProviderImportStackTemplateDataReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.(*PostRemoteAPIGitProviderImportStackTemplateDataOK), nil
+	return result.(*GitProviderImportStackTemplateDataOK), nil
 
 }
 

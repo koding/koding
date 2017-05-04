@@ -1,4 +1,4 @@
-package index
+package index_test
 
 import (
 	"bytes"
@@ -6,6 +6,9 @@ import (
 	"flag"
 	"testing"
 	"time"
+
+	"koding/klient/machine/index"
+	"koding/klient/machine/index/node"
 )
 
 var repo = flag.String("repo", "", "")
@@ -16,7 +19,7 @@ func TestRepo(t *testing.T) {
 	}
 
 	start := time.Now()
-	idx, err := NewIndexFiles(*repo)
+	idx, err := index.NewIndexFiles(*repo)
 	if err != nil {
 		t.Fatalf("NewIndexFiles()=%s", err)
 	}
@@ -29,6 +32,54 @@ func TestRepo(t *testing.T) {
 	}
 
 	t.Logf("Index build time: %s", end.Sub(start))
-	t.Logf("Index file count: %d", idx.Count(-1))
+	t.Logf("Index file count: %d", idx.Tree().Count())
 	t.Logf("Index size: %.4f MiB", float64(buf.Len())/1024/1024)
+}
+
+func BenchmarkNodeLookup(b *testing.B) {
+	const name = "/idset/idset_test.go"
+	root := fixture()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, ok := root.Lookup(name); !ok {
+			b.Fatalf("want %s to be present in root node", name)
+		}
+	}
+}
+
+func BenchmarkNodeAdd(b *testing.B) {
+	const name = "proxy/tmp/sync/fuse/fuse.go"
+	entry := node.NewEntry(0xB, 0)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		root := fixture()
+		b.StartTimer()
+
+		root.Add(name, entry)
+	}
+}
+
+func BenchmarkNodeDel(b *testing.B) {
+	const name = "addresses/addresser.go"
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		root := fixture()
+		b.StartTimer()
+
+		root.Del(name)
+	}
+}
+
+func BenchmarkNodeForEach(b *testing.B) {
+	root := fixture()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		root.ForEach(func(name string, _ *node.Entry) {})
+	}
 }

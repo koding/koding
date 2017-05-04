@@ -1,0 +1,100 @@
+
+.SidebarSection-header
+  position                  relative
+  padding                   0
+  margin-bottom             13px
+  cursor                    pointer
+
+  a
+    text-decoration         none
+
+.SidebarSection-headerTitle
+  font-weight               $fw-regular
+  font-size                 $fs-small
+  height                    16px
+  line-height               16px
+  word-spacing              0.2em
+  text-transform            uppercase
+  antialiased()
+
+  a
+  a:active
+  a:visited
+    color                   $gray-8
+    display                 inline-block
+    width                   186px
+    line-height             18px
+    vertical-align          top
+    noTextDeco()
+    ellipsis()
+    pointer()
+
+.SidebarSection-body
+  padding-left              2px
+
+.SidebarSection-secondaryLink
+  abs                       50% 0px 0 0
+  margin-top                -8px // icon height is 16px
+  r-sprite                  app , 'plus_16'
+
+.SidebarSection-header
+  &.unread
+    .SidebarSection-headerTitle
+      max-width             195px
+
+    .SidebarSection-secondaryLink
+      visible()
+
+  &.active
+    .SidebarSection-headerTitle a
+      color                   #e1e1e1 !important
+      &:before
+        border-color          #e1e1e1 !important
+
+.SidebarListItem
+  antialiased()
+  display                   block
+  font-size                 15px
+  font-weight               $fw-regular
+  height                    24px
+  line-height               24px
+  color                     $gray-14
+  text-decoration           none
+
+  &:hover
+  &.active
+    width                   100%
+    rounded                 0 4px 4px 0
+    left                    -20px
+    padding-left            20px
+    color                   $white
+    .SidebarListItem-icon:before
+      color                 $white
+
+  &:hover
+    bg                      color, $gray-6
+
+  &.active
+    bg                      color, $gray-5
+
+.SidebarListItem-title
+  max-width                 180px
+  dIBlock()
+  ellipsis()
+  kalc                      width, (100% \- 25px)
+  vertical-align            top
+
+
+.SidebarListItem-unreadCount
+  abs                       0 20px 0 0
+  bg                        color #F2778A
+  color                     white
+  font-size                 9px
+  font-weight               $fw-bold
+  height                    16px
+  line-height               16px
+  margin-top                0
+  min-width                 12px
+  padding                   0 2px
+  rounded                   3px
+  text-align                center

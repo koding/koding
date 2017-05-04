@@ -592,7 +592,7 @@ imports:
 - name: github.com/koding/runner
   version: 4731344e1a09114928a27d9b34e7d546f334d366
 - name: github.com/koding/service
-  version: 700ef8751f1408ee03a0bf07bbee9969f934672f
+  version: dbfe8e758e4eea0c83496bb93751f65dc83c1bf1
 - name: github.com/koding/sshkey
   version: 1394f67258c7dca5203b1dc75c50d0b9f5762cd0
 - name: github.com/koding/terraform-provider-github
@@ -1083,6 +1083,8 @@ imports:
   version: d99083b96f422f8fd5a93bc02040acec769e178f
 - name: github.com/mitchellh/ioprogress
   version: 8163955264568045f462ae7e2d6d07b2001fc997
+- name: github.com/skratchdot/open-golang
+  version: 75fb7ed4208cf72d323d7d02fd1a5964a7a9073c
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1

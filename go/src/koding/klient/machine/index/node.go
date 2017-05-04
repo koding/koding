@@ -5,33 +5,35 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"koding/klient/machine/index/node"
 )
 
 // Node represents a file tree.
 //
 // A single node represents a file or a directory.
 //
-// Nodes marked with EntryPromiseDel flag are marked
+// Nodes marked with node.EntryPromiseDel flag are marked
 // as deleted, and are not going to be reachable via
 // Lookup, Count methods. Deleting such nodes is a nop.
 // This is how Node implements shallow delete.
 type Node struct {
 	Sub   map[string]*Node `json:"d"`
-	Entry *Entry           `json:"e,omitempty"`
+	Entry *node.Entry      `json:"e,omitempty"`
 }
 
 func newNode() *Node {
 	return &Node{
 		Sub:   make(map[string]*Node),
-		Entry: NewEntry(0, 0755|os.ModeDir),
+		Entry: node.NewEntry(0, 0755|os.ModeDir),
 	}
 }
 
 // Add adds the given entry under the given path.
 //
 // Any deleted node, encountered on the tree path that, is going to
-// be undeleted (having the EntryPromiseDel flag removed).
-func (nd *Node) Add(path string, entry *Entry) {
+// be undeleted (having the node.EntryPromiseDel flag removed).
+func (nd *Node) Add(path string, entry *node.Entry) {
 	if path == "/" || path == "" {
 		nd.Entry = entry
 		return
@@ -110,7 +112,7 @@ func (nd *Node) Clone() *Node {
 
 // PromiseAdd adds a node under the given path marked as newly added.
 //
-// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
+// If the node already exists, it'd be only marked with node.EntryPromiseAdd flag.
 //
 // If the node is already marked as newly added, the method is a no-op.
 //
@@ -118,18 +120,18 @@ func (nd *Node) Clone() *Node {
 // with this value.
 //
 // Rest of entry's fields are currently ignored.
-func (nd *Node) PromiseAdd(path string, entry *Entry) {
-	var newE *Entry
+func (nd *Node) PromiseAdd(path string, entry *node.Entry) {
+	var newE *node.Entry
 
 	if nd, ok := nd.lookup(path, true); ok {
 		newE = nd.Entry
 		newE.MergeIn(entry)
 	} else {
-		newE = NewEntry(entry.Size(), entry.Mode())
+		newE = node.NewEntry(entry.File.Size, entry.File.Mode)
 		newE.MergeIn(entry)
 	}
 
-	newE.SwapPromise(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
+	newE.Virtual.Promise.Swap(node.EntryPromiseAdd, node.EntryPromiseDel)
 	nd.Add(path, newE)
 }
 
@@ -140,35 +142,16 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 //
 // If node is non-nil, then it's used instead of looking it up
 // by the given path.
-func (nd *Node) PromiseDel(path string, node *Node) {
-	if node == nil {
+func (nd *Node) PromiseDel(path string, n *Node) {
+	if n == nil {
 		var ok bool
-		node, ok = nd.Lookup(path)
+		n, ok = nd.Lookup(path)
 		if !ok {
 			return
 		}
 	}
 
-	node.Entry.SwapPromise(EntryPromiseDel, EntryPromiseAdd|EntryPromiseUnlink)
-}
-
-// PromiseUnlink marks a node under the given path as unlinked.
-//
-// If the node does not exist or is already marked as unlinked, then
-// method is no-op.
-//
-// If node is non-nil, then it's used instead of looking it up
-// by the given path.
-func (nd *Node) PromiseUnlink(path string, node *Node) {
-	if node == nil {
-		var ok bool
-		node, ok = nd.Lookup(path)
-		if !ok {
-			return
-		}
-	}
-
-	node.Entry.SwapPromise(EntryPromiseUnlink, EntryPromiseAdd)
+	n.Entry.Virtual.Promise.Swap(node.EntryPromiseDel, node.EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -205,7 +188,7 @@ func (nd *Node) count(maxsize int64, all bool) (count int) {
 			continue
 		}
 
-		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size() <= maxsize) {
+		if cur.Entry != nil && (maxsize < 0 || cur.Entry.File.Size <= maxsize) {
 			count++
 		}
 
@@ -253,8 +236,8 @@ func (nd *Node) diskSize(maxsize int64, all bool) (size int64) {
 			continue
 		}
 
-		if nd.Entry != nil && (maxsize < 0 || nd.Entry.Size() <= maxsize) {
-			size += nd.Entry.Size()
+		if nd.Entry != nil && (maxsize < 0 || nd.Entry.File.Size <= maxsize) {
+			size += nd.Entry.File.Size
 		}
 
 		for _, nd := range nd.Sub {
@@ -268,16 +251,16 @@ func (nd *Node) diskSize(maxsize int64, all bool) (size int64) {
 // ForEach traverses the tree and calls fn on every node's entry.
 //
 // It ignored nodes marked as deleted.
-func (nd *Node) ForEach(fn func(string, *Entry)) {
+func (nd *Node) ForEach(fn func(string, *node.Entry)) {
 	nd.forEach(fn, false)
 }
 
 // ForEachAll traverses the tree and calls fn on every node's entry.
-func (nd *Node) ForEachAll(fn func(string, *Entry)) {
+func (nd *Node) ForEachAll(fn func(string, *node.Entry)) {
 	nd.forEach(fn, true)
 }
 
-func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
+func (nd *Node) forEach(fn func(string, *node.Entry), deleted bool) {
 	type node struct {
 		path string
 		node *Node
@@ -348,21 +331,21 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 
 // IsDir tells whether a node is a directory.
 func (nd *Node) IsDir() bool {
-	return nd.Entry.Mode().IsDir()
+	return nd.Entry.File.Mode.IsDir()
 }
 
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
-	return nd.Entry.Deleted()
+	return nd.Entry.Virtual.Promise.Deleted()
 }
 
 // Virtual tells whether node is marked as virtual.
 func (nd *Node) Virtual() bool {
-	return nd.Entry.HasPromise(EntryPromiseVirtual)
+	return nd.Entry.Virtual.Promise&node.EntryPromiseVirtual != 0
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.SwapPromise(0, EntryPromiseDel|EntryPromiseUnlink)
+	nd.Entry.Virtual.Promise.Swap(0, node.EntryPromiseDel)
 }
 
 func (nd *Node) shallowCopy() *Node {
@@ -418,4 +401,21 @@ func (nd *Node) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// ToTree converts node to its equivalent node.Tree representation.
+func (nd *Node) ToTree() *node.Tree {
+	tree := node.NewTree()
+	nd.ForEachAll(func(path string, entry *node.Entry) {
+		tree.DoPath(path, node.Insert(entry))
+	})
+
+	tree.DoInode(node.RootInodeID, func(_ node.Guard, n *node.Node) {
+		if n == nil {
+			panic("root node cannot be nil")
+		}
+		n.UnsetPromises()
+	})
+
+	return tree
 }

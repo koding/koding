@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-var Konfig *config.Konfig // initialized in main by koding/kites/kloud/kloud
+var Konfig = &config.Konfig{} // initialized in main by koding/kites/kloud/kloud
 
 type TeamRequest struct {
 	Provider    string `json:"provider"`

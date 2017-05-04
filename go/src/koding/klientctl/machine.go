@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,12 +12,12 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
-	"github.com/dustin/go-humanize"
+	humanize "github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -42,9 +43,7 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	}
 
 	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(infos)
+		printJSON(infos)
 		return 0, nil
 	}
 
@@ -87,10 +86,10 @@ func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, err
 	if len(idents) == 0 {
 		return 0, cli.ShowSubcommandHelp(c)
 	}
-	if err := identifiersLimit(idents, "argument", 2, 2); err != nil {
+	if err := identifiersLimit(idents, "argument", 1, 2); err != nil {
 		return 1, err
 	}
-	ident, remotePath, path, err := mountAddress(idents)
+	ident, remotePath, path, err := mountExport(idents)
 	if err != nil {
 		return 1, err
 	}
@@ -131,9 +130,7 @@ func MachineListMountCommand(c *cli.Context, log logging.Logger, _ string) (int,
 	}
 
 	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(mounts)
+		printJSON(mounts)
 		return 0, nil
 	}
 
@@ -149,13 +146,17 @@ func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, er
 	if err != nil {
 		return 1, err
 	}
-	if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
+
+	all := c.Bool("all")
+	if err := identifiersLimit(idents, "mount", 1, -1); !all && err != nil {
 		return 1, err
 	}
 
 	opts := &machine.UmountOptions{
-		Identifier: idents[0],
-		Log:        log.New("machine:umount"),
+		Identifiers: idents,
+		Force:       c.Bool("force"),
+		All:         all,
+		Log:         log.New("machine:umount"),
 	}
 
 	if err := machine.Umount(opts); err != nil {
@@ -192,7 +193,7 @@ func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	if s := c.Args()[0]; strings.HasPrefix(s, "@") {
 		opts.MachineID = s[1:]
 	} else {
-		if filepath.IsAbs(s) {
+		if !filepath.IsAbs(s) {
 			var err error
 			if s, err = filepath.Abs(s); err != nil {
 				return 1, err
@@ -256,6 +257,133 @@ func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error)
 	return 0, nil
 }
 
+// MachineInspectMountCommand allows to inspect internal mount status.
+func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	// Machine inspect command needs exactly one identifier. Either mount ID or
+	// mount local path.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
+		return 1, err
+	}
+
+	// Enable sync option when there is none set explicitly. Tree may be too
+	// large to show it implicitly.
+	isSync, isTree := c.Bool("sync"), c.Bool("tree")
+	if !isSync && !isTree {
+		isSync = true
+	}
+
+	opts := &machine.InspectMountOptions{
+		Identifier: idents[0],
+		Sync:       isSync,
+		Tree:       isTree,
+		Log:        log.New("machine:inspect"),
+	}
+
+	records, err := machine.InspectMount(opts)
+	if err != nil {
+		return 1, err
+	}
+
+	printJSON(records)
+
+	return 0, nil
+}
+
+// MachineStart turns a vm on.
+func MachineStart(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	if err := machineCommand(c, machine.Start); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+// MachineStop turns a vm off.
+func MachineStop(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	if err := machineCommand(c, machine.Stop); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+// MachineConfigSet sets key=value pair for a machine.
+func MachineConfigSet(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	ident := c.Args().Get(0)
+	key := c.Args().Get(1)
+	value := c.Args().Get(2)
+
+	switch {
+	case ident == "":
+		return 1, errors.New("machine identifier is empty or missing")
+	case key == "":
+		return 1, errors.New("configuration key is empty or missing")
+	case value == "":
+		return 1, errors.New("configuration value is empty or missing")
+	}
+
+	if err := machine.Set(ident, key, value); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+// MachineCondifShow displays machine's key=value pairs.
+func MachineConfigShow(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	ident := c.Args().Get(0)
+	json := c.Bool("json")
+
+	if ident == "" {
+		return 1, errors.New("machine identifier is empty or missing")
+	}
+
+	conf, err := machine.Show(ident)
+	if err != nil {
+		return 1, err
+	}
+
+	if json {
+		printJSON(conf)
+	} else {
+		printKeyVal(conf)
+	}
+
+	return 0, nil
+}
+
+func machineCommand(c *cli.Context, fn func(string) (string, error)) error {
+	ident := c.Args().Get(0)
+	json := c.Bool("json")
+
+	if ident == "" {
+		return errors.New("machine identifier is empty or missing")
+	}
+
+	event, err := fn(ident)
+	if err != nil {
+		return err
+	}
+
+	for e := range machine.Wait(event) {
+		if e.Error != nil {
+			err = e.Error
+		}
+
+		if json {
+			printJSON(e)
+		} else {
+			fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+		}
+	}
+
+	return err
+}
+
 // getIdentifiers extracts identifiers and validate provided arguments.
 // TODO(ppknap): other CLI libraries like Cobra have this out of the box.
 func getIdentifiers(c *cli.Context) (idents []string, err error) {
@@ -284,8 +412,7 @@ func getIdentifiers(c *cli.Context) (idents []string, err error) {
 // identifiersLimit checks if the number of identifiers is in specified limits.
 // If max is -1, there are no limits for the maximum number of identifiers.
 func identifiersLimit(idents []string, kind string, min, max int) error {
-	l := len(idents)
-	switch {
+	switch l := len(idents); {
 	case l > 0 && min == 0:
 		return fmt.Errorf("this command does not use %s identifiers", kind)
 	case l < min:
@@ -293,7 +420,6 @@ func identifiersLimit(idents []string, kind string, min, max int) error {
 	case max != -1 && l > max:
 		return fmt.Errorf("too many %ss: %s", kind, strings.Join(idents, ", "))
 	}
-
 	return nil
 }
 
@@ -317,6 +443,31 @@ func mountAddress(idents []string) (ident, remotePath, path string, err error) {
 	}
 
 	return remote[0], remote[1], path, nil
+}
+
+// mountExport checks if provided identifiers are valid from the mount
+// perspective. The identifiers should satisfy the following format:
+//
+//   (ID|Alias|IP)[:remote_directory/path] [local_directory/path]
+//
+func mountExport(idents []string) (ident, remotePath, path string, err error) {
+	if len(idents) != 1 && len(idents) != 2 {
+		return "", "", "", fmt.Errorf("invalid number of arguments: %s", strings.Join(idents, ", "))
+	}
+
+	ident = idents[0]
+
+	if i := strings.IndexRune(ident, ':'); i != -1 {
+		ident, remotePath = ident[:i], ident[i+1:]
+	}
+
+	if len(idents) == 2 {
+		if path, err = filepath.Abs(idents[1]); err != nil {
+			return "", "", "", fmt.Errorf("invalid format of local path %q: %s", idents[1], err)
+		}
+	}
+
+	return
 }
 
 // cpAddress checks if provided identifiers are valid from the cp command
@@ -375,7 +526,7 @@ func tabListFormatter(w io.Writer, infos []*machine.Info) {
 	tw.Flush()
 }
 
-func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
+func tabListMountFormatter(w io.Writer, mounts map[string][]mount.Info) {
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
 	// TODO: keep the mounts list sorted.
@@ -397,6 +548,12 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
 		}
 	}
 	tw.Flush()
+}
+
+func printJSON(v interface{}) {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+	enc.Encode(v)
 }
 
 func errorIfNegative(val int) string {

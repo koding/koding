@@ -98,19 +98,16 @@ module.exports = class NotificationController extends KDObject
       if clientId isnt kookies.get 'clientId'
         deleteUserCookie()
 
-    @once 'EmailShouldBeConfirmed', ->
-      { firstName, nickname } = whoami().profile
-      kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal) =>
-        @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
-        modal.on 'KDObjectWillBeDestroyed', deleteUserCookie.bind this
 
     @on 'MachineShareListUpdated', (data = {}) ->
 
-      { machineId, action, permanent } = data
+      { machineId, action } = data
 
-      switch action
-        when 'deny'
-          EnvironmentFlux.actions.loadMachineSharedUsers machineId
+      debug 'machine share list updated', data
+
+      if machineId
+        storage.machines.fetch '_id', machineId, force = yes
+          .then (machine) -> machine.reviveUsers { permanentOnly: yes }
 
 
     @on 'StackOwnerUpdated', (data = {}) =>
@@ -138,16 +135,11 @@ module.exports = class NotificationController extends KDObject
 
           if machine = storage.machines.get 'uid', machineUId
             storage.machines.pop machine
-            reactor.dispatch actions.INVITATION_REJECTED, machine._id
 
           @emit 'MachineShare:Removed', { machine }
 
         when 'added'
           storage.machines.fetch 'uid', machineUId
-            .then (machine) ->
-              reactor.dispatch actions.LOAD_USER_ENVIRONMENT_SUCCESS, [ machine ]
-              return machine
-
             .then (machine) =>
               @emit 'MachineShare:Added', { machine }
               return machine
@@ -231,4 +223,4 @@ module.exports = class NotificationController extends KDObject
 
 
     @on 'KloudActionOverAPI', (change) ->
-      computeController.handleChangesOverAPI change
+      kd.singletons.computeController.handleChangesOverAPI change

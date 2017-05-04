@@ -10,10 +10,13 @@
 { removeGeneratedCredentials
   withConvertedUserAndCredential } = require \
   '../../../../testhelper/models/computeproviders/credentialhelper'
+{ createStackTemplate } = require \
+  '../../../../testhelper/models/computeproviders/stacktemplatehelper'
 { forEachProvider
   withConvertedUserAnd } = require  \
   '../../../../testhelper/models/computeproviders/computeproviderhelper'
 
+JGroup                    = require '../group'
 JCounter                  = require '../counter'
 JMachine                  = require './machine'
 teamutils                 = require './teamutils'
@@ -558,6 +561,34 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
           expect(groupStack).to.be.an 'object'
           expect(groupStack.originId).to.be.deep.equal client._id
           done()
+
+
+  describe '::setGroupStack', ->
+
+    it 'should be able to set provided stack as default for group', (done) ->
+
+      # creating a new group and a new StackTemplate for that group
+      groupSlug = generateRandomString()
+      options   = { context : { group : groupSlug } }
+
+      withConvertedUserAnd ['Group', 'Credential'], options, (data) ->
+
+        { group, credential, client } = data
+        options = { credentials: { aws: [ credential.getAt 'identifier' ] } }
+
+        createStackTemplate client, options, (err, { stackTemplate }) ->
+          expect(err).to.not.exist
+
+          ComputeProvider.setGroupStack$ client, {
+            templateId: stackTemplate.getId(), shareCredential: yes
+          }, (err) ->
+            expect(err).to.not.exist
+
+            JGroup.one { _id: group.getId() }, (err, group) ->
+              expect(err).to.not.exist
+              expect(group.getAt 'stackTemplates.0').to.be.deep.equal stackTemplate.getAt '_id'
+              done()
+
 
 
 afterTests = -> after removeGeneratedCredentials

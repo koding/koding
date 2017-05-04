@@ -44,6 +44,7 @@ withConvertedUserAnd = (models, options, callback) ->
       groupData =
         slug           : groupSlug
         title          : generateRandomString()
+        customize      : { membersCanCreateStacks: yes }
         visibility     : 'visible'
         allowedDomains : ['koding.com']
 

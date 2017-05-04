@@ -11,5 +11,6 @@ module.exports = (notification = {}) ->
 
   return  unless notification.content
 
-  { addNotification } = kd.singletons.notificationViewController
-  addNotification notification
+  { notificationViewController } = kd.singletons
+
+  notificationViewController.addNotification notification

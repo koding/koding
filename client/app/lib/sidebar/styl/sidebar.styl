@@ -1,0 +1,59 @@
+.Sidebar-ReactView
+  kalc                      height, 100% \- 40px
+  .activity-sidebar
+    display                 flex
+    flex-direction          column
+
+    padding-top             15px
+    padding-bottom          15px
+
+.SidebarSection:last-of-type
+  margin-bottom             40px
+
+.SidebarResources
+  flex                      1
+  max-width                 222px
+
+.Sidebar-logo-wrapper
+  padding                   0 0 40px
+  text-align                center
+
+.Sidebar-footer-logo
+  width                     112px
+  margin-left               -15px
+
+img.Sidebar-footer-logo
+  opacity                   .3
+
+.SidebarStackWidgets
+  .SidebarSection-body
+    left                    0 !important
+
+    label
+      dBlock()
+      color                 #b3b3b3
+      font-size             $fs-small
+      line-height           32px
+      font-weight           $fw-thin
+
+    a
+      bg                    color, #01af5b
+      color                 #FFF
+      line-height           22px
+      padding               0 12px
+      rounded               3px
+      font-size             $fs-small
+      font-weight           $fw-thin
+      size                  auto, 24px
+      dIBlock()
+      noTextDeco()
+
+    p
+      color                 #b3b3b3
+      font-size             12px
+      line-height           22px
+      margin-bottom         15px
+
+.SidebarStackWidgets .--DifferentStackResources
+  flex                      0
+  margin-top                15px !important

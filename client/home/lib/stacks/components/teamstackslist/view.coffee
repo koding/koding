@@ -1,3 +1,4 @@
+debug = require('debug')('dashboard:teamstacks')
 kd = require 'kd'
 React = require 'app/react'
 
@@ -6,16 +7,10 @@ StackTemplateItem = require '../stacktemplateitem'
 
 module.exports = class TeamStacksListView extends React.Component
 
-  onAddToSidebar: (stack) -> @props.onAddToSidebar stack.get '_id'
-
-
-  onRemoveFromSidebar: (stack) -> @props.onRemoveFromSidebar stack.get '_id'
-
-
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.stacks?.size or 0
+  numberOfRowsInSection: -> @props.resources?.length or 0
 
 
   renderSectionHeaderAtIndex: -> null
@@ -23,25 +18,22 @@ module.exports = class TeamStacksListView extends React.Component
 
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
-    stack = @props.stacks.toList().get(rowIndex)
-    template = @props.templates.get stack.get 'baseStackId'
+    resource = @props.resources[rowIndex]
 
-    onAddToSidebar = @lazyBound 'onAddToSidebar', stack
-    onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', stack
-
-    isVisible = !!@props.sidebarStacks.get(stack.get '_id')
+    { stack, template, isVisible } = resource
 
     <StackTemplateItem
       isVisibleOnSidebar={isVisible}
+      stack={stack}
       template={template}
       onOpen={@props.onOpenItem}
-      onAddToSidebar={onAddToSidebar}
-      onRemoveFromSidebar={onRemoveFromSidebar}
-      stack={stack}
+      onAddToSidebar={@props.onAddToSidebar.bind null, resource}
+      onRemoveFromSidebar={@props.onRemoveFromSidebar.bind null, resource}
     />
 
 
-  renderEmptySectionAtIndex: -> <div>Your team doesn't have any stacks ready.</div>
+  renderEmptySectionAtIndex: ->
+    <div>Your team does not have any stacks ready.</div>
 
 
   render: ->

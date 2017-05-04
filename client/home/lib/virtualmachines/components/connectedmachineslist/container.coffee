@@ -1,39 +1,52 @@
-kd              = require 'kd'
-React           = require 'app/react'
-EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin  = require 'app/flux/base/reactormixin'
-View            = require './view'
+debug = require('debug')('dashboard:managedvmslist')
+kd = require 'kd'
+React = require 'app/react'
+View = require './view'
 
-module.exports = class ConnectedMachinesListContainer extends React.Component
+connectCompute = require 'app/providers/connectcompute'
 
-  getDataBindings: ->
-    return {
-      stacks: EnvironmentFlux.getters.stacks
-    }
+computeConnector = connectCompute({
+  storage: ['stacks']
+})
 
+module.exports = computeConnector class ConnectedMachinesListContainer extends React.Component
 
-  onDetailOpen: (machineId) -> EnvironmentFlux.actions.loadMachineSharedUsers machineId
+  onDetailOpen: (machine) ->
 
+    debug 'detail is opened', { machine }
 
-  onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname
-
-
-  onUnsharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.unshareMachineWithUser machineId, nickname
+    machine.reviveUsers { permanentOnly: yes }
 
 
-  onDisconnectVM: (machine) -> EnvironmentFlux.actions.disconnectMachine machine
+  onSharedWithUser: (machine, nickname) ->
+
+    debug 'shared with user', { machine, nickname }
+
+    machine.shareUser nickname
+
+
+  onUnsharedWithUser: (machine, nickname) ->
+
+    debug 'unshared with user', { machine, nickname }
+
+    machine.unshareUser nickname
+
+
+  onDisconnectVM: (machine) ->
+
+    debug 'machine needs to disconnect', { machine }
+
+    kd.singletons.computeController.destroy machine
 
 
   render: ->
 
-    stacks = @state.stacks?.toList().filter (s) -> s.get('title').toLowerCase() is 'managed vms'
+    stack = @props.stacks.find (stack) -> stack.isManaged()
 
-    <View stacks={stacks}
+    <View
+      stack={stack}
       onDisconnectVM={@bound 'onDisconnectVM'}
       onDetailOpen={@bound 'onDetailOpen'}
       onSharedWithUser={@bound 'onSharedWithUser'}
       onUnsharedWithUser={@bound 'onUnsharedWithUser'}
     />
-
-
-ConnectedMachinesListContainer.include [KDReactorMixin]

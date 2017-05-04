@@ -63,6 +63,8 @@ module.exports = class JStackTemplate extends Module
           (signature Object, Function)
         samples       :
           (signature Object, Function)
+        preview       :
+          (signature Object, Function)
         one           : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -301,7 +303,14 @@ module.exports = class JStackTemplate extends Module
   #   }
   #
   @create = ->
-  @create = permit 'create stack template',
+  @create = permit
+
+    advanced: [
+      {
+        permission   : 'create stack template',
+        validateWith : Validators.group.custom 'membersCanCreateStacks'
+      }
+    ]
 
     success: revive
 
@@ -349,33 +358,35 @@ module.exports = class JStackTemplate extends Module
           else callback null, stackTemplate
 
 
-  # returns sample stack template for given provider
-  #
-  # @param {Object} options
-  #   options for fetching sample template
-  #
-  # @option options [String] provider provider name for fetching sample
-  # @option options [Boolean] useDefaults if it's true templates will be provided with default values
-  #
-  # @return {Object} stacktemplate sample in json and yaml format with default values
-  #
-  # @example api
-  #
-  #   {
-  #     "provider": "aws",
-  #     "useDefaults": true
-  #   }
-  #
-  # @example return
-  #
-  #   {
-  #     "json": "{}",
-  #     "yaml": "--",
-  #     "defaults": {
-  #       "userInputs": {}
-  #     }
-  #   }
-  #
+  ###
+  returns sample stack template for given provider
+
+  @param {Object} options
+    options for fetching sample template
+
+  @option options [String] provider provider name for fetching sample
+  @option options [Boolean] useDefaults if it's true templates will be provided with default values
+
+  @return {Object} stacktemplate sample in json and yaml format with default values
+
+  @example api
+
+    {
+      "provider": "aws",
+      "useDefaults": true
+    }
+
+  @example return
+
+    {
+      "json": "{}",
+      "yaml": "--",
+      "defaults": {
+        "userInputs": {}
+      }
+    }
+
+  ###
   @samples = ->
   @samples = permit 'list stack templates',
 
@@ -391,6 +402,55 @@ module.exports = class JStackTemplate extends Module
       if useDefaults
       then callback null, provider.templateWithDefaults
       else callback null, provider.template
+
+
+  # returns preview stack template for given template and custom variables
+  #
+  # @param {Object} options
+  #   options for generating template preview
+  #
+  # @option options [String] template content
+  # @option options [Object] custom variables
+  #
+  # @return {Object} stacktemplate preview in provided format
+  #
+  # @example api
+  #
+  #   {
+  #     "template": "Hello ${var.koding_user_username} -- ${var.custom_foo}",
+  #     "custom": {"foo": "bar"}
+  #   }
+  #
+  # @example return
+  #
+  #   {
+  #     "template": "Hello gokmen -- bar",
+  #     "errors": {},
+  #     "warnings": {}
+  #   }
+  #
+  @preview = ->
+  @preview = permit 'list stack templates',
+
+    success: revive
+
+      shouldReviveClient    : yes
+      shouldReviveProvider  : no
+
+    , (client, options, callback) ->
+
+      generatePreview = clientRequire 'app/lib/util/stacks/generatepreview'
+
+      { template, custom } = options
+      { account, group }   = client.r
+
+      accountWrapper =
+        fetchFromUser: (data, callback) ->
+          account.fetchFromUser client, data, callback
+
+      generatePreview {
+        account: accountWrapper, group, template, custom
+      }, callback
 
 
   getNotifyOptions: (client) ->
@@ -548,8 +608,14 @@ module.exports = class JStackTemplate extends Module
   generateStack: permit
 
     advanced: [
-      { permission: 'update own stack template', validateWith: Validators.own }
-      { permission: 'update stack template' }
+      {
+        permission   : 'update stack template',
+        validateWith : Validators.group.custom 'membersCanCreateStacks'
+      }
+      {
+        permission   : 'update own stack template',
+        validateWith : Validators.own
+      }
     ]
 
     success: revive
@@ -716,8 +782,14 @@ module.exports = class JStackTemplate extends Module
   clone: permit
 
     advanced: [
-      { permission: 'update own stack template' }
-      { permission: 'update stack template' }
+      {
+        permission   : 'update own stack template',
+        validateWith : Validators.group.custom 'membersCanCreateStacks'
+      }
+      {
+        permission   : 'update own stack template',
+        validateWith : Validators.own
+      }
     ]
 
     success: (client, options, callback) ->
@@ -811,6 +883,17 @@ module.exports = class JStackTemplate extends Module
           Kloud.buildStack client, { stackId, provider, variables }, callback
 
 
+  getProvider: ->
+
+    # TODO: add multiple provider support here ~GG
+    provider = @getAt 'config.requiredProviders.0'
+
+    unless provider or not PROVIDERS[provider]
+      return [ new KodingError 'Provider is not supported' ]
+
+    return [ null, provider ]
+
+
   verify$: permit
 
     advanced: [
@@ -825,27 +908,62 @@ module.exports = class JStackTemplate extends Module
   verify: (client, callback) ->
 
     stackTemplateId = @getAt '_id'
-    provider = (@getAt 'config.requiredProviders')[0]
 
-    unless provider or not PROVIDERS[provider]
-      return callback new KodingError 'Provider is not supported'
+    [ err, provider ] = @getProvider()
+    return callback err  if err
 
-    noMachines = ->
-      callback new KodingError \
-        'Nothing to verify, template has no machines'
+    @verifyCredentials client, (err) =>
 
-    Kloud = require './kloud'
-    Kloud.checkTemplate client, { stackTemplateId, provider }, (err, res) =>
-      return callback err  if err
-      return noMachines()  if not res or not res.machines?.length
+      if err
+        return callback new KodingError \
+          'Credentials verification failed', 'CredentialError', err
 
-      machines = parsePlanResponse res
-      return noMachines()  unless machines.length
+      noMachines = ->
+        callback new KodingError \
+          'Nothing to verify, template has no machines'
 
-      query = { $set: { machines, 'config.verified': true } }
-      @updateAndNotify (@getNotifyOptions client), query, (err) =>
+      Kloud = require './kloud'
+      Kloud.checkTemplate client, { stackTemplateId, provider }, (err, res) =>
         return callback err  if err
-        callback null, this
+        return noMachines()  if not res or not res.machines?.length
+
+        machines = parsePlanResponse res
+        return noMachines()  unless machines.length
+
+        query = { $set: { machines, 'config.verified': true } }
+        @updateAndNotify (@getNotifyOptions client), query, (err) =>
+          return callback err  if err
+          callback null, this
+
+
+  verifyCredentials: (client, callback) ->
+
+    @fetchProviderCredential client, (err, credential) ->
+      return callback err  if err
+
+      credential.isBootstrapped client, (err, bootstrapped) ->
+        return callback err   if err
+        return callback null  if bootstrapped
+
+        credential.bootstrap client, callback
+
+
+  fetchProviderCredential: (client, callback) ->
+
+    [ err, provider ] = @getProvider()
+    return callback err  if err
+
+    # TODO: add multiple provider support here ~GG
+    unless identifier = @getAt "credentials.#{provider}.0"
+      return callback new KodingError \
+        "No credential found for #{provider} provider"
+
+    JCredential = require './credential'
+    JCredential.one$ client, identifier, (err, credential) ->
+      if err or not credential
+        return callback new KodingError 'Credential is not accessible'
+
+      callback null, credential
 
 
   forceStacksToReinit: permit 'force stacks to reinit',

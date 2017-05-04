@@ -13,17 +13,15 @@ import (
 	"sync"
 	"text/tabwriter"
 
+	"koding/klient/machine/index/node"
+
 	"github.com/djherbis/times"
 )
-
-// Version stores current version of index.
-const Version = 1
 
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
 type Index struct {
-	mu   sync.RWMutex
-	root *Node
+	t *node.Tree
 }
 
 var (
@@ -34,7 +32,7 @@ var (
 // NewIndex creates the empty index object.
 func NewIndex() *Index {
 	return &Index{
-		root: newNode(),
+		t: node.NewTree(),
 	}
 }
 
@@ -66,6 +64,11 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
+		// Don't include OSX trashes to scanned files.
+		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
+			return filepath.SkipDir
+		}
+
 		fC <- &fileDesc{path: path, info: info}
 		return nil
 	}
@@ -93,110 +96,20 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 			name = ""
 		}
 
-		idx.mu.Lock()
-		idx.root.Add(name, NewEntryFileInfo(f.info))
-		idx.mu.Unlock()
+		idx.t.DoPath(name, node.Insert(node.NewEntryFileInfo(f.info)))
 	}
 }
 
 // Clone returns a deep copy of called index.
 func (idx *Index) Clone() *Index {
 	return &Index{
-		root: idx.root.Clone(),
+		t: idx.t.DataClone(),
 	}
 }
 
-// PromiseAdd adds a node under the given path marked as newly added.
-//
-// If mode is non-zero, the node's mode is overwritten with the value.
-// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
-// If the node is already marked as newly added, the method is a no-op.
-func (idx *Index) PromiseAdd(path string, entry *Entry) {
-	idx.mu.Lock()
-	idx.root.PromiseAdd(path, entry)
-	idx.mu.Unlock()
-}
-
-// PromiseDel marks a node under the given path as deleted.
-//
-// If the node does not exist or is already marked as deleted, the
-// method is no-op.
-//
-// If node is non-nil, then it's used instead of looking it up
-// by the given path.
-func (idx *Index) PromiseDel(path string, node *Node) {
-	idx.mu.Lock()
-	idx.root.PromiseDel(path, node)
-	idx.mu.Unlock()
-}
-
-// PromiseUnlink marks a node under the given path as unlinked.
-//
-// If the node does not exist or is already marked as unlinked,
-// the method is a no-op.
-//
-// If node is non-nil, then it's used instead of looking it up
-// by the given path.
-func (idx *Index) PromiseUnlink(path string, node *Node) {
-	idx.mu.Lock()
-	idx.root.PromiseUnlink(path, node)
-	idx.mu.Unlock()
-}
-
-// Count returns the number of entries stored in index. Only items which size is
-// below provided value are counted. If provided argument is negative, this
-// function will return the number of all entries. It does not count files
-// marked as virtual or deleted.
-func (idx *Index) Count(maxsize int64) int {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-
-	return idx.root.Count(maxsize)
-}
-
-// CountAll behaves like Count but it counts It does count files marked as
-// virtual or deleted.
-func (idx *Index) CountAll(maxsize int64) int {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-
-	return idx.root.CountAll(maxsize)
-}
-
-// DiskSize tells how much disk space would be used by entries stored in index.
-// Only items which size is below provided value are counted. If provided
-// argument is negative, this function will count disk size of all items. It
-// does not count size of files marked as virtual or deleted.
-func (idx *Index) DiskSize(maxsize int64) int64 {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-
-	return idx.root.DiskSize(maxsize)
-}
-
-// DiskSizeAll behaves like DiskSize but it includes files marked as virtual or
-// deleted.
-func (idx *Index) DiskSizeAll(maxsize int64) int64 {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-
-	return idx.root.DiskSizeAll(maxsize)
-}
-
-// Lookup looks up a node by the given name.
-func (idx *Index) Lookup(name string) (*Node, bool) {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-
-	return idx.root.Lookup(name)
-}
-
-// LookupAll looks up a node by the given name. It doesn't ignore promised nodes.
-func (idx *Index) LookupAll(name string) (*Node, bool) {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-
-	return idx.root.LookupAll(name)
+// Tree returns index tree.
+func (idx *Index) Tree() *node.Tree {
+	return idx.t
 }
 
 // Merge calls MergeBranch on all nodes pointed by root path.
@@ -224,48 +137,43 @@ func (idx *Index) Merge(root string) ChangeSlice {
 // All detected changes will be stored in returned Change slice.
 // If branch is empty, the comparison is made against root of the index.
 func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
-	idx.mu.RLock()
-	rt, ok := idx.root.LookupAll(branch)
-	idx.mu.RUnlock()
-
 	rootBranch := filepath.Join(root, branch)
 	visited := map[string]struct{}{
-		rootBranch: {}, // Skip root.
+		rootBranch: {}, // Skip root file.
 	}
 
-	if !ok {
-		goto skipBranch
-	}
+	idx.t.DoPath(branch, node.WalkPath(func(name string, n *node.Node) {
+		if n.IsShadowed() || n.Entry.File.Mode == 0 {
+			return
+		}
 
-	idx.mu.RLock()
-	rt.ForEachAll(func(name string, entry *Entry) {
 		nameOS := filepath.FromSlash(name)
-		visited[filepath.Join(rootBranch, nameOS)] = struct{}{}
+		nodePath := filepath.Join(rootBranch, nameOS)
+		visited[nodePath] = struct{}{}
 
-		info, err := os.Lstat(filepath.Join(rootBranch, nameOS))
+		info, err := os.Lstat(nodePath)
 		if os.IsNotExist(err) {
 			// File exists in remote but not in local.
-			entry.SwapPromise(EntryPromiseVirtual, 0)
+			n.PromiseVirtual()
 			cs = append(cs, NewChange(
 				filepath.ToSlash(filepath.Join(branch, nameOS)),
 				PriorityLow,
 				ChangeMetaAdd|ChangeMetaRemote,
 			))
 			return
-		}
-
-		// There is nothing we can do with this error.
-		if err != nil {
+		} else if err != nil {
 			return
 		}
 
-		mode, mtime := entry.Mode(), entry.MTime()
+		mode, size, mtime := n.Entry.File.Mode, n.Entry.File.Size, n.Entry.File.MTime
 		// File exists in both remote and local. We compare entry mtime with
 		// file mtime and atime. Sometimes synced files may have their mtimes
 		// set to source atime. That's why this is necessary.
-		if (mtime == info.ModTime().UnixNano() || mtime == atime(info)) && entry.Size() == info.Size() && mode == info.Mode() {
+		if (mtime == info.ModTime().UTC().UnixNano() || mtime == atime(info)) &&
+			size == info.Size() &&
+			mode == info.Mode() {
 			// Files are identical. Allow different ctimes.
-			entry.SwapPromise(0, EntryPromiseVirtual)
+			n.UnsetPromises()
 			return
 		}
 
@@ -273,22 +181,20 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 		// inside directory was added/removed and this file should be reported.
 		// Howewer we want to detect permission changes in all files.
 		if mode.IsDir() && mode == info.Mode() {
-			entry.SwapPromise(0, EntryPromiseVirtual)
+			n.UnsetPromises()
 			return
 		}
 
 		// Files differ. However the local file is not virtual.
-		entry.SwapPromise(EntryPromiseUpdate, EntryPromiseVirtual)
+		n.PromiseUpdate()
 		cs = append(cs, NewChange(
 			filepath.ToSlash(filepath.Join(branch, nameOS)),
 			PriorityMedium,
 			ChangeMetaUpdate,
 		))
-	})
-	idx.mu.RUnlock()
+	}))
 
-skipBranch:
-	// Walk over current root path and check it files.
+	// Walk over current root path and check its files.
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
@@ -298,24 +204,21 @@ skipBranch:
 			return nil
 		}
 
+		// Don't include OSX trashes to scanned files.
+		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
+			return filepath.SkipDir
+		}
+
 		// File exists in local but not in remote.
 		name, err := filepath.Rel(root, path)
 		if err != nil {
 			return nil
 		}
+		name = filepath.ToSlash(name)
 
-		cs = append(cs, NewChange(
-			filepath.ToSlash(name),
-			PriorityLow,
-			ChangeMetaAdd,
-		))
-
-		idx.mu.Lock()
-		idx.root.PromiseAdd(
-			filepath.ToSlash(name),
-			NewEntryFileInfo(info),
-		)
-		idx.mu.Unlock()
+		// Add files to tree.
+		idx.t.DoPath(name, node.Insert(node.NewEntryFileInfo(info)))
+		cs = append(cs, NewChange(name, PriorityLow, ChangeMetaAdd))
 
 		return nil
 	}
@@ -338,32 +241,25 @@ func (idx *Index) Sync(root string, c *Change) {
 	}
 
 	info, err := os.Lstat(filepath.Join(root, filepath.FromSlash(c.Path())))
-	if os.IsNotExist(err) {
-		idx.mu.Lock()
-		idx.root.Del(c.Path())
-		idx.mu.Unlock()
-		return
-	} else if err != nil {
-		// Nothing much we can do here.
-		return
-	}
+	idx.t.DoPath(c.Path(), func(n *node.Node) bool {
+		if os.IsNotExist(err) {
+			// File doesn't exist. Return false to remove it from tree.
+			return false
+		} else if err != nil {
+			// Nothing much we can do here. Return true to not remove the node.
+			return true
+		}
 
-	// Get file node pointed by the change.
-	nd, ok := idx.root.LookupAll(c.Path())
-	if !ok {
-		// Add new entry.
-		idx.mu.Lock()
-		idx.root.Add(c.Path(), NewEntryFileInfo(info))
-		idx.mu.Unlock()
-		return
-	}
+		if n.IsShadowed() {
+			// File exists on disk but not in tree. Set entry and return true.
+			n.Entry = node.NewEntryFileInfo(info)
+		} else {
+			n.Entry.MergeIn(node.NewEntryFileInfo(info))
+			n.UnsetPromises()
+		}
 
-	// Update entry and unset all promises.
-	nd.Entry.SetCTime(ctime(info))
-	nd.Entry.SetMTime(info.ModTime().UTC().UnixNano())
-	nd.Entry.SetSize(info.Size())
-	nd.Entry.SetMode(info.Mode())
-	nd.Entry.SwapPromise(0, ^EntryPromise(0))
+		return true
+	})
 }
 
 // naturalMin returns the minimal value of provided arguments but not less than
@@ -383,12 +279,9 @@ func naturalMin(a, b int) (n int) {
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals index
 // private data to JSON format.
 func (idx *Index) MarshalJSON() ([]byte, error) {
-	idx.mu.RLock()
-	defer idx.mu.RUnlock()
-
 	var b bytes.Buffer
 	w := gzip.NewWriter(&b)
-	if err := json.NewEncoder(w).Encode(idx.root); err != nil {
+	if err := json.NewEncoder(w).Encode(idx.t); err != nil {
 		w.Close()
 		return nil, err
 	}
@@ -400,9 +293,6 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
 // data into private index fields.
 func (idx *Index) UnmarshalJSON(data []byte) error {
-	idx.mu.Lock()
-	defer idx.mu.Unlock()
-
 	dst := make([]byte, base64.StdEncoding.DecodedLen(len(data)-2))
 	n, err := base64.StdEncoding.Decode(dst, data[1:len(data)-1])
 	if err != nil {
@@ -415,23 +305,37 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	}
 	defer r.Close()
 
-	if err = json.NewDecoder(r).Decode(&idx.root); err != nil {
-		return err
+	if err = json.NewDecoder(r).Decode(&idx.t); err != nil {
+		// Try converting to old nodes.
+		rn, err := gzip.NewReader(bytes.NewReader(dst[:n]))
+		if err != nil {
+			return err
+		}
+		defer rn.Close()
+
+		var root Node
+		if err = json.NewDecoder(rn).Decode(&root); err == nil {
+			idx.t = root.ToTree()
+		} else {
+			return err
+		}
 	}
 
 	return nil
 }
 
-// DebugString dumps content of the index as a string, suitable for debugging.
-func (idx *Index) DebugString() string {
-	m := make(map[string]*Entry)
-	fn := func(path string, entry *Entry) {
-		m[path] = entry
-	}
+// Debug contains information about internal state of single index node.
+type Debug struct {
+	Path string `json:"path"`
+	Info string `json:"info"`
+}
 
-	idx.mu.RLock()
-	idx.root.forEach(fn, true)
-	idx.mu.RUnlock()
+// Debug returns the debug information about index.
+func (idx *Index) Debug() (dbg []Debug) {
+	m := make(map[string]*node.Entry)
+	idx.t.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
+		m[nodePath] = n.Entry
+	}))
 
 	paths := make([]string, 0, len(m))
 	for path := range m {
@@ -439,23 +343,26 @@ func (idx *Index) DebugString() string {
 	}
 	sort.Strings(paths)
 
+	for _, path := range paths {
+		dbg = append(dbg, Debug{
+			Path: path,
+			Info: m[path].String(),
+		})
+	}
+
+	return dbg
+}
+
+// DebugString dumps content of the index as a string, suitable for debugging.
+func (idx *Index) DebugString() string {
 	var buf bytes.Buffer
 	tw := tabwriter.NewWriter(&buf, 0, 0, 1, ' ', 0)
-	for i, path := range paths {
-		fmt.Fprintf(tw, "%5d %s\t%v\n", i+1, path, m[path])
+	for i, d := range idx.Debug() {
+		fmt.Fprintf(tw, "%5d %s\t%s\n", i+1, d.Path, d.Info)
 	}
 	tw.Flush()
 
 	return buf.String()
-}
-
-// ctime gets file's change time in UNIX Nano format.
-func ctime(fi os.FileInfo) int64 {
-	if tspec := times.Get(fi); tspec.HasChangeTime() {
-		return tspec.ChangeTime().UnixNano()
-	}
-
-	return 0
 }
 
 // atime gets file's access time in UNIX Nano format.

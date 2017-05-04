@@ -39,6 +39,7 @@ fetchGroupOAuthSettings = (provider, clientId, state, callback) ->
           redirectUri: "#{protocol}//#{slug}.#{hostname}/-/oauth/#{provider}/callback"
         }
 
+
 saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
   { JSession } = koding.models
 
@@ -51,6 +52,7 @@ saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
   query["foreignAuth.#{provider}"] = oauthInfo
 
   JSession.update { clientId }, { $set:query }, callback
+
 
 # Get user info with access token
 fetchUserOAuthInfo = (provider, req, res, data) ->

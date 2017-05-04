@@ -11,23 +11,27 @@ docGen = require './docgen'
 
 swagger =
   swagger: '2.0'
+  basePath: '/remote.api'
+  host: 'koding.com'
   info:
     title: 'Koding API'
-    version: '0.0.2'
+    version: '0.0.3'
     description: 'Koding API for integrating your application with Koding services'
     license:
       name: 'Apache 2.0'
       url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+  securityDefinitions:
+    Bearer:
+      type: 'apiKey'
+      name: 'Authorization'
+      in: 'header'
+
   tags: [
     {
       name: 'system'
       description: 'System endpoints for various purposes'
     }
-  ]
-
-  schemes: [
-    'http'
-    'https'
   ]
 
   definitions:
@@ -92,14 +96,7 @@ swagger =
       required: true
       description: 'body of the request'
 
-  paths:
-    '/-/version':
-      get:
-        tags: [ 'system' ]
-        responses:
-          '200':
-            description: 'OK'
-
+  paths: {}
 
 parseType = (type) ->
 
@@ -163,6 +160,12 @@ generateMethodPaths = (model, definitions, paths, docs) ->
   then { allOf: [ { $ref: "#/definitions/#{name}" }, { $ref: '#/definitions/DefaultResponse' } ] }
   else { $ref: '#/definitions/DefaultResponse' }
 
+  # currently swagger-codegen does not support multiple response types
+  # which causes to generate unexpected client api. So, for now we're
+  # only providing the DefaultResponse schema ~ GG
+  # ref: https://github.com/swagger-api/swagger-codegen/issues/358
+  schema = { $ref: '#/definitions/DefaultResponse' }
+
   for method, signatures of methods.statik
 
     response      =
@@ -175,7 +178,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
       examples = docs[name]['static'][method]?.examples ? []
       if (returns = docs[name]['static'][method]?.returns) and Object.keys(returns).length
         response =
-          description: returns.description
+          description: returns.description ? 'Request processed successfully'
           schema: { $ref: "#/definitions/#{returns.type}" }
 
       for example in examples
@@ -190,16 +193,31 @@ generateMethodPaths = (model, definitions, paths, docs) ->
             }
           ]
         else if example.title is 'return'
-          response.schema = example.schema
+          response.schema =
+            type: 'object'
+            properties:
+              ok:
+                type: 'boolean'
+                description: 'If the request processed by endpoint'
+                example: true
+              error:
+                type: 'object'
+                description: 'Error description'
+                example:
+                  message: 'Something went wrong'
+                  name: 'SomethingWentWrong'
+              data: example.schema
 
     else
       parameters = null
 
-    paths["/remote.api/#{name}.#{method}"] =
+    paths["/#{name}.#{method}"] =
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
+        operationId: "#{method}"
         parameters: parameters ? []
+        security: [ { Bearer: [] } ]
         description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
@@ -213,7 +231,8 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.instance
 
-    parameters = [ { $ref: '#/parameters/instanceParam' }, { $ref: '#/parameters/bodyParam' } ]
+    hasCustomParams = no
+    parameters = [{ $ref: '#/parameters/instanceParam' }]
     response = { description: 'OK', schema }
     if returns = docs[name]['instance'][method]?.returns
       if Object.keys(returns).length and swagger.definitions[returns.type]
@@ -232,12 +251,18 @@ generateMethodPaths = (model, definitions, paths, docs) ->
             required: true
             description: 'body of the request'
           }
+          hasCustomParams = yes
         else if example.title is 'return'
           response.schema = example.schema
 
-    paths["/remote.api/#{name}.#{method}/{id}"] =
+    unless hasCustomParams
+      parameters.push { $ref: '#/parameters/bodyParam' }
+
+    paths["/#{name}.#{method}/{id}"] =
       post:
         tags: [ name ]
+        operationId: "#{method}"
+        security: [ { Bearer: [] } ]
         consumes: [ 'application/json' ]
         description: docs[name]['instance'][method]?.description ? ''
         parameters: parameters
@@ -245,6 +270,10 @@ generateMethodPaths = (model, definitions, paths, docs) ->
           '200':
             description: response.description
             schema: response.schema
+          '401':
+            description: 'Unauthorized request'
+            schema:
+              $ref: '#/definitions/UnauthorizedRequest'
 
 
 module.exports = generateApi = (callback) ->

@@ -12,6 +12,10 @@ import (
 
 var DefaultClient = &Client{}
 
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 type ListOptions struct {
 	Team     string
 	Provider string
@@ -94,6 +98,10 @@ func (c *Client) Create(opts *CreateOptions) (*stack.CredentialItem, error) {
 		Team:       opts.Team,
 		Provider:   opts.Provider,
 	})
+
+	if _, ok := c.used[opts.Provider]; !ok {
+		c.used[opts.Provider] = resp.Identifier
+	}
 
 	return &stack.CredentialItem{
 		Title:      resp.Title,
@@ -214,9 +222,6 @@ func (c *Client) readCache() {
 	_ = c.kloud().Cache().GetValue("credential", &c.cached)
 	_ = c.kloud().Cache().GetValue("credential.used", &c.used)
 	_ = c.kloud().Cache().GetValue("credential.describe", &c.describe)
-
-	// Flush cache on exit.
-	ctlcli.CloseOnExit(c)
 }
 
 func (c *Client) kloud() *kloud.Client {

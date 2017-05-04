@@ -3,7 +3,10 @@ package providertest
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"reflect"
+
+	"github.com/kylelemons/godebug/pretty"
 )
 
 func mask(v interface{}, fn func(string) string) error {
@@ -26,6 +29,25 @@ func mask(v interface{}, fn func(string) string) error {
 	return nil
 }
 
+func Write(file, content string, fn func(string) string) error {
+	var v interface{}
+
+	if err := json.Unmarshal([]byte(content), &v); err != nil {
+		return err
+	}
+
+	if err := mask(v, fn); err != nil {
+		return err
+	}
+
+	p, err := json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(file, p, 0644)
+}
+
 func Equal(got, want string, fn func(string) string) error {
 	var v1, v2 interface{}
 
@@ -46,17 +68,7 @@ func Equal(got, want string, fn func(string) string) error {
 	}
 
 	if !reflect.DeepEqual(v1, v2) {
-		p1, err := json.MarshalIndent(v1, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-
-		p2, err := json.MarshalIndent(v2, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-
-		return fmt.Errorf("got:\n%s\nwant:\n%s\n", p1, p2)
+		return fmt.Errorf("templates not equal:\n%s\n", pretty.Compare(v2, v1))
 	}
 
 	return nil

@@ -12,6 +12,10 @@ import (
 
 var DefaultClient = &Client{}
 
+func init() {
+	ctlcli.CloseOnExit(DefaultClient)
+}
+
 // ListOptions are options available for `team list` command.
 type ListOptions struct {
 	Slug string // Limit to a specific team with a given name.
@@ -64,6 +68,18 @@ func (c *Client) List(opts *ListOptions) ([]*team.Team, error) {
 	return resp.Teams, nil
 }
 
+func (c *Client) Whoami() (*stack.WhoamiResponse, error) {
+	c.init()
+
+	var resp stack.WhoamiResponse
+
+	if err := c.kloud().Call("team.whoami", nil, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 func (c *Client) Close() (err error) {
 	if c.used.Valid() == nil {
 		err = c.kloud().Cache().SetValue("team.used", &c.used)
@@ -80,9 +96,6 @@ func (c *Client) readCache() {
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
 	_ = c.kloud().Cache().GetValue("team.used", &c.used)
-
-	// Flush cache on exit.
-	ctlcli.CloseOnExit(c)
 }
 
 func (c *Client) kloud() *kloud.Client {
@@ -95,3 +108,4 @@ func (c *Client) kloud() *kloud.Client {
 func Use(team *Team)                               { DefaultClient.Use(team) }
 func Used() *Team                                  { return DefaultClient.Used() }
 func List(opts *ListOptions) ([]*team.Team, error) { return DefaultClient.List(opts) }
+func Whoami() (*stack.WhoamiResponse, error)       { return DefaultClient.Whoami() }

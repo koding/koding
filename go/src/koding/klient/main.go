@@ -31,7 +31,8 @@ var (
 	flagVersion     = f.Bool("version", false, "Show version and exit")
 	flagRegisterURL = f.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = f.Bool("debug", false, "Debug mode")
-	flagScreenrc    = f.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
+	flagScreenrc    = f.String("screenrc", "/opt/koding/embedded/etc/screenrc", "Default screenrc path")
+	flagScreenTerm  = f.String("screen-term", "", "Overwrite $TERM for screen")
 
 	// Registration flags
 	flagUsername   = f.String("username", "", "Username to be registered to Kontrol")
@@ -135,6 +136,7 @@ func realMain() int {
 		UpdateInterval:    *flagUpdateInterval,
 		UpdateURL:         *flagUpdateURL,
 		ScreenrcPath:      *flagScreenrc,
+		ScreenTerm:        *flagScreenTerm,
 		VagrantHome:       vagrantHome,
 		TunnelName:        *flagTunnelName,
 		TunnelKiteURL:     *flagTunnelKiteURL,
@@ -153,7 +155,7 @@ func realMain() int {
 	}
 
 	if len(f.Args()) != 0 {
-		if err := handleInternalCommand(f.Arg(0)); err != nil {
+		if err := handleInternalCommand(f.Arg(0), f.Args()[1:]...); err != nil {
 			log.Fatal(err)
 		}
 
@@ -171,7 +173,7 @@ func realMain() int {
 	return 0
 }
 
-func handleInternalCommand(cmd string) (err error) {
+func handleInternalCommand(cmd string, args ...string) (err error) {
 	// The following commands are intended for internal use
 	// only. They are used by kloud to install klient
 	// where no kd is available.

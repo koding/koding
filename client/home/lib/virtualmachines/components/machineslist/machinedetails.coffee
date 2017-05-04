@@ -10,12 +10,14 @@ SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
 EnvironmentFlux     = require 'app/flux/environment'
 KDReactorMixin  = require 'app/flux/base/reactormixin'
+getMachineLinks = require 'app/util/getMachineLinks'
 
+Machine = require 'app/remote-extensions/machine'
 
 module.exports = class MachineDetails extends React.Component
 
   @propTypes =
-    machine                : React.PropTypes.instanceOf(immutable.Map).isRequired
+    machine                : React.PropTypes.instanceOf Machine
     shouldRenderSpecs      : React.PropTypes.bool
     shouldRenderPower      : React.PropTypes.bool
     shouldRenderAlwaysOn   : React.PropTypes.bool
@@ -48,9 +50,10 @@ module.exports = class MachineDetails extends React.Component
     super props
 
     @state =
-      machineLabel: @props.machine.get 'label'
+      machineLabel: @props.machine.label
       editNameClassName: 'GenericToggler-button'
       inputClasssName: 'kdinput text edit-name hidden'
+
     @input = null
 
 
@@ -62,16 +65,17 @@ module.exports = class MachineDetails extends React.Component
 
   onSharingToggle: (checked) ->
 
-    return @setState { isShared: yes }  if checked
+    if checked
+      return @setState { isShared: yes }
 
-    unless @props.machine.get('sharedUsers')?.size
+    unless @props.machine.getSharedUsers().length
       @setState { isShared: no }
       @props.onChangeSharingStatus no
       return
 
     modal          = new ContentModal
       title        : 'Are you sure?'
-      content      : 'Once you turn off sharing all of the participants will lose access to this VM immediately.'
+      content      : 'Once you disable sharing all of the participants will lose access to this VM immediately.'
       cssClass     : 'content-modal'
       overlay      : yes
       buttons      :
@@ -82,7 +86,7 @@ module.exports = class MachineDetails extends React.Component
             @setState { isShared: yes }
             modal.destroy()
         Yes        :
-          title    : 'Turn Off'
+          title    : 'Disable Sharing'
           cssClass : 'solid medium'
           callback : =>
             @setState { isShared: no }
@@ -93,10 +97,10 @@ module.exports = class MachineDetails extends React.Component
 
   isShared: ->
 
-    @state.isShared ? !!@props.machine.get('sharedUsers')?.size
+    @state.isShared ? @props.machine.getSharedUsers().length > 0
 
 
-  status: -> @props.machine.getIn [ 'status', 'state' ]
+  status: -> @props.status or @props.machine.getStatus()
 
 
   renderSpecs: ->
@@ -146,7 +150,7 @@ module.exports = class MachineDetails extends React.Component
     <GenericToggler
       title='Always On'
       description='Keep this machine running indefinitely'
-      checked={@props.machine.getIn [ 'meta', 'alwaysOn' ]}
+      checked={@props.machine.isAlwaysOn()}
       disabled={@status() is 'NotInitialized'}
       onToggle={@props.onChangeAlwaysOn} />
 
@@ -170,9 +174,17 @@ module.exports = class MachineDetails extends React.Component
     return  unless @isShared()
 
     { machine } = @props
+
     <div className='MachineSharingDetails'>
-      <SharingAutocomplete.Container machineId={machine.get '_id'} onSelect={@props.onSharedWithUser} />
-      <SharingUserList users={machine.get 'sharedUsers'} onUserRemove={@props.onUnsharedWithUser} />
+
+      <SharingAutocomplete.Container
+        machineId={machine.getId()}
+        onSelect={@props.onSharedWithUser} />
+
+      <SharingUserList
+        users={machine.getSharedUsers()}
+        onUserRemove={@props.onUnsharedWithUser} />
+
     </div>
 
 
@@ -182,7 +194,8 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless machine
 
-    state = machine.getIn ['status', 'state']
+    state = machine.getStatus()
+
     isMachineRunning = state is 'Running'
 
     description = 'Logs that were created while we built your VM.'
@@ -192,7 +205,7 @@ module.exports = class MachineDetails extends React.Component
       title='Build Logs'
       description={description}
       buttonTitle='Show Build Logs'
-      button=yes
+      button={yes}
       onToggle={kd.noop}
       onClickButton={@bound 'onClickBuildLog'}
       machineState={isMachineRunning} />
@@ -211,12 +224,12 @@ module.exports = class MachineDetails extends React.Component
         <div className={pullRight}>
           <EditNameButton cssClass={@state.editNameClassName} callback={@bound 'showInputBox'} />
           <input
-            ref={ (inpt) => @input = inpt}
+            ref={(input) => @input = input}
             value={@state.machineLabel}
             className={@state.inputClasssName}
-            onChange={@bound 'inputOnChange'}
-            onBlur={@bound 'inputOnBlur'}
-            onKeyDown={@bound 'inputOnKeyDown'} />
+            onChange={@bound 'onInputChange'}
+            onBlur={@bound 'onInputBlur'}
+            onKeyDown={@bound 'onInputKeyDown'} />
         </div>
       </div>
     </div>
@@ -227,10 +240,11 @@ module.exports = class MachineDetails extends React.Component
     @setState
       editNameClassName: 'GenericToggler-button hidden'
       inputClasssName: 'kdinput text edit-name'
+
     kd.utils.defer => @input?.focus()
 
 
-  inputOnBlur: (event) ->
+  onInputBlur: (event) ->
 
     @setMachineLabel()
     @setState
@@ -238,13 +252,13 @@ module.exports = class MachineDetails extends React.Component
       inputClasssName: 'kdinput text edit-name hidden'
 
 
-  inputOnKeyDown: (event) ->
+  onInputKeyDown: (event) ->
 
     if event.keyCode is 13
       @input.blur()
 
 
-  inputOnChange: (event) ->
+  onInputChange: (event) ->
 
     { value: machineLabel } = event.target
     @setState { machineLabel: machineLabel }
@@ -254,27 +268,23 @@ module.exports = class MachineDetails extends React.Component
   setMachineLabel: ->
 
     unless @state.machineLabel
-      @setState { machineLabel: @props.machine.get 'label'}
+      @setState { machineLabel: @props.machine.label}
       return
 
-    machineUId = @props.machine.get 'uid'
-    EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
-      .then (label) =>
-        kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@props.machine.get '_id'}"
-      .catch (err) =>
-        @setState { machineLabel: @props.machine.get 'label' }
-        EnvironmentFlux.actions.loadExpandedMachineLabel @props.machine.get 'label'
-        new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
+    @props.machine.setLabel @state.machineLabel, (err) =>
+      if err
+        @setState { machineLabel: @props.machine.label }
+        return new kd.NotificationView
+          title: 'Something went wrong',
+          duration: 2000
+
+      kd.singletons.router.handleRoute \
+        getMachineLinks @props.machine, 'dashboard'
 
 
   onClickBuildLog: (e) ->
 
-    machineUId = @props.machine.get 'uid'
-    kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'slug'}"
-
-    { computeController } = kd.singletons
-    machine = computeController.findMachineFromMachineUId machineUId
-    computeController.showBuildLogs machine, 0
+    kd.singletons.computeController.showBuildLogs @props.machine, 0
 
 
   render: ->
@@ -290,9 +300,8 @@ module.exports = class MachineDetails extends React.Component
     </div>
 
 
-generateSpecs = (_machine) ->
+generateSpecs = (machine) ->
 
-  machine = _machine.toJS()
   providerName = machine.meta?.type ? 'vagrant'
 
   configs = globals.config.providers
