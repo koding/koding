@@ -9,7 +9,7 @@ import (
 	"github.com/koding/logging"
 )
 
-// MetricPushHandler accpets metrics from external sources.
+// MetricPushHandler accepts metrics from external sources.
 func MetricPushHandler(m *metrics.Metrics, tags []string) ctlcli.ExitingErrCommand {
 	return func(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		val := c.Float64("count")
