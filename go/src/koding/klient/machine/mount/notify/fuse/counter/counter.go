@@ -278,7 +278,7 @@ func (c *counterFS) loop() {
 		fmt.Fprintln(os.Stderr, "Printing method execution statuses:")
 
 		w := tabwriter.NewWriter(os.Stderr, 2, 0, 2, ' ', 0)
-		fmt.Fprintf(w, "METHOD\tCALLS\tAVERAGE_TIME\n")
+		fmt.Fprintf(w, "METHOD\tCALLS\tAVERAGE_TIME\tTOTAL_CPU_TIME\n")
 
 		c.mu.Lock()
 		names := make([]string, 0, len(c.methods))
@@ -291,7 +291,7 @@ func (c *counterFS) loop() {
 			m := c.methods[name]
 
 			count, averageTime := m.Status()
-			fmt.Fprintf(w, "%s\t%d\t%v\n", name, count, averageTime)
+			fmt.Fprintf(w, "%s\t%d\t%v\t%v\n", name, count, averageTime, time.Duration(count)*averageTime)
 		}
 		c.mu.Unlock()
 
