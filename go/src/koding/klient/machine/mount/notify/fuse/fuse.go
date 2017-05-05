@@ -10,8 +10,6 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/node"
 
-	"log"
-
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"golang.org/x/net/context"
@@ -37,7 +35,7 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 // LookUpInode finds entry in context of specific parent directory and sets
 // its attributes. It assumes parent directory has already been seen.
 func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Parent), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Parent), func(n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
@@ -59,7 +57,7 @@ func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) 
 
 // GetInodeAttributes gets attributes of a node pointed by provided inode ID.
 func (fs *Filesystem) GetInodeAttributes(_ context.Context, op *fuseops.GetInodeAttributesOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if n.Exist() {
 			op.Attributes = fs.newAttributes(n.Entry)
 			return
@@ -372,8 +370,6 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 			return
 		}
 
-		log.Println("Unlink called on:", child.Path())
-
 		// Remove name from the
 		if !n.Orphan() || n.Entry.File.Inode == node.RootInodeID {
 			if e := syscall.Unlink(filepath.Join(fs.CacheDir, child.Path())); e != nil {
@@ -402,8 +398,6 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 			return
 		}
 
-		log.Println("FOrget called for: ", n.Path(), op.N, decCountNoRoot(n, 0))
-
 		if count := decCountNoRoot(n, op.N); count > 0 {
 			return
 		}
@@ -421,7 +415,7 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 // directory. This function only increases directory handle counter. The handle
 // itself is not used.
 func (fs *Filesystem) OpenDir(_ context.Context, op *fuseops.OpenDirOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
@@ -440,7 +434,7 @@ func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err err
 		return err
 	}
 
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if op.Offset != dh.Offset() {
 			dh.Rewind(op.Offset, n)
 		}
@@ -460,7 +454,7 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 		return err
 	}
 
-	fs.Index.Tree().DoInode(uint64(dh.InodeID), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(dh.InodeID), func(n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
@@ -473,7 +467,7 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 
 // OpenFile opens a File, ie. indicates operations are to be done on this file.
 func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if !n.Exist() {
 			err = fuse.ENOENT
 			return
@@ -582,7 +576,6 @@ func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFi
 
 // Destroy cleans up filesystem resources.
 func (fs *Filesystem) Destroy() {
-	log.Println("Destroy called: ")
 	fs.fileHandles.Close()
 }
 

@@ -35,7 +35,7 @@ type Tree struct {
 	// InodeGen is a function used to generate INodes for Tree entries. If nil,
 	// the default one will be used.
 	inGen func() uint64
-	mu    sync.Mutex
+	mu    sync.RWMutex
 	root  *Node
 
 	guard  Guard
@@ -90,6 +90,14 @@ func (t *Tree) DoInode(inode uint64, fn func(Guard, *Node)) {
 	t.mu.Lock()
 	fn(t.guard, t.inodes[inode])
 	t.mu.Unlock()
+}
+
+// DoInodeR behaves like DoInode but the provided function can not modify node
+// argument in any way.
+func (t *Tree) DoInodeR(inode uint64, fn func(*Node)) {
+	t.mu.RLock()
+	fn(t.inodes[inode])
+	t.mu.RUnlock()
 }
 
 // DoInode2 behaves like DoInode but for two inodes.
