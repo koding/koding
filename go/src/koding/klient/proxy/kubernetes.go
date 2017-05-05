@@ -108,7 +108,12 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     // TODO (acbodine): Setup call to K8s API and hookup to
     // client via dnode.Functions
 
-    origin := strings.Replace(p.config.Host, "https://", "wss://", -1)
+    origin := ""
+    if strings.Contains("https://", p.config.Host) {
+        origin = strings.Replace(p.config.Host, "https://", "wss://", -1)
+    } else {
+        origin = strings.Replace(p.config.Host, "http://", "ws://", -1)
+    }
 
     wsUrl := fmt.Sprintf(
         "%s/api/v1/namespaces/%s/pods/%s/exec",
@@ -117,17 +122,13 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         r.Pod,
     )
 
-    cmd = ""
-
-    for p := range r.Command {
-        cmd += fmt.Sprintf("&command=%s", p)
-    }
+    wsUrl = strings.Replace(wsUrl, "//api", "/api", -1)
 
     wsUrlWithQuery := fmt.Sprintf(
-        "%s?container=%s%s",
+        "%s?container=%s&command=%s",
         wsUrl,
         r.Container,
-        url.PathEscape(cmd),
+        url.QueryEscape(strings.Join(r.Command, "+")),
     )
 
     c, err := websocket.NewConfig(wsUrlWithQuery, origin)
