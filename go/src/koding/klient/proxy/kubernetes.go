@@ -117,11 +117,13 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         r.Pod,
     )
 
+    cmd := strings.Join(r.Command, " ")
+
     wsUrlWithQuery := fmt.Sprintf(
         "%s?container=%s&command=%s",
         wsUrl,
         r.Container,
-        r.Command,
+        url.PathEscape(cmd),
     )
 
     c, err := websocket.NewConfig(wsUrlWithQuery, origin)
