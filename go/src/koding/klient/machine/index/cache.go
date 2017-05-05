@@ -22,6 +22,7 @@ const TempIndexDirPrefix = "koding_index_"
 var DefaultFilter filter.Filter = filter.MultiFilter{
 	filter.OsSkip(filter.DirectorySkip(".Trash"), "darwin"),                                                                   // OSX trash directory.
 	filter.OsSkip(filter.DirectorySkip(".Trashes"), "darwin"),                                                                 // OSX trash directory.
+	filter.OsSkip(filter.DirectorySkip(".fseventsd"), "darwin"),                                                               // FSEvents notify.
 	filter.NewWithError(filter.PathSuffixSkip(".git/index.lock"), "git repository on remote is in use"),                       // git index lock file.
 	filter.NewWithError(filter.PathSuffixSkip(".git/refs/stash.lock"), "git repository on remote is in use"),                  // git stash lock file.
 	filter.NewWithError(filter.PathSuffixSkip(".git/HEAD.lock"), "git repository on remote is in use"),                        // git HEAD lock.

@@ -27,15 +27,17 @@ const IndexFileName = "index"
 // DefaultFilter defines a default filter used to skip changes from being
 // synchronized.
 var DefaultFilter filter.Filter = filter.MultiFilter{
-	filter.OsSkip(filter.DirectorySkip(".Trash"), "darwin"),   // OSX trash directory.
-	filter.OsSkip(filter.DirectorySkip(".Trashes"), "darwin"), // OSX trash directory.
-	filter.PathSuffixSkip(".git/index.lock"),                  // git index lock file.
-	filter.PathSuffixSkip(".git/refs/stash.lock"),             // git stash lock file.
-	filter.PathSuffixSkip(".git/HEAD.lock"),                   // git HEAD lock.
-	filter.PathSuffixSkip(".git/ORIG_HEAD.lock"),              // git ORIG_HEAD lock.
-	filter.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`),     // git branch lock.
-	filter.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`),     // git stash ref. lock.
-	filter.NewRegexSkip(`\.git/objects/pack/tmp_pack_[^/]+`),  // temporary git files.
+	filter.OsSkip(filter.DirectorySkip(".Trash"), "darwin"),     // OSX trash directory.
+	filter.OsSkip(filter.DirectorySkip(".Trashes"), "darwin"),   // OSX trash directory.
+	filter.OsSkip(filter.DirectorySkip(".fseventsd"), "darwin"), // FSEvents notify.
+	filter.PathSuffixSkip(".git/index.lock"),                    // git index lock file.
+	filter.PathSuffixSkip(".git/index"),                         // git index.
+	filter.PathSuffixSkip(".git/refs/stash.lock"),               // git stash lock file.
+	filter.PathSuffixSkip(".git/HEAD.lock"),                     // git HEAD lock.
+	filter.PathSuffixSkip(".git/ORIG_HEAD.lock"),                // git ORIG_HEAD lock.
+	filter.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`),       // git branch lock.
+	filter.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`),       // git stash ref. lock.
+	filter.NewRegexSkip(`\.git/objects/pack/tmp_pack_[^/]+`),    // temporary git files.
 }
 
 // Info stores information about current mount status.
