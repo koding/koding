@@ -1,7 +1,6 @@
 package proxy
 
 import (
-    "fmt"
     "regexp"
 
     "koding/klient/registrar"
@@ -9,8 +8,6 @@ import (
     "github.com/koding/kite"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-    //"k8s.io/client-go/kubernetes/scheme"
-    //"k8s.io/client-go/pkg/api/v1"
     "k8s.io/client-go/rest"
 )
 
@@ -19,7 +16,6 @@ var _ Proxy = (*KubernetesProxy)(nil)
 type KubernetesProxy struct {
     config *rest.Config
     client *kubernetes.Clientset
-    rest   *rest.RESTClient
 }
 
 func (p *KubernetesProxy) Type() ProxyType {
@@ -53,13 +49,13 @@ func (p *KubernetesProxy) Methods() []string {
 }
 
 func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
-    var req ListRequest
+    var req *ListRequest
 
 	if err := r.Args.One().Unmarshal(&req); err != nil {
 		return nil, err
 	}
 
-    res, err := p.list(&req)
+    res, err := p.list(req)
     if err != nil {
         return nil, err
     }
@@ -87,38 +83,26 @@ func (p *KubernetesProxy) list(r *ListRequest) (*ListResponse, error) {
     return data, nil
 }
 
-func (p *KubernetesProxy) Exec(r *ExecRequest) error {
+func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
+    var req *ExecRequest
 
-    // opts := &v1.PodExecOptions{
-    //     Stdin: false,
-    //     Stdout: true,
-    //     Stderr: true,
-    //     TTY: false,
-    //     Container: "klient",
-    //     Command: []string{"/bin/hostname"},
-    // }
-
-    // opts := metav1.ListOptions{}
-
-    result, err := p.rest.Get().
-            // TODO: Get namespace. Kubernetes default namespace is default?
-            Namespace("default").
-            Resource("pods").
-            // TODO: Get pod name
-            Name("koding").
-            SubResource("exec").
-            Param("Container", "klient").
-            Param("Command", "/bin/hostname").
-            // Body(opts).
-            // VersionedParams(&opts, scheme.ParameterCodec).
-            Do().
-            Get()
-
-    if err != nil {
-        fmt.Println("Failed to do the resty stuff. ", err)
+    if err := r.Args.One().Unmarshal(&req); err != nil {
+        return nil, err
     }
 
-    fmt.Println("result: ", result)
+    res, err := p.exec(&req)
+    if err != nil {
+        return nil, err
+    }
 
-    return nil
+    return res, nil
+}
+
+func (p *KubernetesProxy) exec(r *ExecRequest) (*ExecResponse, error) {
+    data := &ExecResponse{}
+
+    // TODO (acbodine): Setup call to K8s API and hookup to
+    // client via dnode.Functions
+
+    return data, nil
 }

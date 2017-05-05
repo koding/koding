@@ -525,8 +525,9 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
 	k.handleWithSub("machine.index.get", index.KiteHandlerGet())
 
-	prox := proxy.Factory()
-	k.handleWith("proxy.list", prox.List)
+	cProxy := proxy.Factory()
+	k.handleWith("proxy.list", cProxy.List)
+	k.handleWith("proxy.exec", cProxy.Exec)
 
 	// Vagrant
 	k.handleFunc("vagrant.create", k.vagrant.Create)

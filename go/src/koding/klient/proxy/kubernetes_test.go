@@ -1,7 +1,6 @@
 package proxy_test
 
 import (
-    "bytes"
     "testing"
 
     "koding/klient/proxy"
@@ -63,21 +62,5 @@ func TestKubernetesList(t *testing.T) {
 }
 
 func TestKubernetesExec(t *testing.T) {
-    p, err := proxy.NewKubernetes()
-    if err != nil {
-        t.Skip(skipMessage)
-    }
-
-    r := &proxy.ExecRequest{
-        Args:   []string{"/bin/echo", "Hello", "World"},
-        In:     bytes.NewBuffer([]byte{}),
-        Out:    bytes.NewBuffer([]byte{}),
-        Err:    bytes.NewBuffer([]byte{}),
-    }
-
-    if err := p.Exec(r); err != nil {
-        t.Fatal(err)
-    }
-
-    // TODO:
+    t.Skip("Not implemented.")
 }

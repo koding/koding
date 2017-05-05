@@ -1,13 +1,8 @@
 package proxy
 
 import (
-    "fmt"
-
     "github.com/koding/kite"
-    "k8s.io/apimachinery/pkg/runtime/serializer"
     "k8s.io/client-go/kubernetes"
-    "k8s.io/client-go/kubernetes/scheme"
-    "k8s.io/client-go/pkg/api/v1"
     "k8s.io/client-go/rest"
 )
 
@@ -29,9 +24,16 @@ type Proxy interface {
     // is responsible for proxying commands to.
     List(*kite.Request) (interface{}, error)
 
-    // Exec allows a Proxy to extend the "os.exec" kite handler, so
-    // that commands are proxied to the remote container.
-    Exec(*ExecRequest) error
+    // Exec is a kite handler for the "proxy.exec" call; it enables
+    // other kites to execute remote commands on a contianer that this
+    // klient is a proxy for.
+    //
+    // Expects args of type ExecRequest to specify how the execution
+    // should be handled.
+    //
+    // Returns an ExecResponse representing a middle-man connection
+    // that is proxying io to and from the remote container.
+    Exec(*kite.Request) (interface{}, error)
 }
 
 // Factory provides a batteries included way of accessing a container proxy
@@ -45,43 +47,25 @@ func Factory() Proxy {
 }
 
 func NewKubernetes() (Proxy, error) {
-    p := &KubernetesProxy{
-        config: nil,
-        client: nil,
-        rest:   nil,
-    }
 
     // If klient is running in Kubernetes proxy mode, then we expect
     // to exist inside the same pod that comprises the Stack. Thus
     // our environment should be configured just like any other member
     // of this pod, and we will pull necessary config accordingly.
-    config, err := rest.InClusterConfig()
+    conf, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
 	}
-    p.config = config
-
-    gv := v1.SchemeGroupVersion
-	p.config.GroupVersion = &gv
-	p.config.APIPath = "/api"
-	config.NegotiatedSerializer = serializer.DirectCodecFactory{
-        CodecFactory: scheme.Codecs,
-    }
-
-	if p.config.UserAgent == "" {
-		p.config.UserAgent = rest.DefaultKubernetesUserAgent()
-	}
 
     // Initialize a client for our hosting Kubernetes API.
-    p.client, err = kubernetes.NewForConfig(p.config)
+    cli, err := kubernetes.NewForConfig(conf)
     if err != nil {
         return nil, err
     }
 
-    p.rest, err = rest.RESTClientFor(p.config)
-    if err != nil {
-        fmt.Println(err)
-        return nil, err
+    p := &KubernetesProxy{
+        config:     conf,
+        client:     cli,
     }
 
     return p, nil
