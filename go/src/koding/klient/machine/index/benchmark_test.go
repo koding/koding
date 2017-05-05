@@ -19,7 +19,7 @@ func TestRepo(t *testing.T) {
 	}
 
 	start := time.Now()
-	idx, err := index.NewIndexFiles(*repo)
+	idx, err := index.NewIndexFiles(*repo, nil)
 	if err != nil {
 		t.Fatalf("NewIndexFiles()=%s", err)
 	}
