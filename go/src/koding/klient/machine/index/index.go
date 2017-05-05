@@ -129,7 +129,7 @@ func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSl
 		f = filter.NeverSkip{}
 	}
 
-	idx.t.DoPath(branch, node.WalkPath(func(name string, n *node.Node) {
+	idx.t.DoPath(branch, node.WalkPath(func(name string, g node.Guard, n *node.Node) {
 		if n.IsShadowed() || n.Entry.File.Mode == 0 {
 			return
 		}
@@ -152,8 +152,10 @@ func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSl
 			return
 		}
 
-		// Set entry inode.
-		n.Entry.File.Inode = node.Inode(info)
+		// Set entry inode but not for root inode.
+		if n.Entry.File.Inode != node.RootInodeID {
+			g.ChangeInode(n, node.Inode(info))
+		}
 
 		mode, size, mtime := n.Entry.File.Mode, n.Entry.File.Size, n.Entry.File.MTime
 		// File exists in both remote and local. We compare entry mtime with
@@ -232,7 +234,7 @@ func (idx *Index) Sync(root string, c *Change) {
 	}
 
 	info, err := os.Lstat(filepath.Join(root, filepath.FromSlash(c.Path())))
-	idx.t.DoPath(c.Path(), func(n *node.Node) bool {
+	idx.t.DoPath(c.Path(), func(g node.Guard, n *node.Node) bool {
 		if os.IsNotExist(err) {
 			// File doesn't exist. Return false to remove it from tree.
 			return false
@@ -247,6 +249,11 @@ func (idx *Index) Sync(root string, c *Change) {
 		} else {
 			n.Entry.MergeIn(node.NewEntryFileInfo(info))
 			n.UnsetPromises()
+		}
+
+		// Inodes may have changed. Update tree.
+		if n.Entry.File.Inode != node.RootInodeID {
+			g.ChangeInode(n, node.Inode(info))
 		}
 
 		return true
@@ -324,7 +331,7 @@ type Debug struct {
 // Debug returns the debug information about index.
 func (idx *Index) Debug() (dbg []Debug) {
 	m := make(map[string]*node.Entry)
-	idx.t.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
+	idx.t.DoPath("", node.WalkPath(func(nodePath string, _ node.Guard, n *node.Node) {
 		m[nodePath] = n.Entry
 	}))
 

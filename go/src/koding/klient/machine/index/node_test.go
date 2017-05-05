@@ -382,7 +382,7 @@ func TestNodeToTree(t *testing.T) {
 	sort.Strings(gotNode)
 
 	tree := root.ToTree()
-	tree.DoPath("", node.WalkPath(func(nodePath string, _ *node.Node) {
+	tree.DoPath("", node.WalkPath(func(nodePath string, _ node.Guard, _ *node.Node) {
 		gotTree = append(gotTree, nodePath)
 	}))
 
