@@ -103,6 +103,9 @@ func TestKubernetesExec(t *testing.T) {
     `
 
     r := &TestExecKubernetesRequest{
+        output:     make(chan string),
+        done:       make(chan bool),
+
         Session:        "TestKubernetesExec",
         Command:        []string{"/bin/echo", strings.TrimSpace(expected)},
 
