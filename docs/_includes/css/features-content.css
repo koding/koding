@@ -2,6 +2,7 @@
   padding-top: 120px;
   padding-bottom: 120px;
   text-align: center;
+  background-color: white;
 }
 .FeatureContent .img {
   margin-left: auto;
@@ -9,9 +10,7 @@
   margin-bottom: 50px;
 }
 .FeatureContent-Background {
-  background-color: #F7F7F7;
-  border-top: 1px solid #F2F2F2;
-  border-bottom: 1px solid #F2F2F2;
+  background-color: #FFFBF5;
 }
 .FeatureContent .lead {
   font-size: 24px;
@@ -29,9 +28,11 @@
   display: flex;
 }
 .FeatureContent-Cols h3 {
-  color: #515151;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: #1E2E42;
   text-align: center;
-  font-size: 26px;
   margin-bottom: 20px;
   margin-top: 20px;
   line-height: 1;
@@ -40,10 +41,17 @@
   width: 33%;
   padding-left: 15px;
   padding-right: 15px;
-  color: #989898;
+  color: #617283;
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 18px;
   text-align: center;
   line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .FeatureContent img{
+    width: 100%;
+  }
 }
 
 @media (max-width: 767px) {
@@ -59,25 +67,14 @@
     font-size: 20px;
     line-height: 1.4;
   }
+  .FeatureContent img{
+    display: none;
+  }
   .FeatureContent-Cols>div img {
     margin-top: 40px;
   }
   .FeatureContent-Cols h3 {
-    font-size: 22px;
+    font-size: 18px;
     line-height: 1.2;
   }
-}
-
-.Homepage-LogoBar.features h3 {
-  color: #F2778A;
-  font-size: 26px;
-  font-weight: 300;
-  border-top: 1px solid #E5E5E5;
-  padding-top: 50px;
-  margin-top: -20px;
-  line-height: 1.4;
-}
-.Homepage-LogoBar.features h3 strong {
-  display: block;
-  font-weight: 600;
 }

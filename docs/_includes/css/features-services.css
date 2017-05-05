@@ -1,38 +1,53 @@
 .FeatureServices {
-  background-color: #FFF9FA;
-  border-top: 1px solid #F2F2F2;
-  border-bottom: 1px solid #F2F2F2;
+  background-color: white;
   padding-top: 100px;
   padding-bottom: 130px;
 }
+
 .FeatureServices h2 {
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
 }
+
+.FeatureServices p {
+  font-size: 20px;
+  font-weight: 300;
+  color: #617283;
+  max-width: 870px;
+  text-align: center;
+  line-height: 1.3;
+  margin: 40px auto 60px;
+}
+
 .FeatureServices-logos {
   background-size: auto 75px;
   height: 75px;
   background-position: calc(50% - 170px);
 }
+
 @media (max-width: 1599px) {
   .FeatureServices-logos {
     background-position: calc(50% - 100px);
   }
 }
+
 .FeatureServices-cols {
   display: flex;
   margin-top: 80px;
   margin-bottom: 30px;
 }
+
 .FeatureServices-cols--imageWrapper {
   width: 50%;
   margin-right: 45px;
 }
+
 .FeatureServices-cols--imageWrapper img {
   width: 100%;
   max-width: 550px;
 }
+
 .FeatureServices-cols h3 {
   font-size: 20px;
   font-weight: 600;
@@ -51,6 +66,27 @@
   margin-right: 15px;
 }
 
+.FeatureServices--list .slick-track{
+  display: flex;
+  align-items: center;
+}
+
+.FeatureServices--list-item {
+  margin: 0 20px;
+  opacity: 0.3;
+  cursor: pointer;
+  outline: none;
+  -webkit-transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  -moz-transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  -ms-transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  -o-transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  transition: all 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.FeatureServices--list-item:hover, .FeatureServices--list-item.slick-current {
+  opacity: 1;
+}
+
 @media (max-width: 991px) {
   .FeatureServices-cols {
     flex-direction: column-reverse;
@@ -58,21 +94,25 @@
     align-items: center;
     margin-top: 30px;
   }
+
   .FeatureServices-cols p, .FeatureServices-cols h3 {
     text-align: center;
     max-width: none;
     margin: 0 50px;
   }
+
   .FeatureServices-cols--imageWrapper {
     min-width: 100% !important;
     margin: 0;
     margin-top: 20px;
     margin-bottom: 20px;
   }
+
   .FeatureServices-logos {
     background-position: calc(50% + 125px);
   }
 }
+
 @media (max-width: 768px) {
   .FeatureServices-cols p, .FeatureServices-cols h3 {
     margin: 0 15px;
