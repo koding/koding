@@ -3,6 +3,7 @@ package proxy
 import (
     "fmt"
     "io"
+    "net/url"
     "regexp"
     "strings"
 
@@ -110,17 +111,20 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     origin := strings.Replace(p.config.Host, "https://", "wss://", -1)
 
     wsUrl := fmt.Sprintf(
-        "%s/%s/namespaces/%s/pods/%s/exec",
+        "%s/api/v1/namespaces/%s/pods/%s/exec",
         origin,
-        p.config.APIPath,
         r.Namespace,
         r.Pod,
     )
 
-    cmd := strings.Join(r.Command, " ")
+    cmd = ""
+
+    for p := range r.Command {
+        cmd += fmt.Sprintf("&command=%s", p)
+    }
 
     wsUrlWithQuery := fmt.Sprintf(
-        "%s?container=%s&command=%s",
+        "%s?container=%s%s",
         wsUrl,
         r.Container,
         url.PathEscape(cmd),
