@@ -372,7 +372,14 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 
 		// Remove name from the
 		if !n.Orphan() || n.Entry.File.Inode == node.RootInodeID {
-			if e := syscall.Unlink(filepath.Join(fs.CacheDir, child.Path())); e != nil {
+			var e error
+			if child.Entry.File.Mode.IsDir() {
+				e = syscall.Rmdir(filepath.Join(fs.CacheDir, child.Path()))
+			} else {
+				e = syscall.Unlink(filepath.Join(fs.CacheDir, child.Path()))
+			}
+
+			if e != nil {
 				err = toErrno(e)
 				return
 			}
