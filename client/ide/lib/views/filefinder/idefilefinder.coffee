@@ -28,12 +28,12 @@ class IDEFileFinder extends KDCustomHTMLView
 
     @addSubView @input = input = new KDInputView
       type         : 'text'
-      placeholder  : 'Type a file name to search'
+      placeholder  : 'Type a filename to search...'
       keydown      : _.bind @handleKeyDown, this
       keyup        : _.bind @handleKeyUp, this
 
-    @addSubView new KDCustomHTMLView cssClass: 'icon'
     @addSubView @content = new KDCustomHTMLView
+      cssClass     : 'file-finder-content'
 
     @appendToDomBody()
 
