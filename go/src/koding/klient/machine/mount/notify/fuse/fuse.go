@@ -10,6 +10,8 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/node"
 
+	"log"
+
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"golang.org/x/net/context"
@@ -89,6 +91,14 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 
 		op.Attributes = fs.newAttributes(n.Entry)
 
+		// When only access time is being set we are not going to update
+		// underlying file because current Entry implementation does not store
+		// atime value.
+		if op.Atime != nil && (op.Mode == nil && op.Mtime == nil && op.Size == nil) {
+			op.Attributes.Atime = *op.Atime
+			return
+		}
+
 		// Inode size has changed.
 		if op.Size != nil {
 			if err = fh.File.Truncate(int64(*op.Size)); err != nil {
@@ -115,7 +125,7 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 		}
 
 		// Set inode modification time.
-		if op.Atime != nil || op.Mtime != nil {
+		if op.Mtime != nil {
 			if op.Atime != nil {
 				op.Attributes.Atime = *op.Atime
 			}
@@ -487,6 +497,8 @@ func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err
 			return
 		}
 
+		log.Println("Opening file:", n.Path())
+
 		var h fuseops.HandleID
 		if h, err = fs.fileHandles.Open(fs.CacheDir, n); err != nil {
 			return
@@ -585,6 +597,7 @@ func (fs *Filesystem) syncFile(handleID fuseops.HandleID) error {
 // ReleaseFileHandle releases file handle. It does not return errors even if it
 // fails since this op doesn't affect anything.
 func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFileHandleOp) error {
+	log.Println("Releasing file:")
 	return fs.fileHandles.Release(op.Handle)
 }
 
