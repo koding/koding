@@ -3,6 +3,7 @@ package proxy
 import (
     "fmt"
     "io"
+    "net/http"
     "net/url"
     "regexp"
     "strings"
@@ -109,7 +110,7 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     // client via dnode.Functions
 
     origin := ""
-    if strings.Contains("https://", p.config.Host) {
+    if strings.Contains(p.config.Host, "https://") {
         origin = strings.Replace(p.config.Host, "https://", "wss://", -1)
     } else {
         origin = strings.Replace(p.config.Host, "http://", "ws://", -1)
@@ -141,6 +142,10 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         return nil, err
     }
     c.TlsConfig = tlsConfig
+
+    c.Header = http.Header{
+        "Authorization": []string{fmt.Sprintf("Bearer %s", p.config.BearerToken)},
+    }
 
     conn, err := websocket.DialConfig(c)
     if err != nil {
