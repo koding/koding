@@ -184,6 +184,7 @@ type InspectMountOptions struct {
 	Identifier string // Mount identifier.
 	Sync       bool   // Get syncing history.
 	Tree       bool   // Show index tree.
+	Filesystem bool   // Check and report filesystem consistency.
 	Log        logging.Logger
 }
 
@@ -199,6 +200,7 @@ func (c *Client) InspectMount(options *InspectMountOptions) (machinegroup.Inspec
 		Identifier: options.Identifier,
 		Sync:       options.Sync,
 		Tree:       options.Tree,
+		Filesystem: options.Filesystem,
 	}
 
 	err := c.klient().Call("machine.mount.inspect", inspectMountReq, &inspectMountRes)
