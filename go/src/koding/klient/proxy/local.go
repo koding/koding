@@ -79,16 +79,18 @@ func (p *LocalProxy) exec(r *ExecRequest) (*Exec, error) {
         return nil, err
     }
 
+    errChan := make(chan error)
+
     // Send all data from cmd output pipe to the requesting client, via
     // the Output dnode.Function provided by the requester.
     go func() {
-        util.PassTo(r.Output, cPipes.Out)
+        util.PassTo(r.Output, cPipes.Out, errChan)
     }()
 
     // Send all data from cmd error pipe to the requesting client, via
     // the Output dnode.Function provided by the requester.
     go func() {
-        util.PassTo(r.Output, cPipes.Err)
+        util.PassTo(r.Output, cPipes.Err, errChan)
     }()
 
     if err = cmd.Start(); err != nil {
@@ -96,6 +98,8 @@ func (p *LocalProxy) exec(r *ExecRequest) (*Exec, error) {
     }
 
     go func() {
+        // defer close(errChan)
+
         _ = cmd.Wait()
 
         _ = r.Done.Call(true)

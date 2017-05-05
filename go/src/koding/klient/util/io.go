@@ -39,7 +39,7 @@ func GetPipes(c *exec.Cmd) (*Pipes, error) {
 // PassTo takes an io.Reader and reads data from said reader, passing
 // all chunks to the provided dnode.Function that is assumed to be
 // waiting for data from the reader.
-func PassTo(to dnode.Function, from io.Reader) {
+func PassTo(to dnode.Function, from io.Reader, errChan chan error) {
     buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
 
     for {
@@ -47,6 +47,7 @@ func PassTo(to dnode.Function, from io.Reader) {
 
         // Most likely and EOF here, so we are done.
         if err != nil {
+            errChan <- err
             break
         }
 
@@ -62,9 +63,7 @@ func PassTo(to dnode.Function, from io.Reader) {
         }
 
         if err := to.Call(string(filterInvalidUTF8(buf[:n]))); err != nil {
-            // TODO (acbodine): Make PassTo() take an error channel as an
-            // argument to force callers to handler their own errors.
-
+            errChan <- err
             break
         }
     }

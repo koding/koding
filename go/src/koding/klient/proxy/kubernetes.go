@@ -9,6 +9,7 @@ import (
     "strings"
 
     "koding/klient/registrar"
+    "koding/klient/util"
 
     "github.com/koding/kite"
     "golang.org/x/net/websocket"
@@ -152,18 +153,42 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         return nil, err
     }
 
-    fmt.Println("Connected to k8s exec endpoint for pod ", r.Pod)
-
     inReader, inWriter := io.Pipe()
 
+    errChan := make(chan error)
+
     go func() {
+        // An error here, means that something has happened
+        // on the requesting kite's side. Maybe they tried
+        // to detach? Should we allow re-connecting?
         io.Copy(conn, inReader)
     }()
 
-    // go func() {
-        // TODO (acbodine): read from conn in chunks and send to client kite
-        // via Output dnode.Function callback.
-    // }()
+    // Proxy all output from the websocket connection to
+    // the Output dnode.Function provided by requesting kite.
+    go func() {
+        util.PassTo(r.Output, conn, errChan)
+    }()
+
+    // Error handling
+    go func() {
+        // defer close(errChan)
+
+        for {
+            select {
+                case e := <- errChan:
+                    fmt.Println("Error handling caught ", e)
+
+                    // TODO (acbodine): Until we find a better way to detect if
+                    // the remote exec process has finished/errored, we will
+                    // treat errors received from the websocket Reader as
+                    // indicating the remote exec process is done.
+                    _ = r.Done.Call(true)
+
+                    return
+            }
+        }
+    }()
 
     exec := &Exec{
         in:         inWriter,
