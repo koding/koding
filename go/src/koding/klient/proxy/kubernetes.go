@@ -172,22 +172,24 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
 
     // Error handling
     go func() {
-        // defer close(errChan)
+        e := <- errChan
 
-        for {
-            select {
-                case e := <- errChan:
-                    fmt.Println("Error handling caught ", e)
+        fmt.Println("Error handling caught ", e)
 
-                    // TODO (acbodine): Until we find a better way to detect if
-                    // the remote exec process has finished/errored, we will
-                    // treat errors received from the websocket Reader as
-                    // indicating the remote exec process is done.
-                    _ = r.Done.Call(true)
-
-                    return
-            }
+        // TODO (acbodine): Until we find a better way to detect if
+        // the remote exec process has finished/errored, we will
+        // treat errors received from the websocket Reader as
+        // indicating the remote exec process is done.
+        if err := r.Done.Call(true); err != nil {
+            fmt.Println(err)
         }
+
+        conn.Close()
+        inReader.Close()
+
+        close(errChan)
+
+        fmt.Println("Exiting error handler.")
     }()
 
     exec := &Exec{
