@@ -394,7 +394,7 @@ func (g Guard) RmOrphan(orphan *Node) {
 	})
 }
 
-// ChangeInode replaces inode value inside provided Node. It's not guaranted
+// ChangeInode replaces inode value inside provided Node. It's not guaranteed
 // that provided inode will be set. The attached inode will be returned.
 func (g Guard) ChangeInode(n *Node, inode uint64) uint64 {
 	return g.t.changeInode(n, inode)
