@@ -1,11 +1,15 @@
 package proxy
 
 import (
+    "fmt"
+    "io"
     "regexp"
+    "strings"
 
     "koding/klient/registrar"
 
     "github.com/koding/kite"
+    "golang.org/x/net/websocket"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
     "k8s.io/client-go/rest"
@@ -49,7 +53,7 @@ func (p *KubernetesProxy) Methods() []string {
 }
 
 func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
-    var req *ListRequest
+    var req *ListKubernetesRequest
 
 	if err := r.Args.One().Unmarshal(&req); err != nil {
 		return nil, err
@@ -63,7 +67,7 @@ func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
     return res, nil
 }
 
-func (p *KubernetesProxy) list(r *ListRequest) (*ListResponse, error) {
+func (p *KubernetesProxy) list(r *ListKubernetesRequest) (*ListResponse, error) {
     data := &ListResponse{}
 
     // Query a K8s endpoint to actually get container data.
@@ -84,13 +88,13 @@ func (p *KubernetesProxy) list(r *ListRequest) (*ListResponse, error) {
 }
 
 func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
-    var req *ExecRequest
+    var req *ExecKubernetesRequest
 
     if err := r.Args.One().Unmarshal(&req); err != nil {
         return nil, err
     }
 
-    res, err := p.exec(&req)
+    res, err := p.exec(req)
     if err != nil {
         return nil, err
     }
@@ -98,11 +102,63 @@ func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
     return res, nil
 }
 
-func (p *KubernetesProxy) exec(r *ExecRequest) (*ExecResponse, error) {
-    data := &ExecResponse{}
+func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
 
     // TODO (acbodine): Setup call to K8s API and hookup to
     // client via dnode.Functions
 
-    return data, nil
+    origin := strings.Replace(p.config.Host, "https://", "wss://", -1)
+
+    wsUrl := fmt.Sprintf(
+        "%s/%s/namespaces/%s/pods/%s/exec",
+        origin,
+        p.config.APIPath,
+        r.Namespace,
+        r.Pod,
+    )
+
+    wsUrlWithQuery := fmt.Sprintf(
+        "%s?container=%s&command=%s",
+        wsUrl,
+        r.Container,
+        r.Command,
+    )
+
+    c, err := websocket.NewConfig(wsUrlWithQuery, origin)
+    if err != nil {
+        return nil, err
+    }
+
+    tlsConfig, err := rest.TLSConfigFor(p.config)
+    if err != nil {
+        return nil, err
+    }
+    c.TlsConfig = tlsConfig
+
+    conn, err := websocket.DialConfig(c)
+    if err != nil {
+        return nil, err
+    }
+
+    fmt.Println("Connected to k8s exec endpoint for pod ", r.Pod)
+
+    inReader, inWriter := io.Pipe()
+
+    go func() {
+        io.Copy(conn, inReader)
+    }()
+
+    // go func() {
+        // TODO (acbodine): read from conn in chunks and send to client kite
+        // via Output dnode.Function callback.
+    // }()
+
+    exec := &Exec{
+        in:         inWriter,
+
+        Session:    r.Session,
+        Command:    r.Command,
+    }
+
+    return exec, nil
 }

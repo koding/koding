@@ -17,6 +17,16 @@ type ExecRequest struct {
     Done        dnode.Function
 }
 
+// ExecKubernetesRequest is a helper type to verify requests to the
+// "proxy.exec" kite endpoint, when we are proxying to K8s containers.
+type ExecKubernetesRequest struct {
+    ExecRequest
+
+    Namespace   string
+    Pod         string
+    Container   string
+}
+
 // Exec is the server side representation of a command
 // that was exec'ed by this client into some context
 // depending on what the current proxy type is.

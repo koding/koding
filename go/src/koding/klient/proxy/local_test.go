@@ -35,14 +35,14 @@ func TestLocalList(t *testing.T) {
     k, client := testutil.GetKites(mapping)
     defer k.Close()
 
-    dnode, err := client.Tell("proxy.list")
+    dnode, err := client.Tell("proxy.list", proxy.ListRequest{})
     if err != nil {
         t.Fatal(err)
     }
 
-    var data proxy.ListResponse
+    var data *proxy.ListResponse
 
-    if err = dnode.Unmarshal(data); err != nil {
+    if err = dnode.Unmarshal(&data); err != nil {
         t.Fatal("Response should be of type proxy.ListResponse.")
     }
 }
