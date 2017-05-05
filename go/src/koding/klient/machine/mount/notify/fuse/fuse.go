@@ -43,7 +43,7 @@ func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) 
 		}
 
 		if child := n.GetChild(op.Name); child.Exist() {
-			op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
+			op.Entry.Child = fuseops.InodeID(child.Entry.File.Inode)
 			op.Entry.Attributes = fs.newAttributes(child.Entry)
 
 			// Increase reference counter for entry - fuse_reply_entry.
@@ -189,7 +189,7 @@ func (fs *Filesystem) MkDir(_ context.Context, op *fuseops.MkDirOp) (err error) 
 		g.AddChild(n, child)
 		child.PromiseAdd()
 
-		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
+		op.Entry.Child = fuseops.InodeID(child.Entry.File.Inode)
 		op.Entry.Attributes = fs.newAttributes(entry)
 
 		// Increase reference counter for entry - fuse_reply_entry.
@@ -245,9 +245,9 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 		g.AddChild(n, child)
 		child.PromiseAdd()
 
-		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
+		op.Entry.Child = fuseops.InodeID(child.Entry.File.Inode)
 		op.Entry.Attributes = fs.newAttributes(child.Entry)
-		op.Handle = fs.fileHandles.Add(fuseops.InodeID(child.Entry.Virtual.Inode), f, 0)
+		op.Handle = fs.fileHandles.Add(fuseops.InodeID(child.Entry.File.Inode), f, 0)
 
 		// Increase reference counter for entry - fuse_reply_create.
 		incCountNoRoot(child)
@@ -372,8 +372,10 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 			return
 		}
 
+		log.Println("Unlink called on:", child.Path())
+
 		// Remove name from the
-		if !n.Orphan() {
+		if !n.Orphan() || n.Entry.File.Inode == node.RootInodeID {
 			if e := syscall.Unlink(filepath.Join(fs.CacheDir, child.Path())); e != nil {
 				err = toErrno(e)
 				return
@@ -382,6 +384,7 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 
 		child.PromiseDel()
 		if nlink := child.Entry.Virtual.NLinkDec(); nlink <= 0 {
+			fs.commit(child.Path(), index.ChangeMetaLocal|index.ChangeMetaRemove)
 			g.Repudiate(n, op.Name)
 		}
 	})
@@ -399,36 +402,15 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 			return
 		}
 
+		log.Println("FOrget called for: ", n.Path(), op.N, decCountNoRoot(n, 0))
+
 		if count := decCountNoRoot(n, op.N); count > 0 {
 			return
 		}
 
-		// Orphan nodes are needed only by kernel, they are no real
-		// representation in underlying filesystem.
-		if n.Orphan() {
-			g.RmOrphan(n)
-			return
-		}
-
-		path := n.Path()
-		// Try to delete even if the underlying filesystem operation fails.
-		defer func() {
-			fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
-		}()
-
-		absPath := filepath.Join(fs.CacheDir, path)
-		if rmErr := os.RemoveAll(absPath); os.IsNotExist(rmErr) {
-			return
-		} else if rmErr != nil {
-			err = toErrno(rmErr)
-			return
-		}
-
 		// Clean up tree.
-		if parent := n.Parent(); parent != nil {
-			g.RmChild(parent, n.Name)
-		} else {
-			panic("node marked to forget is an orphan")
+		if n.Orphan() && n.Entry.File.Inode != node.RootInodeID {
+			g.RmOrphan(n)
 		}
 	})
 
@@ -496,8 +478,6 @@ func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err
 			err = fuse.ENOENT
 			return
 		}
-
-		log.Println("Opening file:", n.Path())
 
 		var h fuseops.HandleID
 		if h, err = fs.fileHandles.Open(fs.CacheDir, n); err != nil {
@@ -597,12 +577,12 @@ func (fs *Filesystem) syncFile(handleID fuseops.HandleID) error {
 // ReleaseFileHandle releases file handle. It does not return errors even if it
 // fails since this op doesn't affect anything.
 func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFileHandleOp) error {
-	log.Println("Releasing file:")
 	return fs.fileHandles.Release(op.Handle)
 }
 
 // Destroy cleans up filesystem resources.
 func (fs *Filesystem) Destroy() {
+	log.Println("Destroy called: ")
 	fs.fileHandles.Close()
 }
 
@@ -674,7 +654,7 @@ func checkDir(n *node.Node) error {
 // incCountNoRoot increases node reference counter by one but not for root node
 // since there are no methods than could increase it.
 func incCountNoRoot(n *node.Node) {
-	if n.Entry.Virtual.Inode != node.RootInodeID {
+	if n.Entry.File.Inode != node.RootInodeID {
 		n.Entry.Virtual.CountInc()
 	}
 }
@@ -682,7 +662,7 @@ func incCountNoRoot(n *node.Node) {
 // decCountNoRoot decreases node reference counter by provided value and returns
 // the number of remaining handles.
 func decCountNoRoot(n *node.Node, val uint64) int32 {
-	if n.Entry.Virtual.Inode != node.RootInodeID {
+	if n.Entry.File.Inode != node.RootInodeID {
 		return n.Entry.Virtual.CountDec(int32(val))
 	}
 

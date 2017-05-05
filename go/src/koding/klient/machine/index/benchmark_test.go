@@ -50,7 +50,7 @@ func BenchmarkNodeLookup(b *testing.B) {
 
 func BenchmarkNodeAdd(b *testing.B) {
 	const name = "proxy/tmp/sync/fuse/fuse.go"
-	entry := node.NewEntry(0xB, 0)
+	entry := node.NewEntry(0xB, 0, node.RootInodeID)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

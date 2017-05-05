@@ -52,7 +52,7 @@ func NewTree() *Tree {
 func NewTreeInodeGen(inGen func() uint64) *Tree {
 	t := &Tree{
 		inGen:  inGen,
-		root:   NewNode(""),
+		root:   NewNode("", RootInodeID),
 		inodes: nil, // set by reset method.
 	}
 
@@ -181,7 +181,7 @@ func (t *Tree) UnmarshalJSON(data []byte) error {
 
 	t.inGen = defaultInodeIDGenerator()
 	if t.root == nil {
-		t.root = NewNode("")
+		t.root = NewNode("", RootInodeID)
 	}
 
 	if t.root.Entry == nil {
@@ -200,12 +200,17 @@ func (t *Tree) reset() {
 	t.inodes = make(map[uint64]*Node)
 	t.root.Walk(func(parent, n *Node) {
 		if parent == nil {
-			n.Entry.Virtual.Inode = RootInodeID
-		} else {
-			n.Entry.Virtual.Inode = t.inGen()
+			n.Entry.File.Inode = RootInodeID
 		}
 
-		t.inodes[n.Entry.Virtual.Inode] = n
+		for {
+			if _, ok := t.inodes[n.Entry.File.Inode]; !ok {
+				break
+			}
+			n.Entry.File.Inode = t.inGen()
+		}
+		t.inodes[n.Entry.File.Inode] = n
+
 		n.Entry.Virtual.Promise, n.Entry.Virtual.count = 0, 0
 	})
 }
@@ -255,7 +260,7 @@ func (t *Tree) addChild(n *Node, pos int, child *Node) {
 	if old := n.addChild(pos, child); old != nil {
 		// Clean inodes map in order to not leak resources.
 		old.Walk(func(_, n *Node) {
-			delete(t.inodes, n.Entry.Virtual.Inode)
+			delete(t.inodes, n.Entry.File.Inode)
 		})
 	}
 
@@ -267,15 +272,18 @@ func (t *Tree) addChild(n *Node, pos int, child *Node) {
 			child.parent = parent
 		}
 
-		if child.Entry.Virtual.Inode == 0 {
-			child.Entry.Virtual.Inode = t.inGen()
+		if child.Entry.File.Inode == 0 {
+			child.Entry.File.Inode = t.inGen()
 		}
 
-		if _, ok := t.inodes[child.Entry.Virtual.Inode]; ok {
-			panic("duplicated inode")
-		}
+		for {
+			if _, ok := t.inodes[child.Entry.File.Inode]; !ok {
+				t.inodes[child.Entry.File.Inode] = child
+				return
+			}
 
-		t.inodes[child.Entry.Virtual.Inode] = child
+			child.Entry.File.Inode = t.inGen()
+		}
 	})
 }
 
@@ -285,7 +293,7 @@ func (t *Tree) rmChild(n *Node, pos int, child *Node) {
 	if child != nil {
 		// Clean inodes map in order to not leak resources.
 		child.Walk(func(_, n *Node) {
-			delete(t.inodes, n.Entry.Virtual.Inode)
+			delete(t.inodes, n.Entry.File.Inode)
 		})
 	}
 }
@@ -335,7 +343,7 @@ func (g Guard) Repudiate(n *Node, name string) {
 // RmOrphan removes orphan nodes.
 func (g Guard) RmOrphan(orphan *Node) {
 	orphan.Walk(func(_, n *Node) {
-		delete(g.t.inodes, n.Entry.Virtual.Inode)
+		delete(g.t.inodes, n.Entry.File.Inode)
 	})
 }
 
@@ -355,19 +363,13 @@ type Predicate func(*Node) bool
 // the first present node in the tree.
 func Insert(entry *Entry) Predicate {
 	return func(n *Node) bool {
-		var inode uint64
-		if !n.IsShadowed() {
-			inode = n.Entry.Virtual.Inode
-			if inode == RootInodeID {
-				n.Entry = entry
-				n.Entry.Virtual.Inode = RootInodeID
-				return true
-			}
+		if !n.IsShadowed() && n.Entry.File.Inode == RootInodeID {
+			n.Entry = entry
+			n.Entry.File.Inode = RootInodeID
+			return true
 		}
 
 		n.Entry = entry
-		n.Entry.Virtual.Inode = inode
-
 		return true
 	}
 }

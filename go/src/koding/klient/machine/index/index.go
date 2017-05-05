@@ -8,9 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
-	"sync"
 	"text/tabwriter"
 
 	"koding/klient/machine/index/filter"
@@ -51,18 +49,6 @@ func NewIndexFiles(root string, f filter.Filter) (*Index, error) {
 		f = filter.NeverSkip{}
 	}
 
-	// Start worker pool.
-	var wg sync.WaitGroup
-	fC := make(chan *fileDesc)
-	for i := 0; i < 2*runtime.NumCPU(); i++ {
-		wg.Add(1)
-		go idx.addEntryWorker(root, &wg, fC)
-	}
-	defer func() {
-		close(fC)
-		wg.Wait()
-	}()
-
 	// In order to get as much entries as we can we ignore errors.
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -75,7 +61,18 @@ func NewIndexFiles(root string, f filter.Filter) (*Index, error) {
 			return e
 		}
 
-		fC <- &fileDesc{path: path, info: info}
+		// Get relative file name.
+		name, err := filepath.Rel(root, path)
+		if err != nil {
+			return nil
+		}
+
+		// Set root path to zero value.
+		if name == "." {
+			name = ""
+		}
+
+		idx.t.DoPath(filepath.ToSlash(name), node.Insert(node.NewEntryFileInfo(info)))
 		return nil
 	}
 
@@ -84,26 +81,6 @@ func NewIndexFiles(root string, f filter.Filter) (*Index, error) {
 	}
 
 	return idx, nil
-}
-
-// addEntryWorker asynchronously adds new entry to index. Errors are ignored.
-func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fileDesc) {
-	defer wg.Done()
-
-	for f := range fC {
-		// Get relative file name.
-		name, err := filepath.Rel(root, f.path)
-		if err != nil {
-			continue
-		}
-
-		// Set root path to zero value.
-		if name == "." {
-			name = ""
-		}
-
-		idx.t.DoPath(name, node.Insert(node.NewEntryFileInfo(f.info)))
-	}
 }
 
 // Clone returns a deep copy of called index.
@@ -174,6 +151,9 @@ func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSl
 		} else if err != nil {
 			return
 		}
+
+		// Set entry inode.
+		n.Entry.File.Inode = node.Inode(info)
 
 		mode, size, mtime := n.Entry.File.Mode, n.Entry.File.Size, n.Entry.File.MTime
 		// File exists in both remote and local. We compare entry mtime with

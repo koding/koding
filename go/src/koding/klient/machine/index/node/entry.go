@@ -67,16 +67,16 @@ func (ep *EntryPromise) Swap(set, unset EntryPromise) {
 // system. The fields of this type can be stored on disk and transferred over
 // the network.
 type File struct {
-	CTime int64       `json:"c"` // Metadata change time since EPOCH.
-	MTime int64       `json:"m"` // File data change time since EPOCH.
-	Size  int64       `json:"s"` // Size of the file.
-	Mode  os.FileMode `json:"o"` // File mode and permission bits.
+	CTime int64       `json:"c"`           // Metadata change time since EPOCH.
+	MTime int64       `json:"m"`           // File data change time since EPOCH.
+	Size  int64       `json:"s"`           // Size of the file.
+	Mode  os.FileMode `json:"o"`           // File mode and permission bits.
+	Inode uint64      `json:"i,omitempty"` // Inode ID of a mounted file.
 }
 
 // Virtual stores virtual file system dependent data that is lost during
 // serialization and should be recreated by VFS which manages the entries.
 type Virtual struct {
-	Inode   uint64       // Inode ID of a mounted file.
 	Promise EntryPromise // Metadata of files's memory state.
 	count   int32        // Reference count of file handlers.
 	nlink   int64        // Number of hard links to dentries.
@@ -130,9 +130,9 @@ type Entry struct {
 
 // NewEntry creates a new entry that describes the wile with specified size and
 // mode. VFS are zero values and must be set manually.
-func NewEntry(size int64, mode os.FileMode) *Entry {
+func NewEntry(size int64, mode os.FileMode, inode uint64) *Entry {
 	t := time.Now().UTC().UnixNano()
-	return NewEntryTime(t, t, size, mode)
+	return NewEntryTime(t, t, size, mode, inode)
 }
 
 // NewEntryFileInfo creates a new entry from a given file info.
@@ -142,11 +142,12 @@ func NewEntryFileInfo(info os.FileInfo) *Entry {
 		info.ModTime().UTC().UnixNano(),
 		info.Size(),
 		info.Mode(),
+		Inode(info),
 	)
 }
 
 // NewEntryTime creates a new entry with custom file change and modify times.
-func NewEntryTime(ctime, mtime, size int64, mode os.FileMode) *Entry {
+func NewEntryTime(ctime, mtime, size int64, mode os.FileMode, inode uint64) *Entry {
 	// All directories have size set to 0. This is done because on different
 	// file systems directory can have different size so we ignore it.
 	if mode.IsDir() {
@@ -159,6 +160,7 @@ func NewEntryTime(ctime, mtime, size int64, mode os.FileMode) *Entry {
 			MTime: mtime,
 			Size:  size,
 			Mode:  mode,
+			Inode: inode,
 		},
 		Virtual: Virtual{
 			count: 0,
@@ -184,7 +186,6 @@ func (e *Entry) Clone() *Entry {
 	return &Entry{
 		File: e.File,
 		Virtual: Virtual{
-			Inode:   e.Virtual.Inode,
 			Promise: e.Virtual.Promise,
 			count:   0,
 			nlink:   1,
@@ -209,9 +210,8 @@ func (e *Entry) MergeIn(f *Entry) {
 	if m := f.File.Mode; m != 0 {
 		e.File.Mode = m
 	}
-
-	if n := f.Virtual.Inode; n != 0 {
-		e.Virtual.Inode = n
+	if n := f.File.Inode; n != 0 {
+		e.File.Inode = n
 	}
 }
 
@@ -223,7 +223,7 @@ func (e *Entry) String() string {
 	)
 
 	return fmt.Sprintf("[INODE %d, COUNT %d, NLINK %d, PROMISE %s][CTIME %s, MTIME %s, SIZE %d, MODE %s]",
-		e.Virtual.Inode, e.Virtual.Count(), e.Virtual.NLink(), e.Virtual.Promise,
+		e.File.Inode, e.Virtual.Count(), e.Virtual.NLink(), e.Virtual.Promise,
 		ctime.Format(time.StampMilli), mtime.Format(time.StampMilli), e.File.Size, e.File.Mode,
 	)
 }

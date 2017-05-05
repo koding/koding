@@ -56,7 +56,7 @@ func testTree(data map[string]int64) *node.Tree {
 	tree := node.NewTree()
 	for _, path := range paths {
 		size := data[path]
-		tree.DoPath(path, node.Insert(node.NewEntry(size, 0)))
+		tree.DoPath(path, node.Insert(node.NewEntry(size, 0, 0)))
 	}
 
 	return tree
@@ -171,7 +171,7 @@ func TestTreeAdd(t *testing.T) {
 			t.Run(path, func(t *testing.T) {
 				t.Parallel()
 
-				tree.DoPath(path, node.Insert(node.NewEntry(funnySize, 0)))
+				tree.DoPath(path, node.Insert(node.NewEntry(funnySize, 0, 0)))
 				tree.DoPath(path, func(n *node.Node) bool {
 					if n.IsShadowed() {
 						t.Fatalf("Lookup(%q) failed", path)
