@@ -211,6 +211,10 @@ func (t *Tree) reset() {
 			n.Entry.File.Inode = RootInodeID
 		}
 
+		if n.Entry.File.Inode == 0 {
+			n.Entry.File.Inode = t.inGen()
+		}
+
 		for {
 			if _, ok := t.inodes[n.Entry.File.Inode]; !ok {
 				break
