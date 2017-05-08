@@ -291,7 +291,7 @@ func (c *Client) WaitIdle(opts *WaitIdleOptions) error {
 		Path:       opts.Path,
 		Timeout:    opts.Timeout,
 		Done: dnode.Callback(func(r *dnode.Partial) {
-			ch <- r.MustBool()
+			ch <- r.One().MustBool()
 		}),
 	}
 
@@ -401,7 +401,7 @@ func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 	return DefaultClient.ListMount(opts)
 }
 
-// WaitIdle waits for mount's synchronization to complate using DefaultClient.
+// WaitIdle waits for mount's synchronization to complete using DefaultClient.
 func WaitIdle(opts *WaitIdleOptions) error { return DefaultClient.WaitIdle(opts) }
 
 // InspectMount inspects existing mount using DefaultClient.
