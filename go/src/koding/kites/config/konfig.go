@@ -84,6 +84,16 @@ type Mount struct {
 	//
 	// The Exports["default"] defaults to $HOME.
 	Exports map[string]string `json:"exports,omitempty"`
+
+	// Inspect configures behavior of mount inspect command.
+	Inspect *MountInspect `json:"inspect,omitempty"`
+}
+
+// MountInspect describes configuration of mount inspect command.
+type MountInspect struct {
+	// History configures the size of inspect history,
+	// which is 100 by default.
+	History int `json:"history,omitempty"`
 }
 
 // Export gives a path for the named mount.
@@ -339,6 +349,9 @@ func NewKonfig(e *Environments) *Konfig {
 			Home: filepath.Join(CurrentUser.HomeDir, "koding", "mnt"),
 			Exports: map[string]string{
 				"default": CurrentUser.HomeDir,
+			},
+			Inspect: &MountInspect{
+				History: 100,
 			},
 		},
 		Template: &Template{
