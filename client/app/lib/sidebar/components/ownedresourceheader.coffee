@@ -20,24 +20,25 @@ module.exports = class OwnedResourceHeader extends React.Component
     @_header = null
 
 
+  setWidgetCoordinates: ->
+
+    kd.utils.defer =>
+      rect = findDOMNode(@_header).getBoundingClientRect()
+
+      @setState
+        coordinates: { top: rect.top, left: rect.width + rect.left }
+
+
   componentDidMount: ->
 
     if @_header and @props.hasWidget
-      kd.utils.defer =>
-        rect = findDOMNode(@_header).getBoundingClientRect()
-
-        @setState
-          coordinates: { top: rect.top, left: rect.width + rect.left }
+      @setWidgetCoordinates()
 
 
   componentWillReceiveProps: (nextProps) ->
 
     if @_header and nextProps.hasWidget
-      kd.utils.defer =>
-        rect = findDOMNode(@_header).getBoundingClientRect()
-
-        @setState
-          coordinates: { top: rect.top, left: rect.width + rect.left }
+      @setWidgetCoordinates()
 
 
   render: ->
