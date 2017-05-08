@@ -18,7 +18,7 @@ import (
 // directories. The detected changes will be returned as index change slice.
 // First argument is treated as base index data.
 func Compare(rootA, rootB string) (cs index.ChangeSlice, err error) {
-	idx, err := index.NewIndexFiles(rootA)
+	idx, err := index.NewIndexFiles(rootA, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,12 @@ func Compare(rootA, rootB string) (cs index.ChangeSlice, err error) {
 	// Merge ony adds files so it will make remote add instead of local delete
 	// we need to fix this.
 	mra := index.ChangeMetaAdd | index.ChangeMetaRemote
-	for _, c := range idx.Merge(rootB) {
+	cst, err := idx.Merge(rootB, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range cst {
 		if c.Meta()&mra == mra {
 			c = index.NewChange(c.Path(), index.PriorityLow, index.ChangeMetaRemove)
 		}

@@ -68,7 +68,7 @@ func TestRsyncExec(t *testing.T) {
 			}
 			defer clean()
 
-			idx, err := index.NewIndexFiles(remotePath)
+			idx, err := index.NewIndexFiles(remotePath, nil)
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)
 			}
