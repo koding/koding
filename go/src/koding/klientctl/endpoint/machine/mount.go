@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
@@ -17,6 +18,7 @@ import (
 	"koding/klientctl/helper"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
 )
 
@@ -272,6 +274,41 @@ func (c *Client) Umount(options *UmountOptions) (err error) {
 	return nil
 }
 
+// WaitIdleOptions describes options for "machine.mount.waitIdle" method's request.
+type WaitIdleOptions struct {
+	Identifier string
+	Path       string
+	Timeout    time.Duration
+}
+
+// WaitIdle waits for all the sync operations for finish
+// for the given mount.
+func (c *Client) WaitIdle(opts *WaitIdleOptions) error {
+	ch := make(chan bool)
+
+	req := &machinegroup.WaitIdleRequest{
+		Identifier: opts.Identifier,
+		Path:       opts.Path,
+		Timeout:    opts.Timeout,
+		Done: dnode.Callback(func(r *dnode.Partial) {
+			ch <- r.MustBool()
+		}),
+	}
+
+	if err := c.klient().Call("machine.mount.waitIdle", req, nil); err != nil {
+		return err
+	}
+
+	if !<-ch {
+		if req.Timeout != 0 {
+			return fmt.Errorf("waiting for mount to synchronize has timed out after %s", req.Timeout)
+		}
+		return fmt.Errorf("waiting for mount to synchronize has timed out")
+	}
+
+	return nil
+}
+
 func (c *Client) allMounts() (mids []string, err error) {
 	var (
 		listMountReq machinegroup.ListMountRequest
@@ -363,6 +400,9 @@ func Mount(opts *MountOptions) error { return DefaultClient.Mount(opts) }
 func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 	return DefaultClient.ListMount(opts)
 }
+
+// WaitIdle waits for mount's synchronization to complate using DefaultClient.
+func WaitIdle(opts *WaitIdleOptions) error { return DefaultClient.WaitIdle(opts) }
 
 // InspectMount inspects existing mount using DefaultClient.
 func InspectMount(opts *InspectMountOptions) (machinegroup.InspectMountResponse, error) {

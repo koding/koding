@@ -11,15 +11,15 @@ import (
 
 // WaitIdleRequest is a request value of "machine.mount.waitIdle" kite method.
 type WaitIdleRequest struct {
-	Idetifier string         `json:"identifier,omitempty"`
-	Path      string         `json:"path,omitempty"`
-	Timeout   time.Duration  `json:"timeout,omitempty"`
-	Done      dnode.Function `json:"done"` // func(bool)
+	Identifier string         `json:"identifier,omitempty"`
+	Path       string         `json:"path,omitempty"`
+	Timeout    time.Duration  `json:"timeout,omitempty"`
+	Done       dnode.Function `json:"done"` // func(bool)
 }
 
 // Valid implements the stack.Validator interface.
 func (r *WaitIdleRequest) Valid() error {
-	if r.Idetifier == "" && r.Path == "" {
+	if r.Identifier == "" && r.Path == "" {
 		return errors.New("either non-empty identifier or path is required")
 	}
 	if !r.Done.IsValid() {
@@ -53,8 +53,8 @@ func (g *Group) WaitIdle(r *WaitIdleRequest) error {
 
 // TODO(rjeczalik): Add LookupReuqest and use it in Exec / Kill methods as well.
 func (g *Group) lookupMountID(r *WaitIdleRequest) (mount.ID, error) {
-	if r.Idetifier != "" {
-		if id, err := g.getMountID(r.Idetifier); err == nil {
+	if r.Identifier != "" {
+		if id, err := g.getMountID(r.Identifier); err == nil {
 			return id, nil
 		}
 	}
