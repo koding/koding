@@ -34,7 +34,7 @@ func (c *Client) mountPoint(ident string) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(c.konfig().Local.MountHome, m.Label), nil
+	return filepath.Join(c.konfig().Mount.Home, m.Label), nil
 }
 
 // Mount synchronizes directories between remote and local machines.
