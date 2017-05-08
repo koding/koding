@@ -91,6 +91,16 @@ type Mount struct {
 
 	// Sync configures behavior of synchronization goroutines.
 	Sync *MountSync `json:"sync,omitempty"`
+
+	// Debug is a debug level used for logging within
+	// mounts.
+	//
+	//   <=0  - turns off debug logging
+	//   1    - turns on debug logging for syncer events
+	//   2-8  - reserved for future use
+	//   >=9  - turns on debug logging for fuse events
+	//
+	Debug int `json:"debug,omitempty"`
 }
 
 // MountInspect describes configuration of mount inspect command.

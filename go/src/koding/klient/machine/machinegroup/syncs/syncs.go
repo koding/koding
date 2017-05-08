@@ -20,7 +20,7 @@ import (
 // debugAll must be set in order to debug print all synced events. Worker
 // events may produce a lot of events so we keep logging disabled even in
 // "normal" debug mode.
-var debugAll = os.Getenv("KD_DEBUG_MOUNT") != ""
+var debugAll = os.Getenv("KD_DEBUG_MOUNT") != "" || config.Konfig.Mount.Debug >= 1
 
 // Options are the options used to configure Syncs object.
 type Options struct {
