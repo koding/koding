@@ -69,35 +69,35 @@ func (e *Endpoints) Social() *Endpoint {
 	return e.Koding.WithPath("/api/social")
 }
 
-// Local describes configuration of local paths.
-type Local struct {
+// Mount describes configuration of mounts.
+type Mount struct {
 	// Mount is a default home path of mounted directories.
 	//
 	// If empty, defaults to ~/koding/mnt/.
-	MountHome string `json:"mountHome,omitempty"`
+	Home string `json:"home,omitempty"`
 
-	// Mounts maps named mounts to local paths.
+	// Exports maps named mounts to local paths.
 	//
-	// The Mounts["default"] export is used as
+	// The Exports["default"] export is used as
 	// a default one when caller does not specify
 	// a mount path.
 	//
-	// The Mounts["default"] defaults to $HOME.
-	Mounts map[string]string `json:"mounts,omitempty"`
+	// The Exports["default"] defaults to $HOME.
+	Exports map[string]string `json:"exports,omitempty"`
 }
 
-// MountPath gives a path for the named mount.
+// Export gives a path for the named mount.
 //
 // If the named mount does not exist, it returns false.
 //
 // If the path contains '~' - it is expended to
 // a home directory of a current user.
-func (l *Local) MountPath(name string) (string, bool) {
-	if l == nil {
+func (m *Mount) Export(name string) (string, bool) {
+	if m == nil {
 		return "", false
 	}
 
-	if dir, ok := l.Mounts[name]; ok {
+	if dir, ok := m.Exports[name]; ok {
 		return expandHome(dir), true
 	}
 
@@ -122,8 +122,8 @@ type Konfig struct {
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
 	KiteKey     string `json:"kiteKey,omitempty"`
 
-	// Local describes configuration of local paths.
-	Local *Local `json:"local,omitempty"`
+	// Mount describes configuration of mounts.
+	Mount *Mount `json:"local,omitempty"`
 
 	// Template describes configuration of KD template.
 	Template *Template `json:"template,omitempty"`
@@ -335,9 +335,9 @@ func NewKonfig(e *Environments) *Konfig {
 				}},
 			},
 		},
-		Local: &Local{
-			MountHome: filepath.Join(CurrentUser.HomeDir, "koding", "mnt"),
-			Mounts: map[string]string{
+		Mount: &Mount{
+			Home: filepath.Join(CurrentUser.HomeDir, "koding", "mnt"),
+			Exports: map[string]string{
 				"default": CurrentUser.HomeDir,
 			},
 		},
