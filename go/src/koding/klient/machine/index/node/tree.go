@@ -35,7 +35,7 @@ type Tree struct {
 	// InodeGen is a function used to generate INodes for Tree entries. If nil,
 	// the default one will be used.
 	inGen func() uint64
-	mu    sync.Mutex
+	mu    sync.RWMutex
 	root  *Node
 
 	guard  Guard
@@ -52,7 +52,7 @@ func NewTree() *Tree {
 func NewTreeInodeGen(inGen func() uint64) *Tree {
 	t := &Tree{
 		inGen:  inGen,
-		root:   NewNode(""),
+		root:   NewNode("", RootInodeID),
 		inodes: nil, // set by reset method.
 	}
 
@@ -92,6 +92,14 @@ func (t *Tree) DoInode(inode uint64, fn func(Guard, *Node)) {
 	t.mu.Unlock()
 }
 
+// DoInodeR behaves like DoInode but the provided function can not modify node
+// argument in any way.
+func (t *Tree) DoInodeR(inode uint64, fn func(*Node)) {
+	t.mu.RLock()
+	fn(t.inodes[inode])
+	t.mu.RUnlock()
+}
+
 // DoInode2 behaves like DoInode but for two inodes.
 func (t *Tree) DoInode2(inode1, inode2 uint64, fn func(Guard, *Node, *Node)) {
 	t.mu.Lock()
@@ -106,7 +114,7 @@ func (t *Tree) DoPath(nodePath string, pred Predicate) {
 		t.mu.Lock()
 		// Root branch is neither a shadow branch nor can be deleted so, we can
 		// only call predicate on it.
-		pred(t.root)
+		pred(t.guard, t.root)
 		t.mu.Unlock()
 		return
 	}
@@ -117,7 +125,7 @@ func (t *Tree) DoPath(nodePath string, pred Predicate) {
 	pi, p, live, ci, c, subj := t.find(names)
 
 	// subj stores requested node.
-	if ok := pred(subj); ok {
+	if ok := pred(t.guard, subj); ok {
 		// User wants to keep the node so, if it's a shadow branch we need to
 		// attach it to the last `live` branch.
 		if c != nil {
@@ -181,7 +189,7 @@ func (t *Tree) UnmarshalJSON(data []byte) error {
 
 	t.inGen = defaultInodeIDGenerator()
 	if t.root == nil {
-		t.root = NewNode("")
+		t.root = NewNode("", RootInodeID)
 	}
 
 	if t.root.Entry == nil {
@@ -200,12 +208,21 @@ func (t *Tree) reset() {
 	t.inodes = make(map[uint64]*Node)
 	t.root.Walk(func(parent, n *Node) {
 		if parent == nil {
-			n.Entry.Virtual.Inode = RootInodeID
-		} else {
-			n.Entry.Virtual.Inode = t.inGen()
+			n.Entry.File.Inode = RootInodeID
 		}
 
-		t.inodes[n.Entry.Virtual.Inode] = n
+		if n.Entry.File.Inode == 0 {
+			n.Entry.File.Inode = t.inGen()
+		}
+
+		for {
+			if _, ok := t.inodes[n.Entry.File.Inode]; !ok {
+				break
+			}
+			n.Entry.File.Inode = t.inGen()
+		}
+		t.inodes[n.Entry.File.Inode] = n
+
 		n.Entry.Virtual.Promise, n.Entry.Virtual.count = 0, 0
 	})
 }
@@ -255,7 +272,7 @@ func (t *Tree) addChild(n *Node, pos int, child *Node) {
 	if old := n.addChild(pos, child); old != nil {
 		// Clean inodes map in order to not leak resources.
 		old.Walk(func(_, n *Node) {
-			delete(t.inodes, n.Entry.Virtual.Inode)
+			delete(t.inodes, n.Entry.File.Inode)
 		})
 	}
 
@@ -267,16 +284,58 @@ func (t *Tree) addChild(n *Node, pos int, child *Node) {
 			child.parent = parent
 		}
 
-		if child.Entry.Virtual.Inode == 0 {
-			child.Entry.Virtual.Inode = t.inGen()
+		if child.Entry.File.Inode == 0 {
+			child.Entry.File.Inode = t.inGen()
 		}
 
-		if _, ok := t.inodes[child.Entry.Virtual.Inode]; ok {
-			panic("duplicated inode")
-		}
+		for {
+			if _, ok := t.inodes[child.Entry.File.Inode]; !ok {
+				t.inodes[child.Entry.File.Inode] = child
+				return
+			}
 
-		t.inodes[child.Entry.Virtual.Inode] = child
+			child.Entry.File.Inode = t.inGen()
+		}
 	})
+}
+
+func (t *Tree) changeInode(n *Node, inode uint64) uint64 {
+	// Special case for root inode.
+	old := n.Entry.File.Inode
+	if old == RootInodeID {
+		if inode != old {
+			panic("root inode cannot be replaced: " + n.Path())
+		}
+
+		return inode
+	}
+
+	// Inode is already set.
+	if old == inode {
+		t.inodes[inode] = n
+		return inode
+	}
+
+	// If provided inode is already taken, we can set it twice so find first
+	// not taken one.
+	for {
+		if _, ok := t.inodes[inode]; !ok && inode >= RootInodeID {
+			break
+		}
+		inode = t.inGen()
+	}
+
+	// This inode doesn't have valid inode so it should not be in tree.
+	if _, ok := t.inodes[old]; old == 0 && ok {
+		panic("zero node present in tree" + n.Path())
+	} else if ok {
+		delete(t.inodes, old)
+	}
+
+	n.Entry.File.Inode = inode
+	t.inodes[inode] = n
+
+	return inode
 }
 
 func (t *Tree) rmChild(n *Node, pos int, child *Node) {
@@ -285,7 +344,7 @@ func (t *Tree) rmChild(n *Node, pos int, child *Node) {
 	if child != nil {
 		// Clean inodes map in order to not leak resources.
 		child.Walk(func(_, n *Node) {
-			delete(t.inodes, n.Entry.Virtual.Inode)
+			delete(t.inodes, n.Entry.File.Inode)
 		})
 	}
 }
@@ -335,8 +394,14 @@ func (g Guard) Repudiate(n *Node, name string) {
 // RmOrphan removes orphan nodes.
 func (g Guard) RmOrphan(orphan *Node) {
 	orphan.Walk(func(_, n *Node) {
-		delete(g.t.inodes, n.Entry.Virtual.Inode)
+		delete(g.t.inodes, n.Entry.File.Inode)
 	})
+}
+
+// ChangeInode replaces inode value inside provided Node. It's not guaranteed
+// that provided inode will be set. The attached inode will be returned.
+func (g Guard) ChangeInode(n *Node, inode uint64) uint64 {
+	return g.t.changeInode(n, inode)
 }
 
 // MvChild does the same job as MvChild. It is here for the sake of API
@@ -348,42 +413,36 @@ func (g Guard) MvChild(nSrc *Node, nameSrc string, nDst *Node, nameDst string) (
 // Predicate defines the read or write operation on the node. Node passed
 // as argument can be safely modified. Any predicate function must return true
 // in order to commit the changes.
-type Predicate func(*Node) bool
+type Predicate func(Guard, *Node) bool
 
 // Insert adds or replaces a node pointed by provided nodePath. If the node nodePath
 // doesn't exist it is created and nodes between inherit file permissions from
 // the first present node in the tree.
 func Insert(entry *Entry) Predicate {
-	return func(n *Node) bool {
-		var inode uint64
-		if !n.IsShadowed() {
-			inode = n.Entry.Virtual.Inode
-			if inode == RootInodeID {
-				n.Entry = entry
-				n.Entry.Virtual.Inode = RootInodeID
-				return true
-			}
+	return func(_ Guard, n *Node) bool {
+		if !n.IsShadowed() && n.Entry.File.Inode == RootInodeID {
+			n.Entry = entry
+			n.Entry.File.Inode = RootInodeID
+			return true
 		}
 
 		n.Entry = entry
-		n.Entry.Virtual.Inode = inode
-
 		return true
 	}
 }
 
 // Delete removes the node and all its children from the tree.
 func Delete() Predicate {
-	return func(_ *Node) bool {
+	return func(_ Guard, _ *Node) bool {
 		return false
 	}
 }
 
 // Walk calls provided function on root note and all its children.
-func Walk(f func(*Node)) Predicate {
-	return func(n *Node) bool {
+func Walk(f func(Guard, *Node)) Predicate {
+	return func(g Guard, n *Node) bool {
 		for stack := []*Node{n}; len(stack) != 0; {
-			f(stack[0])
+			f(g, stack[0])
 
 			stack = append(stack[1:], stack[0].children...)
 		}
@@ -393,33 +452,33 @@ func Walk(f func(*Node)) Predicate {
 }
 
 // WalkPath behaves like Walk but also sends path to the node.
-func WalkPath(f func(string, *Node)) Predicate {
-	var subFn func(string, *Node)
+func WalkPath(f func(string, Guard, *Node)) Predicate {
+	var subFn func(string, Guard, *Node)
 
-	subFn = func(nodePath string, n *Node) {
+	subFn = func(nodePath string, g Guard, n *Node) {
 		// Call on root node.
-		f(nodePath, n)
+		f(nodePath, g, n)
 
 		for i := range n.children {
 			childPath := path.Join(nodePath, n.children[i].Name)
 			// Save some function calls for regural files.
 			if len(n.children[i].children) == 0 {
-				f(childPath, n.children[i])
+				f(childPath, g, n.children[i])
 			} else {
-				subFn(childPath, n.children[i])
+				subFn(childPath, g, n.children[i])
 			}
 		}
 	}
 
-	return func(n *Node) bool {
-		subFn("", n)
+	return func(g Guard, n *Node) bool {
+		subFn("", g, n)
 		return true
 	}
 }
 
 // ExistCount stores the number of nodes that are proven to exist.
 func ExistCount(n *int) Predicate {
-	return Walk(func(nd *Node) {
+	return Walk(func(_ Guard, nd *Node) {
 		if nd.Entry != nil && nd.Entry.Virtual.Promise.Exist() {
 			(*n)++
 		}
@@ -428,7 +487,7 @@ func ExistCount(n *int) Predicate {
 
 // ExistDiskSize stores the size of nodes that are proven to exist.
 func ExistDiskSize(size *int64) Predicate {
-	return Walk(func(n *Node) {
+	return Walk(func(_ Guard, n *Node) {
 		if n.Entry != nil && n.Entry.Virtual.Promise.Exist() {
 			*size += n.Entry.File.Size
 		}
@@ -437,12 +496,12 @@ func ExistDiskSize(size *int64) Predicate {
 
 // Count stores the total number of nodes in provided argument.
 func Count(n *int) Predicate {
-	return Walk(func(*Node) { (*n)++ })
+	return Walk(func(Guard, *Node) { (*n)++ })
 }
 
 // DiskSize stores the total size of nodes in provided argument.
 func DiskSize(size *int64) Predicate {
-	return Walk(func(n *Node) {
+	return Walk(func(_ Guard, n *Node) {
 		if n.Entry != nil {
 			*size += n.Entry.File.Size
 		}

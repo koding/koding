@@ -25,7 +25,7 @@ type Node struct {
 func newNode() *Node {
 	return &Node{
 		Sub:   make(map[string]*Node),
-		Entry: node.NewEntry(0, 0755|os.ModeDir),
+		Entry: node.NewEntry(0, 0755|os.ModeDir, node.RootInodeID),
 	}
 }
 
@@ -127,7 +127,7 @@ func (nd *Node) PromiseAdd(path string, entry *node.Entry) {
 		newE = nd.Entry
 		newE.MergeIn(entry)
 	} else {
-		newE = node.NewEntry(entry.File.Size, entry.File.Mode)
+		newE = node.NewEntry(entry.File.Size, entry.File.Mode, 0)
 		newE.MergeIn(entry)
 	}
 

@@ -24,10 +24,10 @@ type Node struct {
 }
 
 // NewNode creates a new node with zero-size entry and directory mode.
-func NewNode(name string) *Node {
+func NewNode(name string, inode uint64) *Node {
 	return &Node{
 		Name:     name,
-		Entry:    NewEntry(0, 0755|os.ModeDir),
+		Entry:    NewEntry(0, 0755|os.ModeDir, inode),
 		children: make([]*Node, 0),
 		parent:   nil,
 	}

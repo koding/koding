@@ -56,7 +56,7 @@ func testTree(data map[string]int64) *node.Tree {
 	tree := node.NewTree()
 	for _, path := range paths {
 		size := data[path]
-		tree.DoPath(path, node.Insert(node.NewEntry(size, 0)))
+		tree.DoPath(path, node.Insert(node.NewEntry(size, 0, 0)))
 	}
 
 	return tree
@@ -82,7 +82,7 @@ func TestTreeLookup(t *testing.T) {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 
-			tree.DoPath(path, func(n *node.Node) bool {
+			tree.DoPath(path, func(_ node.Guard, n *node.Node) bool {
 				if n.IsShadowed() {
 					t.Fatalf("Lookup(%q) failed", path)
 				}
@@ -171,8 +171,8 @@ func TestTreeAdd(t *testing.T) {
 			t.Run(path, func(t *testing.T) {
 				t.Parallel()
 
-				tree.DoPath(path, node.Insert(node.NewEntry(funnySize, 0)))
-				tree.DoPath(path, func(n *node.Node) bool {
+				tree.DoPath(path, node.Insert(node.NewEntry(funnySize, 0, 0)))
+				tree.DoPath(path, func(_ node.Guard, n *node.Node) bool {
 					if n.IsShadowed() {
 						t.Fatalf("Lookup(%q) failed", path)
 					}
@@ -265,7 +265,7 @@ func TestTreeForEach(t *testing.T) {
 	var got []string
 	tree := testTree(fixData)
 
-	tree.DoPath("", node.WalkPath(func(nodePath string, _ *node.Node) {
+	tree.DoPath("", node.WalkPath(func(nodePath string, _ node.Guard, _ *node.Node) {
 		got = append(got, nodePath)
 	}))
 
@@ -281,7 +281,7 @@ func TestTreeMarshalJSON(t *testing.T) {
 	)
 
 	tree := testTree(fixData)
-	tree.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
+	tree.DoPath("", node.WalkPath(func(nodePath string, _ node.Guard, n *node.Node) {
 		treePaths = append(treePaths, nodePath)
 		treeEntries = append(treeEntries, n.Entry)
 	}))
@@ -295,7 +295,7 @@ func TestTreeMarshalJSON(t *testing.T) {
 	if err := json.Unmarshal(data, got); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	got.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
+	got.DoPath("", node.WalkPath(func(nodePath string, _ node.Guard, n *node.Node) {
 		gotPaths = append(gotPaths, nodePath)
 		gotEntries = append(gotEntries, n.Entry)
 	}))
