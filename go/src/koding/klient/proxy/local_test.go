@@ -47,12 +47,14 @@ func TestLocalList(t *testing.T) {
     }
 }
 
+// Mock a similar request to the ExecKubernetesRequest so we can
+// control what happens with the callbacks (Output, Done)
 type TestExecRequest struct {
     output  chan    string
     done    chan    bool
 
-    Session     string      `json:"session"`
-    Command     []string    `json:"command"`
+    proxy.Common
+    proxy.IO
 }
 
 func (r *TestExecRequest) Output(d *dnode.Partial) {
@@ -86,8 +88,17 @@ func TestLocalExec(t *testing.T) {
         output:     make(chan string),
         done:       make(chan bool),
 
-        Session:    "TestLocalExec",
-        Command:    []string{"/bin/echo", strings.TrimSpace(expected)},
+        Common:     proxy.Common{
+            Session:    "TestLocalExec",
+            Command:    []string{"/bin/echo", strings.TrimSpace(expected)},
+        },
+
+        IO:         proxy.IO{
+            Stdin:      false,
+            Stdout:     true,
+            Stderr:     true,
+            Tty:        false,
+        },
     }
 
     d, err := client.Tell("proxy.exec", r)
@@ -131,8 +142,17 @@ func TestLocalExecWithInput(t *testing.T) {
         output:     make(chan string),
         done:       make(chan bool),
 
-        Session:    "TestLocalExec",
-        Command:    []string{"/usr/bin/head", "-n", "1"},
+        Common:     proxy.Common{
+            Session:    "TestLocalExec",
+            Command:    []string{"/usr/bin/head", "-n", "1"},
+        },
+
+        IO:         proxy.IO{
+            Stdin:      true,
+            Stdout:     true,
+            Stderr:     true,
+            Tty:        true,
+        },
     }
 
     d, err := client.Tell("proxy.exec", r)

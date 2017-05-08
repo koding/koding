@@ -63,15 +63,15 @@ func TestKubernetesList(t *testing.T) {
     }
 }
 
+// Mock a similar request to the ExecKubernetesRequest so we can
+// control what happens with the callbacks (Output, Done)
 type TestExecKubernetesRequest struct {
     output  chan    string
     done    chan    bool
 
-    Session     string      `json:"session"`
-    Command     []string    `json:"command"`
-    Namespace   string      `json:"namespace"`
-    Pod         string      `json:"pod"`
-    Container   string      `json:"container"`
+    proxy.Common
+    proxy.IO
+    proxy.K8s
 }
 
 func (r *TestExecKubernetesRequest) Output(d *dnode.Partial) {
@@ -106,12 +106,23 @@ func TestKubernetesExec(t *testing.T) {
         output:     make(chan string),
         done:       make(chan bool),
 
-        Session:        "TestKubernetesExec",
-        Command:        []string{"/bin/echo", strings.TrimSpace(expected)},
+        Common: proxy.Common{
+            Session:        "TestKubernetesExec",
+            Command:        []string{"/bin/echo", strings.TrimSpace(expected)},
+        },
 
-        Namespace:      "default",
-        Pod:            "koding",
-        Container:      "klient",
+        IO: proxy.IO{
+            Stdin:          false,
+            Stdout:         true,
+            Stderr:         true,
+            Tty:            false,
+        },
+
+        K8s: proxy.K8s{
+            Namespace:      "default",
+            Pod:            "koding",
+            Container:      "klient",
+        },
     }
 
     dnode, err := client.Tell("proxy.exec", r)

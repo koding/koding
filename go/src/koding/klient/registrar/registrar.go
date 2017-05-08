@@ -1,15 +1,23 @@
 package registrar
 
-var registry *Registry = &Registry{}
+import (
+    "sync"
+)
+
+var r *Registry = &Registry{}
 
 type Registry struct {
     methods []string
+    sync.Mutex
 }
 
 func Register(name string) {
-    registry.methods = append(registry.methods, name)
+    r.Lock()
+    defer r.Unlock()
+
+    r.methods = append(r.methods, name)
 }
 
 func Methods() []string {
-    return registry.methods
+    return r.methods
 }

@@ -73,7 +73,7 @@ func (p *LocalProxy) exec(r *ExecRequest) (*Exec, error) {
         return nil, err
     }
 
-    cmd := exec.Command(r.Command[0], r.Command[1:]...)
+    cmd := exec.Command(r.Common.Command[0], r.Common.Command[1:]...)
     cPipes, err := util.GetPipes(cmd)
     if err != nil {
         return nil, err
@@ -109,8 +109,8 @@ func (p *LocalProxy) exec(r *ExecRequest) (*Exec, error) {
         cmd:        cmd,
         in:         cPipes.In,
 
-        Session:    r.Session,
-        Command:    r.Command,
+        Common:     r.Common,
+        IO:         r.IO,
     }
 
     return data, nil

@@ -7,35 +7,50 @@ import (
     "github.com/koding/kite/dnode"
 )
 
+type Common struct {
+    Session     string          `json:"session"`
+    Command     []string        `json:"command"`
+}
+
+type IO struct {
+    Stdin       bool            `json:"stdin"`
+    Stdout      bool            `json:"stdout"`
+    Stderr      bool            `json:"stderr"`
+    Tty         bool            `json:"tty"`
+}
+
+type Remote struct {
+    Output      dnode.Function
+    Done        dnode.Function
+}
+
+type K8s struct {
+    Namespace   string
+    Pod         string
+    Container   string
+}
+
 // ExecRequest is a helper type to verify the
 // request to the "proxy.exec" kite endpoint.
 type ExecRequest struct {
-    Session     string          `json:"session"`
-    Command     []string        `json:"command"`
-
-    Output      dnode.Function
-    Done        dnode.Function
+    Common
+    IO
+    Remote
 }
 
 // ExecKubernetesRequest is a helper type to verify requests to the
 // "proxy.exec" kite endpoint, when we are proxying to K8s containers.
 type ExecKubernetesRequest struct {
-    Namespace   string
-    Pod         string
-    Container   string
-    Session     string          `json:"session"`
-    Command     []string        `json:"command"`
-
-    Output      dnode.Function
-    Done        dnode.Function
+    ExecRequest
+    K8s
 }
 
 // Exec is the server side representation of a command
 // that was exec'ed by this client into some context
 // depending on what the current proxy type is.
 type Exec struct {
-    Session     string          `json:"session"`
-    Command     []string        `json:"command"`
+    Common
+    IO
 
     cmd         *exec.Cmd
     in          io.WriteCloser
@@ -45,8 +60,7 @@ type Exec struct {
 // the response from the "proxy.exec" kite method. It is
 // the client-side representation of the Exec type.
 type ExecResponse struct {
-    Session     string
-    Command     []string        `json:"command"`
+    Common
 
     Input       dnode.Function
     Kill        dnode.Function
@@ -55,6 +69,10 @@ type ExecResponse struct {
 // Input is a dnode.Function that is exposed to the client, allowing
 // them to send data to an Exec instance.
 func (r *Exec) Input(d *dnode.Partial) {
+    if !r.IO.Stdin {
+        return
+    }
+
     data := d.MustSliceOfLength(1)[0].MustString()
 
     r.in.Write([]byte(data))

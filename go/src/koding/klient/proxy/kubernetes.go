@@ -105,35 +105,16 @@ func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
     return res, nil
 }
 
-func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
+func (p *KubernetesProxy) WebsocketConfig(specifier string) (*websocket.Config, error) {
+    target := p.config.Host
 
-    // TODO (acbodine): Setup call to K8s API and hookup to
-    // client via dnode.Functions
+    target = strings.Replace(target, "https://", "wss://", -1)
+    target = strings.Replace(target, "http://", "ws://", -1)
 
-    origin := ""
-    if strings.Contains(p.config.Host, "https://") {
-        origin = strings.Replace(p.config.Host, "https://", "wss://", -1)
-    } else {
-        origin = strings.Replace(p.config.Host, "http://", "ws://", -1)
-    }
+    action := fmt.Sprintf("%s/%s", target, specifier)
+    action = strings.Replace(action, "//api", "/api", -1)
 
-    wsUrl := fmt.Sprintf(
-        "%s/api/v1/namespaces/%s/pods/%s/exec",
-        origin,
-        r.Namespace,
-        r.Pod,
-    )
-
-    wsUrl = strings.Replace(wsUrl, "//api", "/api", -1)
-
-    wsUrlWithQuery := fmt.Sprintf(
-        "%s?container=%s&command=%s",
-        wsUrl,
-        r.Container,
-        url.QueryEscape(strings.Join(r.Command, "+")),
-    )
-
-    c, err := websocket.NewConfig(wsUrlWithQuery, origin)
+    c, err := websocket.NewConfig(action, target)
     if err != nil {
         return nil, err
     }
@@ -148,7 +129,34 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         "Authorization": []string{fmt.Sprintf("Bearer %s", p.config.BearerToken)},
     }
 
-    conn, err := websocket.DialConfig(c)
+    return c, nil
+}
+
+func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
+
+    s := fmt.Sprintf(
+        "api/v1/namespaces/%s/pods/%s/exec",
+        r.K8s.Namespace,
+        r.K8s.Pod,
+    )
+
+    sWithQuery := fmt.Sprintf(
+        "%s?container=%s&command=%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
+        s,
+        r.K8s.Container,
+        url.QueryEscape(strings.Join(r.Common.Command, "+")),
+        r.IO.Stdin,
+        r.IO.Stdout,
+        r.IO.Stderr,
+        r.IO.Tty,
+    )
+
+    config, err := p.WebsocketConfig(sWithQuery)
+    if err != nil {
+        return nil, err
+    }
+
+    conn, err := websocket.DialConfig(config)
     if err != nil {
         return nil, err
     }
@@ -195,8 +203,8 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     exec := &Exec{
         in:         inWriter,
 
-        Session:    r.Session,
-        Command:    r.Command,
+        Common:     r.Common,
+        IO:         r.IO,
     }
 
     return exec, nil
