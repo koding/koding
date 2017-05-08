@@ -13,6 +13,7 @@ import (
 	"sync"
 	"text/tabwriter"
 
+	"koding/klient/machine/index/filter"
 	"koding/klient/machine/index/node"
 
 	"github.com/djherbis/times"
@@ -43,8 +44,12 @@ type fileDesc struct {
 
 // NewIndexFiles walks the given file tree roted at root and records file
 // states to resulting Index object.
-func NewIndexFiles(root string) (*Index, error) {
+func NewIndexFiles(root string, f filter.Filter) (*Index, error) {
 	idx := NewIndex()
+
+	if f == nil {
+		f = filter.NeverSkip{}
+	}
 
 	// Start worker pool.
 	var wg sync.WaitGroup
@@ -64,9 +69,10 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
-		// Don't include OSX trashes to scanned files.
-		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
-			return filepath.SkipDir
+		if e := f.Check(filepath.ToSlash(path)); e == filter.SkipPath {
+			return nil
+		} else if e != nil {
+			return e
 		}
 
 		fC <- &fileDesc{path: path, info: info}
@@ -113,8 +119,8 @@ func (idx *Index) Tree() *node.Tree {
 }
 
 // Merge calls MergeBranch on all nodes pointed by root path.
-func (idx *Index) Merge(root string) ChangeSlice {
-	return idx.MergeBranch(root, "")
+func (idx *Index) Merge(root string, f filter.Filter) (ChangeSlice, error) {
+	return idx.MergeBranch(root, "", f)
 }
 
 // MergeBranch rereads the given file tree rooted at root and merges its
@@ -136,10 +142,14 @@ func (idx *Index) Merge(root string) ChangeSlice {
 //
 // All detected changes will be stored in returned Change slice.
 // If branch is empty, the comparison is made against root of the index.
-func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
+func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSlice, err error) {
 	rootBranch := filepath.Join(root, branch)
 	visited := map[string]struct{}{
 		rootBranch: {}, // Skip root file.
+	}
+
+	if f == nil {
+		f = filter.NeverSkip{}
 	}
 
 	idx.t.DoPath(branch, node.WalkPath(func(name string, n *node.Node) {
@@ -204,9 +214,10 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return nil
 		}
 
-		// Don't include OSX trashes to scanned files.
-		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
-			return filepath.SkipDir
+		if e := f.Check(filepath.ToSlash(path)); e == filter.SkipPath {
+			return nil
+		} else if e != nil {
+			return e
 		}
 
 		// File exists in local but not in remote.
@@ -224,12 +235,12 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 	}
 
 	if err := filepath.Walk(rootBranch, walkFn); err != nil {
-		return nil
+		return nil, err
 	}
 
 	// Put sortest paths to the end.
 	sort.Sort(sort.Reverse(cs))
-	return cs
+	return cs, nil
 }
 
 // Sync modifies index according to provided change path. It checks the file

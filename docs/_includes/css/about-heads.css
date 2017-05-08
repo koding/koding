@@ -11,6 +11,10 @@
   z-index: 1;
 }
 .AboutUs-Team h3.DepartmentTitle span {
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  color: #9B75B0;
   background: white;
   z-index: 1;
   position: relative;
@@ -31,21 +35,23 @@
   text-align: center;
 }
 .AboutUs-TeamHeader h2 {
-  font-size: 42px;
-  color: #358BB0;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  color: #9B75B0;
   font-weight: 300;
   padding-top: 140px;
   padding-bottom: 40px
 }
 .AboutUs-TeamHeader p {
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-weight: 300;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1.4;
   max-width: 830px;
   margin-bottom: 80px;
   margin-left: auto;
   margin-right: auto;
-  color: #515151;
+  color: #617283;
   margin-bottom: 100px;
 }
 .AboutUs-TeamMemberWrapper {
@@ -106,12 +112,14 @@
   margin-bottom: 25px;
 }
 .AboutUs-TeamMember h3 {
-  font-size: 24px;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 20px;
   font-weight: 400;
   color: #727272;
   margin-bottom: 10px
 }
 .AboutUs-TeamMember p {
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 16px;
   color: #989898;
   line-height: 24px;

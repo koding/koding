@@ -15,6 +15,7 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/machine"
+	"koding/klientctl/endpoint/team"
 
 	"github.com/codegangsta/cli"
 	humanize "github.com/dustin/go-humanize"
@@ -40,6 +41,17 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	infos, err := machine.List(opts)
 	if err != nil {
 		return 1, err
+	}
+
+	if t := team.Used(); t.Valid() == nil {
+		all := infos
+		infos = infos[:0]
+
+		for _, i := range all {
+			if i.Team == t.Name {
+				infos = append(infos, i)
+			}
+		}
 	}
 
 	if c.Bool("json") {

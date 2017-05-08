@@ -137,7 +137,7 @@ func (c *Client) MountHeadIndex(path string) (string, int, int64, error) {
 // MountGetIndex creates an index from provided local path. Generated index is
 // not cached.
 func (c *Client) MountGetIndex(path string) (*index.Index, error) {
-	return index.NewIndexFiles(path)
+	return index.NewIndexFiles(path, nil)
 }
 
 // Exec mocks running process on a remote, always succeeds.

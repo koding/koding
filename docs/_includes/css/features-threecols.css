@@ -30,9 +30,13 @@
   width: 33%;
   padding-left: 20px;
   padding-right: 20px;
-  color: #989898;
+  color: #617283;
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.7;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .Feature3Cols h3 {
@@ -43,7 +47,8 @@
   text-transform: none;
   margin-bottom: 20px;
   margin-top: 80px;
-  color: #727272;
+  color: #1E2E42;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
 }
 
  @media (max-width: 767px) {

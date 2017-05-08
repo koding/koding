@@ -10,11 +10,27 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"koding/klient/machine/index/filter"
 )
 
 // TempIndexDirPrefix defines the prefix of temporary index file created by
 // Cached structure.
 const TempIndexDirPrefix = "koding_index_"
+
+// DefaultFilter defines a default filter used to process index caching.
+var DefaultFilter filter.Filter = filter.MultiFilter{
+	filter.OsSkip(filter.DirectorySkip(".Trash"), "darwin"),                                                                   // OSX trash directory.
+	filter.OsSkip(filter.DirectorySkip(".Trashes"), "darwin"),                                                                 // OSX trash directory.
+	filter.OsSkip(filter.DirectorySkip(".fseventsd"), "darwin"),                                                               // FSEvents notify.
+	filter.NewWithError(filter.PathSuffixSkip(".git/index.lock"), "git repository on remote is in use"),                       // git index lock file.
+	filter.NewWithError(filter.PathSuffixSkip(".git/refs/stash.lock"), "git repository on remote is in use"),                  // git stash lock file.
+	filter.NewWithError(filter.PathSuffixSkip(".git/HEAD.lock"), "git repository on remote is in use"),                        // git HEAD lock.
+	filter.NewWithError(filter.PathSuffixSkip(".git/ORIG_HEAD.lock"), "git repository on remote is in use"),                   // git ORIG_HEAD lock.
+	filter.NewWithError(filter.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`), "git repository on remote is in use"),          // git branch lock.
+	filter.NewWithError(filter.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`), "git repository on remote is in use"),          // git stash ref. lock.
+	filter.NewWithError(filter.NewRegexSkip(`\.git/objects/pack/tmp_pack_[^/]+`), "git repository on remote is being cloned"), // temporary git files.
+}
 
 // Cached allows to cache and reuse previously created index.
 type Cached struct {
@@ -26,6 +42,11 @@ type Cached struct {
 	// Function used to retrieve temporary directory. If nil, os.TempDir will be
 	// used.
 	TempDir func() string
+
+	// Filter is used to skip unwanted files from storing them in index or to
+	// fail the entire process if there are temporary files that can break the
+	// consistency of file tree. DefaultFilter is used when this field is nil.
+	Filter filter.Filter
 }
 
 // GetCachedIndex returns index that describes the current directory state. This
@@ -33,17 +54,24 @@ type Cached struct {
 // recompute it each time when the index is requested.
 func (c *Cached) GetCachedIndex(root string) (*Index, error) {
 	var cs ChangeSlice
+	if c.Filter == nil {
+		c.Filter = DefaultFilter
+	}
 
 	// Load or create index.
 	idx, path, createdAt, err := c.getCachedIndex(root)
 	if err != nil {
 		// Generate new index.
-		if idx, err = NewIndexFiles(root); err != nil {
+		if idx, err = NewIndexFiles(root, c.Filter); err != nil {
 			return nil, err
 		}
 	} else if createdAt.IsZero() || time.Since(createdAt) > c.Rescan {
 		// Update loaded index.
-		for _, c := range idx.Merge(root) {
+		if cs, err = idx.Merge(root, c.Filter); err != nil {
+			return nil, err
+		}
+
+		for _, c := range cs {
 			idx.Sync(root, c)
 		}
 	}

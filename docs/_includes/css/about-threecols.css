@@ -1,9 +1,10 @@
 .aboutus-title {
-  font-size: 42px;
-  color: #358BB0;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  color: #9B75B0;
   font-weight: 300;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 90px;
   margin-bottom: 100px;
 }
 
@@ -15,7 +16,8 @@
 .aboutus-col {
   width: 33%;
   text-align: center;
-  color: #989898;
+  color: #617283;
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 18px;
   line-height: 1.4;
   padding-left: 15px;
@@ -27,8 +29,10 @@
 }
 
 .aboutus-col h3 {
-  color: #2B78A0;
-  font-size: 26px;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+  color: #1E2E42;
+  font-size: 20px;
+  line-height: 26px;
   margin-bottom: 20px;
 }
 
