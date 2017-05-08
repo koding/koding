@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -87,13 +88,23 @@ type Mount struct {
 
 	// Inspect configures behavior of mount inspect command.
 	Inspect *MountInspect `json:"inspect,omitempty"`
+
+	// Sync configures behavior of synchronization goroutines.
+	Sync *MountSync `json:"sync,omitempty"`
 }
 
 // MountInspect describes configuration of mount inspect command.
 type MountInspect struct {
-	// History configures the size of inspect history,
+	// History configures the length of inspect history,
 	// which is 100 by default.
 	History int `json:"history,omitempty"`
+}
+
+// MountSync describes configuration of synchronization goroutines.
+type MountSync struct {
+	// Workers configures number of concurrent rsync processes,
+	// which is 2 * cpu by default.
+	Workers int `json:"workers,omitempty"`
 }
 
 // Export gives a path for the named mount.
@@ -352,6 +363,9 @@ func NewKonfig(e *Environments) *Konfig {
 			},
 			Inspect: &MountInspect{
 				History: 100,
+			},
+			Sync: &MountSync{
+				Workers: 2 * runtime.NumCPU(),
 			},
 		},
 		Template: &Template{

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 
+	"koding/klient/config"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/mount"
@@ -90,7 +90,7 @@ func New(opts Options) (*Syncs, error) {
 	}
 
 	// Start synchronization workers.
-	for i := 0; i < 2*runtime.NumCPU(); i++ {
+	for i := 0; i < config.Konfig.Mount.Sync.Workers; i++ {
 		s.wg.Add(1)
 		go s.worker()
 	}
