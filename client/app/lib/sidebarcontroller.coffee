@@ -51,7 +51,18 @@ module.exports = class SidebarController extends kd.Controller
 
   bindComputeHandlers: ->
 
-    { computeController } = kd.singletons
+    { computeController, groupsController } = kd.singletons
+
+    groupsController.ready =>
+      groupsController.on 'StackTemplateChanged', (event) =>
+        return  unless templateId = event?.contents
+
+        stacks = computeController.storage.stacks.get().filter (stack) ->
+          stack.baseStackId is templateId
+
+        return  unless stacks.length
+
+        @setUpdatedStack stacks[0].getId()
 
     computeController.ready =>
       computeController.on 'GroupStacksInconsistent', =>
