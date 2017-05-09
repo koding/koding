@@ -454,6 +454,7 @@ $stack-border-width         = 2px
     vendor                  transition, all 400ms ease-in
     border-left             $stack-border-width solid $stack-border-color
     visibility              visible
+    vendor                  transition, none
     borderBox()
 
     &.hidden
@@ -466,6 +467,9 @@ $stack-border-width         = 2px
       width                 100%
       min-width             100%
       border-left           none
+      .docs-view
+        .docs-content
+          display           block !important
 
     &.pinned
       position              inherit
@@ -778,7 +782,64 @@ $stack-border-width         = 2px
     top                     40px !important
     margin-left            -20px
 
+  .documentation
 
+    .docs-view
+
+      >.listview-wrapper
+        max-width           398px
+        fl()
+
+      .docs-content
+        width               calc(100% \- 398px)
+        padding             10px
+        border-right        1px solid #111
+        color               #999
+        overflow-y          auto
+        display             none !important
+        borderBox()
+        fl()
+
+        hr
+          background        #111
+
+        code
+          border            none !important
+
+        pre code
+          background-color  rgba(0, 0, 0, 0.37) !important
+          border            1px solid #2b2b30   !important
+          overflow          auto
+
+
+    .kdlistview
+      .no-item-found
+        padding-top         42px
+
+    .kdlistitemview
+      padding               4px 10px 8px 10px
+      border-bottom         1px solid #333
+      box-sizing            border-box
+      min-width             398px
+      color                 #999
+
+      &:hover
+      &.selected
+        background          #333
+
+      &.selected
+        background          #333
+        color               white !important
+        span
+          color             white
+
+      h3
+        font-size           14px
+        display             block
+
+      span
+        font-size           12px
+        color               #666
 
 #kdmaincontainer.hover
 #kdmaincontainer.collapsed
