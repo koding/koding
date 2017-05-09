@@ -14,6 +14,7 @@ Toolbar = require './toolbar'
 Editor = require './editor'
 Statusbar = require './statusbar'
 SideView = require './sideview'
+DocumentationView = require './documentationview'
 
 LogsController = require '../controllers/logs'
 StackController = require '../controllers/stack'
@@ -41,8 +42,11 @@ module.exports = class StackEditor extends kd.View
     @layoutStorage = new FlexSplitStorage
       adapter: AppStorageAdapter
 
+    # Docs view
+    @docsView = new DocumentationView
+
     # Toolbar
-    @toolbar = new Toolbar
+    @toolbar = new Toolbar { @docsView }
     @forwardEvent @toolbar, Events.InitializeRequested
 
     # Status bar
@@ -125,11 +129,9 @@ module.exports = class StackEditor extends kd.View
                 diff     :
                   x      : -93
                   y      : 12
-
         docs        :
-          title     : 'API Docs'
-          cssClass  : 'docs show-controls has-markdown'
-          view      : new kd.View { partial: 'WIP' }
+          cssClass  : 'documentation show-controls has-markdown'
+          view      : @docsView
 
     for _, controller of @controllers
       controller.on Events.TemplateDataChanged, @bound 'setData'
@@ -156,13 +158,14 @@ module.exports = class StackEditor extends kd.View
       when Events.Menu.MakeTeamDefault
         computeController.makeTeamDefault { template: @getData() }
       when Events.Menu.Clone
-        @toolbar.setBanner {
+        @toolbar.setBanner
           message  : 'Clonning...'
           autohide : 3000
-        }
         computeController.cloneTemplate @getData()
       when Events.ShowSideView
         @sideView.show rest...
+      when Events.HideSideView
+        @sideView.hide internal = yes
       when Events.ToggleSideView
         @sideView.toggle rest...
       when Events.HideWarning
