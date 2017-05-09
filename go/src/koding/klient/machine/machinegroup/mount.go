@@ -462,7 +462,7 @@ func (g *Group) InspectMount(req *InspectMountRequest) (*InspectMountResponse, e
 
 	// Run syncer diagnostic if required.
 	if req.Filesystem {
-		res.Filesystem = sc.Diagnostic()
+		res.Filesystem = sc.Diagnose()
 	}
 
 	return res, nil
