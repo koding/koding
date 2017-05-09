@@ -71,7 +71,7 @@ func (t *Tree) diagNilVal(live map[*Node]int) (s []string) {
 	for i, n := range t.inodes {
 		visited[n] = struct{}{}
 		if n == nil {
-			s = append(s, fmt.Sprintln("nil node under %d inode value", i))
+			s = append(s, fmt.Sprintf("nil node under %d inode value", i))
 		}
 	}
 
@@ -214,24 +214,24 @@ func (t *Tree) diagOrphans(live map[*Node]int) (s []string) {
 // actual number of children node have.
 func (t *Tree) diagNChild(live map[*Node]int) (s []string) {
 	for n, cn := range live {
-		if n.parent != nil {
+		if n.parent != nil || n == t.root {
 			cn-- // Remove parent reference.
 		}
 
 		if cn != n.ChildN() {
-			s = append(s, fmt.Sprintf("node %s is referenced by too many nodes", n.Name))
+			s = append(s, fmt.Sprintf("node %s is referenced by too many nodes(%d)", n.Name, cn))
 		}
 	}
 
 	return s
 }
 
-// diagTimes checks if times are set correctly and if creation time was before
+// diagTimes checks if times are set correctly and if change time was before
 // or during modification time.
 func (t *Tree) diagTimes(_ map[*Node]int) (s []string) {
 	for _, n := range t.inodes {
 		if n.Entry.File.CTime == 0 {
-			s = append(s, fmt.Sprintf("creation time of node %s is not set", n.Name))
+			s = append(s, fmt.Sprintf("change time of node %s is not set", n.Name))
 			continue
 		}
 
@@ -240,8 +240,8 @@ func (t *Tree) diagTimes(_ map[*Node]int) (s []string) {
 			continue
 		}
 
-		if n.Entry.File.MTime < n.Entry.File.CTime {
-			s = append(s, fmt.Sprintf("node %s modification time is lower than creation one", n.Name))
+		if n.Entry.File.MTime > n.Entry.File.CTime {
+			s = append(s, fmt.Sprintf("node %s modification time is greater than change one", n.Name))
 		}
 	}
 
@@ -251,8 +251,8 @@ func (t *Tree) diagTimes(_ map[*Node]int) (s []string) {
 // diagNoDirNoChild checks if nodes with non directory mode have no children.
 func (t *Tree) diagNoDirNoChild(_ map[*Node]int) (s []string) {
 	for _, n := range t.inodes {
-		if n.Entry.File.Mode.IsDir() && n.ChildN() > 0 {
-			s = append(s, fmt.Sprintf("node %s is not a directory but has %d children", n.ChildN()))
+		if !n.Entry.File.Mode.IsDir() && n.ChildN() > 0 {
+			s = append(s, fmt.Sprintf("node %s is not a directory but has %d children", n.Name, n.ChildN()))
 		}
 	}
 

@@ -90,7 +90,7 @@ func (h *History) Close() error {
 //
 // If there's no history available, the method returns empty, non-nil slice.
 func (h *History) Get() []*Record {
-	recs := make([]*Record, 0)
+	var recs []*Record
 
 	h.mu.Lock()
 	defer h.mu.Unlock()

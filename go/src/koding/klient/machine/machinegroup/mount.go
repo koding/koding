@@ -426,7 +426,7 @@ type InspectMountResponse struct {
 	Tree []index.Debug `json:"tree,omitempty"`
 
 	// Filesystem contains issues found by filesystem diagnostic.
-	Filesystem []string `json:"filesystem, omitempty"`
+	Filesystem []string `json:"filesystem,omitempty"`
 }
 
 // InspectMount gets detailed information about mount current state.
