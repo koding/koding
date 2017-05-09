@@ -11,7 +11,7 @@ module.exports = class BuildStackSuccessPageView extends JView
       title    : 'View Logs'
       cssClass : 'GenericButton secondary'
       callback : =>
-        if Cookies.get 'use-nse'
+        unless Cookies.get 'use-ose'
           kd.singletons.computeController.showBuildLogs @getData().machine, 0
         @emit 'ClosingRequested'
 

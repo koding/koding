@@ -16,9 +16,9 @@ AppClasses =
   analytics: require 'analytics'
   ide: require 'ide'
   'stack-editor': do ->
-    if Cookies.get 'use-nse'
-    then require 'new-stack-editor'
-    else require 'stack-editor'
+    if Cookies.get 'use-ose'
+    then require 'stack-editor'
+    else require 'new-stack-editor'
   testrunner: require 'testrunner'
 
 
