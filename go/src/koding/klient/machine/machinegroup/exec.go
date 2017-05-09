@@ -93,7 +93,7 @@ type KillResponse struct {
 	os.KillResponse
 }
 
-// Exec is a handler implementation for "method.exec" kite method.
+// Exec is a handler implementation for "machine.exec" kite method.
 func (g *Group) Exec(r *ExecRequest) (*ExecResponse, error) {
 	machineID := r.MachineID
 
