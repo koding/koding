@@ -1,3 +1,4 @@
+debug = (require 'debug') 'kodinglist:controller'
 kd                    = require 'kd'
 KDView                = kd.View
 kookies               = require 'kookies'
@@ -73,6 +74,9 @@ module.exports = class KodingListController extends KDListViewController
           when 'ItemRemoved'
             listView.removeItem item
             @showNoItemWidget()
+
+      .on 'KeyDownOnList', @bound 'handleKeyDown'
+      .on 'SelectItem', @bound 'selectItem'
 
 
   removeItem: (item, options = {}) ->
@@ -189,3 +193,41 @@ module.exports = class KodingListController extends KDListViewController
     if listHeight <= viewHeight
       @lazyLoader.show()
       @emit 'LazyLoadThresholdReached'
+
+
+  handleNavigation: (direction) ->
+
+    if direction is 'down'
+      @selectNextItem()
+    else
+      @selectPrevItem()
+
+    [ item ] = @selectedItems
+    item?.getElement().scrollIntoViewIfNeeded()
+
+
+  handleKeyDown: (e) ->
+
+    code = e.which or e.keyCode
+
+    # for vim people; ctrl+j/k
+    if e.ctrlKey
+      down = 74
+      up   = 75
+    # for the rest of the world up/down arrows
+    else
+      down = 40
+      up   = 38
+
+    switch code
+      when 13
+        e.preventDefault()
+        @emit 'ItemActivated', @selectedItems.first
+      when up
+        e.preventDefault()
+        @handleNavigation 'up'
+      when down
+        e.preventDefault()
+        @handleNavigation 'down'
+
+    return yes
