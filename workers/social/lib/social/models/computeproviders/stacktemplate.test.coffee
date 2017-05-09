@@ -70,7 +70,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           JStackTemplate.create client, stackTemplateData, (err, template) ->
             expect(err?.message)                  .not.exist
             expect(template.title)                .to.exist
-            expect(template.title.split(' ')[1])  .to.be.equal 'Aws'
+            expect(template.title.split(' ')[..-2][0]).to.be.equal 'Aws'
             expect(template.slug)                 .to.be.equal slugify template.title
             done()
 
