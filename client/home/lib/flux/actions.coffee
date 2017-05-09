@@ -85,15 +85,19 @@ checkFinishedSteps = ->
 
     return
 
-  queryKites().then (result) ->
+  queryKites()
 
-    if result?.length
-      return markAsDone 'installKd'
+    .then (result) ->
 
-    unless reactor.evaluate HomeGetters.areStepsFinished
-      mainController.emit 'AllWelcomeStepsNotDoneYet'
+      if result?.length
+        return markAsDone 'installKd'
 
-    queryForKd()
+      unless reactor.evaluate HomeGetters.areStepsFinished
+        mainController.emit 'AllWelcomeStepsNotDoneYet'
+
+      queryForKd()
+
+    .catch kd.noop
 
 
 checkStacksForBuild = (stacks, unobserve) ->
