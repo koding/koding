@@ -60,6 +60,11 @@ $stack-border-width         = 2px
     color                   $stack-fg-color-bright
     borderBox()
 
+    &:hover
+      .doc-search-input
+        width               256px
+        margin-right        128px
+
     .action-button
       height                26px
       padding-left          12px
@@ -79,6 +84,24 @@ $stack-border-width         = 2px
       margin                0 7px 0 6px
       color                 $dark-active-tab-color
       height                20px
+
+    .doc-search-input
+      top                   -28px
+      width                 286px
+      height                26px
+      padding               3px 8px
+      margin-right          98px
+
+      color                 #eee
+      background            #333
+
+      border                1px solid #434343 !important
+      border-radius         2px
+      box-shadow            none !important
+
+      font-size             13px
+      vendor                transition, all .3s ease
+      fr()
 
     .kdbutton.expand
       abs                   13px, 120px !important
