@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"koding/kites/config"
+	konfig "koding/klient/config"
 	"koding/klient/fs"
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount/notify"
@@ -48,7 +49,7 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		MountDir: opts.Path,
 		// intentionally separate env to not enable fuse logging
 		// for regular kd debug
-		Debug: os.Getenv("KD_MOUNT_DEBUG") == "1",
+		Debug: konfig.Konfig.Mount.Debug >= 9,
 	}
 
 	if err := o.Valid(); err != nil {

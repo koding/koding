@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/config"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
@@ -213,7 +214,7 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 	}
 
 	// Enable syncing history for all mounts.
-	s.s = history.NewHistory(syncer, 100)
+	s.s = history.NewHistory(syncer, config.Konfig.Mount.Inspect.History)
 
 	return s, nil
 }

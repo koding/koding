@@ -34,7 +34,7 @@ func (c *Client) mountPoint(ident string) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(c.konfig().Local.MountHome, m.Label), nil
+	return filepath.Join(c.konfig().Mount.Home, m.Label), nil
 }
 
 // Mount synchronizes directories between remote and local machines.
@@ -120,7 +120,6 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		Strategies: prefetch.DefaultStrategy.Available(),
 	}
 	var addMountRes machinegroup.AddMountResponse
-
 	if err := c.klient().Call("machine.mount.add", addMountReq, &addMountRes); err != nil {
 		return err
 	}
@@ -136,6 +135,15 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			options.Log.Error("Output: %q", exitErr.Stderr)
 		}
+	}
+
+	// Rescan cache folder in order to update index.
+	upIdxMountReq := &machinegroup.UpdateIndexRequest{
+		MountID: addMountRes.MountID,
+	}
+	var upIdxMountRes machinegroup.UpdateIndexResponse
+	if err := c.klient().Call("machine.mount.updateIndex", upIdxMountReq, &upIdxMountRes); err != nil {
+		return err
 	}
 
 	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)

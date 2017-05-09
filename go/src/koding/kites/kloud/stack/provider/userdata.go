@@ -57,7 +57,7 @@ func (bs *BaseStack) BuildUserdata(name string, vm map[string]interface{}) error
 	}
 
 	if v, ok := vm["koding_mounts"]; ok {
-		cfg.Mounts = tomap(v)
+		cfg.Exports = tomap(v)
 		delete(vm, "koding_mounts")
 	}
 
