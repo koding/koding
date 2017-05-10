@@ -7,7 +7,9 @@ import (
 // Diagnose checks tree looking for broken filesystem invariants. It returns
 // a list of found problems. Each of them should be considered critical since
 // they indicate broken logic.
-func (t *Tree) Diagnose() (s []string) {
+func (t *Tree) Diagnose() []string {
+	var s []string
+
 	// Find all Nodes that are present in the tree.
 	live := t.dft()
 
@@ -34,7 +36,7 @@ func (t *Tree) Diagnose() (s []string) {
 	return s
 }
 
-// dft uses deep first traversal algorithm to visit all nodes inside the tree
+// dft uses depth first traversal algorithm to visit all nodes inside the tree
 // the returned map will contain all found items with the number of child nodes
 // pointing to them.
 func (t *Tree) dft() map[*Node]int {
