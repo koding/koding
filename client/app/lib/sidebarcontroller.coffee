@@ -73,7 +73,7 @@ module.exports = class SidebarController extends kd.Controller
             debug 'template has an update event', template
             stacks = storage.stacks.query 'baseStackId', template.getId()
 
-            for stack in stacks when stack.revisionStatus isnt template.getRevisionStatus()
+            for stack in stacks when stack.stackRevision isnt template.getRevisionStatus()
               debug 'a stack generated from template has update', { template, stack }
               @_templateEventCache[template.getId()] = yes
               return @setUpdatedStack stack.getId()
