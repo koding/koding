@@ -3,12 +3,15 @@ package kloud
 import (
 	"errors"
 	_ "expvar"
-	"fmt"
 	"io/ioutil"
 	"log"
 	_ "net/http/pprof"
 	"net/url"
+	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"koding/api"
@@ -38,6 +41,7 @@ import (
 
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
@@ -65,6 +69,9 @@ type Kloud struct {
 
 	Stats        *statsd.Client
 	metricsProxy *metrics.Publisher
+
+	closeChan chan struct{}
+	closeOnce sync.Once
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -229,6 +236,7 @@ func New(conf *Config) (*Kloud, error) {
 			Kite:     k,
 			MongoDB:  sess.DB,
 		},
+		closeChan: make(chan struct{}),
 	}
 
 	authFn := func(opts *api.AuthOptions) (*api.Session, error) {
@@ -388,19 +396,7 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Info("Test mode enabled")
 	}
 
-	registerURL := k.RegisterURL(!conf.Public)
-	if conf.RegisterURL != "" {
-		u, err := url.Parse(conf.RegisterURL)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't parse register url: %s", err)
-		}
-
-		registerURL = u
-	}
-
-	if err := k.RegisterForever(registerURL); err != nil {
-		return nil, err
-	}
+	kloud.handleSignals()
 
 	return kloud, nil
 }
@@ -413,16 +409,46 @@ func (k *Kloud) HandleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
 
 // Close closes the underlying connections.
 func (k *Kloud) Close() error {
+	k.Kite.Close()
+
+	var merr *multierror.Error
 	if k.metricsProxy != nil {
-		return k.metricsProxy.Close()
+		if err := k.metricsProxy.Close(); err != nil {
+			merr = multierror.Append(merr, err)
+		}
 	}
 
-	k.Kite.Close()
-	k.Stats.Close()
+	if err := k.Stats.Close(); err != nil {
+		merr = multierror.Append(merr, err)
+	}
 
+	defer k.closeOnce.Do(func() {
+		close(k.closeChan)
+	})
+
+	return merr.ErrorOrNil()
+}
+
+// Wait waits for Kloud to exit
+func (k *Kloud) Wait() error {
+	<-k.closeChan // wait for exit
 	return nil
 }
 
+func (k *Kloud) handleSignals() {
+	go func() {
+		signalCh := make(chan os.Signal, 1)
+		signal.Notify(signalCh)
+
+		s := <-signalCh
+		signal.Stop(signalCh)
+		switch s {
+		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
+			k.Kite.Log.Info("%s signal received, closing kloud", s)
+			k.Close()
+		}
+	}()
+}
 func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
 
