@@ -85,11 +85,12 @@ func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
 	_ = util.Chown(dir, o.owner().User)
 
 	db, err := bolt.Open(o.File, 0644, o.BoltDB)
+
+	_ = util.Chown(o.File, o.owner().User)
+
 	if err != nil {
 		return nil, err
 	}
-
-	_ = util.Chown(o.File, o.owner().User)
 
 	return db, nil
 }

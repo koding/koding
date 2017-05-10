@@ -119,6 +119,8 @@ var _ api.Storage = (*Client)(nil)
 // (once one logged in with kd auth all commands like
 //  kd stack list etc. are going to use the same user).
 func (c *Client) Get(u *api.User) (*api.Session, error) {
+	c.init()
+
 	s, ok := c.sessions[u.Team]
 	if !ok {
 		return nil, api.ErrSessionNotFound
@@ -137,6 +139,8 @@ func (c *Client) Get(u *api.User) (*api.Session, error) {
 //
 // It sets or updates session given by the s.
 func (c *Client) Set(s *api.Session) error {
+	c.init()
+
 	c.sessions[s.User.Team] = &Session{
 		ClientID: s.ClientID,
 		Team:     s.User.Team,
@@ -148,6 +152,8 @@ func (c *Client) Set(s *api.Session) error {
 //
 // It removes, possibly invalidated, session.
 func (c *Client) Delete(s *api.Session) error {
+	c.init()
+
 	delete(c.sessions, s.User.Team)
 	return nil
 }
