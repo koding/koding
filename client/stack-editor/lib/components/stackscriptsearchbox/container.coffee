@@ -39,7 +39,7 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
 
     return  unless query
 
-    client.get("document-search/#{query}")
+    client.post("document-search", { query })
     .then ({ data }) =>
       @setState { loading: no, scripts: data }
     .catch =>
@@ -56,7 +56,7 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
 
     { title } = script
     @setState { close: yes, searchQuery: title }
-    client.get("document-content/#{title}")
+    client.post("document-content", { query: title })
     .then ({ data }) => @showPreview data, title
     .catch =>
       kd.NotificationView { title: 'Error occured while fetching stack script' }
