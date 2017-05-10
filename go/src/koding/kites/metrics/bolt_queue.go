@@ -28,6 +28,11 @@ func NewBoltQueue(path string) (*BoltQueue, error) {
 		return nil, err
 	}
 
+	return NewBoltQueueWithDB(db)
+}
+
+// NewBoltQueueWithDB creates a new bolt queue for metrics into given db.
+func NewBoltQueueWithDB(db *bolt.DB) (*BoltQueue, error) {
 	if err := db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(bucket)
 		return err
@@ -86,7 +91,6 @@ func (b *BoltQueue) ConsumeN(n int, f OperatorFunc) (int, error) {
 	res := make([][]byte, 0, cap)
 	err := b.db.Update(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bucket).Cursor()
-
 		for k, v := c.First(); k != nil && n != 0; k, v = c.Next() {
 			res = append(res, v)
 			// clean up after ourselves.
