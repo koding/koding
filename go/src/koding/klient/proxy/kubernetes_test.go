@@ -1,6 +1,7 @@
 package proxy_test
 
 import (
+    "fmt"
     "strings"
     "testing"
 
@@ -134,6 +135,75 @@ func TestKubernetesExec(t *testing.T) {
 
     if err = dnode.Unmarshal(&exec); err != nil {
         t.Fatal("Response should be of type proxy.ExecResponse.")
+    }
+
+    returned := ""
+    for {
+        select {
+            case o := <- r.output:
+                returned += o
+            case <- r.done:
+                if strings.Contains(returned, expected) {
+                    t.Fatal("Failed to return expected output.")
+                }
+                return
+        }
+    }
+}
+
+func TestKubernetesExecTerminal(t *testing.T) {
+    p, err := proxy.NewKubernetes()
+    if err != nil {
+        t.Skip(skipMessage)
+    }
+
+    mapping := map[string]kite.HandlerFunc{
+        "proxy.exec": p.Exec,
+    }
+
+    k, client := testutil.GetKites(mapping)
+    defer k.Close()
+
+    r := &TestExecKubernetesRequest{
+        output:     make(chan string),
+        done:       make(chan bool),
+
+        Common: proxy.Common{
+            Session:        "TestKubernetesExecTerminal",
+            Command:        []string{"/bin/bash"},
+        },
+
+        IO: proxy.IO{
+            Stdin:          true,
+            Stdout:         true,
+            Stderr:         true,
+            Tty:            true,
+        },
+
+        K8s: proxy.K8s{
+            Namespace:      "default",
+            Pod:            "koding",
+            Container:      "klient",
+        },
+    }
+
+    dnode, err := client.Tell("proxy.exec", r)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    var exec *proxy.ExecResponse
+
+    if err = dnode.Unmarshal(&exec); err != nil {
+        t.Fatal("Response should be of type proxy.ExecResponse.")
+    }
+
+    expected := `12345+1
+    `
+    cmd := fmt.Sprintf(`python -c "print %s"`, strings.TrimSpace(expected))
+
+    if err := exec.Input.Call(cmd + "\n"); err != nil {
+        t.Fatal(err)
     }
 
     returned := ""
