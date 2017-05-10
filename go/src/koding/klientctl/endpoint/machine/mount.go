@@ -312,6 +312,9 @@ func (c *Client) WaitIdle(opts *WaitIdleOptions) error {
 		return err
 	}
 
+	// Release read-only access before long-running operation.
+	_ = c.kloud().Cache().CloseRead()
+
 	if !<-ch {
 		if req.Timeout != 0 {
 			return fmt.Errorf("waiting for mount to synchronize has timed out after %s", req.Timeout)

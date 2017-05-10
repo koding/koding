@@ -100,21 +100,21 @@ type Mount struct {
 	//   2-8  - reserved for future use
 	//   >=9  - turns on debug logging for fuse events
 	//
-	Debug int `json:"debug,omitempty"`
+	Debug int `json:"debug,omitempty,string"`
 }
 
 // MountInspect describes configuration of mount inspect command.
 type MountInspect struct {
 	// History configures the length of inspect history,
 	// which is 100 by default.
-	History int `json:"history,omitempty"`
+	History int `json:"history,omitempty,string"`
 }
 
 // MountSync describes configuration of synchronization goroutines.
 type MountSync struct {
 	// Workers configures number of concurrent rsync processes,
 	// which is 2 * cpu by default.
-	Workers int `json:"workers,omitempty"`
+	Workers int `json:"workers,omitempty,string"`
 }
 
 // Export gives a path for the named mount.
@@ -169,7 +169,8 @@ type Konfig struct {
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
-	Debug bool `json:"debug,string,omitempty"`
+	LockTimeout time.Duration `json:"lockTimeout,omitempty"`
+	Debug       bool          `json:"debug,string,omitempty"`
 }
 
 // KiteHome gives directory of the kite.key file.
@@ -383,6 +384,7 @@ func NewKonfig(e *Environments) *Konfig {
 		},
 		PublicBucketName:   Builtin.Buckets.PublicLogs.Name,
 		PublicBucketRegion: Builtin.Buckets.PublicLogs.Region,
+		LockTimeout:        3 * time.Second,
 		Debug:              false,
 	}
 }

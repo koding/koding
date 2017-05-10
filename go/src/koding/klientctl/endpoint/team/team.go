@@ -82,7 +82,7 @@ func (c *Client) Whoami() (*stack.WhoamiResponse, error) {
 
 func (c *Client) Close() (err error) {
 	if c.used.Valid() == nil {
-		err = c.kloud().Cache().SetValue("team.used", &c.used)
+		err = c.kloud().Cache().ReadWrite().SetValue("team.used", &c.used)
 	}
 
 	return err
@@ -95,7 +95,7 @@ func (c *Client) init() {
 func (c *Client) readCache() {
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.kloud().Cache().GetValue("team.used", &c.used)
+	_ = c.kloud().Cache().ReadOnly().GetValue("team.used", &c.used)
 }
 
 func (c *Client) kloud() *kloud.Client {

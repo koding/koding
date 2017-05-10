@@ -5,6 +5,7 @@ import (
 	"sort"
 	"sync"
 
+	"koding/api"
 	conf "koding/kites/config"
 	"koding/kites/kloud/stack"
 	"koding/klientctl/config"
@@ -108,6 +109,55 @@ type Client struct {
 	sessions Sessions
 }
 
+var _ api.Storage = (*Client)(nil)
+
+// Get implements the api.Storage interface.
+//
+// It gives a session for the given team.
+//
+// All operations on a single Client assume the same user
+// (once one logged in with kd auth all commands like
+//  kd stack list etc. are going to use the same user).
+func (c *Client) Get(u *api.User) (*api.Session, error) {
+	c.init()
+
+	s, ok := c.sessions[u.Team]
+	if !ok {
+		return nil, api.ErrSessionNotFound
+	}
+
+	return &api.Session{
+		ClientID: s.ClientID,
+		User: &api.User{
+			Username: c.kloud().Username(),
+			Team:     s.Team,
+		},
+	}, nil
+}
+
+// Set implements the api.Storage interface.
+//
+// It sets or updates session given by the s.
+func (c *Client) Set(s *api.Session) error {
+	c.init()
+
+	c.sessions[s.User.Team] = &Session{
+		ClientID: s.ClientID,
+		Team:     s.User.Team,
+	}
+	return nil
+}
+
+// Delete implements the api.Storage interface.
+//
+// It removes, possibly invalidated, session.
+func (c *Client) Delete(s *api.Session) error {
+	c.init()
+
+	delete(c.sessions, s.User.Team)
+	return nil
+}
+
 // Login authenticates to Koding.
 //
 // If opts.Token is no empty, token-based authentication is used.
@@ -209,7 +259,7 @@ func (c *Client) Used() *Info {
 // It closes any resources used by the Client.
 func (c *Client) Close() (err error) {
 	if len(c.sessions) != 0 {
-		err = c.kloud().Cache().SetValue("auth.sessions", c.sessions)
+		err = c.kloud().Cache().ReadWrite().SetValue("auth.sessions", c.sessions)
 	}
 
 	return err
@@ -224,7 +274,7 @@ func (c *Client) readCache() {
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.kloud().Cache().GetValue("auth.sessions", &c.sessions)
+	_ = c.kloud().Cache().ReadOnly().GetValue("auth.sessions", &c.sessions)
 }
 
 func (c *Client) kloud() *kloud.Client {

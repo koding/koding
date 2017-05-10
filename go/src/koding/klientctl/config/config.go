@@ -82,6 +82,15 @@ func init() {
 	Konfig = configstore.Read(Environments)
 }
 
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
 func dirURL(s, env string) string {
 	u, err := url.Parse(s)
 	if err != nil {

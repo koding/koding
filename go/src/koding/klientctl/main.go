@@ -135,6 +135,25 @@ func run(args []string) {
 		os.Exit(1)
 	}
 
+	cache, err := config.Open()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, `It seems that another kd process is currently running and doing write
+operations that prevented me from starting up.
+
+Usually it is enough to retry. If that happens again, please verify
+you have no hanging kd processes. Alternatively if you are executing
+a lot of kd processes concurrently and a number of them are failing,
+you may want to increate lock timeout with:
+
+	kd config lockTimeout 10s
+
+error opening: %s
+`, err)
+		os.Exit(3)
+	}
+
+	config.DefaultCache = cache
+
 	sig := make(chan os.Signal, 1)
 
 	go func() {
