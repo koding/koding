@@ -247,7 +247,7 @@ func (c *Client) machine(ident string) (*models.JMachine, error) {
 
 func (c *Client) Close() (err error) {
 	if len(c.machines) != 0 {
-		err = c.kloud().Cache().SetValue("machine", c.machines)
+		err = c.kloud().Cache().ReadWrite().SetValue("machine", c.machines)
 	}
 	return err
 }
@@ -261,7 +261,7 @@ func (c *Client) readCache() {
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.kloud().Cache().GetValue("machine", &c.machines)
+	_ = c.kloud().Cache().ReadOnly().GetValue("machine", &c.machines)
 
 	c.idents = make(map[string]machine.ID, len(c.machines))
 

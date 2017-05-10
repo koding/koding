@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -47,7 +46,11 @@ type Cache struct {
 func NewCache(options *CacheOptions) *Cache {
 	db, err := newBoltDB(options)
 	if err != nil {
-		log.Println(err)
+		return &Cache{
+			EncodingStorage: &storage.EncodingStorage{
+				Interface: &storage.ErrStorage{Err: err},
+			},
+		}
 	}
 
 	return &Cache{

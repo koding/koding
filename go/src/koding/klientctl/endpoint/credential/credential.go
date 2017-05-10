@@ -167,15 +167,15 @@ func (c *Client) Describe() (stack.Descriptions, error) {
 
 func (c *Client) Close() (err error) {
 	if len(c.cached) != 0 {
-		err = c.kloud().Cache().SetValue("credential", c.cached)
+		err = c.kloud().Cache().ReadWrite().SetValue("credential", c.cached)
 	}
 
 	if len(c.used) != 0 {
-		err = nonil(err, c.kloud().Cache().SetValue("credential.used", c.used))
+		err = nonil(err, c.kloud().Cache().ReadWrite().SetValue("credential.used", c.used))
 	}
 
 	if len(c.describe) != 0 {
-		err = nonil(err, c.kloud().Cache().SetValue("credential.describe", c.describe))
+		err = nonil(err, c.kloud().Cache().ReadWrite().SetValue("credential.describe", c.describe))
 	}
 
 	return err
@@ -219,9 +219,9 @@ func (c *Client) readCache() {
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.kloud().Cache().GetValue("credential", &c.cached)
-	_ = c.kloud().Cache().GetValue("credential.used", &c.used)
-	_ = c.kloud().Cache().GetValue("credential.describe", &c.describe)
+	_ = c.kloud().Cache().ReadOnly().GetValue("credential", &c.cached)
+	_ = c.kloud().Cache().ReadOnly().GetValue("credential.used", &c.used)
+	_ = c.kloud().Cache().ReadOnly().GetValue("credential.describe", &c.describe)
 }
 
 func (c *Client) kloud() *kloud.Client {

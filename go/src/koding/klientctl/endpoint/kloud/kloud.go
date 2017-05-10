@@ -7,7 +7,6 @@ import (
 	"time"
 
 	cfg "koding/kites/config"
-	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
@@ -54,19 +53,11 @@ type Client struct {
 	//
 	// If zero, 10s is used by default.
 	WaitInterval time.Duration
-
-	cache *cfg.Cache
 }
 
 // Cache gives new kd.bolt cache.
-func (c *Client) Cache() *cfg.Cache {
-	if c.cache != nil {
-		return c.cache
-	}
-
-	c.cache = cfg.NewCache(configstore.CacheOptions("kd"))
-
-	return c.cache
+func (c *Client) Cache() *config.Cache {
+	return config.DefaultCache
 }
 
 // Username gives the username by:
@@ -93,11 +84,8 @@ func (c *Client) Call(method string, arg, reply interface{}) error {
 // Close implements the io.Closer interface.
 //
 // It closes any resources used by the client.
-func (c *Client) Close() (err error) {
-	if c.cache != nil {
-		err = c.cache.Close()
-	}
-	return err
+func (c *Client) Close() error {
+	return nil
 }
 
 // Wait polls on even stream identified by the given event string.
@@ -401,7 +389,7 @@ func (kt *KiteTransport) Valid() error {
 // Cache gives new kd.bolt cache.
 //
 // The function forwards the call to the DefaultClient.
-func Cache() *cfg.Cache { return DefaultClient.Cache() }
+func Cache() *config.Cache { return DefaultClient.Cache() }
 
 // Username gives the username by:
 //
