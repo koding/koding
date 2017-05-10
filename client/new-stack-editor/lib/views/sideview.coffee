@@ -64,11 +64,11 @@ module.exports = class SideView extends BaseView
         @unsetClass item.cssClass
         item.view.hide()
 
-    { expanded, collapsed = yes } = options
-    if expanded
-      do @expand
-    else if collapsed
-      do @collapse
+    if options.expanded?
+      if options.expanded
+        do @expand
+      else
+        do @collapse
 
 
   toggle: (viewName) ->

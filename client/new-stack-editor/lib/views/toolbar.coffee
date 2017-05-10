@@ -79,7 +79,7 @@ module.exports = class Toolbar extends JView
         else if docs.filterStates.query.search isnt value
           docs.filterStates.query.search = value
           docs.loadItems()
-          @emit Events.Action, Events.ShowSideView, 'docs', { expanded: yes }
+          @emit Events.Action, Events.ShowSideView, 'docs'
 
     @banner = new Banner
     @banner.on Events.Banner.Close, =>
@@ -157,7 +157,7 @@ module.exports = class Toolbar extends JView
     target = $(event.target)
 
     if target.is '.tag.credential'
-      @emit Events.Action, Events.ShowSideView, 'credentials'
+      @emit Events.Action, Events.ShowSideView, 'credentials', { expanded: no }
       kd.utils.stopDOMEvent event
 
     else if target.is '.tag.clone'
@@ -195,8 +195,6 @@ module.exports = class Toolbar extends JView
       delegate            : @menuIcon
       cssClass            : 'stack-menu'
     }, {
-      'Test'              :
-        action            : Events.Menu.Test
       'Initialize'        :
         action            : Events.Menu.Initialize
       'Make Team Default' :

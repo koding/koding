@@ -154,12 +154,12 @@ module.exports = class StackEditor extends kd.View
           kd.utils.defer => @logs.setClass 'shake'
         @logs.resize { percentage: 40, store: yes }
       when Events.Menu.Credentials
-        @sideView.show 'credentials'
+        @sideView.show 'credentials', { expanded: no }
       when Events.Menu.MakeTeamDefault
         computeController.makeTeamDefault { template: @getData() }
       when Events.Menu.Clone
         @toolbar.setBanner
-          message  : 'Clonning...'
+          message  : 'Cloning...'
           autohide : 3000
         computeController.cloneTemplate @getData()
       when Events.ShowSideView

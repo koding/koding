@@ -497,6 +497,8 @@ $stack-border-width         = 2px
     &.pinned
       position              inherit
       box-shadow            none
+      .docs-view
+        border-left           $stack-border-width solid $stack-border-color
 
       .controls .kdbutton.pin
         display             block
@@ -806,6 +808,9 @@ $stack-border-width         = 2px
     margin-left            -20px
 
   .documentation
+
+    max-width               1000px !important
+    min-width               400px !important
 
     .docs-view
 
