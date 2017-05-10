@@ -117,6 +117,10 @@ func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, err
 		return 1, err
 	}
 
+	// Best-effort attempt of making the remote vm do not
+	// turn off after 1h.
+	_ = machine.Set(c.Options.Name, "alwaysOn", "true")
+
 	return 0, nil
 }
 
