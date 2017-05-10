@@ -28,14 +28,14 @@ func StartCronWithMetrics(kloud kloudKite, log logging.Logger, m *Metrics) {
 func process(kloud kloudKite, log logging.Logger) {
 	m, err := New("kd")
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("%s", err)
 		return
 	}
 
 	processWithMetrics(kloud, log, m)
 
 	if err := m.Close(); err != nil {
-		log.Error(err.Error())
+		log.Error("%s", err)
 	}
 }
 
@@ -54,12 +54,12 @@ func processWithMetrics(kloud kloudKite, log logging.Logger, m *Metrics) {
 
 		var resp interface{}
 		if err := kloud.Call("metrics.publish", req, resp); err != nil {
-			log.Error(err.Error())
+			log.Error("%s", err)
 			return err
 		}
 
 		return nil
 	}); err != nil {
-		log.Error(err.Error())
+		log.Error("%s", err)
 	}
 }
