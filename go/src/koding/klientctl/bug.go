@@ -60,6 +60,7 @@ func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
 			opts := &machine.InspectMountOptions{
 				Identifier: string(m.ID),
 				Sync:       true,
+				Filesystem: true,
 				Log:        log.New("bug"),
 			}
 
@@ -76,6 +77,18 @@ func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
 
 				meta.Files = append(meta.Files, &machine.UploadedFile{
 					File:    "sync/" + id + "/" + string(m.ID) + ".json",
+					Content: p,
+				})
+			}
+
+			if len(records.Filesystem) > 0 {
+				p, err := json.Marshal(records.Filesystem)
+				if err != nil {
+					return 1, err
+				}
+
+				meta.Files = append(meta.Files, &machine.UploadedFile{
+					File:    "filesystem/" + id + "/" + string(m.ID) + ".json",
 					Content: p,
 				})
 			}

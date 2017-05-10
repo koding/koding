@@ -363,6 +363,13 @@ func (idx *Index) DebugString() string {
 	return buf.String()
 }
 
+// Diagnose runs full diagnostic on current index tree state.
+//
+// TODO: Run diagnostic on underlying cache.
+func (idx *Index) Diagnose(_ string) []string {
+	return idx.t.Diagnose()
+}
+
 // atime gets file's access time in UNIX Nano format.
 func atime(fi os.FileInfo) int64 {
 	return times.Get(fi).AccessTime().UnixNano()

@@ -291,8 +291,8 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 
 	// Enable sync option when there is none set explicitly. Tree may be too
 	// large to show it implicitly.
-	isSync, isTree := c.Bool("sync"), c.Bool("tree")
-	if !isSync && !isTree {
+	isSync, isTree, isFilesystem := c.Bool("sync"), c.Bool("tree"), c.Bool("filesystem")
+	if !isSync && !isTree && !isFilesystem {
 		isSync = true
 	}
 
@@ -300,6 +300,7 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 		Identifier: idents[0],
 		Sync:       isSync,
 		Tree:       isTree,
+		Filesystem: isFilesystem,
 		Log:        log.New("machine:inspect"),
 	}
 

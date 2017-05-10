@@ -696,6 +696,10 @@ func run(args []string) {
 						Name:  "tree",
 						Usage: "Displays the entire mount index tree.",
 					},
+					cli.BoolFlag{
+						Name:  "filesystem",
+						Usage: "Mount filesystem diagnostic.",
+					},
 				},
 			}},
 		}, {
