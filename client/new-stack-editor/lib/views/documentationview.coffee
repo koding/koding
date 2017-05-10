@@ -51,7 +51,7 @@ module.exports = class DocumentationView extends kd.View
         @emit Events.LazyLoadStarted
 
         DocsClient
-          .get "document-search/#{query.search}"
+          .post 'document-search', { query: query.search }
           .then ({ data }) =>
             lastSearch = query.search
             cached = data
@@ -71,7 +71,7 @@ module.exports = class DocumentationView extends kd.View
     debug 'item activated', item
 
     DocsClient
-      .get "document-content/#{item.getData().title}"
+      .post 'document-content', { query: item.getData().title }
       .then ({ data }) =>
         @docView.updatePartial applyMarkdown data
         @emit Events.ExpandSideView

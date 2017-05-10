@@ -1,6 +1,7 @@
 { search } = require('terraform-yml')
 
 module.exports = (req, res) ->
-  { query } = req.params
+
+  { query } = req.body
 
   return res.end JSON.stringify search query ? ' '
