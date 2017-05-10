@@ -198,11 +198,12 @@ func TestKubernetesExecTerminal(t *testing.T) {
         t.Fatal("Response should be of type proxy.ExecResponse.")
     }
 
-    expected := `12345+1
-    `
-    cmd := fmt.Sprintf("python -c 'print %s'", strings.TrimSpace(expected))
+    if err := exec.Input.Call("python"); err != nil {
+        t.Fatal(err)
+    }
 
-    if err := exec.Input.Call(cmd); err != nil {
+    expected := "12345+1\n"
+    if err := exec.Input.Call(fmt.Sprintf("print %s", expected)); err != nil {
         t.Fatal(err)
     }
 
@@ -211,11 +212,6 @@ func TestKubernetesExecTerminal(t *testing.T) {
         select {
             case o := <- r.output:
                 returned += o
-                if strings.Contains(returned, expected) {
-                    if err := exec.ControlSequence.Call("^c"); err != nil {
-                        t.Fatal(err)
-                    }
-                }
             case <- r.done:
                 if !strings.Contains(returned, expected) {
                     t.Fatal("Failed to return expected output: ", returned)

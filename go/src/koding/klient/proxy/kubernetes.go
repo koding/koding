@@ -165,26 +165,35 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
 
     errChan := make(chan error)
 
-    go func() {
-        if !r.IO.Stdin {
-            return
-        }
+    if r.IO.Stdin {
+        go func() {
+            for {
+                _, err := io.Copy(conn, inReader)
 
-        // An error here, means that something has happened
-        // on the requesting kite's side. Maybe they tried
-        // to detach? Should we allow re-connecting?
-        io.Copy(conn, inReader)
-    }()
+                if !r.IO.Tty {
+                    errChan <- err
+                    break
+                }
+            }
+
+            fmt.Println("Exiting input proxier.")
+        }()
+    }
 
     // Proxy all output from the websocket connection to
     // the Output dnode.Function provided by requesting kite.
-    go func() {
-        if !r.IO.Stdout && !r.IO.Stderr {
-            return
-        }
+    if r.IO.Stdout || r.IO.Stderr {
+        go func() {
+            for {
+                err := util.PassTo(r.Output, conn)
 
-        util.PassTo(r.Output, conn, errChan)
-    }()
+                if !r.IO.Tty {
+                    errChan <- err
+                    break
+                }
+            }
+        }()
+    }
 
     // Error handling
     go func() {
