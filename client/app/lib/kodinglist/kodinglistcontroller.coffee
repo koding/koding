@@ -1,3 +1,4 @@
+debug = (require 'debug') 'kodinglist:controller'
 kd                    = require 'kd'
 KDView                = kd.View
 kookies               = require 'kookies'
@@ -60,10 +61,11 @@ module.exports = class KodingListController extends KDListViewController
 
   bindEvents: ->
 
-    @followLazyLoad()  if @getOption 'loadWithScroll'
+    { loadWithScroll, limit } = @getOptions()
+
+    @followLazyLoad()  if loadWithScroll
 
     listView = @getListView()
-
     listView
       .on 'ItemAction', ({ action, item, options }) =>
         switch action
@@ -73,6 +75,9 @@ module.exports = class KodingListController extends KDListViewController
           when 'ItemRemoved'
             listView.removeItem item
             @showNoItemWidget()
+
+      .on 'KeyDownOnList', @bound 'handleKeyDown'
+      .on 'SelectItem', @bound 'selectItem'
 
 
   removeItem: (item, options = {}) ->
@@ -97,15 +102,21 @@ module.exports = class KodingListController extends KDListViewController
 
   followLazyLoad: ->
 
+    { limit } = @getOptions()
+
     @on 'LazyLoadThresholdReached', kd.utils.debounce 300, =>
 
       return @hideLazyLoader()  if @filterStates.busy
 
-      @filterStates.skip += @getOption 'limit'
+      @filterStates.skip += limit
 
       @fetch @filterStates.query, (items) =>
         @addListItems items
         @filterStates.page++
+
+        if items.length is limit
+          @calculateAndFetchMoreIfNeeded()
+
       , { skip : @filterStates.skip }
 
 
@@ -113,17 +124,20 @@ module.exports = class KodingListController extends KDListViewController
 
     return  if @_inprogress
     @_inprogress = yes
-
-    @removeAllItems()
     @showLazyLoader no
 
     @fetch @filterStates.query, (items) =>
-      @_inprogress = no
-      @emit 'ItemsLoaded', items
-      return @showNoItemWidget()  unless items?.length
 
-      @addListItems items
-      @calculateAndFetchMoreIfNeeded()  if items.length is @getOption('limit')
+      @replaceAllItems items
+      @_inprogress = no
+
+      if items?.length
+        debug 'initial items loaded', items.length
+        if items.length is @getOption 'limit'
+          kd.utils.wait 1000, @bound 'calculateAndFetchMoreIfNeeded'
+        @selectNextItem()
+      else
+        @showNoItemWidget()
 
 
   fetch: (query, callback, fetchOptions = {}) ->
@@ -150,11 +164,18 @@ module.exports = class KodingListController extends KDListViewController
       callback items
 
 
-  loadView: ->
+  removeAllItems: ->
+
+    @filterStates.skip = 0
 
     super
 
-    @loadItems()
+
+  setView: (view) ->
+
+    super view
+
+    view.once 'viewAppended', @bound 'loadItems'
 
 
   showNoItemWidget: ->
@@ -183,9 +204,56 @@ module.exports = class KodingListController extends KDListViewController
 
   calculateAndFetchMoreIfNeeded: ->
 
-    viewHeight = @getView().getHeight()
-    listHeight = @getListView().getHeight()
+    mainView   = @getView()
+    listView   = @getListView()
+
+    viewHeight = mainView.getHeight()
+    listHeight = listView.getHeight()
+
+    debug 'calculateAndFetchMoreIfNeeded', {
+      listHeight, viewHeight, listView, mainView
+    }
+
+    return  if 0 in [ viewHeight, listHeight ]
 
     if listHeight <= viewHeight
       @lazyLoader.show()
       @emit 'LazyLoadThresholdReached'
+
+
+  handleNavigation: (direction) ->
+
+    if direction is 'down'
+      @selectNextItem()
+    else
+      @selectPrevItem()
+
+    [ item ] = @selectedItems
+    item?.getElement().scrollIntoViewIfNeeded()
+
+
+  handleKeyDown: (e) ->
+
+    code = e.which or e.keyCode
+
+    # for vim people; ctrl+j/k
+    if e.ctrlKey
+      down = 74
+      up   = 75
+    # for the rest of the world up/down arrows
+    else
+      down = 40
+      up   = 38
+
+    switch code
+      when 13
+        e.preventDefault()
+        @emit 'ItemActivated', @selectedItems.first
+      when up
+        e.preventDefault()
+        @handleNavigation 'up'
+      when down
+        e.preventDefault()
+        @handleNavigation 'down'
+
+    return yes

@@ -42,7 +42,7 @@ module.exports = class BuildStackController extends kd.Controller
       startCollab = -> kd.utils.wait 1000, ->
         appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
 
-      if Cookies.get 'use-nse'
+      if not Cookies.get 'use-ose'
         router.once 'RouteInfoHandled', startCollab
         router.handleRoute "/IDE/#{machine.getAt 'slug'}"
       else

@@ -3,4 +3,4 @@
 module.exports = (req, res) ->
   { query } = req.params
 
-  return res.end JSON.stringify search query
+  return res.end JSON.stringify search query ? ' '

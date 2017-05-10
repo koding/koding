@@ -1025,7 +1025,7 @@ module.exports = class ComputeController extends KDController
         tailOffset
       }
 
-    if Cookies.get 'use-nse'
+    if not Cookies.get 'use-ose'
       { router } = kd.singletons
       router.once 'RouteInfoHandled', showLogs
       router.handleRoute "/IDE/#{machine.getAt 'slug'}"
