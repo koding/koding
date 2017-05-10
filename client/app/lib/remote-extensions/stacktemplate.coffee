@@ -6,7 +6,7 @@ remote = require('../remote')
 module.exports = class JStackTemplate extends remote.api.JStackTemplate
 
 
-  getRevisionStatus: -> @template.sum
+  getRevisionStatus: -> @getAt 'template.sum'
 
 
   getCredentialIdentifiers: (exclude = ['custom']) ->
