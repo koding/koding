@@ -81,8 +81,7 @@ func TestLocalExec(t *testing.T) {
     k, client := testutil.GetKites(mapping)
     defer k.Close()
 
-    expected := `foobar
-    `
+    expected := "foobar"
 
     r := &TestExecRequest{
         output:     make(chan string),
@@ -90,7 +89,7 @@ func TestLocalExec(t *testing.T) {
 
         Common:     proxy.Common{
             Session:    "TestLocalExec",
-            Command:    []string{"/bin/echo", strings.TrimSpace(expected)},
+            Command:    []string{"/bin/echo", expected},
         },
 
         IO:         proxy.IO{
@@ -118,7 +117,7 @@ func TestLocalExec(t *testing.T) {
             case o := <- r.output:
                 returned += o
             case <- r.done:
-                if strings.Contains(returned, expected) {
+                if !strings.Contains(returned, expected) {
                     t.Fatal("Failed to return expected output.")
                 }
                 return
@@ -151,7 +150,7 @@ func TestLocalExecWithInput(t *testing.T) {
             Stdin:      true,
             Stdout:     true,
             Stderr:     true,
-            Tty:        true,
+            Tty:        false,
         },
     }
 

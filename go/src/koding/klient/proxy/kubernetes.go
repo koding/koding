@@ -185,13 +185,20 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     if r.IO.Stdout || r.IO.Stderr {
         go func() {
             for {
+                // Proxy output until an error occurs.
                 err := util.PassTo(r.Output, conn)
 
+                // If the connection is not tty, then
+                // then we delegate error handling and
+                // client notification to the err chan
+                // handler.
                 if !r.IO.Tty {
                     errChan <- err
                     break
                 }
             }
+
+            fmt.Println("Exiting output proxier.")
         }()
     }
 
