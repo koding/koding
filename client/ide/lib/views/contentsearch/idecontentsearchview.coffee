@@ -4,7 +4,6 @@ KDCustomHTMLView            = kd.CustomHTMLView
 KDHitEnterInputView         = kd.HitEnterInputView
 KDMultipleChoice            = kd.MultipleChoice
 JView                       = require 'app/jview'
-_                           = require 'lodash'
 $                           = require 'jquery'
 keycode                     = require 'keycode'
 Encoder                     = require 'htmlencode'
@@ -12,6 +11,14 @@ editorSettings              = require '../../workspace/panes/settings/editorsett
 IDEContentSearchResultView  = require './idecontentsearchresultview'
 showError                   = require 'app/util/showError'
 showNotification            = require 'app/util/showNotification'
+
+REGEXES =
+  escapeShellRegex : /([\\"'`$\s\(\)<>])/g
+  escapeRegex      : /([.*+?\^${}()|\[\]\/\\])/g
+  mainLineRegex    : /^:?([\s\S]+):(\d+):([\s\S]*)$/
+  grepEscapeRegex  : /[[\]{}()*+?.,\\^$|#\s"']/g
+  contextLineRegex : /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
+
 
 module.exports = class IDEContentSearchView extends JView
 
@@ -41,9 +48,8 @@ module.exports = class IDEContentSearchView extends JView
 
   destroy: ->
 
-    uber = JView::destroy.bind this
-    @findInput.setValue    ''
-    uber()
+    @findInput.setValue ''
+    super
     @emit 'KDObjectWillBeDestroyed', this
 
 
@@ -99,13 +105,13 @@ module.exports = class IDEContentSearchView extends JView
     isRegExp        = @selections.indexOf('regex') > -1
     exts            = editorSettings.getAllExts()
     include         = "\\*{#{exts.join ','}}"
-    exclureDirs     = Object.keys editorSettings.ignoreDirectories
-    exclureDirs     = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
+    excludeDirs     = Object.keys editorSettings.ignoreDirectories
+    excludeDirs     = " --exclude-dir=#{excludeDirs.join ' --exclude-dir='}"
     searchText      = @searchText
 
     unless isRegExp
       splitText     = searchText.split '\\n'
-      splitText     = splitText.map @grepEscapeRegExp
+      splitText     = splitText.map @grepEscapeRegex
       searchText    = splitText.join '\\n'
 
     searchText      = searchText.replace (new RegExp "\\\'", 'g'), "'\\''"
@@ -126,7 +132,7 @@ module.exports = class IDEContentSearchView extends JView
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
     flags.splice flags.indexOf('-w'), 1  unless isWholeWord
 
-    command = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{searchText}' \"#{@escapeShell @rootPath}\""
+    command = "grep #{flags.join ' '} #{excludeDirs} --include=#{include} '#{searchText}' \"#{@escapeShellRegex @rootPath}\""
 
     { machine } = @getData()
     machine.getBaseKite().exec({ command })
@@ -141,22 +147,21 @@ module.exports = class IDEContentSearchView extends JView
     @localStorageController.setValue 'PreviousSearchTerms', terms
 
 
-  escapeRegExp: (str) -> str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
+  escapeRegex: (str) -> str.replace REGEXES.escapeRegex, '\\$1'
 
 
-  escapeShell: (str) -> str.replace /([\\"'`$\s\(\)<>])/g, '\\$1'
+  escapeShellRegex: (str) -> str.replace REGEXES.escapeShellRegex, '\\$1'
 
 
-  grepEscapeRegExp: (str) -> str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
+  grepEscapeRegex: (str) -> str.replace REGEXES.grepEscapeRegex, '\\$&'
 
 
   formatOutput: (output, callback = kd.noop) ->
 
+    { contextLineRegex, mainLineRegex } = REGEXES
+
     return @showWarning 'Something went wrong, please try again.', yes  if output.stderr
 
-    # Regexes
-    mainLineRegex           = /^:?([\s\S]+):(\d+):([\s\S]*)$/
-    contextLineRegex        = /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
     lines                   = output.split '\n'
     formatted               = {}
     stats                   =
@@ -226,11 +231,11 @@ module.exports = class IDEContentSearchView extends JView
     @findInput = new KDHitEnterInputView
       type         : 'text'
       cssClass     : 'search-input-with-icon'
-      placeholder  : 'Search in all files...'
+      placeholder  : 'Search in all files…'
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this
+      keydown      : @bound 'handleKeyDown'
       callback     : @bound 'search'
 
     @whereInput = new KDHitEnterInputView
@@ -241,7 +246,7 @@ module.exports = class IDEContentSearchView extends JView
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this
+      keydown      : @bound 'handleKeyDown'
       callback     : @bound 'search'
 
     @searchButton = new KDButtonView

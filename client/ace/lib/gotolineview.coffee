@@ -3,7 +3,6 @@ KDButtonView                = kd.ButtonView
 KDCustomHTMLView            = kd.CustomHTMLView
 KDHitEnterInputView         = kd.HitEnterInputView
 JView                       = require 'app/jview'
-_                           = require 'lodash'
 keycode                     = require 'keycode'
 
 module.exports = class GotoLineView extends JView
@@ -27,9 +26,8 @@ module.exports = class GotoLineView extends JView
 
   destroy: ->
 
-    uber = JView::destroy.bind this
-    @lineInput.setValue    ''
-    uber()
+    @lineInput.setValue ''
+    super
     @emit 'KDObjectWillBeDestroyed', this
 
 
@@ -44,11 +42,11 @@ module.exports = class GotoLineView extends JView
     @lineInput = new KDHitEnterInputView
       type         : 'text'
       cssClass     : 'search-input'
-      placeholder  : 'Enter a line number...'
+      placeholder  : 'Enter a line number…'
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this
+      keydown      : @bound 'handleKeyDown'
       callback     : @bound 'gotoLine'
 
     @goButton = new KDButtonView

@@ -130,7 +130,7 @@ module.exports = class AceFindAndReplaceView extends JView
     @findInput = new KDHitEnterInputView
       type         : 'text'
       cssClass     : 'search-input-with-icon'
-      placeholder  : 'Find in the file...'
+      placeholder  : 'Find in the file…'
       validate     :
         rules      :
           required : yes
@@ -148,7 +148,7 @@ module.exports = class AceFindAndReplaceView extends JView
     @replaceInput = new KDHitEnterInputView
       type         : 'text'
       cssClass     : 'search-input'
-      placeholder  : 'Replace with...'
+      placeholder  : 'Replace with…'
       validate     :
         rules      :
           required : yes
