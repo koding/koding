@@ -219,6 +219,9 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 	return s, nil
 }
 
+// Anteroom gives the sync's anteroom.
+func (s *Sync) Anteroom() *Anteroom { return s.a }
+
 // Stream creates a stream of file synchronization jobs.
 func (s *Sync) Stream() <-chan msync.Execer {
 	evC := make(chan *msync.Event)
