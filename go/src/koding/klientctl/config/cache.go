@@ -29,6 +29,7 @@ type Cache struct {
 // Open tries to open new kd storage file.
 func Open() (*Cache, error) {
 	opts := configstore.CacheOptions("kd")
+	opts.BoltDB.Timeout = Konfig.LockTimeout
 
 	// Ensure the database file exists.
 	if _, err := os.Stat(opts.File); os.IsNotExist(err) {
@@ -62,6 +63,7 @@ func (c *Cache) ReadOnly() *config.Cache {
 
 	if c.ro == nil {
 		opts := configstore.CacheOptions("kd")
+		opts.BoltDB.Timeout = Konfig.LockTimeout
 		opts.BoltDB.ReadOnly = true
 
 		c.ro = config.NewCache(opts)
@@ -77,7 +79,11 @@ func (c *Cache) ReadOnly() *config.Cache {
 func (c *Cache) ReadWrite() *config.Cache {
 	if c.rw == nil {
 		_ = c.CloseRead()
-		c.rw = config.NewCache(configstore.CacheOptions("kd"))
+
+		opts := configstore.CacheOptions("kd")
+		opts.BoltDB.Timeout = Konfig.LockTimeout
+
+		c.rw = config.NewCache(opts)
 	}
 
 	return c.rw
