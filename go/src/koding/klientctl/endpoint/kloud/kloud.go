@@ -115,6 +115,9 @@ func (c *Client) Wait(event string) <-chan *stack.EventResponse {
 		return ch
 	}
 
+	// Release read-only access before long-running operation.
+	_ = c.Cache().CloseRead()
+
 	go func() {
 		last := -1
 		defer close(ch)
