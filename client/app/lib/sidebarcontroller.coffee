@@ -54,6 +54,7 @@ module.exports = class SidebarController extends kd.Controller
   bindComputeHandlers: ->
 
     { computeController } = kd.singletons
+    { storage } = computeController
 
     computeController.ready =>
       computeController.on 'GroupStacksInconsistent', =>
@@ -62,7 +63,7 @@ module.exports = class SidebarController extends kd.Controller
       computeController.on 'GroupStacksConsistent', =>
         @setDefaultStackUpdated updated = no
 
-      computeController.storage.on 'change:templates', (event) =>
+      storage.on 'change:templates', (event) =>
         { operation, value: template } = event
 
         # add a handler for each template push
@@ -70,20 +71,16 @@ module.exports = class SidebarController extends kd.Controller
           debug 'binding template events', template
           template.on 'update', =>
             debug 'template has an update event', template
-            stacks = computeController.storage.stacks.get().filter (stack) =>
-              stack.baseStackId is template.getId()
+            stacks = storage.stacks.query 'baseStackId', template.getId()
 
             for stack in stacks when stack.revisionStatus isnt template.getRevisionStatus()
               debug 'a stack generated from template has update', { template, stack }
               @_templateEventCache[template.getId()] = yes
               return @setUpdatedStack stack.getId()
 
-
         # clean up handler if the template is removed from storage
         if operation is 'pop' and @_templateEventCache[template.getId()]
           delete @_templateEventCache[template.getId()]
-
-
 
 
   setStateFromStorage: ->
