@@ -78,6 +78,11 @@ module.exports = class SidebarController extends kd.Controller
               @_templateEventCache[template.getId()] = yes
               return @setUpdatedStack stack.getId()
 
+            # no matter what emit a change event to make sidebar re-render with
+            # updated stack. this is required for template updates without sum
+            # change.
+            @emit 'change'
+
         # clean up handler if the template is removed from storage
         if operation is 'pop' and @_templateEventCache[template.getId()]
           delete @_templateEventCache[template.getId()]
