@@ -16,7 +16,7 @@ var DefaultCache = &Cache{}
 // to a kd.*.bolt storage file.
 //
 // Upon init kd uses for read-only access, thus
-// multiple kd can be run simultanously.
+// multiple kd can be run simultaneously.
 //
 // Upon exit, kd tries to acquire write access,
 // queueing multiple kd processes with a 3s
