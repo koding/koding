@@ -1,10 +1,13 @@
 package proxy
 
 import (
+    "fmt"
     "io"
     "os/exec"
 
     "github.com/koding/kite/dnode"
+    "github.com/rogpeppe/go-charset/charset"
+    _ "github.com/rogpeppe/go-charset/data"
 )
 
 type Common struct {
@@ -62,20 +65,30 @@ type Exec struct {
 type ExecResponse struct {
     Common
 
-    Input       dnode.Function
-    Kill        dnode.Function
+    Input           dnode.Function
+    ControlSequence dnode.Function
+    Kill            dnode.Function
 }
 
 // Input is a dnode.Function that is exposed to the client, allowing
 // them to send data to an Exec instance.
 func (r *Exec) Input(d *dnode.Partial) {
-    if !r.IO.Stdin {
-        return
-    }
-
     data := d.MustSliceOfLength(1)[0].MustString()
 
     r.in.Write([]byte(data))
+}
+
+// ControlSequence is a dnode.Function that is expoed to the client,
+// allowing them to send control character sequences to an Exec instance.
+func (r *Exec) ControlSequence(d *dnode.Partial) {
+    data := d.MustSliceOfLength(1)[0].MustString()
+
+    writer, err := charset.NewWriter("ISO-8859-1", r.in)
+    if err != nil {
+        fmt.Println(err)
+    }
+
+    writer.Write([]byte(data))
 }
 
 // Kill is a dnode.Function that is exposed to clients, allowing

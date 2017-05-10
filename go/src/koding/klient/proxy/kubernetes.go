@@ -166,6 +166,10 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     errChan := make(chan error)
 
     go func() {
+        if !r.IO.Stdin {
+            return
+        }
+
         // An error here, means that something has happened
         // on the requesting kite's side. Maybe they tried
         // to detach? Should we allow re-connecting?
@@ -175,6 +179,10 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     // Proxy all output from the websocket connection to
     // the Output dnode.Function provided by requesting kite.
     go func() {
+        if !r.IO.Stdout && !r.IO.Stderr {
+            return
+        }
+
         util.PassTo(r.Output, conn, errChan)
     }()
 
@@ -182,6 +190,7 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     go func() {
         e := <- errChan
 
+        // TODO (acbodine): Verify we are catching an EOF here to exit cleanly.
         fmt.Println("Error handling caught ", e)
 
         // TODO (acbodine): Until we find a better way to detect if
@@ -196,8 +205,6 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         inReader.Close()
 
         close(errChan)
-
-        fmt.Println("Exiting error handler.")
     }()
 
     exec := &Exec{

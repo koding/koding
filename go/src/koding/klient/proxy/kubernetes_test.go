@@ -200,9 +200,9 @@ func TestKubernetesExecTerminal(t *testing.T) {
 
     expected := `12345+1
     `
-    cmd := fmt.Sprintf(`python -c "print %s"`, strings.TrimSpace(expected))
+    cmd := fmt.Sprintf("python -c 'print %s'", strings.TrimSpace(expected))
 
-    if err := exec.Input.Call(cmd + "\n"); err != nil {
+    if err := exec.Input.Call(cmd); err != nil {
         t.Fatal(err)
     }
 
@@ -211,9 +211,14 @@ func TestKubernetesExecTerminal(t *testing.T) {
         select {
             case o := <- r.output:
                 returned += o
-            case <- r.done:
                 if strings.Contains(returned, expected) {
-                    t.Fatal("Failed to return expected output.")
+                    if err := exec.ControlSequence.Call("^c"); err != nil {
+                        t.Fatal(err)
+                    }
+                }
+            case <- r.done:
+                if !strings.Contains(returned, expected) {
+                    t.Fatal("Failed to return expected output: ", returned)
                 }
                 return
         }
