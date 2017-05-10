@@ -47,7 +47,7 @@ module.exports = class Toolbar extends JView
       loader   : yes
       icon     : yes
       callback : =>
-        @emit Events.InitializeRequested, @getData()._id
+        @emit Events.Action, Events.Menu.Initialize, @getData()._id
 
     @expandButton = new kd.ButtonView
       cssClass: 'expand'

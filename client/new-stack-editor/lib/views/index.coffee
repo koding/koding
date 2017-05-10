@@ -47,7 +47,6 @@ module.exports = class StackEditor extends kd.View
 
     # Toolbar
     @toolbar = new Toolbar { @docsView }
-    @forwardEvent @toolbar, Events.InitializeRequested
 
     # Status bar
     @statusbar = new Statusbar
@@ -157,6 +156,8 @@ module.exports = class StackEditor extends kd.View
         @sideView.show 'credentials', { expanded: no }
       when Events.Menu.MakeTeamDefault
         computeController.makeTeamDefault { template: @getData() }
+      when Events.Menu.Initialize
+        @emit Events.InitializeRequested, rest...
       when Events.Menu.Clone
         @toolbar.setBanner
           message  : 'Cloning...'
