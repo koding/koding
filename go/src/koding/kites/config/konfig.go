@@ -154,7 +154,7 @@ type Konfig struct {
 	KiteKey     string `json:"kiteKey,omitempty"`
 
 	// Mount describes configuration of mounts.
-	Mount *Mount `json:"local,omitempty"`
+	Mount *Mount `json:"mount,omitempty"`
 
 	// Template describes configuration of KD template.
 	Template *Template `json:"template,omitempty"`

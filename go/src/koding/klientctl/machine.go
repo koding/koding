@@ -213,6 +213,10 @@ func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 		}
 
 		opts.Path = s
+
+		if err := waitForMount(opts.Path); err != nil {
+			return 1, err
+		}
 	}
 
 	pid, err := machine.Exec(opts)
