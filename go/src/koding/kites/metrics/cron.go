@@ -13,14 +13,14 @@ type kloudKite interface {
 
 // StartCron starts klient metrics publisher.
 func StartCron(kloud kloudKite, log logging.Logger) {
-	for range time.NewTicker(time.Second * 3).C {
+	for range time.Tick(time.Second * 10) {
 		process(kloud, log)
 	}
 }
 
 // StartCronWithMetrics starts klient metrics publisher with given db.
 func StartCronWithMetrics(kloud kloudKite, log logging.Logger, m *Metrics) {
-	for range time.NewTicker(time.Second * 3).C {
+	for range time.Tick(time.Second * 10) {
 		processWithMetrics(kloud, log, m)
 	}
 }
