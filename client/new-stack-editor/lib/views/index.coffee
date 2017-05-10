@@ -146,36 +146,38 @@ module.exports = class StackEditor extends kd.View
 
     { router, computeController } = kd.singletons
 
-    switch event
-      when Events.Menu.Logs
+    actions =
+      'Menu.Logs': =>
         @logs.unsetClass 'shake'
         unless @logs.isClosed()
           kd.utils.defer => @logs.setClass 'shake'
         @logs.resize { percentage: 40, store: yes }
-      when Events.Menu.Credentials
+      'Menu.Credentials': =>
         @sideView.show 'credentials', { expanded: no }
-      when Events.Menu.MakeTeamDefault
+      'Menu.MakeTeamDefault': =>
         computeController.makeTeamDefault { template: @getData() }
-      when Events.Menu.Initialize
+      'Menu.Initialize': =>
         @emit Events.InitializeRequested, rest...
-      when Events.Menu.Clone
+      'Menu.Clone': =>
         @toolbar.setBanner
           message  : 'Cloning...'
           autohide : 3000
         computeController.cloneTemplate @getData()
-      when Events.ShowSideView
+      'ShowSideView': =>
         @sideView.show rest...
-      when Events.HideSideView
+      'HideSideView': =>
         @sideView.hide internal = yes
-      when Events.ToggleSideView
+      'ToggleSideView': =>
         @sideView.toggle rest...
-      when Events.HideWarning
+      'HideWarning': =>
         @toolbar.banner.emit Events.Banner.Close
-      when Events.TemplateTitleChangeRequested
+      'TemplateTitleChangeRequested': =>
         @controllers.editor.updateTitle rest...
-      when Events.LoadClonedFrom
+      'LoadClonedFrom': =>
         { config: { clonedFrom } } = @getData()
         router.handleRoute "/Stack-Editor/#{clonedFrom}"
+
+    actions[event]?()
 
 
   setData: (data, reset = no) ->
