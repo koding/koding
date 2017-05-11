@@ -669,6 +669,8 @@ imports:
   version: ed8eb9e318d7a84ce5915b495b7d35e0cfe7b5a8
 - name: github.com/mattn/go-isatty
   version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+- name: github.com/mehmetalisavas/countly
+  version: 7edc7ca6d93399846686733929b2a4ec8b7748bb
 - name: github.com/mattn/go-sqlite3
   version: c3e9588849195eefa783417c3a53d092f6e93526
 - name: github.com/maximilien/softlayer-go

@@ -237,6 +237,7 @@ import:
 - package: github.com/hashicorp/errwrap
 - package: github.com/hashicorp/yamux
 - package: github.com/mattn/go-isatty
+- package: github.com/mehmetalisavas/countly
 - package: github.com/mitchellh/reflectwalk
 - package: github.com/jinzhu/inflection
 - package: github.com/jehiah/go-strftime
