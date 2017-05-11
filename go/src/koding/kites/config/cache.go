@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -47,7 +46,11 @@ type Cache struct {
 func NewCache(options *CacheOptions) *Cache {
 	db, err := newBoltDB(options)
 	if err != nil {
-		log.Println(err)
+		return &Cache{
+			EncodingStorage: &storage.EncodingStorage{
+				Interface: &storage.ErrStorage{Err: err},
+			},
+		}
 	}
 
 	return &Cache{
@@ -82,11 +85,12 @@ func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
 	_ = util.Chown(dir, o.owner().User)
 
 	db, err := bolt.Open(o.File, 0644, o.BoltDB)
+
+	_ = util.Chown(o.File, o.owner().User)
+
 	if err != nil {
 		return nil, err
 	}
-
-	_ = util.Chown(o.File, o.owner().User)
 
 	return db, nil
 }

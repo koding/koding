@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"koding/kites/kloud/api/amazon"
+	"koding/kites/metrics"
+
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -54,6 +57,7 @@ type Config struct {
 	ServerURL    string
 	Timeout      time.Duration        // max time of client<->server communication; 15s by default
 	BeforeFunc   func(time.Time) bool // time func to check expiration against; by default DefaultBefore is used
+	Metrics      *dogstatsd.Client
 	Log          logging.Logger
 }
 
@@ -125,7 +129,7 @@ func NewServer(cfg *Config) *Server {
 	}
 
 	if s.cfg.Kite != nil {
-		s.cfg.Kite.HandleFunc("keygen.auth", s.Auth)
+		s.cfg.Kite.HandleFunc("keygen.auth", metrics.WrapKiteHandler(cfg.Metrics, "keygen.auth", s.Auth))
 	}
 
 	return s

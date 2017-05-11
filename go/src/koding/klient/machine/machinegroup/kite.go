@@ -273,3 +273,24 @@ func (g *Group) HandleKill(r *kite.Request) (interface{}, error) {
 
 	return resp, nil
 }
+
+// HandleWaitIdle is a handler for "machine.mount.waitIdle" kite requests.
+func (g *Group) HandleWaitIdle(r *kite.Request) (interface{}, error) {
+	var req WaitIdleRequest
+
+	if r.Args != nil {
+		if err := r.Args.One().Unmarshal(&req); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := req.Valid(); err != nil {
+		return nil, newError(err)
+	}
+
+	if err := g.WaitIdle(&req); err != nil {
+		return nil, newError(err)
+	}
+
+	return nil, nil
+}

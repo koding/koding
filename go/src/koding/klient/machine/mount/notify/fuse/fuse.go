@@ -35,13 +35,13 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 // LookUpInode finds entry in context of specific parent directory and sets
 // its attributes. It assumes parent directory has already been seen.
 func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Parent), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Parent), func(n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
 
 		if child := n.GetChild(op.Name); child.Exist() {
-			op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
+			op.Entry.Child = fuseops.InodeID(child.Entry.File.Inode)
 			op.Entry.Attributes = fs.newAttributes(child.Entry)
 
 			// Increase reference counter for entry - fuse_reply_entry.
@@ -57,7 +57,7 @@ func (fs *Filesystem) LookUpInode(_ context.Context, op *fuseops.LookUpInodeOp) 
 
 // GetInodeAttributes gets attributes of a node pointed by provided inode ID.
 func (fs *Filesystem) GetInodeAttributes(_ context.Context, op *fuseops.GetInodeAttributesOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if n.Exist() {
 			op.Attributes = fs.newAttributes(n.Entry)
 			return
@@ -89,6 +89,14 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 
 		op.Attributes = fs.newAttributes(n.Entry)
 
+		// When only access time is being set we are not going to update
+		// underlying file because current Entry implementation does not store
+		// atime value.
+		if op.Atime != nil && (op.Mode == nil && op.Mtime == nil && op.Size == nil) {
+			op.Attributes.Atime = *op.Atime
+			return
+		}
+
 		// Inode size has changed.
 		if op.Size != nil {
 			if err = fh.File.Truncate(int64(*op.Size)); err != nil {
@@ -115,7 +123,7 @@ func (fs *Filesystem) SetInodeAttributes(_ context.Context, op *fuseops.SetInode
 		}
 
 		// Set inode modification time.
-		if op.Atime != nil || op.Mtime != nil {
+		if op.Mtime != nil {
 			if op.Atime != nil {
 				op.Attributes.Atime = *op.Atime
 			}
@@ -179,7 +187,7 @@ func (fs *Filesystem) MkDir(_ context.Context, op *fuseops.MkDirOp) (err error) 
 		g.AddChild(n, child)
 		child.PromiseAdd()
 
-		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
+		op.Entry.Child = fuseops.InodeID(child.Entry.File.Inode)
 		op.Entry.Attributes = fs.newAttributes(entry)
 
 		// Increase reference counter for entry - fuse_reply_entry.
@@ -235,9 +243,9 @@ func (fs *Filesystem) CreateFile(_ context.Context, op *fuseops.CreateFileOp) (e
 		g.AddChild(n, child)
 		child.PromiseAdd()
 
-		op.Entry.Child = fuseops.InodeID(child.Entry.Virtual.Inode)
+		op.Entry.Child = fuseops.InodeID(child.Entry.File.Inode)
 		op.Entry.Attributes = fs.newAttributes(child.Entry)
-		op.Handle = fs.fileHandles.Add(fuseops.InodeID(child.Entry.Virtual.Inode), f, 0)
+		op.Handle = fs.fileHandles.Add(fuseops.InodeID(child.Entry.File.Inode), f, 0)
 
 		// Increase reference counter for entry - fuse_reply_create.
 		incCountNoRoot(child)
@@ -363,8 +371,15 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 		}
 
 		// Remove name from the
-		if !n.Orphan() {
-			if e := syscall.Unlink(filepath.Join(fs.CacheDir, child.Path())); e != nil {
+		if !n.Orphan() || n.Entry.File.Inode == node.RootInodeID {
+			var e error
+			if child.Entry.File.Mode.IsDir() {
+				e = syscall.Rmdir(filepath.Join(fs.CacheDir, child.Path()))
+			} else {
+				e = syscall.Unlink(filepath.Join(fs.CacheDir, child.Path()))
+			}
+
+			if e != nil {
 				err = toErrno(e)
 				return
 			}
@@ -372,6 +387,7 @@ func (fs *Filesystem) Unlink(_ context.Context, op *fuseops.UnlinkOp) (err error
 
 		child.PromiseDel()
 		if nlink := child.Entry.Virtual.NLinkDec(); nlink <= 0 {
+			fs.commit(child.Path(), index.ChangeMetaLocal|index.ChangeMetaRemove)
 			g.Repudiate(n, op.Name)
 		}
 	})
@@ -393,32 +409,9 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 			return
 		}
 
-		// Orphan nodes are needed only by kernel, they are no real
-		// representation in underlying filesystem.
-		if n.Orphan() {
-			g.RmOrphan(n)
-			return
-		}
-
-		path := n.Path()
-		// Try to delete even if the underlying filesystem operation fails.
-		defer func() {
-			fs.commit(path, index.ChangeMetaLocal|index.ChangeMetaRemove)
-		}()
-
-		absPath := filepath.Join(fs.CacheDir, path)
-		if rmErr := os.RemoveAll(absPath); os.IsNotExist(rmErr) {
-			return
-		} else if rmErr != nil {
-			err = toErrno(rmErr)
-			return
-		}
-
 		// Clean up tree.
-		if parent := n.Parent(); parent != nil {
-			g.RmChild(parent, n.Name)
-		} else {
-			panic("node marked to forget is an orphan")
+		if n.Orphan() && n.Entry.File.Inode != node.RootInodeID {
+			g.RmOrphan(n)
 		}
 	})
 
@@ -429,7 +422,7 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 // directory. This function only increases directory handle counter. The handle
 // itself is not used.
 func (fs *Filesystem) OpenDir(_ context.Context, op *fuseops.OpenDirOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
@@ -448,7 +441,7 @@ func (fs *Filesystem) ReadDir(_ context.Context, op *fuseops.ReadDirOp) (err err
 		return err
 	}
 
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if op.Offset != dh.Offset() {
 			dh.Rewind(op.Offset, n)
 		}
@@ -468,7 +461,7 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 		return err
 	}
 
-	fs.Index.Tree().DoInode(uint64(dh.InodeID), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(dh.InodeID), func(n *node.Node) {
 		if err = checkDir(n); err != nil {
 			return
 		}
@@ -481,7 +474,7 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 
 // OpenFile opens a File, ie. indicates operations are to be done on this file.
 func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err error) {
-	fs.Index.Tree().DoInode(uint64(op.Inode), func(_ node.Guard, n *node.Node) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
 		if !n.Exist() {
 			err = fuse.ENOENT
 			return
@@ -661,7 +654,7 @@ func checkDir(n *node.Node) error {
 // incCountNoRoot increases node reference counter by one but not for root node
 // since there are no methods than could increase it.
 func incCountNoRoot(n *node.Node) {
-	if n.Entry.Virtual.Inode != node.RootInodeID {
+	if n.Entry.File.Inode != node.RootInodeID {
 		n.Entry.Virtual.CountInc()
 	}
 }
@@ -669,7 +662,7 @@ func incCountNoRoot(n *node.Node) {
 // decCountNoRoot decreases node reference counter by provided value and returns
 // the number of remaining handles.
 func decCountNoRoot(n *node.Node, val uint64) int32 {
-	if n.Entry.Virtual.Inode != node.RootInodeID {
+	if n.Entry.File.Inode != node.RootInodeID {
 		return n.Entry.Virtual.CountDec(int32(val))
 	}
 

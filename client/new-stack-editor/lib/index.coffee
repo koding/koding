@@ -139,13 +139,15 @@ module.exports = class StackEditorAppController extends AppController
 
     debug 'initializeStack called for', templateId
 
+    currentTemplate = @stackEditor.getData()
+    templateId ?= currentTemplate.getId()
+
     { editor, logs, stack, credentials, variables } = @stackEditor.controllers
 
     { computeController: cc } = kd.singletons
     hasGeneratedStack = !!(cc.findStackFromTemplateId templateId)
     debug 'has generated stack from this template?', hasGeneratedStack
 
-    currentTemplate = @stackEditor.getData()
     logs.add 'updating stack template...'
 
     @stackEditor.setBusy yes

@@ -14,6 +14,7 @@ Toolbar = require './toolbar'
 Editor = require './editor'
 Statusbar = require './statusbar'
 SideView = require './sideview'
+DocumentationView = require './documentationview'
 
 LogsController = require '../controllers/logs'
 StackController = require '../controllers/stack'
@@ -41,9 +42,11 @@ module.exports = class StackEditor extends kd.View
     @layoutStorage = new FlexSplitStorage
       adapter: AppStorageAdapter
 
+    # Docs view
+    @docsView = new DocumentationView
+
     # Toolbar
-    @toolbar = new Toolbar
-    @forwardEvent @toolbar, Events.InitializeRequested
+    @toolbar = new Toolbar { @docsView }
 
     # Status bar
     @statusbar = new Statusbar
@@ -125,11 +128,9 @@ module.exports = class StackEditor extends kd.View
                 diff     :
                   x      : -93
                   y      : 12
-
         docs        :
-          title     : 'API Docs'
-          cssClass  : 'docs show-controls has-markdown'
-          view      : new kd.View { partial: 'WIP' }
+          cssClass  : 'documentation show-controls has-markdown'
+          view      : @docsView
 
     for _, controller of @controllers
       controller.on Events.TemplateDataChanged, @bound 'setData'
@@ -145,33 +146,38 @@ module.exports = class StackEditor extends kd.View
 
     { router, computeController } = kd.singletons
 
-    switch event
-      when Events.Menu.Logs
+    actions =
+      'Menu.Logs': =>
         @logs.unsetClass 'shake'
         unless @logs.isClosed()
           kd.utils.defer => @logs.setClass 'shake'
         @logs.resize { percentage: 40, store: yes }
-      when Events.Menu.Credentials
-        @sideView.show 'credentials'
-      when Events.Menu.MakeTeamDefault
+      'Menu.Credentials': =>
+        @sideView.show 'credentials', { expanded: no }
+      'Menu.MakeTeamDefault': =>
         computeController.makeTeamDefault { template: @getData() }
-      when Events.Menu.Clone
-        @toolbar.setBanner {
-          message  : 'Clonning...'
+      'Menu.Initialize': =>
+        @emit Events.InitializeRequested, rest...
+      'Menu.Clone': =>
+        @toolbar.setBanner
+          message  : 'Cloning...'
           autohide : 3000
-        }
         computeController.cloneTemplate @getData()
-      when Events.ShowSideView
+      'ShowSideView': =>
         @sideView.show rest...
-      when Events.ToggleSideView
+      'HideSideView': =>
+        @sideView.hide internal = yes
+      'ToggleSideView': =>
         @sideView.toggle rest...
-      when Events.HideWarning
+      'HideWarning': =>
         @toolbar.banner.emit Events.Banner.Close
-      when Events.TemplateTitleChangeRequested
+      'TemplateTitleChangeRequested': =>
         @controllers.editor.updateTitle rest...
-      when Events.LoadClonedFrom
+      'LoadClonedFrom': =>
         { config: { clonedFrom } } = @getData()
         router.handleRoute "/Stack-Editor/#{clonedFrom}"
+
+    actions[event]?()
 
 
   setData: (data, reset = no) ->

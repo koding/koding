@@ -7,6 +7,7 @@ import (
 	kitesconfig "koding/kites/config"
 
 	statsd "github.com/DataDog/datadog-go/statsd"
+	"github.com/boltdb/bolt"
 )
 
 // Metrics wraps metric
@@ -16,26 +17,42 @@ type Metrics struct {
 }
 
 // New creates new metrics collector.
-func New() (*Metrics, error) {
+func New(app string) (*Metrics, error) {
 	boltPath := filepath.Join(kitesconfig.KodingHome(), "metrics.bolt")
 
-	return NewWithPath(boltPath)
+	return NewWithPath(boltPath, app)
 }
 
 // NewWithPath creates new metrics collector with storing data to given path.
-func NewWithPath(boltPath string) (*Metrics, error) {
+func NewWithPath(boltPath, app string) (*Metrics, error) {
 	boltConn, err := NewBoltQueue(boltPath)
 	if err != nil {
 		return nil, err
 	}
 
-	dd, err := statsd.NewWithConn(boltConn)
+	return NewWithBoltQueue(boltConn, app)
+}
+
+// NewWithDB creates a new metric collector with given bolt db instance.
+func NewWithDB(db *bolt.DB, app string) (*Metrics, error) {
+	boltConn, err := NewBoltQueueWithDB(db)
 	if err != nil {
 		return nil, err
 	}
 
+	return NewWithBoltQueue(boltConn, app)
+}
+
+// NewWithBoltQueue creates a new metric collector with given bolt queue.
+func NewWithBoltQueue(bq *BoltQueue, app string) (*Metrics, error) {
+	dd, err := statsd.NewWithConn(bq)
+	if err != nil {
+		return nil, err
+	}
+
+	dd.Namespace = app + "_"
 	return &Metrics{
-		bolt:    boltConn,
+		bolt:    bq,
 		Datadog: dd,
 	}, nil
 }

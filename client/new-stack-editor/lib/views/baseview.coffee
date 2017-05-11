@@ -36,18 +36,11 @@ module.exports = class BaseView extends kd.View
 
     @controls.addSubView new kd.ButtonView
       cssClass: 'expand'
-      callback: =>
-        @wrapper.setClass 'expanding'
-        @emit FlexSplit.EVENT_EXPAND
-        @once 'transitionend', =>
-          @wrapper.unsetClass 'expanding'
-          @emit Events.GotFocus
+      callback: @bound 'expand'
 
     @controls.addSubView new kd.ButtonView
       cssClass: 'collapse'
-      callback: =>
-        @emit FlexSplit.EVENT_COLLAPSE
-        @emit Events.GotFocus
+      callback: @bound 'collapse'
 
     if help = @getOption 'help'
 
@@ -97,6 +90,19 @@ module.exports = class BaseView extends kd.View
 
   resize: (percentage) ->
     @emit FlexSplit.EVENT_RESIZE, percentage
+
+
+  expand: ->
+    @wrapper.setClass 'expanding'
+    @emit FlexSplit.EVENT_EXPAND
+    @once 'transitionend', =>
+      @wrapper.unsetClass 'expanding'
+      @emit Events.GotFocus
+
+
+  collapse: ->
+    @emit FlexSplit.EVENT_COLLAPSE
+    @emit Events.GotFocus
 
 
   isClosed: ->

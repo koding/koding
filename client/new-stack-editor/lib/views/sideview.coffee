@@ -30,8 +30,10 @@ module.exports = class SideView extends BaseView
 
       @wrapper.addSubView view
 
-      view.on Events.LazyLoadStarted,  @lazyBound 'setClass',   'loading'
-      view.on Events.LazyLoadFinished, @lazyBound 'unsetClass', 'loading'
+      view.on Events.LazyLoadStarted,  @lazyBound 'setClass',    'loading'
+      view.on Events.LazyLoadFinished, @lazyBound 'unsetClass',  'loading'
+      view.on Events.ExpandSideView,   @lazyBound 'setClass',   'expanded'
+      view.on Events.CollapseSideView, @lazyBound 'unsetClass', 'expanded'
 
       for control, generator of controls when controls
         @controls.addSubView generator()
@@ -41,7 +43,7 @@ module.exports = class SideView extends BaseView
     @_createLoaderView()
 
 
-  show: (viewName) ->
+  show: (viewName, options = {}) ->
 
     super
 
@@ -50,7 +52,11 @@ module.exports = class SideView extends BaseView
     for _view, item of @getOption 'views'
 
       if _view is viewName
-        @title.updatePartial item.title
+        if item.title?
+          @title.updatePartial item.title
+          @title.show()
+        else
+          @title.hide()
         @setClass item.cssClass
         item.view.show()
 
@@ -58,9 +64,31 @@ module.exports = class SideView extends BaseView
         @unsetClass item.cssClass
         item.view.hide()
 
+    if options.expanded?
+      if options.expanded
+        do @expand
+      else
+        do @collapse
+
 
   toggle: (viewName) ->
 
     if @hasClass 'hidden'
     then @show viewName
     else @hide()
+
+
+  hide: (internal = no) ->
+
+    return  if internal is yes and @hasClass 'pinned'
+
+    super
+
+    kd.singletons.windowController.revertKeyView()
+    @unsetClass 'pinned'
+
+
+  expand: ->
+
+    @emit FlexSplit.EVENT_EXPAND
+    @emit Events.GotFocus

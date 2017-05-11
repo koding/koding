@@ -17,10 +17,10 @@ import (
 	"koding/kites/terraformer/kodingcontext"
 	"koding/kites/terraformer/storage"
 
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/koding/metrics"
 )
 
 var (
@@ -37,7 +37,7 @@ type Terraformer struct {
 	Log logging.Logger
 
 	// Metrics holds the metric aggregator
-	Metrics *metrics.DogStatsD
+	Metrics *dogstatsd.Client
 
 	// Enable debug mode
 	Debug bool

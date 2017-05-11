@@ -412,6 +412,9 @@ type InspectMountRequest struct {
 
 	// Tree indicates whether inspect should attach index tree or not.
 	Tree bool `json:"tree"`
+
+	// Filesystem indicates whether inspect should run filesystem diagnostic.
+	Filesystem bool `json:"filesystem"`
 }
 
 // InspectMountResponse defines machine group mount inspect response.
@@ -421,6 +424,9 @@ type InspectMountResponse struct {
 
 	// Tree contains the entire index tree with its current state.
 	Tree []index.Debug `json:"tree,omitempty"`
+
+	// Filesystem contains issues found by filesystem diagnostic.
+	Filesystem []string `json:"filesystem,omitempty"`
 }
 
 // InspectMount gets detailed information about mount current state.
@@ -452,6 +458,11 @@ func (g *Group) InspectMount(req *InspectMountRequest) (*InspectMountResponse, e
 	// Get tree if requested.
 	if req.Tree {
 		res.Tree = sc.IndexDebug()
+	}
+
+	// Run syncer diagnostic if required.
+	if req.Filesystem {
+		res.Filesystem = sc.Diagnose()
 	}
 
 	return res, nil

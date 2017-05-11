@@ -3,6 +3,7 @@ package metrics
 import (
 	"io"
 	"net"
+	"os"
 
 	"github.com/koding/kite"
 )
@@ -55,9 +56,17 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 
 	for _, data := range req.Data {
 		_, err := p.conn.Write(data)
-		if err != nil {
-			return nil, err
+		if err == nil {
+			return nil, nil
 		}
+
+		if errP, ok := err.(*net.OpError); ok {
+			if _, ok := errP.Err.(*os.SyscallError); ok {
+				return nil, nil
+			}
+		}
+
+		return nil, err
 	}
 
 	return nil, nil

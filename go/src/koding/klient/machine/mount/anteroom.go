@@ -24,17 +24,21 @@ type Anteroom struct {
 	mu     sync.Mutex
 	evs    map[string]*msync.Event // Change name to change event map.
 	synced int64                   // How many events are processing.
+	idle   *subscribers            // Subscribers waiting for idle signals.
 }
 
 // NewAnteroom creates a new Anteroom object. Once it's created, Close method
 // must be called in order to GC allocated resources.
 func NewAnteroom() *Anteroom {
+	stopC := make(chan struct{})
+
 	a := &Anteroom{
 		queue:   NewQueue(),
 		evC:     make(chan *msync.Event),
 		wakeupC: make(chan struct{}, 1),
-		stopC:   make(chan struct{}),
+		stopC:   stopC,
 		evs:     make(map[string]*msync.Event),
+		idle:    newSubscribers(stopC),
 	}
 
 	go a.dequeue()
@@ -136,6 +140,39 @@ func (a *Anteroom) Close() error {
 	return nil
 }
 
+// IdleNotify makes Anteroom send a true value to c when it has no
+// more events to process - becomes idle.
+//
+// If Anteroom is already idle, it sends true to c right away.
+//
+// All the sends are non-blocking, the caller must ensure that c has
+// sufficient buffer space to receive value.
+//
+// If timeout is non-zero, Anteroom will send false to c if
+// waiting for idle signal exceeds the timeout.
+//
+// Anteroom sends value in a one-shot manner and it does not
+// close c - once c received value, it can be reused to receive
+// another one with second IdleNotify call.
+func (a *Anteroom) IdleNotify(c chan<- bool, timeout time.Duration) {
+	if atomic.LoadInt64(&a.synced) == 0 {
+		select {
+		case c <- true:
+		default:
+		}
+		return
+	}
+	a.idle.add(c, timeout)
+}
+
+// IdleStop undeos the effect of prior call to IdleNotify.
+//
+// If c awaits for Anteroom to be idle, it will receive
+// false value once stopped.
+func (a *Anteroom) IdleStop(c chan<- bool) {
+	a.idle.del(c)
+}
+
 // dequeue pops events from the queue and sends them to events channel.
 func (a *Anteroom) dequeue() {
 	var (
@@ -207,5 +244,74 @@ func (a *Anteroom) Detach(path string, id uint64) {
 
 // Unsync is called by event which is considered done.
 func (a *Anteroom) Unsync() {
-	atomic.AddInt64(&a.synced, -1)
+	if atomic.AddInt64(&a.synced, -1) == 0 {
+		a.idle.done(true)
+	}
+}
+
+type subscriber struct {
+	c chan<- bool
+	t *time.Timer
+}
+
+type subscribers struct {
+	mu   sync.Mutex
+	subs map[chan<- bool]subscriber
+}
+
+func newSubscribers(stopC <-chan struct{}) *subscribers {
+	s := &subscribers{
+		subs: make(map[chan<- bool]subscriber),
+	}
+
+	go func() {
+		<-stopC
+		s.done(false)
+	}()
+
+	return s
+}
+
+func (s *subscribers) add(c chan<- bool, d time.Duration) {
+	s.mu.Lock()
+	if _, ok := s.subs[c]; !ok {
+		sub := subscriber{c: c}
+		if d != 0 {
+			sub.t = time.AfterFunc(d, func() { s.del(c) })
+		}
+		s.subs[c] = sub
+	}
+	s.mu.Unlock()
+}
+
+func (s *subscribers) del(c chan<- bool) {
+	s.mu.Lock()
+	if sub, ok := s.subs[c]; ok {
+		if sub.t != nil {
+			sub.t.Stop()
+		}
+		select {
+		case sub.c <- false:
+		default:
+		}
+		delete(s.subs, c)
+	}
+	s.mu.Unlock()
+}
+
+func (s *subscribers) done(ok bool) {
+	s.mu.Lock()
+	subs := s.subs
+	s.subs = make(map[chan<- bool]subscriber)
+	s.mu.Unlock()
+
+	for _, sub := range subs {
+		if sub.t != nil {
+			sub.t.Stop()
+		}
+		select {
+		case sub.c <- ok:
+		default:
+		}
+	}
 }

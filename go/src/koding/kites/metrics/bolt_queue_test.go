@@ -59,7 +59,7 @@ func withMetrics(t *testing.T, f func(*Metrics)) {
 	defer os.Remove(tmpfile.Name())
 
 	path := tmpfile.Name()
-	m, err := NewWithPath(path)
+	m, err := NewWithPath(path, "app")
 	if err != nil {
 		t.Fatalf("NewBoltConn() error = %v, want %v", err, nil)
 	}

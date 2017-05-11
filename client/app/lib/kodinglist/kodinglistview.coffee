@@ -35,3 +35,15 @@ module.exports = class KodingListView extends kd.ListView
           cssClass  : 'solid medium'
           callback  : ->
             callback { status : yes, modal }
+
+
+  mouseDown: ->
+
+    kd.singletons.windowController.setKeyView this
+    return no
+
+
+  destroy: ->
+
+    kd.singletons.windowController.revertKeyView this
+    super

@@ -32,7 +32,7 @@ func (Git) Weight() int { return 100 }
 // Scan gets size and number of prefetched files.
 func (Git) Scan(idx *index.Index) (string, int64, int64, error) {
 	var isGit bool
-	idx.Tree().DoPath(".git", func(n *node.Node) bool {
+	idx.Tree().DoPath(".git", func(_ node.Guard, n *node.Node) bool {
 		isGit = !n.IsShadowed() && n.Entry.File.Mode.IsDir()
 
 		return !n.IsShadowed()

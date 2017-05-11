@@ -102,7 +102,6 @@ func ConfigSet(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if err := configstore.Set(c.Args().Get(0), c.Args().Get(1)); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
 
@@ -118,7 +117,6 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if err := configstore.Set(c.Args().Get(0), ""); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
 

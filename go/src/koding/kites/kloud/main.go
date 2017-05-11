@@ -55,6 +55,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer k.Close()
 
 	stack.Konfig = konfig.NewKonfig(&konfig.Environments{
 		Env: k.Kite.Config.Environment,

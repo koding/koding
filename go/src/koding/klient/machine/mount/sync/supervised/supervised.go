@@ -81,7 +81,7 @@ func (s *Supervised) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 		rebuild := func() {
 			var err error
 			if sy, err = s.b.Build(&opts); err != nil {
-				exDynC = nil
+				sy, exDynC = nil, nil
 				return
 			}
 			exDynC = sy.ExecStream(evC) // Consume from new syncer.

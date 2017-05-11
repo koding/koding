@@ -16,7 +16,7 @@ module.exports = class Statusbar extends JView
       partial: 'USE OLD STACK EDITOR'
       cssClass: 'old-stack-editor'
       click: ->
-        kd.singletons.mainController.useNewStackEditor no
+        kd.singletons.mainController.useOldStackEditor yes
 
 
   pistachio: ->

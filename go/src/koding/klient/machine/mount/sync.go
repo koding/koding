@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/config"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
@@ -213,10 +214,13 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 	}
 
 	// Enable syncing history for all mounts.
-	s.s = history.NewHistory(syncer, 100)
+	s.s = history.NewHistory(syncer, config.Konfig.Mount.Inspect.History)
 
 	return s, nil
 }
+
+// Anteroom gives the sync's anteroom.
+func (s *Sync) Anteroom() *Anteroom { return s.a }
 
 // Stream creates a stream of file synchronization jobs.
 func (s *Sync) Stream() <-chan msync.Execer {
@@ -270,6 +274,11 @@ func (s *Sync) History() ([]*history.Record, error) {
 // IndexDebug gets current index tree debug information.
 func (s *Sync) IndexDebug() []index.Debug {
 	return s.idx.Debug()
+}
+
+// Diagnose diagnoses the mount looking for inconsistent or invalid states.
+func (s *Sync) Diagnose() []string {
+	return s.idx.Diagnose(s.CacheDir())
 }
 
 // CacheDir returns the name of mount cache directory.
