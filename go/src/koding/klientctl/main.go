@@ -170,8 +170,6 @@ error opening: %s
 	}
 	defer m.Close()
 
-	cliExternalTags := generateTagsForCLI("cli_external")
-
 	app := cli.NewApp()
 	app.Name = config.Name
 	app.Version = getReadableVersion(config.VersionNum())
@@ -184,7 +182,7 @@ error opening: %s
 			Hidden:       true, // do not show it to users.
 			Name:         "add",
 			Usage:        "Add new metric.",
-			Action:       ctlcli.ExitErrAction(MetricPushHandler(m, cliExternalTags), log, "add"),
+			Action:       ctlcli.ExitErrAction(MetricPushHandler(m, generateTagsForCLI), log, "add"),
 			BashComplete: func(c *cli.Context) {},
 			Flags: []cli.Flag{
 				cli.StringFlag{
