@@ -51,6 +51,7 @@ fi
 
 # source koding env vars
 if [ ! -f /etc/sysconfig/supervisord ]; then
+    echo 'error: /etc/sysconfig/supervisord does not exist'
     exit 6
 fi
 
