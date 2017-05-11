@@ -104,7 +104,7 @@ module.exports = class Ace extends kd.View
 
       @prepareEditor()
 
-      @focus()
+      @focus()  unless kd.singletons.appManager.frontApp.isChatInputFocused()
       @show()
 
       kd.utils.defer @lazyBound 'emit', 'ready'
