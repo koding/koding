@@ -58,7 +58,7 @@ loadIDE = (data, done = kd.noop) ->
 
       app.mountMachineByMachineUId machineUId, done
 
-  if Cookies.get('use-nse') and not machine.isBuilt()
+  if not Cookies.get('use-ose') and not machine.isBuilt()
     debug 'new build flow', "/Stack-Editor/Build/#{machine.getId()}"
     kd.singletons.router.handleRoute "/Stack-Editor/Build/#{machine.getId()}"
     return

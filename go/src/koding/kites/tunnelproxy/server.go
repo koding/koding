@@ -16,17 +16,19 @@ import (
 	"time"
 
 	"koding/artifact"
+	"koding/kites/common"
 	konfig "koding/kites/config"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
+	"koding/kites/metrics"
 	"koding/tools/util"
 
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/koding/metrics"
 	"github.com/koding/tunnel"
 )
 
@@ -51,8 +53,8 @@ type ServerOptions struct {
 	Test         bool   `json:"test,omitempty"`
 	NoCNAME      bool   `json:"noCNAME,omitempty"`
 
-	Log     logging.Logger     `json:"-"`
-	Metrics *metrics.DogStatsD `json:"-"`
+	Log     logging.Logger    `json:"-"`
+	Metrics *dogstatsd.Client `json:"-"`
 }
 
 func (opts *ServerOptions) registerURL() string {
@@ -102,6 +104,10 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		}
 
 		optsCopy.ServerAddr = ip
+	}
+
+	if optsCopy.Metrics == nil {
+		optsCopy.Metrics = common.MustInitMetrics("tunnelproxy")
 	}
 
 	if optsCopy.Log == nil {
@@ -631,24 +637,6 @@ func (s *Server) upsert(vhost string) error {
 	return s.DNS.UpsertRecord(&rec)
 }
 
-func (s *Server) metricsFunc() kite.HandlerFunc {
-	if s.opts.Metrics == nil {
-		return nil
-	}
-	m := s.opts.Metrics
-	log := s.opts.Log
-	return func(r *kite.Request) (interface{}, error) {
-		// Send the metrics concurrently and don't block method handler.
-		go func() {
-			err := m.Count("callCount", 1, []string{"funcName:" + r.Method}, 1.0)
-			if err != nil {
-				log.Warning("failed to send metrics for method=%s, user=%s: %s", r.Method, r.Username, err)
-			}
-		}()
-		return true, nil
-	}
-}
-
 func (s *Server) listen(network, addr string) (net.Listener, error) {
 	host, port, err := splitHostPort(addr)
 	if err != nil || port != 0 {
@@ -844,20 +832,16 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 
 	k.Log = s.opts.Log
 
-	if fn := s.metricsFunc(); fn != nil {
-		k.PreHandleFunc(fn)
-	}
-
-	k.HandleFunc("register", s.Register)
-	k.HandleFunc("registerServices", s.RegisterServices)
+	k.HandleFunc("register", metrics.WrapKiteHandler(s.opts.Metrics, "register", s.Register))
+	k.HandleFunc("registerServices", metrics.WrapKiteHandler(s.opts.Metrics, "registerServices", s.RegisterServices))
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
 	// Tunnel helper methods, like ports, stats etc.
-	k.HandleHTTPFunc("/-/discover/{service}", s.discoverHandler())
+	k.HandleHTTPFunc("/-/discover/{service}", metrics.WrapHTTPHandler(s.opts.Metrics, "discover_service_handler", s.discoverHandler()))
 
 	// Route all the rest requests (match all paths that does not begin with /-/).
-	k.HandleHTTP(`/{rest:.?$|[^\/].+|\/[^-].+|\/-[^\/].*}`, s.serverHandler())
+	k.HandleHTTP(`/{rest:.?$|[^\/].+|\/[^-].+|\/-[^\/].*}`, metrics.WrapHTTPHandler(s.opts.Metrics, "rest_handler", s.serverHandler()))
 
 	u, err := url.Parse(s.opts.registerURL())
 	if err != nil {

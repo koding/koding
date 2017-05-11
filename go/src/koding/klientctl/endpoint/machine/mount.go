@@ -70,7 +70,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 	var idRes machinegroup.IDResponse
 
-	if err := c.klient().Call("machine.id", idReq, &idRes); err != nil {
+	if err = c.klient().Call("machine.id", idReq, &idRes); err != nil {
 		return err
 	}
 
@@ -90,7 +90,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 	var headMountRes machinegroup.HeadMountResponse
 
-	if err := c.klient().Call("machine.mount.head", headMountReq, &headMountRes); err != nil {
+	if err = c.klient().Call("machine.mount.head", headMountReq, &headMountRes); err != nil {
 		return err
 	}
 
@@ -122,9 +122,18 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		Strategies: prefetch.DefaultStrategy.Available(),
 	}
 	var addMountRes machinegroup.AddMountResponse
-	if err := c.klient().Call("machine.mount.add", addMountReq, &addMountRes); err != nil {
+	if err = c.klient().Call("machine.mount.add", addMountReq, &addMountRes); err != nil {
 		return err
 	}
+	defer func() {
+		// Remove mount when post mount operations fail.
+		if err != nil {
+			umountReq := &machinegroup.UmountRequest{
+				Identifier: string(addMountRes.MountID),
+			}
+			_ = c.klient().Call("machine.umount", umountReq, nil)
+		}
+	}()
 
 	// Prefetch files.
 	_, _, privPath, err := sshGetKeyPath()
@@ -137,6 +146,8 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			options.Log.Error("Output: %q", exitErr.Stderr)
 		}
+
+		return err
 	}
 
 	// Rescan cache folder in order to update index.
@@ -144,7 +155,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		MountID: addMountRes.MountID,
 	}
 	var upIdxMountRes machinegroup.UpdateIndexResponse
-	if err := c.klient().Call("machine.mount.updateIndex", upIdxMountReq, &upIdxMountRes); err != nil {
+	if err = c.klient().Call("machine.mount.updateIndex", upIdxMountReq, &upIdxMountRes); err != nil {
 		return err
 	}
 
@@ -184,6 +195,7 @@ type InspectMountOptions struct {
 	Identifier string // Mount identifier.
 	Sync       bool   // Get syncing history.
 	Tree       bool   // Show index tree.
+	Filesystem bool   // Check and report filesystem consistency.
 	Log        logging.Logger
 }
 
@@ -199,6 +211,7 @@ func (c *Client) InspectMount(options *InspectMountOptions) (machinegroup.Inspec
 		Identifier: options.Identifier,
 		Sync:       options.Sync,
 		Tree:       options.Tree,
+		Filesystem: options.Filesystem,
 	}
 
 	err := c.klient().Call("machine.mount.inspect", inspectMountReq, &inspectMountRes)
@@ -298,6 +311,9 @@ func (c *Client) WaitIdle(opts *WaitIdleOptions) error {
 	if err := c.klient().Call("machine.mount.waitIdle", req, nil); err != nil {
 		return err
 	}
+
+	// Release read-only access before long-running operation.
+	_ = c.kloud().Cache().CloseRead()
 
 	if !<-ch {
 		if req.Timeout != 0 {

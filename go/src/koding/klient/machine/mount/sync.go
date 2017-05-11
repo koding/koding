@@ -276,6 +276,11 @@ func (s *Sync) IndexDebug() []index.Debug {
 	return s.idx.Debug()
 }
 
+// Diagnose diagnoses the mount looking for inconsistent or invalid states.
+func (s *Sync) Diagnose() []string {
+	return s.idx.Diagnose(s.CacheDir())
+}
+
 // CacheDir returns the name of mount cache directory.
 func (s *Sync) CacheDir() string {
 	return filepath.Join(s.opts.WorkDir, "data")

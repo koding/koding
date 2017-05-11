@@ -5,35 +5,47 @@ module.exports = do ->
   events = [
     'CredentialChangesRevertRequested'
     'CredentialChangesSaveRequested'
-    'TemplateTitleChangeRequested'
     'CredentialSelectionChanged'
     'CredentialFilterChanged'
-    'SelectedProviderChanged'
     'CredentialListUpdated'
+
+    'TemplateTitleChangeRequested'
+    'TemplateDataChanged'
+
+    'SelectedProviderChanged'
     'StackWizardCancelled'
     'InitializeRequested'
-    'TemplateDataChanged'
     'ProviderSelected'
-    'LazyLoadFinished'
-    'LazyLoadStarted'
-    'ToggleSideView'
     'LoadClonedFrom'
-    'ShowSideView'
-    'HideWarning'
-    'WarnUser'
-    'GotFocus'
-    'Action'
-    'Log'
-    'Menu.Test'
-    'Menu.Initialize'
-    'Menu.MakeTeamDefault'
-    'Menu.Rename'
-    'Menu.Clone'
-    'Menu.Credentials'
-    'Menu.Logs'
-    'Menu.Delete'
+
     'Banner.ActionClicked'
     'Banner.Close'
+
+    'Menu.MakeTeamDefault'
+    'Menu.Credentials'
+    'Menu.Initialize'
+    'Menu.Rename'
+    'Menu.Delete'
+    'Menu.Clone'
+    'Menu.Test'
+    'Menu.Logs'
+
+    'LazyLoadFinished'
+    'LazyLoadStarted'
+
+    'CollapseSideView'
+    'ExpandSideView'
+    'ToggleSideView'
+    'ShowSideView'
+    'HideSideView'
+
+    'HideWarning'
+    'WarnUser'
+
+    'GotFocus'
+    'Action'
+
+    'Log'
   ]
 
   obj = {}

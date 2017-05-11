@@ -104,6 +104,17 @@ func (s *Storage) DeleteValue(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
+type ErrStorage struct {
+	Err error
+}
+
+var _ Interface = ErrStorage{}
+
+func (es ErrStorage) Get(key string) (string, error) { return "", es.Err }
+func (es ErrStorage) Set(key, value string) error    { return es.Err }
+func (es ErrStorage) Delete(key string) error        { return es.Err }
+func (es ErrStorage) Close() error                   { return es.Err }
+
 type EncodingStorage struct {
 	Interface
 

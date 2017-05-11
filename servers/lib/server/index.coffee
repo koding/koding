@@ -103,8 +103,8 @@ app.get  '/-/image/cache'                        , require './image_cache'
 app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
 
-app.get '/-/terraform/document-search/:query'    , require './handlers/stackscripttitle'
-app.get '/-/terraform/document-content/:query'   , require './handlers/stackscriptmarkdown'
+app.post '/-/terraform/document-search' , bodyParser.json(), require './handlers/terraform_doc_search'
+app.post '/-/terraform/document-content', bodyParser.json(), require './handlers/terraform_doc_content'
 
 # app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
 # app.get  '/-/oauth/google/callback'              , require './google_callback'

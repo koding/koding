@@ -4,6 +4,7 @@ import (
 	"koding/api"
 	"koding/api/apiutil"
 	"koding/klientctl/config"
+	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 )
 
@@ -11,17 +12,11 @@ import (
 // as an authorization endpoint.
 //
 // If client is nil, kloud.DefaultClient is used instead.
-func Transport(client *kloud.Client) *api.Transport {
-	if client == nil {
-		client = kloud.DefaultClient
-	}
-
+func Transport(client *kloud.Client, auth *auth.Client) *api.Transport {
 	return &api.Transport{
 		AuthFunc: (&apiutil.KloudAuth{
-			Kite: client.Transport,
-			Storage: &apiutil.Storage{
-				Cache: client.Cache(),
-			},
+			Kite:    client.Transport,
+			Storage: auth,
 		}).Auth,
 		Debug: config.Konfig.Debug,
 		Log:   kloud.DefaultLog,
