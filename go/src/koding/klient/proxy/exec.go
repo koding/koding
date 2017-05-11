@@ -75,6 +75,8 @@ type ExecResponse struct {
 func (r *Exec) Input(d *dnode.Partial) {
     data := d.MustSliceOfLength(1)[0].MustString()
 
+    fmt.Println("Proxying data from client to pipe: %s", data)
+
     r.in.Write([]byte(data))
 }
 

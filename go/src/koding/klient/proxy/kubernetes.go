@@ -140,11 +140,20 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         r.K8s.Pod,
     )
 
+    cmds := []string{}
+
+    // Make cmds be an argv array to inject into the query
+    // string for the websocket handshake.
+    for _, v := range r.Common.Command {
+        c := fmt.Sprintf("command=%s", url.QueryEscape(v))
+        cmds = append(cmds, c)
+    }
+
     sWithQuery := fmt.Sprintf(
-        "%s?container=%s&command=%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
+        "%s?container=%s&%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
         s,
         r.K8s.Container,
-        url.QueryEscape(strings.Join(r.Common.Command, "+")),
+        strings.Join(cmds, "&"),
         r.IO.Stdin,
         r.IO.Stdout,
         r.IO.Stderr,
@@ -168,24 +177,26 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     if r.IO.Stdin {
         go func() {
             for {
-                _, err := io.Copy(conn, inReader)
+                io.Copy(conn, inReader)
 
                 if !r.IO.Tty {
-                    errChan <- err
                     break
                 }
+
+                fmt.Println("Looping input proxier.")
             }
 
             fmt.Println("Exiting input proxier.")
         }()
     }
 
-    // Proxy all output from the websocket connection to
-    // the Output dnode.Function provided by requesting kite.
+    // If requesting kite wants this klient to return output
+    // and/or errors for the exec process.
     if r.IO.Stdout || r.IO.Stderr {
         go func() {
             for {
-                // Proxy output until an error occurs.
+                // Proxy all output from the websocket connection to
+                // the Output dnode.Function provided by requesting kite.
                 err := util.PassTo(r.Output, conn)
 
                 // If the connection is not tty, then
@@ -196,6 +207,8 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
                     errChan <- err
                     break
                 }
+
+                fmt.Println("Looping output proxier.")
             }
 
             fmt.Println("Exiting output proxier.")

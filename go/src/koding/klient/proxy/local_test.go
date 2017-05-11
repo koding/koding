@@ -3,6 +3,7 @@ package proxy_test
 import (
     "strings"
     "testing"
+    "time"
 
     "koding/klient/proxy"
     "koding/klient/testutil"
@@ -112,16 +113,20 @@ func TestLocalExec(t *testing.T) {
     }
 
     returned := ""
-    for {
+    for !strings.Contains(returned, expected) {
         select {
             case o := <- r.output:
                 returned += o
-            case <- r.done:
-                if !strings.Contains(returned, expected) {
-                    t.Fatal("Failed to return expected output.")
-                }
-                return
+            case <- time.After(time.Second * 3):
+                t.Fatal("Should return expected output, in a timely manner.")
         }
+    }
+
+    select {
+        case <- r.done:
+            break
+        case <- time.After(time.Millisecond * 100):
+            t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
     }
 }
 
@@ -172,15 +177,19 @@ func TestLocalExecWithInput(t *testing.T) {
     }
 
     returned := ""
-    for {
+    for !strings.Contains(returned, expected) {
         select {
             case o := <- r.output:
                 returned += o
-            case <-r.done:
-                if !strings.Contains(returned, expected) {
-                    t.Fatal("Failed to return expected output.")
-                }
-                return
+            case <- time.After(time.Second * 3):
+                t.Fatal("Should return expected output, in a timely manner.")
         }
+    }
+
+    select {
+        case <- r.done:
+            break
+        case <- time.After(time.Millisecond * 100):
+            t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
     }
 }
