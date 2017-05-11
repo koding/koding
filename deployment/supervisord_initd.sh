@@ -45,7 +45,6 @@ ulimit -n 96000
 RETVAL=0
 
 # source default env vars
-
 if [ -f /etc/default/supervisord ]; then
   . /etc/default/supervisord
 fi
