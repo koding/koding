@@ -24,10 +24,8 @@
 
 set -a
 
-PREFIX=/usr
-
-SUPERVISORD=$PREFIX/bin/supervisord
-SUPERVISORCTL=$PREFIX/bin/supervisorctl
+SUPERVISORD=supervisord
+SUPERVISORCTL=supervisorctl
 
 PIDFILE=/var/run/supervisord.pid
 CONFFILE="/etc/supervisord.conf"
