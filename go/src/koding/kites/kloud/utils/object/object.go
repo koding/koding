@@ -227,6 +227,13 @@ func (b *Builder) buildMapObject(v interface{}, obj Object, ignored ...string) {
 			continue
 		}
 
+		if s, ok := vv.(fmt.Stringer); ok && b.FlatStringers {
+			if !isNil(s) {
+				b.set(obj, key, s.String(), ignored...)
+			}
+			continue
+		}
+
 		child := flatten(vv)
 		if child == nil {
 			b.set(obj, key, vv, ignored...)
@@ -254,7 +261,7 @@ func (b *Builder) buildStruct(v interface{}, obj Object, ignored ...string) {
 		}
 
 		if s, ok := field.Value().(fmt.Stringer); ok && b.FlatStringers {
-			if !reflect.ValueOf(s).IsNil() {
+			if !isNil(s) {
 				b.set(obj, key, s.String(), ignored...)
 			}
 			continue
@@ -320,6 +327,15 @@ func isMapObject(v interface{}) bool {
 		return false
 	}
 	return typ.Key().Kind() == reflect.String
+}
+
+func isNil(v interface{}) bool {
+	switch v := reflect.ValueOf(v); v.Type().Kind() {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.Slice:
+		return v.IsNil()
+	default:
+		return false
+	}
 }
 
 func flatten(v interface{}) interface{} {

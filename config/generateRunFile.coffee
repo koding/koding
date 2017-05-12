@@ -613,7 +613,8 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "printconfig" ]; then
 
-      printconfig $@
+      shift
+      echo ${!1}
 
     elif [[ "$1" == "log" || "$1" == "logs" ]]; then
 
