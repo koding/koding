@@ -396,7 +396,7 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Info("Test mode enabled")
 	}
 
-	kloud.handleSignals()
+	go kloud.handleSignals()
 
 	return kloud, nil
 }
@@ -422,7 +422,7 @@ func (k *Kloud) Close() error {
 		merr = multierror.Append(merr, err)
 	}
 
-	defer k.closeOnce.Do(func() {
+	k.closeOnce.Do(func() {
 		close(k.closeChan)
 	})
 
@@ -436,18 +436,16 @@ func (k *Kloud) Wait() error {
 }
 
 func (k *Kloud) handleSignals() {
-	go func() {
-		signalCh := make(chan os.Signal, 1)
-		signal.Notify(signalCh)
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh)
 
-		s := <-signalCh
-		signal.Stop(signalCh)
-		switch s {
-		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
-			k.Kite.Log.Info("%s signal received, closing kloud", s)
-			k.Close()
-		}
-	}()
+	s := <-signalCh
+	signal.Stop(signalCh)
+	switch s {
+	case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
+		k.Kite.Log.Info("%s signal received, closing kloud", s)
+		k.Close()
+	}
 }
 func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
