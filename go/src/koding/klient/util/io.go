@@ -40,28 +40,28 @@ func GetPipes(c *exec.Cmd) (*Pipes, error) {
 // all chunks to the provided dnode.Function that is assumed to be
 // waiting for data from the reader.
 func PassTo(to dnode.Function, from io.Reader) error {
-    buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
+    buf := make([]byte, utf8.UTFMax)
 
     for {
         n, err := from.Read(buf)
 
-        // Most likely and EOF here, so we are done.
-        if err != nil {
-            return err
-        }
-
-        for n < cap(buf)-1 {
-            r, _ := utf8.DecodeLastRune(buf[:n])
-
-            if r != utf8.RuneError {
-                break
+        if n == 0 {
+            if err != nil {
+                return err
             }
 
-            from.Read(buf[n : n+1])
-            n++
+            if err == io.EOF {
+                return nil
+            }
+
+            continue
         }
 
-        if err := to.Call(string(filterInvalidUTF8(buf[:n]))); err != nil {
+        if e := to.Call(string(filterInvalidUTF8(buf[:n]))); e != nil {
+            return e
+        }
+
+        if err != nil && err != io.EOF {
             return err
         }
     }

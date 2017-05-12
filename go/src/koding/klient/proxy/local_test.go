@@ -1,6 +1,7 @@
 package proxy_test
 
 import (
+    "fmt"
     "strings"
     "testing"
     "time"
@@ -112,21 +113,28 @@ func TestLocalExec(t *testing.T) {
         t.Fatal("Response should be of type proxy.ExecResponse.")
     }
 
+    timeout := time.After(time.Second * 3)
+
     returned := ""
     for !strings.Contains(returned, expected) {
         select {
             case o := <- r.output:
                 returned += o
-            case <- time.After(time.Second * 3):
+            case <- timeout:
                 t.Fatal("Should return expected output, in a timely manner.")
         }
     }
 
-    select {
-        case <- r.done:
-            break
-        case <- time.After(time.Millisecond * 100):
-            t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+    timeout = time.After(time.Millisecond * 100)
+
+    for {
+        select {
+            case <- r.done:
+                fmt.Println("Got the done callback")
+                return
+            case <- timeout:
+                t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+        }
     }
 }
 
@@ -176,20 +184,26 @@ func TestLocalExecWithInput(t *testing.T) {
         t.Fatal(err)
     }
 
+    timeout := time.After(time.Second * 3)
+
     returned := ""
     for !strings.Contains(returned, expected) {
         select {
             case o := <- r.output:
                 returned += o
-            case <- time.After(time.Second * 3):
+            case <- timeout:
                 t.Fatal("Should return expected output, in a timely manner.")
         }
     }
 
-    select {
-        case <- r.done:
-            break
-        case <- time.After(time.Millisecond * 100):
-            t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+    timeout = time.After(time.Millisecond * 100)
+    for {
+        select {
+            case <- r.done:
+                fmt.Println("Got the done callback")
+                return
+            case <- timeout:
+                t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+        }
     }
 }

@@ -170,25 +170,25 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         return nil, err
     }
 
-    inReader, inWriter := io.Pipe()
+    // inReader, inWriter := io.Pipe()
 
     errChan := make(chan error)
 
-    if r.IO.Stdin {
-        go func() {
-            for {
-                io.Copy(conn, inReader)
-
-                if !r.IO.Tty {
-                    break
-                }
-
-                fmt.Println("Looping input proxier.")
-            }
-
-            fmt.Println("Exiting input proxier.")
-        }()
-    }
+    // if r.IO.Stdin {
+    //     go func() {
+    //         for {
+    //             io.Copy(conn, inReader)
+    //
+    //             if !r.IO.Tty {
+    //                 break
+    //             }
+    //
+    //             fmt.Println("Looping input proxier.")
+    //         }
+    //
+    //         fmt.Println("Exiting input proxier.")
+    //     }()
+    // }
 
     // If requesting kite wants this klient to return output
     // and/or errors for the exec process.
@@ -231,13 +231,13 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         }
 
         conn.Close()
-        inReader.Close()
+        // inReader.Close()
 
         close(errChan)
     }()
 
     exec := &Exec{
-        in:         inWriter,
+        in:         conn,
 
         Common:     r.Common,
         IO:         r.IO,
