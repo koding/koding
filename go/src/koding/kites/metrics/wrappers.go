@@ -13,6 +13,7 @@ import (
 
 // WrapKiteHandler wraps the kite handlers adds metrics middlewares.
 func WrapKiteHandler(dd *dogstatsd.Client, metricName string, handler kite.HandlerFunc) kite.HandlerFunc {
+	register(dd.Namespace, metricName)
 	return func(r *kite.Request) (interface{}, error) {
 		start := time.Now()
 		resp, err := handler.ServeKite(r)
@@ -43,6 +44,7 @@ func WrapKiteHandler(dd *dogstatsd.Client, metricName string, handler kite.Handl
 
 // WrapHTTPHandler wraps the http handlers adds metrics middlewares.
 func WrapHTTPHandler(dd *dogstatsd.Client, metricName string, handler http.HandlerFunc) http.HandlerFunc {
+	register(dd.Namespace, metricName)
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		rr := newResponseRecorder(w)
@@ -61,21 +63,27 @@ func WrapHTTPHandler(dd *dogstatsd.Client, metricName string, handler http.Handl
 }
 
 // WrapCLIActions injects the metrics as middlewares into cli.Commands Actions.
-func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, tagsFn func(string) []string) []cli.Command {
+func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName string, tagsFn func(string) []string) []cli.Command {
+
 	for i, command := range commands {
-		if command.Action != nil {
-			commands[i].Action = WrapCLIAction(dd, command.Action.(cli.ActionFunc), tagsFn)
+		name := parentName + " " + command.Name
+		if parentName == "" {
+			name = command.Name
 		}
-		commands[i].Subcommands = WrapCLIActions(dd, command.Subcommands, tagsFn)
+
+		register(dd.Namespace, strings.Replace(name, " ", "_", -1))
+		if command.Action != nil {
+			commands[i].Action = WrapCLIAction(dd, command.Action.(cli.ActionFunc), name, tagsFn)
+		}
+		commands[i].Subcommands = WrapCLIActions(dd, command.Subcommands, name, tagsFn)
 	}
 
 	return commands
 }
 
 // WrapCLIAction wraps the actions of cli commands and adds metrics middlewares.
-func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, tagsFn func(string) []string) cli.ActionFunc {
+func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, fullName string, tagsFn func(string) []string) cli.ActionFunc {
 	return func(c *cli.Context) error {
-		fullName := c.Command.FullName()
 		metricName := strings.Replace(fullName, " ", "_", -1)
 
 		start := time.Now()
