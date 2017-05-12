@@ -168,7 +168,9 @@ error opening: %s
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "metrics wont be collected: ", err)
 	}
-	defer m.Close()
+	if m != nil {
+		defer m.Close()
+	}
 
 	app := cli.NewApp()
 	app.Name = config.Name
