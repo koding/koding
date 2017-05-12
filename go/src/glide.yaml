@@ -74,6 +74,7 @@ import:
   version: 6215360e5247e7c4bdc317a5f95e3fa5f084a33b
 - package: github.com/howeyc/fsnotify
   version: ^0.9.0
+- package: gopkg.in/zorkian/go-datadog-api.v2
 - package: github.com/hpcloud/tail
   version: ^1.0.0
 - package: github.com/inconshreveable/go-update

@@ -465,6 +465,8 @@ imports:
   - types/v56
 - name: github.com/howeyc/fsnotify
   version: 441bbc86b167f3c1f4786afae9931403b99fdacf
+- name: gopkg.in/zorkian/go-datadog-api.v2
+  version: 267f4d3cb12d1eb1895d4b7a7893cf37e4213dd7
 - name: github.com/hpcloud/tail
   version: a30252cb686a21eb2d0b98132633053ec2f7f1e5
   subpackages:
