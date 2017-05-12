@@ -436,17 +436,15 @@ func (k *Kloud) Wait() error {
 }
 
 func (k *Kloud) handleSignals() {
-	signalCh := make(chan os.Signal, 1)
-	signal.Notify(signalCh)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
-	s := <-signalCh
-	signal.Stop(signalCh)
-	switch s {
-	case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
-		k.Kite.Log.Info("%s signal received, closing kloud", s)
-		k.Close()
-	}
+	s := <-c
+
+	k.Kite.Log.Info("%s signal received, closing kloud", s)
+	k.Close()
 }
+
 func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	c := credentials.NewStaticCredentials(conf.AWSAccessKeyId, conf.AWSSecretAccessKey, "")
 
