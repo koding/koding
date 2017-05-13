@@ -318,7 +318,7 @@ module.exports = (KONFIG, options, credentials) ->
         ]
 
     userproxies         :
-      group             : 'proxy'
+      group             : 'webserver'
       nginx             :
         websocket       : yes
         locations       : [
