@@ -428,7 +428,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
-	klientFolder := "development/latest"
+	klientFolder := conf.Environment + "/latest"
 	if conf.ProdMode {
 		k.Log.Info("Prod mode enabled")
 		klientFolder = "production/latest"
