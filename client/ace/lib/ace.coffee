@@ -1,10 +1,11 @@
-kd       = require 'kd'
-_        = require 'lodash'
-$        = require 'jquery'
-ace      = require 'brace'
-globals  = require 'globals'
-FSHelper = require 'app/util/fs/fshelper'
-settings = require './settings'
+kd            = require 'kd'
+_             = require 'lodash'
+$             = require 'jquery'
+ace           = require 'brace'
+globals       = require 'globals'
+FSHelper      = require 'app/util/fs/fshelper'
+settings      = require './settings'
+GotoLineView  = require './gotolineview'
 
 require 'brace/ext/language_tools'
 ace.acequire 'ace/ext/language_tools'
@@ -666,34 +667,17 @@ module.exports = class Ace extends kd.View
 
   showGotoLine: ->
 
-    unless @gotoLineModal
+    return @gotoLineBar.findInput.setFocus()  if @gotoLineBar
 
-      @gotoLineModal = new kd.ModalViewWithForms
-        cssClass                : 'goto'
-        width                   : 180
-        height                  : 'auto'
-        overlay                 : yes
-        tabs                    :
-          forms                 :
-            Go                  :
-              callback          : (form) =>
-                lineNumber = parseInt form.line, 10
-                @gotoLine lineNumber if lineNumber > 0
-                @gotoLineModal.destroy()
-              fields            :
-                Line            :
-                  type          : 'text'
-                  name          : 'line'
-                  placeholder   : 'Goto line'
-                  nextElement   :
-                    Go              :
-                      itemClass     : kd.ButtonView
-                      title         : 'Go'
-                      style         : 'GenericButton'
-                      type          : 'submit'
+    @addSubView @gotoLineBar = new GotoLineView
+      callback : (lineNumber) =>
+        @gotoLine lineNumber if lineNumber > 0
+        @gotoLineBar.destroy()
 
-      @gotoLineModal.on 'KDModalViewDestroyed', =>
-        @gotoLineModal = null
-        @focus()
+    @gotoLineBar.once 'KDObjectWillBeDestroyed', =>
+      @gotoLineBar = null
+      @focus()
 
-      @gotoLineModal.modalTabs.forms.Go.focusFirstElement()
+  hideGotoLine: ->
+
+    @gotoLineBar.destroy()  if @gotoLineBar

@@ -12,6 +12,28 @@ dark-active-tab-color       = #9C9C9C
 dark-tab-color              = #5C5C5C
 text-color-green            = #4EA04C
 
+input-bg                    = #333339
+input-border                = #515151
+input-active-border         = #A8CEFF
+input-placeholder           = #989898
+input-color                 = #FFFFFF
+item-active-bg              = #67A2EE
+
+btn-transition()
+  -webkit-transition                all .1s ease
+  -moz-transition                   all .1s ease
+  transition                        all .1s ease
+
+btn-icon-before-after()
+  content                           ''
+  position                          absolute
+  width                             100%
+  height                            100%
+  top                               0
+  left                              0
+  bg                                color, btn-color
+  btn-transition()
+
 // theming
 body.ide
 
@@ -185,7 +207,7 @@ body.ide .dark
 
     &.active.focus
       color                 #fff
-      border-top            2px solid #67A2EE
+      border-top            2px solid item-active-bg
 
     &.menu-visible
       .options
@@ -291,43 +313,6 @@ body.ide .dark
 
   .kdtabhandle.fullscreen-handle.shrink .icon
     r-sprite                'ide', 'shrink'
-
-
-  .ace-find-replace-view
-    bottom                  1px !important
-    bg                      color, dark-tab-header-bg
-    border-bottom-color     dark-tab-header-bg
-    box-shadow              inset 0 -1px 0 dark-tab-header-bg
-
-    a, input
-      border-color          dark-panel-bg
-
-      &.active
-        border-color        dark-panel-bg !important
-
-    input
-      bg                    color, dark-panel-bg
-      box-shadow            0 1px 0 dark-panel-bg
-      color                 dark-active-tab-color
-
-      &:hover
-        bg                  color, dark-panel-bg
-        border              1px solid dark-panel-bg
-        box-shadow          0 1px 0 dark-panel-bg
-
-      &:focus
-        bg                  color, dark-panel-bg
-        border              1px solid dark-panel-bg
-        box-shadow          0 1px 0 dark-panel-bg
-
-    button
-      bg                    color, dark-panel-bg
-      color                 dark-active-tab-color
-      border                1px solid dark-panel-bg
-
-      &:hover
-        bg                  color, dark-panel-bg
-        opacity             .8
 
   .ws-tabview.fullscreen
     position                fixed
@@ -728,39 +713,47 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
 // file-finder
 .ide .file-finder
   z-index                   10000
-  top                       96px
+  top                       40px
   left                      50%
-  margin-left               -235px
+  margin-left               -25px
   width                     450px
-  padding                   10px
-  rounded                   5px
   abs()
-  bg                        color, dark-tab-header-bg
-  vendor                    box-shadow, 0px 2px 28px rgba(0, 0, 0, .5)
-
-  .icon
-    abs()
-    z-index                 2
-    top                     20px
-    right                   20px
-    r-sprite                'ide', 'search'
 
   .kdinput
-    color                   #928D87
-    bg                      color, #D4CFC9
-    border                  1px solid dark-panel-bg
-    height                  36px
-    font-size               14px
+    height                        30px
+    padding                       0 13px
+    font-size                     12px
+    line-height                   30px
+    rounded                       4px
+    color                         input-color
+    bg                            color, input-bg
+    border                        1px solid input-active-border
+    placeholder-color             input-placeholder
+    borderBox()
+    bg                            image, none
+    bg                            position, center right 10px
+    bg                            repeat, no-repeat
+    shadow                        none
 
-    &.has-text
-      color                 dark-tab-header-bg !important
+    &:hover,
+    &:focus
+      border-color                input-active-border
+      shadow                      none
 
     &:focus
-      box-shadow            none
-      border                1px solid dark-panel-bg
+      s-sprite                    ace 'search_icon'
 
-    &:hover
-      border                1px solid dark-panel-bg
+    &.has-text
+      rounded                     4px 4px 0 0
+
+      & + .file-finder-content
+        display                   block
+
+  .file-finder-content
+    rounded                       0 0 4px 4px
+    border                        1px solid input-active-border
+    border-top                    none
+    display                       none
 
   .kdlistitemview.selected
     rounded                 3px
@@ -769,7 +762,6 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
   .kdlistview
     max-height              200px
     overflow                auto !important
-    margin-top              10px
 
   .warning
     padding                 20px 20px 10px 20px
@@ -781,6 +773,14 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     font-size               12px
     padding                 12px
     width                   auto
+    border-bottom           1px solid rgba(81, 81, 81, 0.5)
+
+    &:last-child
+      border                none
+
+    &:hover
+      bg                    color, item-active-bg
+      pointer()
 
     p
       line-height           14px
@@ -791,10 +791,10 @@ body.ide .dark .ide-files-tab .kdtabhandle.close-handle .icon
     .path
       color                 #858585
 
-    &:hover
-      rounded               3px
-      bg                    color, dark-panel-bg
-      pointer()
+
+.file-finder-overlay
+  bg                        color, rgba(0,0,0,.8);
+
 
 // content search view
 .ide .search-result
@@ -1314,7 +1314,12 @@ body.ide .kddialogview.save-as-dialog
 
 
 .ide .ace-base16 .ace_marker-layer .ace_selected-word
-  border                    1px solid #008DC0
+  border                    1px solid item-active-bg
+  background-color          item-active-bg
+  opacity                   0.25
+
+.ide .ace-base16 .ace_marker-layer .ace_selection
+  background-color          item-active-bg !important
 
 @media only screen and (max-width : 950px)
   .ide .status-bar .status

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	konfig "koding/kites/config"
@@ -55,7 +56,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer k.Close()
 
 	stack.Konfig = konfig.NewKonfig(&konfig.Environments{
 		Env: k.Kite.Config.Environment,
@@ -69,5 +69,27 @@ func main() {
 		}
 	}()
 
-	k.Kite.Run()
+	go func() {
+		registerURL := k.Kite.RegisterURL(!cfg.Public)
+		if cfg.RegisterURL != "" {
+			u, err := url.Parse(cfg.RegisterURL)
+			if err != nil {
+				k.Kite.Log.Error("Couldn't parse register url: %s", err)
+				k.Close()
+				return
+			}
+
+			registerURL = u
+		}
+
+		if err := k.Kite.RegisterForever(registerURL); err != nil {
+			k.Kite.Log.Error("Couldn't register: %s", err)
+			k.Close()
+			return
+		}
+		k.Kite.Run()
+	}()
+
+	k.Wait()
+
 }
