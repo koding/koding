@@ -1,0 +1,21 @@
+language: go
+
+go:
+  - 1.6
+  - 1.7
+  - 1.8
+  - tip
+
+env:
+  - "PATH=/home/travis/gopath/bin:$PATH"
+script:
+  - go get -u github.com/golang/lint/golint
+  - golint ./...
+  - make
+
+install:
+  - go get -v -t .
+
+matrix:
+    allow_failures:
+        - go: tip

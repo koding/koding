@@ -2,6 +2,7 @@ package supervised_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -28,9 +29,10 @@ func TestSupervised(t *testing.T) {
 	change := index.NewChange("a", index.PriorityMedium, 0)
 	tb := &testBuilder{
 		buildC: make(chan struct{}, 1),
+		times:  1,
 	}
 
-	s := supervised.NewSupervised(tb, opts, time.Second)
+	s := supervised.NewSupervised(tb, opts, 2*time.Second)
 	defer s.Close()
 
 	if err := synctest.ExecChange(s, change, time.Second); err != nil {
@@ -57,12 +59,17 @@ func TestSupervised(t *testing.T) {
 // testBuilder triggers client function.
 type testBuilder struct {
 	buildC chan struct{}
+	times  int
 }
 
 func (tb *testBuilder) Build(opts *msync.BuildOpts) (msync.Syncer, error) {
 	opts.ClientFunc()
 	tb.buildC <- struct{}{}
-	return discard.NewDiscard(), nil
+	if tb.times--; tb.times >= 0 {
+		return discard.NewDiscard(), nil
+	} else {
+		return nil, errors.New("cannot build")
+	}
 }
 
 func waitBuildC(buildC <-chan struct{}, timeout time.Duration) error {

@@ -24,10 +24,8 @@
 
 set -a
 
-PREFIX=/usr
-
-SUPERVISORD=$PREFIX/bin/supervisord
-SUPERVISORCTL=$PREFIX/bin/supervisorctl
+SUPERVISORD=supervisord
+SUPERVISORCTL=supervisorctl
 
 PIDFILE=/var/run/supervisord.pid
 CONFFILE="/etc/supervisord.conf"
@@ -45,13 +43,13 @@ ulimit -n 96000
 RETVAL=0
 
 # source default env vars
-
 if [ -f /etc/default/supervisord ]; then
   . /etc/default/supervisord
 fi
 
 # source koding env vars
 if [ ! -f /etc/sysconfig/supervisord ]; then
+    echo 'error: /etc/sysconfig/supervisord does not exist'
     exit 6
 fi
 
