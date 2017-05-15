@@ -27,19 +27,19 @@ gradient()
   bg                        image, -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0]) arguments[2]
   bg                        image, -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
   bg                        image, -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
-  bg                        image, -o-linear-gradient(arguments[0], arguments[1]) arguments[2];
+  bg                        image, -o-linear-gradient(arguments[0], arguments[1]) arguments[2]
 
 gradient1()
   bg                        image, -moz-linear-gradient(270deg, arguments[2] arguments[3], arguments[0] arguments[1])
   bg                        image, -webkit-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
   bg                        image, -khtml-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
-  bg                        image, -o-linear-gradient(arguments[0], arguments[1]);
+  bg                        image, -o-linear-gradient(arguments[0], arguments[1])
 
 gradient2()
   bg                        image, -moz-radial-gradient(arguments[0] arguments[1], arguments[2] arguments[3])
   bg                        image, -webkit-radial-gradient(arguments[0], arguments[1],arguments[2], arguments[3])
   bg                        image, -khtml-radial-gradient(arguments[0], arguments[1], arguments[2], arguments[3])
-  bg                        image, -o-radial-gradient(arguments[2], arguments[3]);
+  bg                        image, -o-radial-gradient(arguments[2], arguments[3])
 
 fl()
   display                   block
@@ -57,6 +57,20 @@ noScrollbar()
 
 bg(prop, args)
   background-{prop}         args
+
+msk(prop, args)
+  -webkit-mask-{prop}       args
+  mask-{prop}               args
+
+placeholder-color(color)
+  &::-webkit-input-placeholder
+    color                   color !important
+  &:-moz-placeholder
+    color                   color !important
+  &::-moz-placeholder
+    color                   color !important
+  &:-ms-input-placeholder
+    color                   color !important
 
 hidden()
   display                   none
@@ -233,6 +247,32 @@ r-sprite(folder, name)
   @media retinaQuery
     bg                      image, url(requireName2x)
     bg                      size, _width1x _height1x
+
+
+mask-sprite(folder, name)
+  imageName   = pathjoin(folder, '/lib/sprites/vector/' + name + '.svg')
+
+  _width  = img-width(imageName)
+  _height = img-height(imageName)
+
+  requireName = s('~' + folder + '/sprites/vector/' + name + '.svg')
+
+  msk                       image, url(requireName)
+  msk                       position, center center
+  msk                       repeat, no-repeat
+  msk                       size, _width _height
+
+
+s-sprite(folder, name)
+  imageName   = pathjoin(folder, '/lib/sprites/vector/' + name + '.svg')
+
+  _width  = img-width(imageName)
+  _height = img-height(imageName)
+
+  requireName = s('~' + folder + '/sprites/vector/' + name + '.svg')
+
+  bg                        image, url(requireName)
+  bg                        size, _width _height
 
 
 r-sprite-old(folder, name)
