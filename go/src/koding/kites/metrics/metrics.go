@@ -85,6 +85,10 @@ func (m *Metrics) ProcessContext(ctx context.Context, n int, f OperatorFunc) err
 
 // Close closes the underlying connections if any.
 func (m *Metrics) Close() error {
+	if m == nil {
+		return nil
+	}
+
 	if m.bolt != nil {
 		return m.bolt.Close()
 	}

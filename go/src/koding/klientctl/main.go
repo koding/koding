@@ -164,12 +164,44 @@ error opening: %s
 
 	signal.Notify(sig, signals...)
 
+	m, err := metrics.New("kd")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "metrics wont be collected: ", err)
+	}
+	if m != nil {
+		defer m.Close()
+	}
+
 	app := cli.NewApp()
 	app.Name = config.Name
 	app.Version = getReadableVersion(config.VersionNum())
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{{
+		Name:  "metrics",
+		Usage: "Publish events from external sources.",
+		Subcommands: []cli.Command{{
+			Hidden:       true, // do not show it to users.
+			Name:         "add",
+			Usage:        "Add new metric.",
+			Action:       ctlcli.ExitErrAction(MetricPushHandler(m, generateTagsForCLI), log, "add"),
+			BashComplete: func(c *cli.Context) {},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "type",
+					Usage: "Metric type.",
+				},
+				cli.StringFlag{
+					Name:  "name",
+					Usage: "Metric name.",
+				},
+				cli.Float64Flag{
+					Name:  "count",
+					Usage: "Metric value.",
+				},
+			},
+		}},
+	}, {
 		Name:  "auth",
 		Usage: "User authorization.",
 		Subcommands: []cli.Command{{
@@ -975,12 +1007,6 @@ error opening: %s
 		find(app.Commands, "daemon", "stop"),
 		find(app.Commands, "daemon", "restart"),
 	)
-
-	m, err := metrics.New("kd")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "metrics wont be collected: ", err)
-	}
-	defer m.Close()
 
 	app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, generateTagsForCLI)
 	app.Run(args)

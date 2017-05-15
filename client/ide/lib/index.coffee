@@ -21,7 +21,7 @@ splashMarkups                 = require './util/splashmarkups'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
 IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
-IDEContentSearch              = require './views/contentsearch/idecontentsearch'
+IDEContentSearchView          = require './views/contentsearch/idecontentsearchview'
 IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 CollaborationController       = require './collaborationcontroller'
@@ -29,7 +29,8 @@ ResourceStateModal            = require 'app/providers/resourcestatemodal'
 KlientEventManager            = require 'app/kite/klienteventmanager'
 IDELayoutManager              = require './workspace/idelayoutmanager'
 StackAdminMessageController   = require './views/stacks/stackadminmessagecontroller'
-ContentModal = require 'app/components/contentModal'
+ContentModal                  = require 'app/components/contentModal'
+KDOverlayView                 = kd.OverlayView
 
 NoStackFoundView = require 'app/nostackfoundview'
 
@@ -157,6 +158,7 @@ module.exports = class IDEAppController extends AppController
     splitViewPanel = ideView.parent.parent
     @createStatusBar splitViewPanel
     @createFindAndReplaceView splitViewPanel
+    @splitViewPanel = splitViewPanel
 
     appView.emit 'KeyViewIsSet'
 
@@ -890,6 +892,8 @@ module.exports = class IDEAppController extends AppController
   goToLine: ->
 
     @activeTabView.emit 'GoToLineRequested'
+    @contentSearch.destroy()  if @contentSearch
+    @findAndReplaceView.hide()  if @findAndReplaceView
 
 
   closeTab: ->
@@ -1161,7 +1165,14 @@ module.exports = class IDEAppController extends AppController
     return @fileFinder.input.setFocus()  if @fileFinder
 
     @fileFinder = new IDEFileFinder
-    @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
+    @findAndReplaceView.hide()  if @findAndReplaceView
+    @contentSearch.destroy()  if @contentSearch
+    @activeTabView.emit 'GotoLineNeedsToBeClosed'
+    @splitViewPanel.addSubView @fileFinderOverlay = new KDOverlayView
+      cssClass : 'file-finder-overlay'
+    @fileFinder.once 'KDObjectWillBeDestroyed', =>
+      @fileFinder = null
+      @fileFinderOverlay.remove()
 
 
   showContentSearch: ->
@@ -1170,8 +1181,11 @@ module.exports = class IDEAppController extends AppController
 
     data = { machine: @mountedMachine }
     rootPath = '/' # FIXME ~ GG
-    @contentSearch = new IDEContentSearch { rootPath }, data
-    @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
+    @splitViewPanel.addSubView @contentSearch = new IDEContentSearchView  { rootPath }, data
+    @findAndReplaceView.hide()  if @findAndReplaceView
+    @activeTabView.emit 'GotoLineNeedsToBeClosed'
+    @contentSearch.once 'KDObjectWillBeDestroyed', =>
+      @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
 
@@ -1195,8 +1209,9 @@ module.exports = class IDEAppController extends AppController
       @isFindAndReplaceViewVisible = no
 
       windowController.notifyWindowResizeListeners()
-
     @findAndReplaceView.on 'FindAndReplaceViewShown', (withReplace) =>
+      @contentSearch.destroy()  if @contentSearch
+      @activeTabView.emit 'GotoLineNeedsToBeClosed'
       view = @getView()
       if withReplace then view.setClass cssName else view.unsetClass cssName
 
