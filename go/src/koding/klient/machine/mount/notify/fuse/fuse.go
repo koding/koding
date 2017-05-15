@@ -472,6 +472,11 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 	return err
 }
 
+// ReadSymlink allows to read symlink's target.
+func (fs *Filesystem) ReadSymlink(ctx context.Context, op *fuseops.ReadSymlinkOp) (err error) {
+	return nil
+}
+
 // OpenFile opens a File, ie. indicates operations are to be done on this file.
 func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err error) {
 	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
