@@ -4,7 +4,6 @@ KDCustomHTMLView    = kd.CustomHTMLView
 KDHitEnterInputView = kd.HitEnterInputView
 KDMultipleChoice    = kd.MultipleChoice
 JView               = require 'app/jview'
-_                   = require 'lodash'
 $                   = require 'jquery'
 keycode             = require 'keycode'
 
@@ -134,7 +133,7 @@ module.exports = class AceFindAndReplaceView extends JView
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this, yes
+      keydown      : (e) => @handleKeyDown yes, e
       callback     : => @findNext()
 
     @findNextButton = new KDButtonView
@@ -152,7 +151,7 @@ module.exports = class AceFindAndReplaceView extends JView
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this, no
+      keydown      : (e) => @handleKeyDown no, e
       callback     : => @replace()
 
     @replaceButton = new KDButtonView

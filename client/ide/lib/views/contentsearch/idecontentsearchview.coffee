@@ -66,13 +66,13 @@ module.exports = class IDEContentSearchView extends JView
     else
       currentIndex = previousTerms.indexOf currentTerm
 
-      if currentIndex is -1 and direction is 'up'
-        return @setSearchText previousTerms.last or ''
+      if direction is 'up'
+        return @setSearchText previousTerms.last or ''  if currentIndex is -1
+        return  if currentIndex is 0
+        targetIndex = currentIndex - 1
+      else
+        targetIndex = currentIndex + 1
 
-      if currentIndex is 0 and direction is 'up'
-        return
-
-      targetIndex = if direction is 'up' then currentIndex - 1 else currentIndex + 1
       nextTerm    = previousTerms[targetIndex]
 
       if not nextTerm and direction is 'down'

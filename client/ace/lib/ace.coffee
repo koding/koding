@@ -681,4 +681,3 @@ module.exports = class Ace extends kd.View
   hideGotoLine: ->
 
     @gotoLineBar.destroy()  if @gotoLineBar
-
