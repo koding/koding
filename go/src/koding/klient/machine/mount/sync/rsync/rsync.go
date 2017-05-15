@@ -39,10 +39,10 @@ func (e *Event) Event() *msync.Event {
 // Exec satisfies msync.Execer interface. It executes rsync executable with
 // arguments available to sync stored change.
 func (e *Event) Exec() error {
+	defer e.ev.Done()
 	if !e.ev.Valid() {
 		return nil
 	}
-	defer e.ev.Done()
 
 	host, port, err := e.parent.dynSSH()
 	if err != nil {
@@ -166,9 +166,7 @@ func (r *Rsync) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 				select {
 				case exC <- ex:
 				case <-r.stopC:
-					if ex.ev.Valid() {
-						ex.ev.Done()
-					}
+					ex.ev.Done()
 					return
 				}
 			case <-r.stopC:

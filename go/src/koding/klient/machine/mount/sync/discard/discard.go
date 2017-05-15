@@ -28,9 +28,7 @@ func (e *Event) Event() *msync.Event {
 // Exec satisfies msync.Execer interface. The only thing this method does is
 // closing internal sync event.
 func (e *Event) Exec() error {
-	if e.ev.Valid() {
-		e.ev.Done()
-	}
+	e.ev.Done()
 
 	return nil
 }
@@ -78,9 +76,7 @@ func (d *Discard) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 				select {
 				case exC <- ex:
 				case <-d.stopC:
-					if ex.ev.Valid() {
-						ex.ev.Done()
-					}
+					ex.ev.Done()
 					return
 				}
 			case <-d.stopC:
