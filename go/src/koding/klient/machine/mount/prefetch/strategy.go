@@ -9,7 +9,8 @@ import (
 
 // DefaultStrategy defines a default set of prefetchers.
 var DefaultStrategy = Strategy{
-	"git": Git{},
+	// TODO(rjeczalik): disabled due to #11135
+	// "git": Git{},
 	"all": All{},
 }
 

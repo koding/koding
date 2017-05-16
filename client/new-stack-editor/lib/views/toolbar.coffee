@@ -47,7 +47,7 @@ module.exports = class Toolbar extends JView
       loader   : yes
       icon     : yes
       callback : =>
-        @emit Events.InitializeRequested, @getData()._id
+        @emit Events.Action, Events.Menu.Initialize, @getData()._id
 
     @expandButton = new kd.ButtonView
       cssClass: 'expand'
@@ -58,6 +58,28 @@ module.exports = class Toolbar extends JView
       tagName  : 'span'
       cssClass : 'menu-icon'
       click    : @bound 'handleMenu'
+
+    { docsView } = @getOptions()
+    docs = docsView.listController
+
+    @docSearchInput = input = new kd.InputView
+      type         : 'text'
+      cssClass     : 'doc-search-input'
+      placeholder  : 'search in stack documentation'
+      attributes   :
+        spellcheck : no
+      keydown      : docs.bound 'handleKeyDown'
+      focus        : =>
+        if input.getValue() isnt ''
+          @emit Events.Action, Events.ShowSideView, 'docs', { expanded: yes }
+      keyup        : (event) =>
+        value = input.getValue()
+        if value is ''
+          @emit Events.Action, Events.HideSideView
+        else if docs.filterStates.query.search isnt value
+          docs.filterStates.query.search = value
+          docs.loadItems()
+          @emit Events.Action, Events.ShowSideView, 'docs'
 
     @banner = new Banner
     @banner.on Events.Banner.Close, =>
@@ -135,7 +157,7 @@ module.exports = class Toolbar extends JView
     target = $(event.target)
 
     if target.is '.tag.credential'
-      @emit Events.Action, Events.ToggleSideView, 'credentials'
+      @emit Events.Action, Events.ShowSideView, 'credentials', { expanded: no }
       kd.utils.stopDOMEvent event
 
     else if target.is '.tag.clone'
@@ -173,8 +195,6 @@ module.exports = class Toolbar extends JView
       delegate            : @menuIcon
       cssClass            : 'stack-menu'
     }, {
-      'Test'              :
-        action            : Events.Menu.Test
       'Initialize'        :
         action            : Events.Menu.Initialize
       'Make Team Default' :
@@ -216,6 +236,6 @@ module.exports = class Toolbar extends JView
     {.tag.level{#(accessLevel)}}
     {div.tag.credential{#(credentials)}} {cite.credential{}}
     {div.tag.clone{#(clonedFrom)}}
-    {div.controls{> @expandButton}} {{> @actionButton}}
+    {div.controls{> @expandButton}} {{> @docSearchInput}} {{> @actionButton}}
     {{> @banner}}
     '''

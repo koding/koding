@@ -19,7 +19,7 @@ func TestRepo(t *testing.T) {
 	}
 
 	start := time.Now()
-	idx, err := index.NewIndexFiles(*repo)
+	idx, err := index.NewIndexFiles(*repo, nil)
 	if err != nil {
 		t.Fatalf("NewIndexFiles()=%s", err)
 	}
@@ -50,7 +50,7 @@ func BenchmarkNodeLookup(b *testing.B) {
 
 func BenchmarkNodeAdd(b *testing.B) {
 	const name = "proxy/tmp/sync/fuse/fuse.go"
-	entry := node.NewEntry(0xB, 0)
+	entry := node.NewEntry(0xB, 0, node.RootInodeID)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

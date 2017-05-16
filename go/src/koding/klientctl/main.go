@@ -18,12 +18,18 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 
+	"koding/kites/kloud/utils/object"
+	"koding/kites/metrics"
 	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
+	authendpoint "koding/klientctl/endpoint/auth"
+	endpointconfig "koding/klientctl/endpoint/config"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/team"
 	"koding/klientctl/util"
 
 	"github.com/codegangsta/cli"
@@ -129,6 +135,25 @@ func run(args []string) {
 		os.Exit(1)
 	}
 
+	cache, err := config.Open()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, `It seems that another kd process is currently running and doing write
+operations that prevented me from starting up.
+
+Usually it is enough to retry. If that happens again, please verify
+you have no hanging kd processes. Alternatively if you are executing
+a lot of kd processes concurrently and a number of them are failing,
+you may want to increate lock timeout with:
+
+	kd config lockTimeout 10s
+
+error opening: %s
+`, err)
+		os.Exit(3)
+	}
+
+	config.DefaultCache = cache
+
 	sig := make(chan os.Signal, 1)
 
 	go func() {
@@ -139,12 +164,44 @@ func run(args []string) {
 
 	signal.Notify(sig, signals...)
 
+	m, err := metrics.New("kd")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "metrics wont be collected: ", err)
+	}
+	if m != nil {
+		defer m.Close()
+	}
+
 	app := cli.NewApp()
 	app.Name = config.Name
 	app.Version = getReadableVersion(config.VersionNum())
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{{
+		Name:  "metrics",
+		Usage: "Publish events from external sources.",
+		Subcommands: []cli.Command{{
+			Hidden:       true, // do not show it to users.
+			Name:         "add",
+			Usage:        "Add new metric.",
+			Action:       ctlcli.ExitErrAction(MetricPushHandler(m, generateTagsForCLI), log, "add"),
+			BashComplete: func(c *cli.Context) {},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "type",
+					Usage: "Metric type.",
+				},
+				cli.StringFlag{
+					Name:  "name",
+					Usage: "Metric name.",
+				},
+				cli.Float64Flag{
+					Name:  "count",
+					Usage: "Metric value.",
+				},
+			},
+		}},
+	}, {
 		Name:  "auth",
 		Usage: "User authorization.",
 		Subcommands: []cli.Command{{
@@ -187,6 +244,10 @@ func run(args []string) {
 		},
 			auth.NewRegisterSubCommand(log), // command: kd auth register
 		},
+	}, {
+		Name:   "bug",
+		Usage:  "Helps in sending a bug report.",
+		Action: ctlcli.ExitErrAction(Bug, log, "bug"),
 	}, {
 		Name:  "compat",
 		Usage: "Compatibility commands for use with old mounts.",
@@ -692,6 +753,10 @@ func run(args []string) {
 						Name:  "tree",
 						Usage: "Displays the entire mount index tree.",
 					},
+					cli.BoolFlag{
+						Name:  "filesystem",
+						Usage: "Mount filesystem diagnostic.",
+					},
 				},
 			}},
 		}, {
@@ -794,6 +859,16 @@ func run(args []string) {
 				},
 			},
 		}},
+	}, {
+		Name:   "sync",
+		Usage:  "Wait for mount synchronization to finish.",
+		Action: ctlcli.ExitErrAction(Sync, log, "sync"),
+		Flags: []cli.Flag{
+			cli.DurationFlag{
+				Name:  "timeout, t",
+				Usage: "Maximum time to wait.",
+			},
+		},
 	}, {
 		Name:  "team",
 		Usage: "List available teams and set team context.",
@@ -933,29 +1008,8 @@ func run(args []string) {
 		find(app.Commands, "daemon", "restart"),
 	)
 
-	app.Commands = wrapActions(app.Commands)
+	app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, generateTagsForCLI)
 	app.Run(args)
-}
-
-func wrapActions(commands []cli.Command) []cli.Command {
-	for i, command := range commands {
-		if command.Action != nil {
-			commands[i].Action = createActionFunc(command.Action.(cli.ActionFunc))
-		}
-		if len(command.Subcommands) > 0 {
-			commands[i].Subcommands = wrapActions(command.Subcommands)
-		}
-	}
-	return commands
-}
-
-func createActionFunc(action cli.ActionFunc) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		// do things before for c.Command.FullName()
-		err := action(c)
-		// do things after for the command.
-		return err
-	}
 }
 
 func find(cmds cli.Commands, names ...string) cli.Command {
@@ -999,4 +1053,57 @@ func requiresDaemon(args []string) bool {
 	default:
 		return false
 	}
+}
+
+func generateTagsForCLI(full string) []string {
+	tags := make([]string, 0)
+
+	// add commands
+	names := strings.Split(full, " ")
+	tags = metrics.AppendTag(tags, "commandName", full)
+	tags = metrics.AppendTag(tags, "rootCommandName", names[0])
+	for _, n := range names[1:] {
+		tags = metrics.AppendTag(tags, "subCommandName", n)
+	}
+
+	// add current config
+	configs, err := endpointconfig.Used()
+	if err == nil {
+		var ignoredFields = []string{
+			"kiteKey",
+			"kiteKeyFile",
+			"environment",
+			"tunnelID",
+		}
+		obj := ob.Build(configs, ignoredFields...)
+		for _, key := range obj.Keys() {
+			val := obj[key]
+			if val == nil || fmt.Sprintf("%v", val) == "" {
+				continue
+			}
+			tags = metrics.AppendTag(tags, key, val)
+		}
+	}
+
+	// add current team info
+	if t := team.Used(); t != nil && t.Valid() == nil {
+		tags = metrics.AppendTag(tags, "teamName", t.Name)
+	}
+
+	if info := authendpoint.Used(); info != nil && info.Username != "" {
+		tags = metrics.AppendTag(tags, "username", info.Username)
+	}
+
+	tags = metrics.AppendTag(tags, "version", config.VersionNum())
+
+	// TODO: add guest OS info
+
+	return tags
+}
+
+var ob = &object.Builder{
+	Tag:           "json",
+	Sep:           "_",
+	Recursive:     true,
+	FlatStringers: true,
 }

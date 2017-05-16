@@ -30,14 +30,13 @@ func NewBoltStorageBucket(db *bolt.DB, bucketName []byte) (*boltdb, error) {
 		DB:         db,
 	}
 
-	if err := b.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(b.bucket())
-		if err != nil {
+	if !db.IsReadOnly() {
+		if err := b.Update(func(tx *bolt.Tx) error {
+			_, err := tx.CreateBucketIfNotExists(b.bucket())
 			return err
+		}); err != nil {
+			return nil, err
 		}
-		return nil
-	}); err != nil {
-		return nil, err
 	}
 
 	return b, nil

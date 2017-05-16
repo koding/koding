@@ -9,6 +9,7 @@ import (
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint"
+	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/team"
 	"koding/remoteapi"
@@ -40,6 +41,7 @@ var DefaultTimeout = 30 * time.Second
 // care of authorization and caching.
 type Client struct {
 	Kloud  *kloud.Client  // if nil, kloud.DefaultClient is used
+	Auth   *auth.Client   // if nil, auth.DefaultClient is used
 	Team   *team.Client   // if nil, team.DefaultClient is used
 	Client *client.Koding // if nil, new client is created (with kloud as auth provider)
 
@@ -59,7 +61,7 @@ func (c *Client) New(user *api.User) *client.Koding {
 // Close flushes all underlying caches and closes all clients.
 func (c *Client) Close() (err error) {
 	if len(c.accounts) != 0 {
-		err = c.kloud().Cache().SetValue("jAccounts", c.accounts)
+		err = c.kloud().Cache().ReadWrite().SetValue("jAccounts", c.accounts)
 	}
 	return err
 }
@@ -138,11 +140,11 @@ func (c *Client) initClient() {
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.kloud().Cache().GetValue("jAccounts", &c.accounts)
+	_ = c.kloud().Cache().ReadOnly().GetValue("jAccounts", &c.accounts)
 
 	if c.Client == nil {
 		c.api = &remoteapi.Client{
-			Transport: endpoint.Transport(c.kloud()),
+			Transport: endpoint.Transport(c.kloud(), c.auth()),
 			Endpoint:  config.Konfig.Endpoints.Koding.Public.URL,
 		}
 		c.c = c.api.New(&api.User{
@@ -172,6 +174,13 @@ func (c *Client) client() *client.Koding {
 		return c.Client
 	}
 	return c.c
+}
+
+func (c *Client) auth() *auth.Client {
+	if c.Auth != nil {
+		return c.Auth
+	}
+	return auth.DefaultClient
 }
 
 func (c *Client) timeout() time.Duration {

@@ -3,12 +3,15 @@ package kloud
 import (
 	"errors"
 	_ "expvar"
-	"fmt"
 	"io/ioutil"
 	"log"
 	_ "net/http/pprof"
 	"net/url"
+	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"koding/api"
@@ -24,17 +27,21 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/machine"
+	"koding/kites/kloud/metrics"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/team"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
+	kitemetrics "koding/kites/metrics"
 	"koding/remoteapi"
 	"koding/tools/util"
 	"socialapi/workers/presence/client"
 
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
@@ -59,6 +66,12 @@ type Kloud struct {
 	// shutting down a non-always-on vm when it idles for more
 	// than 1h.
 	Queue *queue.Queue
+
+	Stats        *statsd.Client
+	metricsProxy *metrics.Publisher
+
+	closeChan chan struct{}
+	closeOnce sync.Once
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -223,6 +236,7 @@ func New(conf *Config) (*Kloud, error) {
 			Kite:     k,
 			MongoDB:  sess.DB,
 		},
+		closeChan: make(chan struct{}),
 	}
 
 	authFn := func(opts *api.AuthOptions) (*api.Session, error) {
@@ -269,6 +283,7 @@ func New(conf *Config) (*Kloud, error) {
 		return session.NewContext(ctx, sess)
 	}
 
+	kloud.Stats = stats
 	kloud.Stack.Metrics = stats
 
 	// RSA key pair that we add to the newly created machine for
@@ -303,6 +318,7 @@ func New(conf *Config) (*Kloud, error) {
 			AuthExpire: conf.KeygenTokenTTL,
 			AuthFunc:   kloud.Stack.ValidateUser,
 			Kite:       k,
+			Metrics:    stats,
 		}
 
 		kloud.Keygen = keygen.NewServer(cfg)
@@ -310,42 +326,50 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
+	publisher, err := metrics.NewPublisher()
+	if err != nil {
+		return nil, err
+	}
+
+	kloud.metricsProxy = publisher
+
 	// Teams/stack handling methods.
-	k.HandleFunc("plan", kloud.Stack.Plan)
-	k.HandleFunc("apply", kloud.Stack.Apply)
-	k.HandleFunc("describeStack", kloud.Stack.Status)
-	k.HandleFunc("authenticate", kloud.Stack.Authenticate)
-	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
-	k.HandleFunc("import", kloud.Stack.Import)
+	kloud.HandleFunc("plan", kloud.Stack.Plan)
+	kloud.HandleFunc("apply", kloud.Stack.Apply)
+	kloud.HandleFunc("describeStack", kloud.Stack.Status)
+	kloud.HandleFunc("authenticate", kloud.Stack.Authenticate)
+	kloud.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
+	kloud.HandleFunc("import", kloud.Stack.Import)
 
 	// Credential handling.
-	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
-	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
-	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
+	kloud.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
+	kloud.HandleFunc("credential.list", kloud.Stack.CredentialList)
+	kloud.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
 
 	// Authorization handling.
-	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
-	k.HandleFunc("auth.passwordLogin", kloud.Stack.AuthPasswordLogin).DisableAuthentication()
+	kloud.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+	kloud.HandleFunc("auth.passwordLogin", kloud.Stack.AuthPasswordLogin).DisableAuthentication()
 
 	// Configuration handling.
-	k.HandleFunc("config.metadata", kloud.Stack.ConfigMetadata)
+	kloud.HandleFunc("config.metadata", kloud.Stack.ConfigMetadata)
 
 	// Team handling.
-	k.HandleFunc("team.list", kloud.Stack.TeamList)
-	k.HandleFunc("team.whoami", kloud.Stack.TeamWhoami)
+	kloud.HandleFunc("team.list", kloud.Stack.TeamList)
+	kloud.HandleFunc("team.whoami", kloud.Stack.TeamWhoami)
 
 	// Machine handling.
-	k.HandleFunc("machine.list", kloud.Stack.MachineList)
+	kloud.HandleFunc("machine.list", kloud.Stack.MachineList)
 
 	// Single machine handling.
-	k.HandleFunc("stop", kloud.Stack.Stop)
-	k.HandleFunc("start", kloud.Stack.Start)
-	k.HandleFunc("info", kloud.Stack.Info)
-	k.HandleFunc("event", kloud.Stack.Event)
+	kloud.HandleFunc("stop", kloud.Stack.Stop)
+	kloud.HandleFunc("start", kloud.Stack.Start)
+	kloud.HandleFunc("info", kloud.Stack.Info)
+	kloud.HandleFunc("event", kloud.Stack.Event)
 
 	// Klient proxy methods.
-	k.HandleFunc("admin.add", kloud.Stack.AdminAdd)
-	k.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
+	kloud.HandleFunc("admin.add", kloud.Stack.AdminAdd)
+	kloud.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
+	kloud.HandleFunc(publisher.Pattern(), publisher.Publish)
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
@@ -372,21 +396,53 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Info("Test mode enabled")
 	}
 
-	registerURL := k.RegisterURL(!conf.Public)
-	if conf.RegisterURL != "" {
-		u, err := url.Parse(conf.RegisterURL)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't parse register url: %s", err)
-		}
-
-		registerURL = u
-	}
-
-	if err := k.RegisterForever(registerURL); err != nil {
-		return nil, err
-	}
+	go kloud.handleSignals()
 
 	return kloud, nil
+}
+
+// HandleFunc adds our middlewares into kite handlers.
+func (k *Kloud) HandleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
+	f = kitemetrics.WrapKiteHandler(k.Stats, pattern, f)
+	return k.Kite.HandleFunc(pattern, f)
+}
+
+// Close closes the underlying connections.
+func (k *Kloud) Close() error {
+	k.Kite.Close()
+
+	var merr *multierror.Error
+	if k.metricsProxy != nil {
+		if err := k.metricsProxy.Close(); err != nil {
+			merr = multierror.Append(merr, err)
+		}
+	}
+
+	if err := k.Stats.Close(); err != nil {
+		merr = multierror.Append(merr, err)
+	}
+
+	k.closeOnce.Do(func() {
+		close(k.closeChan)
+	})
+
+	return merr.ErrorOrNil()
+}
+
+// Wait waits for Kloud to exit
+func (k *Kloud) Wait() error {
+	<-k.closeChan // wait for exit
+	return nil
+}
+
+func (k *Kloud) handleSignals() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+
+	s := <-c
+
+	k.Kite.Log.Info("%s signal received, closing kloud", s)
+	k.Close()
 }
 
 func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
@@ -394,7 +450,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
-	klientFolder := "development/latest"
+	klientFolder := conf.Environment + "/latest"
 	if conf.ProdMode {
 		k.Log.Info("Prod mode enabled")
 		klientFolder = "production/latest"

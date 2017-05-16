@@ -8,11 +8,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
-	"sync"
 	"text/tabwriter"
 
+	"koding/klient/machine/index/filter"
 	"koding/klient/machine/index/node"
 
 	"github.com/djherbis/times"
@@ -43,20 +42,12 @@ type fileDesc struct {
 
 // NewIndexFiles walks the given file tree roted at root and records file
 // states to resulting Index object.
-func NewIndexFiles(root string) (*Index, error) {
+func NewIndexFiles(root string, f filter.Filter) (*Index, error) {
 	idx := NewIndex()
 
-	// Start worker pool.
-	var wg sync.WaitGroup
-	fC := make(chan *fileDesc)
-	for i := 0; i < 2*runtime.NumCPU(); i++ {
-		wg.Add(1)
-		go idx.addEntryWorker(root, &wg, fC)
+	if f == nil {
+		f = filter.NeverSkip{}
 	}
-	defer func() {
-		close(fC)
-		wg.Wait()
-	}()
 
 	// In order to get as much entries as we can we ignore errors.
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -64,12 +55,24 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
-		// Don't include OSX trashes to scanned files.
-		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
-			return filepath.SkipDir
+		if e := f.Check(filepath.ToSlash(path)); e == filter.SkipPath {
+			return nil
+		} else if e != nil {
+			return e
 		}
 
-		fC <- &fileDesc{path: path, info: info}
+		// Get relative file name.
+		name, err := filepath.Rel(root, path)
+		if err != nil {
+			return nil
+		}
+
+		// Set root path to zero value.
+		if name == "." {
+			name = ""
+		}
+
+		idx.t.DoPath(filepath.ToSlash(name), node.Insert(node.NewEntryFileInfo(info)))
 		return nil
 	}
 
@@ -78,26 +81,6 @@ func NewIndexFiles(root string) (*Index, error) {
 	}
 
 	return idx, nil
-}
-
-// addEntryWorker asynchronously adds new entry to index. Errors are ignored.
-func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fileDesc) {
-	defer wg.Done()
-
-	for f := range fC {
-		// Get relative file name.
-		name, err := filepath.Rel(root, f.path)
-		if err != nil {
-			continue
-		}
-
-		// Set root path to zero value.
-		if name == "." {
-			name = ""
-		}
-
-		idx.t.DoPath(name, node.Insert(node.NewEntryFileInfo(f.info)))
-	}
 }
 
 // Clone returns a deep copy of called index.
@@ -113,8 +96,8 @@ func (idx *Index) Tree() *node.Tree {
 }
 
 // Merge calls MergeBranch on all nodes pointed by root path.
-func (idx *Index) Merge(root string) ChangeSlice {
-	return idx.MergeBranch(root, "")
+func (idx *Index) Merge(root string, f filter.Filter) (ChangeSlice, error) {
+	return idx.MergeBranch(root, "", f)
 }
 
 // MergeBranch rereads the given file tree rooted at root and merges its
@@ -136,13 +119,17 @@ func (idx *Index) Merge(root string) ChangeSlice {
 //
 // All detected changes will be stored in returned Change slice.
 // If branch is empty, the comparison is made against root of the index.
-func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
+func (idx *Index) MergeBranch(root, branch string, f filter.Filter) (cs ChangeSlice, err error) {
 	rootBranch := filepath.Join(root, branch)
 	visited := map[string]struct{}{
 		rootBranch: {}, // Skip root file.
 	}
 
-	idx.t.DoPath(branch, node.WalkPath(func(name string, n *node.Node) {
+	if f == nil {
+		f = filter.NeverSkip{}
+	}
+
+	idx.t.DoPath(branch, node.WalkPath(func(name string, g node.Guard, n *node.Node) {
 		if n.IsShadowed() || n.Entry.File.Mode == 0 {
 			return
 		}
@@ -163,6 +150,11 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return
 		} else if err != nil {
 			return
+		}
+
+		// Set entry inode but not for root inode.
+		if n.Entry.File.Inode != node.RootInodeID {
+			g.ChangeInode(n, node.Inode(info))
 		}
 
 		mode, size, mtime := n.Entry.File.Mode, n.Entry.File.Size, n.Entry.File.MTime
@@ -204,9 +196,10 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 			return nil
 		}
 
-		// Don't include OSX trashes to scanned files.
-		if info.Name() == ".Trash" && info.Mode().IsDir() && runtime.GOOS == "darwin" {
-			return filepath.SkipDir
+		if e := f.Check(filepath.ToSlash(path)); e == filter.SkipPath {
+			return nil
+		} else if e != nil {
+			return e
 		}
 
 		// File exists in local but not in remote.
@@ -224,12 +217,12 @@ func (idx *Index) MergeBranch(root, branch string) (cs ChangeSlice) {
 	}
 
 	if err := filepath.Walk(rootBranch, walkFn); err != nil {
-		return nil
+		return nil, err
 	}
 
 	// Put sortest paths to the end.
 	sort.Sort(sort.Reverse(cs))
-	return cs
+	return cs, nil
 }
 
 // Sync modifies index according to provided change path. It checks the file
@@ -241,7 +234,7 @@ func (idx *Index) Sync(root string, c *Change) {
 	}
 
 	info, err := os.Lstat(filepath.Join(root, filepath.FromSlash(c.Path())))
-	idx.t.DoPath(c.Path(), func(n *node.Node) bool {
+	idx.t.DoPath(c.Path(), func(g node.Guard, n *node.Node) bool {
 		if os.IsNotExist(err) {
 			// File doesn't exist. Return false to remove it from tree.
 			return false
@@ -256,6 +249,11 @@ func (idx *Index) Sync(root string, c *Change) {
 		} else {
 			n.Entry.MergeIn(node.NewEntryFileInfo(info))
 			n.UnsetPromises()
+		}
+
+		// Inodes may have changed. Update tree.
+		if n.Entry.File.Inode != node.RootInodeID {
+			g.ChangeInode(n, node.Inode(info))
 		}
 
 		return true
@@ -333,7 +331,7 @@ type Debug struct {
 // Debug returns the debug information about index.
 func (idx *Index) Debug() (dbg []Debug) {
 	m := make(map[string]*node.Entry)
-	idx.t.DoPath("", node.WalkPath(func(nodePath string, n *node.Node) {
+	idx.t.DoPath("", node.WalkPath(func(nodePath string, _ node.Guard, n *node.Node) {
 		m[nodePath] = n.Entry
 	}))
 
@@ -363,6 +361,13 @@ func (idx *Index) DebugString() string {
 	tw.Flush()
 
 	return buf.String()
+}
+
+// Diagnose runs full diagnostic on current index tree state.
+//
+// TODO: Run diagnostic on underlying cache.
+func (idx *Index) Diagnose(_ string) []string {
+	return idx.t.Diagnose()
 }
 
 // atime gets file's access time in UNIX Nano format.

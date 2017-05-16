@@ -388,12 +388,12 @@ module.exports = class MainController extends kd.Controller
     return null
 
 
-  useNewStackEditor: (use = yes) ->
+  useOldStackEditor: (use = no) ->
 
     if use
-      Cookies.set 'use-nse', yes, { path:'/' }
+      Cookies.set 'use-ose', yes, { path:'/' }
     else
-      Cookies.expire 'use-nse', { path:'/' }
+      Cookies.expire 'use-ose', { path:'/' }
 
     global.location.reload yes
 

@@ -15,6 +15,7 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/machine"
+	"koding/klientctl/endpoint/team"
 
 	"github.com/codegangsta/cli"
 	humanize "github.com/dustin/go-humanize"
@@ -40,6 +41,17 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	infos, err := machine.List(opts)
 	if err != nil {
 		return 1, err
+	}
+
+	if t := team.Used(); t.Valid() == nil {
+		all := infos
+		infos = infos[:0]
+
+		for _, i := range all {
+			if i.Team == t.Name {
+				infos = append(infos, i)
+			}
+		}
 	}
 
 	if c.Bool("json") {
@@ -104,6 +116,10 @@ func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, err
 	if err := machine.Mount(opts); err != nil {
 		return 1, err
 	}
+
+	// Best-effort attempt of making the remote vm do not
+	// turn off after 1h.
+	_ = machine.Set(ident, "alwaysOn", "true")
 
 	return 0, nil
 }
@@ -201,6 +217,10 @@ func MachineExecCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 		}
 
 		opts.Path = s
+
+		if err := waitForMount(opts.Path); err != nil {
+			return 1, err
+		}
 	}
 
 	pid, err := machine.Exec(opts)
@@ -271,8 +291,8 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 
 	// Enable sync option when there is none set explicitly. Tree may be too
 	// large to show it implicitly.
-	isSync, isTree := c.Bool("sync"), c.Bool("tree")
-	if !isSync && !isTree {
+	isSync, isTree, isFilesystem := c.Bool("sync"), c.Bool("tree"), c.Bool("filesystem")
+	if !isSync && !isTree && !isFilesystem {
 		isSync = true
 	}
 
@@ -280,6 +300,7 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 		Identifier: idents[0],
 		Sync:       isSync,
 		Tree:       isTree,
+		Filesystem: isFilesystem,
 		Log:        log.New("machine:inspect"),
 	}
 

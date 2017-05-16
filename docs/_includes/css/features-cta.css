@@ -1,5 +1,9 @@
 .FeatureCTA {
-  background-color: #515151;
+  background: #2a3446;
+  background: -moz-linear-gradient(-45deg,  #2a3446 0%, #62476b 100%);
+  background: -webkit-linear-gradient(-45deg,  #2a3446 0%,#62476b 100%);
+  background: linear-gradient(135deg,  #2a3446 0%,#62476b 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2a3446', endColorstr='#62476b',GradientType=1 );
   padding: 70px 15px;
   text-align: center;
 }
@@ -7,8 +11,9 @@
   color: white;
   margin-left: auto;
   margin-right: auto;
+  font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 32px;
-  font-weight: 600;
+  font-weight: 300;
   max-width: 700px;
   line-height: 1.2;
 }
@@ -17,7 +22,8 @@
   text-decoration: none;
   text-transform: uppercase;
   background-color: #F2778A;
-  padding: 13px 70px;
+  padding: 15px 34px;
+  font-family: "proxima-nova", Helvetica, Arial, sans-serif;
   font-size: 16px;
   display: inline-block;
   border-radius: 3px;

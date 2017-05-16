@@ -3,8 +3,10 @@ package object_test
 import (
 	"encoding/json"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/utils/object"
@@ -27,13 +29,18 @@ type Baz struct {
 	Baz int
 }
 
+type Qux struct {
+	Foo time.Duration `object:"bar"`
+}
+
 func TestBuilder(t *testing.T) {
 	b := &object.Builder{
-		Tag:       "object",
-		Sep:       "+",
-		Prefix:    "prefix",
-		Recursive: true,
-		FieldFunc: strings.ToLower,
+		Tag:           "object",
+		Sep:           "+",
+		Prefix:        "prefix",
+		Recursive:     true,
+		FlatStringers: true,
+		FieldFunc:     strings.ToLower,
 	}
 
 	cases := []struct {
@@ -98,13 +105,28 @@ func TestBuilder(t *testing.T) {
 		object.Object{
 			"prefix+foo+bar": "s",
 		},
+	}, { // i=10
+		bson.M{"foo": time.Duration(15 * time.Minute), "bar": bson.M{"foo": time.Duration(time.Hour), "bar": "test"}}, nil,
+		object.Object{
+			"prefix+foo":     "15m0s",
+			"prefix+bar+foo": "1h0m0s",
+			"prefix+bar+bar": "test",
+		},
+	}, { // i=11
+		&Qux{Foo: 83 * time.Second}, nil,
+		object.Object{
+			"prefix+bar": "1m23s",
+		},
 	}}
 
 	for i, cas := range cases {
-		obj := b.Build(cas.v, cas.ignored...)
-		if !reflect.DeepEqual(obj, cas.obj) {
-			t.Errorf("%d: want %+v to be %+v", i, obj, cas.obj)
-		}
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			obj := b.Build(cas.v, cas.ignored...)
+
+			if !reflect.DeepEqual(obj, cas.obj) {
+				t.Errorf("want %+v to be %+v", obj, cas.obj)
+			}
+		})
 	}
 }
 

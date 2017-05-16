@@ -8,9 +8,11 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/config"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
+	"koding/klient/machine/index/filter"
 	"koding/klient/machine/mount/notify"
 	"koding/klient/machine/mount/prefetch"
 	msync "koding/klient/machine/mount/sync"
@@ -22,6 +24,22 @@ import (
 
 // IndexFileName is a file name of managed directory index.
 const IndexFileName = "index"
+
+// DefaultFilter defines a default filter used to skip changes from being
+// synchronized.
+var DefaultFilter filter.Filter = filter.MultiFilter{
+	filter.OsSkip(filter.DirectorySkip(".Trash"), "darwin"),     // OSX trash directory.
+	filter.OsSkip(filter.DirectorySkip(".Trashes"), "darwin"),   // OSX trash directory.
+	filter.OsSkip(filter.DirectorySkip(".fseventsd"), "darwin"), // FSEvents notify.
+	filter.PathSuffixSkip(".git/index.lock"),                    // git index lock file.
+	filter.PathSuffixSkip(".git/index"),                         // git index.
+	filter.PathSuffixSkip(".git/refs/stash.lock"),               // git stash lock file.
+	filter.PathSuffixSkip(".git/HEAD.lock"),                     // git HEAD lock.
+	filter.PathSuffixSkip(".git/ORIG_HEAD.lock"),                // git ORIG_HEAD lock.
+	filter.NewRegexSkip(`\.git/refs/heads/[^\s]+\.lock$`),       // git branch lock.
+	filter.NewRegexSkip(`\.git/index\.stash\.\d+\.lock$`),       // git stash ref. lock.
+	filter.NewRegexSkip(`\.git/objects/pack/tmp_pack_[^/]+`),    // temporary git files.
+}
 
 // Info stores information about current mount status.
 type Info struct {
@@ -64,6 +82,10 @@ type Options struct {
 	// responsible for syncing files.
 	SyncBuilder msync.Builder
 
+	// Filter defines a file filter for mount syncer. If nil, DefaultFilter
+	// will be used.
+	Filter filter.Filter
+
 	// Log is used for logging. If nil, default logger will be created.
 	Log logging.Logger
 }
@@ -102,7 +124,6 @@ type Sync struct {
 
 	a *Anteroom // file system event consumer.
 
-	sk     Skipper       // local to remote file skippers.
 	once   sync.Once     // used for closing closeC chan.
 	closeC chan struct{} // closed when sync object is closed.
 
@@ -113,6 +134,7 @@ type Sync struct {
 	iu  *IdxUpdate   // local index updater.
 }
 
+// Idx returns Sync index.
 func (s *Sync) Idx() *index.Index {
 	return s.idx
 }
@@ -128,8 +150,11 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 		opts:    opts,
 		mountID: mountID,
 		m:       m,
-		sk:      DefaultSkipper,
 		closeC:  make(chan struct{}),
+	}
+
+	if opts.Filter == nil {
+		s.opts.Filter = DefaultFilter
 	}
 
 	if opts.Log != nil {
@@ -154,11 +179,6 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 
 	// Periodically flush memory index to disk.
 	s.iu = NewIdxUpdate(idxPath, s.idx.Clone(), 60*time.Second, s.log)
-
-	// Initialize skippers.
-	if err = s.sk.Initialize(s.CacheDir()); err != nil {
-		s.log.Warning("File local filters were not initialized: %s", err)
-	}
 
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
@@ -194,10 +214,13 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 	}
 
 	// Enable syncing history for all mounts.
-	s.s = history.NewHistory(syncer, 100)
+	s.s = history.NewHistory(syncer, config.Konfig.Mount.Inspect.History)
 
 	return s, nil
 }
+
+// Anteroom gives the sync's anteroom.
+func (s *Sync) Anteroom() *Anteroom { return s.a }
 
 // Stream creates a stream of file synchronization jobs.
 func (s *Sync) Stream() <-chan msync.Execer {
@@ -207,7 +230,7 @@ func (s *Sync) Stream() <-chan msync.Execer {
 		// Event loop will be closed once Anteroom is closed.
 		evSourceC := s.a.Events()
 		for ev := range evSourceC {
-			if s.sk.IsSkip(ev) {
+			if err := s.opts.Filter.Check(ev.Change().Path()); err != nil {
 				ev.Done()
 				continue
 			}
@@ -253,6 +276,11 @@ func (s *Sync) IndexDebug() []index.Debug {
 	return s.idx.Debug()
 }
 
+// Diagnose diagnoses the mount looking for inconsistent or invalid states.
+func (s *Sync) Diagnose() []string {
+	return s.idx.Diagnose(s.CacheDir())
+}
+
 // CacheDir returns the name of mount cache directory.
 func (s *Sync) CacheDir() string {
 	return filepath.Join(s.opts.WorkDir, "data")
@@ -262,9 +290,18 @@ func (s *Sync) CacheDir() string {
 // managed index. This function allows to express the current state of
 // synchronized files inside index structure.
 func (s *Sync) UpdateIndex() {
-	cs := s.idx.Merge(s.CacheDir())
+	// Dont filter during merge since we want index to store all files.
+	cs, err := s.idx.Merge(s.CacheDir(), nil)
+	if err != nil {
+		s.log.Error("Cannot update in-memory index: %v", err)
+	}
 
 	for i := range cs {
+		// However, we dont want to synchronize unwanted files.
+		if err := s.opts.Filter.Check(cs[i].Path()); err != nil {
+			continue
+		}
+
 		s.a.Commit(cs[i])
 	}
 }

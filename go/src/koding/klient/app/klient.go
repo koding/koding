@@ -22,6 +22,7 @@ import (
 	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/team"
+	"koding/kites/metrics"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -48,6 +49,9 @@ import (
 	"koding/klientctl/daemon"
 	"koding/logrotate"
 
+	endpointkloud "koding/klientctl/endpoint/kloud"
+
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/kontrol/onceevery"
@@ -88,7 +92,8 @@ type Klient struct {
 	// addresses or the connection is behind a firewall.
 	tunnel *tunnel.Tunnel
 
-	log kite.Logger
+	metrics *dogstatsd.Client
+	log     kite.Logger
 
 	// config stores all necessary configuration needed for Klient to work.
 	// It's supplied with the NewKlient() function.
@@ -256,6 +261,16 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	m, err := metrics.NewWithDB(db, "klient")
+	if err != nil {
+		return nil, err
+	}
+
+	// consume kd events
+	go metrics.StartCron(endpointkloud.DefaultClient, logging.NewCustom("klient-cron", conf.Debug))
+	// consume klient events
+	go metrics.StartCronWithMetrics(endpointkloud.DefaultClient, logging.NewCustom("klient-cron", conf.Debug), m)
+
 	up := uploader.New(&uploader.Options{
 		KeygenURL: konfig.Konfig.Endpoints.Kloud().Public.String(),
 		Kite:      k,
@@ -333,7 +348,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		AuthFunc: (&apiutil.KloudAuth{
 			Kite: kloud,
 			Storage: &apiutil.Storage{
-				&cfg.Cache{
+				Cache: &cfg.Cache{
 					EncodingStorage: storage.NewEncodingStorage(db, []byte("klient")),
 				},
 			},
@@ -370,6 +385,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		},
 		presenceEvery: onceevery.New(1 * time.Hour),
 		kloud:         kloud,
+		metrics:       m.Datadog,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -434,7 +450,7 @@ func (k *Klient) RegisterMethods() {
 
 	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
 	k.kite.PreHandleFunc(k.usage.Counter) // we measure every incoming request
-	k.kite.HandleFunc("klient.usage", k.usage.Current)
+	k.handleFunc("klient.usage", k.usage.Current)
 
 	// klient os method(s)
 	k.handleWithSub("os.home", kos.Home)
@@ -446,10 +462,10 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("klient.info", info.Info)
 
 	// Collaboration, is used by our Koding.com browser client.
-	k.kite.HandleFunc("klient.disable", control.Disable)
-	k.kite.HandleFunc("klient.share", k.collab.Share)
-	k.kite.HandleFunc("klient.unshare", k.collab.Unshare)
-	k.kite.HandleFunc("klient.shared", k.collab.Shared)
+	k.handleFunc("klient.disable", control.Disable)
+	k.handleFunc("klient.share", k.collab.Share)
+	k.handleFunc("klient.unshare", k.collab.Unshare)
+	k.handleFunc("klient.shared", k.collab.Shared)
 
 	// Adds the remote.* methods, depending on OS.
 	k.addRemoteHandlers()
@@ -460,12 +476,12 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("sshkeys.delete", sshkeys.Delete)
 
 	// Storage
-	k.kite.HandleFunc("storage.set", k.storage.SetValue)
-	k.kite.HandleFunc("storage.get", k.storage.GetValue)
-	k.kite.HandleFunc("storage.delete", k.storage.DeleteValue)
+	k.handleFunc("storage.set", k.storage.SetValue)
+	k.handleFunc("storage.get", k.storage.GetValue)
+	k.handleFunc("storage.delete", k.storage.DeleteValue)
 
 	// Logfetcher
-	k.kite.HandleFunc("log.tail", logfetcher.Tail)
+	k.handleFunc("log.tail", logfetcher.Tail)
 
 	// Filesystem
 	k.handleWithSub("fs.readDirectory", fs.ReadDirectory)
@@ -485,50 +501,51 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("fs.abs", fs.KiteHandlerAbs())
 
 	// Machine group handlers.
-	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
-	k.kite.HandleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
-	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
-	k.kite.HandleFunc("machine.mount.head", machinegroup.KiteHandlerHeadMount(k.machines))
-	k.kite.HandleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
-	k.kite.HandleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
-	k.kite.HandleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
-	k.kite.HandleFunc("machine.mount.inspect", machinegroup.KiteHandlerInspectMount(k.machines))
-	k.kite.HandleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
-	k.kite.HandleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))
-	k.kite.HandleFunc("machine.exec", k.machines.HandleExec)
-	k.kite.HandleFunc("machine.kill", k.machines.HandleKill)
+	k.handleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
+	k.handleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
+	k.handleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
+	k.handleFunc("machine.mount.head", machinegroup.KiteHandlerHeadMount(k.machines))
+	k.handleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
+	k.handleFunc("machine.mount.updateIndex", machinegroup.KiteHandlerUpdateIndex(k.machines))
+	k.handleFunc("machine.mount.list", machinegroup.KiteHandlerListMount(k.machines))
+	k.handleFunc("machine.mount.inspect", machinegroup.KiteHandlerInspectMount(k.machines))
+	k.handleFunc("machine.mount.waitIdle", k.machines.HandleWaitIdle)
+	k.handleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
+	k.handleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))
+	k.handleFunc("machine.exec", k.machines.HandleExec)
+	k.handleFunc("machine.kill", k.machines.HandleKill)
 
 	// Machine index handlers.
 	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
 	k.handleWithSub("machine.index.get", index.KiteHandlerGet())
 
 	// Vagrant
-	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)
-	k.kite.HandleFunc("vagrant.provider", k.vagrant.Provider)
-	k.kite.HandleFunc("vagrant.list", k.vagrant.List)
-	k.kite.HandleFunc("vagrant.up", k.vagrant.Up)
-	k.kite.HandleFunc("vagrant.halt", k.vagrant.Halt)
-	k.kite.HandleFunc("vagrant.destroy", k.vagrant.Destroy)
-	k.kite.HandleFunc("vagrant.status", k.vagrant.Status)
-	k.kite.HandleFunc("vagrant.version", k.vagrant.Version)
-	k.kite.HandleFunc("vagrant.listForwardedPorts", k.vagrant.ForwardedPorts)
+	k.handleFunc("vagrant.create", k.vagrant.Create)
+	k.handleFunc("vagrant.provider", k.vagrant.Provider)
+	k.handleFunc("vagrant.list", k.vagrant.List)
+	k.handleFunc("vagrant.up", k.vagrant.Up)
+	k.handleFunc("vagrant.halt", k.vagrant.Halt)
+	k.handleFunc("vagrant.destroy", k.vagrant.Destroy)
+	k.handleFunc("vagrant.status", k.vagrant.Status)
+	k.handleFunc("vagrant.version", k.vagrant.Version)
+	k.handleFunc("vagrant.listForwardedPorts", k.vagrant.ForwardedPorts)
 
 	// Tunnel
-	k.kite.HandleFunc("tunnel.info", k.tunnel.Info)
+	k.handleFunc("tunnel.info", k.tunnel.Info)
 
 	// Log
-	k.kite.HandleFunc("log.upload", k.uploader.Upload)
+	k.handleFunc("log.upload", k.uploader.Upload)
 
 	// Docker
-	// k.kite.HandleFunc("docker.create", k.docker.Create)
-	// k.kite.HandleFunc("docker.connect", k.docker.Connect)
-	// k.kite.HandleFunc("docker.stop", k.docker.Stop)
-	// k.kite.HandleFunc("docker.start", k.docker.Start)
-	// k.kite.HandleFunc("docker.remove", k.docker.RemoveContainer)
-	// k.kite.HandleFunc("docker.list", k.docker.List)
+	// k.handleFunc("docker.create", k.docker.Create)
+	// k.handleFunc("docker.connect", k.docker.Connect)
+	// k.handleFunc("docker.stop", k.docker.Stop)
+	// k.handleFunc("docker.start", k.docker.Start)
+	// k.handleFunc("docker.remove", k.docker.RemoveContainer)
+	// k.handleFunc("docker.list", k.docker.List)
 
 	// Execution
-	k.kite.HandleFunc("exec", command.Exec)
+	k.handleFunc("exec", command.Exec)
 
 	// Terminal
 	k.handleWithSub("webterm.getSessions", k.terminal.GetSessions)
@@ -539,9 +556,9 @@ func (k *Klient) RegisterMethods() {
 
 	// VM -> Client methods
 	ps := client.NewPubSub(k.log)
-	k.kite.HandleFunc("client.Publish", ps.Publish)
-	k.kite.HandleFunc("client.Subscribe", ps.Subscribe)
-	k.kite.HandleFunc("client.Unsubscribe", ps.Unsubscribe)
+	k.handleFunc("client.Publish", ps.Publish)
+	k.handleFunc("client.Subscribe", ps.Subscribe)
+	k.handleFunc("client.Unsubscribe", ps.Unsubscribe)
 
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.
@@ -573,20 +590,23 @@ func (k *Klient) RegisterMethods() {
 	})
 }
 
+func (k *Klient) handleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
+	f = metrics.WrapKiteHandler(k.metrics, pattern, f)
+	return k.kite.HandleFunc(pattern, f)
+}
+
 // handleWithSub is a middle-ware function that checks team payment status
 // before invoking fn function. It will fail if team is blocked due to unpaid
 // subscription.
 func (k *Klient) handleWithSub(method string, fn kite.HandlerFunc) {
-	k.kite.HandleFunc(method, func(r *kite.Request) (interface{}, error) {
+	k.handleFunc(method, func(r *kite.Request) (interface{}, error) {
 		team, err := k.cacheTeam()
 		if err != nil {
 			k.log.Error("Cannot find Klient's team: %s", err)
 			return nil, err
 		}
 
-		// TODO(rjeczalik): enable after rolling out kloud support first
-		// if !team.Paid {
-		if !team.IsSubActive(k.config.Environment) {
+		if !team.Paid {
 			k.log.Error("Method %q is blocked due to unpaid subscription for %s team.", method, team.Name)
 			return nil, errors.New("method is blocked")
 		}

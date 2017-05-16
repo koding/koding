@@ -4,7 +4,6 @@ KDCustomHTMLView    = kd.CustomHTMLView
 KDHitEnterInputView = kd.HitEnterInputView
 KDMultipleChoice    = kd.MultipleChoice
 JView               = require 'app/jview'
-_                   = require 'lodash'
 $                   = require 'jquery'
 keycode             = require 'keycode'
 
@@ -12,7 +11,7 @@ module.exports = class AceFindAndReplaceView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'ace-find-replace-view'
+    options.cssClass = 'search-view'
 
     super options, data
 
@@ -129,41 +128,40 @@ module.exports = class AceFindAndReplaceView extends JView
 
     @findInput = new KDHitEnterInputView
       type         : 'text'
-      placeholder  : 'Find...'
+      cssClass     : 'search-input-with-icon'
+      placeholder  : 'Find in the file…'
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this, yes
+      keydown      : (e) => @handleKeyDown yes, e
       callback     : => @findNext()
 
     @findNextButton = new KDButtonView
-      cssClass     : 'editor-button'
-      title        : 'Find Next'
+      cssClass     : 'find-button find-next'
       callback     : => @findNext()
 
     @findPrevButton = new KDButtonView
-      cssClass     : 'editor-button'
-      title        : 'Find Prev'
+      cssClass     : 'find-button find-prev'
       callback     : => @findPrev()
 
     @replaceInput = new KDHitEnterInputView
       type         : 'text'
-      cssClass     : 'ace-replace-input'
-      placeholder  : 'Replace...'
+      cssClass     : 'search-input'
+      placeholder  : 'Replace with…'
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this, no
+      keydown      : (e) => @handleKeyDown no, e
       callback     : => @replace()
 
     @replaceButton = new KDButtonView
       title        : 'Replace'
-      cssClass     : 'ace-replace-button'
+      cssClass     : 'search-button search-button-replace'
       callback     : => @replace()
 
     @replaceAllButton = new KDButtonView
       title        : 'Replace All'
-      cssClass     : 'ace-replace-button'
+      cssClass     : 'search-button search-button-replace'
       callback     : => @replaceAll()
 
     @closeButton = new KDCustomHTMLView
@@ -172,7 +170,7 @@ module.exports = class AceFindAndReplaceView extends JView
       click        : => @close()
 
     @choices = new KDMultipleChoice
-      cssClass     : 'clean-gray editor-button control-button'
+      cssClass     : ''
       labels       : ['case-sensitive', 'whole-word', 'regex']
       multiple     : yes
       defaultValue : 'fakeValueToDeselectFirstOne'
@@ -180,18 +178,24 @@ module.exports = class AceFindAndReplaceView extends JView
 
   pistachio: ->
     return '''
-      <div class="ace-find-replace-settings">
+      <div class="search-options-button-group">
         {{> @choices}}
       </div>
-      <div class="ace-find-replace-inputs">
-        {{> @findInput}}
-        {{> @replaceInput}}
+      <div class="search-inputs">
+        <div class="search-input-wrapper search-input-group">
+          {{> @findInput}}
+          {{> @findNextButton}}
+          {{> @findPrevButton}}
+        </div>
+        <div class="search-input-wrapper search-replace-wrapper">
+          {{> @replaceInput}}
+        </div>
+        <div class="search-buttons search-button-group search-replace-button-group">
+          {{> @replaceButton}}
+          {{> @replaceAllButton}}
+        </div>
       </div>
-      <div class="ace-find-replace-buttons">
-        {{> @findNextButton}}
-        {{> @findPrevButton}}
-        {{> @replaceButton}}
-        {{> @replaceAllButton}}
+      <div class="search-view-close-wrapper">
+        {{> @closeButton}}
       </div>
-      {{> @closeButton}}
     '''

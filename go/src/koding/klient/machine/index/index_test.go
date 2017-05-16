@@ -91,7 +91,7 @@ func TestIndex(t *testing.T) {
 			}
 			defer clean()
 
-			idx, err := index.NewIndexFiles(root)
+			idx, err := index.NewIndexFiles(root, nil)
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)
 			}
@@ -103,7 +103,11 @@ func TestIndex(t *testing.T) {
 			// Synchronize underlying file-system.
 			indextest.Sync()
 
-			cs := idx.MergeBranch(root, test.Branch)
+			cs, err := idx.MergeBranch(root, test.Branch, nil)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+
 			sort.Sort(cs)
 			if len(cs) != len(test.Changes) {
 				t.Fatalf("want index.Changes count = %d; got %d", len(test.Changes), len(cs))
@@ -125,7 +129,11 @@ func TestIndex(t *testing.T) {
 			for _, c := range cs {
 				idx.Sync(root, c)
 			}
-			if cs = idx.MergeBranch(root, test.Branch); len(cs) != 0 {
+
+			if cs, err = idx.MergeBranch(root, test.Branch, nil); err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+			if len(cs) != 0 {
 				t.Errorf("want no index.Changes after sync; got %v", cs)
 			}
 		})
@@ -139,7 +147,7 @@ func TestIndexJSON(t *testing.T) {
 	}
 	defer clean()
 
-	idx, err := index.NewIndexFiles(root)
+	idx, err := index.NewIndexFiles(root, nil)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -154,7 +162,11 @@ func TestIndexJSON(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if cs := idx.Merge(root); len(cs) != 0 {
+	cs, err := idx.Merge(root, nil)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if len(cs) != 0 {
 		t.Errorf("want no changes after merge; got %v", cs)
 	}
 }

@@ -134,7 +134,7 @@ func (c *Client) CacheOptions(app string) *config.CacheOptions {
 	return &config.CacheOptions{
 		File: file,
 		BoltDB: &bolt.Options{
-			Timeout: 5 * time.Second,
+			Timeout: 3 * time.Second,
 		},
 		Bucket: []byte(app),
 	}
@@ -208,7 +208,11 @@ func (c *Client) commit(fn func(*config.Cache) error) error {
 		return fn(c.Cache)
 	}
 
-	cache := config.NewCache(c.cacheOpts())
+	cache, err := config.NewBoltCache(c.cacheOpts())
+	if err != nil {
+		return err
+	}
+
 	return nonil(fn(cache), cache.Close())
 }
 

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 
+	"koding/klient/config"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/mount"
@@ -20,7 +20,7 @@ import (
 // debugAll must be set in order to debug print all synced events. Worker
 // events may produce a lot of events so we keep logging disabled even in
 // "normal" debug mode.
-var debugAll = os.Getenv("KD_DEBUG_MOUNT") != ""
+var debugAll = os.Getenv("KD_DEBUG_MOUNT") != "" || config.Konfig.Mount.Debug >= 1
 
 // Options are the options used to configure Syncs object.
 type Options struct {
@@ -90,7 +90,7 @@ func New(opts Options) (*Syncs, error) {
 	}
 
 	// Start synchronization workers.
-	for i := 0; i < 2*runtime.NumCPU(); i++ {
+	for i := 0; i < config.Konfig.Mount.Sync.Workers; i++ {
 		s.wg.Add(1)
 		go s.worker()
 	}

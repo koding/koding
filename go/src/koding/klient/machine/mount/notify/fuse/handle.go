@@ -133,7 +133,7 @@ func (fhg *FileHandleGroup) Open(root string, n *node.Node) (fuseops.HandleID, e
 		return 0, toErrno(err)
 	}
 
-	return fhg.Add(fuseops.InodeID(n.Entry.Virtual.Inode), f, n.Entry.File.Size), nil
+	return fhg.Add(fuseops.InodeID(n.Entry.File.Inode), f, n.Entry.File.Size), nil
 }
 
 // Get gets the FileHandle structure associated with provided handle ID.
@@ -200,7 +200,7 @@ type DirHandle struct {
 // NewDirHandle creates a new DirHandle instance.
 func NewDirHandle(mDirParentInode fuseops.InodeID, n *node.Node) *DirHandle {
 	dh := &DirHandle{
-		InodeID:         fuseops.InodeID(n.Entry.Virtual.Inode),
+		InodeID:         fuseops.InodeID(n.Entry.File.Inode),
 		mDirParentInode: mDirParentInode,
 	}
 	dh.stream = dh.readDirents(n)
@@ -248,7 +248,7 @@ func (dh *DirHandle) ReadDir(offset fuseops.DirOffset, dst []byte) (n int, err e
 // Rewind behaves like rewinddir(), it resets directory steram.
 func (dh *DirHandle) Rewind(offset fuseops.DirOffset, n *node.Node) {
 	// Sanity check. There is a logic error when we rewinding different inodes.
-	if dh.InodeID != fuseops.InodeID(n.Entry.Virtual.Inode) {
+	if dh.InodeID != fuseops.InodeID(n.Entry.File.Inode) {
 		panic("called rewind on invalid node")
 	}
 
@@ -270,7 +270,7 @@ func (dh *DirHandle) readDirents(n *node.Node) (ds []fuseutil.Dirent) {
 
 		ds = append(ds, fuseutil.Dirent{
 			Offset: fuseops.DirOffset(len(ds)) + 1,
-			Inode:  fuseops.InodeID(child.Entry.Virtual.Inode),
+			Inode:  fuseops.InodeID(child.Entry.File.Inode),
 			Name:   child.Name,
 			Type:   direntType(child.Entry),
 		})
@@ -279,7 +279,7 @@ func (dh *DirHandle) readDirents(n *node.Node) (ds []fuseutil.Dirent) {
 	// Add "." directory.
 	ds = append(ds, fuseutil.Dirent{
 		Offset: fuseops.DirOffset(len(ds)) + 1,
-		Inode:  fuseops.InodeID(n.Entry.Virtual.Inode),
+		Inode:  fuseops.InodeID(n.Entry.File.Inode),
 		Name:   ".",
 		Type:   fuseutil.DT_Directory,
 	})
@@ -287,7 +287,7 @@ func (dh *DirHandle) readDirents(n *node.Node) (ds []fuseutil.Dirent) {
 	// Add ".." directory.
 	inode := dh.mDirParentInode
 	if parent := n.Parent(); parent != nil {
-		inode = fuseops.InodeID(parent.Entry.Virtual.Inode)
+		inode = fuseops.InodeID(parent.Entry.File.Inode)
 	} else if inode == 0 {
 		return ds
 	}

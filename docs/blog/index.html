@@ -4,15 +4,21 @@ title: Blog
 ---
 
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='rgba(49,66,93,0.6)' %}
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#cb5f6f' %}
 
 <style>{% include css/blog-home.css %}</style>
 <style>{% include css/blog-listitem.css %}</style>
 <style>{% include css/blog-author.css %}</style>
 
-<div class="BlogHome-Header">
-  <div class="BlogHome-Header--wrapper">
-    <h1>Koding Blog</h1>
+<div class="Header BlogHome-Header">
+  <div class="Header--outer-wrapper">
+    <div class="Header--wrapper">
+      <div class="Header--content">
+        <h1>Koding Blog</h1>
+        <p>Follow our blog for product announcements, feature updates, events, and posts about development environments.</p>
+      </div>
+      <img src="{{ site.url }}/assets/img/landing/heroes/hero_icon_blog.svg" alt="Blog">
+    </div>
   </div>
 </div>
 

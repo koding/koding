@@ -27,7 +27,7 @@ type BindCache struct {
 var _ notify.Cache = (*BindCache)(nil)
 
 func NewBindCache(loc, tmp string) (*BindCache, error) {
-	idx, err := index.NewIndexFiles(loc)
+	idx, err := index.NewIndexFiles(loc, nil)
 	if err != nil {
 		return nil, err
 	}

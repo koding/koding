@@ -38,7 +38,7 @@ type Config struct {
 	Konfig   *config.Konfig    // Koding endpoints configuration
 	KiteKey  string            // KiteKey used by klient to authenticate with Koding
 	Userdata string            // User script to run after provisioning, if any
-	Mounts   map[string]string // Maps names with mount paths, for use with kd mount.
+	Exports  map[string]string // Maps names with mount paths, for use with kd mount.
 	Debug    bool              // Whether klient should be started in debug mode; configurable by debug field in stack template
 }
 
@@ -83,12 +83,15 @@ func New(cfg *Config) (CloudInit, error) {
 // and use in marathon as well.
 func newMetadata(cfg *Config) ([]byte, error) {
 	konfig := &config.Konfig{
-		Endpoints: cfg.Konfig.Endpoints,
-		KiteKey:   cfg.KiteKey,
-		Local: &config.Local{
-			Mounts: cfg.Mounts,
+		Endpoints:   cfg.Konfig.Endpoints,
+		Environment: cfg.Konfig.Environment,
+		KiteKey:     cfg.KiteKey,
+		Mount: &config.Mount{
+			Exports: cfg.Exports,
 		},
-		Debug: cfg.Debug,
+		PublicBucketName:   cfg.Konfig.PublicBucketName,
+		PublicBucketRegion: cfg.Konfig.PublicBucketRegion,
+		Debug:              cfg.Debug,
 	}
 
 	m := map[string]interface{}{

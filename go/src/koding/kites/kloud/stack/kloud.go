@@ -24,10 +24,10 @@ import (
 	"koding/remoteapi"
 	presence "socialapi/workers/presence/client"
 
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/koding/cache"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/koding/metrics"
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 )
@@ -113,7 +113,7 @@ type Kloud struct {
 	// RemoteClient handles requests to "remote.api" endpoint.
 	RemoteClient *remoteapi.Client
 
-	Metrics *metrics.DogStatsD
+	Metrics *dogstatsd.Client
 
 	// Enable debug mode
 	Debug bool

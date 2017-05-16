@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
@@ -17,6 +18,7 @@ import (
 	"koding/klientctl/helper"
 
 	humanize "github.com/dustin/go-humanize"
+	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
 )
 
@@ -34,7 +36,7 @@ func (c *Client) mountPoint(ident string) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(c.konfig().Local.MountHome, m.Label), nil
+	return filepath.Join(c.konfig().Mount.Home, m.Label), nil
 }
 
 // Mount synchronizes directories between remote and local machines.
@@ -68,7 +70,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 	var idRes machinegroup.IDResponse
 
-	if err := c.klient().Call("machine.id", idReq, &idRes); err != nil {
+	if err = c.klient().Call("machine.id", idReq, &idRes); err != nil {
 		return err
 	}
 
@@ -88,7 +90,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 	var headMountRes machinegroup.HeadMountResponse
 
-	if err := c.klient().Call("machine.mount.head", headMountReq, &headMountRes); err != nil {
+	if err = c.klient().Call("machine.mount.head", headMountReq, &headMountRes); err != nil {
 		return err
 	}
 
@@ -120,10 +122,18 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		Strategies: prefetch.DefaultStrategy.Available(),
 	}
 	var addMountRes machinegroup.AddMountResponse
-
-	if err := c.klient().Call("machine.mount.add", addMountReq, &addMountRes); err != nil {
+	if err = c.klient().Call("machine.mount.add", addMountReq, &addMountRes); err != nil {
 		return err
 	}
+	defer func() {
+		// Remove mount when post mount operations fail.
+		if err != nil {
+			umountReq := &machinegroup.UmountRequest{
+				Identifier: string(addMountRes.MountID),
+			}
+			_ = c.klient().Call("machine.umount", umountReq, nil)
+		}
+	}()
 
 	// Prefetch files.
 	_, _, privPath, err := sshGetKeyPath()
@@ -136,6 +146,17 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			options.Log.Error("Output: %q", exitErr.Stderr)
 		}
+
+		return err
+	}
+
+	// Rescan cache folder in order to update index.
+	upIdxMountReq := &machinegroup.UpdateIndexRequest{
+		MountID: addMountRes.MountID,
+	}
+	var upIdxMountRes machinegroup.UpdateIndexResponse
+	if err = c.klient().Call("machine.mount.updateIndex", upIdxMountReq, &upIdxMountRes); err != nil {
+		return err
 	}
 
 	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)
@@ -174,6 +195,7 @@ type InspectMountOptions struct {
 	Identifier string // Mount identifier.
 	Sync       bool   // Get syncing history.
 	Tree       bool   // Show index tree.
+	Filesystem bool   // Check and report filesystem consistency.
 	Log        logging.Logger
 }
 
@@ -189,6 +211,7 @@ func (c *Client) InspectMount(options *InspectMountOptions) (machinegroup.Inspec
 		Identifier: options.Identifier,
 		Sync:       options.Sync,
 		Tree:       options.Tree,
+		Filesystem: options.Filesystem,
 	}
 
 	err := c.klient().Call("machine.mount.inspect", inspectMountReq, &inspectMountRes)
@@ -259,6 +282,44 @@ func (c *Client) Umount(options *UmountOptions) (err error) {
 		} else {
 			fmt.Fprintf(os.Stdout, "Successfully unmounted %s (ID: %s)\n", umountRes.Mount, umountRes.MountID)
 		}
+	}
+
+	return nil
+}
+
+// WaitIdleOptions describes options for "machine.mount.waitIdle" method's request.
+type WaitIdleOptions struct {
+	Identifier string
+	Path       string
+	Timeout    time.Duration
+}
+
+// WaitIdle waits for all the sync operations for finish
+// for the given mount.
+func (c *Client) WaitIdle(opts *WaitIdleOptions) error {
+	ch := make(chan bool)
+
+	req := &machinegroup.WaitIdleRequest{
+		Identifier: opts.Identifier,
+		Path:       opts.Path,
+		Timeout:    opts.Timeout,
+		Done: dnode.Callback(func(r *dnode.Partial) {
+			ch <- r.One().MustBool()
+		}),
+	}
+
+	if err := c.klient().Call("machine.mount.waitIdle", req, nil); err != nil {
+		return err
+	}
+
+	// Release read-only access before long-running operation.
+	_ = c.kloud().Cache().CloseRead()
+
+	if !<-ch {
+		if req.Timeout != 0 {
+			return fmt.Errorf("waiting for mount to synchronize has timed out after %s", req.Timeout)
+		}
+		return fmt.Errorf("waiting for mount to synchronize has timed out")
 	}
 
 	return nil
@@ -355,6 +416,9 @@ func Mount(opts *MountOptions) error { return DefaultClient.Mount(opts) }
 func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 	return DefaultClient.ListMount(opts)
 }
+
+// WaitIdle waits for mount's synchronization to complete using DefaultClient.
+func WaitIdle(opts *WaitIdleOptions) error { return DefaultClient.WaitIdle(opts) }
 
 // InspectMount inspects existing mount using DefaultClient.
 func InspectMount(opts *InspectMountOptions) (machinegroup.InspectMountResponse, error) {

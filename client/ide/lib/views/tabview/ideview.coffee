@@ -491,7 +491,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @emitChange pane, { context: {} }, 'TabChanged'
 
 
-  goToLine: -> @getActivePaneView().aceView.ace.showGotoLine()
+  goToLine: ->
+    @ace = @getActivePaneView().aceView.ace
+    @ace.showGotoLine()
+    @tabView.on 'GotoLineNeedsToBeClosed', =>
+      @ace.hideGotoLine()
 
 
   click: ->
