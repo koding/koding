@@ -83,12 +83,15 @@ func New(cfg *Config) (CloudInit, error) {
 // and use in marathon as well.
 func newMetadata(cfg *Config) ([]byte, error) {
 	konfig := &config.Konfig{
-		Endpoints: cfg.Konfig.Endpoints,
-		KiteKey:   cfg.KiteKey,
+		Endpoints:   cfg.Konfig.Endpoints,
+		Environment: cfg.Konfig.Environment,
+		KiteKey:     cfg.KiteKey,
 		Mount: &config.Mount{
 			Exports: cfg.Exports,
 		},
-		Debug: cfg.Debug,
+		PublicBucketName:   cfg.Konfig.PublicBucketName,
+		PublicBucketRegion: cfg.Konfig.PublicBucketRegion,
+		Debug:              cfg.Debug,
 	}
 
 	m := map[string]interface{}{
