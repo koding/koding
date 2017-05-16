@@ -338,6 +338,13 @@ module.exports = (KONFIG, options, credentials) ->
               'proxy_send_timeout 21600s;'
             ]
           }
+        ]
+
+    tunnelproxies:
+      group             : 'proxy'
+      nginx             :
+        websocket       : yes
+        locations       : [
           {
             location    : "~ ^\\/-\\/prodtunnel\\/(?<tunnel>.+?)\.#{KONFIG.tunnelserver.hostedzone}(?<rest>.*)"
             proxyPass   : "http://$tunnel.#{KONFIG.tunnelserver.hostedzone}$rest"
