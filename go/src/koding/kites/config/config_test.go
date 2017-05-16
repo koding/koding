@@ -81,20 +81,12 @@ func TestReplaceEnv(t *testing.T) {
 			exp := NewEndpoint(test.Exp)
 			expNoManaged := NewEndpoint(test.ExpNoManaged)
 
-			// Temporarily replace buildin environment. This also means that you
-			// should not run these test in parallel!
-			var envcopy = environment
-			environment = test.Environment
-			defer func() {
-				environment = envcopy
-			}()
-
-			if e := ReplaceEnv(provVariable, test.ProvEnv); !e.Equal(exp) {
-				t.Fatalf("want string = %#v; got %#v", test.Exp, e)
+			if e := ReplaceCustomEnv(provVariable, test.Environment, test.ProvEnv); !e.Equal(exp) {
+				t.Fatalf("want %s; got %s", test.Exp, e)
 			}
 
-			if e := ReplaceEnv(provVariable, RmManaged(test.ProvEnv)); !e.Equal(expNoManaged) {
-				t.Fatalf("want string = %#v; got %#v", test.Exp, e)
+			if e := ReplaceCustomEnv(provVariable, test.Environment, RmManaged(test.ProvEnv)); !e.Equal(expNoManaged) {
+				t.Fatalf("want %s; got %s", test.Exp, e)
 			}
 		})
 	}
