@@ -178,7 +178,6 @@ func TestKubernetesExec(t *testing.T) {
 }
 
 func TestKubernetesExecWithInput(t *testing.T) {
-    t.Skip("Temporary")
     p, err := proxy.NewKubernetes()
     if err != nil {
         t.Skip(skipMessage)
@@ -214,6 +213,29 @@ func TestKubernetesExecWithInput(t *testing.T) {
         },
     }
 
+    var wg sync.WaitGroup
+
+    expected := `foobar
+    `
+
+    go func() {
+        wg.Add(1)
+        defer wg.Done()
+
+        timeout := time.After(time.Second * 3)
+
+        returned := ""
+        for !strings.Contains(returned, expected) {
+            select {
+                case o := <- r.output:
+                    fmt.Println("Output chunk:", o)
+                    returned += o
+                case <- timeout:
+                    t.Fatal("Should return expected output, in a timely manner.")
+            }
+        }
+    }()
+
     dnode, err := client.Tell("proxy.exec", r)
     if err != nil {
         t.Fatal(err)
@@ -225,35 +247,26 @@ func TestKubernetesExecWithInput(t *testing.T) {
         t.Fatal("Response should be of type proxy.ExecResponse.")
     }
 
-    expected := `foobar
-    `
-
     if err := exec.Input.Call(expected); err != nil {
         t.Fatal(err)
     }
 
-    timeout := time.After(time.Second * 3)
+    go func() {
+        wg.Add(1)
+        defer wg.Done()
 
-    returned := ""
-    for !strings.Contains(returned, expected) {
-        select {
-            case o := <- r.output:
-                returned += o
-            case <- timeout:
-                t.Fatal("Should return expected output, in a timely manner.")
-        }
-    }
+        timeout := time.After(time.Second * 3)
 
-    timeout = time.After(time.Millisecond * 100)
-    for {
-        select {
-            case <- r.done:
-                fmt.Println("Got the done callback")
-                return
-            case <- timeout:
-                t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+        for {
+            select {
+                case <- r.done:
+                    fmt.Println("Got the done callback")
+                    return
+                case <- timeout:
+                    t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+            }
         }
-    }
+    }()
 }
 
 func TestKubernetesExecTerminal(t *testing.T) {

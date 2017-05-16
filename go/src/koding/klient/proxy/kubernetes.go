@@ -6,7 +6,7 @@ import (
     "net/url"
     "regexp"
     "strings"
-    "time"
+    "sync"
 
     "koding/klient/registrar"
 
@@ -158,20 +158,40 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         return nil, err
     }
 
+    var wg sync.WaitGroup
+
     errChan := make(chan error)
     inChan := make(chan []byte)
+    connected := true
+    mux := sync.Mutex{}
 
     if r.IO.Stdin {
-        go func() {
-            defer close(inChan)
+        wg.Add(1)
 
-            for {
+        go func() {
+            defer wg.Done()
+
+            // TODO (acbodine): The problem with this loop is that we will
+            // always try to read from the inChan before detecting if the
+            // websocket connection is still active.
+            for connected {
                 select {
-                    case d := <- inChan:
+                    case d, ok := <- inChan:
+                        if !ok {
+                            mux.Lock()
+                            connected = false
+                            mux.Unlock()
+                            break
+                        }
+
                         err := conn.WriteMessage(websocket.TextMessage, d)
                         if err != nil {
                             fmt.Println(err)
-                            return
+                            errChan <- err
+
+                            mux.Lock()
+                            connected = false
+                            mux.Unlock()
                         }
                 }
             }
@@ -181,33 +201,47 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     }
 
     // If requesting kite wants this klient to return output
-    // and/or errors for the exec process.
+    // and/or errors for the exec process. Kick off goroutine
+    // to do so.
     if r.IO.Stdout || r.IO.Stderr {
-        go func() {
-            for {
-                err := conn.SetReadDeadline(time.Now().Add(time.Second * 3))
-                if err != nil {
-                    fmt.Println(err)
-                    errChan <- err
-                    return
-                }
+        wg.Add(1)
 
+        go func() {
+            defer wg.Done()
+
+            for {
+                // Read output chunks from the exec'd process until an error
+                // occurs. Once an error occurs we are done reading and need
+                // to handle the error appropriately.
+                //
+                // NOTE: https://godoc.org/github.com/gorilla/websocket#Conn.ReadMessage
                 _, m, err := conn.ReadMessage()
                 if err != nil {
-                    fmt.Println("Failed to read message from websocket:", err)
+                    // Readers should detect closes, thus we will notify the
+                    // goroutine that might be proxying ingress traffic that
+                    // the connection has closed, and it should exit likewise.
+                    mux.Lock()
+                    connected = false
+                    mux.Unlock()
+
+                    // Once conn.ReadMessage() returns an error, it will
+                    // continue to return the same error. Thus if err is
+                    // present, we are done reading from the connection.
+                    fmt.Println(err)
                     errChan <- err
-                    return
+
+                    break
                 }
 
+                // If there was no error while reading from the connection,
+                // then forward the data chunk to the client kite via
+                // the provided dnode.Function.
                 if e := r.Output.Call(string(m)); e != nil {
-                    fmt.Println("Failed to send message to client kite:", e)
-                    return
+                    fmt.Println("Failed to send output to client kite:", e)
                 }
-
-                fmt.Println("Looping output proxier.")
             }
 
-            fmt.Println("Exiting output proxier.")
+            fmt.Println("Exiting egress proxier.")
         }()
     }
 
@@ -215,11 +249,16 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     go func() {
         defer conn.Close()
         defer close(errChan)
+        defer close(inChan)
 
-        e := <- errChan
+        select {
+            case e := <- errChan:
+                fmt.Println("Error handling caught ", e)
+        }
 
-        // TODO (acbodine): Verify we are catching an EOF here to exit cleanly.
-        fmt.Println("Error handling caught ", e)
+        // Wait for any ingress/egress routines to finish, then do error
+        // handling where necessary.
+        wg.Wait()
 
         // TODO (acbodine): Until we find a better way to detect if
         // the remote exec process has finished/errored, we will
@@ -229,13 +268,7 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
             fmt.Println(err)
         }
 
-        err = conn.WriteMessage(
-            websocket.CloseMessage,
-            websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""),
-        )
-        if err != nil {
-            fmt.Println("Failed to send close message to K8s for websocket.", err)
-        }
+        fmt.Println("Exiting error handler.")
     }()
 
     exec := &Exec{
