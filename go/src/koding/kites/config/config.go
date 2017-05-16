@@ -297,6 +297,7 @@ var defaultAliases = aliases{
 	"managed":     {},
 	"development": {"sandbox", "default", "dev"},
 	"devmanaged":  {},
+	"default":     {},
 }
 
 type aliases map[string][]string
