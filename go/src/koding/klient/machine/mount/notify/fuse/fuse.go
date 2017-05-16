@@ -472,6 +472,79 @@ func (fs *Filesystem) ReleaseDirHandle(_ context.Context, op *fuseops.ReleaseDir
 	return err
 }
 
+// CreateSymlink creates a symlink to a given target.
+func (fs *Filesystem) CreateSymlink(ctx context.Context, op *fuseops.CreateSymlinkOp) (err error) {
+	fs.Index.Tree().DoInode(uint64(op.Parent), func(g node.Guard, n *node.Node) {
+		if err = checkDir(n); err != nil {
+			return
+		}
+
+		if child := n.GetChild(op.Name); child != nil {
+			err = fuse.EEXIST
+			return
+		}
+
+		path := filepath.Join(fs.CacheDir, n.Path(), op.Name)
+
+		if err = syscall.Symlink(op.Target, path); err != nil {
+			err = toErrno(err)
+			return
+		}
+
+		var info os.FileInfo
+		if info, err = os.Lstat(path); err != nil {
+			_ = os.Remove(path)
+			err = toErrno(err)
+			return
+		}
+
+		// Add new entry to the tree.
+		child := node.NewNodeEntry(op.Name, node.NewEntryFileInfo(info))
+		g.AddChild(n, child)
+		child.PromiseAdd()
+
+		op.Entry.Child = fuseops.InodeID(child.Entry.File.Inode)
+		op.Entry.Attributes = fs.newAttributes(child.Entry)
+
+		// Increase reference counter for entry - fuse_reply_create.
+		incCountNoRoot(child)
+
+		fs.commit(child.Path(), index.ChangeMetaAdd|index.ChangeMetaLocal)
+	})
+
+	return
+}
+
+// ReadSymlink allows to read symlink's target.
+func (fs *Filesystem) ReadSymlink(ctx context.Context, op *fuseops.ReadSymlinkOp) (err error) {
+	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
+		if !n.Exist() {
+			err = fuse.ENOENT
+			return
+		}
+
+		path := filepath.Join(fs.CacheDir, n.Path())
+
+		var info os.FileInfo
+		if info, err = os.Lstat(path); err != nil {
+			err = toErrno(err)
+			return
+		}
+
+		if info.Mode()&os.ModeSymlink == 0 {
+			err = fuse.EINVAL
+			return
+		}
+
+		if op.Target, err = os.Readlink(path); err != nil {
+			err = toErrno(err)
+			return
+		}
+	})
+
+	return
+}
+
 // OpenFile opens a File, ie. indicates operations are to be done on this file.
 func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) (err error) {
 	fs.Index.Tree().DoInodeR(uint64(op.Inode), func(n *node.Node) {
