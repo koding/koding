@@ -491,14 +491,6 @@ func (fs *Filesystem) CreateSymlink(ctx context.Context, op *fuseops.CreateSymli
 			return
 		}
 
-		target := op.Target
-		if !filepath.IsAbs(target) {
-			if target, err = filepath.Abs(filepath.Join(path, target)); err != nil {
-				err = fuse.EINVAL
-				return
-			}
-		}
-
 		var info os.FileInfo
 		if info, err = os.Lstat(path); err != nil {
 			_ = os.Remove(path)
@@ -550,7 +542,7 @@ func (fs *Filesystem) ReadSymlink(ctx context.Context, op *fuseops.ReadSymlinkOp
 		}
 	})
 
-	return nil
+	return
 }
 
 // OpenFile opens a File, ie. indicates operations are to be done on this file.
