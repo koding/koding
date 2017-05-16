@@ -35,11 +35,7 @@ module.exports = class Proxifier
     subdomain = if isInProduction then 'p' else 'dev-p'
 
     # create the base url
-    # Since proxy is a service from koding.com we need to use it
-    # for on-premise version as well. otherwise all the on-premises
-    # users needs to run proxy server on their own ~GG
-    baseURL = "#{protocol}//#{subdomain}.koding.com/-"
-    # baseURL = "#{protocol}//#{subdomain}.#{globals.config.domains.base}/-"
+    baseURL = "#{protocol}//#{subdomain}.#{globals.config.domains.base}/-"
 
     # if it's a tunnel given domain we need to do one more check
     # for tunnels since production tunnel proxy is different
