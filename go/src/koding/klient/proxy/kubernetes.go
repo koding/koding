@@ -2,17 +2,16 @@ package proxy
 
 import (
     "fmt"
-    "io"
     "net/http"
     "net/url"
     "regexp"
     "strings"
+    "time"
 
     "koding/klient/registrar"
-    "koding/klient/util"
 
+    "github.com/gorilla/websocket"
     "github.com/koding/kite"
-    "golang.org/x/net/websocket"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
     "k8s.io/client-go/rest"
@@ -105,36 +104,17 @@ func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
     return res, nil
 }
 
-func (p *KubernetesProxy) WebsocketConfig(specifier string) (*websocket.Config, error) {
-    target := p.config.Host
-
-    target = strings.Replace(target, "https://", "wss://", -1)
-    target = strings.Replace(target, "http://", "ws://", -1)
-
-    action := fmt.Sprintf("%s/%s", target, specifier)
-    action = strings.Replace(action, "//api", "/api", -1)
-
-    c, err := websocket.NewConfig(action, target)
-    if err != nil {
-        return nil, err
-    }
-
-    tlsConfig, err := rest.TLSConfigFor(p.config)
-    if err != nil {
-        return nil, err
-    }
-    c.TlsConfig = tlsConfig
-
-    c.Header = http.Header{
-        "Authorization": []string{fmt.Sprintf("Bearer %s", p.config.BearerToken)},
-    }
-
-    return c, nil
-}
-
 func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
+    h := p.config.Host
+    h = strings.Replace(h, "https://", "", -1)
+    h = strings.Replace(h, "http://", "", -1)
 
-    s := fmt.Sprintf(
+    u := &url.URL{
+        Scheme: "wss",
+        Host:   h,
+    }
+
+    u.Path = fmt.Sprintf(
         "api/v1/namespaces/%s/pods/%s/exec",
         r.K8s.Namespace,
         r.K8s.Pod,
@@ -149,9 +129,8 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         cmds = append(cmds, c)
     }
 
-    sWithQuery := fmt.Sprintf(
-        "%s?container=%s&%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
-        s,
+    u.RawQuery = fmt.Sprintf(
+        "container=%s&%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
         r.K8s.Container,
         strings.Join(cmds, "&"),
         r.IO.Stdin,
@@ -160,52 +139,69 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         r.IO.Tty,
     )
 
-    config, err := p.WebsocketConfig(sWithQuery)
+    tlsConfig, err := rest.TLSConfigFor(p.config)
     if err != nil {
         return nil, err
     }
 
-    conn, err := websocket.DialConfig(config)
-    if err != nil {
-        return nil, err
+    d := &websocket.Dialer{
+        TLSClientConfig: tlsConfig,
     }
 
-    // inReader, inWriter := io.Pipe()
+    conn, _, err := d.Dial(u.String(), http.Header{
+        "Authorization": []string{
+            fmt.Sprintf("Bearer %s", p.config.BearerToken),
+        },
+    })
+    if err != nil {
+        fmt.Println("Failed to connect to K8s:", err)
+        return nil, err
+    }
 
     errChan := make(chan error)
+    inChan := make(chan []byte)
 
-    // if r.IO.Stdin {
-    //     go func() {
-    //         for {
-    //             io.Copy(conn, inReader)
-    //
-    //             if !r.IO.Tty {
-    //                 break
-    //             }
-    //
-    //             fmt.Println("Looping input proxier.")
-    //         }
-    //
-    //         fmt.Println("Exiting input proxier.")
-    //     }()
-    // }
+    if r.IO.Stdin {
+        go func() {
+            defer close(inChan)
+
+            for {
+                select {
+                    case d := <- inChan:
+                        err := conn.WriteMessage(websocket.TextMessage, d)
+                        if err != nil {
+                            fmt.Println(err)
+                            return
+                        }
+                }
+            }
+
+            fmt.Println("Exiting ingress proxier.")
+        }()
+    }
 
     // If requesting kite wants this klient to return output
     // and/or errors for the exec process.
     if r.IO.Stdout || r.IO.Stderr {
         go func() {
             for {
-                // Proxy all output from the websocket connection to
-                // the Output dnode.Function provided by requesting kite.
-                err := util.PassTo(r.Output, conn)
-
-                // If the connection is not tty, then
-                // then we delegate error handling and
-                // client notification to the err chan
-                // handler.
-                if !r.IO.Tty {
+                err := conn.SetReadDeadline(time.Now().Add(time.Second * 3))
+                if err != nil {
+                    fmt.Println(err)
                     errChan <- err
-                    break
+                    return
+                }
+
+                _, m, err := conn.ReadMessage()
+                if err != nil {
+                    fmt.Println("Failed to read message from websocket:", err)
+                    errChan <- err
+                    return
+                }
+
+                if e := r.Output.Call(string(m)); e != nil {
+                    fmt.Println("Failed to send message to client kite:", e)
+                    return
                 }
 
                 fmt.Println("Looping output proxier.")
@@ -217,6 +213,9 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
 
     // Error handling
     go func() {
+        defer conn.Close()
+        defer close(errChan)
+
         e := <- errChan
 
         // TODO (acbodine): Verify we are catching an EOF here to exit cleanly.
@@ -230,14 +229,17 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
             fmt.Println(err)
         }
 
-        conn.Close()
-        // inReader.Close()
-
-        close(errChan)
+        err = conn.WriteMessage(
+            websocket.CloseMessage,
+            websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""),
+        )
+        if err != nil {
+            fmt.Println("Failed to send close message to K8s for websocket.", err)
+        }
     }()
 
     exec := &Exec{
-        in:         conn,
+        in:         inChan,
 
         Common:     r.Common,
         IO:         r.IO,

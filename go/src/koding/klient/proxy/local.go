@@ -79,6 +79,16 @@ func (p *LocalProxy) exec(r *ExecRequest) (*Exec, error) {
         return nil, err
     }
 
+    inChan := make(chan []byte)
+    go func() {
+        for {
+            select {
+                case d := <- inChan:
+                    cPipes.In.Write(d)
+            }
+        }
+    }()
+
     // Send all data from cmd output pipe to the requesting client, via
     // the Output dnode.Function provided by the requester.
     go func() {
@@ -103,7 +113,7 @@ func (p *LocalProxy) exec(r *ExecRequest) (*Exec, error) {
 
     data := &Exec{
         cmd:        cmd,
-        in:         cPipes.In,
+        in:         inChan,
 
         Common:     r.Common,
         IO:         r.IO,

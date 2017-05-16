@@ -3,6 +3,7 @@ package proxy_test
 import (
     "fmt"
     "strings"
+    "sync"
     "testing"
     "time"
 
@@ -126,6 +127,26 @@ func TestKubernetesExec(t *testing.T) {
         },
     }
 
+    var wg sync.WaitGroup
+
+    returned := ""
+    wg.Add(1)
+    go func () {
+        defer wg.Done()
+
+        timeout := time.After(time.Second * 3)
+
+        for !strings.Contains(returned, expected) {
+            select {
+                case o := <- r.output:
+                    fmt.Println("Output chunk:", o)
+                    returned += o
+                case <- timeout:
+                    t.Fatal("Should return expected output, in a timely manner.")
+            }
+        }
+    }()
+
     dnode, err := client.Tell("proxy.exec", r)
     if err != nil {
         t.Fatal(err)
@@ -137,30 +158,27 @@ func TestKubernetesExec(t *testing.T) {
         t.Fatal("Response should be of type proxy.ExecResponse.")
     }
 
-    returned := ""
-    timeout := time.After(time.Second * 3)
-    for !strings.Contains(returned, expected) {
-        select {
-            case o := <- r.output:
-                returned += o
-            case <- timeout:
-                t.Fatal("Should return expected output, in a timely manner.")
-        }
-    }
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
 
-    timeout = time.After(time.Millisecond * 100)
-    for {
-        select {
-            case <- r.done:
-                fmt.Println("Got the done callback")
-                return
-            case <- timeout:
-                t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+        timeout := time.After(time.Second * 3)
+        for {
+            select {
+                case <- r.done:
+                    fmt.Println("Got the done callback")
+                    return
+                case <- timeout:
+                    t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+            }
         }
-    }
+    }()
+
+    wg.Wait()
 }
 
 func TestKubernetesExecWithInput(t *testing.T) {
+    t.Skip("Temporary")
     p, err := proxy.NewKubernetes()
     if err != nil {
         t.Skip(skipMessage)

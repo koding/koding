@@ -2,12 +2,11 @@ package proxy
 
 import (
     "fmt"
-    "io"
     "os/exec"
 
     "github.com/koding/kite/dnode"
-    "github.com/rogpeppe/go-charset/charset"
-    _ "github.com/rogpeppe/go-charset/data"
+    //"github.com/rogpeppe/go-charset/charset"
+    // _ "github.com/rogpeppe/go-charset/data"
 )
 
 type Common struct {
@@ -56,7 +55,7 @@ type Exec struct {
     IO
 
     cmd         *exec.Cmd
-    in          io.WriteCloser
+    in          chan []byte
 }
 
 // ExecResponse is a helper type for clients to Unmarshal
@@ -77,7 +76,7 @@ func (r *Exec) Input(d *dnode.Partial) {
 
     fmt.Println("Proxying data from client to pipe: %s", data)
 
-    r.in.Write([]byte(data))
+    r.in <- []byte(data)
 }
 
 // ControlSequence is a dnode.Function that is expoed to the client,
@@ -85,12 +84,13 @@ func (r *Exec) Input(d *dnode.Partial) {
 func (r *Exec) ControlSequence(d *dnode.Partial) {
     data := d.MustSliceOfLength(1)[0].MustString()
 
-    writer, err := charset.NewWriter("ISO-8859-1", r.in)
-    if err != nil {
-        fmt.Println(err)
-    }
-
-    writer.Write([]byte(data))
+    // writer, err := charset.NewWriter("ISO-8859-1", r.in)
+    // if err != nil {
+    //     fmt.Println(err)
+    // }
+    //
+    // writer.Write([]byte(data))
+    r.in <- []byte(data)
 }
 
 // Kill is a dnode.Function that is exposed to clients, allowing

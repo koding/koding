@@ -74,6 +74,7 @@ func (r *TestExecRequest) Done(d *dnode.Partial) {
 // TestLocalExec attempts to verify that a basic command can be exec'ed to the
 // remote kite, and the output gets returned via the dnode.Function Output()
 func TestLocalExec(t *testing.T) {
+    t.Skip("Temporarily skipping.")
     p := proxy.NewLocal()
 
     mapping := map[string]kite.HandlerFunc{
@@ -141,6 +142,7 @@ func TestLocalExec(t *testing.T) {
 // TestLocalExecWithInput attempts to verify that we can sustain an Exec
 // instance and proxy input to it's stdin pipe until it exits.
 func TestLocalExecWithInput(t *testing.T) {
+    t.Skip("Temporarily skipping.")
     p := proxy.NewLocal()
 
     mapping := map[string]kite.HandlerFunc{
