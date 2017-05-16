@@ -37,9 +37,6 @@ func init() {
 	d.MustLoad(Builtin)
 	d.MustValidate(Builtin)
 
-	// set global compile time environment.
-	environment = Builtin.Environment
-
 	// Check if routes values are correct.
 	for route, host := range Builtin.Routes {
 		if host == "" {
@@ -47,9 +44,6 @@ func init() {
 		}
 	}
 }
-
-// environment defines the environment on which configuration was generated.
-var environment string
 
 // URL is a wrapper for url.URL that implements the following interfaces:
 //
@@ -270,7 +264,7 @@ func mustURL(s string) *URL {
 // the build in one. This function should be removed when service environments
 // are unified/cleaned.
 func ReplaceEnv(e *Endpoint, env string) *Endpoint {
-	return ReplaceCustomEnv(e, environment, env)
+	return ReplaceCustomEnv(e, Builtin.Environment, env)
 }
 
 // ReplaceCustomEnv should be used in case when provided environment is different than
@@ -295,7 +289,7 @@ func ReplaceCustomEnv(e *Endpoint, env, newEnv string) *Endpoint {
 var defaultAliases = aliases{
 	"production":  {},
 	"managed":     {},
-	"development": {"sandbox", "default", "dev"},
+	"development": {"sandbox", "dev"},
 	"devmanaged":  {},
 	"default":     {},
 }
@@ -306,7 +300,7 @@ type aliases map[string][]string
 // a development build. If provided environment is not found, this function
 // returns build in environment.
 func RmAlias(env string) string {
-	return rmAlias(env, environment)
+	return rmAlias(env, Builtin.Environment)
 }
 
 func rmAlias(env, defaultEnv string) string {
