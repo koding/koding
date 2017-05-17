@@ -7,6 +7,7 @@ import (
     "regexp"
     "strings"
     "sync"
+    "time"
 
     "koding/klient/registrar"
 
@@ -148,6 +149,8 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         TLSClientConfig: tlsConfig,
     }
 
+    fmt.Println("Connecting to:", u.String())
+
     conn, _, err := d.Dial(u.String(), http.Header{
         "Authorization": []string{
             fmt.Sprintf("Bearer %s", p.config.BearerToken),
@@ -171,9 +174,6 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         go func() {
             defer wg.Done()
 
-            // TODO (acbodine): The problem with this loop is that we will
-            // always try to read from the inChan before detecting if the
-            // websocket connection is still active.
             for connected {
                 select {
                     case d, ok := <- inChan:
@@ -193,7 +193,10 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
                             connected = false
                             mux.Unlock()
                         }
+                    case time.After(time.Second * 3):
+                        continue
                 }
+                fmt.Println("Looping on ingress proxier.")
             }
 
             fmt.Println("Exiting ingress proxier.")

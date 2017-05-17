@@ -218,11 +218,11 @@ func TestKubernetesExecWithInput(t *testing.T) {
     expected := `foobar
     `
 
+    wg.Add(1)
     go func() {
-        wg.Add(1)
         defer wg.Done()
 
-        timeout := time.After(time.Second * 3)
+        timeout := time.After(time.Second * 60)
 
         returned := ""
         for !strings.Contains(returned, expected) {
@@ -251,11 +251,11 @@ func TestKubernetesExecWithInput(t *testing.T) {
         t.Fatal(err)
     }
 
+    wg.Add(1)
     go func() {
-        wg.Add(1)
         defer wg.Done()
 
-        timeout := time.After(time.Second * 3)
+        timeout := time.After(time.Second * 60)
 
         for {
             select {
@@ -267,6 +267,8 @@ func TestKubernetesExecWithInput(t *testing.T) {
             }
         }
     }()
+
+    wg.Wait()
 }
 
 func TestKubernetesExecTerminal(t *testing.T) {

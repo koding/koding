@@ -79,7 +79,7 @@ func (r *Exec) Input(d *dnode.Partial) {
     r.in <- []byte(data)
 }
 
-// ControlSequence is a dnode.Function that is expoed to the client,
+// ControlSequence is a dnode.Function that is exposed to the client,
 // allowing them to send control character sequences to an Exec instance.
 func (r *Exec) ControlSequence(d *dnode.Partial) {
     data := d.MustSliceOfLength(1)[0].MustString()
