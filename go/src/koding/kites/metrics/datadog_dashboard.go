@@ -22,10 +22,6 @@ func register(parent, name string) {
 		return
 	}
 
-	if _, ok := allMetrics[parent]; !ok {
-		allMetrics[parent] = make([]metricStorage, 0)
-	}
-
 	allMetrics[parent] = append(allMetrics[parent], metricStorage{
 		name: name,
 	})
