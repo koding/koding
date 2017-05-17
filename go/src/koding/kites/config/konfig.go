@@ -170,6 +170,7 @@ type Konfig struct {
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
 	LockTimeout time.Duration `json:"lockTimeout,omitempty"`
+	NoMetrics   bool          `json:"noMetrics,string,omitempty"`
 	Debug       bool          `json:"debug,string,omitempty"`
 }
 
