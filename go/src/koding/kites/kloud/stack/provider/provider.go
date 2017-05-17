@@ -42,6 +42,8 @@ func Register(p *Provider) {
 		Provider:   p.Name,
 		Credential: mustDescribe(schema(p.Name).newCredential()),
 		Bootstrap:  mustDescribe(schema(p.Name).newBootstrap()),
+		UserData:   p.userdataPath(),
+		CloudInit:  !p.NoCloudInit,
 	}
 }
 
@@ -91,6 +93,15 @@ func desc(providers ...string) map[string]*stack.Description {
 	return desc
 }
 
+// Provider describes a single kloud provider.
+//
+// A kloud provider is used to enrich terraform template
+// with koding-related data and bootstrapped resources.
+//
+// Also it provides support for koding-related attributes
+// available for each terraform template.
+//
+// TODO(rjeczalik): Deprecate Userdata in favor of UserdataPath.
 type Provider struct {
 	// Name is a name of the provider.
 	//
@@ -107,6 +118,23 @@ type Provider struct {
 	//
 	// If empty, "user_data" will be used instead.
 	Userdata string
+
+	// UserdataPath specifies the JSONPath to the user_data
+	// field for each instance.
+	//
+	// E.g. given the resource name is instance for aws
+	// provider its UserdataPath is {"aws_instance", "*", "user_data"}.
+	//
+	// If UserdataPath is nil, the following JSONPath is used
+	// by default:
+	//
+	//   []string{Name + "_" + ResourceName, "*", Userdata}
+	//
+	UserdataPath []string
+
+	// NoCloudInit is set to true by provider, if it does
+	// not support running cloud-init scripts.
+	NoCloudInit bool
 
 	// Machine creates a Machine value, that is responsible
 	// for managing lifetime of a single machine
@@ -326,6 +354,13 @@ func (p *Provider) userdata() string {
 		return p.Userdata
 	}
 	return "user_data"
+}
+
+func (p *Provider) userdataPath() []string {
+	if p.UserdataPath != nil {
+		return p.UserdataPath
+	}
+	return []string{p.Name + "_" + p.resourceName(), "*", p.userdata()}
 }
 
 func (ps *Schema) newMetadata(m *stack.Machine) interface{} {
