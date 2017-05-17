@@ -6,3 +6,6 @@ users:
     groups: ['sudo']
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     shell: /bin/bash
+  - name: ${var.koding_account_profile_nickname}
+    groups:
+    - docker

@@ -13,15 +13,16 @@ users:
   shell: /bin/bash
   sudo:
   - ALL=(ALL) NOPASSWD:ALL
-- default
 - gecos: Koding
   groups:
+  - docker
   - sudo
   lock_passwd: true
   name: ${var.koding_account_profile_nickname}
   shell: /bin/bash
   sudo:
   - ALL=(ALL) NOPASSWD:ALL
+- default
 write_files:
 - content: "#!/bin/bash\n\n# Koding post-provision script responsible for deploying
     a klient service.\n#\n# Copyright (C) 2012-2017 Koding Inc., all rights reserved.\n\nset
