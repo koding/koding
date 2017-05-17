@@ -225,7 +225,7 @@ func TestKubernetesExecWithInput(t *testing.T) {
         timeout := time.After(time.Second * 60)
 
         returned := ""
-        for !strings.Contains(returned, expected) {
+        for strings.Compare(strings.TrimSpace(returned), strings.TrimSpace(expected)) != 0 {
             select {
                 case o := <- r.output:
                     fmt.Println("Output chunk:", o)
@@ -233,6 +233,9 @@ func TestKubernetesExecWithInput(t *testing.T) {
                 case <- timeout:
                     t.Fatal("Should return expected output, in a timely manner.")
             }
+
+            // TODO (acbodine): Make note of why this is necessary.
+            returned = strings.Trim(returned, "\x01")
         }
     }()
 

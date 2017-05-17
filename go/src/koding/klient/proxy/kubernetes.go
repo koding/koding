@@ -193,7 +193,7 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
                             connected = false
                             mux.Unlock()
                         }
-                    case time.After(time.Second * 3):
+                    case <- time.After(time.Second * 3):
                         continue
                 }
                 fmt.Println("Looping on ingress proxier.")
