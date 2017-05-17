@@ -1,6 +1,4 @@
 #cloud-config
-hostname: 'user'
-
 users:
   - name: 'otheruser'
     lock_passwd: True
