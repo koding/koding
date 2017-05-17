@@ -18,6 +18,8 @@ func init() {
 	provider.Register(&provider.Provider{
 		Name:         "marathon",
 		ResourceName: "app",
+		NoCloudInit:  true,
+		Userdata:     "cmd",
 		Machine:      newMachine,
 		Stack:        newStack,
 		Schema:       schema,

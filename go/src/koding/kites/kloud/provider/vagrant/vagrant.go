@@ -15,6 +15,7 @@ var p = &provider.Provider{
 	ResourceName: "instance",
 	Machine:      newMachine,
 	Stack:        newStack,
+	NoCloudInit:  true,
 	Schema: &provider.Schema{
 		NewCredential: newCredential,
 		NewBootstrap:  nil,
