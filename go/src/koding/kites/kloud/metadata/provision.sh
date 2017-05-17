@@ -25,7 +25,7 @@ main() {
 	chmod +x /opt/kite/klient/klient
 
 	chown -R "$${KODING_USERNAME}" \
-		/opt/kite/klient \
+		/opt/kite \
 		/var/log/klient.log \
 		/var/log/cloud-init-output.log
 
