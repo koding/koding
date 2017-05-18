@@ -1,3 +1,5 @@
+randomstring = require 'randomstring'
+
 module.exports = (options) ->
   kiteHome = '$KONFIG_PROJECTROOT/generated/kite_home/koding'
 
@@ -72,7 +74,7 @@ module.exports = (options) ->
     port: 2300
     region: options.region
     environment: options.environment
-    secretKey: ''
+    secretKey: randomstring.generate()
     aws:
       key: awsKeys.worker_terraformer.accessKeyId
       secret: awsKeys.worker_terraformer.secretAccessKey
@@ -163,7 +165,7 @@ module.exports = (options) ->
   kloud =
     publicKey: kontrol.publicKey
     privateKey: kontrol.privateKey
-    secretKey: ''
+    secretKey: randomstring.generate()
     terraformerSecretKey: terraformer.secretKey
     userPublicKey: '$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub'
     userPrivateKey: '$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem'

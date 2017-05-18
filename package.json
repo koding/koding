@@ -88,6 +88,7 @@
     "optimist": "0.6.1",
     "papertrail": "1.0.2",
     "progress": "1.1.8",
+    "randomstring": "1.1.5",
     "ratelimit.js": "1.8.0",
     "read": "1.0.7",
     "redis": "2.6.3",
