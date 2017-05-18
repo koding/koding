@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"koding/artifact"
 	"koding/kites/kontrol/kontrol"
+	"koding/kites/metrics"
+	"os"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -50,6 +52,10 @@ func main() {
 		err := http.ListenAndServe("0.0.0.0:6061", nil)
 		k.Kite.Log.Error(err.Error())
 	}()
+
+	if os.Getenv("GENERATE_DATADOG_DASHBOARD") != "" {
+		metrics.CreateMetricsDash()
+	}
 
 	k.Run()
 }

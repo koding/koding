@@ -16,6 +16,7 @@ import (
 
 	"koding/kites/config"
 	"koding/kites/config/configstore"
+	"koding/kites/metrics"
 	"koding/klient/app"
 	konfig "koding/klient/config"
 	"koding/klient/klientsvc"
@@ -168,6 +169,11 @@ func realMain() int {
 	}
 
 	defer a.Close()
+
+	if os.Getenv("GENERATE_DATADOG_DASHBOARD") != "" {
+		metrics.CreateMetricsDash()
+	}
+
 	a.Run()
 
 	return 0
