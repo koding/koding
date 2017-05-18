@@ -1,6 +1,4 @@
 #cloud-config
-hostname: 'user'
-
 write_files:
   - path: /tmp/helloworld.txt
     content: 'test'
