@@ -10,17 +10,23 @@ import (
 
 var bucket = []byte("metrics")
 
-var _ io.WriteCloser = &BoltQueue{}
+var _ io.WriteCloser = &BoltStorage{}
 
-// BoltQueue writes and reads to BoltDB
-type BoltQueue struct {
+// Storage is the contract for metrics storages
+type Storage interface {
+	io.WriteCloser
+	ConsumeN(n int, f OperatorFunc) (int, error)
+}
+
+// BoltStorage writes and reads to BoltDB
+type BoltStorage struct {
 	db *bolt.DB
 }
 
-// NewBoltQueue implements Writer and Closer interfaces.
-func NewBoltQueue(path string) (*BoltQueue, error) {
+// NewBoltStorage implements Writer and Closer interfaces.
+func NewBoltStorage(path string) (*BoltStorage, error) {
 	options := &bolt.Options{
-		Timeout: 5 * time.Second,
+		Timeout: time.Second,
 	}
 
 	db, err := bolt.Open(path, 0644, options)
@@ -28,11 +34,11 @@ func NewBoltQueue(path string) (*BoltQueue, error) {
 		return nil, err
 	}
 
-	return NewBoltQueueWithDB(db)
+	return NewBoltStorageWithDB(db)
 }
 
-// NewBoltQueueWithDB creates a new bolt queue for metrics into given db.
-func NewBoltQueueWithDB(db *bolt.DB) (*BoltQueue, error) {
+// NewBoltStorageWithDB creates a new bolt queue for metrics into given db.
+func NewBoltStorageWithDB(db *bolt.DB) (*BoltStorage, error) {
 	if err := db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(bucket)
 		return err
@@ -40,13 +46,13 @@ func NewBoltQueueWithDB(db *bolt.DB) (*BoltQueue, error) {
 		return nil, err
 	}
 
-	return &BoltQueue{
+	return &BoltStorage{
 		db: db,
 	}, nil
 }
 
 // Write writes incoming data to boltdb
-func (b *BoltQueue) Write(d []byte) (n int, err error) {
+func (b *BoltStorage) Write(d []byte) (n int, err error) {
 	// Start a write transaction.
 	if err := b.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(bucket)
@@ -66,7 +72,7 @@ func (b *BoltQueue) Write(d []byte) (n int, err error) {
 }
 
 // Close closes the underlying db connection
-func (b *BoltQueue) Close() error {
+func (b *BoltStorage) Close() error {
 	return b.db.Close()
 }
 
@@ -78,7 +84,7 @@ type OperatorFunc func([][]byte) error
 // If n < 0 process all the records available.
 // If n == 0 this call is noop.
 // If n > 0 process up to n available records.
-func (b *BoltQueue) ConsumeN(n int, f OperatorFunc) (int, error) {
+func (b *BoltStorage) ConsumeN(n int, f OperatorFunc) (int, error) {
 	if n == 0 {
 		return 0, nil
 	}
