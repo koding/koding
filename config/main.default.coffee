@@ -81,6 +81,25 @@ Configuration = (options = {}) ->
       command   :
         run     : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer'
 
+  KONFIG.workers.notification =
+    group       : 'webserver'
+    supervisord :
+      command   :
+        run     : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/notification -p 4560'
+    ports       :
+      incoming  : '4560'
+    nginx       :
+      websocket : yes
+      locations : [
+        { location: '/notify' }
+        {
+          location: '/notify/send'
+          internalOnly: yes
+        }
+      ]
+    instances   : 3
+    instanceAsArgument : '-i'
+
 
   options.disabledWorkers = [
     'algoliaconnector'
