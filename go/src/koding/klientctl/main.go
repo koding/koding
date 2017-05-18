@@ -164,12 +164,15 @@ error opening: %s
 
 	signal.Notify(sig, signals...)
 
-	m, err := metrics.New("kd")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "metrics wont be collected: ", err)
-	}
-	if m != nil {
-		defer m.Close()
+	var m *metrics.Metrics
+
+	if !config.Konfig.DisableMetrics {
+		var err error
+		if m, err = metrics.New("kd"); err != nil {
+			fmt.Fprintln(os.Stderr, "metrics will not be collected: ", err)
+		} else {
+			defer m.Close()
+		}
 	}
 
 	app := cli.NewApp()
@@ -1008,7 +1011,9 @@ error opening: %s
 		find(app.Commands, "daemon", "restart"),
 	)
 
-	app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, "", generateTagsForCLI)
+	if !config.Konfig.DisableMetrics {
+		app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, "", generateTagsForCLI)
+	}
 
 	if os.Getenv("GENERATE_DATADOG_DASHBOARD") != "" {
 		metrics.CreateMetricsDash()
