@@ -191,7 +191,7 @@ func (a *Anteroom) dequeue() {
 
 	// Pop event from the queue. If received event is present in current
 	// processed map, the event must be stopped until already sent one is
-	// executed. This prevents situations where two paraller workers executes
+	// executed. This prevents situations where two parallel workers executes
 	// different changes on the same file.
 	pop := func() *msync.Event {
 		a.cursMu.Lock()
