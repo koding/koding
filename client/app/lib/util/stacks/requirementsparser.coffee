@@ -45,19 +45,19 @@ module.exports = requirementsParser = (content) ->
     # This one extracts koding variables defined above
     # Check the example below for the regular expression definition
     # http://regexr.com/3bles ~ GG
-    ///\$\{var\.koding\_(#{sections})\_(#{props})(\_(.*?)\}|\})///g
+    ///var\.koding\_(#{sections})\_(#{props})(\_([A-Za-z0-9\-_]+)|)///g
 
     # And this one for userInputs which will be asked to user when they
     # want to build their stacks which created from the stack template
-    /\$\{var\.(userInput)\_([A-Za-z0-9\-_]+)\}/g
+    /var\.(userInput)\_([A-Za-z0-9\-_]+)/g
 
     # This is for custom data which will be asked from the admin
     # These variables needed to provide in custom variables section
-    /\$\{var\.(custom)\_(\w+?)\}/g
+    /var\.(custom)\_([A-Za-z0-9\-_]+)/g
 
     # This is for payload data which will be provided with the request
     # These variables will be posted dynamically, mostly over api calls
-    /\$\{var\.(payload)\_(\w+?)\}/g
+    /var\.(payload)\_([A-Za-z0-9\-_]+)/g
   ]
 
   requirements = {}
