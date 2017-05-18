@@ -21,10 +21,14 @@ type Anteroom struct {
 	closed bool          // set to true when the object was closed.
 	stopC  chan struct{} // channel used to close queue dispatching go-routine.
 
-	mu     sync.Mutex
-	evs    map[string]*msync.Event // Change name to change event map.
-	synced int64                   // How many events are processing.
-	idle   *subscribers            // Subscribers waiting for idle signals.
+	evsMu sync.Mutex
+	evs   map[string]*msync.Event // Change name to change event map.
+
+	cursMu sync.Mutex
+	curs   map[string]*msync.Event // Paths currently processed.
+
+	synced int64        // How many events are processing.
+	idle   *subscribers // Subscribers waiting for idle signals.
 }
 
 // NewAnteroom creates a new Anteroom object. Once it's created, Close method
@@ -38,6 +42,7 @@ func NewAnteroom() *Anteroom {
 		wakeupC: make(chan struct{}, 1),
 		stopC:   stopC,
 		evs:     make(map[string]*msync.Event),
+		curs:    make(map[string]*msync.Event),
 		idle:    newSubscribers(stopC),
 	}
 
@@ -50,8 +55,8 @@ func NewAnteroom() *Anteroom {
 // synchronization its meta-data will be coalesced and the same context will
 // be returned.
 func (a *Anteroom) Commit(c *index.Change) context.Context {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
 
 	// Return closed context when this object is no longer valid.
 	if a.closed {
@@ -112,10 +117,10 @@ func (a *Anteroom) Events() <-chan *msync.Event {
 // be interpreted as a number of files waiting for synchronization. Comparing
 // items and queued events shows how fast syncers are able to synchronize files.
 func (a *Anteroom) Status() (items int, synced int) {
-	a.mu.Lock()
+	a.evsMu.Lock()
 	items = len(a.evs)
 	synced = int(atomic.LoadInt64(&a.synced))
-	a.mu.Unlock()
+	a.evsMu.Unlock()
 
 	return items, synced
 }
@@ -124,8 +129,8 @@ func (a *Anteroom) Status() (items int, synced int) {
 // in disconnected state and each contexts returned by it are closed.
 func (a *Anteroom) Close() error {
 	a.once.Do(func() {
-		a.mu.Lock()
-		defer a.mu.Unlock()
+		a.evsMu.Lock()
+		defer a.evsMu.Unlock()
 
 		// Mark all events as deprecated and detach them from the queue.
 		for path, ev := range a.evs {
@@ -184,13 +189,54 @@ func (a *Anteroom) dequeue() {
 		wakeupTick = time.NewTicker(30 * time.Second)
 	)
 
+	// Pop event from the queue. If received event is present in current
+	// processed map, the event must be stopped until already sent one is
+	// executed. This prevents situations where two paraller workers executes
+	// different changes on the same file.
+	pop := func() *msync.Event {
+		a.cursMu.Lock()
+		defer a.cursMu.Unlock()
+
+		// Pop any pending events.
+		for path, ev := range a.curs {
+			if ev != nil {
+				a.curs[path] = nil
+				return ev
+			}
+		}
+
+		for {
+			ev := a.queue.Pop()
+			if ev == nil {
+				return nil
+			}
+
+			switch pending, ok := a.curs[ev.Change().Path()]; {
+			case ok && pending != nil:
+				// Event is pending so it could not be in Pop state. Commit
+				// logic makes this branch impossible since events in queue
+				// are coalesced.
+				panic("duplicated event received from waiting queue" + ev.String())
+			case ok && pending == nil:
+				// Similar event is already processed by worker go-routine.
+				// Store new one as pending.
+				a.curs[ev.Change().Path()] = ev
+			case !ok:
+				// There are no similar events being processed. Mark current one
+				// as sent to workers.
+				a.curs[ev.Change().Path()] = nil
+				return ev
+			}
+		}
+	}
+
 	tryPop := func() {
 		// Event haven't been sent yet.
 		if ev != nil {
 			return
 		}
 
-		if ev = a.queue.Pop(); ev == nil {
+		if ev = pop(); ev == nil {
 			evC = nil // queue is empty - turn off event channel.
 		} else {
 			atomic.AddInt64(&a.synced, 1)
@@ -202,7 +248,7 @@ func (a *Anteroom) dequeue() {
 	for {
 		select {
 		case evC <- ev:
-			if ev = a.queue.Pop(); ev == nil {
+			if ev = pop(); ev == nil {
 				evC = nil // queue is empty - turn off event channel.
 			} else {
 				atomic.AddInt64(&a.synced, 1)
@@ -233,20 +279,27 @@ func (a *Anteroom) wakeup() {
 // Detach removes the change from coalescing events map only if stored id
 // is equal to provided one.
 func (a *Anteroom) Detach(path string, id uint64) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
 
 	if ev, ok := a.evs[path]; ok && ev.ID() == id {
-		a.Unsync()
+		a.Unsync(path)
 		delete(a.evs, path)
 	}
 }
 
 // Unsync is called by event which is considered done.
-func (a *Anteroom) Unsync() {
+func (a *Anteroom) Unsync(path string) {
 	if atomic.AddInt64(&a.synced, -1) == 0 {
 		a.idle.done(true)
 	}
+
+	// Remove event from currently processed ones.
+	a.cursMu.Lock()
+	if ev, ok := a.curs[path]; ok && ev == nil {
+		delete(a.curs, path)
+	}
+	a.cursMu.Unlock()
 }
 
 type subscriber struct {

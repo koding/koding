@@ -138,6 +138,10 @@ func TestAnteroomPopChange(t *testing.T) {
 		t.Fatalf("want invalid valid event; got valid")
 	}
 
+	// All events either valid or not valid must went trough workers. They
+	// will execute only valid ones but mark all of them as done.
+	ev.Done()
+
 	select {
 	case <-a.Events(): // pop pending event.
 	case <-time.After(time.Second):
@@ -148,8 +152,8 @@ func TestAnteroomPopChange(t *testing.T) {
 	if items != 1 {
 		t.Errorf("want 1 items; got %d", items)
 	}
-	if synced != 2 {
-		t.Errorf("want 2 synced events; got %d", synced)
+	if synced != 1 {
+		t.Errorf("want 1 synced event; got %d", synced)
 	}
 }
 
