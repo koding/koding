@@ -318,7 +318,7 @@ module.exports = (KONFIG, options, credentials) ->
         ]
 
     userproxies         :
-      group             : 'webserver'
+      group             : if options.environment is 'default' then 'webserver' else 'proxy'
       nginx             :
         websocket       : yes
         locations       : [
