@@ -31,7 +31,7 @@ var ELBS = map[string]string{
 	"prod":       "awseb-e-x-AWSEBLoa-2AG3XORA8JXC",
 	"latest":     "awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9",
 	"sandbox":    "awseb-e-p-AWSEBLoa-1POHSLP6A7STY",
-	"monitoring": "awseb-e-j-AWSEBLoa-AQBHUYZM5ZX6",
+	"monitoring": "awseb-e-m-AWSEBLoa-1WDL87HGH01FI",
 	// proxy
 	"proxy-eu-west-1":      "awseb-e-s-AWSEBLoa-1LOTB5BKTJJBW",
 	"proxy-us-east-1":      "awseb-e-a-AWSEBLoa-RTLJ62SKJY5G",
@@ -55,7 +55,7 @@ var ELB2Region = map[string]string{
 	"awseb-e-u-AWSEBLoa-15H1DQTBBUMG":  "ap-southeast-1",
 
 	// app ELBs
-	"awseb-e-j-AWSEBLoa-AQBHUYZM5ZX6":  "us-east-1",
+	"awseb-e-m-AWSEBLoa-1WDL87HGH01FI": "us-east-1",
 	"awseb-e-x-AWSEBLoa-2AG3XORA8JXC":  "us-east-1",
 	"awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9": "us-east-1",
 	"awseb-e-p-AWSEBLoa-1POHSLP6A7STY": "us-east-1",

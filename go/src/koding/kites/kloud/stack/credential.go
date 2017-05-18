@@ -28,9 +28,11 @@ type CredentialDescribeResponse struct {
 // Description describes Credential and Bootstrap
 // types used by a given provider.
 type Description struct {
-	Provider   string  `json:"provider,omitempty"`
-	Credential []Value `json:"credential"`
-	Bootstrap  []Value `json:"bootstrap,omitempty"`
+	Provider   string   `json:"provider,omitempty"`
+	Credential []Value  `json:"credential"`
+	Bootstrap  []Value  `json:"bootstrap,omitempty"`
+	UserData   []string `json:"userData,omitempty"`
+	CloudInit  bool     `json:"cloudInit"`
 }
 
 // Descriptions maps credential description per provider.

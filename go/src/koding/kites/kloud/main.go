@@ -10,6 +10,7 @@ import (
 	konfig "koding/kites/config"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/stack"
+	"koding/kites/metrics"
 
 	"github.com/koding/multiconfig"
 )
@@ -89,6 +90,10 @@ func main() {
 		}
 		k.Kite.Run()
 	}()
+
+	if os.Getenv("GENERATE_DATADOG_DASHBOARD") != "" {
+		metrics.CreateMetricsDash()
+	}
 
 	k.Wait()
 

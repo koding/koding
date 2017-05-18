@@ -412,7 +412,9 @@ createHealthcheck = (KONFIG) ->
   '''
 
 createIPRoutes = (KONFIG) ->
-  return '' if not isProxy KONFIG.ebEnvName
+  unless KONFIG.environment in ['default', 'dev']
+    if not isProxy KONFIG.ebEnvName
+      return ''
 
   return '''
     location ~^/-/ip$ {

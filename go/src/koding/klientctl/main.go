@@ -1008,7 +1008,12 @@ error opening: %s
 		find(app.Commands, "daemon", "restart"),
 	)
 
-	app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, generateTagsForCLI)
+	app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, "", generateTagsForCLI)
+
+	if os.Getenv("GENERATE_DATADOG_DASHBOARD") != "" {
+		metrics.CreateMetricsDash()
+	}
+
 	app.Run(args)
 }
 
