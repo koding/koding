@@ -46,6 +46,7 @@ Configuration = (options = {}) ->
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
   options.proxySubdomain or= 'dev-p'
+  options.watchNode = yes
 
   try fs.lstatSync options.credentialPath
   catch
