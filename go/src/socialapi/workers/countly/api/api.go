@@ -52,6 +52,40 @@ func (c *CountlyAPI) Init(u *url.URL, h http.Header, _ interface{}, context *mod
 	return response.NewOK(res)
 }
 
+// Publish is the glue function for ensuring a metric is pushlished with its
+// supportive data.
+func (c *CountlyAPI) Publish(slug string, events ...client.Event) error {
+	if c.cfg.Countly.Disabled {
+		return nil
+	}
+
+	groupData, _ := c.groupDataCache.BySlug(slug)
+	appKey := ""
+	if groupData != nil {
+		appKey, _ = groupData.Payload.GetString("countly.appKey")
+	}
+
+	if appKey == "" {
+		// if we should create non existing apps.
+		if !c.cfg.Countly.FixApps {
+			return nil
+		}
+
+		cres, err := c.CreateApp(slug)
+		if err != nil {
+			return err
+		}
+
+		appKey = cres.AppID
+		groupData, err = c.groupDataCache.Refresh(slug)
+		if err != nil {
+			return err
+		}
+	}
+
+	return c.client.WriteEvent(appKey, slug, events)
+}
+
 // CreateApp creates an app for given group.
 func (c *CountlyAPI) CreateApp(slug string) (*mongomodels.Countly, error) {
 	// make this call idempotent
@@ -62,7 +96,7 @@ func (c *CountlyAPI) CreateApp(slug string) (*mongomodels.Countly, error) {
 
 	app, err := c.client.CreateApp(&client.App{
 		Name:  slug,
-		Owner: c.globalOwner,
+		Owner: c.cfg.Countly.AppOwner,
 	})
 	if err != nil {
 		return nil, err
