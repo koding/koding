@@ -136,6 +136,17 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 	return json.Unmarshal([]byte(tmpl), &b.Stack)
 }
 
+type StackOptions struct {
+	Team        string
+	Title       string
+	Credentials []string
+	Template    []byte
+}
+
+func (b *Builder) BuildStack(opts *StackOptions) error {
+	return nil
+}
+
 func (b *Builder) init() {
 	b.once.Do(b.initBuilder)
 }
