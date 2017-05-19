@@ -166,7 +166,10 @@ func (a *Anteroom) Close() error {
 // close c - once c received value, it can be reused to receive
 // another one with second IdleNotify call.
 func (a *Anteroom) IdleNotify(c chan<- bool, timeout time.Duration) {
-	if atomic.LoadInt64(&a.synced) == 0 {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	if atomic.LoadInt64(&a.synced) == 0 && len(a.evs) == 0 {
 		select {
 		case c <- true:
 		default:
@@ -307,7 +310,11 @@ func (a *Anteroom) Detach(path string, id uint64) {
 // Unsync is called by event which is considered done.
 func (a *Anteroom) Unsync(path string) {
 	if atomic.AddInt64(&a.synced, -1) == 0 {
-		a.idle.done(true)
+		a.mu.Lock()
+		if atomic.LoadInt64(&a.synced) == 0 && len(a.evs) == 0 {
+			a.idle.done(true)
+		}
+		a.mu.Unlock()
 	}
 
 	// Remove event from currently processed ones.
@@ -325,13 +332,13 @@ func (a *Anteroom) Pause() {
 
 // Resume resumes anteroom when it's paused.
 func (a *Anteroom) Resume() {
-	atomic.StoreUint64(&a.paused, 0)
+	atomic.StoreUint64(&a.paused, -1)
 	a.wakeup()
 }
 
 // IsPaused indicates whether Anteroom is paused or not.
 func (a *Anteroom) IsPaused() bool {
-	return atomic.LoadUint64(&a.paused) != 0
+	return atomic.LoadUint64(&a.paused) > 0
 }
 
 type subscriber struct {

@@ -618,7 +618,7 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]mount.Info) {
 				dashIfNegative(sign, info.Count),
 				dashIfNegative(sign, info.CountAll),
 				dashIfNegative(sign, info.Queued),
-				errorIfNegative(info.Syncing),
+				formatWithNegative(info.Syncing),
 				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSize))),
 				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSizeAll))),
 			)
@@ -633,12 +633,15 @@ func printJSON(v interface{}) {
 	enc.Encode(v)
 }
 
-func errorIfNegative(val int) string {
-	if val < 0 {
-		return "err"
+func formatWithNegative(val int) string {
+	switch val {
+	case -2:
+		return "paused"
+	case -1:
+		return "error"
+	default:
+		return strconv.Itoa(val)
 	}
-
-	return strconv.Itoa(val)
 }
 
 func dashIfNegative(sign int, val interface{}) string {

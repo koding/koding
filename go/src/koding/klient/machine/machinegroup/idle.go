@@ -39,11 +39,30 @@ func (g *Group) WaitIdle(r *WaitIdleRequest) error {
 		return err
 	}
 
+	// If anteroom is paused, we need to start it for the synchronization period.
+	switchBack := func() {}
+	if sc.Anteroom().IsPaused() {
+		var switchBackN int
+		// Call Restore until Anterom is restored. This prevents unexpected
+		// behavior when multiple processes manages mount synchronization.
+		for sc.Anteroom().IsPaused() {
+			switchBackN++
+			sc.Anteroom().Restore()
+		}
+
+		switchBack = func() {
+			for i := 0; i < switchBackN; i++ {
+				sc.Anterom().Pause()
+			}
+		}
+	}
+
 	c := make(chan bool, 1)
 
 	sc.Anteroom().IdleNotify(c, r.Timeout)
 
 	go func() {
+		defer switchBack()
 		r.Done.Call(<-c)
 	}()
 
