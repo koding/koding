@@ -134,7 +134,7 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         "container=%s&%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
         r.K8s.Container,
         strings.Join(cmds, "&"),
-        r.IO.Stdin,
+        false, // TODO (acbodine): Explain why: r.IO.Stdin,
         r.IO.Stdout,
         r.IO.Stderr,
         r.IO.Tty,
@@ -193,8 +193,9 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
                             connected = false
                             mux.Unlock()
                         }
+                        break
                     case <- time.After(time.Second * 3):
-                        continue
+                        break
                 }
                 fmt.Println("Looping on ingress proxier.")
             }
