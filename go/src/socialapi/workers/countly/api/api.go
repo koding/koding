@@ -4,6 +4,7 @@ import (
 	"errors"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/metrics"
 	"koding/tools/utils"
 	"net/http"
 	"net/url"
@@ -14,13 +15,15 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/runner"
+	dogstatsd "github.com/narqo/go-dogstatsd-parser"
 )
 
 // CountlyAPI is a wrapper struct for api handlers.
 type CountlyAPI struct {
-	client      *client.Client
-	log         logging.Logger
-	globalOwner string
+	client         *client.Client
+	log            logging.Logger
+	cfg            *config.Config
+	groupDataCache *groupDataCache
 }
 
 // NewCountlyAPI creates api handler functions for countly
@@ -33,8 +36,9 @@ func NewCountlyAPI(cfg *config.Config) *CountlyAPI {
 			client.SetBaseURL(cfg.Countly.Host),
 			client.SetLogger(logger),
 		),
-		log:         logger,
-		globalOwner: cfg.Countly.AppOwner,
+		log:            logger,
+		cfg:            cfg,
+		groupDataCache: newGroupCache(),
 	}
 }
 
@@ -50,6 +54,68 @@ func (c *CountlyAPI) Init(u *url.URL, h http.Header, _ interface{}, context *mod
 	}
 
 	return response.NewOK(res)
+}
+
+// PublishKiteMetrics publishes the kd and klient metrics to countly.
+func (c *CountlyAPI) PublishKiteMetrics(u *url.URL, h http.Header, pr *metrics.PublishRequest) (int, http.Header, interface{}, error) {
+	metrics := make(map[string][]client.Event, 0)
+
+	for _, p := range pr.Data {
+		m, err := dogstatsd.Parse(string(p))
+		if err != nil {
+			c.log.Info("Error while parsing metric %q, err: %s", string(p), err)
+			continue
+		}
+
+		var count, duration int
+		switch m.Type {
+		case dogstatsd.Counter:
+			val, _ := m.Value.(int64)
+			count = int(val)
+		case dogstatsd.Gauge, dogstatsd.Histogram:
+			val, _ := m.Value.(float64)
+			count = int(val)
+		case dogstatsd.Meter, dogstatsd.Timer:
+			val, _ := m.Value.(float64)
+			duration = int(val)
+		default:
+			count = 1
+		}
+
+		// TODO: add validation for teams
+
+		slug := getFromMap(m.Tags, "teamName", "group", "groupName")
+		if slug == "" {
+			continue
+		}
+
+		metrics[slug] = append(metrics[slug], client.Event{
+			Key:          m.Name + "_" + string(m.Type),
+			Count:        count,
+			Dur:          duration,
+			Segmentation: m.Tags,
+		})
+	}
+
+	for slug, events := range metrics {
+		if err := c.Publish(slug, events...); err != nil {
+			response.NewBadRequest(err)
+		}
+	}
+
+	return response.NewOK(nil)
+}
+
+// getFromMap returns the first value of the given vals.
+func getFromMap(m map[string]string, vals ...string) string {
+	for _, val := range vals {
+		v, ok := m[val]
+		if ok {
+			return v
+		}
+	}
+
+	return ""
 }
 
 // Publish is the glue function for ensuring a metric is pushlished with its
