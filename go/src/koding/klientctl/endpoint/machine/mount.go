@@ -307,11 +307,6 @@ func (c *Client) SyncMount(opts *SyncMountOptions) error {
 		return err
 	}
 
-	// If both pause and resume are set, we treat this as no-op.
-	if opts.Pause && opts.Resume {
-		return nil
-	}
-
 	// Get current synchronization status.
 	manageMountReq := &machinegroup.ManageMountRequest{
 		MountID: mountIDRes.MountID,

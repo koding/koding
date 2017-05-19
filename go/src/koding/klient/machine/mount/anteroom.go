@@ -21,6 +21,8 @@ type Anteroom struct {
 	closed bool          // set to true when the object was closed.
 	stopC  chan struct{} // channel used to close queue dispatching go-routine.
 
+	paused uint64 // stops dequeue when non-zero.
+
 	evsMu sync.Mutex
 	evs   map[string]*msync.Event // Change name to change event map.
 
@@ -121,6 +123,10 @@ func (a *Anteroom) Status() (items int, synced int) {
 	items = len(a.evs)
 	synced = int(atomic.LoadInt64(&a.synced))
 	a.evsMu.Unlock()
+
+	if a.IsPaused() {
+		synced = -2
+	}
 
 	return items, synced
 }
@@ -231,6 +237,11 @@ func (a *Anteroom) dequeue() {
 	}
 
 	tryPop := func() {
+		// If anteroom is paused, don't process the events.
+		if a.IsPaused() {
+			return
+		}
+
 		// Event haven't been sent yet.
 		if ev != nil {
 			return
@@ -248,6 +259,11 @@ func (a *Anteroom) dequeue() {
 	for {
 		select {
 		case evC <- ev:
+			if a.IsPaused() {
+				ev, evC = nil, nil // paused - turn off event channel.
+				return
+			}
+
 			if ev = pop(); ev == nil {
 				evC = nil // queue is empty - turn off event channel.
 			} else {
@@ -300,6 +316,22 @@ func (a *Anteroom) Unsync(path string) {
 		delete(a.curs, path)
 	}
 	a.cursMu.Unlock()
+}
+
+// Pause prevets Anteroom from sending new events.
+func (a *Anteroom) Pause() {
+	atomic.StoreUint64(&a.paused, 1)
+}
+
+// Resume resumes anteroom when it's paused.
+func (a *Anteroom) Resume() {
+	atomic.StoreUint64(&a.paused, 0)
+	a.wakeup()
+}
+
+// IsPaused indicates whether Anteroom is paused or not.
+func (a *Anteroom) IsPaused() bool {
+	return atomic.LoadUint64(&a.paused) != 0
 }
 
 type subscriber struct {

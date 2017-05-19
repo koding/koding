@@ -200,9 +200,27 @@ type ManageMountResponse struct {
 }
 
 // ManageMount configures dynamic state of the mount.
-func (g *Group) ManageMount(req *ManageMountRequest) (res *ManageMountResponse, err error) {
-	// TODO:ppknap
-	return nil, nil
+func (g *Group) ManageMount(req *ManageMountRequest) (*ManageMountResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	sc, err := g.sync.Sync(req.MountID)
+	if err != nil {
+		return nil, err
+	}
+
+	// If both pause and resume are set, we treat this as no-op.
+	if req.Pause && !req.Resume {
+		sc.Anteroom().Pause()
+	}
+	if req.Resume && !req.Pause {
+		sc.Anteroom().Resume()
+	}
+
+	return &ManageMountResponse{
+		Paused: sc.IsPaused(),
+	}, nil
 }
 
 // MountIDRequest defines machine group MountID request.
