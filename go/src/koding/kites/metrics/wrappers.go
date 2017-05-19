@@ -64,7 +64,6 @@ func WrapHTTPHandler(dd *dogstatsd.Client, metricName string, handler http.Handl
 
 // WrapCLIActions injects the metrics as middlewares into cli.Commands Actions.
 func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName string, tagsFn func(string) []string) []cli.Command {
-
 	for i, command := range commands {
 		name := strings.TrimSpace(parentName + " " + command.Name)
 		register(dd.Namespace, strings.Replace(name, " ", "_", -1))
