@@ -19,6 +19,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"time"
 
 	"koding/kites/kloud/utils/object"
 	"koding/kites/metrics"
@@ -751,6 +752,7 @@ error opening: %s
 					cli.DurationFlag{
 						Name:  "timeout, t",
 						Usage: "Maximum time to wait.",
+						Value: time.Minute,
 					},
 					cli.BoolFlag{
 						Name:  "pause",

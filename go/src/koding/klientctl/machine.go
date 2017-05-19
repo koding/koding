@@ -388,13 +388,14 @@ func MachineSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error)
 		}
 	}
 
-	opts := &machine.WaitIdleOptions{
+	opts := &machine.SyncMountOptions{
 		Identifier: ident,
-		Path:       ident,
+		Pause:      c.Bool("pause"),
+		Resume:     c.Bool("resume"),
 		Timeout:    c.Duration("timeout"),
 	}
 
-	if err := machine.WaitIdle(opts); err != nil {
+	if err := machine.SyncMount(opts); err != nil {
 		return 1, err
 	}
 
@@ -407,12 +408,12 @@ func waitForMount(path string) (err error) {
 	done := make(chan error)
 
 	go func() {
-		opts := &machine.WaitIdleOptions{
-			Path:    path,
-			Timeout: timeout,
+		opts := &machine.SyncMountOptions{
+			Identifier: path,
+			Timeout:    timeout,
 		}
 
-		done <- machine.WaitIdle(opts)
+		done <- machine.SyncMount(opts)
 	}()
 
 	notice := time.After(1 * time.Second)
