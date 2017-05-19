@@ -35,7 +35,7 @@ func TestSegmentIOExporter(t *testing.T) {
 		})
 
 		Convey("Then it should successfully send event to Segment.io", func() {
-			key := os.Getenv("SEGMENTIO_TEST_KEY")
+			key := os.Getenv("SEGMENTIO_KEY")
 			So(key, ShouldNotBeBlank)
 			size := 1
 			s := NewSegmentIOExporter(key, size)

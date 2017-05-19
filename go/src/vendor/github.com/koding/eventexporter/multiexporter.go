@@ -13,8 +13,14 @@ func NewMultiExporter(e ...Exporter) MultiExporter {
 	return MultiExporter(e)
 }
 
+// Send publishes the events to multiple upstreams, returns error on first
+// occurence
 func (m MultiExporter) Send(event *Event) error {
 	for _, e := range m {
+		if !isWhitelisted(e.Name(), event.WhitelistedUpstreams) {
+			continue
+		}
+
 		if err := e.Send(event); err != nil {
 			return err
 		}
@@ -23,6 +29,10 @@ func (m MultiExporter) Send(event *Event) error {
 	return nil
 }
 
+// Name returns the name of the exporter.
+func (MultiExporter) Name() string { return "all" }
+
+// Close closes the upstreams.
 func (m MultiExporter) Close() error {
 	for _, e := range m {
 		if err := e.Close(); err != nil {
@@ -83,6 +93,20 @@ func isAllowed(ß string) bool {
 
 	for _, val := range whitelist {
 		if ß == val {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isWhitelisted(name string, whitelist []string) bool {
+	if len(whitelist) == 0 {
+		return true
+	}
+
+	for _, w := range whitelist {
+		if w == name {
 			return true
 		}
 	}

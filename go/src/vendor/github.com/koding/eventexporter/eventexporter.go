@@ -1,5 +1,7 @@
 package eventexporter
 
+import "time"
+
 const (
 	TextBodyType BodyType = iota
 	HtmlBodyType
@@ -9,6 +11,7 @@ const (
 // Currently third party services: SegementIO and Sendgrid are implemented.
 type Exporter interface {
 	Send(*Event) error
+	Name() string
 	Close() error
 }
 
@@ -20,6 +23,11 @@ type Event struct {
 	Body       *Body                  // body of event; text or html
 	Properties map[string]interface{} // any additional properties
 	Context    map[string]interface{} // any additional context
+
+	Count    int64         // count of the event
+	Duration time.Duration // duration of the event
+	// Publish this events to only whitelisted upstreams
+	WhitelistedUpstreams []string
 }
 
 type BodyType int
