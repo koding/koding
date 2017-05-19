@@ -743,13 +743,22 @@ error opening: %s
 					},
 				},
 			}, {
-				Name:   "sync",
-				Usage:  "Wait for mount synchronization to finish.",
-				Action: ctlcli.ExitErrAction(MachineSyncMount, log, "sync"),
+				Name:        "sync",
+				Usage:       "Manage mount synchronization.",
+				Description: cmdDescriptions["mount-sync"],
+				Action:      ctlcli.ExitErrAction(MachineSyncMount, log, "sync"),
 				Flags: []cli.Flag{
 					cli.DurationFlag{
 						Name:  "timeout, t",
 						Usage: "Maximum time to wait.",
+					},
+					cli.BoolFlag{
+						Name:  "pause",
+						Usage: "Pause synchronization.",
+					},
+					cli.BoolFlag{
+						Name:  "resume",
+						Usage: "Resume synchronization.",
 					},
 				},
 			}, {
