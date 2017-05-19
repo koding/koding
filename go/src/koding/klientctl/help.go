@@ -44,8 +44,7 @@ var cmdDescriptions = map[string]string{
    If neither <mount-id> nor <path> is provided, the <path> will be assumed as current
    working directory.
 
-   Pausing synchronization blocks until all currently processed files ale synced. In order
-   to disable this behavior, "timeout" flag value must be set to 0.`,
+   Pause does not stop currently running synchronization jobs.`,
 	),
 	"exec": fmtDesc(
 		"(<local-mount-path> | @<machine-id>) <command> [<args>...]",

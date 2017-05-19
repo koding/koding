@@ -47,12 +47,12 @@ func (g *Group) WaitIdle(r *WaitIdleRequest) error {
 		// behavior when multiple processes manages mount synchronization.
 		for sc.Anteroom().IsPaused() {
 			switchBackN++
-			sc.Anteroom().Restore()
+			sc.Anteroom().Resume()
 		}
 
 		switchBack = func() {
 			for i := 0; i < switchBackN; i++ {
-				sc.Anterom().Pause()
+				sc.Anteroom().Pause()
 			}
 		}
 	}

@@ -307,27 +307,18 @@ func (c *Client) SyncMount(opts *SyncMountOptions) error {
 		return err
 	}
 
-	// Get current synchronization status.
+	// Set mount synchronization settings.
 	manageMountReq := &machinegroup.ManageMountRequest{
 		MountID: mountIDRes.MountID,
+		Pause:   opts.Pause,
+		Resume:  opts.Resume,
 	}
 	var manageMountRes machinegroup.ManageMountResponse
 	if err := c.klient().Call("machine.mount.manage", manageMountReq, &manageMountRes); err != nil {
 		return err
 	}
 
-	// Set mount synchronization settings.
-	manageMountReq = &machinegroup.ManageMountRequest{
-		MountID: mountIDRes.MountID,
-		Pause:   opts.Pause,
-		Resume:  opts.Resume,
-	}
-	if err := c.klient().Call("machine.mount.manage", manageMountReq, nil); err != nil {
-		return err
-	}
-
-	// If synchronization was paused there is nothing to wait for.
-	if manageMountRes.Paused {
+	if opts.Pause || opts.Resume {
 		return nil
 	}
 

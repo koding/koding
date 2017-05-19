@@ -21,7 +21,7 @@ type Anteroom struct {
 	closed bool          // set to true when the object was closed.
 	stopC  chan struct{} // channel used to close queue dispatching go-routine.
 
-	paused uint64 // stops dequeue when non-zero.
+	paused int64 // stops dequeue when non-zero.
 
 	evsMu sync.Mutex
 	evs   map[string]*msync.Event // Change name to change event map.
@@ -166,8 +166,8 @@ func (a *Anteroom) Close() error {
 // close c - once c received value, it can be reused to receive
 // another one with second IdleNotify call.
 func (a *Anteroom) IdleNotify(c chan<- bool, timeout time.Duration) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
 
 	if atomic.LoadInt64(&a.synced) == 0 && len(a.evs) == 0 {
 		select {
@@ -302,19 +302,22 @@ func (a *Anteroom) Detach(path string, id uint64) {
 	defer a.evsMu.Unlock()
 
 	if ev, ok := a.evs[path]; ok && ev.ID() == id {
-		a.Unsync(path)
 		delete(a.evs, path)
+		a.unsync(path)
 	}
 }
 
 // Unsync is called by event which is considered done.
 func (a *Anteroom) Unsync(path string) {
-	if atomic.AddInt64(&a.synced, -1) == 0 {
-		a.mu.Lock()
-		if atomic.LoadInt64(&a.synced) == 0 && len(a.evs) == 0 {
-			a.idle.done(true)
-		}
-		a.mu.Unlock()
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
+
+	a.unsync(path)
+}
+
+func (a *Anteroom) unsync(path string) {
+	if atomic.AddInt64(&a.synced, -1) == 0 && len(a.evs) == 0 {
+		a.idle.done(true)
 	}
 
 	// Remove event from currently processed ones.
@@ -327,18 +330,18 @@ func (a *Anteroom) Unsync(path string) {
 
 // Pause prevets Anteroom from sending new events.
 func (a *Anteroom) Pause() {
-	atomic.StoreUint64(&a.paused, 1)
+	atomic.StoreInt64(&a.paused, 1)
 }
 
 // Resume resumes anteroom when it's paused.
 func (a *Anteroom) Resume() {
-	atomic.StoreUint64(&a.paused, -1)
+	atomic.StoreInt64(&a.paused, -1)
 	a.wakeup()
 }
 
 // IsPaused indicates whether Anteroom is paused or not.
 func (a *Anteroom) IsPaused() bool {
-	return atomic.LoadUint64(&a.paused) > 0
+	return atomic.LoadInt64(&a.paused) > 0
 }
 
 type subscriber struct {

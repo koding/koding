@@ -219,7 +219,7 @@ func (g *Group) ManageMount(req *ManageMountRequest) (*ManageMountResponse, erro
 	}
 
 	return &ManageMountResponse{
-		Paused: sc.IsPaused(),
+		Paused: sc.Anteroom().IsPaused(),
 	}, nil
 }
 
