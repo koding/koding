@@ -198,6 +198,11 @@ generateDev = (KONFIG, options) ->
         exit 1
       fi
 
+      local pgssl=$(psql --quiet --tuples-only --command "show ssl;" $KONFIG_POSTGRES_URL | tr --delete '[:space:]')
+      if [[ "$pgssl" == "off" ]]; then
+        export PGSSLMODE="disable"
+      fi
+
       $GOBIN/migrate -url "postgres://$KONFIG_POSTGRES_HOST:$KONFIG_POSTGRES_PORT/$KONFIG_POSTGRES_DBNAME?user=social_superuser&password=social_superuser" -path "$KONFIG_PROJECTROOT/go/src/socialapi/db/sql/migrations" $param $2
 
       if [ "$param" == "create" ]; then
