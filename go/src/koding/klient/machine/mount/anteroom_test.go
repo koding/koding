@@ -1,9 +1,11 @@
 package mount_test
 
 import (
+	"math/rand"
 	"reflect"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -136,6 +138,10 @@ func TestAnteroomPopChange(t *testing.T) {
 		t.Fatalf("want invalid valid event; got valid")
 	}
 
+	// All events either valid or not valid must went trough workers. They
+	// will execute only valid ones but mark all of them as done.
+	ev.Done()
+
 	select {
 	case <-a.Events(): // pop pending event.
 	case <-time.After(time.Second):
@@ -146,8 +152,8 @@ func TestAnteroomPopChange(t *testing.T) {
 	if items != 1 {
 		t.Errorf("want 1 items; got %d", items)
 	}
-	if synced != 2 {
-		t.Errorf("want 2 synced events; got %d", synced)
+	if synced != 1 {
+		t.Errorf("want 1 synced event; got %d", synced)
 	}
 }
 
@@ -194,5 +200,71 @@ func TestAnteroomMultiEvents(t *testing.T) {
 
 	if !reflect.DeepEqual(sent, got) {
 		t.Fatalf("sent event paths are not equal to received ones")
+	}
+}
+
+func TestSequentialSync(t *testing.T) {
+	a := mount.NewAnteroom()
+
+	var wg sync.WaitGroup
+	startC := make(chan struct{})
+
+	// We need to use different changes since identical will be coalesced to no-op.
+	changeMetas := []index.ChangeMeta{
+		index.ChangeMetaAdd,
+		index.ChangeMetaRemove,
+		index.ChangeMetaUpdate,
+		index.ChangeMetaAdd | index.ChangeMetaRemote,
+		index.ChangeMetaRemove | index.ChangeMetaRemote,
+		index.ChangeMetaUpdate | index.ChangeMetaRemote,
+	}
+
+	const eventsN = 10000
+	// Feed anteroom with events some of them will be coleased.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		<-startC
+
+		for i := 0; i < eventsN; i++ {
+			changeMeta := changeMetas[rand.Intn(len(changeMetas))]
+			a.Commit(index.NewChange("path.txt", index.PriorityLow, changeMeta))
+			time.Sleep(100 * time.Millisecond / eventsN)
+		}
+
+		// Close anteroom which will close `Events` channel.
+		a.Close()
+	}()
+
+	var want, got int64
+
+	const workersN = 16
+	// Add workers.
+	wg.Add(workersN)
+	for i := 0; i < workersN; i++ {
+		go func() {
+			defer wg.Done()
+			<-startC
+
+			for ev := range a.Events() {
+				atomic.AddInt64(&want, 1) // How many events were processed.
+				old := atomic.LoadInt64(&got)
+
+				// Simulate event processing and then CAS with old value. If
+				// there are other workers processing the event, CAS will fail.
+				time.Sleep(100 * time.Millisecond * time.Duration(rand.Intn(workersN)+1) / eventsN)
+				atomic.CompareAndSwapInt64(&got, old, old+1)
+
+				ev.Done()
+			}
+		}()
+	}
+
+	// Start processing.
+	close(startC)
+	wg.Wait()
+
+	if want != got {
+		t.Errorf("changes not processed sequentially: (%d != %d)", want, got)
 	}
 }
