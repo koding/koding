@@ -5,6 +5,8 @@ module.exports = (KONFIG, options, credentials) ->
   GOBIN = '%(ENV_KONFIG_PROJECTROOT)s/go/bin'
   GOPATH = '%(ENV_KONFIG_PROJECTROOT)s/go'
 
+  nodeProgram = if options.watchNode then './watch-node' else 'node'
+
   workers =
     bucketproxies       :
       group             : 'bucket'
@@ -122,7 +124,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
-        command         : './watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js'
+        command         : "#{nodeProgram} %(ENV_KONFIG_PROJECTROOT)s/servers/index.js"
       healthCheckURLs   : [
           "http://localhost:#{options.publicPort}/swagger.json"
           "http://localhost:#{options.publicPort}/apidocs"
@@ -153,7 +155,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
       supervisord       :
-        command         : './watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js'
+        command         : "#{nodeProgram} %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
       nginx             :
         locations       : [
           { location: '/xhr' }
