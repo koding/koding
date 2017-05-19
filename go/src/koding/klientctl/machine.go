@@ -354,7 +354,7 @@ func MachineConfigSet(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-// MachineCondifShow displays machine's key=value pairs.
+// MachineConfigShow displays machine's key=value pairs.
 func MachineConfigShow(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	ident := c.Args().Get(0)
 	json := c.Bool("json")
@@ -375,6 +375,61 @@ func MachineConfigShow(c *cli.Context, _ logging.Logger, _ string) (int, error) 
 	}
 
 	return 0, nil
+}
+
+// MachineSyncMount manages mount synchronization.
+func MachineSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	ident := c.Args().Get(0)
+
+	if ident == "" {
+		var err error
+		if ident, err = os.Getwd(); err != nil {
+			return 1, err
+		}
+	}
+
+	opts := &machine.WaitIdleOptions{
+		Identifier: ident,
+		Path:       ident,
+		Timeout:    c.Duration("timeout"),
+	}
+
+	if err := machine.WaitIdle(opts); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+func waitForMount(path string) (err error) {
+	const timeout = 1 * time.Minute
+
+	done := make(chan error)
+
+	go func() {
+		opts := &machine.WaitIdleOptions{
+			Path:    path,
+			Timeout: timeout,
+		}
+
+		done <- machine.WaitIdle(opts)
+	}()
+
+	notice := time.After(1 * time.Second)
+
+	select {
+	case err = <-done:
+	case <-notice:
+		fmt.Fprintf(os.Stderr, "Waiting for mount... ")
+
+		if err = <-done; err == nil {
+			fmt.Fprintln(os.Stderr, "ok")
+		} else {
+			fmt.Fprintln(os.Stderr, "error")
+		}
+	}
+
+	return err
 }
 
 func machineCommand(c *cli.Context, fn func(string) (string, error)) error {

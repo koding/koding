@@ -743,6 +743,16 @@ error opening: %s
 					},
 				},
 			}, {
+				Name:   "sync",
+				Usage:  "Wait for mount synchronization to finish.",
+				Action: ctlcli.ExitErrAction(MachineSyncMount, log, "sync"),
+				Flags: []cli.Flag{
+					cli.DurationFlag{
+						Name:  "timeout, t",
+						Usage: "Maximum time to wait.",
+					},
+				},
+			}, {
 				Name:   "inspect",
 				Hidden: true,
 				Usage:  "Advanced utilities for mount command.",
@@ -862,16 +872,6 @@ error opening: %s
 				},
 			},
 		}},
-	}, {
-		Name:   "sync",
-		Usage:  "Wait for mount synchronization to finish.",
-		Action: ctlcli.ExitErrAction(Sync, log, "sync"),
-		Flags: []cli.Flag{
-			cli.DurationFlag{
-				Name:  "timeout, t",
-				Usage: "Maximum time to wait.",
-			},
-		},
 	}, {
 		Name:  "team",
 		Usage: "List available teams and set team context.",
