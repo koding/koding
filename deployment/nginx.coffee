@@ -143,9 +143,9 @@ createLocations = (KONFIG) ->
   for name, options of workers
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
-    continue unless options.nginx?.locations
+    continue  unless options.nginx?.locations
 
-    continue if options.nginx?.disableLocation?
+    continue  if options.nginx?.disableLocation
 
     # some of the locations can be limited to some environments, while creating
     # nginx locations filter with this info
