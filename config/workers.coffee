@@ -164,7 +164,36 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURLs   : [ "http://localhost:#{KONFIG.social.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    socialapi:
+    emailer             :
+      group             : 'webserver'
+      disabled          : yes
+      supervisord       :
+        command         :
+          run           : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer'
+
+    notification        :
+      group             : 'webserver'
+      disabled          : yes
+      supervisord       :
+        command         :
+          run           : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/notification -p 4560'
+      ports             :
+        incoming        : '4560'
+      nginx             :
+        websocket       : yes
+        disableLocation : yes
+        locations       : [
+          { location    : '/notify' }
+          {
+            location    : '~ /api/social/private/dispatcher/(.*)' # handle dispatcher requests
+            proxyPass   : 'http://notification/$1$is_args$args'
+            internalOnly: yes
+          }
+        ]
+      instances         : 3
+      instanceAsArgument: '-i'
+
+    socialapi           :
       group             : 'socialapi'
       instances         : 1
       ports             :
