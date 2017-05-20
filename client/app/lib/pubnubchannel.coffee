@@ -1,6 +1,5 @@
 kd = require 'kd'
-KDObject = kd.Object
-module.exports = class PubnubChannel extends KDObject
+module.exports = class PubnubChannel extends kd.Object
 
   constructor: (options = {}) ->
 

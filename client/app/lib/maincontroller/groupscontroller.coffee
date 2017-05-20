@@ -66,6 +66,7 @@ module.exports = class GroupsController extends kd.Controller
   filterXssAndForwardEvents: (target, events) ->
     events.forEach (event) =>
       target.on event, (rest...) =>
+        debug 'got notification for group', rest...
         rest = remote.revive rest
         @emit event, rest...
 

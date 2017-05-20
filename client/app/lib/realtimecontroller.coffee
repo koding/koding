@@ -29,10 +29,15 @@ module.exports = class RealtimeController extends KDController
 
     super options, data
 
-    unless globals.config.environment is 'default'
+
+    { pubnub } = globals.config
+
+    if pubnub.enabled and pubnub.subscribekey
       @initPubNub()
       @syncTime()
       @initAuthentication()
+    else
+      console.log 'I will be back.'
 
 
   fetchServerTime: (callback = noop) ->
@@ -45,12 +50,13 @@ module.exports = class RealtimeController extends KDController
 
 
   initPubNub: ->
-    { subscribekey, ssl } = globals.config.pubnub
+
+    { environment, pubnub: { subscribekey, ssl } } = globals.config
 
     options =
       subscribe_key : subscribekey
       uuid          : whoami()._id
-      ssl           : if globals.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
+      ssl           : if environment is 'dev' then window.location.protocol is 'https:' else ssl
       noleave       : yes
 
     @pubnub = PUBNUB.init options
