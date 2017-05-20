@@ -368,3 +368,15 @@ module.exports = (KONFIG, options, credentials) ->
             ]
           }
         ]
+
+  # if requested disable workers
+  disabledWorkers = options?.disabledWorkers ? []
+  for worker in disabledWorkers
+    delete workers[worker]
+
+  # if not enabled then disable the one should be disabled
+  enabledWorkers = options?.enabledWorkers ? []
+  for _, worker of workers when worker.disabled and _ not in enabledWorkers
+    delete workers[_]
+
+  return workers

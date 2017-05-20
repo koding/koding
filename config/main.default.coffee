@@ -71,10 +71,6 @@ Configuration = (options = {}) ->
     botchannel : yes
     gitlab     : no
 
-  KONFIG = require('./generateKonfig')(options, credentials)
-
-  KONFIG.workers = require('./workers')(KONFIG, options, credentials)
-
   KONFIG.workers.emailer =
     group       : 'webserver'
     supervisord :
@@ -106,9 +102,8 @@ Configuration = (options = {}) ->
     'gatekeeper'
   ]
 
-  for worker in options.disabledWorkers
-    delete KONFIG.workers[worker]
-
+  KONFIG = require('./generateKonfig')(options, credentials)
+  KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   # Disable Sneaker for kloud.
