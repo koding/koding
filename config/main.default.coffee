@@ -86,6 +86,8 @@ Configuration = (options = {}) ->
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
+  KONFIG.workers.notification.nginx.disableLocation = no
+
   # Disable Sneaker for kloud.
   KONFIG.kloud.noSneaker = true
 
