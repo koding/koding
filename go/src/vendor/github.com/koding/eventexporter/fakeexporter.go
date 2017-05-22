@@ -13,6 +13,10 @@ func (l *FakeExporter) Send(event *Event) error {
 	return nil
 }
 
+func (l *FakeExporter) Name() string {
+	return "fake"
+}
+
 func (l *FakeExporter) Close() error {
 	return nil
 }
