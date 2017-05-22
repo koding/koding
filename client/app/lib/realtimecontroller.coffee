@@ -4,19 +4,17 @@ doXhrRequest = require './util/doXhrRequest'
 sendDataDogEvent = require './util/sendDataDogEvent'
 whoami = require './util/whoami'
 kd = require 'kd'
-KDController = kd.Controller
-KDTimeAgoView = kd.TimeAgoView
 backoff = require 'backoff'
 PubnubChannel = require './pubnubchannel'
 
 require 'pubnub'
 
 
-module.exports = class RealtimeController extends KDController
-
-  { noop } = kd
+module.exports = class RealtimeController extends kd.Controller
 
   constructor: (options = {}, data) ->
+
+    super options, data
 
     # when we remove broker completely, we no longer need to
     # make another caching here
@@ -24,29 +22,24 @@ module.exports = class RealtimeController extends KDController
 
     # this is used for discarding events that are received multiple times
     @eventCache = {}
-
     @initLocalStorage()
-
-    super options, data
-
 
     { pubnub } = globals.config
 
     if pubnub.enabled and pubnub.subscribekey
       @initPubNub()
-      @syncTime()
-      @initAuthentication()
     else
       console.log 'I will be back.'
 
 
-  fetchServerTime: (callback = noop) ->
-    @pubnub.time (timestamp) =>
-      return callback Date.now() * 10000  unless timestamp
+  initLocalStorage: ->
 
-      @serverTimestamp = timestamp
-      @emit 'Ping', timestamp
-      callback timestamp
+    @localStorage = kd.singletons.localStorageController.storage 'realtime'
+
+    # each forbidden channel name is stored in local storage
+    # this is used for preventing datadog
+    unless @localStorage.getValue 'ForbiddenChannels'
+      @localStorage.setValue 'ForbiddenChannels', {}
 
 
   initPubNub: ->
@@ -67,43 +60,36 @@ module.exports = class RealtimeController extends KDController
     # https://www.pivotaltracker.com/story/show/88210800
     @pbNotification = PUBNUB.init options
 
+    fetchServerTime = (callback = kd.noop) =>
 
-  syncTime: ->
+      @pubnub.time (timestamp) =>
+        return callback Date.now() * 10000  unless timestamp
 
-    @fetchServerTime (timestamp) =>
+        @serverTimestamp = timestamp
+        @emit 'Ping', timestamp
+        callback timestamp
+
+    # syncServerTime
+    fetchServerTime (timestamp) =>
       @lastSeenOnline = timestamp
 
-    setInterval =>
-      @fetchServerTime()
-    , 10000
+    kd.utils.repeat 10000, fetchServerTime
 
 
-  initLocalStorage: ->
-    @localStorage  = kd.getSingleton('localStorageController').storage 'realtime'
-
-    # TODO we can remove this later on
-    @localStorage.unsetKey 'isPubnubEnabled'
-
-    # each forbidden channel name is stored in local storage
-    # this is used for preventing datadog
-    unless @localStorage.getValue 'ForbiddenChannels'
-      @localStorage.setValue 'ForbiddenChannels', {}
-
-
-  initAuthentication: ->
+    # initAuthentication for PubNub
     @authenticated = false
 
     realtimeToken = kookies.get('realtimeToken')
 
     if realtimeToken?
-      @setAuthToken realtimeToken
+      @setPubNubAuthToken realtimeToken
       @authenticated = yes
 
       return
 
     # in case of realtime token does not exist, fetch it from Gatekeeper
     options = { endPoint : '/api/gatekeeper/token', data: { id: whoami().socialApiId } }
-    @authenticate options, (err) =>
+    @authenticateWithPubNub options, (err) =>
 
       return kd.warn err  if err
 
@@ -111,14 +97,15 @@ module.exports = class RealtimeController extends KDController
       @emit 'authenticated'
 
 
-  setAuthToken: (token) ->
+  setPubNubAuthToken: (token) ->
+
     @pubnub.auth token
     @pbNotification.auth token
 
 
   # channel authentication is needed for notification channel and
   # private channels
-  authenticate: (options, callback) ->
+  authenticateWithPubNub: (options, callback) ->
 
     return callback null  unless options?
 
@@ -146,7 +133,7 @@ module.exports = class RealtimeController extends KDController
 
         return callback { message : 'Could not find realtime token' }  unless realtimeToken
 
-        @setAuthToken realtimeToken
+        @setPubNubAuthToken realtimeToken
 
         bo.reset()
 
@@ -180,7 +167,7 @@ module.exports = class RealtimeController extends KDController
 
     options.pbInstance = @pubnub
 
-    return @subscribePubnub options, callback
+    return @subscribePubNub options, callback
 
 
   # unsubscribeChannel unsubscribes the user from given channel
@@ -227,10 +214,10 @@ module.exports = class RealtimeController extends KDController
 
     options.pbInstance = @pbNotification
 
-    @subscribePubnub options, callback
+    @subscribePubNub options, callback
 
 
-  subscribePubnub: (options = {}, callback) ->
+  subscribePubNub: (options = {}, callback) ->
 
     return @subscribeHelper options, callback  if @authenticated
 
@@ -243,7 +230,7 @@ module.exports = class RealtimeController extends KDController
     # return channel if it already exists
     return callback null, @channels[pubnubChannelName]  if @channels[pubnubChannelName]
 
-    @authenticate options.authenticate, (err) =>
+    @authenticateWithPubNub options.authenticate, (err) =>
 
       return callback err  if err
 
@@ -255,16 +242,16 @@ module.exports = class RealtimeController extends KDController
 
       pb.subscribe
         channel : pubnubChannelName
-        message : (message, env, channel) => @handleMessage message, channel
+        message : (message, env, channel) => @handlePubNubMessage message, channel
         connect : =>
           @channels[pubnubChannelName] = channelInstance
           @removeFromForbiddenChannels pubnubChannelName
           callbackCalled = yes
           callback null, channelInstance
         error   : (err) =>
-          @handleError err
+          @handlePubNubError err
           callback err  unless callbackCalled
-        reconnect: (channel) => @reconnect channel, pb
+        reconnect: (channel) => @reconnectToPubNubChannel channel, pb
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
         # for this reason for every subscribe request, we are fetching all messages sent
@@ -275,13 +262,14 @@ module.exports = class RealtimeController extends KDController
       return callback err  if err
 
 
-  isDisconnected: (err) ->
+  isPubNubDisconnected: (err) ->
     # I know this is so error prone, but they are not sending any error code; just message. :(
     return err?.message is 'Offline. Please check your network settings.'
 
 
-  reconnect: (channel, pbInstance) ->
-    KDTimeAgoView.emit 'OneMinutePassed'
+  reconnectToPubNubChannel: (channel, pbInstance) ->
+
+    kd.TimeAgoView.emit 'OneMinutePassed'
 
     @once 'Ping', (serverTimestamp) =>
 
@@ -291,10 +279,12 @@ module.exports = class RealtimeController extends KDController
       if @lastSeenOnline < serverTimestamp - 864000000000
         return window.location.reload()
 
-      @fetchHistory { channel, timestamp: @lastSeenOnline, pbInstance }
+      @fetchChannelHistoryFromPubNub {
+        channel, timestamp: @lastSeenOnline, pbInstance
+      }
 
 
-  fetchHistory: (options) ->
+  fetchChannelHistoryFromPubNub: (options) ->
 
     { channel, timestamp, pbInstance } = options
 
@@ -327,12 +317,12 @@ module.exports = class RealtimeController extends KDController
 
         return  unless messages?.length and Array.isArray(messages)
 
-        @handleMessage message, channel  for message in messages
+        @handlePubNubMessage message, channel  for message in messages
 
         # since the maximum message limit is 100, we are making a recursive call here
         if messages.length is limit
           historyOptions.start = end
-          @fetchHistory { channel, timestamp: end }
+          @fetchChannelHistoryFromPubNub { channel, timestamp: end }
       err: (err) -> kd.warn "Could not fetch history #{err.message}"  unless err
 
     bo.on 'backoff', -> pb.history historyOptions
@@ -340,7 +330,7 @@ module.exports = class RealtimeController extends KDController
     bo.backoff()
 
 
-  handleMessage: (message, channel) ->
+  handlePubNubMessage: (message, channel) ->
 
     return  unless message
 
@@ -382,13 +372,13 @@ module.exports = class RealtimeController extends KDController
       return @unsubscribeChannel message.channel
 
 
-  handleError: (err) ->
+  handlePubNubError: (err) ->
 
     return  unless err
 
     { message, payload } = err
 
-    if @isDisconnected err
+    if @isPubNubDisconnected err
       @lastSeenOnline = @serverTimestamp
 
     return kd.warn err  unless payload?.channels
@@ -410,6 +400,7 @@ module.exports = class RealtimeController extends KDController
 
 
   removeFromForbiddenChannels: (channelName) ->
+
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 
     return  unless forbiddenChannels[channelName]
