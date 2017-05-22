@@ -13,6 +13,9 @@ func (l *FakeExporter) Send(event *Event) error {
 	return nil
 }
 
+// Name returns the name of the exporter.
+func (FakeExporter) Name() string { return "fake" }
+
 func (l *FakeExporter) Close() error {
 	return nil
 }
