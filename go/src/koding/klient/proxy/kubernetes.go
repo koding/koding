@@ -105,6 +105,25 @@ func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
     return res, nil
 }
 
+type ConnState struct {
+    connected   bool
+    sync.Mutex
+}
+
+func (s *ConnState) Get() bool {
+    s.Lock()
+    defer s.Unlock()
+
+    return s.connected
+}
+
+func (s *ConnState) Set(is bool) {
+    s.Lock()
+    defer s.Unlock()
+
+    s.connected = is
+}
+
 func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     h := p.config.Host
     h = strings.Replace(h, "https://", "", -1)
@@ -163,10 +182,33 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
 
     var wg sync.WaitGroup
 
-    errChan := make(chan error)
     inChan := make(chan []byte)
-    connected := true
-    mux := sync.Mutex{}
+    state := &ConnState{
+        connected:  true,
+    }
+
+    ch := conn.CloseHandler()
+    handler := func(code int, text string) error {
+        fmt.Println("Handling close message from peer:", code, text)
+
+        // Notify io proxy routines, the underlying connection
+        // is closing, and they should exit accordingly.
+        state.Set(false)
+
+        defer conn.Close()
+        defer close(inChan)
+
+        fmt.Println("Waiting for io proxy routines to finish.")
+        wg.Wait()
+
+        if err := r.Done.Call(true); err != nil {
+            fmt.Println(err)
+        }
+
+        fmt.Println("Exiting close handler.")
+        return ch(code, text)
+    }
+    conn.SetCloseHandler(handler)
 
     if r.IO.Stdin {
         wg.Add(1)
@@ -174,25 +216,32 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         go func() {
             defer wg.Done()
 
-            for connected {
+            writer, err := conn.NextWriter(websocket.TextMessage)
+            if err != nil {
+                fmt.Println(err)
+                return
+            }
+
+            // TODO (acbodine): will data get flushed without the .Close()?
+            // defer writer.Close()
+
+            for state.Get() {
                 select {
                     case d, ok := <- inChan:
                         if !ok {
-                            mux.Lock()
-                            connected = false
-                            mux.Unlock()
+                            // TODO (acbodine): !ok means inChan was closed
+                            // by the requesting kite client. What to do?
+                            fmt.Println("inChan was closed by requesting kite.")
+
                             break
                         }
 
-                        err := conn.WriteMessage(websocket.TextMessage, d)
-                        if err != nil {
-                            fmt.Println(err)
-                            errChan <- err
-
-                            mux.Lock()
-                            connected = false
-                            mux.Unlock()
+                        if n, err := writer.Write(d); err == nil {
+                            fmt.Println("Wrote bytes to connection:", n)
+                        } else {
+                            fmt.Println("Failed to write bytes to connection:", err)
                         }
+
                         break
                     case <- time.After(time.Second * 3):
                         break
@@ -213,27 +262,16 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         go func() {
             defer wg.Done()
 
-            for {
+            for state.Get() {
                 // Read output chunks from the exec'd process until an error
                 // occurs. Once an error occurs we are done reading and need
                 // to handle the error appropriately.
                 //
                 // NOTE: https://godoc.org/github.com/gorilla/websocket#Conn.ReadMessage
+                conn.SetReadDeadline(time.Now().Add(time.Second * 3))
                 _, m, err := conn.ReadMessage()
                 if err != nil {
-                    // Readers should detect closes, thus we will notify the
-                    // goroutine that might be proxying ingress traffic that
-                    // the connection has closed, and it should exit likewise.
-                    mux.Lock()
-                    connected = false
-                    mux.Unlock()
-
-                    // Once conn.ReadMessage() returns an error, it will
-                    // continue to return the same error. Thus if err is
-                    // present, we are done reading from the connection.
                     fmt.Println(err)
-                    errChan <- err
-
                     break
                 }
 
@@ -243,37 +281,13 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
                 if e := r.Output.Call(string(m)); e != nil {
                     fmt.Println("Failed to send output to client kite:", e)
                 }
+
+                fmt.Println("Looping on egress proxier.")
             }
 
             fmt.Println("Exiting egress proxier.")
         }()
     }
-
-    // Error handling
-    go func() {
-        defer conn.Close()
-        defer close(errChan)
-        defer close(inChan)
-
-        select {
-            case e := <- errChan:
-                fmt.Println("Error handling caught ", e)
-        }
-
-        // Wait for any ingress/egress routines to finish, then do error
-        // handling where necessary.
-        wg.Wait()
-
-        // TODO (acbodine): Until we find a better way to detect if
-        // the remote exec process has finished/errored, we will
-        // treat errors received from the websocket Reader as
-        // indicating the remote exec process is done.
-        if err := r.Done.Call(true); err != nil {
-            fmt.Println(err)
-        }
-
-        fmt.Println("Exiting error handler.")
-    }()
 
     exec := &Exec{
         in:         inChan,
