@@ -57,12 +57,12 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 	for _, data := range req.Data {
 		_, err := p.conn.Write(data)
 		if err == nil {
-			return nil, nil
+			continue
 		}
 
 		if errP, ok := err.(*net.OpError); ok {
 			if _, ok := errP.Err.(*os.SyscallError); ok {
-				return nil, nil
+				continue
 			}
 		}
 

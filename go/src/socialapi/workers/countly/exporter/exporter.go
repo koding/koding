@@ -82,6 +82,9 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 	return c.client.WriteEvent(appKey, slug, events)
 }
 
+// Name returns the name of the exporter.
+func (CountlyExporter) Name() string { return "countly" }
+
 // Close closes the exporter.
 func (c *CountlyExporter) Close() error {
 	return nil

@@ -5,22 +5,21 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"koding/kites/kloud/metadata"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/kylelemons/godebug/pretty"
 )
 
 var update = flag.Bool("update-golden", false, "Update golden files.")
 
 var testdata = metadata.NewCloudInit(&metadata.CloudConfig{
-	Username:  "johndoe",
-	Metadata:  "metadata",
-	Userdata:  "userdata",
-	KiteKey:   "kitekey",
-	Provision: "provision",
+	Metadata: "metadata",
+	Userdata: "userdata",
 })
 
 func parseCloudInit(file string) (metadata.CloudInit, error) {
@@ -52,9 +51,6 @@ func TestCloudInit(t *testing.T) {
 		"testdata/conflict_output.yml": {
 			conflict: []string{"output", "all"},
 		},
-		"testdata/conflict_users.yml": {
-			conflict: []string{"users", "1", "name"},
-		},
 		"testdata/conflict_write_files.yml": {
 			conflict: []string{"write_files", "1", "path"},
 		},
@@ -63,8 +59,10 @@ func TestCloudInit(t *testing.T) {
 	for yml, cas := range cases {
 		t.Run(filepath.Base(yml), func(t *testing.T) {
 			if *update {
-				if err := updateGolden(yml); err != nil {
-					t.Fatal(err)
+				if !strings.HasPrefix(filepath.Base(yml), "conflict_") {
+					if err := updateGolden(yml); err != nil {
+						t.Fatal(err)
+					}
 				}
 
 				return
@@ -117,7 +115,7 @@ func equal(got, want metadata.CloudInit) error {
 	}
 
 	if bytes.Compare(pgot, pwant) != 0 {
-		return fmt.Errorf("got:\n%s\n\nwant:\n%s\n", pgot, pwant)
+		return errors.New(pretty.Compare(got, want))
 	}
 
 	return nil
@@ -129,7 +127,9 @@ func updateGolden(yml string) error {
 		return errors.New("ParseCloudInit()=" + err.Error())
 	}
 
-	metadata.Merge(testdata, ci)
+	if err := metadata.Merge(testdata, ci); err != nil {
+		return err
+	}
 
 	if err := ioutil.WriteFile(yml+".golden", ci.Bytes(), 0644); err != nil {
 		return errors.New("WriteFile()=" + err.Error())

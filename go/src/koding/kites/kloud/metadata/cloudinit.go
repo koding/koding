@@ -48,6 +48,10 @@ func (me *MergeError) Error() string {
 // If during merge any conflict is encountered, Merge fails with non-nil
 // error that is of *MergeError type, which describes details of the conflict.
 func Merge(in, out CloudInit) error {
+	return merge(in, out)
+}
+
+func merge(in, out map[string]interface{}) error {
 	type iter struct {
 		path []string
 		in   map[string]interface{}
@@ -113,7 +117,10 @@ func Merge(in, out CloudInit) error {
 	return nil
 }
 
-var conflictKeys = []string{"name", "path"}
+var (
+	conflictKeys = []string{"path"}
+	mergeKeys    = []string{"name"}
+)
 
 func mergeList(in, out []interface{}, path []string) ([]interface{}, error) {
 	// uniq holds all "path" and "name" keys, assumed to be distinct per elm
@@ -130,7 +137,10 @@ func mergeList(in, out []interface{}, path []string) ([]interface{}, error) {
 	}
 
 	for i, elm := range in {
+		var merged bool
+
 		if obj, ok := elm.(map[string]interface{}); ok {
+			// Check for conflicting items.
 			for _, key := range conflictKeys {
 				val, ok := obj[key].(string)
 				if !ok || val == "" {
@@ -145,12 +155,64 @@ func mergeList(in, out []interface{}, path []string) ([]interface{}, error) {
 					}
 				}
 			}
+
+			// Check whether it's possible to merge-in
+			// the item.
+			for _, key := range mergeKeys {
+				val, ok := obj[key].(string)
+				if !ok || val == "" {
+					continue
+				}
+
+				var matching map[string]interface{}
+
+				for i := range out {
+					orig, ok := out[i].(map[string]interface{})
+					if !ok {
+						continue
+					}
+
+					if origVal, ok := orig[key].(string); ok && origVal == val {
+						matching = orig
+						break
+					}
+				}
+
+				if matching != nil {
+					if err := merge(shallowCopy(obj, key), matching); err != nil {
+						return nil, err
+					}
+
+					out[i] = matching
+					merged = true
+					break
+				}
+			}
 		}
 
-		out = append(out, elm)
+		if !merged {
+			out = append(out, elm)
+		}
 	}
 
 	return out, nil
+}
+
+func shallowCopy(v map[string]interface{}, ignored ...string) map[string]interface{} {
+	vCopy := make(map[string]interface{}, len(v))
+
+loop:
+	for k, v := range v {
+		for _, skip := range ignored {
+			if k == skip {
+				continue loop
+			}
+		}
+
+		vCopy[k] = v
+	}
+
+	return vCopy
 }
 
 // CloudInit is a convenience wrapper for a cloud-init unmarshalled value.
