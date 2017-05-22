@@ -57,6 +57,15 @@ func (s *DogStatsD) Count(name string, value int64, tags []string, rate float64)
 	return s.statsd.Count(name, value, tags, rate)
 }
 
+// Timing track how long something happened.
+func (s *DogStatsD) Timing(name string, value time.Duration, tags []string, rate float64) error {
+	if s.statsd == nil {
+		return nil
+	}
+
+	return s.statsd.Timing(name, value, tags, rate)
+}
+
 // Histogram track the statistical distribution of a set of values
 func (s *DogStatsD) Histogram(name string, value float64, tags []string, rate float64) error {
 	if s.statsd == nil {

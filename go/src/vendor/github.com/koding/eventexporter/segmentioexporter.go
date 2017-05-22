@@ -55,6 +55,9 @@ func buildTrack(event *Event) (*analytics.Track, error) {
 	}, nil
 }
 
+// Name returns the name of the exporter.
+func (SegmentIOExporter) Name() string { return "segment" }
+
 func addBody(event *Event) *Event {
 	if event.Properties == nil {
 		event.Properties = map[string]interface{}{}

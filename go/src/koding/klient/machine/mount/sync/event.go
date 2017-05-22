@@ -43,7 +43,7 @@ type Finalizer interface {
 	Detach(path string, id uint64)
 
 	// Unsync is called by deprecated events.
-	Unsync()
+	Unsync(path string)
 }
 
 // Event wraps index change with context.Context.
@@ -109,7 +109,7 @@ func (e *Event) Done() {
 		}
 		e.cancel()
 	} else if e.fin != nil {
-		e.fin.Unsync()
+		e.fin.Unsync(e.change.Path())
 	}
 }
 
