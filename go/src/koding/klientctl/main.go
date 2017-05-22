@@ -1011,6 +1011,7 @@ error opening: %s
 		find(app.Commands, "machine", "list"),
 		find(app.Commands, "machine", "ssh"),
 		find(app.Commands, "machine", "mount"),
+		find(app.Commands, "machine", "mount", "sync"),
 		find(app.Commands, "machine", "umount"),
 		find(app.Commands, "machine", "exec"),
 		find(app.Commands, "machine", "cp"),

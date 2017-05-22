@@ -331,6 +331,7 @@ func (a *Anteroom) unsync(path string) {
 // Pause prevets Anteroom from sending new events.
 func (a *Anteroom) Pause() {
 	atomic.StoreInt64(&a.paused, 1)
+	a.idle.done(false)
 }
 
 // Resume resumes anteroom when it's paused.
