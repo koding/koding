@@ -145,7 +145,7 @@ createLocations = (KONFIG) ->
     # using manually written locations
     continue  unless options.nginx?.locations
 
-    continue  if options.nginx?.disableLocation
+    continue  if options.disabled or options.nginx?.disableLocation
 
     # some of the locations can be limited to some environments, while creating
     # nginx locations filter with this info

@@ -181,7 +181,6 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : '4560'
       nginx             :
         websocket       : yes
-        disableLocation : yes
         locations       : [
           { location    : '/notify' }
           {
@@ -405,7 +404,10 @@ module.exports = (KONFIG, options, credentials) ->
 
   # if not enabled then disable the one should be disabled
   enabledWorkers = options?.enabledWorkers ? []
-  for _, worker of workers when worker.disabled and _ not in enabledWorkers
-    delete workers[_]
+  for key, worker of workers when worker.disabled
+    if key in enabledWorkers
+      worker.disabled = no
+    else
+      delete workers[key]
 
   return workers
