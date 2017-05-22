@@ -552,7 +552,7 @@ imports:
 - name: github.com/koding/ec2dynamicdata
   version: 56f69f128b37c6bdfd61a6cac4b4b87e517fa2ee
 - name: github.com/koding/eventexporter
-  version: e769c96fc1198f2971f218e982165fe12a7ca879
+  version: 8c411a9ed989426b2aa5bbcc6c9515cb3c76caf5
 - name: github.com/koding/integration
   version: 3b2ca892270503b8ca590d9d0b58df6db60bb7b5
   subpackages:
@@ -580,7 +580,7 @@ imports:
 - name: github.com/koding/logging
   version: 8b5a689ed69b1c7cd1e3595276fc2a352d7818e0
 - name: github.com/koding/metrics
-  version: 9a17123e052386b38746eb19fe9ec6f5bb047c90
+  version: f0a635a6f6b95045c3e183c86e49ff00ab640af2
 - name: github.com/koding/multiconfig
   version: 58dd6d6a05babfd20a5982e8d9e5f0bfb232618b
 - name: github.com/koding/passwd
