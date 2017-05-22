@@ -3,7 +3,6 @@ Encoder         = require 'htmlencode'
 FSHelper        = require 'app/util/fs/fshelper'
 showError       = require 'app/util/showError'
 IDEHelpers      = require '../../idehelpers'
-envDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class IDEContentSearchResultView extends kd.View

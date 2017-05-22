@@ -1,5 +1,4 @@
 kd = require 'kd'
-dataProvider = require 'app/userenvironmentdataprovider'
 managedHelper = require 'app/providers/managed/helpers'
 
 _machine = null
@@ -16,9 +15,11 @@ module.exports = createTestMachine = -> new Promise (resolve, reject) ->
     managedHelper.ensureManagedStack (err) ->
       computeController.create { machine }, (err, machine) ->
         return reject(err)  if err
-        # FIXMERESET ~ GG
-        dataProvider.addTestMachine machine
-        reactor.dispatch 'LOAD_USER_ENVIRONMENT_SUCCESS', dataProvider.get()
+
+        machines = computeController.storage.machines.get()
+
+        reactor.dispatch 'LOAD_USER_ENVIRONMENT_SUCCESS', machines
         reactor.dispatch 'ADD_TEST_MACHINE', { machine }
+
         _machine = machine
         resolve { machine }
