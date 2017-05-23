@@ -62,7 +62,8 @@ module.exports = class NodeNotificationClient extends kd.Object
       debug 'got auth ok, ready to go!'
       @emit 'ready'
     else
-      debug 'an unknown message received', message
+      debug 'got new message', message
+      @emit 'message', message
 
 
   _send: (obj) ->
