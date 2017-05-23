@@ -124,6 +124,12 @@ func (s *ConnState) Set(is bool) {
     s.connected = is
 }
 
+const (
+    writeWait = 10 * time.Second
+    pongWait = 60 * time.Second
+    pingPeriod = (pongWait * 9) / 10
+)
+
 func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     h := p.config.Host
     h = strings.Replace(h, "https://", "", -1)
@@ -153,7 +159,7 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         "container=%s&%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
         r.K8s.Container,
         strings.Join(cmds, "&"),
-        false, // TODO (acbodine): Explain why: r.IO.Stdin,
+        r.IO.Stdin,
         r.IO.Stdout,
         r.IO.Stderr,
         r.IO.Tty,
@@ -180,8 +186,6 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         return nil, err
     }
 
-    var wg sync.WaitGroup
-
     inChan := make(chan []byte)
     state := &ConnState{
         connected:  true,
@@ -195,35 +199,27 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         // is closing, and they should exit accordingly.
         state.Set(false)
 
-        defer conn.Close()
-        defer close(inChan)
+        e := ch(code, text)
+        conn.Close()
 
-        fmt.Println("Waiting for io proxy routines to finish.")
-        wg.Wait()
+        // close(inChan)
 
         if err := r.Done.Call(true); err != nil {
             fmt.Println(err)
         }
 
         fmt.Println("Exiting close handler.")
-        return ch(code, text)
+        return e
     }
     conn.SetCloseHandler(handler)
 
     if r.IO.Stdin {
-        wg.Add(1)
 
         go func() {
-            defer wg.Done()
+            ticker := time.NewTicker(pingPeriod)
 
-            writer, err := conn.NextWriter(websocket.TextMessage)
-            if err != nil {
-                fmt.Println(err)
-                return
-            }
-
-            // TODO (acbodine): will data get flushed without the .Close()?
-            // defer writer.Close()
+            defer ticker.Stop()
+            defer fmt.Println("Exiting ingress proxier.")
 
             for state.Get() {
                 select {
@@ -233,23 +229,30 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
                             // by the requesting kite client. What to do?
                             fmt.Println("inChan was closed by requesting kite.")
 
-                            break
+                            conn.SetWriteDeadline(time.Now().Add(writeWait))
+                            conn.WriteMessage(websocket.CloseMessage, []byte{})
+
+                            return
                         }
 
-                        if n, err := writer.Write(d); err == nil {
-                            fmt.Println("Wrote bytes to connection:", n)
-                        } else {
+                        conn.SetWriteDeadline(time.Now().Add(writeWait))
+                        if err := conn.WriteMessage(websocket.TextMessage, d); err != nil {
                             fmt.Println("Failed to write bytes to connection:", err)
+                            return
                         }
 
                         break
-                    case <- time.After(time.Second * 3):
+                    case <- ticker.C:
+                        conn.SetWriteDeadline(time.Now().Add(writeWait))
+                        if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+                            fmt.Println("Failed to ping remote connection:", err)
+                            return
+                        }
+
                         break
                 }
                 fmt.Println("Looping on ingress proxier.")
             }
-
-            fmt.Println("Exiting ingress proxier.")
         }()
     }
 
@@ -257,10 +260,17 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     // and/or errors for the exec process. Kick off goroutine
     // to do so.
     if r.IO.Stdout || r.IO.Stderr {
-        wg.Add(1)
 
         go func() {
-            defer wg.Done()
+            defer conn.Close()
+
+            conn.SetReadDeadline(time.Now().Add(pongWait))
+            ph := conn.PongHandler()
+            conn.SetPongHandler(func(appData string) error {
+                fmt.Println("Recieved a PONG message from peer.")
+                conn.SetReadDeadline(time.Now().Add(pongWait))
+                return ph(appData)
+            })
 
             for state.Get() {
                 // Read output chunks from the exec'd process until an error
@@ -268,9 +278,9 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
                 // to handle the error appropriately.
                 //
                 // NOTE: https://godoc.org/github.com/gorilla/websocket#Conn.ReadMessage
-                conn.SetReadDeadline(time.Now().Add(time.Second * 3))
                 _, m, err := conn.ReadMessage()
                 if err != nil {
+                    fmt.Println(m)
                     fmt.Println(err)
                     break
                 }
