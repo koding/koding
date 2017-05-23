@@ -189,7 +189,10 @@ module.exports = (KONFIG, options, credentials) ->
             internalOnly: yes
           }
         ]
-      instances         : 3
+      # if it's required to have more than 1 instance of notification worker
+      # sticky sessions should be enabled on the load balancer if it's willing
+      # to use long polling (xhr-polling/stream) ~ GG
+      instances         : 1
       instanceAsArgument: '-i'
 
     socialapi           :
