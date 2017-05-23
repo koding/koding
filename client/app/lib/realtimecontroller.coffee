@@ -26,9 +26,7 @@ module.exports = class RealtimeController extends kd.Controller
     @eventCache = {}
     @initLocalStorage()
 
-    { pubnub } = globals.config
-
-    if pubnub.enabled and pubnub.subscribekey
+    if @isPubNubEnabled()
       @initPubNub()
     else
       @initNodeNotification()
@@ -42,6 +40,12 @@ module.exports = class RealtimeController extends kd.Controller
     # this is used for preventing datadog
     unless @localStorage.getValue 'ForbiddenChannels'
       @localStorage.setValue 'ForbiddenChannels', {}
+
+
+  isPubNubEnabled: ->
+
+    { pubnub } = globals.config
+    return pubnub.enabled and pubnub.subscribekey
 
 
   initPubNub: ->
@@ -207,16 +211,24 @@ module.exports = class RealtimeController extends kd.Controller
   subscribeNotification: (callback) ->
 
     { nickname } = whoami().profile
-    { environment } = globals.config
-    channelName = "notification-#{environment}-#{nickname}"
-    options = { channelName }
-    options.authenticate =
-      endPoint : '/api/gatekeeper/subscribe/notification'
-      data     : { id: whoami().socialApiId }
 
-    options.pbInstance = @pbNotification
+    if @isPubNubEnabled()
 
-    @subscribePubNub options, callback
+      { environment } = globals.config
+      channelName = "notification-#{environment}-#{nickname}"
+      options = { channelName }
+      options.authenticate =
+        endPoint : '/api/gatekeeper/subscribe/notification'
+        data     : { id: whoami().socialApiId }
+
+      options.pbInstance = @pbNotification
+
+      @subscribePubNub options, callback
+
+    else
+
+      callback null, @nodeNotificationClient
+
 
 
   subscribePubNub: (options = {}, callback) ->
@@ -414,4 +426,5 @@ module.exports = class RealtimeController extends kd.Controller
 
   initNodeNotification: ->
 
-    (new NodeNotificationClient).connect()
+    @nodeNotificationClient = new NodeNotificationClient
+    @nodeNotificationClient.connect()
