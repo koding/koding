@@ -9,6 +9,8 @@ PubnubChannel = require './pubnubchannel'
 
 require 'pubnub'
 
+NodeNotificationClient = require './nodenotificationclient'
+
 
 module.exports = class RealtimeController extends kd.Controller
 
@@ -29,7 +31,7 @@ module.exports = class RealtimeController extends kd.Controller
     if pubnub.enabled and pubnub.subscribekey
       @initPubNub()
     else
-      console.log 'I will be back.'
+      @initNodeNotification()
 
 
   initLocalStorage: ->
@@ -408,3 +410,8 @@ module.exports = class RealtimeController extends kd.Controller
     delete forbiddenChannels[channelName]
 
     @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
+
+
+  initNodeNotification: ->
+
+    (new NodeNotificationClient).connect()
