@@ -29,12 +29,15 @@ queryForKd = ->
 
   return  if kiteTimer
 
-  kiteTimer = kd.utils.repeat 30000, -> queryKites().then (result) ->
+  kiteTimer = kd.utils.repeat 30000, ->
+    queryKites()
+      .then (result) ->
+        return  unless result?.length
 
-    return  unless result?.length
+        kd.utils.killRepeat kiteTimer
+        markAsDone 'installKd'
 
-    kd.utils.killRepeat kiteTimer
-    markAsDone 'installKd'
+      .catch kd.noop
 
 
 checkIntegrationSteps = ->

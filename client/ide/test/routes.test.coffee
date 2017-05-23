@@ -3,7 +3,6 @@ nick          = require 'app/util/nick'
 mock          = require '../../mocks/mockingjay'
 expect        = require 'expect'
 routes        = require '../lib/routes'
-dataProvider  = require 'app/userenvironmentdataprovider'
 
 appManager    = kd.singletons.appManager
 mockMachine   = mock.getMockMachine()
@@ -51,11 +50,6 @@ describe 'IDE.routes', ->
 
     describe 'when machine, eg. /IDE/6075649037833338981 or /IDE/aws-vm-0', ->
 
-      it 'should fetch machine if machine label contains chars', ->
-
-        createSpyAndAssert dataProvider, 'fetchMachine', 'machine', ROUTE_PARAMS.machine
-
-
       it 'should routeToMachine if machine is fetched', ->
 
         mock.envDataProvider.fetchMachine.toReturnMachine()
@@ -66,10 +60,6 @@ describe 'IDE.routes', ->
 
 
     describe 'when workspace, eg. IDE/aws-vm-0/my-workspace', ->
-
-      it 'should fetchMachine for the given machine id', ->
-
-        createSpyAndAssert dataProvider, 'fetchMachine', 'workspace', ROUTE_PARAMS.workspace
 
       it 'should routeToMachine if workspace is not found', ->
 

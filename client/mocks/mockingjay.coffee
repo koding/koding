@@ -8,7 +8,6 @@ mockjstack                = require './mock.jstack'
 mockjmachine              = require './mock.jmachine'
 mockjaccount              = require './mock.jaccount'
 mockjcredential           = require './mock.jcredential'
-dataProvider              = require 'app/userenvironmentdataprovider'
 mockMessage               = require 'app/util/generateDummyMessage'
 toImmutable               = require 'app/util/toImmutable'
 mockThread                = require 'app/util/generateDummyThread'
@@ -39,20 +38,6 @@ mockGroup   = remote.revive mockjgroup
 module.exports =
 
   envDataProvider:
-
-
-    fetchMachine:
-
-      toReturnMachine: ->
-
-        expect.spyOn(dataProvider, 'fetchMachine').andCall (identifier, callback) ->
-          callback mockMachine
-
-
-      toReturnNull: ->
-
-        expect.spyOn(dataProvider, 'fetchMachine').andCall (identifier, callback) ->
-          callback null
 
 
     fetch:
@@ -93,64 +78,6 @@ module.exports =
           shared        : []
           own           : [ item ]
         }
-
-
-    findWorkspace:
-
-      toReturnWorkspace: ->
-
-        expect.spyOn(dataProvider, 'findWorkspace').andCall -> return mockjworkspace
-
-
-      toReturnNull: ->
-
-        expect.spyOn(dataProvider, 'findWorkspace').andCall -> return null
-
-
-    getMyMachines:
-
-      toReturnMachines: ->
-
-        expect.spyOn(dataProvider, 'getMyMachines').andCall -> return [ { machine: mockMachine } ]
-
-
-      toReturnEmptyArray: ->
-
-        expect.spyOn(dataProvider, 'getMyMachines').andCall -> return []
-
-
-    fetchMachineByLabel:
-
-      toReturnMachine: ->
-
-        expect.spyOn(dataProvider, 'fetchMachineByLabel').andCall (identifier, callback) ->
-          callback mockMachine
-
-
-      toReturnMachineAndWorkspace: ->
-
-        expect.spyOn(dataProvider, 'fetchMachineByLabel').andCall (identifier, callback) ->
-          callback mockMachine, mockjworkspace
-
-
-      toReturnNull: ->
-
-        expect.spyOn(dataProvider, 'fetchMachineByLabel').andCall (identifier, callback) ->
-          callback null, null
-
-
-    fetchMachineAndWorkspaceByChannelId:
-
-      toReturnMachineAndWorkspace: ->
-
-        expect.spyOn(dataProvider, 'fetchMachineAndWorkspaceByChannelId').andCall (channelId, callback) ->
-          callback mockMachine, mockjworkspace
-
-
-      toReturnNull: ->
-
-        expect.spyOn(dataProvider, 'fetchMachineAndWorkspaceByChannelId').andCall (channelId, callback) ->
-          callback null, null
 
 
   machine:

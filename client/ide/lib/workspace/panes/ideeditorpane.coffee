@@ -6,7 +6,6 @@ IDEPane            = require './idepane'
 AceView            = require 'ace/aceview'
 FSHelper           = require 'app/util/fs/fshelper'
 IDEHelpers         = require '../../idehelpers'
-envDataProvider    = require 'app/userenvironmentdataprovider'
 getColorFromString = require 'app/util/getColorFromString'
 
 
