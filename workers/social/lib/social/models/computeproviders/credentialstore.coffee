@@ -1,5 +1,5 @@
 hat       = require 'hat'
-traverse       = require 'traverse'
+traverse  = require 'traverse'
 jraphical = require 'jraphical'
 KONFIG    = require 'koding-config-manager'
 
