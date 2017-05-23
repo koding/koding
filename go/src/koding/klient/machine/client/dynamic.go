@@ -125,7 +125,7 @@ func (dc *Dynamic) Client() Client {
 	return c
 }
 
-// Addr uses dynamic address function binded to client to obtain addresses.
+// Addr uses dynamic address function bound to client to obtain addresses.
 func (dc *Dynamic) Addr(network string) (machine.Addr, error) {
 	return dc.opts.AddrFunc(network)
 }
@@ -165,6 +165,8 @@ func (dc *Dynamic) cron() {
 			// Client address did not change.
 			return
 		}
+
+		dc.log.Info("IP: ", addr)
 
 		// Create new client.
 		dc.log.Info("Reinitializing client with %s address: %s", a.Network, a.Value)
