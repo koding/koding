@@ -922,11 +922,11 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/sync
-  version: 86ddc858aa39d0f6cccccd733e482ddc52b852e9
+  version: f52d1811a62927559de87708c8913c1650ce4f26
   subpackages:
   - errgroup
 - name: golang.org/x/oauth2
-  version: efb10a30610e617dbb17fc243f4cc61a8cfa2903
+  version: f047394b6d14284165300fd82dad67edb3a4d7f6
   subpackages:
   - google
   - internal
