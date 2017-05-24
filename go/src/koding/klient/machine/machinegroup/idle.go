@@ -11,54 +11,60 @@ import (
 
 // WaitIdleRequest is a request value of "machine.mount.waitIdle" kite method.
 type WaitIdleRequest struct {
-	Identifier string         `json:"identifier,omitempty"`
-	Path       string         `json:"path,omitempty"`
-	Timeout    time.Duration  `json:"timeout,omitempty"`
-	Done       dnode.Function `json:"done"` // func(bool)
+	MountID mount.ID       `json:"mountID"`
+	Timeout time.Duration  `json:"timeout,omitempty"`
+	Done    dnode.Function `json:"done"` // func(bool)
 }
 
 // Valid implements the stack.Validator interface.
 func (r *WaitIdleRequest) Valid() error {
-	if r.Identifier == "" && r.Path == "" {
-		return errors.New("either non-empty identifier or path is required")
+	if r == nil {
+		return errors.New("invalid nil request")
 	}
 	if !r.Done.IsValid() {
 		return errors.New("done callback is not valid")
 	}
+
 	return nil
 }
 
 // WaitIdle is a handler implementation for "machine.mount.waitIdle" kite method.
 func (g *Group) WaitIdle(r *WaitIdleRequest) error {
-	id, err := g.lookupMountID(r)
+	if err := r.Valid(); err != nil {
+		return err
+	}
+
+	sc, err := g.sync.Sync(r.MountID)
 	if err != nil {
 		return err
 	}
 
-	m, err := g.sync.Sync(id)
-	if err != nil {
-		return err
+	// If anteroom is paused, we need to start it for the synchronization period.
+	switchBack := func() {}
+	if sc.Anteroom().IsPaused() {
+		var switchBackN int
+		// Call Restore until Anterom is restored. This prevents unexpected
+		// behavior when multiple processes manages mount synchronization.
+		for sc.Anteroom().IsPaused() {
+			switchBackN++
+			sc.Anteroom().Resume()
+		}
+
+		switchBack = func() {
+			for i := 0; i < switchBackN; i++ {
+				sc.Anteroom().Pause()
+			}
+		}
 	}
 
 	c := make(chan bool, 1)
 
-	m.Anteroom().IdleNotify(c, r.Timeout)
+	sc.Anteroom().IdleNotify(c, r.Timeout)
 
 	go func() {
+		defer switchBack()
 		r.Done.Call(<-c)
 	}()
 
 	return nil
-}
-
-// TODO(rjeczalik): Add LookupReuqest and use it in Exec / Kill methods as well.
-func (g *Group) lookupMountID(r *WaitIdleRequest) (mount.ID, error) {
-	if r.Identifier != "" {
-		if id, err := g.getMountID(r.Identifier); err == nil {
-			return id, nil
-		}
-	}
-
-	id, _, err := g.lookup(r.Path)
-	return id, err
 }

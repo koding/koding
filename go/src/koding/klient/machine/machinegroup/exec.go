@@ -2,9 +2,7 @@ package machinegroup
 
 import (
 	"errors"
-	stdos "os"
 	"path/filepath"
-	"strings"
 
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
@@ -88,7 +86,7 @@ func (r *KillRequest) Valid() error {
 	return r.MachineRequest.Valid()
 }
 
-// KillReponse is a response value of "machine.kill" kite method.
+// KillResponse is a response value of "machine.kill" kite method.
 type KillResponse struct {
 	os.KillResponse
 }
@@ -98,7 +96,7 @@ func (g *Group) Exec(r *ExecRequest) (*ExecResponse, error) {
 	machineID := r.MachineID
 
 	if machineID == "" {
-		id, path, err := g.lookup(r.Path)
+		id, err := g.lookup(r.Path)
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +117,7 @@ func (g *Group) Exec(r *ExecRequest) (*ExecResponse, error) {
 				return nil, mount.ErrMountNotFound
 			}
 
-			rel, err := filepath.Rel(path, r.Path)
+			rel, err := filepath.Rel(m.Path, r.Path)
 			if err != nil {
 				return nil, err
 			}
@@ -148,7 +146,7 @@ func (g *Group) Kill(r *KillRequest) (*KillResponse, error) {
 	machineID := r.MachineID
 
 	if machineID == "" {
-		id, _, err := g.lookup(r.Path)
+		id, err := g.lookup(r.Path)
 		if err != nil {
 			return nil, err
 		}
@@ -174,27 +172,4 @@ func (g *Group) Kill(r *KillRequest) (*KillResponse, error) {
 	}, nil
 
 	return nil, nil
-}
-
-func (g *Group) lookup(path string) (mount.ID, string, error) {
-	const sep = string(stdos.PathListSeparator)
-
-	for path != "" && path != "/" {
-		id, err := g.mount.Path(path)
-		if err == nil {
-			return id, path, nil
-		}
-		if err != mount.ErrMountNotFound {
-			return "", "", err
-		}
-
-		if i := strings.LastIndex(path, sep); i != -1 {
-			path = path[:i]
-			continue
-		}
-
-		break
-	}
-
-	return "", "", mount.ErrMountNotFound
 }
