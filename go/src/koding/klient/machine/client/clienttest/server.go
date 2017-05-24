@@ -12,6 +12,7 @@ import (
 func DynamicOpts(s *Server, b *Builder) client.DynamicOpts {
 	return client.DynamicOpts{
 		AddrFunc:        s.AddrFunc(),
+		AddrSetFunc:     func(_ machine.Addr) {},
 		Builder:         b,
 		DynAddrInterval: 10 * time.Millisecond,
 		PingInterval:    50 * time.Millisecond,

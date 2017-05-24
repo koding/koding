@@ -16,6 +16,10 @@ import (
 // network has no addresses.
 type DynamicAddrFunc func(string) (machine.Addr, error)
 
+// AddrSetFunc is a callback that can be used to cache addresses found by
+// dynamic client.
+type AddrSetFunc func(machine.Addr)
+
 // Builder is an interface used to dynamically build remote machine clients.
 type Builder interface {
 	// Ping uses dynamic address provider to ping the machine. If error is nil,
@@ -38,6 +42,9 @@ type DynamicOpts struct {
 	// AddrFunc is a factory for dynamic machine addresses.
 	AddrFunc DynamicAddrFunc
 
+	// AddrSetFunc will be called when dynamic client find new address.
+	AddrSetFunc AddrSetFunc
+
 	// Builder is a factory used to build clients.
 	Builder Builder
 
@@ -57,6 +64,9 @@ type DynamicOpts struct {
 func (opts *DynamicOpts) Valid() error {
 	if opts.AddrFunc == nil {
 		return errors.New("nil dynamic address function")
+	}
+	if opts.AddrSetFunc == nil {
+		return errors.New("nil address set function")
 	}
 	if opts.Builder == nil {
 		return errors.New("nil client builder")
@@ -152,7 +162,30 @@ func (dc *Dynamic) cron() {
 		pingTick    = time.NewTicker(dc.opts.PingInterval)
 	)
 
-	addr, err := machine.Addr{}, error(nil)
+	addr, ipAddr, err := machine.Addr{}, machine.Addr{}, error(nil)
+
+	// Lookup for IP address and set if changed.
+	setIP := func(a machine.Addr) {
+		// Do not lookup tunneled connections.
+		if _, err := dc.opts.AddrFunc("tunnel"); err == nil {
+			return
+		}
+
+		ipA, err := dc.opts.Builder.IP(a)
+		if err != nil || ipA.Network != "ip" {
+			return
+		}
+
+		if ipAddr.Network == "ip" && ipA.Value == ipAddr.Value {
+			// IP address did not change.
+			return
+		}
+
+		dc.opts.AddrSetFunc(ipA)
+
+		// Update current IP address.
+		ipAddr = ipA
+	}
 
 	// tryUpdate uses client builder to ping the machine and updates dynamic
 	// client if machine address changes.
@@ -167,12 +200,12 @@ func (dc *Dynamic) cron() {
 		}
 		err = nil
 
+		setIP(a)
+
 		if a.Network == addr.Network && a.Value == addr.Value {
 			// Client address did not change.
 			return
 		}
-
-		dc.log.Info("IP: ", addr)
 
 		// Create new client.
 		dc.log.Info("Reinitializing client with %s address: %s", a.Network, a.Value)
