@@ -34,29 +34,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	index, ok := indexes.(map[string]interface{})
-	if !ok {
-		return
-	}
 
-	items, ok := index["items"].([]interface{})
-	if !ok {
-		return
-	}
-	for _, item := range items {
-		it, ok := item.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		updatedAt := it["updatedAt"].(string)
-		t, err := time.Parse(time.RFC3339, updatedAt)
+	for _, item := range indexes {
+
+		t, err := time.Parse(time.RFC3339, item.UpdatedAt)
 		if err != nil {
 			fmt.Println("parsing time:", err)
-			return
 		}
 
-		if t.Before(GetLast60Days()) {
-			if _, err := handler.InitAndDeleteIndex(it["name"].(string)); err != nil {
+		if t.Before(GetLast30Days()) {
+			if _, err := handler.InitAndDeleteIndex(item.Name); err != nil {
 				fmt.Println(err)
 				return
 			}
@@ -66,9 +53,9 @@ func main() {
 	r.Wait()
 }
 
-func GetLast60Days() time.Time {
+func GetLast30Days() time.Time {
 	year, month, day := GetTodayDate().UTC().Date()
-	return time.Date(year, month, day-60, 0, 0, 0, 0, time.UTC)
+	return time.Date(year, month, day-30, 0, 0, 0, 0, time.UTC)
 }
 
 func GetTodayDate() time.Time {
