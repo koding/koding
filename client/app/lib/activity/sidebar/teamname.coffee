@@ -10,6 +10,8 @@ intercomSupport = require 'app/util/intercomSupport'
 getCurrentGroup = require 'app/util/getGroup'
 ACCOUNT_MENU  = null
 
+debug = (require 'debug') 'sidebar:dropdown'
+
 
 module.exports = class TeamName extends kd.CustomHTMLView
 
@@ -95,6 +97,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
   getMenuItems: (kallback) ->
 
     callback = @bound 'handleMenuClick'
+    team = getCurrentGroup()
 
     menuItems = {
       'customView'  : @avatar_wrapper
@@ -102,15 +105,18 @@ module.exports = class TeamName extends kd.CustomHTMLView
       'Change Team' : { callback }
     }
 
-    menuItems.Analytics = { callback }  if getCurrentGroup().countly?.appKey
+    team.fetchDataAt 'countly.appKey', (err, res) =>
+      if not err and res
+        menuItems.Analytics = { callback }
 
-    intercomSupport (isSupported) =>
-      menuItems['Support'] = if isSupported then { callback }
-      else { callback: @bound 'mailToSupport' }
+      intercomSupport (isSupported) =>
+        menuItems['Support'] = if isSupported
+        then { callback }
+        else { callback: @bound 'mailToSupport' }
 
-      menuItems['Logout'] = { callback }
+        menuItems['Logout'] = { callback }
 
-      kallback menuItems
+        kallback menuItems
 
 
   mailToSupport: ->

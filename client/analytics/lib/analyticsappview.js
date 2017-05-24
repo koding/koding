@@ -1,7 +1,7 @@
 import kd from 'kd'
-import JView from 'app/jview'
+import getCurrentGroup from 'app/util/getGroup'
 
-export default class AnalyticsAppView extends JView {
+export default class AnalyticsAppView extends kd.View {
   constructor(options = {}, data) {
     options.testPath = 'analytics'
     if (!options.cssClass) {
@@ -9,16 +9,33 @@ export default class AnalyticsAppView extends JView {
     }
 
     super(options, data)
+
+    const team = getCurrentGroup()
+
+    this.countlyUsername = team.slug
+    this.countlyApiKey = ''
   }
 
-  pistachio () {
-    // return 'sinan\'s analytics'
-    
-    // TODO: replace username with group.slug and replace apiKey with group's api key
-    var username =  'admin'
-    var apiKey = 'e6bfab40a224d55a2f5d40c83abc7ed4'
-    var query = 'user=' + username + '&api_key=' + apiKey 
-    
-    return '<iframe src="/countly/sso/login?'+query+'" frameborder="0" width="100%" height="100%" border="0"></iframe>'
+  setApiKey(key) {
+    return (this.countlyApiKey = key)
+  }
+
+  addCountlyFrame(key) {
+    if (!key) {
+      return null
+    }
+    this.setApiKey(key)
+    let query = `user=${this.countlyUsername}&api_key=${this.countlyApiKey}`
+    let app = new kd.View({
+      tagName: 'iframe',
+      attributes: {
+        src: `/countly/sso/login?${query}`,
+        frameborder: 0,
+        border: 0,
+        width: '100%',
+        height: '100%',
+      },
+    })
+    return this.addSubView(app)
   }
 }
