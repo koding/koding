@@ -20,11 +20,36 @@ module.exports = class NodeNotificationClient extends kd.Object
 
     super options, data
 
-    @on 'ready', ->
+
+    @_bo = backoff.exponential
+      initialDelay : 1200
+      maxDelay     : 15000
+
+    @on 'ready', =>
       debug 'connected and verified, listening for new events...'
+      @_bo.reset()
+
+    @_bo.failAfter 15
+
+    @_bo.on 'backoff', (trial, delay) ->
+      return  if trial is 0
+      debug "failed to connect on trial #{trial}, trying again in #{delay}ms..."
+
+    @_bo.on 'fail', ->
+      debug 'failed to connect, giving up.'
 
 
   connect: ->
+
+    @_bo.on 'ready', =>
+      @_socket?.close()
+      delete @_socket
+      @_connect()
+
+    @_bo.backoff()
+
+
+  _connect: ->
 
     debug 'initiating the socket connection...'
     @_socket = new SockJS SUBSCRIBE_ENDPOINT
@@ -46,12 +71,19 @@ module.exports = class NodeNotificationClient extends kd.Object
 
     debug 'connection established, sending auth message...'
     @_send @_getAuth()
+    kd.utils.wait 5000, =>
+      @_bo.backoff()  unless @readyState
 
 
-  _handleClose: ->
+  _handleClose: (event) ->
 
     debug 'connection closed by remote.'
-    console.log '_handleClose', arguments
+
+    # this is due to readyState implementation in kd.Object ~ GG
+    @readyState = 0
+    @once 'ready', => @readyState = 1
+
+    @_bo.backoff()  if event?.code > 1000
 
 
   _handleNewMessage: (message) ->
