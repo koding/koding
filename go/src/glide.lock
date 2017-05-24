@@ -912,7 +912,7 @@ imports:
   - ssh/agent
   - ssh/terminal
 - name: golang.org/x/net
-  version: d379faa25cbdc04d653984913a2ceb43b0bc46d7
+  version: 1a26cf06691746ee35aa7113c9b37289afc7ea28
   subpackages:
   - context
   - context/ctxhttp
@@ -933,7 +933,7 @@ imports:
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: e48874b42435b4347fc52bdee0424a52abc974d7
+  version: dbc2be9168a660ef302e04b6ff6406de6f967473
   subpackages:
   - unix
   - windows
@@ -942,12 +942,12 @@ imports:
   - windows/svc/eventlog
   - windows/svc/mgr
 - name: golang.org/x/text
-  version: f28f36722d5ef2f9655ad3de1f248e3e52ad5ebd
+  version: 19e51611da83d6be54ddafce4a4af510cb3e9ea4
   subpackages:
   - transform
   - unicode/norm
 - name: golang.org/x/tools
-  version: 03d3934baf81f2387349b58864cb98b6fe7cf85e
+  version: bf4b54dc687c73b6ef63de8b8abf0ad3951e3edc
   subpackages:
   - go/loader
   - go/types
