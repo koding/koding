@@ -16,8 +16,6 @@ import (
 	"koding/klient/os"
 	"koding/klient/sshkeys"
 
-	"log"
-
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
@@ -156,17 +154,6 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	}
 
 	remoteKite := kites[0]
-
-	log.Println("Query string:", queryString)
-	log.Println("remotekite-----")
-	if remoteKite.Config != nil {
-		log.Println("config", *remoteKite.Config)
-	} else {
-		log.Println("config: nil")
-	}
-	log.Println("Remote address:", remoteKite.RemoteAddr())
-	log.Println("Remote url: ", remoteKite.URL)
-	log.Println("-------------------------")
 
 	err = remoteKite.DialTimeout(t)
 	if err != nil {

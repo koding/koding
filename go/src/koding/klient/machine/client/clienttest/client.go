@@ -2,6 +2,7 @@ package clienttest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/user"
 	"path/filepath"
@@ -69,11 +70,7 @@ func (n *Builder) Build(ctx context.Context, _ machine.Addr) client.Client {
 
 // IP always returns local host IP address.
 func (n *Builder) IP(_ machine.Addr) (machine.Addr, error) {
-	return machine.Addr{
-		Network:   "ip",
-		Value:     "127.0.0.1",
-		UpdatedAt: time.Now(),
-	}, nil
+	return machine.Addr{}, errors.New("not implemented")
 }
 
 // WaitForBuild waits for invocation of Build method. It times out after
