@@ -2,6 +2,7 @@ package proxy
 
 import (
     "github.com/koding/kite"
+
     "k8s.io/client-go/kubernetes"
     "k8s.io/client-go/rest"
 )
@@ -47,6 +48,11 @@ func Factory() Proxy {
 }
 
 func NewKubernetes() (Proxy, error) {
+
+    // TODO (acbodine): Allow caller to override configuration values
+    // to point at any Kubernetes endpoint. This will require adding
+    // logic to create the connection externally instead of internal
+    // to the cluster.
 
     // If klient is running in Kubernetes proxy mode, then we expect
     // to exist inside the same pod that comprises the Stack. Thus

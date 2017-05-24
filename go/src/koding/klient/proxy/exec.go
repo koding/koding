@@ -5,8 +5,6 @@ import (
     "os/exec"
 
     "github.com/koding/kite/dnode"
-    //"github.com/rogpeppe/go-charset/charset"
-    // _ "github.com/rogpeppe/go-charset/data"
 )
 
 type Common struct {

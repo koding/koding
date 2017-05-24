@@ -2,7 +2,7 @@ package proxy
 
 import (
     "fmt"
-    "net/http"
+    "io"
     "net/url"
     "regexp"
     "strings"
@@ -11,11 +11,15 @@ import (
 
     "koding/klient/registrar"
 
-    "github.com/gorilla/websocket"
     "github.com/koding/kite"
-    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "github.com/koding/kite/dnode"
+
+
+    kubev1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    kuberc "k8s.io/apimachinery/pkg/util/remotecommand"
 	"k8s.io/client-go/kubernetes"
     "k8s.io/client-go/rest"
+    "k8s.io/client-go/tools/remotecommand"
 )
 
 var _ Proxy = (*KubernetesProxy)(nil)
@@ -74,7 +78,7 @@ func (p *KubernetesProxy) list(r *ListKubernetesRequest) (*ListResponse, error) 
     data := &ListResponse{}
 
     // Query a K8s endpoint to actually get container data.
-    list, err := p.client.CoreV1().Pods(r.Pod).List(metav1.ListOptions{})
+    list, err := p.client.CoreV1().Pods(r.Pod).List(kubev1.ListOptions{})
     if err != nil {
         return nil, err
     }
@@ -105,32 +109,85 @@ func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
     return res, nil
 }
 
-type ConnState struct {
-    connected   bool
-    sync.Mutex
-}
-
-func (s *ConnState) Get() bool {
-    s.Lock()
-    defer s.Unlock()
-
-    return s.connected
-}
-
-func (s *ConnState) Set(is bool) {
-    s.Lock()
-    defer s.Unlock()
-
-    s.connected = is
-}
-
 const (
-    writeWait = 10 * time.Second
-    pongWait = 60 * time.Second
-    pingPeriod = (pongWait * 9) / 10
+    writeWait = time.Millisecond * 500
+    readWait = time.Second * 1
 )
 
+func pumpIngress(inChan chan []byte, writer io.WriteCloser) {
+    defer close(inChan)
+    defer writer.Close()
+    defer fmt.Println("Exiting ingress proxier.")
+
+    ticker := time.NewTicker(readWait)
+
+    defer ticker.Stop()
+
+    for {
+        select {
+            case d, ok := <- inChan:
+                if !ok {
+                    fmt.Println("inChan was closed by requesting kite.")
+
+                    // TODO (acbodine): !ok means inChan was closed
+                    // by the requesting kite client. If we want to
+                    // allow detaching we shouldn't return here.
+
+                    return
+                }
+
+                if num, err := writer.Write(d); err != nil {
+                    fmt.Println("Failed to write bytes to connection:", err)
+                    return
+                } else {
+                    fmt.Println("Wrote", num, "bytes to connection.")
+                }
+
+                break
+            case <- ticker.C:
+                break
+        }
+        fmt.Println("Looping on ingress proxier.")
+    }
+}
+
+func pumpEgress(wg sync.WaitGroup, reader io.ReadCloser, callback dnode.Function) {
+    defer reader.Close()
+    defer wg.Done()
+    defer fmt.Println("Exiting egress proxier.")
+
+    buf := make([]byte, 1024 * 4)
+
+    for {
+        // Read output chunks from the exec'd process until an error
+        // occurs.
+        num, err := reader.Read(buf)
+
+        if num > 0 {
+            if err := callback.Call(string(buf[:num])); err != nil {
+                fmt.Println("Failed to send output to client kite:", err)
+            }
+        }
+
+        if err != nil {
+            fmt.Println("Failed to read from exec'd process:", err)
+            break
+        }
+
+        fmt.Println("Looping on egress proxier.")
+    }
+}
+
 func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
+    var inReader, inWriter = io.Pipe()
+    var inChan = make(chan []byte)
+
+    if !r.IO.Stdin {
+        inReader, inWriter = nil, nil
+    }
+
+    var outReader, outWriter = io.Pipe()
+
     h := p.config.Host
     h = strings.Replace(h, "https://", "", -1)
     h = strings.Replace(h, "http://", "", -1)
@@ -165,139 +222,51 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         r.IO.Tty,
     )
 
-    tlsConfig, err := rest.TLSConfigFor(p.config)
-    if err != nil {
-        return nil, err
-    }
-
-    d := &websocket.Dialer{
-        TLSClientConfig: tlsConfig,
-    }
-
     fmt.Println("Connecting to:", u.String())
 
-    conn, _, err := d.Dial(u.String(), http.Header{
-        "Authorization": []string{
-            fmt.Sprintf("Bearer %s", p.config.BearerToken),
-        },
-    })
+    executor, err := remotecommand.NewExecutor(p.config, "POST", u)
     if err != nil {
-        fmt.Println("Failed to connect to K8s:", err)
         return nil, err
     }
 
-    inChan := make(chan []byte)
-    state := &ConnState{
-        connected:  true,
+    opts := remotecommand.StreamOptions{
+        SupportedProtocols: kuberc.SupportedStreamingProtocols,
+        Stdin:              inReader,
+        Stdout:             outWriter,
+        Stderr:             outWriter,
+        Tty:                r.IO.Tty,
     }
 
-    ch := conn.CloseHandler()
-    handler := func(code int, text string) error {
-        fmt.Println("Handling close message from peer:", code, text)
+    if err := executor.Stream(opts); err != nil {
+        return nil, err
+    }
 
-        // Notify io proxy routines, the underlying connection
-        // is closing, and they should exit accordingly.
-        state.Set(false)
+    var wg sync.WaitGroup
 
-        e := ch(code, text)
-        conn.Close()
+    // If requesting kite wants to send input to exec'd
+    // process, kickoff pumpIngress routine.
+    if r.IO.Stdin {
+        wg.Add(1)
+        go pumpIngress(inChan, inWriter)
+    }
 
-        // close(inChan)
+    // If requesting kite wants output from the exec'd
+    // process, kickoff pumpEgress routine.
+    if r.IO.Stdout || r.IO.Stderr {
+        wg.Add(1)
+        go pumpEgress(wg, outReader, r.Output)
+    }
+
+    go func () {
+        defer fmt.Println("Exiting done routine.")
+
+        wg.Wait()
+        fmt.Println("Proxier routines finished.")
 
         if err := r.Done.Call(true); err != nil {
             fmt.Println(err)
         }
-
-        fmt.Println("Exiting close handler.")
-        return e
-    }
-    conn.SetCloseHandler(handler)
-
-    if r.IO.Stdin {
-
-        go func() {
-            ticker := time.NewTicker(pingPeriod)
-
-            defer ticker.Stop()
-            defer fmt.Println("Exiting ingress proxier.")
-
-            for state.Get() {
-                select {
-                    case d, ok := <- inChan:
-                        if !ok {
-                            // TODO (acbodine): !ok means inChan was closed
-                            // by the requesting kite client. What to do?
-                            fmt.Println("inChan was closed by requesting kite.")
-
-                            conn.SetWriteDeadline(time.Now().Add(writeWait))
-                            conn.WriteMessage(websocket.CloseMessage, []byte{})
-
-                            return
-                        }
-
-                        conn.SetWriteDeadline(time.Now().Add(writeWait))
-                        if err := conn.WriteMessage(websocket.TextMessage, d); err != nil {
-                            fmt.Println("Failed to write bytes to connection:", err)
-                            return
-                        }
-
-                        break
-                    case <- ticker.C:
-                        conn.SetWriteDeadline(time.Now().Add(writeWait))
-                        if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-                            fmt.Println("Failed to ping remote connection:", err)
-                            return
-                        }
-
-                        break
-                }
-                fmt.Println("Looping on ingress proxier.")
-            }
-        }()
-    }
-
-    // If requesting kite wants this klient to return output
-    // and/or errors for the exec process. Kick off goroutine
-    // to do so.
-    if r.IO.Stdout || r.IO.Stderr {
-
-        go func() {
-            defer conn.Close()
-
-            conn.SetReadDeadline(time.Now().Add(pongWait))
-            ph := conn.PongHandler()
-            conn.SetPongHandler(func(appData string) error {
-                fmt.Println("Recieved a PONG message from peer.")
-                conn.SetReadDeadline(time.Now().Add(pongWait))
-                return ph(appData)
-            })
-
-            for state.Get() {
-                // Read output chunks from the exec'd process until an error
-                // occurs. Once an error occurs we are done reading and need
-                // to handle the error appropriately.
-                //
-                // NOTE: https://godoc.org/github.com/gorilla/websocket#Conn.ReadMessage
-                _, m, err := conn.ReadMessage()
-                if err != nil {
-                    fmt.Println(m)
-                    fmt.Println(err)
-                    break
-                }
-
-                // If there was no error while reading from the connection,
-                // then forward the data chunk to the client kite via
-                // the provided dnode.Function.
-                if e := r.Output.Call(string(m)); e != nil {
-                    fmt.Println("Failed to send output to client kite:", e)
-                }
-
-                fmt.Println("Looping on egress proxier.")
-            }
-
-            fmt.Println("Exiting egress proxier.")
-        }()
-    }
+    }()
 
     exec := &Exec{
         in:         inChan,
