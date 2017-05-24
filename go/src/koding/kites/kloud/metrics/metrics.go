@@ -57,7 +57,8 @@ func (Publisher) Pattern() string {
 // Publish is a kite.Handler for "metrics.publish" kite method.
 func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 	var req PublishRequest
-	if err := r.Args.One().Unmarshal(&req); err != nil {
+	argOne := r.Args.One()
+	if err := argOne.Unmarshal(&req); err != nil {
 		return nil, err
 	}
 
@@ -79,7 +80,8 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
-		if _, err := ctxhttp.Post(ctx, nil, p.metricsEndpoint, "application/json", bytes.NewReader(r.Args.Raw)); err != nil {
+		_, err := ctxhttp.Post(ctx, nil, p.metricsEndpoint, "application/json", bytes.NewReader(argOne.Raw))
+		if err != nil {
 			r.LocalKite.Log.Error("Err while publishing metrics: %s", err)
 		}
 	}()
