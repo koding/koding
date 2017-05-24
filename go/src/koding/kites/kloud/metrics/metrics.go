@@ -1,8 +1,10 @@
 package metrics
 
 import (
+	"bytes"
 	"io"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/koding/kite"
@@ -10,19 +12,21 @@ import (
 
 // Publisher sends DD events to agent.
 type Publisher struct {
-	conn io.WriteCloser
+	conn            io.WriteCloser
+	metricsEndpoint string
 }
 
 // NewPublisherWithConn creates new Publisher for sending the incoming events to
 // DataDog agent.
-func NewPublisherWithConn(conn io.WriteCloser) *Publisher {
+func NewPublisherWithConn(conn io.WriteCloser, metricsEndpoint string) *Publisher {
 	return &Publisher{
-		conn: conn,
+		conn:            conn,
+		metricsEndpoint: metricsEndpoint,
 	}
 }
 
 // NewPublisher creates a new publisher with default DD agent address.
-func NewPublisher() (*Publisher, error) {
+func NewPublisher(metricsEndpoint string) (*Publisher, error) {
 	udpAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:8125")
 	if err != nil {
 		return nil, err
@@ -33,7 +37,7 @@ func NewPublisher() (*Publisher, error) {
 		return nil, err
 	}
 
-	return NewPublisherWithConn(conn), nil
+	return NewPublisherWithConn(conn, metricsEndpoint), nil
 }
 
 // PublishRequest represents a request type for "metrics.publish" kloud's
@@ -68,6 +72,12 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 
 		return nil, err
 	}
+
+	go func() {
+		if _, err := http.Post(p.metricsEndpoint, "application/json", bytes.NewReader(r.Args.Raw)); err != nil {
+			r.LocalKite.Log.Error("Err while publishing metrics: %s", err)
+		}
+	}()
 
 	return nil, nil
 }
