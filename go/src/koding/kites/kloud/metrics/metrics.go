@@ -2,10 +2,13 @@ package metrics
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net"
-	"net/http"
 	"os"
+	"time"
+
+	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/koding/kite"
 )
@@ -74,7 +77,9 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 	}
 
 	go func() {
-		if _, err := http.Post(p.metricsEndpoint, "application/json", bytes.NewReader(r.Args.Raw)); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
+		if _, err := ctxhttp.Post(ctx, nil, p.metricsEndpoint, "application/json", bytes.NewReader(r.Args.Raw)); err != nil {
 			r.LocalKite.Log.Error("Err while publishing metrics: %s", err)
 		}
 	}()
