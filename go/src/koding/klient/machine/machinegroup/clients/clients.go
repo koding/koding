@@ -81,7 +81,7 @@ func New(opts *ClientsOpts) (*Clients, error) {
 
 // Create generates a new dynamic client for a given machine. If machine client
 // already exists, this function is no-op.
-func (c *Clients) Create(id machine.ID, dynAddr client.DynamicAddrFunc) error {
+func (c *Clients) Create(id machine.ID, dynAddr client.DynamicAddrFunc, addrSet client.AddrSetFunc) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -91,6 +91,7 @@ func (c *Clients) Create(id machine.ID, dynAddr client.DynamicAddrFunc) error {
 
 	dc, err := client.NewDynamic(client.DynamicOpts{
 		AddrFunc:        dynAddr,
+		AddrSetFunc:     addrSet,
 		Builder:         c.builder,
 		DynAddrInterval: c.dynAddrInterval,
 		PingInterval:    c.pingInterval,
