@@ -25,6 +25,12 @@ type Builder interface {
 	// Build builds new client which will connect to machine using provided
 	// address.
 	Build(ctx context.Context, addr machine.Addr) Client
+
+	// IP lookups for IP address to machine pointed by provided argument. If
+	// argument's network is already "ip", this method should be no-op. Non-nil
+	// errors should be returned when it's not possible to find IP address using
+	// given value.
+	IP(addr machine.Addr) (machine.Addr, error)
 }
 
 // DynamicOpts are the options used to configure dynamic client.

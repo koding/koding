@@ -67,6 +67,15 @@ func (n *Builder) Build(ctx context.Context, _ machine.Addr) client.Client {
 	return n.c
 }
 
+// IP always returns local host IP address.
+func (n *Builder) IP(_ machine.Addr) (machine.Addr, error) {
+	return machine.Addr{
+		Network:   "ip",
+		Value:     "127.0.0.1",
+		UpdatedAt: time.Now(),
+	}, nil
+}
+
 // WaitForBuild waits for invocation of Build method. It times out after
 // specified duration.
 func (n *Builder) WaitForBuild(timeout time.Duration) error {

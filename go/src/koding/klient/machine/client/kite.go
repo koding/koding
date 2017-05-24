@@ -66,7 +66,7 @@ func (kb *KiteBuilder) IP(addr machine.Addr) (machine.Addr, error) {
 		return machine.Addr{}, errors.New("invalid network")
 	}
 
-	k, err := kc.pool.Get(addr.Value)
+	k, err := kb.pool.Get(addr.Value)
 	if err != nil {
 		return machine.Addr{}, err
 	}

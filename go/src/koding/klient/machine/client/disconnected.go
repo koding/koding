@@ -32,6 +32,11 @@ func (DisconnectedBuilder) Build(ctx context.Context, _ machine.Addr) Client {
 	return NewDisconnected(ctx)
 }
 
+// IP always returns ErrDisconnected error.
+func (DisconnectedBuilder) IP(_ machine.Addr) (machine.Addr, error) {
+	return machine.Addr{}, ErrDisconnected
+}
+
 var _ Client = (*Disconnected)(nil)
 
 // Disconnected satisfies Client interface. It indicates disconnected machine
