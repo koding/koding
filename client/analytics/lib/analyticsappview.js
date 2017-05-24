@@ -2,7 +2,7 @@ import kd from 'kd'
 import JView from 'app/jview'
 
 export default class AnalyticsAppView extends JView {
-  constructor (options = {}, data) {
+  constructor(options = {}, data) {
     options.testPath = 'analytics'
     if (!options.cssClass) {
       options.cssClass = kd.utils.curry('AnalyticsAppView', options.cssClass)
