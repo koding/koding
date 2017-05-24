@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -12,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 	"unicode"
 
@@ -191,11 +193,12 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 		}
 	}
 
+	var destPath = c.DestinationPath
 	if c.Username != "" && c.Host != "" {
 		if c.Download {
 			c.SourcePath = c.Username + "@" + c.Host + ":" + c.SourcePath
 		} else {
-			c.DestinationPath = c.Username + "@" + c.Host + ":" + c.DestinationPath
+			c.DestinationPath = c.Username + "@" + c.Host + ":" + destPath
 		}
 	}
 
@@ -232,7 +235,16 @@ func (c *Command) run(ctx context.Context, scan func(r io.Reader)) error {
 	if err = c.Cmd.Wait(); err != nil {
 		c.Progress(0, 0, 0, err)
 		if ee, ok := err.(*exec.ExitError); ok {
-			ee.Stderr = errBuf.Bytes()
+			// If we upload files and get exit status code set to 12 from rsync
+			// this most likely means that we don't have write access to to
+			// destination directory.
+			//
+			// syscall.WaitStatus is present both on Windows and Unix.
+			if status, ok := ee.Sys().(syscall.WaitStatus); ok && status.ExitStatus() == 12 && !c.Download {
+				err = fmt.Errorf("cannot upload files to %s, you may not have write permissions to this path", destPath)
+			} else {
+				ee.Stderr = errBuf.Bytes()
+			}
 		}
 	} else {
 		c.Progress(0, 0, 0, io.EOF)
@@ -245,7 +257,7 @@ var (
 	rmComma = strings.NewReplacer(",", "")
 	bitRe   = regexp.MustCompile(`^[.><ch*].{7,11} .`)
 	sizeRe  = regexp.MustCompile(`^\s*([\d,]+)\s+\d+%.*$`)
-	totalRe = regexp.MustCompile(`^[^\d]*([\d,]+).*DRY\sRUN.*$`)
+	totalRe = regexp.MustCompile(`^[^\d]*([\d,]+).*(?:speedup\sis|DRY\sRUN).*$`)
 )
 
 func (c *Command) dryscan(r io.Reader) {
