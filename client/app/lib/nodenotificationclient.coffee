@@ -90,12 +90,19 @@ module.exports = class NodeNotificationClient extends kd.Object
 
     return  unless message = @_parse message
 
-    if message.auth is 'ok'
+    if message.auth is 'ok' and not message.__to?
       debug 'got auth ok, ready to go!'
       @emit 'ready'
+
     else
-      debug 'got new message', message
-      @emit 'message', message
+      if message.__to.user?
+        debug "got new message for #{message.__to.user} user", message
+        to = 'message'
+      else
+        debug "got new message for #{message.__to.group} group", message
+        to = 'group:message'
+
+      @emit to, message
 
 
   _send: (obj) ->

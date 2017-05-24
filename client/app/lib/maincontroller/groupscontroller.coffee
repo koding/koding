@@ -105,7 +105,7 @@ module.exports = class GroupsController extends kd.Controller
 
     else
 
-      realtime.nodeNotificationClient.on 'message', (notification) =>
+      realtime.nodeNotificationClient.on 'group:message', (notification) =>
 
         debug 'got notification from nodeNotificationClient', notification
 
