@@ -39,6 +39,7 @@ module.exports = class NotificationWorker
     @_verifiedConnections = []
     @_verifiedRoutes = []
 
+
   start: ->
 
     @log 'starting worker...'
@@ -189,11 +190,16 @@ module.exports = class NotificationWorker
     @log 'got message for', property.routingKey, parsedMessage
 
     [ t_group, t_user ] = property.routingKey.split ':'
+
+    messageToSend = parsedMessage
+    messageToSend.__to = { user: t_user, group: t_group }
+    messageToSend = JSON.stringify messageToSend
+
     for route in @_verifiedRoutes
       [ group, user, id ] = route
       if group is t_group
         return  if t_user? and t_user isnt user
-        @_connections[id]?.write JSON.stringify parsedMessage
+        @_connections[id]?.write messageToSend
 
 
   # --- express app handlers for internal use
