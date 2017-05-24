@@ -18,14 +18,11 @@ module.exports = class NotificationViewContainer extends ReactView
 
   onNotificationRemove: (uid) =>
 
-    notification = null
     notifications = @options.notifications
-    notifications = notifications.filter (n) ->
-      notification = n if n.uid is uid
-      n.uid isnt uid
-    notification.onRemove notification  if notification && notification.onRemove
+    notifications = notifications.filter (n) -> n.uid isnt uid
+
     @options.notifications = notifications
-    @appendToDomBody()
+    @updateOptions { notifications }
 
 
   getNotifications: ->
@@ -50,4 +47,5 @@ module.exports = class NotificationViewContainer extends ReactView
     ]
 
     <div className={className}>
+      { @getNotifications() }
     </div>
