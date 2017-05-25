@@ -7,7 +7,7 @@ const debug = require('debug')('analytics-view:router')
 export default function() {
   lazyrouter.bind('analytics', (type, info, state, path, ctx) => {
     getCurrentGroup().fetchDataAt('countly.apiKey', (err, apiKey) => {
-      if (!err) {
+      if (err || !apiKey) {
         debug("couldn't fetch countly apikey")
         kd.singletons.notificationViewController.addNotification({
           type: 'warning',
