@@ -275,19 +275,23 @@ module.exports = class NotificationWorker
         @_dropConnection connection
 
       else
-        { clientId, username, groupName } = parsedMessage.auth
 
-        if /^guest-/.test username
-          return @_dropConnection connection
+        { clientId } = parsedMessage.auth
 
-        @_bongo.models.JSession.one { clientId, username, groupName }, (err, session) =>
+        @_bongo.models.JSession.one { clientId }, (err, session) =>
           if err or not session
             @_dropConnection connection
+
           else
-            @_verifyConnection connection, groupName, username
+
+            if /^guest-/.test session.username
+              return @_dropConnection connection
+
+            @_verifyConnection connection, session.groupName, session.username
             @_ackConnection connection
 
     else
+
       @_ackConnection connection
 
 

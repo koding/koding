@@ -6,9 +6,7 @@ SockJS = require 'sockjs-client'
 backoff = require 'backoff'
 
 kookies = require 'kookies'
-globals = require 'globals'
-
-nick = require 'app/util/nick'
+isLoggedIn = require 'app/util/isLoggedIn'
 
 
 module.exports = class NodeNotificationClient extends kd.Object
@@ -19,7 +17,6 @@ module.exports = class NodeNotificationClient extends kd.Object
   constructor: (options = {}, data) ->
 
     super options, data
-
 
     @_bo = backoff.exponential
       initialDelay : 1200
@@ -40,6 +37,8 @@ module.exports = class NodeNotificationClient extends kd.Object
 
 
   connect: ->
+
+    return  unless isLoggedIn()
 
     @_bo.on 'ready', =>
       @_socket?.close()
@@ -128,9 +127,7 @@ module.exports = class NodeNotificationClient extends kd.Object
   _getAuth: ->
 
     return {
-      auth : {
-        clientId  : kookies.get('clientId')
-        username  : nick()
-        groupName : globals.currentGroup.slug
+      auth: {
+        clientId: kookies.get 'clientId'
       }
     }
