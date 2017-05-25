@@ -1,6 +1,5 @@
 cors = require 'cors'
 http = require 'http'
-amqp = require 'amqp'
 
 sockjs = require 'sockjs'
 helmet = require 'helmet'
@@ -12,28 +11,21 @@ bodyParser = require 'body-parser'
 KONFIG = require 'koding-config-manager'
 bongo  = require '../../../../servers/lib/server/bongo'
 
+MQController = require './mqcontroller'
+
+
 module.exports = class NotificationWorker
 
-
-  QUEUEPREFIX  = 'NodeNotification'
-  QUEUEOPTIONS = { durable: yes, autoDelete: yes }
-
-  EXCHANGENAME = 'NotificationMessageBus:0'
-  EXCHANGE_OPTIONS = {
-    autoDelete: yes
-    durable: yes
-    type: 'fanout'
-  }
 
   [ NOTREADY, READY ] = [ 0, 1 ]
 
 
   constructor: ->
 
+    @_queueName = "#{Math.random().toString().slice(2, 10)}"
+
     @_state = NOTREADY
     @_queue = []
-
-    @_queueName = "#{QUEUEPREFIX}:#{Math.random().toString().slice(2, 10)}"
 
     @_connections = {}
     @_verifiedConnections = []
@@ -46,8 +38,8 @@ module.exports = class NotificationWorker
 
     @_connectToBongo =>
 
-      @_connectToRabbitMQ()
       @_createSocketServer()
+      @_connectToRabbitMQ()
       @_createExpressApp()
 
       @_startServer()
@@ -71,13 +63,13 @@ module.exports = class NotificationWorker
       @_queue.push [ routingKey, notification ]
       return
 
-    @_exchange.publish routingKey, JSON.stringify notification
+    @_mq.getExchange().publish routingKey, JSON.stringify notification
 
 
   # internal logger
   log: (message...) ->
 
-    console.log "[NW][#{argv.i ? 0}]", message...
+    console.log "[NW][#{@_queueName}]", message...
 
 
   # returns true if exchange is ready and bongo connected
@@ -111,18 +103,6 @@ module.exports = class NotificationWorker
       callback null
 
 
-  _connectToRabbitMQ: ->
-
-    @_connection = amqp.createConnection KONFIG.mq, { reconnect: yes }
-
-    @_connection.on 'error', (err) =>
-      @log 'Error: connecting to RabbitMQ', err
-
-    @_connection.on 'ready', =>
-      @log 'started successfully'
-      @_assertExchange()
-
-
   _createSocketServer: ->
 
     @_socket = sockjs.createServer()
@@ -154,32 +134,26 @@ module.exports = class NotificationWorker
     return @_server
 
 
-  # --- mq helpers
+  _connectToRabbitMQ: ->
 
-  _assertExchange: ->
+    @_mq = new MQController {
+      messageHandler: @_handleMqMessage
+      queueName: @_queueName
+      delegate: this
+    }
 
-    @_exchange = @_connection.exchange EXCHANGENAME, EXCHANGE_OPTIONS
-    @_exchange.on 'open', =>
-      @log 'exchange verified', EXCHANGENAME
-      @_assertQueue()
-      @_setReady()
-
-
-  _assertQueue: ->
-
-    @_connection.queue @_queueName, QUEUEOPTIONS, (queue) =>
-      @log 'queue verified', @_queueName
-      @_bindExchange queue
+    return @_mq
 
 
-  _bindExchange: (queue) ->
+  _createExpressApp: ->
 
-    unless queue
-      return @log 'queue not provided'
+    @_express = new ExpressController {
+      delegate: this
+    }
 
-    queue.bind EXCHANGENAME, '#', =>
-      @log 'bounded to exchange', EXCHANGENAME
-      queue.subscribe @_handleMqMessage.bind this
+    @_express.startServer @_socket
+
+    return @_express
 
 
   # --- mq handlers
