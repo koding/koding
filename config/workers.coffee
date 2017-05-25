@@ -164,7 +164,38 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURLs   : [ "http://localhost:#{KONFIG.social.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    socialapi:
+    emailer             :
+      group             : 'webserver'
+      disabled          : yes
+      supervisord       :
+        command         :
+          run           : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer'
+
+    notification        :
+      group             : 'webserver'
+      disabled          : yes
+      supervisord       :
+        command         :
+          run           : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/notification -p 4560'
+      ports             :
+        incoming        : '4560'
+      nginx             :
+        websocket       : yes
+        locations       : [
+          { location    : '/notify' }
+          {
+            location    : '~ /api/social/private/dispatcher/(.*)' # handle dispatcher requests
+            proxyPass   : 'http://notification/$1$is_args$args'
+            internalOnly: yes
+          }
+        ]
+      # if it's required to have more than 1 instance of notification worker
+      # sticky sessions should be enabled on the load balancer if it's willing
+      # to use long polling (xhr-polling/stream) ~ GG
+      instances         : 1
+      instanceAsArgument: '-i'
+
+    socialapi           :
       group             : 'socialapi'
       instances         : 1
       ports             :
@@ -368,3 +399,18 @@ module.exports = (KONFIG, options, credentials) ->
             ]
           }
         ]
+
+  # if requested disable workers
+  disabledWorkers = options?.disabledWorkers ? []
+  for worker in disabledWorkers
+    delete workers[worker]
+
+  # if not enabled then disable the one should be disabled
+  enabledWorkers = options?.enabledWorkers ? []
+  for key, worker of workers when worker.disabled
+    if key in enabledWorkers
+      worker.disabled = no
+    else
+      delete workers[key]
+
+  return workers

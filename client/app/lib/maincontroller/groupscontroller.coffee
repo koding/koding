@@ -66,38 +66,54 @@ module.exports = class GroupsController extends kd.Controller
   filterXssAndForwardEvents: (target, events) ->
     events.forEach (event) =>
       target.on event, (rest...) =>
+        debug 'got notification for group', rest...
         rest = remote.revive rest
         @emit event, rest...
+
+
+  knownEvents = [
+    'StackTemplateChanged'
+    'GroupStackTemplateRemoved'
+    'InstanceChanged'
+    'InstanceDeleted'
+    'GroupDestroyed'
+    'GroupJoined'
+    'MembershipRoleChanged'
+    'InvitationChanged'
+    'GroupLeft'
+    'StackAdminMessageCreated'
+    'SharedStackTemplateAccessLevel'
+  ]
 
   openSocialGroupChannel: (group, callback = -> ) ->
 
     { realtime, socialapi } = kd.singletons
 
-    socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
-      return callback err  if err
+    if realtime.isPubNubEnabled()
 
-      socialapi.registerAndOpenChannel group, channel, (err, registeredChan) =>
+      socialapi.channel.byId { id: group.socialApiChannelId }, (err, channel) =>
         return callback err  if err
 
-        realtimeChan = registeredChan?.delegate
+        socialapi.registerAndOpenChannel group, channel, (err, registeredChan) =>
+          return callback err  if err
 
-        return callback 'realtime chan is not set'  unless realtimeChan
+          realtimeChan = registeredChan?.delegate
+          return callback 'realtime chan is not set'  unless realtimeChan
 
-        @filterXssAndForwardEvents realtimeChan, [
-          'StackTemplateChanged'
-          'GroupStackTemplateRemoved'
-          'InstanceChanged'
-          'InstanceDeleted'
-          'GroupDestroyed'
-          'GroupJoined'
-          'MembershipRoleChanged'
-          'InvitationChanged'
-          'GroupLeft'
-          'StackAdminMessageCreated'
-          'SharedStackTemplateAccessLevel'
-        ]
+          @filterXssAndForwardEvents realtimeChan, knownEvents
+          callback null
 
-        callback null
+    else
+
+      realtime.nodeNotificationClient.on 'group:message', (notification) =>
+
+        debug 'got notification from nodeNotificationClient', notification
+
+        { event } = notification
+        if event in knownEvents
+          notification = remote.revive notification
+          @emit event, notification
+
 
   changeGroup: (groupName = 'koding', callback = kd.noop) ->
 
