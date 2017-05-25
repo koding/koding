@@ -49,7 +49,7 @@ func TestClients(t *testing.T) {
 	for id, dynAddr := range create {
 		id, dynAddr := id, dynAddr // Local copy for concurrency.
 		g.Go(func() error {
-			return cs.Create(id, dynAddr)
+			return cs.Create(id, dynAddr, func(_ machine.Addr) {})
 		})
 	}
 	if err := g.Wait(); err != nil {

@@ -2,6 +2,10 @@ package client
 
 import (
 	"context"
+	"errors"
+	"net"
+	"net/url"
+	"strings"
 	"time"
 
 	"koding/kites/kloud/klient"
@@ -50,6 +54,62 @@ func (kb *KiteBuilder) Build(ctx context.Context, addr machine.Addr) Client {
 		addr: addr.Value,
 		pool: kb.pool,
 	}
+}
+
+// IP tries to find remote machine IP from kite address.
+func (kb *KiteBuilder) IP(addr machine.Addr) (machine.Addr, error) {
+	if addr.Network == "ip" {
+		return addr, nil
+	}
+
+	if addr.Network != "kite" {
+		return machine.Addr{}, errors.New("invalid network")
+	}
+
+	k, err := kb.pool.Get(addr.Value)
+	if err != nil {
+		return machine.Addr{}, err
+	}
+
+	// Valid only for WebSocket connections.
+	if a := k.Client.RemoteAddr(); a != "" && net.ParseIP(a) != nil {
+		return machine.Addr{
+			Network:   "ip",
+			Value:     a,
+			UpdatedAt: time.Now(),
+		}, nil
+	}
+
+	// Try to get IP from kite client URL. Valid only for XHR transport.
+	if a, err := getIP(k.Client.URL); err == nil {
+		return machine.Addr{
+			Network:   "ip",
+			Value:     a,
+			UpdatedAt: time.Now(),
+		}, nil
+	}
+
+	return machine.Addr{}, errors.New("cannot find remote IP")
+}
+
+func getIP(rawurl string) (string, error) {
+	u, err := url.Parse(rawurl)
+	if err != nil {
+		return "", err
+	}
+
+	host := u.Host
+	if strings.Contains(host, ":") {
+		if host, _, err = net.SplitHostPort(host); err != nil {
+			return "", err
+		}
+	}
+
+	if ip := net.ParseIP(host); ip == nil {
+		return "", errors.New("not IP")
+	}
+
+	return host, nil
 }
 
 // kiteClient implements Client interface it uses klient from internal pool.

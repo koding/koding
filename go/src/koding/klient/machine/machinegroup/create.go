@@ -46,7 +46,7 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 		}
 
 		// Create dynamic client.
-		if err := g.client.Create(id, g.dynamicAddr(id)); err != nil {
+		if err := g.client.Create(id, g.dynamicAddr(id), g.addrSet(id)); err != nil {
 			g.log.Error("Cannot create client for %s: %s", id, err)
 			continue
 		}
