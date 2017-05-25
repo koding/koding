@@ -82,7 +82,7 @@ module.exports = class EmailerWorker
       from    : KONFIG.email.defaultFromMail
       to      : to
       subject : template.subject
-      content : template.content
+      text    : template.content
 
     @log "sending #{type} mail to #{to}..."
 

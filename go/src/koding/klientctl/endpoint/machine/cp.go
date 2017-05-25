@@ -65,6 +65,7 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 	fmt.Fprintf(os.Stdout, "Checking transfer size...\n")
 
 	if n, size, err := cmd.DryRun(ctx); err != nil {
+		c.log().Warning("Cannot obtain transfer size: %v", err)
 		fmt.Fprintf(os.Stdout, "Copying files: remaining time is unknown\n")
 	} else {
 		cpRes.Command.Progress = rsync.Progress(os.Stdout, n, size)

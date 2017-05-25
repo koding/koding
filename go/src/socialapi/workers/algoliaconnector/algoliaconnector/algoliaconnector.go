@@ -151,7 +151,7 @@ func (c *Controller) InitAndDeleteIndex(name string) (interface{}, error) {
 	index := c.client.InitIndex(name)
 	return index.Delete()
 }
-func (c *Controller) ListIndexes() (interface{}, error) {
+func (c *Controller) ListIndexes() ([]algoliasearch.IndexRes, error) {
 	return c.client.ListIndexes()
 
 }

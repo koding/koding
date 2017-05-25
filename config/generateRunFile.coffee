@@ -198,7 +198,7 @@ generateDev = (KONFIG, options) ->
         exit 1
       fi
 
-      local pgssl=$(psql --quiet --tuples-only --command "show ssl;" $KONFIG_POSTGRES_URL | tr --delete '[:space:]')
+      local pgssl=$(psql --quiet --tuples-only --command "show ssl;" $KONFIG_POSTGRES_URL | tr -d '[:space:]')
       if [[ "$pgssl" == "off" ]]; then
         export PGSSLMODE="disable"
       fi

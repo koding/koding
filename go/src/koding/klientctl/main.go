@@ -19,6 +19,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"time"
 
 	"koding/kites/kloud/utils/object"
 	"koding/kites/metrics"
@@ -743,6 +744,26 @@ error opening: %s
 					},
 				},
 			}, {
+				Name:        "sync",
+				Usage:       "Manage mount synchronization.",
+				Description: cmdDescriptions["mount-sync"],
+				Action:      ctlcli.ExitErrAction(MachineSyncMount, log, "sync"),
+				Flags: []cli.Flag{
+					cli.DurationFlag{
+						Name:  "timeout, t",
+						Usage: "Maximum time to wait.",
+						Value: time.Minute,
+					},
+					cli.BoolFlag{
+						Name:  "pause",
+						Usage: "Pause synchronization.",
+					},
+					cli.BoolFlag{
+						Name:  "resume",
+						Usage: "Resume synchronization.",
+					},
+				},
+			}, {
 				Name:   "inspect",
 				Hidden: true,
 				Usage:  "Advanced utilities for mount command.",
@@ -862,16 +883,6 @@ error opening: %s
 				},
 			},
 		}},
-	}, {
-		Name:   "sync",
-		Usage:  "Wait for mount synchronization to finish.",
-		Action: ctlcli.ExitErrAction(Sync, log, "sync"),
-		Flags: []cli.Flag{
-			cli.DurationFlag{
-				Name:  "timeout, t",
-				Usage: "Maximum time to wait.",
-			},
-		},
 	}, {
 		Name:  "team",
 		Usage: "List available teams and set team context.",
@@ -1000,6 +1011,7 @@ error opening: %s
 		find(app.Commands, "machine", "list"),
 		find(app.Commands, "machine", "ssh"),
 		find(app.Commands, "machine", "mount"),
+		find(app.Commands, "machine", "mount", "sync"),
 		find(app.Commands, "machine", "umount"),
 		find(app.Commands, "machine", "exec"),
 		find(app.Commands, "machine", "cp"),

@@ -95,6 +95,12 @@ Configuration = (options = {}) ->
   # Disable Sneaker for kloud.
   KONFIG.kloud.noSneaker = true
 
+  endpoint = "#{options.protocol}//#{options.domains.main}"
+  KONFIG.goKoding.endpoints.ip.public = "#{endpoint}/-/ip"
+  KONFIG.goKoding.endpoints.ipCheck.public = "#{endpoint}/-/ipCheck"
+  KONFIG.goKoding.endpoints.kdLatest.public = "#{endpoint}/a/kd/#{options.environment}/latest-version.txt"
+  KONFIG.goKoding.endpoints.klientLatest.public = "#{endpoint}/a/klient/#{options.environment}/latest-version.txt"
+
   options.requirementCommands = [
     '$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh'
   ]

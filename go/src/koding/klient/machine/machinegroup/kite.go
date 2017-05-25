@@ -230,6 +230,48 @@ func KiteHandlerCp(g *Group) kite.HandlerFunc {
 	}
 }
 
+// KiteHandlerMountID creates a kite handler function that, when called, invokes
+// machine group MountID method.
+func KiteHandlerMountID(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &MountIDRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.MountID(req)
+		if err != nil {
+			return nil, newError(err)
+		}
+
+		return res, nil
+	}
+}
+
+// KiteHandlerManageMount creates a kite handler function that, when called,
+// invokes machine group ManageMount method.
+func KiteHandlerManageMount(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &ManageMountRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.ManageMount(req)
+		if err != nil {
+			return nil, newError(err)
+		}
+
+		return res, nil
+	}
+}
+
 // HandleExec is a handler for "machine.exec" kite requests.
 func (g *Group) HandleExec(r *kite.Request) (interface{}, error) {
 	var req ExecRequest
