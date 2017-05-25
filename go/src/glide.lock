@@ -734,6 +734,8 @@ imports:
   version: 609b752a95effbbef26d134ac18ed6f57e01b98e
 - name: github.com/moul/gotty-client
   version: 92f0c24d5b2985522174e3ff5ad882a1c4d7f1d9
+- name: github.com/narqo/go-dogstatsd-parser
+  version: cc11c25c4b3c0dc684c0025140bec1ee5984b558
 - name: github.com/nesv/go-dynect
   version: 2dc6a86cf75ce4b33516d2a13c9c0c378310cf3b
   subpackages:

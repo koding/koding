@@ -42,9 +42,14 @@ func NewWithPath(boltPath, app string) (*Metrics, error) {
 // NewWithDB creates a new metric collector with given bolt db instance. See New
 // func.
 func NewWithDB(db *bolt.DB, app string) (*Metrics, error) {
-	storage, err := NewBoltStorageWithDB(db)
+	var storage Storage
+	var err error
+	if db != nil {
+		storage, err = NewBoltStorageWithDB(db)
+	}
+
 	if err != nil {
-		return nil, err
+		storage = newInMemStorage()
 	}
 
 	return NewWithStorage(storage, app)

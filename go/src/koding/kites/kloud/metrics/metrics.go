@@ -1,28 +1,35 @@
 package metrics
 
 import (
+	"bytes"
+	"context"
 	"io"
 	"net"
 	"os"
+	"time"
+
+	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/koding/kite"
 )
 
 // Publisher sends DD events to agent.
 type Publisher struct {
-	conn io.WriteCloser
+	conn            io.WriteCloser
+	metricsEndpoint string
 }
 
 // NewPublisherWithConn creates new Publisher for sending the incoming events to
 // DataDog agent.
-func NewPublisherWithConn(conn io.WriteCloser) *Publisher {
+func NewPublisherWithConn(conn io.WriteCloser, metricsEndpoint string) *Publisher {
 	return &Publisher{
-		conn: conn,
+		conn:            conn,
+		metricsEndpoint: metricsEndpoint,
 	}
 }
 
 // NewPublisher creates a new publisher with default DD agent address.
-func NewPublisher() (*Publisher, error) {
+func NewPublisher(metricsEndpoint string) (*Publisher, error) {
 	udpAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:8125")
 	if err != nil {
 		return nil, err
@@ -33,7 +40,7 @@ func NewPublisher() (*Publisher, error) {
 		return nil, err
 	}
 
-	return NewPublisherWithConn(conn), nil
+	return NewPublisherWithConn(conn, metricsEndpoint), nil
 }
 
 // PublishRequest represents a request type for "metrics.publish" kloud's
@@ -50,7 +57,8 @@ func (Publisher) Pattern() string {
 // Publish is a kite.Handler for "metrics.publish" kite method.
 func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 	var req PublishRequest
-	if err := r.Args.One().Unmarshal(&req); err != nil {
+	argOne := r.Args.One()
+	if err := argOne.Unmarshal(&req); err != nil {
 		return nil, err
 	}
 
@@ -68,6 +76,15 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 
 		return nil, err
 	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
+		_, err := ctxhttp.Post(ctx, nil, p.metricsEndpoint, "application/json", bytes.NewReader(argOne.Raw))
+		if err != nil {
+			r.LocalKite.Log.Error("Err while publishing metrics: %s", err)
+		}
+	}()
 
 	return nil, nil
 }

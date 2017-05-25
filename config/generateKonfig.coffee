@@ -124,7 +124,7 @@ module.exports = (options, credentials) ->
     registerUrl: "#{options.customDomain.public}/kloud/kite"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: 'https://s3.amazonaws.com/koding-klient/development/latest/klient.deb'
-
+    kiteMetricsPublishUrl: "#{socialApiProxyUrl}/countly/publishkite"
     terraformerSecretKey: credentials.terraformer.secretKey
 
   marketingPagesURL = 'http://www.koding.com'

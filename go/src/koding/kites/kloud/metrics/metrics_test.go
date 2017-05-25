@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
@@ -23,7 +24,11 @@ func TestPublishEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pub := NewPublisherWithConn(conn)
+	// ignore messages
+	blackHole := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer blackHole.Close()
+
+	pub := NewPublisherWithConn(conn, blackHole.URL)
 
 	tsrv.HandleFunc(pub.Pattern(), pub.Publish)
 
