@@ -53,9 +53,10 @@ module.exports = class NodeNotificationClient extends kd.Object
     debug 'initiating the socket connection...'
     @_socket = new SockJS SUBSCRIBE_ENDPOINT
 
-    @_socket.onmessage = @bound '_handleNewMessage'
-    @_socket.onclose   = @bound '_handleClose'
-    @_socket.onopen    = @bound '_handleOpen'
+    @_socket.addEventListener 'message', @bound '_handleNewMessage'
+    @_socket.addEventListener 'close',   @bound '_handleClose'
+    @_socket.addEventListener 'error',   @bound '_handleError'
+    @_socket.addEventListener 'open',    @bound '_handleOpen'
 
     return this
 
@@ -85,6 +86,10 @@ module.exports = class NodeNotificationClient extends kd.Object
     @_bo.backoff()  if event?.code > 1000
 
 
+  _handleError: (error) ->
+    debug 'got an error', error
+
+
   _handleNewMessage: (message) ->
 
     return  unless message = @_parse message
@@ -106,10 +111,7 @@ module.exports = class NodeNotificationClient extends kd.Object
 
   _send: (obj) ->
 
-    if @_socket
-      @_socket.send JSON.stringify obj
-    else
-      debug "it's too early to send a message, connect first!"
+    @_socket.send JSON.stringify obj
 
 
   _parse: (message) ->
