@@ -135,7 +135,7 @@ func TestAnteroomPopChange(t *testing.T) {
 	a.Commit(cB)
 
 	if ev.Valid() {
-		t.Fatalf("want invalid valid event; got valid")
+		t.Fatalf("want invalid event; got valid")
 	}
 
 	// All events either valid or not valid must went trough workers. They

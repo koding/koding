@@ -27,10 +27,17 @@ type Anteroom struct {
 	evs   map[string]*msync.Event // Change name to change event map.
 
 	cursMu sync.Mutex
-	curs   map[string]*msync.Event // Paths currently processed.
+	curs   map[string]*pendingEvent // Paths currently processed.
 
 	synced int64        // How many events are processing.
 	idle   *subscribers // Subscribers waiting for idle signals.
+}
+
+// pendingEvent describes pending event. It can only be sent to receiver worker
+// if ready flag is set to true.
+type pendingEvent struct {
+	ev    *msync.Event
+	ready bool
 }
 
 // NewAnteroom creates a new Anteroom object. Once it's created, Close method
@@ -44,7 +51,7 @@ func NewAnteroom() *Anteroom {
 		wakeupC: make(chan struct{}, 1),
 		stopC:   stopC,
 		evs:     make(map[string]*msync.Event),
-		curs:    make(map[string]*msync.Event),
+		curs:    make(map[string]*pendingEvent),
 		idle:    newSubscribers(stopC),
 	}
 
@@ -207,10 +214,10 @@ func (a *Anteroom) dequeue() {
 		defer a.cursMu.Unlock()
 
 		// Pop any pending events.
-		for path, ev := range a.curs {
-			if ev != nil {
+		for path, pev := range a.curs {
+			if pev != nil && pev.ready {
 				a.curs[path] = nil
-				return ev
+				return pev.ev
 			}
 		}
 
@@ -229,7 +236,10 @@ func (a *Anteroom) dequeue() {
 			case ok && pending == nil:
 				// Similar event is already processed by worker go-routine.
 				// Store new one as pending.
-				a.curs[ev.Change().Path()] = ev
+				a.curs[ev.Change().Path()] = &pendingEvent{
+					ev:    ev,
+					ready: false,
+				}
 			case !ok:
 				// There are no similar events being processed. Mark current one
 				// as sent to workers.
@@ -322,10 +332,16 @@ func (a *Anteroom) unsync(path string) {
 
 	// Remove event from currently processed ones.
 	a.cursMu.Lock()
-	if ev, ok := a.curs[path]; ok && ev == nil {
-		delete(a.curs, path)
+	if pev, ok := a.curs[path]; ok {
+		if pev != nil {
+			pev.ready = true
+		} else {
+			delete(a.curs, path)
+		}
 	}
 	a.cursMu.Unlock()
+
+	a.wakeup()
 }
 
 // Pause prevets Anteroom from sending new events.
