@@ -193,8 +193,10 @@ module.exports = class NotificationWorker
 
     [ t_group, t_user ] = property.routingKey.split ':'
 
-    messageToSend = parsedMessage
-    messageToSend.__to = { user: t_user, group: t_group }
+    messageToSend = { content: parsedMessage }
+    messageToSend.type = 'message'
+    messageToSend.recipient = { user: t_user, group: t_group }
+
     messageToSend = JSON.stringify messageToSend
 
     for route in @_verifiedRoutes
@@ -297,7 +299,7 @@ module.exports = class NotificationWorker
 
   _ackConnection: (connection) ->
 
-    connection.write '{ "auth": "ok" }'
+    connection.write '{ "type": "auth", "status": "ok" }'
 
 
   # --- socker connection management

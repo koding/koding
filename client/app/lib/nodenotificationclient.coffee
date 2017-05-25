@@ -12,6 +12,7 @@ isLoggedIn = require 'app/util/isLoggedIn'
 module.exports = class NodeNotificationClient extends kd.Object
 
   SUBSCRIBE_ENDPOINT = '/notify/subscribe' # this can be taken from config ~ GG
+  [ AUTH, MESSAGE, OK ] = ['auth', 'message', 'ok']
 
 
   constructor: (options = {}, data) ->
@@ -106,19 +107,20 @@ module.exports = class NodeNotificationClient extends kd.Object
 
     return  unless message = @_parse message
 
-    if message.auth is 'ok' and not message.__to?
+    if message.type is AUTH and message.status is OK
       debug 'got auth ok, ready to go!'
       @emit 'ready'
 
-    else
-      if message.__to.user?
-        debug "got new message for #{message.__to.user} user", message
+    else if message.type is MESSAGE
+
+      if user = message.recipient.user
+        debug "got new message for #{user} user", message
         to = 'message'
       else
-        debug "got new message for #{message.__to.group} group", message
+        debug "got new message for #{message.recipient.group} group", message
         to = 'group:message'
 
-      @emit to, message
+      @emit to, message.content
 
 
   _send: (obj) ->
@@ -131,8 +133,7 @@ module.exports = class NodeNotificationClient extends kd.Object
     try
       message = JSON.parse message.data
     catch e
-      debug 'got a corrupted message', message
-      @close internal = yes
+      debug 'got a corrupted message, dropping to the floor', message, e
       return null
 
     return message
