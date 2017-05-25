@@ -71,6 +71,11 @@ module.exports = class NodeNotificationClient extends kd.Object
 
     debug 'connection established, sending auth message...'
     @_send @_getAuth()
+
+    # if it ends up with connecting to sockjs server and sending the message
+    # sometimes we encountered no response issue that just happens. to prevent
+    # possible race condition here we're waiting for 5 sec. and checking for
+    # the connection status again. otherwise backoff is handling retry part ~GG
     kd.utils.wait 5000, =>
       @_bo.backoff()  unless @readyState
 
@@ -83,6 +88,13 @@ module.exports = class NodeNotificationClient extends kd.Object
     @readyState = 0
     @once 'ready', => @readyState = 1
 
+    # if connection is closed on request (calling ::close) or if it's closed
+    # by remote which can happen when there is an authentication error occurs
+    # we don't need to retry to reconnect which can be identified as in
+    # CloseEvent.code [1] (1000) for the all other cases if code is greater
+    # than 1000 we'll retry ~ GG
+    #
+    # [1] https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
     @_bo.backoff()  if event?.code > 1000
 
 
