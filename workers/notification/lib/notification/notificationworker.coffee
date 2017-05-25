@@ -44,13 +44,13 @@ module.exports = class NotificationWorker
 
     @log 'starting worker...'
 
-    @_connectToRabbitMQ()
-    @_connectToBongo()
+    @_connectToBongo =>
 
-    @_createSocketServer()
-    @_createExpressApp()
+      @_connectToRabbitMQ()
+      @_createSocketServer()
+      @_createExpressApp()
 
-    @_startServer()
+      @_startServer()
 
 
   # notification sender which publishes a message over exchange to all
@@ -102,11 +102,13 @@ module.exports = class NotificationWorker
     return READY
 
 
-  _connectToBongo: ->
+  _connectToBongo: (callback) ->
 
     bongo.once 'apiReady', =>
       @log 'bongo connected.'
       @_bongo = bongo
+
+      callback null
 
 
   _connectToRabbitMQ: ->
