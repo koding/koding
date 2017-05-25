@@ -1,17 +1,9 @@
-cors = require 'cors'
-http = require 'http'
-
-sockjs = require 'sockjs'
-helmet = require 'helmet'
-
-express    = require 'express'
-{ argv }   = require 'optimist'
-bodyParser = require 'body-parser'
-
 KONFIG = require 'koding-config-manager'
 bongo  = require '../../../../servers/lib/server/bongo'
+sockjs = require 'sockjs'
 
 MQController = require './mqcontroller'
+ExpressController = require './expresscontroller'
 
 
 module.exports = class NotificationWorker
@@ -41,8 +33,6 @@ module.exports = class NotificationWorker
       @_createSocketServer()
       @_connectToRabbitMQ()
       @_createExpressApp()
-
-      @_startServer()
 
 
   # notification sender which publishes a message over exchange to all
@@ -110,30 +100,6 @@ module.exports = class NotificationWorker
     return @_socket
 
 
-  _createExpressApp: ->
-
-    @_app = express()
-
-    @_app.use bodyParser.json { limit: '100kb' }
-    @_app.use helmet()
-    @_app.use cors()
-
-    @_app.get  '/notify',                  @_handleStatusRequest.bind this
-    @_app.post '/dispatcher_notify_user',  @_handleSendNotification 'user'
-    @_app.post '/dispatcher_notify_group', @_handleSendNotification 'group'
-
-    return @_app
-
-
-  _startServer: ->
-
-    @_server = http.createServer @_app
-    @_socket.installHandlers @_server, { prefix: '/notify/subscribe' }
-    @_server.listen argv.p
-
-    return @_server
-
-
   _connectToRabbitMQ: ->
 
     @_mq = new MQController {
@@ -178,42 +144,6 @@ module.exports = class NotificationWorker
       if group is t_group
         return  if t_user? and t_user isnt user
         @_connections[id]?.write messageToSend
-
-
-  # --- express app handlers for internal use
-
-  _handleSendNotification: (scope) -> (req, res) =>
-
-    @log "got hit on send -- #{scope}", req.body
-
-    { groupName, account, body } = req.body
-
-    if scope is 'group'
-      if groupName
-        routingKey = groupName
-      else
-        return res.sendStatus 500
-
-    else if scope is 'user'
-      if (groupName = body?.context) and (username = account?.nick)
-        routingKey = "#{groupName}:#{username}"
-      else
-        return res.sendStatus 500
-
-    @sendNotification routingKey, body
-
-    res.sendStatus 200
-
-
-  _handleStatusRequest: (req, res) ->
-
-    res.send """
-      <pre>
-        NotificationWorker #{argv.i ? 0} is #{if @isReady() then '' else 'not '}ready
-        Connections: #{JSON.stringify @_verifiedConnections}
-        Routes: #{JSON.stringify @_verifiedRoutes}
-      </pre>
-    """
 
 
   # --- socket handlers
