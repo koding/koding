@@ -1,4 +1,4 @@
-instance:
+machine:
   koding_always_on: true
   koding_mounts:
     default: "/var/lib/koding/app"

@@ -1,27 +1,37 @@
 package mixin
 
-import "koding/kites/kloud/metadata"
+import (
+	"koding/kites/kloud/metadata"
+
+	yaml "gopkg.in/yaml.v2"
+)
 
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg mixin -o app.yaml.go app.yaml
 
-// Raw represents a raw mixin content.
-type Raw []byte
+// App is a mixin, that builds user app and serves it on a remote machine.
+var App = New(MustAsset("app.yaml"))
 
-// CloudInit unmarshals r into a valid cloud-init object value.
-//
-// It panics when r is not a valid cloud-init value.
-func (r Raw) CloudInit() metadata.CloudInit {
-	ci, err := metadata.ParseCloudInit([]byte(r))
-	if err != nil {
-		panic(err)
-	}
-	return ci
+// Mixin represents a raw mixin object.
+type Mixin struct {
+	Machine   map[string]interface{} `json:"machine" yaml:"machine"`
+	CloudInit metadata.CloudInit     `json:"cloudinit" yaml:"cloudinit"`
 }
 
-var App = mustMixin("app.yaml")
+// New gives new mixin by unmarshaling yaml-encoded p
+// into a Mixin value.
+//
+// If cloud-init is empty or p has unexpected content or format,
+// the function panics.
+func New(p []byte) *Mixin {
+	var m Mixin
 
-func mustMixin(asset string) Raw {
-	r := Raw(MustAsset(asset))
-	_ = r.CloudInit() // ensure it's a valid cloud-init content
-	return r
+	if err := yaml.Unmarshal(p, &m); err != nil {
+		panic(err)
+	}
+
+	if len(m.CloudInit) == 0 {
+		panic("empty cloud-init script")
+	}
+
+	return &m
 }
