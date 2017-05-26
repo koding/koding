@@ -29,6 +29,6 @@ module.exports = class ChangeTeamView extends kd.ModalView
 
     controller = new ChangeTeamController()
     @addSubView list = controller.getView()
-    controller.on 'ItemsLoaded', ->
+    controller.on 'AllItemsAddedToList', ->
       # delay is needed to let custom scroll view set their css classes on the list
       kd.utils.defer -> list.setClass 'loaded'
