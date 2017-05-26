@@ -116,6 +116,9 @@ type Config struct {
 	// TunnelURL overwrites default tunnelserver url. Used by vagrant provider.
 	TunnelURL string
 
+	// KiteMetricsPublishURL holds the endpoint for publishing kite metrics.
+	KiteMetricsPublishURL string
+
 	// Private key to create kite.key
 	PrivateKey string `required:"true"`
 
@@ -326,7 +329,7 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
-	publisher, err := metrics.NewPublisher()
+	publisher, err := metrics.NewPublisher(conf.KiteMetricsPublishURL)
 	if err != nil {
 		return nil, err
 	}

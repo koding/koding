@@ -1,4 +1,4 @@
-package exporter
+package api
 
 import (
 	mongomodels "koding/db/models"

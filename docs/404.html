@@ -21,6 +21,22 @@ permalink: /404
 <figure class="a404-Ground"></figure>
 
 <script>
+  var entityMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;'
+  };
+
+  function escapeHtml (string) {
+    return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+      return entityMap[s];
+    });
+  }
   function getParameterByName(name, url) {
     if (!url) {
       url = window.location.href;
@@ -36,10 +52,10 @@ permalink: /404
   var error_code = window.location.pathname.split( '/' )[1];
   var error_msg = getParameterByName("msg");
 
-  document.querySelector("h1 .code").innerHTML = error_code;
-  document.querySelector("h1.mini .code").innerHTML = error_code;
-  document.querySelector("h1 .message").innerHTML = error_msg;
-  document.querySelector("h1.mini .message").innerHTML = error_msg;
+  document.querySelector("h1 .code").innerHTML = escapeHtml(error_code);
+  document.querySelector("h1.mini .code").innerHTML = escapeHtml(error_code);
+  document.querySelector("h1 .message").innerHTML = escapeHtml(error_msg);
+  document.querySelector("h1.mini .message").innerHTML = escapeHtml(error_msg);
 </script>
 
 <!-- FOOTER -->

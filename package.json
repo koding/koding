@@ -96,6 +96,7 @@
     "sendmail": "1.1.1",
     "shortid": "2.2.6",
     "simple-recaptcha": "0.0.3",
+    "sockjs": "0.3.18",
     "speakeasy": "1.0.3",
     "stripcolorcodes": "0.1.0",
     "stylus": "0.54.5",

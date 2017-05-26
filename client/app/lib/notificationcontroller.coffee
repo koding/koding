@@ -52,34 +52,14 @@ module.exports = class NotificationController extends KDObject
 
       return kd.warn 'notification subscription error', err  if err
 
-      @notificationChannel.on 'message', (notification) =>
-        # sample notification content
-        #
-        # contents: {Object}
-        # context: <groupName>
-        # event: "ChannelUpdateHappened"
+      @notificationChannel.on ['message', 'social'], (notification) =>
+
+        debug 'got notification', notification
 
         # filter notifications according to group slug
         return  unless notification?.context is getGroup().slug
 
-        @emit 'NotificationHasArrived', notification
-
         { contents, context, event } = notification
-
-        return unless contents
-
-        event = if contents.event then contents.event else event
-        # TODO enable this with team product
-        # event = unless context is getGroup().slug then "#{event}-off-context" else event
-        # event is mainly -> ChannelUpdateHappened // do not delete this line. here for search purposes. - SY
-        @emit event, contents  if event
-
-      @notificationChannel.on 'social', (notification) =>
-        # filter notifications according to group slug
-        return  unless notification?.context is getGroup().slug
-
-        { contents, context, event } = notification
-
         @emit event, contents  if event
 
 
