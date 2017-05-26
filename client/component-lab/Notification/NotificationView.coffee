@@ -1,10 +1,5 @@
-_ = require 'lodash'
 React = require 'app/react'
-ReactDOM = require 'react-dom'
 kd = require 'kd'
-
-getVendorTransition = require 'app/util/getVendorTransition'
-
 Button = require 'lab/Button'
 Box = require 'lab/Box'
 
@@ -20,7 +15,6 @@ module.exports = class NotificationView extends React.Component
 
     super props
     @notificationTimer = null
-    @mounted = no
     @removeCount = 0
     @state =
       removed : no
@@ -29,7 +23,7 @@ module.exports = class NotificationView extends React.Component
   hideNotification: ->
 
     @notificationTimer.clear()  if @notificationTimer
-    @setState { removed : yes }  if @mounted
+    @setState { removed : yes }
     @removeNotification()
 
 
@@ -43,13 +37,6 @@ module.exports = class NotificationView extends React.Component
     @hideNotification()  if @props.notification.dismissible
 
 
-  onTransitionEnd: ->
-
-    if @removeCount == 0 and @state.removed
-      @removeCount++
-      @removeNotification()
-
-
   autoDismissible: (notification) ->
 
     { dismissible, primaryButtonTitle, secondaryButtonTitle} = notification
@@ -58,16 +45,12 @@ module.exports = class NotificationView extends React.Component
 
   componentDidMount: ->
 
-    transitionEvent = getVendorTransition()
-    element = ReactDOM.findDOMNode this
     notification = @props.notification
-    @mounted = yes
-    if transitionEvent
-      element.addEventListener transitionEvent, @onTransitionEnd
-      if @autoDismissible notification
-        @notificationTimer = new Helpers.Timer =>
-          @hideNotification()
-        , notification.duration
+
+    if @autoDismissible notification
+      @notificationTimer = new Helpers.Timer =>
+        @hideNotification()
+      , notification.duration
 
 
   handleMouseEnter: ->
@@ -98,14 +81,6 @@ module.exports = class NotificationView extends React.Component
     @hideNotification()
     if typeof notification.onSecondaryButtonClick is 'function'
       notification.onSecondaryButtonClick()
-
-
-  componentWillUnmount: ->
-
-    element = ReactDOM.findDOMNode this
-    transitionEvent = getVendorTransition()
-    element.removeEventListener transitionEvent, @onTransitionEnd
-    @mounted = no
 
 
   render: ->
