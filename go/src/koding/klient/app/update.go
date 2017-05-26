@@ -9,16 +9,17 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"runtime"
 	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
+	"koding/kites/config"
 	konfig "koding/klient/config"
 	"koding/klient/remote/mount"
+	kdconf "koding/klientctl/config"
 
-	"github.com/hashicorp/go-version"
+	version "github.com/hashicorp/go-version"
 	update "github.com/inconshreveable/go-update"
 	"github.com/kardianos/osext"
 	"github.com/koding/kite"
@@ -160,28 +161,32 @@ func (u *Updater) updateBinary(url string, latest *version.Version) error {
 	return nil
 }
 
+var environments = map[string]string{
+	"production":  "managed",
+	"development": "devmanaged",
+	"managed":     "managed",
+	"devmanaged":  "devmanaged",
+}
+
+func kd2klient(kdEnv string) string {
+	if klientEnv, ok := environments[kdEnv]; ok {
+		return klientEnv
+	}
+
+	return ""
+}
+
 func (u *Updater) endpointVersion(env string) string {
 	if u.Endpoint != "" {
 		return u.Endpoint
 	}
 
-	return "https://koding-klient.s3.amazonaws.com/" + env + "/latest-version.txt"
+	return config.ReplaceCustomEnv(konfig.Konfig.Endpoints.KlientLatest,
+		kd2klient(konfig.Konfig.Environment), env).Public.String()
 }
 
 func (u *Updater) endpointKlient(env string, latest *version.Version) string {
-	var file string
-	if runtime.GOOS != "linux" {
-		// Backward-compatibility - linux uploads of klient are not suffixed
-		// with a platform_arch string.
-		//
-		// TODO(rjeczalik): Remove when we ensure all klients in the wild
-		// use new urls.
-		file = fmt.Sprintf("klient-%s.%s_%s.gz", latest, runtime.GOOS, runtime.GOARCH)
-	} else {
-		file = fmt.Sprintf("klient-%s.gz", latest)
-	}
-
-	return fmt.Sprintf("https://koding-klient.s3.amazonaws.com/%s/%d/%s", env, latest.Segments()[2], file)
+	return kdconf.S3Klient(latest.Segments()[2], env)
 }
 
 func (u *Updater) latestVersion(env string) (int, error) {
