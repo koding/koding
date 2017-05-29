@@ -17,9 +17,9 @@ import (
 	"koding/klientctl/endpoint/machine"
 	"koding/klientctl/endpoint/team"
 
-	"github.com/codegangsta/cli"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // MachineListCommand returns list of remote machines belonging to the user or

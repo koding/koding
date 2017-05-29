@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/klientctl/config"
 
-	"github.com/codegangsta/cli"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // cmdDescriptions is the help text shown to user. Note in addition to adding

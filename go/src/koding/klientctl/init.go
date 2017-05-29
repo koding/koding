@@ -18,8 +18,8 @@ import (
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 	yaml "gopkg.in/yaml.v2"
 )
 
