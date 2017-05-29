@@ -17,7 +17,7 @@ koding-go-install() {
 
 klient-go-install() {
 	local destination_dir=${KONFIG_PROJECTROOT:-$KODING_REPO}/website/a/klient/$KONFIG_ENVIRONMENT
-	mkdir --parents $destination_dir
+	mkdir -p $destination_dir
 	local version_file=$destination_dir/latest-version.txt
 	[[ -f $version_file ]] || echo -1 > $version_file
 	local version=$(($(cat $version_file) + 1))
