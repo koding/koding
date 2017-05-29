@@ -13,8 +13,8 @@ import (
 	"koding/klientctl/klient"
 	"koding/klientctl/klientctlerrors"
 
-	"github.com/codegangsta/cli"
 	kodinglogging "github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 var kiteHTTPResponse = []byte("Welcome to SockJS!")

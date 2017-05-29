@@ -17,10 +17,10 @@ import (
 	"koding/klientctl/helper"
 	"koding/remoteapi/models"
 
-	"github.com/codegangsta/cli"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/printer"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 	yaml "gopkg.in/yaml.v2"
 )
 

@@ -33,8 +33,8 @@ import (
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/util"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // ExitingWithMessageCommand is a function which prints the given message to

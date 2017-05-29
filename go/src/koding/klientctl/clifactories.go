@@ -21,9 +21,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
 	"github.com/koding/service"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // MountCommandFactory creates a mount.Command instance and runs it with

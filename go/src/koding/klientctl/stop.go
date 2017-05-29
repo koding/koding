@@ -6,8 +6,8 @@ import (
 	"koding/klientctl/config"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // StopCommand stop local klient. Requires sudo.

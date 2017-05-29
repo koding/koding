@@ -18,9 +18,9 @@ import (
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
 	"github.com/koding/service"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // UpdateCommand updates this binary if there's an update available.

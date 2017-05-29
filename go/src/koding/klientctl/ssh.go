@@ -9,7 +9,7 @@ import (
 	"koding/klientctl/shortcut"
 	"koding/klientctl/ssh"
 
-	"github.com/codegangsta/cli"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // SSHCommandFactory is the factory method for SSHCommand.

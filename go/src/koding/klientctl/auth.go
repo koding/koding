@@ -10,8 +10,8 @@ import (
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 var testKloudHook = nop
