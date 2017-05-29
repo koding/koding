@@ -178,8 +178,6 @@ imports:
   version: 1bef4b5a4aab0b06a9b4d47a1715f8fee5038583
 - name: github.com/codahale/sneaker
   version: 3e52e64a6c73d7b793bb817c3c8f8078475c2094
-- name: github.com/codegangsta/cli
-  version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
 - name: github.com/coreos/etcd
   version: 38c370a7c54fc64f58f9c329487d7104e353b549
   subpackages:
@@ -867,6 +865,8 @@ imports:
   - codec
 - name: github.com/Unknwon/com
   version: d9bcf409c8a368d06c9b347705c381e7c12d54df
+- name: gopkg.in/urfave/cli.v1
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: github.com/VerbalExpressions/GoVerbalExpressions
   version: 9cfb19cb04c9f48489be15cbacac3d3af9d7706a
 - name: github.com/vmware/govmomi
