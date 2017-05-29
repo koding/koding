@@ -4,7 +4,7 @@ List = require 'app/components/list'
 
 OwnedResourcesList = require './ownedresourceslist'
 SharedResourcesList = require './sharedresourceslist'
-
+SidebarGroupDisabled = require './sidebargroupdisabled'
 sections = ['owned', 'shared']
 
 module.exports = class SidebarResources extends React.Component

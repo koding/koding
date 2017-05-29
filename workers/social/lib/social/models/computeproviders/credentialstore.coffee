@@ -1,4 +1,5 @@
 hat       = require 'hat'
+traverse  = require 'traverse'
 jraphical = require 'jraphical'
 KONFIG    = require 'koding-config-manager'
 
@@ -69,6 +70,16 @@ module.exports = class CredentialStore
     JCredentialData.one { identifier }, (err, data) ->
       return callback err  if err
       return callback new KodingError 'No data found'  unless data
+
+      # Kloud keeps $binary data on Mongo while bootstrapping
+      # and it's failing to parse on Bongo side if it's requested
+      # over express. This needs to be converted to string at some
+      # point since Bongo is not affiliated with binary data yet. ~ GG
+      #
+      # TODO: apply a similar solution on Bongo
+      traverse(data).forEach (node) ->
+        @update node.toString()  if node._bsontype is 'Binary'
+
       callback null, data
 
 

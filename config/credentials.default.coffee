@@ -68,7 +68,7 @@ module.exports = (options) ->
     secretkey: ''
     serverAuthKey: ''
     origin: 'pubsub.pubnub.com'
-    enabled:  yes
+    enabled: no
     ssl: no
   terraformer =
     port: 2300
