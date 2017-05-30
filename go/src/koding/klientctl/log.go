@@ -7,8 +7,8 @@ import (
 
 	"koding/klientctl/endpoint/machine"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 func LogUpload(c *cli.Context, log logging.Logger, _ string) (int, error) {

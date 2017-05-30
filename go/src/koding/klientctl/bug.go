@@ -17,9 +17,9 @@ import (
 	"koding/klientctl/endpoint/machine"
 	"koding/klientctl/helper"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
 	"github.com/skratchdot/open-golang/open"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg main -prefix ../../../../.github/ -o issue.md.go ../../../../.github/ISSUE_TEMPLATE.md
