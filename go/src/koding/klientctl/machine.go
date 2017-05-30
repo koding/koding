@@ -377,10 +377,27 @@ func MachineConfigShow(c *cli.Context, _ logging.Logger, _ string) (int, error) 
 	return 0, nil
 }
 
-// MachineSyncMount manages mount synchronization.
+// MachineSyncMount waits until all mount events are synced.
 func MachineSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	ident := c.Args().Get(0)
+	return machineSyncMount(c, &machine.SyncMountOptions{})
+}
 
+// MachinePauseSyncMount pauses synchronization for a given mount.
+func MachinePauseSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	return machineSyncMount(c, &machine.SyncMountOptions{
+		Pause: true,
+	})
+}
+
+// MachineResumeSyncMount resumes paused synchronization for a given mount.
+func MachineResumeSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	return machineSyncMount(c, &machine.SyncMountOptions{
+		Resume: true,
+	})
+}
+
+func machineSyncMount(c *cli.Context, opts *machine.SyncMountOptions) (int, error) {
+	ident := c.Args().Get(0)
 	if ident == "" {
 		var err error
 		if ident, err = os.Getwd(); err != nil {
@@ -388,12 +405,8 @@ func MachineSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error)
 		}
 	}
 
-	opts := &machine.SyncMountOptions{
-		Identifier: ident,
-		Pause:      c.Bool("pause"),
-		Resume:     c.Bool("resume"),
-		Timeout:    c.Duration("timeout"),
-	}
+	opts.Identifier = ident
+	opts.Timeout = c.Duration("timeout")
 
 	if err := machine.SyncMount(opts); err != nil {
 		return 1, err
