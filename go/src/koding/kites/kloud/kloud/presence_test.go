@@ -10,11 +10,6 @@ import (
 	"github.com/koding/kite"
 )
 
-// type ping struct {
-// 	username string
-// 	team     string
-// }
-
 type pingCounter struct {
 	count int
 }
