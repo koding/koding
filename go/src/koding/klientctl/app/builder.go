@@ -19,25 +19,32 @@ import (
 	"github.com/koding/logging"
 )
 
+// Builder allows for manipulating contents of stack
+// templates in a provider-agnostic manner.
 type Builder struct {
-	Stack object.Object
+	Stack object.Object // the resulting stack object
 
-	Desc stack.Descriptions
-	Log  logging.Logger
+	Desc stack.Descriptions // provider description; retrieved from kloud, if nil
+	Log  logging.Logger     // logger; kloud.DefaultLog if nil
 
-	Koding     *remoteapi.Client
-	Credential *credential.Client
+	Koding     *remoteapi.Client  // remote.api client; remoteapi.DefaultClient if nil
+	Credential *credential.Client // credential client; credential.DefaultClient if nil
 
-	once sync.Once
+	once sync.Once // for b.init()
 }
 
+// TemplateOptions are used when building a template.
 type TemplateOptions struct {
-	UseDefaults bool
-	Provider    string
-	Template    string
-	Mixin       *mixin.Mixin
+	UseDefaults bool         // forces default value when true; disables interactive mode
+	Provider    string       // provider name; inferred from Template if empty
+	Template    string       // base template to use; retrieved from remote.api's samples, if empty
+	Mixin       *mixin.Mixin // optionally a mixin to replace default's user_data
 }
 
+// BuildTemplate builds a template with the given options.
+//
+// If method finishes successfully, returning nil error, b.Stack field
+// will hold the built template.
 func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 	b.init()
 
