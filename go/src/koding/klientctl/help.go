@@ -38,13 +38,13 @@ var cmdDescriptions = map[string]string{
    <local-path> can be relative or absolute, if the folder does not exit, it will be created.`,
 	),
 	"mount-sync": fmtDesc(
-		"[<mount-id> | <path>] [<options>...]",
+		"[<mount-id> | <path> | <command>] [<options>...]",
 		`Wait or disable mount synchronization for a given mount.
 
    If neither <mount-id> nor <path> is provided, the <path> will be assumed as current
    working directory.
 
-   Pause does not stop currently running synchronization jobs.`,
+   Pause command does not stop currently running synchronization jobs.`,
 	),
 	"exec": fmtDesc(
 		"(<local-mount-path> | @<machine-id>) <command> [<args>...]",
