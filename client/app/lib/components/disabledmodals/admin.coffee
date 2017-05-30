@@ -9,6 +9,7 @@ TeamFlux = require 'app/flux/teams'
 showError = require 'app/util/showError'
 TrialEndedAdminModal = require 'lab/TrialEndedAdminModal'
 PricingChangeModal = require 'lab/PricingChangeModal'
+PastDueAdminModal = require 'lab/PastDueAdminModal'
 TrialEndedOptions = require 'lab/TrialEndedOptions'
 
 module.exports = class DisabledAdminModal extends ReactView
@@ -41,17 +42,36 @@ module.exports = class DisabledAdminModal extends ReactView
         <TrialEndedAdminModal
           isOpen={yes}
           onButtonClick={onClick}
-          secondaryContent={
-            <TrialEndedOptions
-              isOwner={isOwner}
-              groups={groups}
-              mainActionTitle={if isOwner then 'delete this team' else 'leave this team'}
-              mainActionClick={if isOwner then deleteTeamOnClick else leaveTeamOnClick}
-              secondaryActionClick={deleteAccount} />}
-          />
+          secondaryContent={<Options groups={groups} isOwner={isOwner} />}
+        />
+
+      when Status.PAST_DUE
+        onClick = =>
+          @destroy()
+          router.handleRoute '/Home/team-billing'
+        <PastDueAdminModal
+          isOpen={yes}
+          onButtonClick={onClick}
+          secondaryContent={<Options groups={groups} isOwner={isOwner} />}
+        />
 
       else
         <span />
+
+
+Options = ({ isOwner, groups }) ->
+
+  title = if isOwner then 'delete this team' else 'leave this team'
+  onClick = if isOwner then deleteTeamOnClick else leaveTeamOnClick
+
+  <TrialEndedOptions
+    isOwner={isOwner}
+    groups={groups}
+    mainActionTitle={title}
+    mainActionClick={onClick}
+    secondaryActionClick={deleteAccount}
+  />
+
 
 
 leaveTeamOnClick = ->
