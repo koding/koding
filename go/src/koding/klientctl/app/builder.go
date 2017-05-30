@@ -176,9 +176,10 @@ func (b *Builder) credential() *credential.Client {
 
 func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (map[string]interface{}, error) {
 	var (
-		root      map[string]interface{}
-		key, keys = "", append([]string{"resource"}, desc.UserData...)
-		ok        bool
+		root map[string]interface{}
+		key  string
+		keys = append([]string{"resource"}, desc.UserData...)
+		ok   bool
 	)
 
 	if err := json.Unmarshal([]byte(tmpl), &root); err != nil {
