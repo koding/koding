@@ -15,7 +15,7 @@ type PresenceCollector struct {
 	// pingProvider sends ping requests
 	pingProvider pinger
 
-	// fethces sessions
+	// fetches sessions from database
 	SessionFetcher func(string) (*models.Session, error)
 
 	pingcache cache.Cache
