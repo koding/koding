@@ -2,12 +2,14 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/utils/object"
 	"koding/klientctl/app/mixin"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
@@ -18,11 +20,12 @@ import (
 )
 
 type Builder struct {
-	Desc     stack.Descriptions
-	Template map[string]interface{}
-	Log      logging.Logger
+	Stack object.Object
 
-	Remote     *remoteapi.Client
+	Desc stack.Descriptions
+	Log  logging.Logger
+
+	Koding     *remoteapi.Client
 	Credential *credential.Client
 
 	once sync.Once
@@ -31,20 +34,52 @@ type Builder struct {
 type TemplateOptions struct {
 	UseDefaults bool
 	Provider    string
+	Template    string
 	Mixin       *mixin.Mixin
 }
 
 func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 	b.init()
 
-	desc, ok := b.Desc[opts.Provider]
-	if !ok {
-		return fmt.Errorf("provider %q does not exist", opts.Provider)
+	var (
+		defaults map[string]interface{}
+		tmpl     = opts.Template
+		prov     = opts.Provider
+		err      error
+	)
+
+	if tmpl == "" {
+		if prov == "" {
+			return errors.New("either provider or template is required to be non-empty")
+		}
+
+		tmpl, defaults, err = b.koding().SampleTemplate(prov)
+		if err != nil {
+			return err
+		}
 	}
 
-	tmpl, defaults, err := b.remoteapi().SampleTemplate(opts.Provider)
-	if err != nil {
-		return err
+	if prov == "" {
+		prov, err = stack.ReadProvider([]byte(tmpl))
+		if err != nil {
+			return err
+		}
+	}
+
+	desc, ok := b.Desc[prov]
+	if !ok {
+		return fmt.Errorf("provider %q does not exist", prov)
+	}
+
+	if opts.Mixin != nil {
+		if !desc.CloudInit {
+			return fmt.Errorf("provider %q does not support cloud-init files", prov)
+		}
+
+		tmpl, err = replaceUserData(tmpl, opts.Mixin, desc)
+		if err != nil {
+			return err
+		}
 	}
 
 	vars := provider.ReadVariables(tmpl)
@@ -84,37 +119,7 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 		return v.String()
 	})
 
-	if err := json.Unmarshal([]byte(tmpl), &b.Template); err != nil {
-		return err
-	}
-
-	if desc.CloudInit && opts.Mixin != nil {
-		machines, ok := b.Template, false
-
-		for _, k := range desc.UserData {
-			if k == "*" {
-				break
-			}
-
-			machines, ok = machines[k].(map[string]interface{})
-			if !ok {
-				return fmt.Errorf("%s: unable to inject cloud init into %v", opts.Provider, desc.UserData)
-			}
-		}
-
-		for _, v := range machines {
-			m, ok := v.(map[string]interface{})
-			if !ok {
-				continue
-			}
-
-			for k, v := range opts.Mixin.Machine {
-				m[k] = v
-			}
-		}
-
-		// TODO: inject cloud-init
-	}
+	return json.Unmarshal([]byte(tmpl), &b.Stack)
 
 	// TODO(rjeczalik):
 	// - build stack
@@ -122,8 +127,6 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 	// - copy user files
 	// - build application
 	// - display url
-
-	return nil
 }
 
 func (b *Builder) init() {
@@ -137,6 +140,10 @@ func (b *Builder) initBuilder() {
 			b.log().Warning("unable to retrieve credential description: %s", err)
 		}
 	}
+
+	if b.Stack == nil {
+		b.Stack = make(object.Object)
+	}
 }
 
 func (b *Builder) log() logging.Logger {
@@ -146,9 +153,9 @@ func (b *Builder) log() logging.Logger {
 	return kloud.DefaultLog
 }
 
-func (b *Builder) remote() *remoteapi.Client {
-	if b.Remote != nil {
-		return b.Remote
+func (b *Builder) koding() *remoteapi.Client {
+	if b.Koding != nil {
+		return b.Koding
 	}
 	return remoteapi.DefaultClient
 }
@@ -158,4 +165,73 @@ func (b *Builder) credential() *credential.Client {
 		return b.Credential
 	}
 	return credential.DefaultClient
+}
+
+func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (string, error) {
+	var (
+		root      map[string]interface{}
+		key, keys = "", desc.UserData
+		machines  = root
+		ok        bool
+	)
+
+	if err := json.Unmarshal([]byte(tmpl), &root); err != nil {
+		return "", err
+	}
+
+	// The desc.UserData is a JSON path to a user_data value
+	// inside the resource tree. Considering the following desc.UserData:
+	//
+	//   []string{"google_compute_instance", "*", "metadata", "user-data"}
+	//
+	// the following is going to traverse the template until we assign
+	// to machines a value under the * key.
+	for len(keys) > 0 {
+		key, keys = keys[0], keys[1:]
+
+		if key == "*" {
+			break
+		}
+
+		machines, ok = machines[key].(map[string]interface{})
+		if !ok {
+			return "", fmt.Errorf("template does not contain %q key: %v", key, desc.UserData)
+		}
+	}
+
+	// The following loop assignes extra attributes to each machine and
+	// replaces user_data with mixin.
+	for _, v := range machines {
+		machine, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		for k, v := range m.Machine {
+			machine[k] = v
+		}
+
+		// For each machine we locate the user_data by traversing
+		// the path after the *.
+		for len(keys) > 0 {
+			key, keys = keys[0], keys[1:]
+
+			if len(keys) == 0 {
+				machine[key] = m.CloudInit
+				break
+			}
+
+			machine, ok = machine[key].(map[string]interface{})
+			if !ok {
+				return "", fmt.Errorf("template does not contain %q key: %v", key, desc.UserData)
+			}
+		}
+	}
+
+	p, err := json.Marshal(root)
+	if err != nil {
+		return "", err
+	}
+
+	return string(p), nil
 }
