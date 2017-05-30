@@ -1,0 +1,36 @@
+machine:
+  koding_always_on: true
+  koding_mounts:
+    default: "/var/lib/koding/app"
+cloudinit:
+  users:
+  - name: "${var.koding_account_profile_nickname}"
+    ssh_authorized_keys:
+    - "${var.userInput_publicKey}"
+  write_files:
+  - path: "/var/lib/koding/run"
+    permissions: 0755
+    owner: "${var.koding_account_profile_nickname}:${var.koding_account_profile_nickname}"
+    content: |-
+      #!/bin/bash
+      set -euo pipefail
+      docker run     \
+        --rm         \
+        --name app   \
+        -p ${var.userInput_webPort}:${var.userInput_webPort} \
+        -e PORT=${var.userInput_webPort} \
+        -v /var/lib/koding/app:/app \
+        rjeczalik/buildstep:latest  \
+        /bin/bash -c '/build/builder && /start web'
+  package_update: true
+  packages:
+  - docker
+  - docker.io
+  - git
+  - git-core
+  runcmd:
+  - usermod -a -G docker ${var.koding_account_profile_nickname}
+  - mkdir -p /var/lib/koding/app
+  - chown -R ${var.koding_account_profile_nickname}:${var.koding_account_profile_nickname}
+    /var/lib/koding/app
+  - docker pull rjeczalik/buildstep:latest
