@@ -23,9 +23,6 @@
         "koding-prod",
         "koding-proxy-us-east-1"
       ],
-      "us-west-2": [
-        "koding-proxy-us-west-2"
-      ],
       "eu-west-1": [
         "koding-proxy-eu-west-1"
       ],
