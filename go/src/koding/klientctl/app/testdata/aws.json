@@ -1,0 +1,20 @@
+{
+  "provider": {
+    "aws": {
+      "access_key": "${var.aws_access_key}",
+      "secret_key": "${var.aws_secret_key}"
+    }
+  },
+  "resource": {
+    "aws_instance": {
+      "aws-instance": {
+        "ami": "",
+        "instance_type": "t2.nano",
+        "tags": {
+          "Name": "${var.koding_user_username}-${var.koding_group_slug}"
+        },
+        "user_data": "\necho \"hello world!\" >> /helloworld.txt\n"
+      }
+    }
+  }
+}

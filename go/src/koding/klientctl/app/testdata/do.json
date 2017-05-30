@@ -1,0 +1,18 @@
+{
+  "provider": {
+    "digitalocean": {
+      "access_token": "${var.digitalocean_access_token}"
+    }
+  },
+  "resource": {
+    "digitalocean_droplet": {
+      "do-instance": {
+        "image": "ubuntu-14-04-x64",
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
+        "region": "nyc2",
+        "size": "512mb",
+        "user_data": "\necho \"hello world!\" >> /helloworld.txt\n"
+      }
+    }
+  }
+}

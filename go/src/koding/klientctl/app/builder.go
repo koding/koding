@@ -76,10 +76,17 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 			return fmt.Errorf("provider %q does not support cloud-init files", prov)
 		}
 
-		tmpl, err = replaceUserData(tmpl, opts.Mixin, desc)
+		t, err := replaceUserData(tmpl, opts.Mixin, desc)
 		if err != nil {
 			return err
 		}
+
+		p, err := json.Marshal(t)
+		if err != nil {
+			return err
+		}
+
+		tmpl = string(p)
 	}
 
 	vars := provider.ReadVariables(tmpl)
@@ -120,13 +127,6 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 	})
 
 	return json.Unmarshal([]byte(tmpl), &b.Stack)
-
-	// TODO(rjeczalik):
-	// - build stack
-	// - wait for stack
-	// - copy user files
-	// - build application
-	// - display url
 }
 
 func (b *Builder) init() {
@@ -167,17 +167,18 @@ func (b *Builder) credential() *credential.Client {
 	return credential.DefaultClient
 }
 
-func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (string, error) {
+func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (map[string]interface{}, error) {
 	var (
 		root      map[string]interface{}
-		key, keys = "", desc.UserData
-		machines  = root
+		key, keys = "", append([]string{"resource"}, desc.UserData...)
 		ok        bool
 	)
 
 	if err := json.Unmarshal([]byte(tmpl), &root); err != nil {
-		return "", err
+		return nil, err
 	}
+
+	machines := root
 
 	// The desc.UserData is a JSON path to a user_data value
 	// inside the resource tree. Considering the following desc.UserData:
@@ -195,7 +196,7 @@ func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (stri
 
 		machines, ok = machines[key].(map[string]interface{})
 		if !ok {
-			return "", fmt.Errorf("template does not contain %q key: %v", key, desc.UserData)
+			return nil, fmt.Errorf("template does not contain %q key: %v", key, desc.UserData)
 		}
 	}
 
@@ -217,21 +218,16 @@ func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (stri
 			key, keys = keys[0], keys[1:]
 
 			if len(keys) == 0 {
-				machine[key] = m.CloudInit
+				machine[key] = m.CloudInit.String()
 				break
 			}
 
 			machine, ok = machine[key].(map[string]interface{})
 			if !ok {
-				return "", fmt.Errorf("template does not contain %q key: %v", key, desc.UserData)
+				return nil, fmt.Errorf("template does not contain %q key: %v", key, desc.UserData)
 			}
 		}
 	}
 
-	p, err := json.Marshal(root)
-	if err != nil {
-		return "", err
-	}
-
-	return string(p), nil
+	return root, nil
 }

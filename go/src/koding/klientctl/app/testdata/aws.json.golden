@@ -1,0 +1,21 @@
+{
+  "provider": {
+    "aws": {
+      "access_key": "${var.aws_access_key}",
+      "secret_key": "${var.aws_secret_key}"
+    }
+  },
+  "resource": {
+    "aws_instance": {
+      "aws-instance": {
+        "ami": "",
+        "instance_type": "t2.nano",
+        "koding_always_on": true,
+        "tags": {
+          "Name": "${var.koding_user_username}-${var.koding_group_slug}"
+        },
+        "user_data": "#cloud-config\nruncmd:\n- echo \"hello world!\" >> /helloworld.txt\nssh_authorized_keys:\n- ssh-rsa AAAAB3NzaC1yc2EA... koding-350298856\n"
+      }
+    }
+  }
+}
