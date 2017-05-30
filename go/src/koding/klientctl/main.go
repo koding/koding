@@ -758,11 +758,11 @@ error opening: %s
 				Subcommands: []cli.Command{{
 					Name:   "pause",
 					Usage:  "Pause synchronization.",
-					Action: ctlcli.ExitErrAction(MachinePauseSyncMount, log, "set"),
+					Action: ctlcli.ExitErrAction(MachinePauseSyncMount, log, "pause"),
 				}, {
 					Name:   "resume",
 					Usage:  "Resume synchronization.",
-					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "show"),
+					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "resume"),
 				}},
 			}, {
 				Name:   "inspect",
