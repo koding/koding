@@ -114,10 +114,17 @@ const (
     readWait = time.Second * 1
 )
 
-func pumpIngress(inChan chan []byte, writer io.WriteCloser) {
-    defer close(inChan)
-    defer writer.Close()
-    defer fmt.Println("Exiting ingress proxier.")
+// pumpIngress takes []byte messages from inChan, and sends them to the
+// exec'd process via writer.
+//
+// TODO (acbodine): We might not need the time.Ticker anymore as we have
+// an explicit handle to the Stream() function termination, and we close
+// the inChan as a result of that. Thus we shouldn't ever block indefinitely
+// here.
+func pumpIngress(wg *sync.WaitGroup, inChan chan []byte, writer io.WriteCloser) {
+    defer func () {
+        wg.Done()
+    }()
 
     ticker := time.NewTicker(readWait)
 
@@ -127,34 +134,30 @@ func pumpIngress(inChan chan []byte, writer io.WriteCloser) {
         select {
             case d, ok := <- inChan:
                 if !ok {
-                    fmt.Println("inChan was closed by requesting kite.")
-
-                    // TODO (acbodine): !ok means inChan was closed
-                    // by the requesting kite client. If we want to
-                    // allow detaching we shouldn't return here.
+                    // TODO (acbodine): If we want to allow detaching we
+                    // shouldn't return here.
 
                     return
                 }
 
-                if num, err := writer.Write(d); err != nil {
+                if _, err := writer.Write(d); err != nil {
                     fmt.Println("Failed to write bytes to connection:", err)
                     return
-                } else {
-                    fmt.Println("Wrote", num, "bytes to connection.")
                 }
 
                 break
             case <- ticker.C:
                 break
         }
-        fmt.Println("Looping on ingress proxier.")
     }
 }
 
-func pumpEgress(wg sync.WaitGroup, reader io.ReadCloser, callback dnode.Function) {
-    defer reader.Close()
-    defer wg.Done()
-    defer fmt.Println("Exiting egress proxier.")
+// pumpEgress reads from reader and sends back to the requesting kite via
+// the provided dnode.Function callback said kite has specified.
+func pumpEgress(wg *sync.WaitGroup, reader io.ReadCloser, callback dnode.Function) {
+    defer func () {
+        wg.Done()
+    }()
 
     buf := make([]byte, 1024 * 4)
 
@@ -163,38 +166,31 @@ func pumpEgress(wg sync.WaitGroup, reader io.ReadCloser, callback dnode.Function
         // occurs.
         num, err := reader.Read(buf)
 
+        // If we read data, always send it back to the requesting kite.
         if num > 0 {
             if err := callback.Call(string(buf[:num])); err != nil {
                 fmt.Println("Failed to send output to client kite:", err)
             }
         }
 
-        if err != nil {
-            fmt.Println("Failed to read from exec'd process:", err)
-            break
+        if err == nil {
+            continue
         }
 
-        fmt.Println("Looping on egress proxier.")
+        if err != io.EOF {
+            fmt.Println("Failed to read from exec'd process:", err)
+        }
+
+        break
     }
 }
 
-func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
-    var inReader, inWriter = io.Pipe()
-    var inChan = make(chan []byte)
-
-    if !r.IO.Stdin {
-        inReader, inWriter = nil, nil
-    }
-
-    var outReader, outWriter = io.Pipe()
-
-    h := p.config.Host
-    h = strings.Replace(h, "https://", "", -1)
-    h = strings.Replace(h, "http://", "", -1)
-
-    u := &url.URL{
-        Scheme: "wss",
-        Host:   h,
+// getUrl constructs a url.URL that is configured to establish a connection
+// to the K8s API via remotecommand.StreamExecutor type.
+func (p *KubernetesProxy) getUrl(r *ExecKubernetesRequest) (*url.URL, error) {
+    u, err := url.Parse(p.config.Host)
+    if err != nil {
+        return nil, err
     }
 
     u.Path = fmt.Sprintf(
@@ -206,28 +202,49 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
     cmds := []string{}
 
     // Make cmds be an argv array to inject into the query
-    // string for the websocket handshake.
+    // string for the connection to K8s API.
     for _, v := range r.Common.Command {
         c := fmt.Sprintf("command=%s", url.QueryEscape(v))
         cmds = append(cmds, c)
     }
 
+    // Always pass true for stdin value to compose the query string
+    // for the connection, without it K8s API won't pass back
+    // output from exec'd process.
     u.RawQuery = fmt.Sprintf(
         "container=%s&%s&stdin=%t&stdout=%t&stderr=%t&tty=%t",
         r.K8s.Container,
         strings.Join(cmds, "&"),
-        r.IO.Stdin,
+        true,
         r.IO.Stdout,
         r.IO.Stderr,
         r.IO.Tty,
     )
 
-    fmt.Println("Connecting to:", u.String())
+    return u, nil
+}
 
+func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
+    u, err := p.getUrl(r)
+    if err != nil {
+        return nil, err
+    }
+
+    // The remotecommand.StreamExecutor that we get back here knows
+    // how to talk to K8s API.
     executor, err := remotecommand.NewExecutor(p.config, "POST", u)
     if err != nil {
         return nil, err
     }
+
+    // NOTE: If we pass a nil io.ReadCloser to the StreamExecutor
+    // below, then no output gets sent back on our out pipes. So
+    // always pass valid io.ReadCloser to the StreamExecutor,
+    // regardless of r.IO.Stdin value.
+    var outReader, outWriter = io.Pipe()
+    var inReader, inWriter = io.Pipe()
+    var inChan = make(chan []byte)
+    var wg sync.WaitGroup
 
     opts := remotecommand.StreamOptions{
         SupportedProtocols: kuberc.SupportedStreamingProtocols,
@@ -237,32 +254,59 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
         Tty:                r.IO.Tty,
     }
 
-    if err := executor.Stream(opts); err != nil {
-        return nil, err
-    }
-
-    var wg sync.WaitGroup
-
     // If requesting kite wants to send input to exec'd
     // process, kickoff pumpIngress routine.
+    //
+    // NOTE: Remember to pass pointer to sync.WaitGroup here,
+    // otherwise wg.Done() doesn't work because its a copy.
     if r.IO.Stdin {
         wg.Add(1)
-        go pumpIngress(inChan, inWriter)
+        go pumpIngress(&wg, inChan, inWriter)
     }
 
     // If requesting kite wants output from the exec'd
     // process, kickoff pumpEgress routine.
+    //
+    // NOTE: Remember to pass pointer to sync.WaitGroup here,
+    // otherwise wg.Done() doesn't work because its a copy.
     if r.IO.Stdout || r.IO.Stderr {
         wg.Add(1)
-        go pumpEgress(wg, outReader, r.Output)
+        go pumpEgress(&wg, outReader, r.Output)
     }
 
+    // This goroutine handles cleanup for our proxy goroutines
+    // started above.
     go func () {
-        defer fmt.Println("Exiting done routine.")
 
+        // This will block until a client closes the connection, or
+        // the server disconnects (i.e. exec'd process has finished).
+        if err := executor.Stream(opts); err != nil {
+            fmt.Println("Error while streaming:", err)
+
+            // NOTE: When err is nil, there was no unexpected errors
+            // while streaming the connection. An err here is not good.
+
+            // TODO (acbodine): What to do here?
+        }
+
+        // Notify egress proxy routine that streaming has finished
+        // and it should exit.
+        outWriter.Close()
+
+        // If an ingress proxy routine was kicked off, we need
+        // to close the channel it is consuming from, allowing
+        // said routine to exit.
+        if r.IO.Stdin {
+            close(inChan)
+        }
+        inReader.Close()
+
+        // Guarantee the goroutines we started to proxy io have
+        // exited, before notifying requesting kite.
         wg.Wait()
-        fmt.Println("Proxier routines finished.")
 
+        // Notify requesting kite that the exec'd process, and all
+        // our local routines are finished.
         if err := r.Done.Call(true); err != nil {
             fmt.Println(err)
         }

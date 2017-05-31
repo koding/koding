@@ -1,7 +1,6 @@
 package proxy
 
 import (
-    "fmt"
     "os/exec"
 
     "github.com/koding/kite/dnode"
@@ -71,8 +70,6 @@ type ExecResponse struct {
 // them to send data to an Exec instance.
 func (r *Exec) Input(d *dnode.Partial) {
     data := d.MustSliceOfLength(1)[0].MustString()
-
-    fmt.Println("Proxying data from client to pipe: %s", data)
 
     r.in <- []byte(data)
 }

@@ -139,7 +139,6 @@ func TestKubernetesExec(t *testing.T) {
         for !strings.Contains(returned, expected) {
             select {
                 case o := <- r.output:
-                    fmt.Println("Output chunk:", o)
                     returned += o
                 case <- timeout:
                     t.Fatal("Should return expected output, in a timely manner.")
@@ -166,7 +165,6 @@ func TestKubernetesExec(t *testing.T) {
         for {
             select {
                 case <- r.done:
-                    fmt.Println("Got the done callback")
                     return
                 case <- timeout:
                     t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
@@ -228,7 +226,6 @@ func TestKubernetesExecWithInput(t *testing.T) {
         for strings.Compare(strings.TrimSpace(returned), strings.TrimSpace(expected)) != 0 {
             select {
                 case o := <- r.output:
-                    fmt.Println("Output chunk:", o)
                     returned += o
                 case <- timeout:
                     t.Fatal("Should return expected output, in a timely manner.")
@@ -263,7 +260,6 @@ func TestKubernetesExecWithInput(t *testing.T) {
         for {
             select {
                 case <- r.done:
-                    fmt.Println("Got the done callback")
                     return
                 case <- timeout:
                     t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
