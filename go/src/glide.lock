@@ -483,6 +483,8 @@ imports:
   version: 20bca5a7a57282e241fac83ec9ea42538027f1c1
   subpackages:
   - term
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/influxdata/influxdb
   version: a0004b68577cdbfc921463404eab839c50f14a0c
   subpackages:
@@ -845,6 +847,12 @@ imports:
   - convey/reporting
 - name: github.com/soniah/dnsmadeeasy
   version: 5578a8c15e33958c61cf7db720b6181af65f4a9e
+- name: github.com/spf13/cobra
+  version: 8d4ce3549a0bf0e3569df3aae7423b7743cd05a9
+  subpackages:
+  - cobra
+- name: github.com/spf13/pflag
+  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/sthulb/mime
   version: 698462dc9685d7743511c26da726c1b0c1cfb111
   subpackages:
