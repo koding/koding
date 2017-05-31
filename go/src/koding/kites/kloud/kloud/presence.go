@@ -15,8 +15,8 @@ type PresenceCollector struct {
 	// pingProvider sends ping requests
 	pingProvider pinger
 
-	// fetches sessions from database
-	SessionFetcher func(string) (*models.Session, error)
+	// fetches group from database with given kite request
+	GroupFetcher func(*kite.Request) (*models.Group, error)
 
 	pingcache cache.Cache
 }
@@ -32,35 +32,45 @@ func NewPresenceCollector(p pinger) *PresenceCollector {
 	c.StartGC(time.Second * 10)
 
 	return &PresenceCollector{
-		pingProvider:   p,
-		SessionFetcher: modelhelper.GetSession,
-		pingcache:      c,
+		pingProvider: p,
+		GroupFetcher: getGroup,
+		pingcache:    c,
 	}
 }
 
 // Collect publishes presence requests
 func (p *PresenceCollector) Collect(handler kite.HandlerFunc) kite.HandlerFunc {
 	return func(r *kite.Request) (interface{}, error) {
-		go func() {
-			if r.Auth == nil || r.Auth.Type != "sessionID" {
-				return
-			}
+		cacheKey := getCacheKey(r)
 
-			if _, err := p.pingcache.Get(r.Auth.Key); err != cache.ErrNotFound {
-				return
-			}
+		if _, err := p.pingcache.Get(cacheKey); err != cache.ErrNotFound {
+			return handler(r)
+		}
 
-			ses, err := p.SessionFetcher(r.Auth.Key)
-			if err != nil {
-				return
-			}
+		group, err := p.GroupFetcher(r)
+		if err != nil || group == nil {
+			return handler(r)
+		}
 
-			if err := p.pingProvider.Ping(ses.Username, ses.GroupName); err != nil {
-				r.LocalKite.Log.Error("err while sending ping req", err)
-				return
-			}
-			p.pingcache.Set(r.Auth.Key, struct{}{})
-		}()
+		if err := p.pingProvider.Ping(r.Username, group.Slug); err == nil {
+			p.pingcache.Set(cacheKey, struct{}{})
+		}
+
 		return handler(r)
 	}
+}
+
+func getGroup(r *kite.Request) (*models.Group, error) {
+	opts := &modelhelper.LookupGroupOptions{
+		Username:    r.Username,
+		KiteID:      r.Client.ID,
+		ClientURL:   r.Client.URL,
+		Environment: r.Client.Environment,
+	}
+
+	return modelhelper.LookupGroup(opts)
+}
+
+func getCacheKey(r *kite.Request) string {
+	return r.Username + "_" + r.Client.ID + "_" + r.Client.URL + "_" + r.Client.Environment
 }
