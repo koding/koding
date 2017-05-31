@@ -1,0 +1,19 @@
+{
+  "provider": {
+    "azure": {
+      "publish_settings": "${var.azure_publish_settings}",
+      "subscription_id": "${var.azure_subscription_id}"
+    }
+  },
+  "resource": {
+    "azure_instance": {
+      "azure-instance": {
+        "custom_data": "#cloud-config\nruncmd:\n- echo \"hello world!\" >> /helloworld.txt\nssh_authorized_keys:\n- ssh-rsa AAAAB3NzaC1yc2EA... koding-350298856\n",
+        "image": "Ubuntu Server 14.04 LTS",
+        "koding_always_on": true,
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
+        "size": "Basic_A1"
+      }
+    }
+  }
+}

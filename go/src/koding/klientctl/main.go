@@ -754,15 +754,16 @@ error opening: %s
 						Usage: "Maximum time to wait.",
 						Value: time.Minute,
 					},
-					cli.BoolFlag{
-						Name:  "pause",
-						Usage: "Pause synchronization.",
-					},
-					cli.BoolFlag{
-						Name:  "resume",
-						Usage: "Resume synchronization.",
-					},
 				},
+				Subcommands: []cli.Command{{
+					Name:   "pause",
+					Usage:  "Pause synchronization.",
+					Action: ctlcli.ExitErrAction(MachinePauseSyncMount, log, "pause"),
+				}, {
+					Name:   "resume",
+					Usage:  "Resume synchronization.",
+					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "resume"),
+				}},
 			}, {
 				Name:   "inspect",
 				Hidden: true,

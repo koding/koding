@@ -1,0 +1,19 @@
+{
+  "provider": {
+    "digitalocean": {
+      "access_token": "${var.digitalocean_access_token}"
+    }
+  },
+  "resource": {
+    "digitalocean_droplet": {
+      "do-instance": {
+        "image": "ubuntu-14-04-x64",
+        "koding_always_on": true,
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
+        "region": "nyc2",
+        "size": "512mb",
+        "user_data": "#cloud-config\nruncmd:\n- echo \"hello world!\" >> /helloworld.txt\nssh_authorized_keys:\n- ssh-rsa AAAAB3NzaC1yc2EA... koding-350298856\n"
+      }
+    }
+  }
+}
