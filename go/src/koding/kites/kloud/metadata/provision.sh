@@ -11,8 +11,6 @@ export KODING_USERNAME="$${KODING_USERNAME:-${var.koding_account_profile_nicknam
 export KLIENT_URL="$${KLIENT_URL:-${var.koding_klient_url}}"
 export SCREEN_URL="$${SCREEN_URL:-${var.koding_screen_url}}"
 
-trap "echo _KD_DONE_ | tee -a /var/log/cloud-init-output.log" EXIT
-
 main() {
 	echo "127.0.0.1 $${KODING_USERNAME}" >> /etc/hosts
 
