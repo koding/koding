@@ -288,8 +288,9 @@ func NewCloudInit(cfg *CloudConfig) CloudInit {
 				"shell":       "/bin/bash",
 			},
 		},
-		"write_files": files,
-		"runcmd":      cmd,
+		"write_files":   files,
+		"runcmd":        cmd,
+		"final_message": "_KD_DONE_",
 	}
 }
 
