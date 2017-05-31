@@ -110,11 +110,6 @@ func (k *Kloud) authLogin(username string, req *LoginRequest) (*LoginResponse, e
 		return nil, NewError(ErrInternalServer)
 	}
 
-	if err := k.PresenceClient.Ping(username, req.GroupName); err != nil {
-		// we dont need to block user login if there is something wrong with socialapi.
-		k.Log.Error("ping for user %q failed: %s", username, err)
-	}
-
 	resp := &LoginResponse{
 		ClientID:  ses.ClientId,
 		GroupName: req.GroupName,
