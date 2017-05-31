@@ -15,7 +15,7 @@ type PresenceCollector struct {
 	// pingProvider sends ping requests
 	pingProvider pinger
 
-	// fetches group from database with given kite request
+	// GroupFetcher fetches group from database with given kite request.
 	GroupFetcher func(*kite.Request) (*models.Group, error)
 
 	pingcache cache.Cache
