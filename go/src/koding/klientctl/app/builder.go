@@ -118,6 +118,10 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
 			continue
 		}
 
+		if _, ok := input[v.Name]; ok {
+			continue
+		}
+
 		name := v.Name[len("userInput_"):]
 		defValue := ""
 		if v, ok := defaults[name]; ok && v != nil {
