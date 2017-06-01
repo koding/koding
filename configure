@@ -1,10 +1,14 @@
 #!/usr/bin/env coffee
-argv = require('minimist')(process.argv.slice(2))
 log = console.log
 fs = require 'fs'
 os = require 'os'
 path = require 'path'
+minimist = require 'minimist'
 { extend, defaults, clone } = require 'underscore'
+
+argv = minimist process.argv.slice(2), {
+  string: ['version']
+}
 
 defaultEnv = argv.config or process.env.DEFAULTENV or 'default'
 
