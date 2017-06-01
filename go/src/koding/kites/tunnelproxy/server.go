@@ -1,6 +1,7 @@
 package tunnelproxy
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -813,6 +814,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	k := kite.NewWithConfig(name, version, cfg)
 
 	k.Config.KontrolURL = s.opts.kontrolURL()
+	k.Config.Serve = serveNoHTTP2
 
 	if s.opts.Port != 0 {
 		k.Config.Port = s.opts.Port
@@ -853,4 +855,13 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	}
 
 	return k, nil
+}
+
+func serveNoHTTP2(l net.Listener, h http.Handler) error {
+	srv := &http.Server{
+		Handler:        h,
+		MaxHeaderBytes: 1 << 20,
+		TLSNextProto:   make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
+	}
+	return srv.Serve(l)
 }
