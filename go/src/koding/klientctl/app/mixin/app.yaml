@@ -6,10 +6,6 @@ variable:
 - name: web_port
   default: 8080
 cloudinit:
-  users:
-  - name: "${var.koding_account_profile_nickname}"
-    ssh_authorized_keys:
-    - "${var.userInput_ssh_public_key}"
   write_files:
   - path: "/var/lib/koding/run"
     permissions: 0755
