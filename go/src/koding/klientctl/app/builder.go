@@ -49,7 +49,14 @@ type TemplateOptions struct {
 	UseDefaults bool         // forces default value when true; disables interactive mode
 	Provider    string       // provider name; inferred from Template if empty
 	Template    string       // base template to use; retrieved from remote.api's samples, if empty
-	Mixin       *mixin.Mixin // optionally a mixin to replace default's user_data
+	Mixin       *mixin.Mixin // mixin to replace default's user_data; mixin.App if nil
+}
+
+func (opts *TemplateOptions) mixin() *mixin.Mixin {
+	if opts.Mixin != nil {
+		return opts.Mixin
+	}
+	return mixin.App
 }
 
 // BuildTemplate builds a template with the given options.
@@ -89,12 +96,8 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
 		return nil, fmt.Errorf("provider %q does not exist", prov)
 	}
 
-	if opts.Mixin != nil {
-		if !desc.CloudInit {
-			return nil, fmt.Errorf("provider %q does not support cloud-init files", prov)
-		}
-
-		t, err := replaceUserData(tmpl, opts.Mixin, desc)
+	if desc.CloudInit {
+		t, err := replaceUserData(tmpl, opts.mixin(), desc)
 		if err != nil {
 			return nil, err
 		}

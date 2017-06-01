@@ -10,8 +10,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"koding/kites/kloud/stack/provider"
-	"koding/klientctl/endpoint/credential"
+	"koding/klientctl/app"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/remoteapi"
 	"koding/klientctl/helper"
@@ -165,70 +164,24 @@ func templateInit(output string, useDefaults bool, providerName string) error {
 		}
 	}
 
-	descs, err := credential.Describe()
-	if err != nil {
-		return err
-	}
-
 	if providerName == "" {
+		var err error
 		if providerName, err = helper.Ask("Provider type []: "); err != nil {
 			return err
 		}
 	}
 
-	if _, ok := descs[providerName]; !ok {
-		return fmt.Errorf("provider %q does not exist", providerName)
+	opts := &app.TemplateOptions{
+		UseDefaults: true,
+		Provider:    providerName,
 	}
 
-	tmpl, defaults, err := remoteapi.SampleTemplate(providerName)
+	v, err := app.BuildTemplate(opts)
 	if err != nil {
 		return err
 	}
 
-	vars := provider.ReadVariables(tmpl)
-	input := make(map[string]string)
-
-	for _, v := range vars {
-		if !strings.HasPrefix(v.Name, "userInput_") {
-			continue
-		}
-
-		name := v.Name[len("userInput_"):]
-		defValue := ""
-		if v, ok := defaults[name]; ok && v != nil {
-			defValue = fmt.Sprintf("%v", v)
-		}
-
-		var value string
-
-		if !useDefaults {
-			if value, err = helper.Ask("Set %q to [%s]: ", name, defValue); err != nil {
-				return err
-			}
-		}
-
-		if value == "" {
-			value = defValue
-		}
-
-		input[v.Name] = value
-	}
-
-	tmpl = provider.ReplaceVariablesFunc(tmpl, vars, func(v *provider.Variable) string {
-		if s, ok := input[v.Name]; ok {
-			return s
-		}
-
-		return v.String()
-	})
-
-	var m map[string]interface{}
-
-	if err := json.Unmarshal([]byte(tmpl), &m); err != nil {
-		return err
-	}
-
-	p, err := yaml.Marshal(m)
+	p, err := yaml.Marshal(v)
 	if err != nil {
 		return err
 	}
