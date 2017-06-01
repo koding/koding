@@ -172,8 +172,7 @@ func templateInit(output string, useDefaults bool, providerName string) error {
 	}
 
 	opts := &app.TemplateOptions{
-		UseDefaults: true,
-		Provider:    providerName,
+		Provider: providerName,
 	}
 
 	v, err := app.BuildTemplate(opts)

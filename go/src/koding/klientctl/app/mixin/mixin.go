@@ -2,6 +2,7 @@ package mixin
 
 import (
 	"koding/kites/kloud/metadata"
+	"koding/kites/kloud/utils/object"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -32,6 +33,9 @@ func New(p []byte) *Mixin {
 	if len(m.CloudInit) == 0 {
 		panic("empty cloud-init script")
 	}
+
+	m.Machine = object.FixYAML(m.Machine).(map[string]interface{})
+	m.CloudInit = metadata.CloudInit(object.FixYAML((map[string]interface{})(m.CloudInit)).(map[string]interface{}))
 
 	return &m
 }
