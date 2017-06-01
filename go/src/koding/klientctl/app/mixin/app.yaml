@@ -2,6 +2,9 @@ machine:
   koding_always_on: true
   koding_mounts:
     default: "/var/lib/koding/app"
+variable:
+- name: web_port
+  default: 8080
 cloudinit:
   users:
   - name: "${var.koding_account_profile_nickname}"

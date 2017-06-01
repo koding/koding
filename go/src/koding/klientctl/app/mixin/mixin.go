@@ -14,8 +14,12 @@ var App = New(MustAsset("app.yaml"))
 
 // Mixin represents a raw mixin object.
 type Mixin struct {
-	Machine   map[string]interface{} `json:"machine" yaml:"machine"`
-	CloudInit metadata.CloudInit     `json:"cloudinit" yaml:"cloudinit"`
+	Machine  map[string]interface{} `json:"machine" yaml:"machine"`
+	Variable []struct {
+		Name    string      `json:"name" yaml:"name"`
+		Default interface{} `json:"default" yaml:"default"`
+	} `json:"variable" yaml:"variable"`
+	CloudInit metadata.CloudInit `json:"cloudinit" yaml:"cloudinit"`
 }
 
 // New gives new mixin by unmarshaling yaml-encoded p

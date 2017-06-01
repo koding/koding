@@ -108,6 +108,10 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
 		}
 
 		tmpl = string(p)
+
+		for _, v := range opts.mixin().Variable {
+			defaults[v.Name] = v.Default
+		}
 	}
 
 	vars := provider.ReadVariables(tmpl)
