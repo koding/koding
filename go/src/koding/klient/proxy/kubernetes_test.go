@@ -220,7 +220,7 @@ func TestKubernetesExecWithInput(t *testing.T) {
     go func() {
         defer wg.Done()
 
-        timeout := time.After(time.Second * 60)
+        timeout := time.After(time.Second * 5)
 
         returned := ""
         for strings.Compare(strings.TrimSpace(returned), strings.TrimSpace(expected)) != 0 {
@@ -255,7 +255,7 @@ func TestKubernetesExecWithInput(t *testing.T) {
     go func() {
         defer wg.Done()
 
-        timeout := time.After(time.Second * 60)
+        timeout := time.After(time.Second * 5)
 
         for {
             select {
@@ -271,7 +271,6 @@ func TestKubernetesExecWithInput(t *testing.T) {
 }
 
 func TestKubernetesExecTerminal(t *testing.T) {
-    t.Skip("Temporary")
     p, err := proxy.NewKubernetes()
     if err != nil {
         t.Skip(skipMessage)
@@ -307,6 +306,30 @@ func TestKubernetesExecTerminal(t *testing.T) {
         },
     }
 
+    var wg sync.WaitGroup
+
+    expected := "12345+1\n"
+
+    wg.Add(1)
+    go func () {
+        defer wg.Done()
+
+        timeout := time.After(time.Second * 5)
+
+        returned := ""
+        for strings.Compare(strings.TrimSpace(returned), strings.TrimSpace(expected)) != 0 {
+            select {
+            case o := <- r.output:
+                returned += o
+            case <- timeout:
+                t.Fatal("Should return expected output, in a timely manner.")
+            }
+
+            // TODO (acbodine): Make note of why this is necessary.
+            returned = strings.Trim(returned, "\x01")
+        }
+    }()
+
     dnode, err := client.Tell("proxy.exec", r)
     if err != nil {
         t.Fatal(err)
@@ -322,21 +345,25 @@ func TestKubernetesExecTerminal(t *testing.T) {
         t.Fatal(err)
     }
 
-    expected := "12345+1\n"
     if err := exec.Input.Call(fmt.Sprintf("print %s", expected)); err != nil {
         t.Fatal(err)
     }
 
-    returned := ""
-    for {
-        select {
-            case o := <- r.output:
-                returned += o
+    wg.Add(1)
+    go func () {
+        defer wg.Done()
+
+        timeout := time.After(time.Second * 5)
+
+        for {
+            select {
             case <- r.done:
-                if !strings.Contains(returned, expected) {
-                    t.Fatal("Failed to return expected output: ", returned)
-                }
                 return
+            case <- timeout:
+                t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
+            }
         }
-    }
+    }()
+
+    wg.Wait()
 }
