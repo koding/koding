@@ -3,14 +3,16 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/signal"
 
-	"fmt"
 	"koding/klientctl/commands"
 	"koding/klientctl/commands/cli"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/endpoint/kloud"
 )
 
 func main() {
@@ -21,9 +23,25 @@ func main() {
 		ctlcli.CloseOnExit(f)
 	}
 
-	c := cli.NewCLI(os.Stdin, os.Stdout, os.Stderr, logHandler)
+	c := cli.NewCLI(os.Stdin, os.Stdout, os.Stderr, logHandler
+	go handleSignals(c) // Start signal handler.
+
+	kloud.DefaultLog = log
+
 	if err := commands.NewKdCommand(c).Execute(); err != nil {
 		fmt.Fprintln(c.Err(), err)
 		os.Exit(cli.ExitCodeFromError(err))
 	}
+}
+
+// handleSignals is used to gracefully close all resources registered to ctlcli.
+func handleSignals(c *cli.CLI) {
+	sigC := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, os.Kill)
+
+	sig := <-sigC
+	c.Log().Info("Closing after %v signal", sig)
+
+	ctlcli.Close()
+	os.Exit(1)
 }
