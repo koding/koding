@@ -97,7 +97,7 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	// fail are filesystem errors - there is no recovery from
 	// that, and falling back to memory makes sense only for
 	// Klient.
-	if opts.Refresh {
+	if opts.Refresh && session != nil {
 		_ = s.Storage.Delete(session)
 	}
 	if err == nil {
