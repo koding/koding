@@ -6,7 +6,7 @@ cloudinit:
   users:
   - name: "${var.koding_account_profile_nickname}"
     ssh_authorized_keys:
-    - "${var.userInput_publicKey}"
+    - "${var.userInput_ssh_public_key}"
   write_files:
   - path: "/var/lib/koding/run"
     permissions: 0755
@@ -17,8 +17,8 @@ cloudinit:
       docker run     \
         --rm         \
         --name app   \
-        -p ${var.userInput_webPort}:${var.userInput_webPort} \
-        -e PORT=${var.userInput_webPort} \
+        -p ${var.userInput_web_port}:${var.userInput_web_port} \
+        -e PORT=${var.userInput_web_port} \
         -v /var/lib/koding/app:/app \
         rjeczalik/buildstep:latest  \
         /bin/bash -c '/build/builder && /start web'
