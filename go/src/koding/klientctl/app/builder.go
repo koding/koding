@@ -4,31 +4,42 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 
-	"koding/kites/kloud/stack"
+	kstack "koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
-	"koding/kites/kloud/utils/object"
 	"koding/klientctl/app/mixin"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/remoteapi"
+	"koding/klientctl/endpoint/stack"
 	"koding/klientctl/helper"
 
 	"github.com/koding/logging"
+	"github.com/kr/pretty"
 )
+
+// DefaultBuilder is used by global functions, like app.BuildTemplate,
+// app.BuildStack etc.
+var DefaultBuilder = &Builder{}
 
 // Builder allows for manipulating contents of stack
 // templates in a provider-agnostic manner.
 type Builder struct {
-	Stack object.Object // the resulting stack object
-
-	Desc stack.Descriptions // provider description; retrieved from kloud, if nil
-	Log  logging.Logger     // logger; kloud.DefaultLog if nil
+	Desc kstack.Descriptions // provider description; retrieved from kloud, if nil
+	Log  logging.Logger      // logger; kloud.DefaultLog if nil
 
 	Koding     *remoteapi.Client  // remote.api client; remoteapi.DefaultClient if nil
+	Kloud      *kloud.Client      // kloud client; kloud.DefaultClient if nil
 	Credential *credential.Client // credential client; credential.DefaultClient if nil
+	Stack      *stack.Client      // stack client; stack.DefaultClient if nil
+
+	Stdout io.Writer // stdout to write; os.Stdout if nil
+	Stderr io.Writer // stderr to write; os.Stderr if nil
 
 	once sync.Once // for b.init()
 }
@@ -45,7 +56,7 @@ type TemplateOptions struct {
 //
 // If method finishes successfully, returning nil error, b.Stack field
 // will hold the built template.
-func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
+func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
 	b.init()
 
 	var (
@@ -57,40 +68,40 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 
 	if tmpl == "" {
 		if prov == "" {
-			return errors.New("either provider or template is required to be non-empty")
+			return nil, errors.New("either provider or template is required to be non-empty")
 		}
 
 		tmpl, defaults, err = b.koding().SampleTemplate(prov)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	if prov == "" {
-		prov, err = stack.ReadProvider([]byte(tmpl))
+		prov, err = kstack.ReadProvider([]byte(tmpl))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	desc, ok := b.Desc[prov]
 	if !ok {
-		return fmt.Errorf("provider %q does not exist", prov)
+		return nil, fmt.Errorf("provider %q does not exist", prov)
 	}
 
 	if opts.Mixin != nil {
 		if !desc.CloudInit {
-			return fmt.Errorf("provider %q does not support cloud-init files", prov)
+			return nil, fmt.Errorf("provider %q does not support cloud-init files", prov)
 		}
 
 		t, err := replaceUserData(tmpl, opts.Mixin, desc)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		p, err := json.Marshal(t)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		tmpl = string(p)
@@ -114,7 +125,7 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 
 		if !opts.UseDefaults {
 			if value, err = helper.Ask("Set %q to [%s]: ", name, defValue); err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -133,7 +144,13 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) error {
 		return v.String()
 	})
 
-	return json.Unmarshal([]byte(tmpl), &b.Stack)
+	var v interface{}
+
+	if err := json.Unmarshal([]byte(tmpl), &v); err != nil {
+		return nil, err
+	}
+
+	return v, nil
 }
 
 type StackOptions struct {
@@ -141,9 +158,70 @@ type StackOptions struct {
 	Title       string
 	Credentials []string
 	Template    []byte
+	File        string
 }
 
+func (opts *StackOptions) template() ([]byte, error) {
+	if opts.Template != nil {
+		return opts.Template, nil
+	}
+
+	var err error
+
+	switch opts.File {
+	case "":
+		err = errors.New("no template file was provided")
+	case "-":
+		opts.Template, err = ioutil.ReadAll(os.Stdin)
+	default:
+		opts.Template, err = ioutil.ReadFile(opts.File)
+	}
+
+	return opts.Template, err
+}
+
+// BuildStack builds a compute stack with the given options.
+//
+// After the stack is successfully created it waits until
+// the stack is successfully built and until user_data
+// script finishes execution.
 func (b *Builder) BuildStack(opts *StackOptions) error {
+	p, err := opts.template()
+	if err != nil {
+		return err
+	}
+
+	o := &stack.CreateOptions{
+		Team:        opts.Team,
+		Title:       opts.Title,
+		Credentials: opts.Credentials,
+		Template:    p,
+	}
+
+	fmt.Fprintln(b.stderr(), "Creating stack... ")
+
+	resp, err := b.stack().Create(o)
+	if err != nil {
+		return errors.New("error creating stack: " + err.Error())
+	}
+
+	fmt.Fprintf(b.stderr(), "\nCreated %q stack with %s ID.\nWaiting for the stack to finish building...\n\n", resp.Title, resp.StackID)
+
+	for e := range b.kloud().Wait(resp.EventID) {
+		if e.Error != nil {
+			return fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
+		}
+
+		fmt.Fprintf(b.stderr(), "[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	}
+
+	s, err := b.koding().ListStacks(&remoteapi.Filter{ID: resp.StackID})
+	if err != nil {
+		return err
+	}
+
+	pretty.Println(s)
+
 	return nil
 }
 
@@ -157,10 +235,6 @@ func (b *Builder) initBuilder() {
 		if b.Desc, err = b.credential().Describe(); err != nil {
 			b.log().Warning("unable to retrieve credential description: %s", err)
 		}
-	}
-
-	if b.Stack == nil {
-		b.Stack = make(object.Object)
 	}
 }
 
@@ -185,7 +259,35 @@ func (b *Builder) credential() *credential.Client {
 	return credential.DefaultClient
 }
 
-func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (map[string]interface{}, error) {
+func (b *Builder) stack() *stack.Client {
+	if b.Stack != nil {
+		return b.Stack
+	}
+	return stack.DefaultClient
+}
+
+func (b *Builder) stdout() io.Writer {
+	if b.Stdout != nil {
+		return b.Stdout
+	}
+	return os.Stdout
+}
+
+func (b *Builder) stderr() io.Writer {
+	if b.Stderr != nil {
+		return b.Stderr
+	}
+	return os.Stderr
+}
+
+func (b *Builder) kloud() *kloud.Client {
+	if b.Kloud != nil {
+		return b.Kloud
+	}
+	return kloud.DefaultClient
+}
+
+func replaceUserData(tmpl string, m *mixin.Mixin, desc *kstack.Description) (map[string]interface{}, error) {
 	var (
 		root map[string]interface{}
 		key  string
@@ -249,4 +351,21 @@ func replaceUserData(tmpl string, m *mixin.Mixin, desc *stack.Description) (map[
 	}
 
 	return root, nil
+}
+
+// BuildStack builds a compute stack with the given options.
+//
+// After the stack is successfully created it waits until
+// the stack is successfully built and until user_data
+// script finishes execution.
+func BuildStack(opts *StackOptions) error {
+	return DefaultBuilder.BuildStack(opts)
+}
+
+// BuildTemplate builds a template with the given options.
+//
+// If method finishes successfully, returning nil error, b.Stack field
+// will hold the built template.
+func BuildTemplate(opts *TemplateOptions) (interface{}, error) {
+	return DefaultBuilder.BuildTemplate(opts)
 }
