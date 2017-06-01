@@ -6,31 +6,10 @@ import (
 	"os"
 
 	"koding/klientctl/config"
+	"koding/klientctl/util"
 
 	"github.com/koding/logging"
-	"github.com/spf13/cobra"
 )
-
-// CobraFuncE is a shortcut for cobra operation handlers that retturn errors.
-type CobraFuncE func(cmd *cobra.Command, args []string) error
-
-// UnionCobraFuncE creates a new cobra handler which calls first and next
-// functions respectively.
-func UnionCobraFuncE(first, next ...CobraFuncE) CobraFuncE {
-	return func(cmd *cobra.Command, args []string) error {
-		for _, f := range append([]CobraFuncE{first}, next...) {
-			if f == nil {
-				continue
-			}
-
-			if err := f(cmd, args); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-}
 
 // CLI represents the kd command line client that stores data streams and basic
 // information about kd state.
@@ -93,6 +72,11 @@ func (c *CLI) Log() logging.Logger {
 // IsDebug returns true when debug mode is enabled.
 func (c *CLI) IsDebug() bool {
 	return isDebug()
+}
+
+// IsAdmin checks whether or not the current user has admin privileges.
+func (c *CLI) IsAdmin() (bool, error) {
+	return util.NewPermissions().IsAdmin()
 }
 
 // Close closes all resources managed by CLI object.
