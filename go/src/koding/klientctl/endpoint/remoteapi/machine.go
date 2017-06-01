@@ -42,6 +42,40 @@ func (c *Client) ListMachines(f *Filter) ([]*models.JMachine, error) {
 	return machines, nil
 }
 
+// Machine looks up a single machine with the given filter.
+func (c *Client) Machine(f *Filter) (*models.JMachine, error) {
+	c.init()
+
+	params := &machine.JMachineOneParams{}
+
+	if f != nil {
+		if err := c.buildFilter(f); err != nil {
+			return nil, err
+		}
+
+		params.Body = f
+	}
+
+	params.SetTimeout(c.timeout())
+
+	resp, err := c.client().JMachine.JMachineOne(params, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var machine models.JMachine
+
+	if err := remoteapi.Unmarshal(resp.Payload, &machine); err != nil {
+		return nil, err
+	}
+
+	if machine.ID == "" {
+		return nil, ErrNotFound
+	}
+
+	return &machine, nil
+}
+
 // UpdateMachineAlwaysOn updates JMachine.meta.alwaysOn using ComputeProvider.
 func (c *Client) UpdateMachineAlwaysOn(m *models.JMachine, on bool) error {
 	c.init()

@@ -15,12 +15,14 @@ import (
 	"koding/klientctl/app/mixin"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/machine"
 	"koding/klientctl/endpoint/remoteapi"
 	"koding/klientctl/endpoint/stack"
 	"koding/klientctl/helper"
+	"koding/remoteapi/models"
 
 	"github.com/koding/logging"
-	"github.com/kr/pretty"
+	"golang.org/x/sync/errgroup"
 )
 
 // DefaultBuilder is used by global functions, like app.BuildTemplate,
@@ -37,6 +39,7 @@ type Builder struct {
 	Kloud      *kloud.Client      // kloud client; kloud.DefaultClient if nil
 	Credential *credential.Client // credential client; credential.DefaultClient if nil
 	Stack      *stack.Client      // stack client; stack.DefaultClient if nil
+	Machine    *machine.Client    // machine client; machine.DefaultClient if nil
 
 	Stdout io.Writer // stdout to write; os.Stdout if nil
 	Stderr io.Writer // stderr to write; os.Stderr if nil
@@ -226,14 +229,100 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 		fmt.Fprintf(b.stderr(), "[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
 	}
 
-	s, err := b.koding().ListStacks(&remoteapi.Filter{ID: resp.StackID})
+	s, err := b.koding().Stack(&remoteapi.Filter{ID: resp.StackID})
 	if err != nil {
 		return err
 	}
 
-	pretty.Println(s)
+	m, err := b.machines(s)
+	if err != nil {
+		return err
+	}
+
+	if err := b.wait(m); err != nil {
+		return err
+	}
+
+	// TODO(rjeczalik): port, get IP - print
 
 	return nil
+}
+
+func (b *Builder) wait(m []*models.JMachine) error {
+	var eg errgroup.Group
+
+	for _, m := range m {
+		m := m
+
+		eg.Go(func() error {
+			done := make(chan int, 1)
+
+			fn := func(line string) {
+				if strings.Contains(line, "_KD_DONE_") {
+					done <- 0
+					close(done)
+					return
+				}
+
+				fmt.Fprintln(b.stderr(), m.Slug+" | ", line)
+			}
+
+			opts := &machine.ExecOptions{
+				MachineID: m.ID,
+				Cmd:       "tail",
+				Args:      []string{"-f", "/var/log/cloud-init-output.log"},
+				Stdout:    fn,
+				Stderr:    fn,
+				Exit: func(exit int) {
+					done <- exit
+					close(done)
+				},
+			}
+
+			pid, err := b.machine().Exec(opts)
+			if err != nil {
+				return err
+			}
+
+			defer b.machine().Kill(&machine.KillOptions{MachineID: m.ID, PID: pid})
+
+			if exit := <-done; exit != 0 {
+				return fmt.Errorf("%s: failed with exit code: %d", m.Slug, exit)
+			}
+
+			return nil
+		})
+	}
+
+	return eg.Wait()
+}
+
+func (b *Builder) machines(s *models.JComputeStack) ([]*models.JMachine, error) {
+	v, ok := s.Machines.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("unexpected machines field: %T", s.Machines)
+	}
+	if len(v) == 0 {
+		return nil, errors.New("no machines found")
+	}
+
+	machines := make([]*models.JMachine, 0, len(v))
+
+	for i, v := range v {
+		id, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("%d: unexpected machine id: %#v", i, v)
+		}
+
+		m, err := b.koding().Machine(&remoteapi.Filter{ID: id})
+		if err != nil {
+			return nil, err
+		}
+
+		machines = append(machines, m)
+	}
+
+	return machines, nil
 }
 
 func (b *Builder) init() {
@@ -296,6 +385,13 @@ func (b *Builder) kloud() *kloud.Client {
 		return b.Kloud
 	}
 	return kloud.DefaultClient
+}
+
+func (b *Builder) machine() *machine.Client {
+	if b.Machine != nil {
+		return b.Machine
+	}
+	return machine.DefaultClient
 }
 
 func replaceUserData(tmpl string, m *mixin.Mixin, desc *kstack.Description) (map[string]interface{}, error) {
