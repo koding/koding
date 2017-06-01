@@ -22,6 +22,7 @@ Configuration = (options = {}) ->
   options.region or= 'default'
   options.configName or= 'default'
   options.environment or= 'default'
+  options.ebEnvName = options.environment
   options.projectRoot or= path.join __dirname, '/..'
   options.tunnelHostedZoneName = 'dev-t.koding.com'
   options.tunnelHostedZoneCallerRef = 'devtunnelproxy_hosted_zone_v0'
