@@ -20,12 +20,12 @@ func AdminRequired(cli *CLI, rootCmd *cobra.Command) {
 		}
 
 		if isAdmin {
-			return tail(cli)
+			return tail(cmd, args)
 		}
 
 		if permErr != nil {
 			// In case of permission error run command anyway.
-			return tail(cli)
+			return tail(cmd, args)
 		}
 
 		return fmt.Errorf("command requires root privileges")
