@@ -557,7 +557,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: cdd66cedbdf88da7755d890de22d9d6a16642323
+  version: 656c6e46843887d6336831ade1a4e89c01e0733d
   subpackages:
   - config
   - dnode
@@ -600,7 +600,7 @@ imports:
   subpackages:
   - cmd/provider-github
 - name: github.com/koding/tunnel
-  version: a8916da506030b5dc78ae2fb0208fdff3e571792
+  version: b32c339ebea44867d633ac4d1a316f1fdac016e6
   subpackages:
   - proto
 - name: github.com/koding/vagrantutil
