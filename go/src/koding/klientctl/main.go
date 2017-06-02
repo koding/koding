@@ -24,16 +24,13 @@ import (
 	"strings"
 	"time"
 
-	"koding/kites/kloud/utils/object"
 	"koding/kites/metrics"
 	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
-	authendpoint "koding/klientctl/endpoint/auth"
-	endpointconfig "koding/klientctl/endpoint/config"
 	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/endpoint/team"
+	kdmetrics "koding/klientctl/metrics"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -1082,57 +1079,8 @@ func requiresDaemon(args []string) bool {
 }
 
 func generateTagsForCLI(full string) []string {
-	fmt.Println("TAGS FULL: ", full)
-	tags := make([]string, 0)
-
-	// add commands
-	names := strings.Split(full, " ")
-	tags = metrics.AppendTag(tags, "commandName", full)
-	tags = metrics.AppendTag(tags, "rootCommandName", names[0])
-	for _, n := range names[1:] {
-		tags = metrics.AppendTag(tags, "subCommandName", n)
-	}
-
-	// add current config
-	configs, err := endpointconfig.Used()
-	if err == nil {
-		var ignoredFields = []string{
-			"kiteKey",
-			"kiteKeyFile",
-			"environment",
-			"tunnelID",
-		}
-		obj := ob.Build(configs, ignoredFields...)
-		for _, key := range obj.Keys() {
-			val := obj[key]
-			if val == nil || fmt.Sprintf("%v", val) == "" {
-				continue
-			}
-			tags = metrics.AppendTag(tags, key, val)
-		}
-	}
-
-	// add current team info
-	if t := team.Used(); t != nil && t.Valid() == nil {
-		tags = metrics.AppendTag(tags, "teamName", t.Name)
-	}
-
-	if info := authendpoint.Used(); info != nil && info.Username != "" {
-		tags = metrics.AppendTag(tags, "username", info.Username)
-	}
-
-	tags = metrics.AppendTag(tags, "version", config.VersionNum())
-
-	// TODO: add guest OS info
-
-	fmt.Println("TAGS: ", tags)
-
-	return tags
-}
-
-var ob = &object.Builder{
-	Tag:           "json",
-	Sep:           "_",
-	Recursive:     true,
-	FlatStringers: true,
+	return append(
+		kdmetrics.CommandPathTags(strings.Split(full, " ")...),
+		kdmetrics.ApplicationInfoTags()...,
+	)
 }
