@@ -15,6 +15,13 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
+// log is used as a global loggger, for commands like ListCommand that
+// need refactoring to support instance based commands.
+//
+// TODO: Remove this after all commands have been refactored into structs. Ie, the
+// cli rewrite.
+var log kodinglogging.Logger
+
 type kiteMounts struct {
 	IP         string `json:"ip"`
 	RemotePath string `json:"remotePath"`

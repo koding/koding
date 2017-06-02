@@ -1,4 +1,4 @@
-package commands
+package version
 
 import (
 	"fmt"
@@ -9,32 +9,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type versionOptions struct {
+type options struct {
 	jsonOutput bool
 }
 
-// NewVersionCommand creates a command that displays current version of this
-// application.
-func NewVersionCommand(c *cli.CLI) *cobra.Command {
-	opts := versionOptions{}
+// NewCommand creates a command that displays current version of this application.
+func NewCommand(c *cli.CLI) *cobra.Command {
+	opts := &options{}
 
 	cmd := &cobra.Command{
 		Use:   "version",
-		Short: "Print version information.",
+		Short: "Print version information",
 		Long: `Using this command user can check the current and the latest KD version along
 with machine's kite query ID.`,
-		Args: cli.NoArgs,
-		RunE: versionCommand(c, opts),
+		RunE: command(c, opts),
 	}
 
 	// Flags.
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.jsonOutput, "json", false, "output in JSON format")
 
+	// Middlewares.
+	cli.MultiCobraCmdMiddleware(
+		cli.NoArgs, // No custom arguments are accepted.
+	)(c, cmd)
+
 	return cmd
 }
 
-func versionCommand(c *cli.CLI, opts *versionOptions) cli.CobraFuncE {
+func command(c *cli.CLI, opts *options) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
 		v := struct {
 			Installed   int    `json:"installed"`

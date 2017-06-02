@@ -13,11 +13,11 @@ type CobraFuncE func(cmd *cobra.Command, args []string) error
 type CobraCmdMiddleware func(cli *CLI, rootCmd *cobra.Command)
 
 // MultiCobraCmdMiddleware creates a middleware that applies all provided
-// functions preserving invocation order.
+// functions with reversed invocation order.
 func MultiCobraCmdMiddleware(ccms ...CobraCmdMiddleware) CobraCmdMiddleware {
 	return func(cli *CLI, cmd *cobra.Command) {
-		for _, ccm := range ccms {
-			ccm(cli, cmd)
+		for i := len(ccms) - 1; i >= 0; i-- {
+			ccms[i](cli, cmd)
 		}
 	}
 }

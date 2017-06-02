@@ -3,7 +3,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -26,11 +25,13 @@ func main() {
 	c := cli.NewCLI(os.Stdin, os.Stdout, os.Stderr, logHandler)
 	go handleSignals(c) // Start signal handler.
 
-	kloud.DefaultLog = log
+	kloud.DefaultLog = c.Log()
+
+	// Hack for unused remote(compat) commands. It should be removed when we
+	// drop all of them.
+	log = c.Log()
 
 	if err := commands.NewKdCommand(c).Execute(); err != nil {
-		fmt.Fprintln(c.Err(), err)
-
 		c.Close()
 		os.Exit(cli.ExitCodeFromError(err))
 	}
@@ -41,7 +42,7 @@ func main() {
 // handleSignals is used to gracefully close all resources registered to ctlcli.
 func handleSignals(c *cli.CLI) {
 	sigC := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, os.Kill)
+	signal.Notify(sigC, os.Interrupt, os.Kill)
 
 	sig := <-sigC
 	c.Log().Info("Closing after %v signal", sig)

@@ -3,6 +3,7 @@ package commands
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/commands/version"
 
 	"github.com/spf13/cobra"
 )
@@ -11,16 +12,22 @@ import (
 func NewKdCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kd [command]",
-		Short: "kd is a CLI tool that allows user to interact with their infrastructure",
-		Args:  cli.NoArgs,
+		Short: "kd is a CLI tool that allows user to interact with their infrastructure.",
 		RunE:  cli.PrintHelp(c.Err()),
 	}
 
-	// Add subcommands.
-	// TODO: cmd.AddCommand()
+	// Subcommands.
+	cmd.AddCommand(
+		version.NewCommand(c),
+	)
 
-	// Add middlewares.
-	// TODO
+	// Middlewares.
+	cli.MultiCobraCmdMiddleware(
+		cli.ApplyForAll(cli.CloseOnExitCtlCli),    // Run ctlcli.Close for all commands.
+		cli.ApplyForAll(cli.WithLoggedInfo),       // Log invocation and errors for all commands.
+		cli.ApplyForAll(cli.WithInitializedCache), // Use cache for all commands.
+		cli.NoArgs, // No custom arguments are accepted.
+	)(c, cmd)
 
 	return cmd
 }
