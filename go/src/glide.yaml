@@ -167,6 +167,9 @@ import:
   version: ^1.6.2
   subpackages:
   - convey
+- package: github.com/spf13/cobra
+  subpackages:
+  - cobra
 - package: github.com/streadway/amqp
 - package: github.com/streadway/simpleuuid
 - package: github.com/stripe/stripe-go
