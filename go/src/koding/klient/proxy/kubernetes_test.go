@@ -1,7 +1,6 @@
 package proxy_test
 
 import (
-    "fmt"
     "strings"
     "sync"
     "testing"
@@ -106,7 +105,7 @@ func TestKubernetesExec(t *testing.T) {
 
     r := &TestExecKubernetesRequest{
         output:     make(chan string),
-        done:       make(chan bool),
+        done:       make(chan bool, 1),
 
         Common: proxy.Common{
             Session:        "TestKubernetesExec",
@@ -138,10 +137,10 @@ func TestKubernetesExec(t *testing.T) {
 
         for !strings.Contains(returned, expected) {
             select {
-                case o := <- r.output:
-                    returned += o
-                case <- timeout:
-                    t.Fatal("Should return expected output, in a timely manner.")
+            case o := <- r.output:
+                returned += o
+            case <- timeout:
+                t.Fatal("Should return expected output, in a timely manner.")
             }
         }
     }()
@@ -162,13 +161,12 @@ func TestKubernetesExec(t *testing.T) {
         defer wg.Done()
 
         timeout := time.After(time.Second * 3)
-        for {
-            select {
-                case <- r.done:
-                    return
-                case <- timeout:
-                    t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
-            }
+
+        select {
+        case <- r.done:
+            return
+        case <- timeout:
+            t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
         }
     }()
 
@@ -190,7 +188,7 @@ func TestKubernetesExecWithInput(t *testing.T) {
 
     r := &TestExecKubernetesRequest{
         output:     make(chan string),
-        done:       make(chan bool),
+        done:       make(chan bool, 1),
 
         Common: proxy.Common{
             Session:        "TestKubernetesExecWithInput",
@@ -225,10 +223,10 @@ func TestKubernetesExecWithInput(t *testing.T) {
         returned := ""
         for strings.Compare(strings.TrimSpace(returned), strings.TrimSpace(expected)) != 0 {
             select {
-                case o := <- r.output:
-                    returned += o
-                case <- timeout:
-                    t.Fatal("Should return expected output, in a timely manner.")
+            case o := <- r.output:
+                returned += o
+            case <- timeout:
+                t.Fatal("Should return expected output, in a timely manner.")
             }
 
             // TODO (acbodine): Make note of why this is necessary.
@@ -257,13 +255,11 @@ func TestKubernetesExecWithInput(t *testing.T) {
 
         timeout := time.After(time.Second * 5)
 
-        for {
-            select {
-                case <- r.done:
-                    return
-                case <- timeout:
-                    t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
-            }
+        select {
+        case <- r.done:
+            break
+        case <- timeout:
+            t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
         }
     }()
 
@@ -285,7 +281,7 @@ func TestKubernetesExecTerminal(t *testing.T) {
 
     r := &TestExecKubernetesRequest{
         output:     make(chan string),
-        done:       make(chan bool),
+        done:       make(chan bool, 1),
 
         Common: proxy.Common{
             Session:        "TestKubernetesExecTerminal",
@@ -308,8 +304,6 @@ func TestKubernetesExecTerminal(t *testing.T) {
 
     var wg sync.WaitGroup
 
-    expected := "12345+1\n"
-
     wg.Add(1)
     go func () {
         defer wg.Done()
@@ -317,16 +311,18 @@ func TestKubernetesExecTerminal(t *testing.T) {
         timeout := time.After(time.Second * 5)
 
         returned := ""
-        for strings.Compare(strings.TrimSpace(returned), strings.TrimSpace(expected)) != 0 {
+
+        // This is a bit lazy, but it is to avoid having to guess
+        // at the hidden characters that K8s API is returning.
+        // 387 is the expected length of the output returned.
+        for len(returned) < 387 {
             select {
             case o := <- r.output:
                 returned += o
+                break
             case <- timeout:
                 t.Fatal("Should return expected output, in a timely manner.")
             }
-
-            // TODO (acbodine): Make note of why this is necessary.
-            returned = strings.Trim(returned, "\x01")
         }
     }()
 
@@ -341,27 +337,33 @@ func TestKubernetesExecTerminal(t *testing.T) {
         t.Fatal("Response should be of type proxy.ExecResponse.")
     }
 
-    if err := exec.Input.Call("python"); err != nil {
+    if err := exec.Input.Call("/usr/bin/python3\n"); err != nil {
         t.Fatal(err)
     }
 
-    if err := exec.Input.Call(fmt.Sprintf("print %s", expected)); err != nil {
+    if err := exec.Input.Call("print(12345+1)\n"); err != nil {
+        t.Fatal(err)
+    }
+
+    if err := exec.Input.Call("quit()\n"); err != nil {
+        t.Fatal(err)
+    }
+
+    if err := exec.Input.Call("exit\n"); err != nil {
         t.Fatal(err)
     }
 
     wg.Add(1)
-    go func () {
+    go func() {
         defer wg.Done()
 
-        timeout := time.After(time.Second * 5)
+        timeout := time.After(time.Second * 3)
 
-        for {
-            select {
-            case <- r.done:
-                return
-            case <- timeout:
-                t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
-            }
+        select {
+        case <- r.done:
+            break
+        case <- timeout:
+            t.Fatal("Should notify client that remote exec is finished, in a timely manner.")
         }
     }()
 

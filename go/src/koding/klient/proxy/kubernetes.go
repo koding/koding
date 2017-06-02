@@ -110,7 +110,6 @@ func (p *KubernetesProxy) Exec(r *kite.Request) (interface{}, error) {
 }
 
 const (
-    writeWait = time.Millisecond * 500
     readWait = time.Second * 1
 )
 
@@ -132,22 +131,22 @@ func pumpIngress(wg *sync.WaitGroup, inChan chan []byte, writer io.WriteCloser) 
 
     for {
         select {
-            case d, ok := <- inChan:
-                if !ok {
-                    // TODO (acbodine): If we want to allow detaching we
-                    // shouldn't return here.
+        case d, ok := <- inChan:
+            if !ok {
+                // TODO (acbodine): If we want to allow detaching we
+                // shouldn't return here.
 
-                    return
-                }
+                return
+            }
 
-                if _, err := writer.Write(d); err != nil {
-                    fmt.Println("Failed to write bytes to connection:", err)
-                    return
-                }
+            if _, err := writer.Write(d); err != nil {
+                fmt.Println("Failed to write bytes to connection:", err)
+                return
+            }
 
-                break
-            case <- ticker.C:
-                break
+            break
+        case <- ticker.C:
+            break
         }
     }
 }
