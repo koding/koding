@@ -1082,6 +1082,7 @@ func requiresDaemon(args []string) bool {
 }
 
 func generateTagsForCLI(full string) []string {
+	fmt.Println("TAGS FULL: ", full)
 	tags := make([]string, 0)
 
 	// add commands
@@ -1123,6 +1124,8 @@ func generateTagsForCLI(full string) []string {
 	tags = metrics.AppendTag(tags, "version", config.VersionNum())
 
 	// TODO: add guest OS info
+
+	fmt.Println("TAGS: ", tags)
 
 	return tags
 }

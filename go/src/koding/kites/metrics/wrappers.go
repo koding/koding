@@ -67,6 +67,7 @@ func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName str
 	for i, command := range commands {
 		name := strings.TrimSpace(parentName + " " + command.Name)
 		register(dd.Namespace, strings.Replace(name, " ", "_", -1))
+		fmt.Println("Namespace: ", dd.Namespace, " Registered:", strings.Replace(name, " ", "_", -1))
 		if command.Action != nil {
 			commands[i].Action = WrapCLIAction(dd, command.Action.(cli.ActionFunc), name, tagsFn)
 		}

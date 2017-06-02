@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"koding/kites/metrics"
 	"koding/klientctl/config"
 	"koding/klientctl/util"
 
@@ -18,18 +19,28 @@ type CLI struct {
 	out io.Writer     // output stream.
 	err io.Writer     // error stream.
 
+	m *metrics.Metrics // usage metrics.
+
 	debug bool
 	log   logging.Logger
 }
 
 // NewCLI creates a new CLI client.
 func NewCLI(in io.ReadCloser, out, err, logHandler io.Writer) *CLI {
-	return &CLI{
+	c := &CLI{
 		in:    in,
 		out:   out,
 		err:   err,
 		debug: isDebug(),
 		log:   newLogger(logHandler),
+	}
+
+	if !config.Konfig.DisableMetrics {
+		if m, err = metrics.New("kd"); err != nil {
+			c.Log().Warning("Metrics will not be collected: %v", err)
+		} else {
+			c.m = m
+		}
 	}
 }
 
@@ -69,6 +80,11 @@ func (c *CLI) Log() logging.Logger {
 	return newLogger(nil)
 }
 
+// Metrics returns metrics client or nil if not enabled.
+func (c *CLI) Metrics() *metrics.Metrics {
+	return c.m
+}
+
 // IsDebug returns true when debug mode is enabled.
 func (c *CLI) IsDebug() bool {
 	return isDebug()
@@ -80,12 +96,18 @@ func (c *CLI) IsAdmin() (bool, error) {
 }
 
 // Close closes all resources managed by CLI object.
-func (c *CLI) Close() error {
+func (c *CLI) Close() (err error) {
 	if c.in != nil {
-		return c.in.Close()
+		err = c.in.Close()
 	}
 
-	return nil
+	if c.m != nil {
+		if ee := c.m.Close(); ee != nil && err == nil {
+			err = ee
+		}
+	}
+
+	return
 }
 
 func newLogger(handler io.Writer) logging.Logger {
