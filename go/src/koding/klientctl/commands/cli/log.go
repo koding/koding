@@ -14,7 +14,7 @@ func WithLoggedInfo(cli *CLI, rootCmd *cobra.Command) {
 	}
 
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
-		cli.Log().Info("Command %q, called with flags %q",
+		cli.Log().Info("Command %q, called with arguments %q",
 			cmd.CommandPath(),
 			strings.Join(args, " "),
 		)
