@@ -23,8 +23,7 @@ func MultiCobraCmdMiddleware(ccms ...CobraCmdMiddleware) CobraCmdMiddleware {
 }
 
 // ApplyForAll applies the middleware to provided command and all its children.
-func ApplyForAll(ccm CobraCmdMiddleware) CobraCmdMiddleware {
-	var ccmRet CobraFuncE
+func ApplyForAll(ccm CobraCmdMiddleware) (ccmRet CobraCmdMiddleware) {
 	ccmRet = func(cli *CLI, cmd *cobra.Command) {
 		// Apply to current.
 		ccm(cli, cmd)

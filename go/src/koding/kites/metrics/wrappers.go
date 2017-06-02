@@ -62,7 +62,18 @@ func WrapHTTPHandler(dd *dogstatsd.Client, metricName string, handler http.Handl
 	}
 }
 
+// RegisterCLICommand registers given command to metrics dashboard.
+func RegisterCLICommand(m *Metrics, args ...string) {
+	if len(args) == 0 || m == nil || m.Datadog == nil {
+		return
+	}
+
+	register(m.Datadog.Namespace, strings.Join(args, "_"))
+}
+
 // WrapCLIActions injects the metrics as middlewares into cli.Commands Actions.
+//
+// TODO: Remove after codegangsta/cli is removed.
 func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName string, tagsFn func(string) []string) []cli.Command {
 	for i, command := range commands {
 		name := strings.TrimSpace(parentName + " " + command.Name)
@@ -78,6 +89,8 @@ func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName str
 }
 
 // WrapCLIAction wraps the actions of cli commands and adds metrics middlewares.
+//
+// TODO: Remove after codegangsta/cli is removed.
 func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, fullName string, tagsFn func(string) []string) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		metricName := strings.Replace(fullName, " ", "_", -1)

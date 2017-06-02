@@ -26,11 +26,11 @@ import (
 
 	"koding/kites/metrics"
 	"koding/klientctl/auth"
+	cobracli "koding/klientctl/commands/cli"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
-	kdmetrics "koding/klientctl/metrics"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -1080,7 +1080,7 @@ func requiresDaemon(args []string) bool {
 
 func generateTagsForCLI(full string) []string {
 	return append(
-		kdmetrics.CommandPathTags(strings.Split(full, " ")...),
-		kdmetrics.ApplicationInfoTags()...,
+		cobracli.CommandPathTags(strings.Split(full, " ")...),
+		cobracli.ApplicationInfoTags()...,
 	)
 }

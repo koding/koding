@@ -14,6 +14,15 @@ func NewError(exit int, err error) *Error {
 	}
 }
 
+// Error implements builtin.error interface. It prints underlying error.
+func (e *Error) Error() string {
+	if e.E != nil {
+		return e.E.Error()
+	}
+
+	return "unknown"
+}
+
 // ExitCodeFromError gets exit code from provided error. If error is nil, the
 // exit code will be 0. For errors other than Error type, 1 will be returned.
 func ExitCodeFromError(err error) int {

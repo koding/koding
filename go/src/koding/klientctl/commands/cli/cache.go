@@ -33,7 +33,7 @@ func WithInitializedCache(cli *CLI, rootCmd *cobra.Command) {
 			cli.Log().Error("Cannot open config cache: %v", err)
 
 			return NewError(3, fmt.Errorf(
-				"Error opening configuration cache: %s\n\n%s", err, cacheLockedSuggestion)
+				"Error opening configuration cache: %s\n\n%s", err, cacheLockedSuggestion,
 			))
 		}
 		defer cache.Close()

@@ -36,12 +36,14 @@ func NewCLI(in io.ReadCloser, out, err, logHandler io.Writer) *CLI {
 	}
 
 	if !config.Konfig.DisableMetrics {
-		if m, err = metrics.New("kd"); err != nil {
+		if m, err := metrics.New("kd"); err != nil {
 			c.Log().Warning("Metrics will not be collected: %v", err)
 		} else {
 			c.m = m
 		}
 	}
+
+	return c
 }
 
 // In returns CLI's input stream. Defaults to standard input when nil.
@@ -110,10 +112,15 @@ func (c *CLI) Close() (err error) {
 	return
 }
 
-func newLogger(handler io.Writer) logging.Logger {
-	if handler == nil {
-		handler = ioutil.Discard
+func newLogger(w io.Writer) logging.Logger {
+	if w == nil {
+		w = ioutil.Discard
 	}
+
+	handler := logging.NewWriterHandler(w)
+
+	// Make handler writer accept all incoming log messages.
+	handler.SetLevel(logging.DEBUG)
 
 	logger := logging.NewLogger("kd")
 	logger.SetHandler(handler)
