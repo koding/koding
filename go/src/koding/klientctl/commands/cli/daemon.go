@@ -30,7 +30,7 @@ func DaemonRequired(cli *CLI, rootCmd *cobra.Command) {
 		}
 
 		return fmt.Errorf(
-			"\"%s\" requires the deamon to be installed.%s",
+			"%q requires the deamon to be installed.%s",
 			cmd.CommandPath(),
 			installHelp,
 		)

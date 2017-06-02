@@ -1,3 +1,0 @@
-package commands
-
-func NewVersionCommand()

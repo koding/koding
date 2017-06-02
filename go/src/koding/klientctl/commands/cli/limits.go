@@ -18,7 +18,7 @@ func NoArgs(cmd *cobra.Command, args []string) error {
 	}
 
 	return fmt.Errorf(
-		"\"%s\" does not support any arguments.\nSee: '%s --help' for help.\n\nUsage:  %s\n\n%s",
+		"%q does not support any arguments.\nSee: '%s --help' for help.\n\nUsage:  %s\n\n%s",
 		cmd.CommandPath(),
 		cmd.CommandPath(),
 		cmd.UseLine(),

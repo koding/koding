@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +12,13 @@ import (
 
 	"github.com/koding/logging"
 )
+
+// PrintJSON converts provided object to formatted JSON string and writes it to w.
+func PrintJSON(w io.Writer, v interface{}) {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "\t")
+	enc.Encode(v)
+}
 
 // CLI represents the kd command line client that stores data streams and basic
 // information about kd state.
