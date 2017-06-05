@@ -15,11 +15,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func WithMetrics(cli *CLI, rootCmd *cobra.Command) {
-	WithMetricsAlias()(cli, rootCmd)
-}
-
-func WithMetricsAlias(aliasPath ...string) CobraCmdMiddleware {
+// WithMetrics allows to gather metrics for a given command. Command path can
+// be replaced with provided aliasPath.
+func WithMetrics(aliasPath ...string) CobraCmdMiddleware {
 	return func(cli *CLI, rootCmd *cobra.Command) {
 		tail := rootCmd.RunE
 		if tail == nil {

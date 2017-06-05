@@ -19,14 +19,14 @@ type listOptions struct {
 
 // NewListCommand creates a command that displays remote machines which belong
 // to the user or that can be accessed by their.
-func NewListCommand(c *cli.CLI) *cobra.Command {
+func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &listOptions{}
 
 	cmd := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List available machines",
-		Long: `This command gets currently available machines and displays them to the caller.`
+		Long:    `This command gets currently available machines and displays them to the caller.`,
 		RunE:    listCommand(c, opts),
 	}
 
@@ -36,7 +36,8 @@ func NewListCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs, // No custom arguments are accepted.
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
+		cli.NoArgs,                    // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

@@ -34,9 +34,7 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 		return 1, err
 	}
 
-	opts := &machine.ListOptions{
-		Log: log.New("machine:list"),
-	}
+	opts := &machine.ListOptions{}
 
 	infos, err := machine.List(opts)
 	if err != nil {

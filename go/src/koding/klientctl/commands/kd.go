@@ -3,6 +3,7 @@ package commands
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/commands/machine"
 	"koding/klientctl/commands/version"
 
 	"github.com/spf13/cobra"
@@ -18,6 +19,8 @@ func NewKdCommand(c *cli.CLI) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
+		machine.NewCommand(c),
+		machine.NewListCommand(c, "machine", "list"),
 		version.NewCommand(c),
 	)
 
