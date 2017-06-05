@@ -31,7 +31,7 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	if _, err := os.Stat(config.Konfig.Template.File); os.IsNotExist(err) {
 		fmt.Printf("Initializing with new %s template file...\n\n", config.Konfig.Template.File)
 
-		if err := templateInit(config.Konfig.Template.File, false, ""); err != nil {
+		if _, err := templateInit(config.Konfig.Template.File, false, ""); err != nil {
 			return 1, err
 		}
 	}

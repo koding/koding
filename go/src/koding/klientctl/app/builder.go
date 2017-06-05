@@ -209,12 +209,12 @@ func (opts *StackOptions) template() ([]byte, error) {
 // After the stack is successfully created it waits until
 // the stack is successfully built and until user_data
 // script finishes execution.
-func (b *Builder) BuildStack(opts *StackOptions) error {
+func (b *Builder) BuildStack(opts *StackOptions) (*models.JComputeStack, []*models.JMachine, error) {
 	b.init()
 
 	p, err := opts.template()
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	fmt.Fprintln(b.stderr(), "Creating stack... ")
@@ -222,14 +222,14 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 	if !opts.UseDefaults && opts.Title == "" {
 		providers, err := kstack.ReadProvidersWithUnmarshal(p, yaml.Unmarshal)
 		if err != nil {
-			return errors.New("unable to read provider name: " + err.Error())
+			return nil, nil, errors.New("unable to read provider name: " + err.Error())
 		}
 
 		defTitle := strings.Title(kstack.Pokemon() + " " + providers[0] + " Stack")
 
 		opts.Title, err = helper.Ask("\nStack name [%s]: ", defTitle)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 		if opts.Title == "" {
 			opts.Title = defTitle
@@ -245,14 +245,14 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 
 	resp, err := b.stack().Create(o)
 	if err != nil {
-		return errors.New("error creating stack: " + err.Error())
+		return nil, nil, errors.New("error creating stack: " + err.Error())
 	}
 
 	fmt.Fprintf(b.stderr(), "\nCreated %q stack with %s ID.\nWaiting for your stack to finish building...\n\n", resp.Title, resp.StackID)
 
 	for e := range b.kloud().Wait(resp.EventID) {
 		if e.Error != nil {
-			return fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
+			return nil, nil, fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
 		}
 
 		fmt.Fprintf(b.stderr(), "[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
@@ -260,22 +260,19 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 
 	s, err := b.koding().Stack(&remoteapi.Filter{ID: resp.StackID})
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	m, err := b.machines(s)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	if err := b.wait(m); err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	// TODO(rjeczalik): port, get IP - print
-	// TODO(rjeczalik): build
-
-	return nil
+	return s, m, nil
 }
 
 func (b *Builder) wait(m []*models.JMachine) error {
@@ -292,23 +289,19 @@ func (b *Builder) wait(m []*models.JMachine) error {
 			fn := func(line string) {
 				if strings.Contains(line, "_KD_DONE_") {
 					done <- 0
-					close(done)
 					return
 				}
 
-				fmt.Fprintln(b.stderr(), m.Slug+" | ", line)
+				fmt.Fprintf(b.stderr(), "%s | %s\n", m.Slug, line)
 			}
 
 			opts := &machine.ExecOptions{
-				MachineID: m.ID,
-				Cmd:       "tail",
-				Args:      []string{"-f", "/var/log/cloud-init-output.log"},
-				Stdout:    fn,
-				Stderr:    fn,
-				Exit: func(exit int) {
-					done <- exit
-					close(done)
-				},
+				MachineID:     m.ID,
+				Cmd:           "tail",
+				Args:          []string{"-f", "/var/log/cloud-init-output.log"},
+				Stdout:        fn,
+				Stderr:        fn,
+				Exit:          func(exit int) { done <- exit },
 				WaitConnected: 30 * time.Second,
 			}
 
@@ -562,7 +555,7 @@ func replaceUserData(tmpl string, m *mixin.Mixin, desc *kstack.Description) (map
 // After the stack is successfully created it waits until
 // the stack is successfully built and until user_data
 // script finishes execution.
-func BuildStack(opts *StackOptions) error {
+func BuildStack(opts *StackOptions) (*models.JComputeStack, []*models.JMachine, error) {
 	return DefaultBuilder.BuildStack(opts)
 }
 

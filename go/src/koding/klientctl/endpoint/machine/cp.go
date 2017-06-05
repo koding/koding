@@ -59,6 +59,7 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 
 	cmd := cpRes.Command
 	cmd.PrivateKeyPath = privPath
+	cpRes.Command.PrivateKeyPath = privPath
 
 	ctx := context.Background()
 

@@ -4,14 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	kstack "koding/kites/kloud/stack"
+	"koding/klientctl/app"
 	"koding/klientctl/config"
 	"koding/klientctl/endpoint/credential"
-	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/endpoint/stack"
+	"koding/klientctl/endpoint/machine"
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
@@ -19,27 +21,18 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// TODO(rjeczalik):
-//
-//   - add application mixin (buildstep)
-//   - add package for building with mixins
-//   - change flow to include:
-//      - application mixin in templateInit (port / ssh key?)
-//      - waiting for _KD_DONE_ (add Stack.Wait?)
-//      - uploading files
-//      - building / waiting
-//      - mounting remote
-//      - printing remote URL
-
 func Live(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	if err := isLocked(); err != nil {
 		return 1, err
 	}
 
+	var vars map[string]string
+
 	if _, err := os.Stat(config.Konfig.Template.File); os.IsNotExist(err) {
 		fmt.Printf("Initializing with new %s template file...\n\n", config.Konfig.Template.File)
 
-		if err := templateInit(config.Konfig.Template.File, false, ""); err != nil {
+		var err error
+		if vars, err = templateInit(config.Konfig.Template.File, false, ""); err != nil {
 			return 1, err
 		}
 	}
@@ -114,41 +107,64 @@ func Live(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		ident = credential.Used()[provider]
 	}
 
-	fmt.Printf("Creating new stack...\n\n")
-	defTitle := strings.Title(fmt.Sprintf("%s %s Stack", kstack.Pokemon(), provider))
-
-	title, err := helper.Ask("Stack name [%s]: ", defTitle)
-	if err != nil {
-		return 1, err
-	}
-
-	if title == "" {
-		title = defTitle
-	}
-
-	opts := &stack.CreateOptions{
+	opts := &app.StackOptions{
 		Team:        team.Used().Name,
-		Title:       title,
 		Credentials: []string{ident},
 		Template:    p,
 	}
 
-	resp, err := stack.Create(opts)
+	stack, machines, err := app.BuildStack(opts)
 	if err != nil {
 		return 1, err
 	}
 
-	fmt.Fprintf(os.Stderr, "\nCreatad %q stack with %s ID.\nWaiting for the stack to finish building...\n\n", resp.Title, resp.StackID)
+	// copy files
 
-	for e := range kloud.Wait(resp.EventID) {
-		if e.Error != nil {
-			return 1, fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
-		}
-
-		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	wd, err := os.Getwd()
+	if err != nil {
+		return 1, err
 	}
 
-	if err := writelock(resp.StackID, resp.Title); err != nil {
+	cpOpts := &machine.CpOptions{
+		Identifier:      machines[0].ID,
+		SourcePath:      wd,
+		DestinationPath: filepath.FromSlash("/var/lib/koding/app/"),
+		Log:             log.New("cp"),
+	}
+
+	fmt.Fprintf(os.Stderr, "\nUploading project files from current directory to your remote...\n\n")
+
+	if err := machine.Cp(cpOpts); err != nil {
+		return 1, err
+	}
+
+	// build application
+
+	fmt.Fprintf(os.Stderr, "\nBiulding your project...\n\n")
+
+	done := make(chan int, 1)
+	fn := func(line string) {
+		fmt.Fprintf(os.Stderr, "%s | %s\n", machines[0].Slug, line)
+	}
+
+	execOpts := &machine.ExecOptions{
+		MachineID:     machines[0].ID,
+		Cmd:           "/var/lib/koding/run",
+		Stdout:        fn,
+		Stderr:        fn,
+		Exit:          func(exit int) { done <- exit },
+		WaitConnected: 30 * time.Second,
+	}
+
+	if _, err := machine.Exec(execOpts); err != nil {
+		return 1, err
+	}
+
+	<-done
+
+	_ = vars
+
+	if err := writelock(stack.ID, *stack.Title); err != nil {
 		return 1, err
 	}
 

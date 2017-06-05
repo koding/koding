@@ -149,25 +149,25 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func templateInit(output string, useDefaults bool, providerName string) error {
+func templateInit(output string, useDefaults bool, providerName string) (map[string]string, error) {
 	if _, err := os.Stat(output); err == nil && !useDefaults {
 		yn, err := helper.Ask("Do you want to overwrite %q file? [y/N]: ", output)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		switch strings.ToLower(yn) {
 		case "yes", "y":
 			fmt.Println()
 		default:
-			return errors.New("aborted by user")
+			return nil, errors.New("aborted by user")
 		}
 	}
 
 	if providerName == "" {
 		var err error
 		if providerName, err = helper.Ask("Provider type []: "); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -175,35 +175,35 @@ func templateInit(output string, useDefaults bool, providerName string) error {
 		Provider: providerName,
 	}
 
-	v, _, err := app.BuildTemplate(opts)
+	v, vars, err := app.BuildTemplate(opts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	p, err := yaml.Marshal(v)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	f, err := os.Create(output)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = io.Copy(f, bytes.NewReader(p))
 	err = nonil(err, f.Close())
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fmt.Printf("\nTemplate successfully written to %s.\n", f.Name())
 
-	return nil
+	return vars, nil
 }
 
 func TemplateInit(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	if err := templateInit(c.String("output"), c.Bool("defaults"), c.String("provider")); err != nil {
+	if _, err := templateInit(c.String("output"), c.Bool("defaults"), c.String("provider")); err != nil {
 		return 1, err
 	}
 

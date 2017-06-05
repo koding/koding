@@ -23,7 +23,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		File:        c.String("file"),
 	}
 
-	if err := app.BuildStack(opts); err != nil {
+	if _, _, err := app.BuildStack(opts); err != nil {
 		return 1, err
 	}
 
