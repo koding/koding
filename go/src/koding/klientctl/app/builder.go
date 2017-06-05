@@ -9,10 +9,15 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
+	"koding/kites/config"
 	kstack "koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	kmachine "koding/klient/machine"
+	"koding/klient/machine/machinegroup"
 	"koding/klientctl/app/mixin"
+	konfig "koding/klientctl/config"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/machine"
@@ -40,11 +45,14 @@ type Builder struct {
 	Credential *credential.Client // credential client; credential.DefaultClient if nil
 	Stack      *stack.Client      // stack client; stack.DefaultClient if nil
 	Machine    *machine.Client    // machine client; machine.DefaultClient if nil
+	Klient     kloud.Transport    // local klient client; uses default 127.0.0.1:56789 url  if nil
+	Konfig     *config.Konfig
 
 	Stdout io.Writer // stdout to write; os.Stdout if nil
 	Stderr io.Writer // stderr to write; os.Stderr if nil
 
-	once sync.Once // for b.init()
+	once  sync.Once       // for b.init()
+	local kloud.Transport // default client for Klient
 }
 
 // TemplateOptions are used when building a template.
@@ -200,6 +208,8 @@ func (opts *StackOptions) template() ([]byte, error) {
 // the stack is successfully built and until user_data
 // script finishes execution.
 func (b *Builder) BuildStack(opts *StackOptions) error {
+	b.init()
+
 	p, err := opts.template()
 	if err != nil {
 		return err
@@ -244,6 +254,7 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 	}
 
 	// TODO(rjeczalik): port, get IP - print
+	// TODO(rjeczalik): build
 
 	return nil
 }
@@ -309,17 +320,61 @@ func (b *Builder) machines(s *models.JComputeStack) ([]*models.JMachine, error) 
 	machines := make([]*models.JMachine, 0, len(v))
 
 	for i, v := range v {
-		id, ok := v.(string)
-		if !ok {
-			return nil, fmt.Errorf("%d: unexpected machine id: %#v", i, v)
+		var m *models.JMachine
+
+		switch v := v.(type) {
+		case string:
+			var err error
+			m, err = b.koding().Machine(&remoteapi.Filter{ID: v})
+			if err != nil {
+				return nil, fmt.Errorf("%s: %s", v, err)
+			}
+		case map[string]interface{}:
+			// TODO(rjeczalik): Research if there exists anything that
+			// allows for converting map[string]interface{} to concerete
+			// struct without going through JSON encoding.
+			p, err := json.Marshal(v)
+			if err != nil {
+				return nil, fmt.Errorf("%d: %s", i, err)
+			}
+			if err := json.Unmarshal(p, &m); err != nil {
+				return nil, fmt.Errorf("%d: %s", i, err)
+			}
 		}
 
-		m, err := b.koding().Machine(&remoteapi.Filter{ID: id})
-		if err != nil {
-			return nil, err
+		if m == nil {
+			return nil, fmt.Errorf("%d: unexpected machine id: %T", i, v)
 		}
 
 		machines = append(machines, m)
+	}
+
+	// TODO(rjeczalik): Move this to klient, so its cache does not
+	// need to be populated externally when one creates machines
+	// with remote.api.
+	// Register machines to klient and get aliases.
+	createReq := &machinegroup.CreateRequest{
+		Addresses: make(map[kmachine.ID][]kmachine.Addr),
+	}
+
+	for _, m := range machines {
+		now := time.Now()
+
+		createReq.Addresses[kmachine.ID(m.ID)] = []kmachine.Addr{{
+			Network:   "ip",
+			Value:     m.IPAddress,
+			UpdatedAt: now,
+		}, {
+			Network:   "kite",
+			Value:     m.QueryString,
+			UpdatedAt: now,
+		}}
+
+		// TODO(rjeczalik): add JMachine.registerUrl to swagger schema
+	}
+
+	if err := b.klient().Call("machine.create", createReq, nil); err != nil {
+		return nil, err
 	}
 
 	return machines, nil
@@ -334,6 +389,12 @@ func (b *Builder) initBuilder() {
 		var err error
 		if b.Desc, err = b.credential().Describe(); err != nil {
 			b.log().Warning("unable to retrieve credential description: %s", err)
+		}
+	}
+
+	if b.Klient == nil {
+		b.local = &kloud.KiteTransport{
+			ClientURL: b.konfig().Endpoints.Klient.Private.String(),
 		}
 	}
 }
@@ -392,6 +453,20 @@ func (b *Builder) machine() *machine.Client {
 		return b.Machine
 	}
 	return machine.DefaultClient
+}
+
+func (b *Builder) klient() kloud.Transport {
+	if b.Klient != nil {
+		return b.Klient
+	}
+	return b.local
+}
+
+func (b *Builder) konfig() *config.Konfig {
+	if b.Konfig != nil {
+		return b.Konfig
+	}
+	return konfig.Konfig
 }
 
 func replaceUserData(tmpl string, m *mixin.Mixin, desc *kstack.Description) (map[string]interface{}, error) {
