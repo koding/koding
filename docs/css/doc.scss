@@ -1,18 +1,27 @@
 ---
 ---
 
+body {
+  background-color: #EAEDEF;
+}
+
 main {
   display: flex;
   flex-flow: row;
   flex-wrap: wrap;
-  max-width: 1600px;
+  max-width: 1176px;
   min-height: calc(100vh - 358px - 70px);
   box-sizing: border-box;
+  margin: 20px auto 80px;
+  background-color: #FFFFFF;
+  border-radius: 3px;
 
   > aside {
-    flex: 1;
-    width: 360px;
-    padding: 32px 0;
+    width: 298px;
+    background-color: #FAFBFD;
+    padding: 32px 0 32px 30px;
+    border-right: 1px solid #EAEDEF;
+    box-sizing: border-box;
 
     > ul > li > a {
       font-size: 18px;
@@ -35,19 +44,12 @@ main {
       a:visited,
       a:hover {
         color: #4078c0;
-      }
-    }
 
-    li.active {
-      > a {
-        color: black;
-        font-weight: bold;
-      }
-    }
-
-    li.title {
-      > a {
-        font-weight: bold;
+        &.docs__section__topic {
+          color: #727272;
+          font-weight: 600;
+          font-size: 16px;
+        }
       }
     }
 
@@ -55,24 +57,81 @@ main {
       padding: 12px 0;
     }
 
+    .docs__search {
+      margin-right: 32px;
+
+      input {
+        width: 100%;
+        margin-bottom: 13px;
+      }
+    }
+
+    .docs__index__results {
+      left: 0;
+    }
+
   }
 
   > section {
-    flex: 3;
-    width: calc(100% - 360px);
-    padding: 32px 32px 32px 32px;
+    width: calc(100% - 299px);
+    padding: 32px 40px;
     box-sizing: border-box;
     p.citation {
       font-style: italic;
+      color: #888;
+      font-size: 14px;
     }
   }
 
   ul {
-    padding: 12px 0 0 12px;
+    padding: 7px 0 0 0;
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &.terraform-docs {
+      padding-top: 0;
+
+      li li {
+
+        ul {
+          padding-left: 20px;
+        }
+
+        a {
+          padding-left: 0;
+          line-height: 20px;
+        }
+      }
+    }
   }
 
   li ul {
-    padding: 12px 0 12px 12px;
+    padding: 0;
+    border-left: 1px solid #E8E8E8;
+    margin-top: 8px;
+    margin-bottom: 14px;
+
+    li {
+
+      > a {
+        padding: 4px 32px 4px 20px;
+        width: 100%;
+        display: block;
+        box-sizing: border-box;
+        white-space: normal;
+        line-height: 14px;
+      }
+
+      &.active {
+
+        > a {
+          background-color: #F4F4F4;
+          color: #515151;
+        }
+      }
+    }
   }
 
   li ul ul ul {
@@ -106,34 +165,63 @@ main {
   }
 }
 
-@media screen and (min-width: 700px) {
-  main>aside {
-    order: 1;
+main>aside ul.terraform-docs > li {
+  > a {
+    display: none;
   }
 
-  main>section {
-    order: 2;
-  }
-}
+  > ul {
+    border-left: 0;
+    margin-top: 0;
 
-@media screen and (max-width: 699px) {
-  main>aside {
-    width: 290px;
+    > li {
+      padding: 0;
+      padding-top: 7px;
 
-    ul {
-      text-align: center;
-
-      li ul {
-        padding-left: 0
+      > a {
+        font-weight: 600;
+        font-size: 16px;
+        color: #727272;
+        padding: 0;
       }
     }
   }
+}
 
-  main>aside, main>section {
-    flex: 1 100%;
+@media screen and (max-width: 1250px) {
+  main {
+    margin-left: 67px;
+    margin-right: 65px;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  main > aside{
+    display: none;
   }
 
-  iframe {
+  section.markdown-body {
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  main {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 11px;
+  }
+}
+
+@media screen and (max-width: 660px) {
+  main>section {
+    padding-left: 26px;
+    padding-right: 26px;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  main {
+    margin-top: 0
   }
 }

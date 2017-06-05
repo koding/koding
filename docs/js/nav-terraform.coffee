@@ -3,7 +3,7 @@
 
 do ->
 
-  MAIN_UL = $ '#terraform-docs'
+  MAIN_UL = $ '.terraform-docs'
   docsMap = {}
   pageUrl = PAGE_URL
 
@@ -34,6 +34,8 @@ do ->
 
       ul = $ '<ul/>'
       sortedKeys = (key for own key, value of doc).sort()
+      if sortedKeys.indexOf("configuration") != -1
+        sortedKeys = ["configuration", "provisioners", "providers", "index"]
       createSubNavItems doc[key], ul, key  for key in sortedKeys
       parent.find('li').last().append ul
 
@@ -52,12 +54,17 @@ do ->
 
   window.TERRAFORM_DOCS_MAP = docsMap
 
-  createSubNavItems docsMap, MAIN_UL
+  MAIN_UL.each ->
+    createSubNavItems docsMap, $(this)
 
   if pageUrl is '/docs/home'
     $('aside li ul ul ul').hide()
   else
-    $('aside li ul').hide()
+    $('aside li ul').each () ->
+      if $(this).closest('.terraform-docs').length
+        $(this).find('li ul').hide()
+      else
+        $(this).hide()
 
   $('li.active > ul').show()
   $('li.active > ul > li.separator > ul').show()

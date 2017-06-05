@@ -1,5 +1,9 @@
 document.addEventListener('scroll', function(event){
 
+  if (window.innerWidth <= 900 && $(document.body).hasClass('burgerToggle')) {
+    return null;
+  }
+
   var header = document.querySelectorAll('header.Homepage-Header').item(0);
   if (!header) return null;
 

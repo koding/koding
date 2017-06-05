@@ -1,15 +1,30 @@
 <script type="text/javascript">
-  window.TERRAFORM_DOCS = [{% for p in site.pages %}{% if p.url contains "docs/terraform/" %}{ url: "{{ p.url }}", title: "{{ p.page_title }}", sidebar_current: "{{ p.sidebar_current }}"},{% endif %}{% endfor %}''];
+
+  window.TERRAFORM_DOCS = [
+    {% for p in site.pages %}
+      {% if p.url contains "docs/terraform/" %}
+        {
+          url:   "{{ p.url }}",
+          title: "{{ p.page_title }}",
+          description: "{{ p.description | strip_newlines }}",
+          sidebar_current: "{{ p.sidebar_current }}"
+        },
+      {% endif %}
+    {% endfor %}''
+  ];
   TERRAFORM_DOCS.pop();
   window.PAGE_URL = "{{ page.url }}";
 </script>
 <script type="text/javascript" src="{{ site.url }}/js/lodash.set.js"></script>
 <aside>
+
+  {% include docs-search.html placeholder="Search&hellip;" %}
+
   <nav>
     {% for section in site.data.nav-docs %}
     <ul>
       <li>
-        <a href='#'>{{ section.title}}</a>
+        <a href='#' class="docs__section__topic">{{ section.title}}</a>
         <ul>
           {% for item in section.items %}
           {% assign url = "/docs/" | append: item.id %}
@@ -19,8 +34,57 @@
       </li>
     </ul>
     {% endfor %}
-    <ul id="terraform-docs"></ul>
+    <ul class="terraform-docs">
+    </ul>
   </nav>
 </aside>
 
 <script type="text/javascript" src="{{ site.url }}/js/nav-terraform.js"></script>
+<script type="text/javascript" src="{{ site.url }}/js/docs-search.js"></script>
+<script>
+
+  var navDocs = {{ site.data.nav-docs | jsonify }}
+  var titles = ["Configuration", "Provisioners", "Providers"];
+  titles.forEach(function(title) {
+    navDocs.push({
+      title: title, 
+      items: TERRAFORM_DOCS.filter(function(obj) {
+        return obj.url.indexOf(title.toLowerCase()) != -1;
+      })
+    });
+  });
+
+  var navDocsEl    = $('.navMenuSections'),
+      navDocsSubEl = $('.navMenuSectionsSub');
+
+  var resetNavDocsSub = function() {
+    navDocsSubEl.find('> ul').hide();
+    navDocsSubEl.find('.terraform-docs').show();
+    navDocsSubEl.find('.terraform-docs > li > ul > li').hide();
+  }
+
+  resetNavDocsSub();
+
+  navDocsEl.on('mouseover', 'a', function() {
+
+    // Reset Sub List
+    resetNavDocsSub();
+    navDocsEl.find("a").removeClass('hovered');
+
+    var matchingElement = navDocsSubEl.find("a:contains('" + $(this).html() + "')");
+
+    if (matchingElement.closest('.terraform-docs').length) {
+      matchingElement.parent().show();
+    } else {
+      matchingElement.closest('ul').show();
+    }
+  });
+
+  navDocsSubEl.on('mouseover', 'a', function() {
+
+    var navDocsSubLabel = $(this).closest('ul').siblings('a');
+    var matchingElement = navDocsEl.find("a:contains('"+ navDocsSubLabel.html() + "')");
+    matchingElement.addClass('hovered');
+  });
+
+</script>

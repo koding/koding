@@ -21,10 +21,12 @@
   {% include header.html
      with_signup_form='true'
      has_sticky_navigation='true'
-     cssClass='light' %}
+     cssClass='light'
+     has_docs_nav='true' %}
 
   <main>
 
+    {% include nav-docs.html %}
     <section class="markdown-body">
 
       {{ content }}
@@ -35,10 +37,11 @@
       <p class="citation"><cite>See the source of this document at <a href="http://terraform.io/docs/{{ page.url | remove: '/docs/terraform/' | slice: 0, size }}" target="_blank">Terraform.io</a></cite></p>
       {% endif %}
     </section>
-    
-    {% include nav-docs.html %}
+    {% include docs-svgs.html %}
 
   </main>
+
+  {% include docs-getstarted.html %}
 
   <!-- FOOTER -->
   {% include footer.html %}

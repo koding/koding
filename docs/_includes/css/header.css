@@ -29,10 +29,14 @@ body {
 .Homepage-Header .logo svg {
   width: 99px;
   min-width: 99px;
-  margin-top: -8px;
+  margin-top: -1px;
 }
 .Homepage-Header .logo svg * {
   fill: white
+}
+
+.Homepage-Header .remove-burger {
+  display: none;
 }
 
 .Homepage-Header a {
@@ -48,6 +52,20 @@ body {
   text-transform: uppercase;
   border-radius: 4px;
   margin: 10px;
+}
+
+.Homepage-Header .Homepage-HeaderPageTabs {
+  display: flex;
+  height: 100%;
+  flex-grow: 4;
+  background-color: transparent;
+}
+
+.Homepage-Header .Homepage-HeaderSignups {
+  display: flex;
+  height: 100%;
+  flex-grow: 1;
+  background-color: transparent;
 }
 
 .Homepage-Header .item {
@@ -71,9 +89,6 @@ body {
 
 .Homepage-Header .spacer {
   flex-grow: 1;
-  /*border-left-width: 1px;*/
-  /*border-style: solid;*/
-  /*border-color: rgba(0,0,0,0.15);*/
 }
 
 .Homepage-Header .burger {
@@ -121,7 +136,10 @@ body {
   fill: rgba(0,0,0,0.39)
 }
 
-
+.Homepage-HeaderWrapper .searchBox,
+.Homepage-HeaderWrapper .navMenu {
+  display: none;
+}
 
 @media (max-width: 1199px) {
 
@@ -170,7 +188,7 @@ body {
 
 }
 
-@media (max-width: 767px) {
+@media (max-width: 900px) {
   .Homepage-Header a {
     flex-grow: 0;
   }
@@ -181,11 +199,21 @@ body {
     border: 0;
     background-color: transparent;
   }
+  .Homepage-Header .logo {
+    margin-left: 47px;
+  }
+  .Homepage-Header a.remove-burger {
+    display: none;
+  }
+  .Homepage-Header.light a.remove-burger:hover {
+    background-color: transparent;
+  }
+
   .Homepage-Header .burger {
     display: flex;
     padding: 0 10px;
     cursor: pointer;
-    margin: 10px 10px 10px 0;
+    margin: 10px 55px 10px 0;
   }
   .Homepage-Header .burger svg g {
     fill: rgba(255,255,255,0.8);
@@ -195,7 +223,7 @@ body {
   }
   .Homepage-Header .spacer {
     max-width: none;
-    display: block;
+    display: none;
     border: 0;
   }
   .Homepage-Header .signup {
@@ -230,7 +258,7 @@ body {
   .burgerToggle .Homepage-HeaderWrapper {
     height: auto;
     flex-wrap: wrap;
-    display: block;
+    display: flex;
     max-width: initial;
     margin: initial;
     height: initial;
@@ -238,31 +266,283 @@ body {
 
   .burgerToggle .Homepage-HeaderWrapper .logo {
     height: 26px;
+    flex: 1 50%;
+    justify-content: flex-start;
+    padding-left: 20px;
   }
 
-  .burgerToggle .Homepage-HeaderWrapper .burger,
-  .burgerToggle .Homepage-HeaderWrapper .signup {
+  .burgerToggle .Homepage-HeaderWrapper .remove-burger {
+    flex: 1 10%;
+    justify-content: flex-end;
+    display: flex;
+    padding-right: 54px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .burger {
     display: none;
   }
 
   .burgerToggle .Homepage-HeaderWrapper .item {
     order: 10;
     display: flex;
-    min-width: 100%;
     height: 50px;
-    width: 100%;
     padding: 0;
     border-top-width: 1px;
     flex: 1 0 100%;
     margin: 0;
     border-radius: 0;
   }
+
+  .burgerToggle .Homepage-HeaderWrapper .signup,
+  .burgerToggle .Homepage-HeaderWrapper .signup span {
+    display: block;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs {
+    flex: 3;
+    padding-left: 40px;
+    padding-top: 20px;
+    padding-bottom: 15px;
+  }
+
+  .burgerToggle .light .Homepage-HeaderWrapper .Homepage-HeaderPageTabs,
+  .burgerToggle .light .Homepage-HeaderWrapper .Homepage-HeaderSignups {
+    background-color: #FAFBFD;
+    line-height: 18px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs .item {
+    flex: 1 0 25%;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups {
+    flex: 2;
+    padding-right: 40px;
+    justify-content: center;
+    padding-top: 15px;
+    padding-bottom: 19px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .item,
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
+    flex: none;
+    max-width: none;
+    order: 1;
+    border: 1px solid #ccc;
+    margin: 9px 6px 0;
+    height: auto;
+    padding: 11px 32px 9px;
+    border-radius: 6px;
+  }
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
+    padding: 11px 20px;
+    height: 40px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .searchBox,
+  .burgerToggle .Homepage-HeaderWrapper .navMenu {
+    display: flex;
+    flex: 5 100%;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .searchBox {
+    border-bottom: 1px solid #EBEBEB;
+    border-top: 1px solid #EBEBEB;
+    padding: 20px 65px 20px 67px;
+    background-color: #FAFBFD;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu {
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #EBEBEB;
+    height: 421px;
+    display: flex;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections{
+    width: 100%;
+    padding-top: 27px;
+    flex: 1 50%;
+    border-right: 1px solid #EBEBEB;
+    overflow: auto;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a,
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > ul > li > a
+  {
+    color: #727272;
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: none;
+    justify-content: flex-start;
+    padding: 10px 0 12px 67px;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > a {
+    display: none;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub{
+    flex: 1 50%;
+    padding-top: 24px;
+    overflow: auto;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub ul.active{
+    display: block;
+  }
+
+  .navMenuSectionsSub >ul> li> a {
+      display: none;
+  }
+  
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub a{  
+    border-radius: 0;
+    margin: 0;
+    padding: 11px 0 13px 42px;
+    text-transform: none;
+    justify-content: flex-start;
+    font-size: 16px;
+    color: #67A2EE;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub a:hover{
+    color: #515151;
+    font-weight: 600;
+  } 
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub .terraform-docs li li li li a {
+    padding-left: 60px;
+  }
+
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub .terraform-docs li li li li li a {
+    padding-left: 80px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a.hovered {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .navMenuSectionsSub .terraform-docs> li > ul > li> a {
+    display: none;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .searchBox .docs__search,
+  .burgerToggle .Homepage-HeaderWrapper .searchBox .docs__search input {
+    width: 100%;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .searchBox .docs__search a.icon-magnify-link {
+    padding: 0;
+    margin: 0;
+  }
 }
 
+@media (max-width: 768px) {
+  .Homepage-Header .logo {
+    margin-left: 22px;
+  }
+  .Homepage-Header .burger {
+    margin-right: 30px;
+  }
+  .burgerToggle .Homepage-HeaderWrapper .searchBox {
+    padding-left: 43px;
+  }
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs {
+    padding-left: 21px;
+    padding-right: 10px;
+  }
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a,
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > ul > li > a {
+    padding-left: 39px;
+  }
+}
+
+@media (min-width: 661px) and (max-width: 900px) {
+  .navMenuSections ul ul, .navMenuSections ul.terraform-docs ul ul {
+    display: none !important;
+  }
+
+  .navMenuSections ul.terraform-docs ul {
+    display: block !important;
+  }
+}
+
+@media (max-width: 660px) {
+  .burgerToggle .Homepage-HeaderWrapper .remove-burger {
+    padding-right: 15px;
+  }
+  .burgerToggle .Homepage-HeaderWrapper .searchBox {
+    padding: 20px 25px 20px 25px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections {
+    flex: 1 100%;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections a,
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs > li > ul > li > a {
+    padding: 10px 0 12px 25px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections ul ul a{
+    color: #67A2EE;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 11px 0 13px 54px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs li li li li a {
+    padding-left: 74px;
+  }
+
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSections .terraform-docs li li li li li a {
+    padding-left: 94px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .navMenu .navMenuSectionsSub {
+    display: none;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .item, .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
+    flex: 1 50%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderPageTabs {
+    flex: 1 100%;
+    padding-left: 5px;
+    padding-right: 0;
+    padding-bottom: 0;
+    margin-right: -5px;
+  }
+
+  .Homepage-Header .logo {
+    margin-left: 7px;
+  }
+
+  .Homepage-Header .burger {
+    margin-right: 17px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups {
+    flex: 1 100%;
+    padding: 9px 19px 19px 19px;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .Homepage-HeaderSignups .signup {
+    display: block;
+  }
+}
 
 .Homepage-Header.light,
 .StickyHeader .Homepage-Header {
-  background-color: #F7F7F7;
+  background-color: #FFFFFF;
   border-bottom: 1px solid rgba(0,0,0,.05);
 }
 
@@ -278,6 +558,7 @@ body {
 }
 
 .Homepage-Header.light a:hover,
+.Homepage-Header.light a.hovered,
 .StickyHeader .Homepage-Header a:hover {
   color: white;
   background-color: rgba(0, 0, 0, 0.05);
@@ -299,27 +580,27 @@ body {
 .Homepage-Header.light a.active,
 .StickyHeader .Homepage-Header a:active,
 .StickyHeader .Homepage-Header a.active {
-  background-color: white;
+  /* background-color: white; */
 }
 .Homepage-Header.light .logo svg * ,
 .StickyHeader .Homepage-Header .logo svg * {
-  fill: rgba(53,139,176,1);
+  fill: rgba(81,81,81,1);
 }
 .Homepage-Header.light a,
 .StickyHeader .Homepage-Header a {
-  color: rgba(53,139,176,0.8);
+  color: rgba(81,81,81,0.8);
 }
 .Homepage-Header.light a:hover,
 .StickyHeader .Homepage-Header a:hover {
-  color: rgba(53,139,176,1);
+  color: rgba(81,81,81,1);
 }
 .Homepage-Header.light .social svg g,
 .StickyHeader .Homepage-Header .social svg g {
-  fill: rgba(53,139,176,0.8);
+  fill: rgba(81,81,81,0.8);
 }
 .Homepage-Header.light .social:hover svg g,
 .StickyHeader .Homepage-Header .social:hover svg g {
-  fill: rgba(53,139,176,1);
+  fill: rgba(81,81,81,1);
 }
 .Homepage-Header.light a,
 .StickyHeader .Homepage-Header a {
@@ -329,7 +610,7 @@ body {
 .Homepage-Header.light .signup:hover,
 .StickyHeader .Homepage-Header .signup,
 .StickyHeader .Homepage-Header .signup:hover {
-  color: rgba(0,0,0,0.39);
+  color: rgba(81,81,81,1);
 }
 .StickyHeader.in .Homepage-Header {
   transform: translateY(100px);
@@ -355,7 +636,6 @@ body {
     display: none;
   }
   .StickyHeader .Homepage-Header .signup {
-    display: flex;
     padding: 0 15px;
     max-width: 160px;
     font-weight: 600;
@@ -372,10 +652,21 @@ body {
   .Homepage-Header .logo svg {
     margin-top: 0;
   }
+}
 
-  .Homepage-Header.light .signup,
-  .StickyHeader header.Homepage-Header a.signup {
-    display: none;
-  }
+.overlay {
+  display: none;
+}
+
+body.burgerToggle .overlay {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,.5);
 }
 

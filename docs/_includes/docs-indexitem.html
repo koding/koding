@@ -1,0 +1,13 @@
+{% assign row = include.data | split: "||" %}
+{% assign link = row[0] | strip %}
+{% assign icon = row[1] | strip | prepend: 'icon-' %}
+{% assign title = row[2] | strip %}
+{% assign desc = row[3] | strip %}
+
+<div>
+  <svg  width="40" height="50" data-icon-name="{{ icon }}" class="icon">
+    <use xlink:href="#{{ icon }}"></use>
+  </svg>
+  <a href="/docs/{{ link }}">{{ title }}</a>
+  <span>{{ desc }}</span>
+</div>

@@ -1,0 +1,95 @@
+<style>
+  .docs__search {
+    position: relative;
+  }
+
+  .docs__search input {
+    border-radius: 3px;
+    border: 1px solid #DCDCDC;
+    font-family: proxima-nova;
+    padding: 10px 18px;
+    font-size: 15px;
+    color: #989898;
+    box-sizing: border-box;
+    transition: width 0.4s ease-out;
+  }
+
+  .docs__search a.icon-magnify-link {
+    height: 30px;
+    width: 30px;
+    display: block;
+    position: absolute;
+    top: 5px;
+    right: 3px;
+    overflow: hidden;
+  }
+
+  .docs__search a.icon-magnify-link svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .docs__index__results {
+    position: absolute;
+    top: 39px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    width: 100%;
+    z-index: 100;
+    box-sizing: border-box;
+  }
+
+  .docs__index__results__header {
+    background-color: #F8FBFF;
+    color: #989898;
+    font-size: 14px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 14px 20px 10px;
+  }
+
+  .docs__index__results__row {
+    padding: 14px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    display: block;
+    text-decoration: none;
+    word-break: break-word;
+  }
+
+  .Homepage-Header a.docs__index__results__row {
+    margin: 0;
+    justify-content: flex-start;
+    padding-left: 20px;
+    display: block;
+  }
+
+  .docs__index__results__row:hover,
+  .docs__index__results__row.hovered {
+    background-color: #FAFAFA;
+  }
+
+  .docs__index__results__row .results__row__title {
+    color: #515151;
+    font-size: 16px;
+    padding: 0;
+    margin: 0;
+    font-weight: 500;
+    text-transform: none;
+  }
+
+  .docs__index__results__row .results__row__description {
+    color: #A8A8A8;
+    font-size: 12px;
+    padding-top: 2px;
+    font-weight: 400;
+    display: block;
+    text-transform: none;
+  }
+
+</style>
+<div class="docs__search">
+  <input placeholder="{{include.placeholder}}" />
+  <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
+</div>

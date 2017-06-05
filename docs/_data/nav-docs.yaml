@@ -1,68 +1,105 @@
 - title: Videos
+  id: videos
   items:
   - id: product-walkthrough
     title: Product walkthrough
+    description: Koding, the simplest way to create and manage your development environments
 - title: Getting started
+  id: getting-started
   items:
+  - id: koding-for-teams
+    title: What is Koding for Teams?
+    description: Koding for Teams allow you to bring your entire team or class to the same development environment...
   - id: what-is-a-stack
     title: What is a Stack
+    description: tack file/template is where you describe your dev environment using Terraform
   - id: choose-provider
     title: Choosing a Provider
+    description: Koding makes use of providers to host the VMs created from your Stacks.
   - id: creating-an-aws-stack
     title: Create AWS stack
+    description: AWS offers a suite of cloud-computing services that make up an on-demand computing platform in several geographically distributed data centers.
   - id: creating-an-azure-stack
     title: Create Azure stack
+    description: Microsoft Azure is a collection of integrated cloud services.
   - id: creating-a-digitalocean-stack
     title: Create Digital Ocean stack
+    description: You can configure the number of Digital Ocean droplets and applications installed on each instance.
   - id: creating-a-gce-stack
     title: Create Google Compute Engine stack
+    description: Google Compute Engine delivers virtual machines running in Google's data centers and worldwide fiber network.
   - id: creating-a-softlayer-stack
     title: Create SoftLayer stack
+    description: SoftLayer by IBM offers bare metal servers and virtual servers integrated in a seamless, fully-automated platform on IBM data centers.
   - id: creating-a-marathon-stack
     title: Create Marathon stack
+    description: Marathon is a production-grade container orchestration platform for Mesosphere's Datacenter Operating System and Apache Mesos.
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
+    description: Vagrant works by using virtual box on your local or remote machine to create VMs.
 - title: Getting more from Koding
+  id: getting-more
   items:
   - id: kd
     title: KD
+    description: KD is a tool to run commands & mount your remote VM files on your local machine.
   - id: use-your-own-ide
     title: Use your own IDE
+    description: You can use your own machine to connect to your VMs by using kd tool.
   - id: connect-your-own-machine-to-koding
     title: Connect your own machine
+    description: Open a Terminal and any file on your machine directly from your Koding for Teams account!
   - id: koding-stacks-variables
     title: Koding Stacks Variables
+    description: There are a few built-in Koding variables that you can use in your stacks.
   - id: two-vm-setup-apachephp-server-db-server
     title: Simple two VM setup
+    description: Configuring your custom development environment requires building a Stack Template file.
   - id: database-vm-schema-setup
     title: Advanced stack editing
+    description: In this example we will create a Stack with a single VM acting as a database server.
   - id: how-to-share-your-vm-with-someone
     title: How to share your VM with someone
+    description: The "Share VM" feature allows you to give another Koding user full access to your VM even if you are not using your Koding.com account.
   - id: create-elastic-ip-for-your-instance
     title: Assign Elastic IP
+    description: Here is how the aws_eip section should be configured to associate it with your instance.
   - id: inter-vm-communication
     title: Inter-VM Communication
+    description: We will create a stack file with two VMs and make one VM instance ping the other VM as an example.
   - id: create-an-aws-vpc
     title: AWS non-default VPC
+    description: Customize your stack template further to define your own network structure and add instances to your network.
   - id: setup-aws-iam-user
     title: Setup AWS IAM user
+    description: It is a good security (and recommended) practice to create a user on AWS other than your root account.
   - id: assigning-domain-names-with-route53
     title: Assign domain names with Route53
+    description: Give your VM or stack a domain name for easier access using AWS Route53 service.
   - id: using-custom-variables
     title: Using Custom Variables
+    description: Using custom variables is useful in case you have some credentials that you do not wish to share with everyone.
   - id: user-input
     title: User Input
+    description: You can ask the user to add inputs through the GUI before a stack is built and use their values in your stack.
   - id: using-amis
     title: Using AMIs
+    description: We will learn how to use Amazon AWS AMIs, special kind of machine type that can be used to instantiate other EC2 VMs with customized configurations.
   - id: using-github-in-stacks
     title: Using Github
+    description: Learn how to add your team to your GitHub Organization account.
   - id: stack-for-docker
     title: Using Docker
+    description: If your team is working with Docker, it is easy to write a stack that will install Docker and Docker apps for your team.
   - id: slackapp
     title: Inviting with Slack
+    description: This guide shows how you can integrate and invite your team to Koding and collaborate on Slack.
   - id: koding-button
     title: Try on Koding button
+    description: Embed the Try on Koding button on your website, where your developers and potential users can fire up your stack on the fly with a click of a button.
   - id: terraform-to-koding
     title: TERRAFORM to KODING
+    description: You can use Terraform's documentation as a guide for writing more complex stacks.
   - id: faq
     title: FAQ
+    description: How do I create a new Koding Team? What is a stack file?

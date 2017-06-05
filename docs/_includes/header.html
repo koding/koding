@@ -22,12 +22,61 @@
       <path d="M12.6 0H4C1.8 0 .1 1.8.1 4v16c0 2.2 1.7 4 3.9 4h8.6c2.1 0 3.9-1.8 3.9-3.9V4c0-2.2-1.8-4-3.9-4zm1.6 19.8c0 1.1-.8 1.9-1.9 1.9H4.2c-1 0-1.9-.9-1.9-1.9V4.2c0-1.1.8-1.9 1.9-1.9h8.2c1 0 1.9.9 1.9 1.9v15.6z"/>
     </svg>
   </a>
+  <a href="#" class="remove-burger">
+    <svg width="20px" height="15px" viewBox="330 28 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs></defs>
+        <path d="M340.424621,34.0104076 L334.414214,28 L333,29.4142136 L339.010408,35.4246212 L333,41.4350288 L334.414214,42.8492424 L340.424621,36.8388348 L346.435029,42.8492424 L347.849242,41.4350288 L341.838835,35.4246212 L347.849242,29.4142136 L346.435029,28 L340.424621,34.0104076 Z" id="Combined-Shape" stroke="none" fill="#59A1C1" fill-rule="evenodd"></path>
+    </svg>
+  </a>
+  {% if include.has_docs_nav %}
+    <div class="searchBox">
+
+      {% include docs-search.html placeholder="Search any keyword or topic&hellip;" %}
+
+    </div>
+    <div class="navMenu">
+      <div class="navMenuSections">
+        {% for section in site.data.nav-docs %}
+        <ul>
+          <li>
+            <a href='#' class="docs__section__topic" id="{{section.id}}">{{ section.title}}</a>
+            <ul>
+              {% for item in section.items %}
+              {% assign url = "/docs/" | append: item.id %}
+              <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
+              {% endfor %}
+            </ul>
+          </li>
+        </ul>
+        {% endfor %}
+        <ul class="terraform-docs"></ul>
+      </div>
+      <div class="navMenuSectionsSub">
+        {% for section in site.data.nav-docs %}
+        <ul>
+          <li>
+            <a href='#' class="docs__section__topic" id="{{section.id}}">{{ section.title}}</a>
+            <ul>
+              {% for item in section.items %}
+              {% assign url = "/docs/" | append: item.id %}
+              <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
+              {% endfor %}
+            </ul>
+          </li>
+        </ul>
+        {% endfor %}
+        <ul class="terraform-docs"></ul>
+      </div>
+    </div>
+  {% endif %}
   {% if include.exclude_main_nav %}
   {% else %}
-  <a class="item{% if '/features' == page.url or '/features' contains page.parent %} active{% endif %}" href="{{ site.url }}/features">FEATURES</a>
-  <a class="item{% if '/pricing' == page.url or '/pricing' contains page.parent %} active{% endif %}" href="{{ site.url }}/pricing">PRICING</a>
-  <a class="item{% if '/about' == page.url or '/about' contains page.parent %} active{% endif %}" href="{{ site.url }}/about">ABOUT</a>
-  <a class="item{% if '/docs/home' == page.url or '/docs' contains page.parent %} active{% endif %}" href="{{ site.url }}/docs/home">DOCS</a>
+  <div class="Homepage-HeaderPageTabs">
+    <a class="item{% if '/features' == page.url or '/features' contains page.parent %} active{% endif %}" href="{{ site.url }}/features">FEATURES</a>
+    <a class="item{% if '/pricing' == page.url or '/pricing' contains page.parent %} active{% endif %}" href="{{ site.url }}/pricing">PRICING</a>
+    <a class="item{% if '/about' == page.url or '/about' contains page.parent %} active{% endif %}" href="{{ site.url }}/about">ABOUT</a>
+    <a class="item{% if '/docs/home' == page.url or '/docs' contains page.parent %} active{% endif %}" href="{{ site.url }}/docs/home">DOCS</a>
+  </div>
   <!-- <a class="item{% if '/store/home' == page.url or '/store' contains page.parent %} active{% endif %}" href="{{ site.url }}/store/home">HUB</a> -->
   {% endif %}
   <span class="spacer"></span>
@@ -39,8 +88,10 @@
   {% endif %}
 
   {% if include.with_signup_form %}
-  <a class="item" href="https://koding.com/Teams/Select">LOGIN</a>
-  <a class="signup" href="/demo"><span>Request a Demo</span></a>
+  <div class="Homepage-HeaderSignups">
+    <a class="item" href="https://koding.com/Teams/Select">LOGIN</a>
+    <a class="signup" href="/demo"><span>Request a Demo</span></a>
+  </div>
   {% endif %}
 
   {% if include.exclude_main_nav %}
@@ -58,6 +109,11 @@
   </a>
   <script>
     document.querySelector('.burger').onclick = function () {
+
+      if (!$('.overlay').length) {
+        $("body").append('<div class="overlay"></div>')
+      }
+
       if ($(document.body).hasClass('burgerToggle')) {
         $(document.body).removeClass('burgerToggle');
       } else {
@@ -69,6 +125,10 @@
         $(document.body).removeClass('burgerToggle');
       }
     });
+
+    document.querySelector('.remove-burger').onclick = function () {
+      $(document.body).removeClass('burgerToggle');
+    }
   </script>
   {% endif %}
 
