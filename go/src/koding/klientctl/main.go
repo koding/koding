@@ -31,6 +31,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/stream"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -98,6 +99,9 @@ func run(args []string) {
 	log = logging.NewLogger("kd")
 	log.SetHandler(handler)
 	log.Info("kd binary called with: %s", os.Args)
+
+	// Temporary until this file is removed.
+	stream.DefaultStreams.SetLog(log)
 
 	if debug {
 		log.SetLevel(logging.DEBUG)
