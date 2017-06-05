@@ -5,8 +5,8 @@ import (
 	"koding/klientctl/ctlcli"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // MetricPushHandler accepts metrics from external sources.

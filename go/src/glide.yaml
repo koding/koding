@@ -41,8 +41,6 @@ import:
 - package: github.com/chuckpreslar/inflect
 - package: github.com/cihangir/nisql
 - package: github.com/codahale/sneaker
-- package: github.com/codegangsta/cli
-  version: ^1.18.0
 - package: github.com/dchest/uniuri
 - package: github.com/dchest/validator
 - package: github.com/dgrijalva/jwt-go
@@ -169,6 +167,9 @@ import:
   version: ^1.6.2
   subpackages:
   - convey
+- package: github.com/spf13/cobra
+  subpackages:
+  - cobra
 - package: github.com/streadway/amqp
 - package: github.com/streadway/simpleuuid
 - package: github.com/stripe/stripe-go
@@ -264,6 +265,7 @@ import:
 - package: github.com/Sirupsen/logrus
 - package: github.com/opencontainers/runc
 - package: github.com/kardianos/osext
+- package: gopkg.in/urfave/cli.v1
 - package: golang.org/x/sync
   subpackages:
   - errgroup

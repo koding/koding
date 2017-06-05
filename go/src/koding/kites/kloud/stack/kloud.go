@@ -22,7 +22,6 @@ import (
 	"koding/kites/kloud/team"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
-	presence "socialapi/workers/presence/client"
 
 	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/koding/cache"
@@ -106,9 +105,6 @@ type Kloud struct {
 
 	// TeamClient handles team.* methods.
 	TeamClient *team.Client
-
-	// PresenceClient handles ping requests.
-	PresenceClient *presence.Client
 
 	// RemoteClient handles requests to "remote.api" endpoint.
 	RemoteClient *remoteapi.Client

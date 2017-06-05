@@ -3,8 +3,8 @@ package main
 import (
 	"koding/klientctl/daemon"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // DaemonInstall provides a cli wrapper from daemon.Install function.

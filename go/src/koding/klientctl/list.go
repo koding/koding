@@ -13,9 +13,9 @@ import (
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // ListCommand returns list of remote machines belonging to user or that can be

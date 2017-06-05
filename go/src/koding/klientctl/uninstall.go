@@ -10,8 +10,8 @@ import (
 	"koding/klientctl/config"
 	configcli "koding/klientctl/endpoint/config"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // ServiceUninstaller is used to reduce the testable size of the Service, easing

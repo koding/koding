@@ -178,8 +178,6 @@ imports:
   version: 1bef4b5a4aab0b06a9b4d47a1715f8fee5038583
 - name: github.com/codahale/sneaker
   version: 3e52e64a6c73d7b793bb817c3c8f8078475c2094
-- name: github.com/codegangsta/cli
-  version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
 - name: github.com/coreos/etcd
   version: 38c370a7c54fc64f58f9c329487d7104e353b549
   subpackages:
@@ -485,6 +483,8 @@ imports:
   version: 20bca5a7a57282e241fac83ec9ea42538027f1c1
   subpackages:
   - term
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/influxdata/influxdb
   version: a0004b68577cdbfc921463404eab839c50f14a0c
   subpackages:
@@ -559,7 +559,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: cdd66cedbdf88da7755d890de22d9d6a16642323
+  version: 656c6e46843887d6336831ade1a4e89c01e0733d
   subpackages:
   - config
   - dnode
@@ -602,7 +602,7 @@ imports:
   subpackages:
   - cmd/provider-github
 - name: github.com/koding/tunnel
-  version: a8916da506030b5dc78ae2fb0208fdff3e571792
+  version: b32c339ebea44867d633ac4d1a316f1fdac016e6
   subpackages:
   - proto
 - name: github.com/koding/vagrantutil
@@ -847,6 +847,12 @@ imports:
   - convey/reporting
 - name: github.com/soniah/dnsmadeeasy
   version: 5578a8c15e33958c61cf7db720b6181af65f4a9e
+- name: github.com/spf13/cobra
+  version: 8d4ce3549a0bf0e3569df3aae7423b7743cd05a9
+  subpackages:
+  - cobra
+- name: github.com/spf13/pflag
+  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/sthulb/mime
   version: 698462dc9685d7743511c26da726c1b0c1cfb111
   subpackages:
@@ -867,6 +873,8 @@ imports:
   - codec
 - name: github.com/Unknwon/com
   version: d9bcf409c8a368d06c9b347705c381e7c12d54df
+- name: gopkg.in/urfave/cli.v1
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: github.com/VerbalExpressions/GoVerbalExpressions
   version: 9cfb19cb04c9f48489be15cbacac3d3af9d7706a
 - name: github.com/vmware/govmomi

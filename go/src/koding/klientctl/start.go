@@ -5,9 +5,9 @@ import (
 	"koding/klientctl/config"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
 	"github.com/koding/service"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // StartCommand starts local klient. Requires sudo.

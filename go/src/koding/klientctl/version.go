@@ -5,8 +5,8 @@ import (
 
 	"koding/klientctl/config"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 type version struct {

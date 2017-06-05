@@ -14,7 +14,7 @@ import (
 
 	"github.com/koding/logging"
 
-	"github.com/codegangsta/cli"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // RunCommandFactory is the factory method for RunCommand.

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	dogstatsd "github.com/DataDog/datadog-go/statsd"
-	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // WrapKiteHandler wraps the kite handlers adds metrics middlewares.

@@ -1,0 +1,25 @@
+{
+  "provider": {
+    "google": {
+      "credentials": "${var.google_credentials}",
+      "project": "${var.google_project}",
+      "region": "${var.google_region}"
+    }
+  },
+  "resource": {
+    "google_compute_instance": {
+      "google-instance": {
+        "disk": {
+          "image": "ubuntu-1404-lts"
+        },
+        "koding_always_on": true,
+        "machine_type": "f1-micro",
+        "metadata": {
+          "user-data": "#cloud-config\nruncmd:\n- echo \"hello world!\" >> /helloworld.txt\nssh_authorized_keys:\n- ssh-rsa AAAAB3NzaC1yc2EA... koding-350298856\n"
+        },
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
+        "zone": "us-central1-a"
+      }
+    }
+  }
+}

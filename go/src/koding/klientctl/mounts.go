@@ -12,7 +12,7 @@ import (
 
 	kodinglogging "github.com/koding/logging"
 
-	"github.com/codegangsta/cli"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 type kiteMounts struct {

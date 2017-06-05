@@ -33,8 +33,8 @@ import (
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/util"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // ExitingWithMessageCommand is a function which prints the given message to
@@ -754,15 +754,16 @@ error opening: %s
 						Usage: "Maximum time to wait.",
 						Value: time.Minute,
 					},
-					cli.BoolFlag{
-						Name:  "pause",
-						Usage: "Pause synchronization.",
-					},
-					cli.BoolFlag{
-						Name:  "resume",
-						Usage: "Resume synchronization.",
-					},
 				},
+				Subcommands: []cli.Command{{
+					Name:   "pause",
+					Usage:  "Pause synchronization.",
+					Action: ctlcli.ExitErrAction(MachinePauseSyncMount, log, "pause"),
+				}, {
+					Name:   "resume",
+					Usage:  "Resume synchronization.",
+					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "resume"),
+				}},
 			}, {
 				Name:   "inspect",
 				Hidden: true,

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"koding/klientctl/config"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // RestartCommand stops and starts klient. If Klient is not running to begin

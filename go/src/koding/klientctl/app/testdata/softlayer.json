@@ -1,0 +1,24 @@
+{
+  "provider": {
+    "softlayer": {
+      "api_key": "${var.softlayer_api_key}",
+      "username": "${var.softlayer_username}"
+    }
+  },
+  "resource": {
+    "softlayer_virtual_guest": {
+      "softlayer-instance": {
+        "cpu": "1",
+        "domain": "koding.com",
+        "hourly_billing": true,
+        "image": "UBUNTU_14_64",
+        "local_disk": true,
+        "name": "softlayer-instance",
+        "public_network_speed": 10,
+        "ram": "1024",
+        "region": "dal09",
+        "user_data": "\necho \"hello world!\" >> /helloworld.txt\n"
+      }
+    }
+  }
+}

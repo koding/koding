@@ -32,7 +32,8 @@ import (
 )
 
 func main() {
-	server, _ := tunnel.NewServer(nil)
+	cfg := &tunnel.ServerConfig{}
+	server, _ := tunnel.NewServer(cfg)
 	server.AddHost("sub.example.com", "1234")
 	http.ListenAndServe(":80", server)
 }
@@ -52,7 +53,7 @@ import "github.com/koding/tunnel"
 func main() {
 	cfg := &tunnel.ClientConfig{
 		Identifier: "1234",
-		ServerAddr: "203.0.113.0",
+		ServerAddr: "203.0.113.0:80",
 	}
 
 	client, err := tunnel.NewClient(cfg)
