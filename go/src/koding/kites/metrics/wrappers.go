@@ -1,7 +1,9 @@
 package metrics
 
 import (
+	"bufio"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -127,3 +129,33 @@ func (r *responseRecorder) WriteHeader(status int) {
 	r.code = status
 	r.ResponseWriter.WriteHeader(status)
 }
+
+// Flush implements http.Flusher interface
+func (r *responseRecorder) Flush() {
+	rr, ok := r.ResponseWriter.(http.Flusher)
+	if ok {
+		rr.Flush()
+	}
+}
+
+// Hijack implements http.Hijacker interface
+func (r *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hj, ok := r.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("responseWriter doesn't support hijacking: %T", r.ResponseWriter)
+	}
+
+	return hj.Hijack()
+}
+
+// Push implements http.Pusher interface
+func (r *responseRecorder) Push(target string, opts *http.PushOptions) error {
+	p, ok := r.ResponseWriter.(http.Pusher)
+	if !ok {
+		return fmt.Errorf("responseWriter doesn't support http.Pusher: %T", r.ResponseWriter)
+	}
+
+	return p.Push(target, opts)
+}
+
+// TODO: check possibility of implementing http.CloseNotifier
