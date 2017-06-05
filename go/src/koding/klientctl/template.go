@@ -175,7 +175,7 @@ func templateInit(output string, useDefaults bool, providerName string) error {
 		Provider: providerName,
 	}
 
-	v, err := app.BuildTemplate(opts)
+	v, _, err := app.BuildTemplate(opts)
 	if err != nil {
 		return err
 	}

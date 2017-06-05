@@ -75,7 +75,7 @@ func (opts *TemplateOptions) mixin() *mixin.Mixin {
 //
 // If method finishes successfully, returning nil error, b.Stack field
 // will hold the built template.
-func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
+func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, map[string]string, error) {
 	b.init()
 
 	var (
@@ -87,36 +87,36 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
 
 	if tmpl == "" {
 		if prov == "" {
-			return nil, errors.New("either provider or template is required to be non-empty")
+			return nil, nil, errors.New("either provider or template is required to be non-empty")
 		}
 
 		tmpl, defaults, err = b.koding().SampleTemplate(prov)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	if prov == "" {
 		prov, err = kstack.ReadProvider([]byte(tmpl))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	desc, ok := b.Desc[prov]
 	if !ok {
-		return nil, fmt.Errorf("provider %q does not exist", prov)
+		return nil, nil, fmt.Errorf("provider %q does not exist", prov)
 	}
 
 	if desc.CloudInit {
 		t, err := replaceUserData(tmpl, opts.mixin(), desc)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		p, err := json.Marshal(t)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		tmpl = string(p)
@@ -148,7 +148,7 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
 
 		if !opts.UseDefaults {
 			if value, err = helper.Ask("Set %q to [%s]: ", name, defValue); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 		}
 
@@ -170,10 +170,10 @@ func (b *Builder) BuildTemplate(opts *TemplateOptions) (interface{}, error) {
 	var v interface{}
 
 	if err := json.Unmarshal([]byte(tmpl), &v); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return v, nil
+	return v, input, nil
 }
 
 type StackOptions struct {
@@ -570,6 +570,6 @@ func BuildStack(opts *StackOptions) error {
 //
 // If method finishes successfully, returning nil error, b.Stack field
 // will hold the built template.
-func BuildTemplate(opts *TemplateOptions) (interface{}, error) {
+func BuildTemplate(opts *TemplateOptions) (interface{}, map[string]string, error) {
 	return DefaultBuilder.BuildTemplate(opts)
 }
