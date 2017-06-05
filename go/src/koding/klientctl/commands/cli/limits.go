@@ -35,5 +35,5 @@ func noArgs(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("\n" + strings.TrimRight(cmd.UsageString(), "\n"))
 	}
 
-	return fmt.Errorf("%q does not support any arguments.", cmd.CommandPath())
+	return fmt.Errorf("%q does not support any arguments", cmd.CommandPath())
 }

@@ -57,7 +57,11 @@ func command(c *cli.CLI, opts *options) cli.CobraFuncE {
 		}
 
 		fmt.Fprintf(c.Out(), "Installed Version: %s\n", getReadableVersion(v.Installed))
-		fmt.Fprintf(c.Out(), "Latest Version: %s\n", getReadableVersion(v.Latest))
+
+		if v.Latest != 0 {
+			fmt.Fprintf(c.Out(), "Latest Version: %s\n", getReadableVersion(v.Latest))
+		}
+
 		fmt.Fprintln(c.Out(), "Environment:", v.Environment)
 		fmt.Fprintln(c.Out(), "Kite Query ID:", v.KiteID)
 
@@ -67,7 +71,7 @@ func command(c *cli.CLI, opts *options) cli.CobraFuncE {
 
 func getReadableVersion(version int) string {
 	if version == 0 {
-		return "-"
+		return "unknown"
 	}
 	return fmt.Sprintf("0.1.%d", version)
 }

@@ -130,12 +130,8 @@ func newLogger(w io.Writer) logging.Logger {
 	// Make handler writer accept all incoming log messages.
 	handler.SetLevel(logging.DEBUG)
 
-	logger := logging.NewLogger("kd")
+	logger := logging.NewCustom("kd", isDebug())
 	logger.SetHandler(handler)
-
-	if isDebug() {
-		logger.SetLevel(logging.DEBUG)
-	}
 
 	return logger
 }
