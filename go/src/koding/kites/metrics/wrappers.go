@@ -130,7 +130,7 @@ func (r *responseRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-// Flush implements http.Flusher
+// Flush implements http.Flusher interface
 func (r *responseRecorder) Flush() {
 	rr, ok := r.ResponseWriter.(http.Flusher)
 	if ok {
@@ -147,3 +147,15 @@ func (r *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 
 	return hj.Hijack()
 }
+
+// Push implements http.Pusher interface
+func (r *responseRecorder) Push(target string, opts *http.PushOptions) error {
+	p, ok := r.ResponseWriter.(http.Pusher)
+	if !ok {
+		return fmt.Errorf("responseWriter doesn't support http.Pusher: %T", r.ResponseWriter)
+	}
+
+	return p.Push(target, opts)
+}
+
+// TODO: check possibility of implementing http.CloseNotifier
