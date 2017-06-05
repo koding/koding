@@ -3,8 +3,10 @@ package machinegroup
 import (
 	"errors"
 	"path/filepath"
+	"time"
 
 	"koding/klient/machine"
+	"koding/klient/machine/client"
 	"koding/klient/machine/mount"
 	"koding/klient/os"
 
@@ -14,8 +16,9 @@ import (
 // MachineRequest represents a common part of Exec and Kill
 // requests, which is used for looking up a remote machine.
 type MachineRequest struct {
-	MachineID machine.ID `json:"machineID"`
-	Path      string     `json:"path"`
+	MachineID     machine.ID    `json:"machineID"`
+	Path          string        `json:"path"`
+	WaitConnected time.Duration `json:"waitConnected,omitempty"`
 }
 
 // Valid implements the stack.Validator interface.
@@ -126,10 +129,10 @@ func (g *Group) Exec(r *ExecRequest) (*ExecResponse, error) {
 		}
 	}
 
-	c, err := g.client.Client(machineID)
-	if err != nil {
-		return nil, err
+	dynClient := func() (client.Client, error) {
+		return g.client.Client(machineID)
 	}
+	c := client.NewSupervised(dynClient, r.WaitConnected)
 
 	resp, err := c.Exec(&r.ExecRequest)
 	if err != nil {

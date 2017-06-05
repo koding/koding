@@ -288,6 +288,7 @@ func (b *Builder) wait(m []*models.JMachine) error {
 					done <- exit
 					close(done)
 				},
+				WaitConnected: 30 * time.Second,
 			}
 
 			pid, err := b.machine().Exec(opts)
