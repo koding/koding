@@ -28,6 +28,7 @@ import (
 
 	"github.com/koding/logging"
 	"golang.org/x/sync/errgroup"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // DefaultBuilder is used by global functions, like app.BuildTemplate,
@@ -181,6 +182,7 @@ type StackOptions struct {
 	Credentials []string
 	Template    []byte
 	File        string
+	UseDefaults bool
 }
 
 func (opts *StackOptions) template() ([]byte, error) {
@@ -215,6 +217,25 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 		return err
 	}
 
+	fmt.Fprintln(b.stderr(), "Creating stack... ")
+
+	if !opts.UseDefaults && opts.Title == "" {
+		providers, err := kstack.ReadProvidersWithUnmarshal(p, yaml.Unmarshal)
+		if err != nil {
+			return errors.New("unable to read provider name: " + err.Error())
+		}
+
+		defTitle := strings.Title(kstack.Pokemon() + " " + providers[0] + " Stack")
+
+		opts.Title, err = helper.Ask("\nStack name [%s]: ", defTitle)
+		if err != nil {
+			return err
+		}
+		if opts.Title == "" {
+			opts.Title = defTitle
+		}
+	}
+
 	o := &stack.CreateOptions{
 		Team:        opts.Team,
 		Title:       opts.Title,
@@ -222,14 +243,12 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 		Template:    p,
 	}
 
-	fmt.Fprintln(b.stderr(), "Creating stack... ")
-
 	resp, err := b.stack().Create(o)
 	if err != nil {
 		return errors.New("error creating stack: " + err.Error())
 	}
 
-	fmt.Fprintf(b.stderr(), "\nCreated %q stack with %s ID.\nWaiting for the stack to finish building...\n\n", resp.Title, resp.StackID)
+	fmt.Fprintf(b.stderr(), "\nCreated %q stack with %s ID.\nWaiting for your stack to finish building...\n\n", resp.Title, resp.StackID)
 
 	for e := range b.kloud().Wait(resp.EventID) {
 		if e.Error != nil {
@@ -261,6 +280,8 @@ func (b *Builder) BuildStack(opts *StackOptions) error {
 
 func (b *Builder) wait(m []*models.JMachine) error {
 	var eg errgroup.Group
+
+	fmt.Fprintf(b.stderr(), "\nWaiting for your stack to finish provisioning...\n\n")
 
 	for _, m := range m {
 		m := m
