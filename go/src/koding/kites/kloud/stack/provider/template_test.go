@@ -224,7 +224,7 @@ func TestTerraformTemplate_ShadowVariables(t *testing.T) {
             "example": {
 				"bar": "${var.aws_access_key}",
                 "instance_type": "t2.micro",
-                "user_data": "Echo ${var.aws_secret_key}"
+                "user_data": "echo ${var.aws_secret_key} ${base64encode(var.aws_secret_key)} >> /tmp/keys.txt"
             }
         }
     }

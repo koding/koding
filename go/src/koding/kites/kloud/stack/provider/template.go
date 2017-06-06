@@ -179,6 +179,8 @@ func (t *Template) DetectUserVariables(prefix string) (map[string]string, error)
 
 // ShadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
+//
+// TODO(rjeczalik): Shadow also data.* block after we upgrade to terraform 0.9+.
 func (t *Template) ShadowVariables(holder string, vars ...string) error {
 	replace := func(s string) string {
 		variables := ReadVariables(s)
@@ -202,7 +204,12 @@ func (t *Template) ShadowVariables(holder string, vars ...string) error {
 			return ""
 		}
 
-		return ReplaceVariables(s, matching, holder)
+		return ReplaceVariablesFunc(s, matching, func(v *Variable) string {
+			if v.Expression {
+				return `"` + holder + `"`
+			}
+			return holder
+		})
 	}
 
 	return object.ReplaceFunc(t.Resource, replace)
