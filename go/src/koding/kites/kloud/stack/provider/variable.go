@@ -5,6 +5,10 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/hcl"
+	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/kr/pretty"
 )
 
 // Variable represents a Terraform variable
@@ -117,4 +121,19 @@ func EscapeDeadVariables(userdata string) string {
 	}
 
 	return strings.TrimRight(buf.String(), "\r\n")
+}
+
+func MapVariables(s string, fn func()) string {
+	root, err := hcl.Parse(s)
+	if err != nil {
+		fmt.Println(err)
+		return s
+	}
+
+	ast.Walk(root, func(n ast.Node) (ast.Node, bool) {
+		pretty.Println(n)
+		return n, true
+	})
+
+	return s
 }

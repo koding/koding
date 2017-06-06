@@ -7,6 +7,22 @@ import (
 	"testing"
 )
 
+func TestMapVariables(t *testing.T) {
+	cases := map[string]struct {
+		s string
+	}{
+		"single variable": {
+			`resource "abc" "cde" { test = "${base64encode(var.foo)}" }`,
+		},
+	}
+
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			provider.MapVariables(cas.s, func() {})
+		})
+	}
+}
+
 func TestVariables(t *testing.T) {
 	const blank = "***"
 
