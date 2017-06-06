@@ -82,6 +82,8 @@ func ReadVariables(s string) []Variable {
 				match = 0
 			case r == rune(prefix[match]):
 				match++
+			default:
+				match = 0
 			}
 		}
 

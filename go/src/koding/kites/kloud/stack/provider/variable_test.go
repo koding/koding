@@ -130,6 +130,21 @@ func TestVariables(t *testing.T) {
 			}},
 			"abc ${func(***, ***)} ****** ${g(***, ***)} def",
 		},
+		"reset after partial match": {
+			`${func(var.foo, "var", ".cde", var.bar)}`,
+			[]provider.Variable{{
+				Name:       "foo",
+				From:       7,
+				To:         14,
+				Expression: true,
+			}, {
+				Name:       "bar",
+				From:       31,
+				To:         38,
+				Expression: true,
+			}},
+			`${func(***, "var", ".cde", ***)}`,
+		},
 	}
 
 	for name, cas := range cases {
