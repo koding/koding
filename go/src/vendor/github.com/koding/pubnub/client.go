@@ -22,7 +22,7 @@ type PubNubClient struct {
 }
 
 func NewPubNubClient(cs *ClientSettings) *PubNubClient {
-	pub := messaging.NewPubnub(cs.PublishKey, cs.SubscribeKey, cs.SecretKey, cs.Cipher, cs.SSL, cs.ID)
+	pub := messaging.NewPubnub(cs.PublishKey, cs.SubscribeKey, cs.SecretKey, cs.Cipher, cs.SSL, cs.ID, nil)
 	return &PubNubClient{
 		pub:      pub,
 		channels: make(map[string]*Channel),
@@ -75,7 +75,7 @@ func (p *PubNubClient) Grant(a *AuthSettings) error {
 	go pr.handleResponse()
 
 	// channel name, read access, write access, TTL, success channel, error channel
-	go p.pub.GrantSubscribe(a.ChannelName, a.CanRead, a.CanWrite, a.TTL, pr.successCh, pr.errorCh)
+	go p.pub.GrantSubscribe(a.ChannelName, a.CanRead, a.CanWrite, a.TTL, a.Token, pr.successCh, pr.errorCh)
 
 	return pr.Do()
 }
