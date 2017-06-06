@@ -7,10 +7,10 @@ import (
 )
 
 type createOptions struct {
-	provider string
-	file string
-	team string
-	title string
+	provider   string
+	file       string
+	team       string
+	title      string
 	jsonOutput bool
 }
 
@@ -20,9 +20,9 @@ func NewCreateCommand(c *cli.CLI) *cobra.Command {
 	opts := &createOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "create",
-		Short:   "Create a new stack credential",
-		RunE:    createCommand(c, opts),
+		Use:   "create",
+		Short: "Create a new stack credential",
+		RunE:  createCommand(c, opts),
 	}
 
 	// Flags.
@@ -35,7 +35,7 @@ func NewCreateCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

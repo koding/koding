@@ -7,7 +7,7 @@ import (
 )
 
 type showOptions struct {
-	defaults bool
+	defaults   bool
 	jsonOutput bool
 }
 
@@ -16,9 +16,9 @@ func NewShowCommand(c *cli.CLI) *cobra.Command {
 	opts := &showOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "show",
-		Short:   "Show configuration",
-		RunE:    showCommand(c, opts),
+		Use:   "show",
+		Short: "Show configuration",
+		RunE:  showCommand(c, opts),
 	}
 
 	// Flags.
@@ -28,7 +28,7 @@ func NewShowCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

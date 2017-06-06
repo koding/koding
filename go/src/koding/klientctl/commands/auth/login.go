@@ -28,10 +28,10 @@ func NewLoginCommand(c *cli.CLI) *cobra.Command {
 	// Flags.
 	flags := cmd.Flags()
 	flags.StringVar(&opts.token, "token", "", "temporary authorization token")
-	flags.StringVar(&opts.baseURL, "baseurl", config.Konfig.Endpoints.Koding.Public.String(), "service log in endpoint")
-	flags.StringVar(&opts.team, "team", "kd.io", "team to log in")
+	flags.StringVar(&opts.baseURL, "baseurl", config.Konfig.Endpoints.Koding.Public.String(), "service login endpoint")
+	flags.StringVar(&opts.team, "team", "kd.io", "team to login")
 	flags.BoolVar(&opts.jsonOutput, "json", false, "output in JSON format")
-	flags.BoolVar(&opts.force, "force", false, "force new session")
+	flags.BoolVarP(&opts.force, "force", "f", false, "force new session")
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(

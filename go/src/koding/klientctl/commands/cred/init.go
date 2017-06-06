@@ -8,8 +8,8 @@ import (
 
 type initOptions struct {
 	provider string
-	output string
-	title string
+	output   string
+	title    string
 }
 
 // NewInitCommand creates a command that creates a credential file.
@@ -17,9 +17,9 @@ func NewInitCommand(c *cli.CLI) *cobra.Command {
 	opts := &initOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "init",
-		Short:   "Create a credential file",
-		RunE:    initCommand(c, opts),
+		Use:   "init",
+		Short: "Create a credential file",
+		RunE:  initCommand(c, opts),
 	}
 
 	// Flags.
@@ -30,7 +30,7 @@ func NewInitCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

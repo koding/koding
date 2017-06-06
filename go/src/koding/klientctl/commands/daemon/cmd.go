@@ -1,4 +1,4 @@
-package credential
+package daemon
 
 import (
 	"koding/klientctl/commands/cli"
@@ -6,22 +6,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCommand creates a command that manages stack credentials.
+// NewCommand creates a command that manages deamon service.
 func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "credential",
-		Aliases: []string{"c"},
-		Short: "Manage stack credentials",
+		Use:   "daemon",
+		Short: "Manage deamon service",
 		RunE:  cli.PrintHelp(c.Err()),
 	}
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewCreateCommand(c),
-		NewDescribeCommand(c),
-		NewInitCommand(c),
-		NewListCommand(c),
-		NewUseCommand(c),
+		NewInstallCommand(c),
+		NewRestartCommand(c),
+		NewStartCommand(c),
+		NewStopCommand(c),
+		NewUninstallCommand(c),
+		NewUpdateCommand(c),
 	)
 
 	// Middlewares.

@@ -16,11 +16,11 @@ func NewResetCommand(c *cli.CLI) *cobra.Command {
 	opts := &resetOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "reset",
-		Short:   "Reset configuration",
-		Long:    `This command resets configuration to its default value which is fetched from
+		Use:   "reset",
+		Short: "Reset configuration",
+		Long: `This command resets configuration to its default value which is fetched from
 Koding service.`,
-		RunE:    resetCommand(c, opts),
+		RunE: resetCommand(c, opts),
 	}
 
 	// Flags.
@@ -29,7 +29,7 @@ Koding service.`,
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

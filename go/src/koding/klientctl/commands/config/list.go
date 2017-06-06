@@ -27,7 +27,7 @@ func NewListCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

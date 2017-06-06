@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type unsetOptions struct {}
+type unsetOptions struct{}
 
 // NewUnsetCommand creates a command that unsets configuration key, restoring
 // it to the default value.
@@ -14,14 +14,14 @@ func NewUnsetCommand(c *cli.CLI) *cobra.Command {
 	opts := &unsetOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "unset",
-		Short:   "Set a default value for the given key",
-		RunE:    unsetCommand(c, opts),
+		Use:   "unset",
+		Short: "Set a default value for the given key",
+		RunE:  unsetCommand(c, opts),
 	}
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

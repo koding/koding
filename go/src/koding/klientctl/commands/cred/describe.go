@@ -7,7 +7,7 @@ import (
 )
 
 type describeOptions struct {
-	provider string
+	provider   string
 	jsonOutput bool
 }
 
@@ -16,9 +16,9 @@ func NewDescribeCommand(c *cli.CLI) *cobra.Command {
 	opts := &describeOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "describe",
-		Short:   "Describe credential document",
-		RunE:    describeCommand(c, opts),
+		Use:   "describe",
+		Short: "Describe credential document",
+		RunE:  describeCommand(c, opts),
 	}
 
 	// Flags.
@@ -28,7 +28,7 @@ func NewDescribeCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

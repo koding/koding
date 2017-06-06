@@ -7,8 +7,8 @@ import (
 )
 
 type listOptions struct {
-	provider string
-	team string
+	provider   string
+	team       string
 	jsonOutput bool
 }
 
@@ -31,7 +31,7 @@ func NewListCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd
