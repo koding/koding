@@ -1,0 +1,120 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers: {}
+    url: http://golang.org/
+    method: GET
+  response:
+    body: "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html;
+      charset=utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta
+      name=\"theme-color\" content=\"#375EAB\">\n\n  <title>The Go Programming Language</title>\n\n<link
+      type=\"text/css\" rel=\"stylesheet\" href=\"/lib/godoc/style.css\">\n\n<link
+      rel=\"search\" type=\"application/opensearchdescription+xml\" title=\"godoc\"
+      href=\"/opensearch.xml\" />\n\n<link rel=\"stylesheet\" href=\"/lib/godoc/jquery.treeview.css\">\n<script
+      type=\"text/javascript\">window.initFuncs = [];</script>\n<script type=\"text/javascript\">\nvar
+      _gaq = _gaq || [];\n_gaq.push([\"_setAccount\", \"UA-11222381-2\"]);\n_gaq.push([\"b._setAccount\",
+      \"UA-49880327-6\"]);\nwindow.trackPageview = function() {\n  _gaq.push([\"_trackPageview\",
+      location.pathname+location.hash]);\n  _gaq.push([\"b._trackPageview\", location.pathname+location.hash]);\n};\nwindow.trackPageview();\nwindow.trackEvent
+      = function(category, action, opt_label, opt_value, opt_noninteraction) {\n  _gaq.push([\"_trackEvent\",
+      category, action, opt_label, opt_value, opt_noninteraction]);\n  _gaq.push([\"b._trackEvent\",
+      category, action, opt_label, opt_value, opt_noninteraction]);\n};\n</script>\n</head>\n<body>\n\n<div
+      id='lowframe' style=\"position: fixed; bottom: 0; left: 0; height: 0; width:
+      100%; border-top: thin solid grey; background-color: white; overflow: auto;\">\n...\n</div><!--
+      #lowframe -->\n\n<div id=\"topbar\"><div class=\"container\">\n<div class=\"top-heading\"
+      id=\"heading-wide\"><a href=\"/\">The Go Programming Language</a></div>\n<div
+      class=\"top-heading\" id=\"heading-narrow\"><a href=\"/\">Go</a></div>\n<a href=\"#\"
+      id=\"menu-button\"><span id=\"menu-button-arrow\">&#9661;</span></a>\n<form
+      method=\"GET\" action=\"/search\">\n<div id=\"menu\">\n<a href=\"/doc/\">Documents</a>\n<a
+      href=\"/pkg/\">Packages</a>\n<a href=\"/project/\">The Project</a>\n<a href=\"/help/\">Help</a>\n<a
+      href=\"/blog/\">Blog</a>\n\n<a id=\"playgroundButton\" href=\"http://play.golang.org/\"
+      title=\"Show Go Playground\">Play</a>\n\n<input type=\"text\" id=\"search\"
+      name=\"q\" class=\"inactive\" value=\"Search\" placeholder=\"Search\">\n</div>\n</form>\n\n</div></div>\n\n\n<div
+      id=\"playground\" class=\"play\">\n\t<div class=\"input\"><textarea class=\"code\">package
+      main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, 世界\")\n}</textarea></div>\n\t<div
+      class=\"output\"></div>\n\t<div class=\"buttons\">\n\t\t<a class=\"run\" title=\"Run
+      this code [shift-enter]\">Run</a>\n\t\t<a class=\"fmt\" title=\"Format this
+      code\">Format</a>\n\t\t\n\t\t<a class=\"share\" title=\"Share this code\">Share</a>\n\t\t\n\t</div>\n</div>\n\n\n<div
+      id=\"page\">\n<div class=\"container\">\n\n\n\n\n\n<div id=\"nav\"></div>\n\n\n\n\n<div
+      class=\"left\">\n\n<div id=\"learn\">\n<a class=\"popout share\">Pop-out</a>\n<div
+      class=\"rootHeading\">Try Go</div>\n<div class=\"input\">\n<textarea spellcheck=\"false\"
+      class=\"code\">// You can edit this code!\n// Click here and start typing.\npackage
+      main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, 世界\")\n}</textarea>\n</div>\n<div
+      class=\"output\">\n<pre>\nHello, 世界\n</pre>\n</div>\n<div class=\"buttons\">\n<a
+      class=\"run\" href=\"#\" title=\"Run this code [shift-enter]\">Run</a>\n\n<a
+      class=\"share\" href=\"#\" title=\"Share this code\">Share</a>\n\n<a class=\"tour\"
+      href=\"//tour.golang.org/\" title=\"Learn Go from your browser\">Tour</a>\n</div>\n<div
+      class=\"toys\">\n<select>\n\t<option value=\"hello.go\">Hello, World!</option>\n\t<option
+      value=\"life.go\">Conway's Game of Life</option>\n\t<option value=\"fib.go\">Fibonacci
+      Closure</option>\n\t<option value=\"peano.go\">Peano Integers</option>\n\t<option
+      value=\"pi.go\">Concurrent pi</option>\n\t<option value=\"sieve.go\">Concurrent
+      Prime Sieve</option>\n\t<option value=\"solitaire.go\">Peg Solitaire Solver</option>\n\t<option
+      value=\"tree.go\">Tree Comparison</option>\n</select>\n</div>\n</div>\n\n</div>\n\n<div
+      class=\"right\">\n\n<div id=\"about\">\nGo is an open source programming language
+      that makes it easy to build\nsimple, reliable, and efficient software.\n</div>\n\n<div
+      id=\"gopher\"></div>\n\n<a href=\"https://golang.org/dl/\" id=\"start\">\n<span
+      class=\"big\">Download Go</span>\n<span class=\"desc\">\nBinary distributions
+      available for<br>\nLinux, Mac OS X, Windows, and more.\n</span>\n</a>\n\n</div>\n\n<div
+      style=\"clear: both\"></div>\n\n<div class=\"left\">\n\n<div id=\"video\">\n<div
+      class=\"rootHeading\">Featured video</div>\n<iframe width=\"415\" height=\"241\"
+      src=\"//www.youtube.com/embed/ytEkHepK08c\" frameborder=\"0\" allowfullscreen></iframe>\n</div>\n\n</div>\n\n<div
+      class=\"right\">\n\n<div id=\"blog\">\n<div class=\"rootHeading\">Featured articles</div>\n<div
+      class=\"read\"><a href=\"//blog.golang.org/\">Read more</a></div>\n</div>\n\n</div>\n\n<div
+      style=\"clear: both;\"></div>\n\n<script type=\"text/javascript\">\n\nfunction
+      readableTime(t) {\n\tvar m = [\"January\", \"February\", \"March\", \"April\",
+      \"May\", \"June\", \"July\",\n\t\t\"August\", \"September\", \"October\", \"November\",
+      \"December\"];\n\tvar p = t.substring(0, t.indexOf(\"T\")).split(\"-\");\n\tvar
+      d = new Date(p[0], p[1]-1, p[2]);\n\treturn d.getDate() + \" \" + m[d.getMonth()]
+      + \" \" + d.getFullYear();\n}\n\nfunction feedLoaded(result) {\n\tvar blog =
+      document.getElementById(\"blog\");\n\tvar read = blog.getElementsByClassName(\"read\")[0];\n\tfor
+      (var i = 0; i < result.length && i < 2; i++) {\n\t\tvar entry = result[i];\n\t\tvar
+      title = document.createElement(\"a\");\n\t\ttitle.className = \"title\";\n\t\ttitle.href
+      = entry.Link;\n\t\ttitle.innerHTML = entry.Title;\n\t\tblog.insertBefore(title,
+      read);\n\t\tvar extract = document.createElement(\"div\");\n\t\textract.className
+      = \"extract\";\n\t\textract.innerHTML = entry.Summary;\n\t\tblog.insertBefore(extract,
+      read);\n\t\tvar when = document.createElement(\"div\");\n\t\twhen.className
+      = \"when\";\n\t\twhen.innerHTML = \"Published \" + readableTime(entry.Time);\n\t\tblog.insertBefore(when,
+      read);\n\t}\n}\n\nwindow.initFuncs.push(function() {\n\t// Set up playground
+      if enabled.\n\tif (window.playground) {\n\t\twindow.playground({\n\t\t\t\"codeEl\":
+      \       \"#learn .code\",\n\t\t\t\"outputEl\":      \"#learn .output\",\n\t\t\t\"runEl\":
+      \        \"#learn .run\",\n\t\t\t\"shareEl\":       \"#learn .share\",\n\t\t\t\"shareRedirect\":
+      \"//play.golang.org/p/\",\n\t\t\t\"toysEl\":        \"#learn .toys select\"\n\t\t});\n\t}
+      else {\n\t\t$('#learn').hide()\n\t}\n\n\t// Load blog feed.\n\t$('<script/>').attr('text',
+      'text/javascript')\n\t\t.attr('src', '//blog.golang.org/.json?jsonp=feedLoaded')\n\t\t.appendTo('body');\n\n\t//
+      Set the video at random.\n\tvar videos = [\n\t\t{h: 241, s: \"//www.youtube.com/embed/ytEkHepK08c\"},
+      // Tour of Go\n\t\t{h: 241, s: \"//www.youtube.com/embed/f6kdp27TYZs\"}, //
+      Concurrency Patterns\n\t\t{h: 233, s: \"//player.vimeo.com/video/69237265\"}
+      \   // Simple environment\n\t];\n\tvar v = videos[Math.floor(Math.random()*videos.length)];\n\t$('#video
+      iframe').attr('height', v.h).attr('src', v.s);\n});\n\n</script>\n\n\n<div id=\"footer\">\nBuild
+      version go1.5.3.<br>\nExcept as <a href=\"https://developers.google.com/site-policies#restrictions\">noted</a>,\nthe
+      content of this page is licensed under the\nCreative Commons Attribution 3.0
+      License,\nand code is licensed under a <a href=\"/LICENSE\">BSD license</a>.<br>\n<a
+      href=\"/doc/tos.html\">Terms of Service</a> | \n<a href=\"http://www.google.com/intl/en/policies/privacy/\">Privacy
+      Policy</a>\n</div>\n\n</div><!-- .container -->\n</div><!-- #page -->\n\n<!--
+      TODO(adonovan): load these from <head> using \"defer\" attribute? -->\n<script
+      type=\"text/javascript\" src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js\"></script>\n<script
+      type=\"text/javascript\" src=\"/lib/godoc/jquery.treeview.js\"></script>\n<script
+      type=\"text/javascript\" src=\"/lib/godoc/jquery.treeview.edit.js\"></script>\n\n\n<script
+      type=\"text/javascript\" src=\"/lib/godoc/playground.js\"></script>\n\n<script
+      type=\"text/javascript\" src=\"/lib/godoc/godocs.js\"></script>\n\n<script type=\"text/javascript\">\n(function()
+      {\n  var ga = document.createElement(\"script\"); ga.type = \"text/javascript\";
+      ga.async = true;\n  ga.src = (\"https:\" == document.location.protocol ? \"https://ssl\"
+      : \"http://www\") + \".google-analytics.com/ga.js\";\n  var s = document.getElementsByTagName(\"script\")[0];
+      s.parentNode.insertBefore(ga, s);\n})();\n</script>\n</body>\n</html>\n\n"
+    headers:
+      Alt-Svc:
+      - quic=":443"; ma=604800; v="30,29,28,27,26,25"
+      Alternate-Protocol:
+      - 443:quic,p=1
+      Content-Length:
+      - "7839"
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Sat, 13 Feb 2016 11:33:08 GMT
+      Server:
+      - Google Frontend
+    status: 200 OK
+    code: 200

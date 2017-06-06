@@ -781,6 +781,8 @@ imports:
   version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
   subpackages:
   - messaging
+- name: github.com/pubnub/go-vcr
+  version: dce903a128d986ff9193994098bc078166e1dee8
 - name: github.com/racker/perigee
   version: 44a7879d89b7040bcdb51164a83292ef5bf9deec
 - name: github.com/rainycape/unidecode

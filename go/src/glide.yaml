@@ -123,6 +123,8 @@ import:
   - extract
 - package: github.com/pubnub/go
   version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
+- package: github.com/pubnub/go-vcr
+  version: dce903a128d986ff9193994098bc078166e1dee8
 - package: github.com/lann/squirrel
 - package: github.com/lib/pq
   version: c4afb3f5ae09066d9aaec61eebd9496f7a852082
