@@ -3,12 +3,12 @@
 package tests
 
 import (
-	"appengine/aetest"
 	"bytes"
 	"encoding/xml"
 	"fmt"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/aetest"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"

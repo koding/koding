@@ -66,6 +66,7 @@ input.disabled1{
         $("#popup_box_wherenow").hide();
         $('#popup_box_globalherenow').hide();
         $('#popup_box_publish').hide();
+        $('#popup_box_fire').hide();
         $('#popup_box_setauthkey').hide();
         $('#popup_box_grantsubscribe').hide();
         $('#popup_box_revokesubscribe').hide();
@@ -294,7 +295,9 @@ function showModal(action){
     }else if(action == "GlobalHereNow"){
         $('#popup_box_globalherenow').show();        
     }else if(action == "Publish"){
-        $('#popup_box_publish').show();            
+        $('#popup_box_publish').show();
+    }else if(action == "Fire"){
+        $('#popup_box_fire').show();          
     }else if(action == "SetAuthKey"){
         $('#popup_box_setauthkey').show();            
     }else if(action == "ChangeUuid"){
@@ -334,7 +337,9 @@ function onClose(action){
     }else if(action == "GlobalHereNow"){
         $('#popup_box_globalherenow').hide();        
     }else if(action == "Publish"){
-        $('#popup_box_publish').hide();        
+        $('#popup_box_publish').hide();
+    }else if(action == "Fire"){
+        $('#popup_box_fire').hide();          
     }else if(action == "SetAuthKey"){
         $('#popup_box_setauthkey').hide();  
     }else if(action == "ChangeUuid"){
@@ -413,9 +418,27 @@ function doPublish(){
         alert("Please enter a message");
         return;
     } else {
-        sendMessage('/publish', 'uuid='+uuid+'&ch='+$("#publishChannel").val() +'&m='+$("#publishMessage").val() );
+        publishStoreInHistoryState = 0
+        if ($('#publishStoreInHistory').is(":checked")){
+            publishStoreInHistoryState = 1
+        }   
+
+        sendMessage('/publish', 'uuid='+uuid+'&ch='+$("#publishChannel").val() +'&m='+$("#publishMessage").val()+'&metakey='+$("#publishMetaKey").val()+'&metaval='+$("#publishMetaVal").val()+'&storeInHistory='+publishStoreInHistoryState);
     }  
     onClose("Publish")  
+}
+
+function doFire(){
+    if($("#fireChannel").val() == ""){
+        alert("Please enter a channel name");
+        return;
+    } else if($("#fireMessage").val() == ""){
+        alert("Please enter a message");
+        return;
+    } else {
+        sendMessage('/publish', 'fire=1&uuid='+uuid+'&ch='+$("#fireChannel").val() +'&m='+$("#fireMessage").val() );
+    }  
+    onClose("Fire")  
 }
 
 function doSetAuthKey(){
@@ -908,6 +931,29 @@ function doDetailedHistory(){
         <div id="center"><input type="button" value="Run Global Here Now" onClick="doGlobalHereNow();"/></div>
     </div> 
 </div> 
+<div id="popup_box_fire" class="PopupBox">
+    <div> 
+        <a id="buttonClose" href="javascript:onClose('Fire');" style="float:right">Close</a>
+        Publish<br />
+    </div>
+    <div> 
+        <div style="float:left; width:50%;">
+            Enter channel name
+            <br />
+            Enter message
+            <br /> 
+        </div> 
+        <div style="float:left; width:50%">
+            <input type="text" id="fireChannel" >
+            <br />
+            <input type="text" id="fireMessage" >
+            <br />
+        </div> 
+        <div style="width:100%;text-align:center;height:20px;">
+            <div id="center"><input type="button" value="Run Fire" onClick="doFire();"/></div>
+        </div>                       
+    </div> 
+</div>     
 <div id="popup_box_publish" class="PopupBox">
     <div> 
         <a id="buttonClose" href="javascript:onClose('Publish');" style="float:right">Close</a>
@@ -919,11 +965,23 @@ function doDetailedHistory(){
             <br />
             Enter message
             <br /> 
+            Enter meta key
+            <br /> 
+            Enter meta val
+            <br /> 
+            Store in History?
+            <br /> 
         </div> 
         <div style="float:left; width:50%">
             <input type="text" id="publishChannel" >
             <br />
             <input type="text" id="publishMessage" >
+            <br />
+            <input type="text" id="publishMetaKey" >
+            <br />
+            <input type="text" id="publishMetaVal" >
+            <br />
+            <input type="checkbox" id="publishStoreInHistory" >
             <br />
         </div> 
         <div style="width:100%;text-align:center;height:20px;">
@@ -1005,6 +1063,12 @@ function doDetailedHistory(){
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" id="publish" value="Publish" onClick="showModal('Publish')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" class="disabled" id="fire" value="Fire" onClick="showModal('Fire')">
+            </div>
+            <div class="leftdivs">
+                <input type="button" class="disabled" id="publishWithMeta" value="Publish with meta" onClick="showModal('Publish')">
             </div>
             <div class="leftdivs">
                 <input type="button" class="disabled" id="setAuthKey" value="Set Auth Key" onClick="showModal('SetAuthKey')">

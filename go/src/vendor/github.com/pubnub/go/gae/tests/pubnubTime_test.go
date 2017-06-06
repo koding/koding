@@ -3,9 +3,9 @@
 package tests
 
 import (
-	"appengine/aetest"
 	"fmt"
 	"github.com/pubnub/go/gae/messaging"
+	"google.golang.org/appengine/aetest"
 	"testing"
 )
 

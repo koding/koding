@@ -1,0 +1,23 @@
+05-03-16 3.8.0
+
+NETWORKING BEHAVIOUR CHANGED
+- Add request workers for different request types. Each Pubnub instance has
+  it's own request workers set now. Each worker has it's own transport, which
+  now can be customized by user using associated setter.
+  Previously, transports were shared between multiple instances. A key bug was
+  that when SDK were acting with net.Conns, sometimes references to it were
+  pointing to the non-actual net.Conn in http.Transport's pool.
+
+FEATURES
+- Add module setters for default subscribe and non-subscribe transports
+- Add instance setters for subscribe and non-subscribe transports
+- Add more errors handling codecoverage for codecov.io
+- Rewrite most of loggers with unified syntax
+
+BREAKING CHANGES
+- Add history 'include_token' param
+- Add uuid param to state getter
+- Add channelGroup param to HereNow method
+- Channel group's add and remove methods errors channel now emits a single error
+  with a group as entity, instead of multiple errors with all passed-in channels
+  as entity

@@ -1,0 +1,32 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/successCodeAndInfo/0/%22Pubnub%20API%20Usage%20Example%22?pnsdk=PubNub-Go%2F3.14.0&uuid=51fa763a4073511f80ee640fe40da223&seqn=1
+    method: GET
+  response:
+    body: '[1,"Sent","14570017673026211"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 03 Mar 2016 10:42:47 GMT
+    status: 200 OK
+    code: 200

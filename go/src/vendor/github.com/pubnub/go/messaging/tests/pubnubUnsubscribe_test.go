@@ -3,11 +3,13 @@
 package tests
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/pubnub/go/messaging"
-	"strings"
 	"testing"
 	"time"
+
+	"github.com/pubnub/go/messaging"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestUnsubscribeStart prints a message on the screen to mark the beginning of
@@ -20,98 +22,84 @@ func TestUnsubscribeStart(t *testing.T) {
 // TestUnsubscribeNotSubscribed will try to unsubscribe a non subscribed pubnub channel.
 // The response should contain 'not subscribed'
 func TestUnsubscribeNotSubscribed(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
 
 	currentTime := time.Now()
 	channel := "testChannel" + currentTime.Format("20060102150405")
 
-	returnUnsubscribeChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel, errorChannel)
-	go ParseUnsubscribeResponse(errorChannel, channel, "not subscribed", responseChannel)
-	go ParseErrorResponse(returnUnsubscribeChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "UnsubscribeNotSubscribed")
+	go pubnubInstance.Unsubscribe(channel, successChannel, errorChannel)
+	select {
+	case <-successChannel:
+		assert.Fail("Success unsubscribe response while expecting an error")
+	case err := <-errorChannel:
+		assert.Contains(string(err), "not subscribed")
+		assert.Contains(string(err), channel)
+	case <-timeout():
+		assert.Fail("Unsubscribe request timeout")
+	}
 }
 
 // TestUnsubscribe will subscribe to a pubnub channel and then send an unsubscribe request
 // The response should contain 'unsubscribed'
-func TestUnsubscribe(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
+func TestUnsubscribeChannel(t *testing.T) {
+	assert := assert.New(t)
 
-	channel := "testChannel"
+	stop, sleep := NewVCRBoth(
+		"fixtures/unsubscribe/channel", []string{"uuid"})
+	defer stop()
 
-	returnSubscribeChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
+	channel := "Channel_UnsubscribeChannel"
+	uuid := "UUID_UnsubscribeChannel"
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
 
-	go pubnubInstance.Subscribe(channel, "", returnSubscribeChannel, false, errorChannel)
-	go ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance, returnSubscribeChannel, channel, "connected", responseChannel)
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "Unsubscribe")
-}
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
+	unSubscribeSuccessChannel := make(chan []byte)
+	unSubscribeErrorChannel := make(chan []byte)
 
-// ParseSubscribeResponseAndCallUnsubscribe will parse the response on the go channel.
-// It will check the subscribe connection status and when connected
-// it will initiate the unsubscribe request.
-func ParseSubscribeResponseAndCallUnsubscribe(pubnubInstance *messaging.Pubnub, returnChannel chan []byte, channel string, message string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			message = "'" + channel + "' " + message
-			//messageAbort := "'" + channel + "' aborted"
-			//fmt.Printf("response:",response);
-			//fmt.Printf("message:", message);
-			
-			if strings.Contains(response, message) {
-				returnUnsubscribeChannel := make(chan []byte)
-				errorChannel := make(chan []byte)
-
-				go pubnubInstance.Unsubscribe(channel, returnUnsubscribeChannel, errorChannel)
-				go ParseUnsubscribeResponse(returnUnsubscribeChannel, channel, "unsubscribed", responseChannel)
-				go ParseResponseDummy(errorChannel)
-
-				break
-			} /*else if (strings.Contains(response, messageAbort)){
-			      responseChannel <- "Test unsubscribed: failed."
-			      break
-			  } else {
-			      responseChannel <- "Test unsubscribed: failed."
-			      break
-			  }*/
-		}
+	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel,
+		false, subscribeErrorChannel)
+	select {
+	case msg := <-subscribeSuccessChannel:
+		val := string(msg)
+		assert.Equal(val, fmt.Sprintf(
+			"[1, \"Subscription to channel '%s' connected\", \"%s\"]",
+			channel, channel))
+	case err := <-subscribeErrorChannel:
+		assert.Fail(string(err))
 	}
-}
 
-// ParseUnsubscribeResponse will parse the unsubscribe response on the go channel.
-// If it contains unsubscribed the test will pass.
-func ParseUnsubscribeResponse(returnChannel chan []byte, channel string, message string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
+	sleep(2)
+
+	go pubnubInstance.Unsubscribe(channel, unSubscribeSuccessChannel,
+		unSubscribeErrorChannel)
+	select {
+	case msg := <-unSubscribeSuccessChannel:
+		val := string(msg)
+		assert.Equal(val, fmt.Sprintf(
+			"[1, \"Subscription to channel '%s' unsubscribed\", \"%s\"]",
+			channel, channel))
+	case err := <-unSubscribeErrorChannel:
+		assert.Fail(string(err))
+	}
+
+	select {
+	case ev := <-unSubscribeSuccessChannel:
+		var event messaging.PresenceResonse
+
+		err := json.Unmarshal(ev, &event)
+		if err != nil {
+			assert.Fail(err.Error())
 		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			//fmt.Printf("response:",response);
-			//fmt.Printf("message:", message);
-			if strings.Contains(response, message) {
-				responseChannel <- "Test '" + message + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + message + "': failed."
-				break
-			}
-		}
+
+		assert.Equal("leave", event.Action)
+		assert.Equal(200, event.Status)
+	case err := <-unSubscribeErrorChannel:
+		assert.Fail(string(err))
 	}
 }
 

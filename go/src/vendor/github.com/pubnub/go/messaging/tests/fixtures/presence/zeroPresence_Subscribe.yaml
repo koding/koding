@@ -1,0 +1,182 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=0&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '[[],"14615591687540479"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 04:39:28 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=0&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '[[],"14615591687802848"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 04:39:28 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence,Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591687802848&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '[[{"action": "join", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
+      "occupancy": 1}],"14615591694446754","Channel_ZeroPresence-pnpres"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "142"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 04:39:29 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591687540479&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '[[{"action": "join", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
+      "occupancy": 1}],"14615591694446754"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "112"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 04:39:29 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres/0?uuid=UUID_zeroPresence&tt=14615591694446754&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '[[{"action": "leave", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
+      "occupancy": 0}],"14615591697136989"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "113"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 04:39:29 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_ZeroPresence-pnpres,Channel_ZeroPresence/0?uuid=UUID_zeroPresence&tt=14615591694446754&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '[[{"action": "leave", "timestamp": 1461559169, "uuid": "UUID_zeroPresence",
+      "occupancy": 0}],"14615591697136989","Channel_ZeroPresence-pnpres"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "143"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 04:39:29 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests: {}

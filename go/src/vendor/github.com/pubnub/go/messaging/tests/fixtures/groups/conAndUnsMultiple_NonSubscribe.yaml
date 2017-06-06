@@ -1,0 +1,255 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_ConAndUnsMult_1?add=adsf&pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_Multiple_CAU
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:38 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_ConAndUnsMult_2?add=adsf&pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_Multiple_CAU
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:38 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_ConAndUnsMult_3?add=adsf&pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_Multiple_CAU
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:38 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/,/leave?uuid=UUID_Multiple_CAU&channel-group=Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - OPTIONS, GET, POST
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "74"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:41 GMT
+      Server:
+      - Pubnub Presence
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_ConAndUnsMult_1/remove?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_Multiple_CAU
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:41 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_ConAndUnsMult_2/remove?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_Multiple_CAU
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:41 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Group_ConAndUnsMult_3/remove?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_Multiple_CAU
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:41 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+unclosed_requests: {}

@@ -1,0 +1,68 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_SubscriptionConnectedForSimpleWithCipher/0/%22HSoHp4g0o/uHfiS1PYXzWw==%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_SubscriptionConnectedForSimpleWithCipher&seqn=1
+    method: GET
+  response:
+    body: '[1,"Sent","14586613284451342"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:08 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SubscriptionConnectedForSimpleWithCipher/leave?uuid=UUID_SubscriptionConnectedForSimpleWithCipher&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - OPTIONS, GET, POST
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "74"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:08 GMT
+      Server:
+      - Pubnub Presence
+    status: 200 OK
+    code: 200
+unclosed_requests: {}

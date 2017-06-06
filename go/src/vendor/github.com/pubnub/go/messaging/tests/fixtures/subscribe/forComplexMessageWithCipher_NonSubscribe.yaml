@@ -1,0 +1,68 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_SubscriptionConnectedForComplexWithCipher/0/%22Bc846Ri5HK1ixqP/dzAyZq23Z/NBlcPn2UX8h38xTGINs72yF5gtU0t9fFEMxjY+DmezWt0nG7eN7RABrj697tK1nooVHYIxgDLMsjMTw5N0K+rUM823n7LcHfEoXaX8oH2E6zkg6iK5pmT8nlh6LF6Bw1G5zkluT8oTjnbFJcpEvTyT2ZKzcqptgYsE9XZiEn84zv0wjDMxSJzlM7cbe2JpLtR99mdkUf8SMVr+J0ym6Z9c02MKLP6bygWzdG9zTdkLSIxJE3R9Yt76XeRFdrbRNWkuQM/uItDsE23+8RKwZRyAScoDMwFAg+BSa6KF1tS6cJlyjxA8o5e9iWykKuHO0h1uAiapzTx9iZluOH2bVZgTUu1GABjXveMBAkrZ1eG4nVOlytsAr1oSekKvWxzyUEP2kFSrtQbg6oGECb1OMmj5bd21cx0vpDWr/juGT7/n4sBr7gYsWDvBaU7awN9Y7bcq14jtiXq/2iNNW0zoI3xe6+qByimHaiAgVoqO%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_SubscriptionConnectedForComplexWithCipher&seqn=1
+    method: GET
+  response:
+    body: '[1,"Sent","14586613301466659"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:10 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SubscriptionConnectedForComplexWithCipher/leave?uuid=UUID_SubscriptionConnectedForComplexWithCipher&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - OPTIONS, GET, POST
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "74"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:10 GMT
+      Server:
+      - Pubnub Presence
+    status: 200 OK
+    code: 200
+unclosed_requests: {}

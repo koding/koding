@@ -1,0 +1,35 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?auth=myAuthKey&channel=testGrantChannelLevelSubscribeWithAuth&pnsdk=PubNub-Go%2F3.14.0&r=1&timestamp=1457161967&ttl=1&uuid=d1093722407c1fd980ba5ed0e9882d91&w=1&signature=eyvk-U21nVGWGfmV_aIpaAHG5UFW9PYDZ4Bts80yGEU=
+    method: GET
+  response:
+    body: '{"message":"Success","payload":{"level":"user","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1,"channel":"testGrantChannelLevelSubscribeWithAuth","auths":{"myAuthKey":{"r":1,"w":1,"m":0}}},"service":"Access
+      Manager","status":200}'
+    headers:
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache, no-store, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "250"
+      Content-Type:
+      - text/javascript; charset=UTF-8
+      Date:
+      - Sat, 05 Mar 2016 07:12:47 GMT
+    status: 200 OK
+    code: 200

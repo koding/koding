@@ -1,9 +1,8 @@
 <html>
 <head>
 <title>PubNub GAE Managed VM example using GO</title>
-<script type="text/javascript" src="/_ah/channel/jsapi"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-<script src=http://cdn.pubnub.com/pubnub.min.js ></script>
+<script src="https://cdn.pubnub.com/pubnub-3.16.4.js"></script>
 <style>
 body{
    font-size: .8em !important;
@@ -91,25 +90,7 @@ console.log(uuid);
 },60000);*/
 
 function connect(){
-    channel = new goog.appengine.Channel(tok);
-    socket = channel.open();
-    socket.onopen = function() {
-        addMessage('AppEngine Channel established.');
-        addMessage("Using uuid:" + uuid);
-        
-        $('.disabled').prop('disabled', false);
-        $('.connect').prop('disabled', true);   
-    };    
-    socket.onmessage = onMessage;
-    socket.onerror = function(error) {
-        addMessage('AppEngine Channel error: ' + error.description);
-        signoutAndEnableConnect();
-    };
-    socket.onclose = function() {
-        //signout
-        addMessage('AppEngine Channel closed.');
-        signoutAndEnableConnect();
-    };
+    connectws();
 }
 
 function connectWithKeys(){
@@ -120,6 +101,27 @@ function connectWithKeys(){
     }
 
     sendMessageAndGetToken('/connect', 'uuid='+uuid+'&subKey='+$('#subscribeKey').val()+'&pubKey='+$('#publishKey').val()+'&secKey='+$('#secretKey').val()+'&cipher='+$('#cipher').val()+'&ssl='+ssl);
+}
+
+function connectws(){
+    var host = "ws://{{.hostname}}/echo";
+    try {
+            socket = new WebSocket(host);
+
+            addMessage('WebSocket - status ' + socket.readyState);
+
+            socket.onopen    = function(msg) { 
+                addMessage("Welcome - status " + this.readyState); 
+                $('.disabled').prop('disabled', false);
+                $('.connect').prop('disabled', true);   
+            };
+
+            socket.onmessage = function(msg) { addMessage("Received: " + msg.data); };
+
+            socket.onclose   = function(msg) { addMessage("Disconnected - status " + this.readyState); };
+
+    }
+    catch (ex) { addMessage(ex); }
 }
 
 function sendMessageAndGetToken(path, opt_param) {
@@ -146,10 +148,9 @@ function signoutAndEnableConnect(){
 
 function disconnect(){
     if(socket != null){
-        socket.close();
-    } else {
-        signoutAndEnableConnect()
-    }
+        socket.close();        
+    } 
+    signoutAndEnableConnect()
 }
     
 function sendMessage(path, opt_param) {
@@ -932,6 +933,7 @@ function doDetailedHistory(){
     </div> 
 </div>     
 <h3>PubNub GAE Managed VM example using GO</h3>
+    
     <div style="float:left;width:100%;height:25%;">
     <div style="float:left;width:100%;height:85%;border-top:0px dotted black;border-bottom:2px solid black;">
         <div style="float:left;width:30%;height:20%;">

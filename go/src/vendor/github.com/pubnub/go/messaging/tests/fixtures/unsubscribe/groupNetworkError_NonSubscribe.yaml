@@ -1,0 +1,76 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Channel_GroupUnsubscribeNetError?add=adsf&pnsdk=PubNub-Go%2F3.14.0&uuid=6c06fbed40608e0080576f7f22665b3d
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Fri, 22 Apr 2016 10:21:48 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/channel-registration/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel-group/Channel_GroupUnsubscribeNetError/remove?pnsdk=PubNub-Go%2F3.14.0&uuid=6c06fbed40608e0080576f7f22665b3d
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "service": "channel-registry", "error":
+      false}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "79"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Fri, 22 Apr 2016 10:21:48 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+unclosed_requests: {}
