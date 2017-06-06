@@ -179,11 +179,11 @@ error opening: %s
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{{
-		Name:  "metrics",
+		Name:  "metrics", // Moved to cobra.
 		Usage: "Publish events from external sources.",
 		Subcommands: []cli.Command{{
-			Hidden:       true, // do not show it to users.
-			Name:         "add",
+			Hidden:       true,  // do not show it to users.
+			Name:         "add", // Moved to cobra.
 			Usage:        "Add new metric.",
 			Action:       ctlcli.ExitErrAction(MetricPushHandler(m, generateTagsForCLI), log, "add"),
 			BashComplete: func(c *cli.Context) {},
@@ -672,11 +672,11 @@ error opening: %s
 		},
 		Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
 	}, {
-		Name:         "machine",
+		Name:         "machine", // Moved to cobra.
 		Usage:        "Manage remote machines.",
 		BashComplete: func(c *cli.Context) {},
 		Subcommands: []cli.Command{{
-			Name:         "list",
+			Name:         "list", // Moved to cobra.
 			ShortName:    "ls",
 			Usage:        "List available machines.",
 			Action:       ctlcli.ExitErrAction(MachineListCommand, log, "list"),
