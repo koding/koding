@@ -26,7 +26,7 @@ func NewAddCommand(c *cli.CLI) *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVar(&opts.typ, "type", "", "metric type")
 	flags.StringVar(&opts.name, "name", "", "metric name")
-	flags.Float64(&opts.count, "count", "", "metric value")
+	flags.Float64Var(&opts.count, "count", 0, "metric value")
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
