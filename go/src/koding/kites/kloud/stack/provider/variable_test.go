@@ -145,6 +145,21 @@ func TestVariables(t *testing.T) {
 			}},
 			`${func(***, "var", ".cde", ***)}`,
 		},
+		"ternary operator expression": {
+			`${terraform.env == "devel" ? var.foo : var.bar}`,
+			[]provider.Variable{{
+				Name:       "foo",
+				From:       29,
+				To:         36,
+				Expression: true,
+			}, {
+				Name:       "bar",
+				From:       39,
+				To:         46,
+				Expression: true,
+			}},
+			`${terraform.env == "devel" ? *** : ***}`,
+		},
 	}
 
 	for name, cas := range cases {

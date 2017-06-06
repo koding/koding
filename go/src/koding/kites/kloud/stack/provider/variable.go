@@ -67,9 +67,13 @@ func ReadVariables(s string) []Variable {
 		for l, r := range name {
 			switch {
 			case match >= len(prefix):
-				if isVarChar(r) && l != len(name)-1 {
+				if isVarChar(r) {
 					match++
-					break
+					if l != len(name)-1 {
+						break
+					} else {
+						l++
+					}
 				}
 
 				vars = append(vars, Variable{
