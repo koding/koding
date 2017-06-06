@@ -122,7 +122,7 @@ import:
   subpackages:
   - extract
 - package: github.com/pubnub/go
-  version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
+  version: 877250964fc316c67994cd7cad5870828fa35a07
 - package: github.com/pubnub/go-vcr
   version: dce903a128d986ff9193994098bc078166e1dee8
 - package: github.com/lann/squirrel

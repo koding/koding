@@ -778,7 +778,7 @@ imports:
 - name: github.com/pkg/sftp
   version: e84cc8c755ca39b7b64f510fe1fffc1b51f210a5
 - name: github.com/pubnub/go
-  version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
+  version: 877250964fc316c67994cd7cad5870828fa35a07
   subpackages:
   - messaging
 - name: github.com/pubnub/go-vcr
