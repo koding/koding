@@ -250,10 +250,10 @@ error opening: %s
 		Usage:  "Helps in sending a bug report.",
 		Action: ctlcli.ExitErrAction(Bug, log, "bug"),
 	}, {
-		Name:  "compat",
+		Name:  "compat", // To be removed.
 		Usage: "Compatibility commands for use with old mounts.",
 		Subcommands: []cli.Command{{
-			Name:      "list",
+			Name:      "list", // To be removed.
 			ShortName: "ls",
 			Usage:     "List running machines for user.",
 			Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
@@ -269,7 +269,7 @@ error opening: %s
 			},
 			Subcommands: []cli.Command{
 				{
-					Name:   "mounts",
+					Name:   "mounts", // To be removed.
 					Usage:  "List the mounted machines.",
 					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
 					Flags: []cli.Flag{
@@ -281,7 +281,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:        "mount",
+			Name:        "mount", // To be removed.
 			ShortName:   "m",
 			Usage:       "Mount a remote folder to a local folder.",
 			Description: cmdDescriptions["compat-mount"],
@@ -333,7 +333,7 @@ error opening: %s
 				MountCommandFactory, log, "mount",
 			),
 		}, {
-			Name:        "ssh",
+			Name:        "ssh", // To be removed.
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",
 			Description: cmdDescriptions["ssh"],
@@ -348,17 +348,17 @@ error opening: %s
 			},
 			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
 		}, {
-			Name:            "run",
+			Name:            "run", // To be removed.
 			Usage:           "Run command on remote or local machine.",
 			Description:     cmdDescriptions["run"],
 			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
 			SkipFlagParsing: true,
 		}, {
-			Name:   "repair",
+			Name:   "repair", // To be removed.
 			Usage:  "Repair the given mount",
 			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
 		}, {
-			Name: "cp",
+			Name: "cp", // To be removed.
 			Usage: fmt.Sprintf(
 				"Copy a file from one one machine to another",
 			),
@@ -375,23 +375,23 @@ error opening: %s
 				CpCommandFactory, log, "cp",
 			),
 		}, {
-			Name:        "unmount",
+			Name:        "unmount", // To be removed.
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["compat-unmount"],
 			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
 		}, {
-			Name:        "remount",
+			Name:        "remount", // To be removed.
 			ShortName:   "r",
 			Usage:       "Remount previously mounted machine using same settings.",
 			Description: cmdDescriptions["remount"],
 			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
 		}},
 	}, {
-		Name:  "config",
+		Name:  "config", // Moved to cobra.
 		Usage: "Manage tool configuration.",
 		Subcommands: []cli.Command{{
-			Name:   "show",
+			Name:   "show", // Moved to cobra.
 			Usage:  "Show configuration.",
 			Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
 			Flags: []cli.Flag{
@@ -405,7 +405,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:      "list",
+			Name:      "list", // Moved to cobra.
 			ShortName: "ls",
 			Usage:     "List all available configurations.",
 			Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
@@ -416,19 +416,19 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "use",
+			Name:   "use", // Moved to cobra.
 			Usage:  "Change active configuration.",
 			Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
 		}, {
-			Name:   "set",
+			Name:   "set", // Moved to cobra.
 			Usage:  "Set a value for the given key, overwriting default one.",
 			Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
 		}, {
-			Name:   "unset",
+			Name:   "unset", // Moved to cobra.
 			Usage:  "Unset the given key, restoring the defaut value.",
 			Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
 		}, {
-			Name:   "reset",
+			Name:   "reset", // Moved to cobra.
 			Usage:  "Resets configuration to the default value fetched from Koding.",
 			Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
 			Flags: []cli.Flag{
@@ -439,11 +439,11 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:      "credential",
+		Name:      "credential", // Moved to cobra.
 		ShortName: "c",
 		Usage:     "Manage stack credentials.",
 		Subcommands: []cli.Command{{
-			Name:      "list",
+			Name:      "list", // Moved to cobra.
 			ShortName: "ls",
 			Usage:     "List imported stack credentials.",
 			Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
@@ -462,7 +462,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "create",
+			Name:   "create", // Moved to cobra.
 			Usage:  "Create new stack credential.",
 			Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
 			Flags: []cli.Flag{
@@ -489,7 +489,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "init",
+			Name:   "init", // Mopved to cobra.
 			Usage:  "Create a credential file.",
 			Action: ctlcli.ExitErrAction(CredentialInit, log, "init"),
 			Flags: []cli.Flag{
@@ -508,11 +508,11 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "use",
+			Name:   "use", // Moved to cobra.
 			Usage:  "Change default credential per provider.",
 			Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
 		}, {
-			Name:   "describe",
+			Name:   "describe", // Moved to cobra.
 			Usage:  "Describe credential documents.",
 			Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
 			Flags: []cli.Flag{
