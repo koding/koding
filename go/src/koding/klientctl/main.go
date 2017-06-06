@@ -203,10 +203,10 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:  "auth",
+		Name:  "auth", // Moved to cobra
 		Usage: "User authorization.",
 		Subcommands: []cli.Command{{
-			Name:   "login",
+			Name:   "login", // Moved to cobra.
 			Usage:  "Log in to your kd.io or koding.com account.",
 			Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
 			Flags: []cli.Flag{
@@ -233,7 +233,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "show",
+			Name:   "show", // Moved to cobra.
 			Usage:  "Show current session details.",
 			Action: ctlcli.ExitErrAction(AuthShow, log, "show"),
 			Flags: []cli.Flag{
@@ -243,10 +243,10 @@ error opening: %s
 				},
 			},
 		},
-			auth.NewRegisterSubCommand(log), // command: kd auth register
+			auth.NewRegisterSubCommand(log), // command: kd auth register // Moved to cobra.
 		},
 	}, {
-		Name:   "bug",
+		Name:   "bug", // Moved to cobra.
 		Usage:  "Helps in sending a bug report.",
 		Action: ctlcli.ExitErrAction(Bug, log, "bug"),
 	}, {
