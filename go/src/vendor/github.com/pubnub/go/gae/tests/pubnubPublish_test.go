@@ -3,10 +3,10 @@
 package tests
 
 import (
-	"appengine/aetest"
 	"encoding/json"
 	"fmt"
 	"github.com/pubnub/go/gae/messaging"
+	"google.golang.org/appengine/aetest"
 	"strings"
 	"testing"
 	"time"

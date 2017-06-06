@@ -4,11 +4,13 @@ package tests
 
 import (
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	"github.com/pubnub/go/messaging"
-	"strings"
+	"github.com/stretchr/testify/assert"
+	//"log"
+	//"os"
+	//"strings"
 	"testing"
-	"time"
 )
 
 // TestPublishStart prints a message on the screen to mark the beginning of
@@ -21,271 +23,516 @@ func TestPublishStart(t *testing.T) {
 // TestNullMessage sends out a null message to a pubnub channel. The response should
 // be an "Invalid Message".
 func TestNullMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+	assert := assert.New(t)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
+	channel := "nullMessage"
 	var message interface{}
 	message = nil
-	returnChannel := make(chan []byte)
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	//go ParsePublishResponse(returnChannel, channel, "Invalid Message", "NullMessage", responseChannel)
-	go ParseResponseDummy(returnChannel)
-	go ParseErrorResponseForTestSuccess("Invalid Message", errorChannel, responseChannel)
-	//go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "NullMessage")
-}
-
-// TestUniqueGuid tests the generation of a unique GUID for the client.
-func TestUniqueGuid(t *testing.T) {
-	guid, err := messaging.GenUuid()
-	if err != nil {
-		fmt.Println("err: ", err)
-		t.Error("Test 'UniqueGuid': failed.")
-	} else if guid == "" {
-		t.Error("Test 'UniqueGuid': failed.")
-	} /*else {
-		//fmt.Println("Test 'UniqueGuid': passed.")
-	}*/
+	go pubnubInstance.Publish(channel, message, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Fail("Response on success channel while expecting an error", string(msg))
+	case err := <-errorChannel:
+		assert.Contains(string(err), "Invalid Message")
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 // TestSuccessCodeAndInfo sends out a message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfo(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe("fixtures/publish/successCodeAndInfo",
+		[]string{"uuid"})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
+	channel := "successCodeAndInfo"
 	message := "Pubnub API Usage Example"
-	returnChannel := make(chan []byte)
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfo", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfo")
-	time.Sleep(2 * time.Second)
+	go pubnubInstance.Publish(channel, message, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 // TestSuccessCodeAndInfoWithEncryption sends out an encrypted
 // message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage is defined in the common.go file
 func TestSuccessCodeAndInfoWithEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
-	channel := "testChannel"
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/successCodeAndInfoWithEncryption", []string{"uuid"})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", CreateLoggerForTests())
+	channel := "successCodeAndInfo"
 	message := "Pubnub API Usage Example"
-	returnChannel := make(chan []byte)
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoWithEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoWithEncryption")
-	time.Sleep(2 * time.Second)
-}
-
-// TestSuccessCodeAndInfoWithSecretAndEncryption sends out an encrypted
-// secret keyed message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage is defined in the common.go file
-func TestSuccessCodeAndInfoWithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "enigma", false, "")
-	channel := "testChannel"
-	message := "Pubnub API Usage Example"
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoWithSecretAndEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoWithSecretAndEncryption")
-	time.Sleep(2 * time.Second)
+	go pubnubInstance.Publish(channel, message, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 // TestSuccessCodeAndInfoForComplexMessage sends out a complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and customstruct is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/successCodeAndInfoForComplexMessage", []string{"uuid"})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
+	channel := "successCodeAndInfoForComplexMessage"
 
 	customStruct := CustomStruct{
 		Foo: "hi!",
 		Bar: []int{1, 2, 3, 4, 5},
 	}
 
-	returnChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customStruct, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage", responseChannel)
+	go pubnubInstance.Publish(channel, customStruct, successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
+}
 
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoForComplexMessage")
-	time.Sleep(2 * time.Second)
+// TestFire sends out a complex message to the pubnub channel
+func TestFire(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/fire", []string{"uuid"})
+	defer stop()
+	//messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
+	channel := "fireChannel"
+
+	message := "fireTest"
+	await := make(chan bool)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.Fire(channel, message, false, successChannel, errorChannel)
+	go func() {
+		select {
+		case msg := <-successChannel:
+			assert.Contains(string(msg), "1,")
+			assert.Contains(string(msg), "\"Sent\",")
+			await <- true
+		case err := <-errorChannel:
+			assert.Fail(string(err))
+			await <- false
+		case <-timeout():
+			assert.Fail("Publish timeout")
+			await <- false
+		}
+	}()
+
+	<-await
+
+	successChannelHis := make(chan []byte)
+	errorChannelHis := make(chan []byte)
+
+	go pubnubInstance.History(channel, 1, 0, 0, false, false,
+		successChannelHis, errorChannelHis)
+	select {
+	case value := <-successChannelHis:
+		data, _, _, err := pubnubInstance.ParseJSON(value, "")
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.NotContains(data, message)
+	case err := <-errorChannelHis:
+		assert.Fail(string(err))
+	}
+}
+
+// TestPublishWithMessageTTL sends out a complex message to the pubnub channel
+func TestPublishWithMessageTTL(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/publishWithReplicateAndTTL", []string{"uuid"})
+	defer stop()
+	//messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
+	channel := "publishWithReplicate"
+
+	message := "publishWithReplicate"
+	await := make(chan bool)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.PublishExtendedWithMetaReplicateAndTTL(channel, message, nil, true, false, false, 10, successChannel, errorChannel)
+	go func() {
+		select {
+		case msg := <-successChannel:
+			assert.Contains(string(msg), "1,")
+			assert.Contains(string(msg), "\"Sent\",")
+			await <- true
+		case err := <-errorChannel:
+			assert.Fail(string(err))
+			await <- false
+		case <-timeout():
+			assert.Fail("Publish timeout")
+			await <- false
+		}
+	}()
+
+	<-await
+
+	successChannelHis := make(chan []byte)
+	errorChannelHis := make(chan []byte)
+
+	go pubnubInstance.History(channel, 1, 0, 0, false, false,
+		successChannelHis, errorChannelHis)
+	select {
+	case value := <-successChannelHis:
+		data, _, _, err := pubnubInstance.ParseJSON(value, "")
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Contains(data, message)
+	case err := <-errorChannelHis:
+		assert.Fail(string(err))
+	}
+}
+
+// TestPublishWithReplicate sends out a complex message to the pubnub channel
+func TestPublishWithReplicate(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/publishWithReplicate", []string{"uuid"})
+	defer stop()
+	//messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
+	channel := "publishWithReplicate"
+
+	message := "publishWithReplicate"
+	await := make(chan bool)
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	go pubnubInstance.PublishExtendedWithMetaAndReplicate(channel, message, nil, true, false, false, successChannel, errorChannel)
+	go func() {
+		select {
+		case msg := <-successChannel:
+			assert.Contains(string(msg), "1,")
+			assert.Contains(string(msg), "\"Sent\",")
+			await <- true
+		case err := <-errorChannel:
+			assert.Fail(string(err))
+			await <- false
+		case <-timeout():
+			assert.Fail("Publish timeout")
+			await <- false
+		}
+	}()
+
+	<-await
+
+	successChannelHis := make(chan []byte)
+	errorChannelHis := make(chan []byte)
+
+	go pubnubInstance.History(channel, 1, 0, 0, false, false,
+		successChannelHis, errorChannelHis)
+	select {
+	case value := <-successChannelHis:
+		data, _, _, err := pubnubInstance.ParseJSON(value, "")
+		if err != nil {
+			assert.Fail(err.Error())
+		}
+
+		assert.Contains(data, message)
+	case err := <-errorChannelHis:
+		assert.Fail(string(err))
+	}
 }
 
 // TestSuccessCodeAndInfoForComplexMessage2 sends out a complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "")
-	channel := "testChannel"
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/successCodeAndInfoForComplexMessage2", []string{"uuid"})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, "", CreateLoggerForTests())
+	channel := "successCodeAndInfoForComplexMessage2"
 
 	customComplexMessage := InitComplexMessage()
 
-	returnChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoForComplexMessage2")
-	time.Sleep(2 * time.Second)
-}
-
-// TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption sends out an
-// encypted and secret keyed complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and InitComplexMessage is defined in the common.go file
-func TestSuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "secret", "enigma", false, "")
-	channel := "testChannel"
-
-	customComplexMessage := InitComplexMessage()
-
-	returnChannel := make(chan []byte)
-	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
-
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoForComplexMessage2WithSecretAndEncryption")
-	time.Sleep(2 * time.Second)
+	go pubnubInstance.Publish(channel, customComplexMessage,
+		successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
 }
 
 // TestSuccessCodeAndInfoForComplexMessage2WithEncryption sends out an
 // encypted complex message to the pubnub channel
-// The response is parsed and should match the 'sent' status.
-// _publishSuccessMessage and InitComplexMessage is defined in the common.go file
 func TestSuccessCodeAndInfoForComplexMessage2WithEncryption(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "")
-	channel := "testChannel"
+	assert := assert.New(t)
+
+	stop, _ := NewVCRNonSubscribe(
+		"fixtures/publish/successCodeAndInfoForComplexMessage2WithEncryption",
+		[]string{"uuid"})
+	defer stop()
+
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "enigma", false, "", CreateLoggerForTests())
+	channel := "successCodeAndInfoForComplexMessage2WithEncryption"
 
 	customComplexMessage := InitComplexMessage()
 
-	returnChannel := make(chan []byte)
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, customComplexMessage, returnChannel, errorChannel)
-	go ParsePublishResponse(returnChannel, channel, publishSuccessMessage, "SuccessCodeAndInfoForComplexMessage2WithEncryption", responseChannel)
-
-	go ParseErrorResponse(errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "SuccessCodeAndInfoForComplexMessage2WithEncryption")
-	time.Sleep(2 * time.Second)
-}
-
-// ParsePublishResponse parses the response from the pubnub api to validate the
-// sent status.
-func ParsePublishResponse(returnChannel chan []byte, channel string, message string, testname string, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		if string(value) != "[]" {
-			response := fmt.Sprintf("%s", value)
-			//fmt.Println("Test '" + testname + "':" +response)
-			if strings.Contains(response, message) {
-				responseChannel <- "Test '" + testname + "': passed."
-				break
-			} else {
-				responseChannel <- "Test '" + testname + "': failed."
-				break
-			}
-		}
+	go pubnubInstance.Publish(channel, customComplexMessage,
+		successChannel, errorChannel)
+	select {
+	case msg := <-successChannel:
+		assert.Contains(string(msg), "1,")
+		assert.Contains(string(msg), "\"Sent\",")
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
 	}
 }
 
-// TestLargeMessage tests the client by publshing a large message
-// An error "message to large" should be returned from the server
-/*func TestLargeMessage(t *testing.T) {
-	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, SecKey, "", false, "")
-	channel := "testChannel"
-	message := "This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. This is a large message test which will return an error message. "
-	returnChannel := make(chan []byte)
+func TestPublishStringWithSerialization(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRBoth(
+		"fixtures/publish/publishStringWithSerialization",
+		[]string{"uuid"})
+	defer stop()
+
+	channel := "Channel_PublishStringWithSerialization"
+	uuid := "UUID_PublishStringWithSerialization"
+	//messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
+	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
+
+	successChannel := make(chan []byte)
 	errorChannel := make(chan []byte)
-	responseChannel := make(chan string)
-	waitChannel := make(chan string)
 
-	go pubnubInstance.Publish(channel, message, returnChannel, errorChannel)
-	go ParseLargeResponse("Message Too Large", errorChannel, responseChannel)
-	go WaitForCompletion(responseChannel, waitChannel)
-	ParseWaitResponse(waitChannel, t, "MessageTooLarge")
-}*/
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
 
-// ParseLargeResponse parses the returnChannel and matches the message m
-//
-// Parameters:
-// m: message to compare
-// returnChannel: the channel to read
-// responseChannel: the channel to send a response to.
-func ParseLargeResponse(m string, returnChannel chan []byte, responseChannel chan string) {
-	for {
-		value, ok := <-returnChannel
-		if !ok {
-			break
-		}
-		returnVal := string(value)
-		if returnVal != "[]" {
-			var s []interface{}
-			errJSON := json.Unmarshal(value, &s)
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
 
-			if (errJSON == nil) && (len(s) > 0) {
-				if message, ok := s[1].(string); ok {
-					if message == m {
-						responseChannel <- "passed"
-					} else {
-						responseChannel <- "failed"
-					}
-				} else {
-					responseChannel <- "failed"
+	await := make(chan bool)
+	//log.SetOutput(os.Stdout)
+	//log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
+	//log.Printf("subscribing")
+
+	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel, false,
+		subscribeErrorChannel)
+	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel,
+		subscribeErrorChannel)
+	//log.Printf("connected")
+	go func() {
+		//log.Printf("waiting")
+		select {
+		case message := <-subscribeSuccessChannel:
+			var response []interface{}
+			//var msgs []interface{}
+			var err error
+			//log.Printf("message %s", message)
+			/*if strings.Contains(string(message), fmt.Sprintf("'%s' connected", channel)) {
+				log.Printf("connected %s", channel)
+
+			} else {*/
+			err = json.Unmarshal(message, &response)
+			if err != nil {
+				assert.Fail(err.Error())
+			}
+
+			switch t := response[0].(type) {
+			case []interface{}:
+				var messageToPostMap map[string]interface{}
+
+				//msgs = response[0].([]interface{})
+				err := json.Unmarshal([]byte(messageToPost), &messageToPostMap)
+				if err != nil {
+					assert.Fail(err.Error())
 				}
-			} else {
-				responseChannel <- "failed"
+
+				assert.Contains(messageToPost, messageToPostMap["age"])
+				assert.Contains(messageToPost, messageToPostMap["name"])
+			default:
+				assert.Fail("Unexpected response type%s: ", t)
 			}
-			break
+
+			await <- true
+			//}
+		case err := <-subscribeErrorChannel:
+			assert.Fail(string(err))
+			await <- false
+		case <-timeouts(10):
+			assert.Fail("Timeout")
+			await <- false
 		}
+	}()
+	//sleep(1)
+	go pubnubInstance.Publish(channel, messageToPost, successChannel, errorChannel)
+	select {
+	case <-successChannel:
+		//log.Printf("pub message %s", message)
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeouts(30):
+		assert.Fail("Publish timeout")
 	}
+
+	<-await
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
+}
+
+func TestPublishStringWithoutSerialization(t *testing.T) {
+	assert := assert.New(t)
+
+	stop, _ := NewVCRBoth(
+		"fixtures/publish/publishStringWithoutSerialization",
+		[]string{"uuid"})
+	defer stop()
+
+	channel := "Channel_PublishStringWithoutSerialization"
+	uuid := "UUID_PublishStringWithoutSerialization"
+	//messaging.SetLogOutput(os.Stdout)
+	//messaging.LoggingEnabled(true)
+	pubnubInstance := messaging.NewPubnub(PubKey, SubKey, "", "", false, uuid, CreateLoggerForTests())
+	messageToPost := "{\"name\": \"Alex\", \"age\": \"123\"}"
+
+	successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+
+	subscribeSuccessChannel := make(chan []byte)
+	subscribeErrorChannel := make(chan []byte)
+
+	unsubscribeSuccessChannel := make(chan []byte)
+	unsubscribeErrorChannel := make(chan []byte)
+
+	await := make(chan bool)
+
+	go pubnubInstance.Subscribe(channel, "", subscribeSuccessChannel, false,
+		subscribeErrorChannel)
+	ExpectConnectedEvent(t, channel, "", subscribeSuccessChannel,
+		subscribeErrorChannel)
+
+	go func() {
+		select {
+		case message := <-subscribeSuccessChannel:
+			var response []interface{}
+			//var msgs []interface{}
+			var err error
+
+			err = json.Unmarshal(message, &response)
+			if err != nil {
+				assert.Fail(err.Error())
+			}
+
+			switch t := response[0].(type) {
+			case []interface{}:
+				var messageToPostMap map[string]interface{}
+
+				//msgs = response[0].([]interface{})
+				err := json.Unmarshal([]byte(messageToPost), &messageToPostMap)
+				if err != nil {
+					assert.Fail(err.Error())
+				}
+
+				//assert.Equal(messageToPostMap, msgs[0])
+				assert.Contains(messageToPost, messageToPostMap["age"])
+				assert.Contains(messageToPost, messageToPostMap["name"])
+
+			default:
+				assert.Fail("Unexpected response type%s: ", t)
+			}
+
+			await <- true
+		case err := <-subscribeErrorChannel:
+			assert.Fail(string(err))
+			await <- false
+		case <-timeouts(10):
+			assert.Fail("Timeout")
+			await <- false
+		}
+	}()
+
+	go pubnubInstance.PublishExtended(channel, messageToPost, false, true,
+		successChannel, errorChannel)
+	select {
+	case <-successChannel:
+	case err := <-errorChannel:
+		assert.Fail(string(err))
+	case <-timeout():
+		assert.Fail("Publish timeout")
+	}
+
+	<-await
+
+	go pubnubInstance.Unsubscribe(channel, unsubscribeSuccessChannel, unsubscribeErrorChannel)
+	ExpectUnsubscribedEvent(t, channel, "", unsubscribeSuccessChannel, unsubscribeErrorChannel)
 }
 
 // TestPublishEnd prints a message on the screen to mark the end of

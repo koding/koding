@@ -1,0 +1,93 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=0&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"t":{"t":"14586613343837041","r":4},"m":[]}'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "27"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:14 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613343837041&tr=4&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"t":{"t":"14586613347010329","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimpleWithCipher","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Mpx_Channel_1","b":"Mpx_Channel_1","d":"NEzif8UOAV1bxmYio4KPAw=="}]}'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "66"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:14 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613347010329&tr=4&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"t":{"t":"14586613349948803","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForSimpleWithCipher","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Mpx_Channel_2","b":"Mpx_Channel_2","d":"xXch1+uwbgGgLOudCKzFSw=="}]}' 
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "66"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:15 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests:
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Mpx_Channel_1,Mpx_Channel_2/0?uuid=UUID_Multiplexing&tt=14586613349948803&tr=4&pnsdk=PubNub-Go%2F3.14.0
+  : {}

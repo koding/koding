@@ -1,0 +1,284 @@
+--- 
+changelog: 
+  - 
+    changes: 
+      - 
+        text: “Fixed a corner case panic”
+        type: improvement
+    date: Apr 18, 17
+    version: v3.14.0
+  - 
+    changes: 
+      - 
+        text: “Presence delta intervals”
+        type: improvement
+    date: Mar 28, 17
+    version: v3.13.0
+  - 
+    changes: 
+      - 
+        text: “Super Admin”
+        type: improvement
+      - 
+        text: “Non 200 handling on some non subscribe requests”
+        type: improvement
+    date: Mar 23, 17
+    version: v3.12.0
+  - 
+    changes: 
+      - 
+        text: “NonSub goroutine concurrency and worker queues”
+        type: improvement
+    date: Mar 10, 17
+    version: v3.11.0
+  - 
+    changes: 
+      - 
+        text: “Breaking API Change newPubnub has a new parameter where it expects a logger instance. This fixes a rare race condition”
+        type: improvement
+      - 
+        text: “Prefix uuid with 'pn-'”
+        type: improvement
+      - 
+        text: “Fix use of escaping JSON during publish”
+        type: improvement
+    date: Feb 22, 17
+    version: v3.10.0  
+  - 
+    changes: 
+      - 
+        text: “Message TTL”
+        type: improvement
+      - 
+        text: “Subscriber UUID is displayed for Subscribe V2”
+        type: improvement
+      - 
+        text: “Subscribe V2 response”
+        type: improvement
+    date: Jan 11, 17
+    version: v3.9.4.3
+  - 
+    changes: 
+      - 
+        text: “Changed origin to ps.pndsn.com”
+        type: improvement
+    date: Dec 21, 16
+    version: v3.9.4.2
+  - 
+    changes: 
+      - 
+        text: “fixed misspells, some golint changes and gocyclo issues”
+        type: improvement
+    date: Oct 31, 16
+    version: v3.9.4.1
+  - 
+    changes: 
+      - 
+        text: “Fire method”
+        type: feature
+      - 
+        text: “Replicate arg in Publish“
+        type: feature
+    date: Oct 28, 16
+    version: v3.9.4
+  - 
+    changes: 
+      - 
+        text: "PubSub v2."
+        type: feature
+      - 
+        text: "Message Filtering."
+        type: feature
+      - 
+        text: "logging handling to remove potential data races when using multiple instances, logging format changed. Removed mutex around logging statements."
+        type: improvement
+      - 
+        text: "added alternative implementation of encodeNonASCIIChars"
+        type: improvement
+      - 
+        text: "Fixed storeInHistory when publishing"
+        type: improvement
+    date: Oct 11, 16
+    version: v3.9.3
+  - 
+    changes: 
+      - 
+        text: "Add request workers for different request types. Each Pubnub instance has it's own request workers set now. Each worker has it's own transport, which now can be customized by user using associated setter."
+        type: bug
+      - 
+        text: "Add module setters for default subscribe and non-subscribe transports."
+        type: improvement
+      - 
+        text: "Add instance setters for subscribe and non-subscribe transports."
+        type: improvement
+      - 
+        text: "Add more errors handling codecoverage for codecov.io."
+        type: improvement
+      - 
+        text: "Rewrite most of loggers with unified syntax."
+        type: improvement
+      - 
+        text: "Add history 'include_token' param."
+        type: feature
+      - 
+        text: "Add uuid param to state getter."
+        type: feature
+      - 
+        text: "Add channelGroup param to HereNow method."
+        type: feature
+      - 
+        text: "Channel group's add and remove methods errors channel now emits a single error with a group as entity, instead of multiple errors with all passed-in channels as entity."
+        type: feature
+    version: v3.8.0
+  - 
+    changes: 
+      - 
+        text: "Subscribe method arguments changed."
+        type: improvement
+      - 
+        text: "Add authKey argument to all PAM methods."
+        type: improvement
+      - 
+        text: "Add Channel Group Methods."
+        type: feature
+      - 
+        text: "Add PublishExtended() method that extends existing Publish() with 2 bool options, storeInHistory and doNotSerialize."
+        type: feature
+      - 
+        text: "Fix multiple channels encoding in PAM methods."
+        type: improvement
+    version: v3.7.0
+  - 
+    changes: 
+      - 
+        text: "Exposed MaxIdleConnsPerHost of the transport."
+        type: improvement
+    version: v3.6.4
+  - 
+    changes: 
+      - 
+        text: "PAM operations (grant, revoke, audit) now return 403 errors in the Error Callback."
+        type: improvement
+      - 
+        text: "SetLogging method name changed to LoggingEnabled."
+        type: improvement
+      - 
+        text: "SetLogOutput added, you can customize the log output now."
+        type: improvement
+      - 
+        text: "Support to change uuid."
+        type: improvement
+    version: v3.6.3
+  - 
+    changes: 
+      - 
+        text: "HereNow with state (here now's signature has changed, the response has also changed)."
+        type: feature
+      - 
+        text: WhereNow.
+        type: feature
+      - 
+        text: "Global Here Now."
+        type: feature
+      - 
+        text: "User State (Set, Get, Delete)."
+        type: feature
+      - 
+        text: "Presence heartbeat."
+        type: feature
+      - 
+        text: "Presence heartbeat interval."
+        type: improvement
+      - 
+        text: "nonSubscribeTimeout, retryInterval, connectTimeout, subscribeTimeout are converted to uint16."
+        type: improvement
+      - 
+        text: Optimizations.
+        type: improvement
+      - 
+        text: "Error Callback, All the error messages are routed to this callback channel."
+        type: improvement
+      - 
+        text: "Resume on reconnect."
+        type: feature
+      - 
+        text: "You can now \"Subscribe with timetoken\"."
+        type: feature
+      - 
+        text: "Supports multiplexing, UUID, SSL, Encryption, Proxy, and godoc."
+        type: feature
+      - 
+        text: "Multiple messages received in a single response from the server will now be split into individual messages."
+        type: improvement
+      - 
+        text: "Non 200 response will now be bubbled to the client."
+        type: improvement
+    version: v3.6.0
+features: 
+  access: 
+    - ACCESS-GRANT
+    - ACCESS-SECRET-KEY-ALL-ACCESS    
+  channel-groups: 
+    - CHANNEL-GROUPS-ADD-CHANNELS
+    - CHANNEL-GROUPS-REMOVE-CHANNELS
+    - CHANNEL-GROUPS-REMOVE-GROUPS
+    - CHANNEL-GROUPS-LIST-CHANNELS-IN-GROUP
+  presence: 
+    - PRESENCE-HERE-NOW
+    - PRESENCE-WHERE-NOW
+    - PRESENCE-SET-STATE
+    - PRESENCE-GET-STATE
+    - PRESENCE-HEARTBEAT
+    - PRESENCE-DELTAS
+  publish: 
+    - PUBLISH-STORE-FLAG
+    - PUBLISH-RAW-JSON
+    - PUBLISH-GET
+    - PUBLISH-ASYNC
+    - PUBLISH-FIRE 
+    - PUBLISH-REPLICATION-FLAG
+    - PUBLISH-WITH-METADATA
+    - PUBLISH-MESSAGE-TTL
+  push: 
+    - PUSH-ADD-DEVICE-TO-CHANNELS
+    - PUSH-REMOVE-DEVICE-FROM-CHANNELS
+    - PUSH-LIST-CHANNELS-FROM-DEVICE
+    - PUSH-REMOVE-DEVICE
+  storage: 
+    - STORAGE-REVERSE
+    - STORAGE-INCLUDE-TIMETOKEN
+    - STORAGE-START-END
+    - STORAGE-COUNT
+  subscribe: 
+    - SUBSCRIBE-CHANNELS
+    - SUBSCRIBE-CHANNEL-GROUPS
+    - SUBSCRIBE-PRESENCE-CHANNELS
+    - SUBSCRIBE-PRESENCE-CHANNELS-GROUPS
+    - SUBSCRIBE-WITH-TIMETOKEN
+    - SUBSCRIBE-WILDCARD
+    - SUBSCRIBE-FILTER-EXPRESSION
+    - SUBSCRIBE-WILDCARD
+    - SUBSCRIBE-PUBSUB-V2
+    - SUBSCRIBE-PUBLISHER-UUID
+  time: 
+    - TIME-TIME
+supported-platforms:
+  - 
+    version: PubNub Go SDK
+    platforms:
+      - FreeBSD 8-STABLE or later, amd64, 386, Debian GNU/kFreeBSD not supported.
+      - Linux 2.6.23 or later with glibc, amd64, 386, arm, s390x, ppc64le, CentOS/RHEL 5.x not supported.
+      - Mac OS X 10.8 or later, amd64, use the clang or gcc† that comes with Xcode‡ for cgo support.
+      - Windows 7 or later, amd64, 386, use MinGW gcc†. No need for cygwin or msys.
+    editors:
+      - go1.2
+      - go1.3 
+      - go1.4 
+      - go1.5 
+      - go1.6 
+      - go1.7 
+      - go1.8
+name: go
+schema: 1
+scm: github.com/pubnub/go
+version: “3.14.0”

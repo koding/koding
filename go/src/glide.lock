@@ -586,7 +586,7 @@ imports:
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
 - name: github.com/koding/pubnub
-  version: a3b695f8d7b6f32014aba0a929b000bd66a33f30
+  version: 81a8244d6fdad19400c26d0a2df54c3ce630f686
 - name: github.com/koding/rabbitmq
   version: 85d8cac01c9bf45a9ad3c2c1a53640143e3f632a
 - name: github.com/koding/redis
@@ -778,9 +778,11 @@ imports:
 - name: github.com/pkg/sftp
   version: e84cc8c755ca39b7b64f510fe1fffc1b51f210a5
 - name: github.com/pubnub/go
-  version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
+  version: 877250964fc316c67994cd7cad5870828fa35a07
   subpackages:
   - messaging
+- name: github.com/pubnub/go-vcr
+  version: dce903a128d986ff9193994098bc078166e1dee8
 - name: github.com/racker/perigee
   version: 44a7879d89b7040bcdb51164a83292ef5bf9deec
 - name: github.com/rainycape/unidecode

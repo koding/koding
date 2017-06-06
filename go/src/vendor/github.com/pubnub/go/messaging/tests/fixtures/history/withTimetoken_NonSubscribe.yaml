@@ -1,0 +1,334 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%200%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=1
+    method: GET
+  response:
+    body: '[1,"Sent","14615805862249273"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%201%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=2
+    method: GET
+  response:
+    body: '[1,"Sent","14615805862479911"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%202%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=3
+    method: GET
+  response:
+    body: '[1,"Sent","14615805862706370"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%203%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=4
+    method: GET
+  response:
+    body: '[1,"Sent","14615805862937770"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%204%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=5
+    method: GET
+  response:
+    body: '[1,"Sent","14615805863182787"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%205%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=6
+    method: GET
+  response:
+    body: '[1,"Sent","14615805863426513"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%206%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=7
+    method: GET
+  response:
+    body: '[1,"Sent","14615805863682264"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%207%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=8
+    method: GET
+  response:
+    body: '[1,"Sent","14615805864120535"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%208%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=9
+    method: GET
+  response:
+    body: '[1,"Sent","14615805864372345"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_HistoryWithTT/0/%22Test%20TT%20Message%209%22?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT&seqn=10
+    method: GET
+  response:
+    body: '[1,"Sent","14615805864620141"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/history/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_HistoryWithTT?count=10&reverse=false&include_token=true&pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_HistoryWithTT
+    method: GET
+  response:
+    body: '[[{"message":"Test TT Message 0","timetoken":14615805862249273},{"message":"Test
+      TT Message 1","timetoken":14615805862479911},{"message":"Test TT Message 2","timetoken":14615805862706370},{"message":"Test
+      TT Message 3","timetoken":14615805862937770},{"message":"Test TT Message 4","timetoken":14615805863182787},{"message":"Test
+      TT Message 5","timetoken":14615805863426513},{"message":"Test TT Message 6","timetoken":14615805863682264},{"message":"Test
+      TT Message 7","timetoken":14615805864120535},{"message":"Test TT Message 8","timetoken":14615805864372345},{"message":"Test
+      TT Message 9","timetoken":14615805864620141}],14615805862249273,14615805864620141]'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "659"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 10:36:29 GMT
+      Server:
+      - Pubnub
+    status: 200 OK
+    code: 200
+unclosed_requests: {}
