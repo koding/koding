@@ -5,29 +5,32 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
-
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl/ast"
-	"github.com/kr/pretty"
+	"unicode"
 )
 
 // Variable represents a Terraform variable
 // position in a raw string.
 type Variable struct {
-	Name string
-	From int
-	To   int
+	Name       string
+	From       int
+	To         int
+	Expression bool
 }
 
 var _ fmt.Stringer = (*Variable)(nil)
 
 // String implements the fmt.Stringer interface.
 func (v *Variable) String() string {
+	if v.Expression {
+		return "var." + v.Name
+	}
 	return "${var." + v.Name + "}"
 }
 
 // ReadVariables gives a list of variables read from s.
 func ReadVariables(s string) []Variable {
+	const prefix = "var."
+
 	if strings.Count(s, "${") == 0 {
 		return nil
 	}
@@ -50,18 +53,45 @@ func ReadVariables(s string) []Variable {
 
 		name := strings.TrimSpace(s[i : i+k])
 
-		if !strings.HasPrefix(name, "var.") {
+		if strings.HasPrefix(name, prefix) {
+			vars = append(vars, Variable{
+				Name: name[len(prefix):],
+				From: i - 2,
+				To:   i + k + 1,
+			})
 			continue
 		}
 
-		vars = append(vars, Variable{
-			Name: name[4:],
-			From: i - 2,
-			To:   i + k + 1,
-		})
+		match := 0
+
+		for l, r := range name {
+			switch {
+			case match >= len(prefix):
+				if isVarChar(r) && l != len(name)-1 {
+					match++
+					break
+				}
+
+				vars = append(vars, Variable{
+					Name:       name[l-match+len(prefix) : l],
+					From:       i + l - match,
+					To:         i + l,
+					Expression: true,
+				})
+
+				match = 0
+			case r == rune(prefix[match]):
+				match++
+			}
+		}
+
 	}
 
 	return vars
+}
+
+func isVarChar(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '-' || r == '_'
 }
 
 // ReplaceVariables replaces all variables with the given blank.
@@ -121,19 +151,4 @@ func EscapeDeadVariables(userdata string) string {
 	}
 
 	return strings.TrimRight(buf.String(), "\r\n")
-}
-
-func MapVariables(s string, fn func()) string {
-	root, err := hcl.Parse(s)
-	if err != nil {
-		fmt.Println(err)
-		return s
-	}
-
-	ast.Walk(root, func(n ast.Node) (ast.Node, bool) {
-		pretty.Println(n)
-		return n, true
-	})
-
-	return s
 }
