@@ -527,10 +527,10 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:  "daemon",
+		Name:  "daemon", // Moved to cobra.
 		Usage: "Manage KD Daemon service.",
 		Subcommands: []cli.Command{{
-			Name:   "install",
+			Name:   "install", // Moved to cobra.
 			Usage:  "Install the daemon and dependencies.",
 			Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
 			Flags: []cli.Flag{
@@ -561,7 +561,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "uninstall",
+			Name:   "uninstall", // Moved to cobra.
 			Usage:  "Uninstall the daemon and dependencies.",
 			Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
 			Flags: []cli.Flag{
@@ -571,7 +571,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "update",
+			Name:   "update", // Moved to cobra.
 			Usage:  "Update KD and KD Daemon to the latest versions.",
 			Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
 			Flags: []cli.Flag{
@@ -587,24 +587,24 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "start",
+			Name:   "start", // Moved to cobra.
 			Usage:  "Start the daemon service.",
 			Action: ctlcli.ExitErrAction(DaemonStart, log, "start"),
 		}, {
-			Name:   "restart",
+			Name:   "restart", // Moved to cobra.
 			Usage:  "Restart the daemon service.",
 			Action: ctlcli.ExitErrAction(DaemonRestart, log, "restart"),
 		}, {
-			Name:   "stop",
+			Name:   "stop", // Moved to cobra.
 			Usage:  "Stop the daemon service.",
 			Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
 		}},
 	}, {
-		Name:   "init",
+		Name:   "init", // Moved to cobra.
 		Usage:  "Initializes KD project.",
 		Action: ctlcli.ExitErrAction(Init, log, "init"),
 	}, {
-		Name:        "version",
+		Name:        "version", // Moved to cobra.
 		Usage:       "Display version information.",
 		HideHelp:    true,
 		Description: cmdDescriptions["version"],
@@ -616,12 +616,12 @@ error opening: %s
 			},
 		},
 	}, {
-		Name:        "status",
+		Name:        "status", // Moved to cobra.
 		Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 		Description: cmdDescriptions["status"],
 		Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
 	}, {
-		Name:        "autocompletion",
+		Name:        "autocompletion", // Deprecated.
 		Usage:       "Enable autocompletion support for bash and fish shells",
 		Description: cmdDescriptions["autocompletion"],
 		Flags: []cli.Flag{
@@ -662,7 +662,7 @@ error opening: %s
 			Action: ctlcli.ExitErrAction(LogUpload, log, "upload"),
 		}},
 	}, {
-		Name: "open",
+		Name: "open", // Moved to cobra.
 		Usage: fmt.Sprintf(
 			"Open the given file(s) on the Koding UI",
 		),
