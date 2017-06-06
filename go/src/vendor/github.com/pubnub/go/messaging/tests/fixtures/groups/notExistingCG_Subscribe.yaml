@@ -1,0 +1,34 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_NotExistingCG&uuid=UUID_NotExistingCG&tt=0&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"status":400,"service":"PubSub","error":true,"message":"Channel group
+      or groups result in empty subscription set"}'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "115"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Fri, 01 Apr 2016 14:17:05 GMT
+    status: 400 Error
+    code: 400
+unclosed_requests: {}

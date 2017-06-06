@@ -1,6 +1,6 @@
 // Package messaging provides the implemetation to connect to pubnub api on google appengine.
-// Build Date: Jul 30, 2015
-// Version: 3.6.3
+// Build Date: Nov 25, 2016
+// Version: 3.11.0
 package messaging
 
 //TODO:
@@ -60,7 +60,7 @@ const (
 const (
 	//Sdk Identification Param appended to each request
 	sdkIdentificationParamKey = "pnsdk"
-	sdkIdentificationParamVal = "PubNub-Go-GAE/3.6.3"
+	sdkIdentificationParamVal = "PubNub-Go-GAE/3.11.0"
 
 	// This string is appended to all presence channels
 	// to differentiate from the subscribe requests.
@@ -131,7 +131,7 @@ var (
 	connectTimeout uint16 = 10 //sec
 
 	// Root url value of pubnub api without the http/https protocol.
-	origin = "pubsub.pubnub.com"
+	origin = "ps.pndsn.com"
 
 	// The time after which the Subscribe/Presence request will timeout.
 	// In seconds.
@@ -216,7 +216,7 @@ var (
 
 // VersionInfo returns the version of the this code along with the build date.
 func VersionInfo() string {
-	return "PubNub Go GAE client SDK Version: 3.6.3; Build Date: Jul 30, 2015;"
+	return "PubNub Go GAE client SDK Version: 3.11.0; Build Date: Nov 25, 2016;"
 }
 
 // initStore initializes the cookie store using the secret key
@@ -402,6 +402,8 @@ type Pubnub struct {
 	SentTimeToken      string
 	ResetTimeToken     bool
 	UserState          map[string]map[string]interface{}
+	publishCounter     uint64
+	publishCounterMu   sync.Mutex
 }
 
 // PubnubUnitTest structure used to expose some data for unit tests.
@@ -472,7 +474,7 @@ func (pub *Pubnub) SetUUID(context context.Context, w http.ResponseWriter, r *ht
 	if strings.TrimSpace(val) == "" {
 		uuid, err := GenUuid()
 		if err == nil {
-			pub.Uuid = url.QueryEscape(uuid)
+			pub.Uuid = fmt.Sprintf("pn-%s", url.QueryEscape(uuid))
 		} else {
 			log.Errorf(context, err.Error())
 		}
@@ -582,11 +584,20 @@ func (pub *Pubnub) closeRetryConnection() {
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantSubscribe(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantSubscribe(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, read, write bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "GrantSubscribe")
 	checkCallbackNil(errorChannel, true, "GrantSubscribe")
 
-	pub.executePam(context, w, r, channel, read, write, ttl, callbackChannel, errorChannel, false)
+	pub.pamValidateSecretKey(channel, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("grant", channel, read, write,
+		ttl, authKey)
+
+	pub.executePam(context, w, r, channel, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // AuditSubscribe will make a call to display the permissions for a channel or subkey
@@ -594,11 +605,20 @@ func (pub *Pubnub) GrantSubscribe(context context.Context, w http.ResponseWriter
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditSubscribe(context context.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditSubscribe(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "AuditSubscribe")
 	checkCallbackNil(errorChannel, true, "AuditSubscribe")
 
-	pub.executePam(context, w, r, channel, false, false, -1, callbackChannel, errorChannel, true)
+	pub.pamValidateSecretKey(channel, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("audit", channel, false, false,
+		-1, authKey)
+
+	pub.executePam(context, w, r, channel, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // GrantPresence is used to give a presence channel read, write permissions
@@ -608,12 +628,22 @@ func (pub *Pubnub) AuditSubscribe(context context.Context, w http.ResponseWriter
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) GrantPresence(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) GrantPresence(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, read, write bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+
 	checkCallbackNil(callbackChannel, false, "GrantPresence")
 	checkCallbackNil(errorChannel, true, "GrantPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(context, w, r, channel2, read, write, ttl, callbackChannel, errorChannel, false)
+
+	pub.pamValidateSecretKey(channel2, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("grant", channel2, read, write,
+		ttl, authKey)
+
+	pub.executePam(context, w, r, channel2, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // AuditPresence will make a call to display the permissions for a channel or subkey
@@ -621,12 +651,56 @@ func (pub *Pubnub) GrantPresence(context context.Context, w http.ResponseWriter,
 // channel is options and if not provided will set the permissions at subkey level
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) AuditPresence(context context.Context, w http.ResponseWriter, r *http.Request, channel string, callbackChannel chan []byte, errorChannel chan []byte) {
+func (pub *Pubnub) AuditPresence(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, authKey string,
+	callbackChannel, errorChannel chan []byte) {
 	checkCallbackNil(callbackChannel, false, "AuditPresence")
 	checkCallbackNil(errorChannel, true, "AuditPresence")
 
 	channel2 := convertToPresenceChannel(channel)
-	pub.executePam(context, w, r, channel2, false, false, -1, callbackChannel, errorChannel, true)
+
+	pub.pamValidateSecretKey(channel2, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannel("audit", channel2, false, false,
+		-1, authKey)
+
+	pub.executePam(context, w, r, channel2, requestURL,
+		callbackChannel, errorChannel)
+}
+
+// GrantChannelGroup is used to give a channel group read or manage permissions
+// and set TTL values for it.
+func (pub *Pubnub) GrantChannelGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, group string, read, manage bool,
+	ttl int, authKey string, callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "GrantChannelGroup")
+	checkCallbackNil(errorChannel, true, "GrantChannelGroup")
+
+	pub.pamValidateSecretKey(group, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannelGroup("grant", group, read, manage,
+		ttl, authKey)
+
+	pub.executePam(context, w, r, group, requestURL,
+		callbackChannel, errorChannel)
+}
+
+// AuditChannelGroup will make a call to display the permissions
+// for a channel
+// group or subkey
+func (pub *Pubnub) AuditChannelGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, group, authKey string,
+	callbackChannel, errorChannel chan []byte) {
+	checkCallbackNil(callbackChannel, false, "AuditChannelGroup")
+	checkCallbackNil(errorChannel, true, "AuditChannelGroup")
+
+	pub.pamValidateSecretKey(group, errorChannel)
+
+	requestURL := pub.pamGenerateParamsForChannelGroup("audit", group, false, false,
+		-1, authKey)
+
+	pub.executePam(context, w, r, group, requestURL,
+		callbackChannel, errorChannel)
 }
 
 // removeSpacesFromChannelNames will remove the empty spaces from the channels (sent as a comma separated string)
@@ -681,65 +755,58 @@ func queryEscapeMultiple(q string, splitter string) string {
 	return pBuffer.String()
 }
 
-// executePam is the main method which is called for all PAM requests
-//
-// for audit request the isAudit parameter should be true
-func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r *http.Request, channel string, read bool, write bool, ttl int, callbackChannel chan []byte, errorChannel chan []byte, isAudit bool) {
-	signature := ""
-	noChannel := true
-	grantOrAudit := "grant"
+func (pub *Pubnub) pamValidateSecretKey(entity string, errorChannel chan []byte) {
+	message := "Secret key is required"
+
+	if strings.TrimSpace(pub.SecretKey) == "" {
+		if strings.TrimSpace(entity) == "" {
+			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
+		} else {
+			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
+		}
+	}
+}
+
+//  generate params string for channels pam request
+func (pub *Pubnub) pamGenerateParamsForChannel(action, channel string,
+	read, write bool, ttl int, authKey string) string {
 	authParam := ""
 	channelParam := ""
+	noChannel := true
 	readParam := ""
 	writeParam := ""
 	timestampParam := ""
 	ttlParam := ""
+	filler := "&"
+	isAudit := action == "audit"
 
 	var params bytes.Buffer
+	var pamURLBuffer bytes.Buffer
 
 	if strings.TrimSpace(channel) != "" {
 		if isAudit {
-			channelParam = fmt.Sprintf("channel=%s", queryEscapeMultiple(channel, ","))
+			channelParam = fmt.Sprintf("channel=%s", url.QueryEscape(channel))
 		} else {
-			channelParam = fmt.Sprintf("channel=%s&", queryEscapeMultiple(channel, ","))
+			channelParam = fmt.Sprintf("channel=%s&", url.QueryEscape(channel))
 		}
 		noChannel = false
 	}
 
-	if strings.TrimSpace(pub.SecretKey) == "" {
-		message := "Secret key is required"
-		if noChannel {
-			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
+	if strings.TrimSpace(authKey) != "" {
+		if isAudit && noChannel {
+			authParam = fmt.Sprintf("auth=%s", url.QueryEscape(authKey))
 		} else {
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, "")
-		}
-		return
-	}
-
-	if strings.TrimSpace(pub.AuthenticationKey) != "" {
-		if isAudit {
-			if !noChannel {
-				authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.AuthenticationKey))
-			} else {
-				authParam = fmt.Sprintf("auth=%s", url.QueryEscape(pub.AuthenticationKey))
-			}
-		} else {
-			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(pub.AuthenticationKey))
+			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(authKey))
 		}
 	}
 
-	var pamURLBuffer bytes.Buffer
-	pamURLBuffer.WriteString("/v1/auth/")
-	filler := "&"
-	if (noChannel) && (strings.TrimSpace(pub.AuthenticationKey) == "") {
+	if (noChannel) && (strings.TrimSpace(authKey) == "") {
 		filler = ""
 	}
-	if isAudit {
-		grantOrAudit = "audit"
-		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
-	} else {
-		timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
 
+	timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
+
+	if !isAudit {
 		if read {
 			readParam = "r=1&"
 		} else {
@@ -751,6 +818,7 @@ func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r 
 		} else {
 			writeParam = "&w=0"
 		}
+
 		if ttl != -1 {
 			if isAudit {
 				ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
@@ -759,29 +827,145 @@ func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r 
 			}
 		}
 	}
-	pamURLBuffer.WriteString(grantOrAudit)
+
 	if isAudit {
-		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s%s", authParam, channelParam, filler, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), ttlParam, writeParam))
+		params.WriteString(fmt.Sprintf("%s%s%s%s&%s%s&uuid=%s%s", authParam,
+			channelParam, filler, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID(), writeParam))
+
+	} else if !isAudit && ttl != -1 {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam,
+			channelParam, sdkIdentificationParam, readParam, timestampParam,
+			ttlParam, pub.GetUUID(), writeParam))
+
 	} else {
-		if ttl != -1 {
-			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, ttlParam, pub.GetUUID(), writeParam))
-		} else {
-			params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam, channelParam, sdkIdentificationParam, readParam, timestampParam, pub.GetUUID(), writeParam))
-		}
+		params.WriteString(fmt.Sprintf("%s%s%s&%s%s&uuid=%s%s", authParam,
+			channelParam, sdkIdentificationParam, readParam, timestampParam,
+			pub.GetUUID(), writeParam))
 	}
-	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey, grantOrAudit, params.String())
-	signature = getHmacSha256(pub.SecretKey, raw)
 
-	params.WriteString("&")
-	params.WriteString("signature=")
-	params.WriteString(signature)
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
+		action, params.String())
+	signature := getHmacSha256(pub.SecretKey, raw)
 
+	pamURLBuffer.WriteString("/v1/auth/")
+	pamURLBuffer.WriteString(action)
 	pamURLBuffer.WriteString("/sub-key/")
 	pamURLBuffer.WriteString(pub.SubscribeKey)
 	pamURLBuffer.WriteString("?")
 	pamURLBuffer.WriteString(params.String())
+	pamURLBuffer.WriteString("&")
+	pamURLBuffer.WriteString("signature=")
+	pamURLBuffer.WriteString(signature)
 
-	value, responseCode, err := pub.httpRequest(context, w, r, pamURLBuffer.String(), nonSubscribeTrans)
+	return pamURLBuffer.String()
+}
+
+//  generate params string for channel groups pam request
+func (pub *Pubnub) pamGenerateParamsForChannelGroup(action, channelGroup string,
+	read, manage bool, ttl int, authKey string) string {
+
+	authParam := ""
+	channelGroupParam := ""
+	noChannelGroup := true
+	readParam := ""
+	manageParam := ""
+	timestampParam := ""
+	ttlParam := ""
+	filler := "&"
+	isAudit := action == "audit"
+
+	var params bytes.Buffer
+	var pamURLBuffer bytes.Buffer
+
+	if strings.TrimSpace(channelGroup) != "" {
+		if isAudit {
+			channelGroupParam = fmt.Sprintf("channel-group=%s",
+				url.QueryEscape(channelGroup))
+		} else {
+			channelGroupParam = fmt.Sprintf("channel-group=%s&",
+				url.QueryEscape(channelGroup))
+		}
+		noChannelGroup = false
+	}
+
+	if strings.TrimSpace(authKey) != "" {
+		if isAudit && noChannelGroup {
+			authParam = fmt.Sprintf("auth=%s", url.QueryEscape(authKey))
+		} else {
+			authParam = fmt.Sprintf("auth=%s&", url.QueryEscape(authKey))
+		}
+	}
+
+	if (noChannelGroup) && (strings.TrimSpace(authKey) == "") {
+		filler = ""
+	}
+
+	timestampParam = fmt.Sprintf("timestamp=%s", getUnixTimeStamp())
+
+	if !isAudit {
+		if read {
+			readParam = "r=1&"
+		} else {
+			readParam = "r=0&"
+		}
+
+		if manage {
+			manageParam = "m=1"
+		} else {
+			manageParam = "m=0"
+		}
+
+		if ttl != -1 {
+			if isAudit {
+				ttlParam = fmt.Sprintf("&ttl=%s", strconv.Itoa(ttl))
+			} else {
+				ttlParam = fmt.Sprintf("ttl=%s", strconv.Itoa(ttl))
+			}
+		}
+	}
+
+	if isAudit {
+		params.WriteString(fmt.Sprintf("%s%s%s%s%s&%s%s&uuid=%s", authParam,
+			channelGroupParam, filler, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID()))
+
+	} else if !isAudit && ttl != -1 {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s&%s%s&%s&uuid=%s", authParam,
+			channelGroupParam, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, ttlParam, pub.GetUUID()))
+
+	} else {
+		params.WriteString(fmt.Sprintf("%s%s%s&%s&%s%s&uuid=%s", authParam,
+			channelGroupParam, manageParam, sdkIdentificationParam, readParam,
+			timestampParam, pub.GetUUID()))
+	}
+
+	raw := fmt.Sprintf("%s\n%s\n%s\n%s", pub.SubscribeKey, pub.PublishKey,
+		action, params.String())
+	signature := getHmacSha256(pub.SecretKey, raw)
+
+	pamURLBuffer.WriteString("/v1/auth/")
+	pamURLBuffer.WriteString(action)
+	pamURLBuffer.WriteString("/sub-key/")
+	pamURLBuffer.WriteString(pub.SubscribeKey)
+	pamURLBuffer.WriteString("?")
+	pamURLBuffer.WriteString(params.String())
+	pamURLBuffer.WriteString("&")
+	pamURLBuffer.WriteString("signature=")
+	pamURLBuffer.WriteString(signature)
+
+	return pamURLBuffer.String()
+}
+
+// executePam is the main method which is called for all PAM requests
+//
+// for audit request the isAudit parameter should be true
+func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter,
+	r *http.Request, entity, requestURL string,
+	callbackChannel, errorChannel chan []byte) {
+
+	value, responseCode, err := pub.httpRequest(context, w, r, requestURL, nonSubscribeTrans)
 	if (responseCode != 200) || (err != nil) {
 		var message = ""
 		if err != nil {
@@ -791,10 +975,10 @@ func (pub *Pubnub) executePam(context context.Context, w http.ResponseWriter, r 
 			message = fmt.Sprintf("%s", value)
 			log.Errorf(context, fmt.Sprintf("PAM Error: responseCode %d, message %s", responseCode, message))
 		}
-		if noChannel {
+		if strings.TrimSpace(entity) == "" {
 			pub.sendResponseToChannel(errorChannel, "", responseWithoutChannel, message, "")
 		} else {
-			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, message, "")
+			pub.sendResponseToChannel(errorChannel, entity, responseAsIsError, message, "")
 		}
 	} else {
 		callbackChannel <- []byte(fmt.Sprintf("%s", value))
@@ -866,27 +1050,70 @@ func (pub *Pubnub) executeTime(context context.Context, w http.ResponseWriter, r
 	}
 }
 
+// encodeJSONAsPathComponent properly encodes serialized JSON
+// for placement within a URI path
+func encodeJSONAsPathComponent(jsonBytes string) string {
+	u := &url.URL{Path: jsonBytes}
+	encodedPath := u.String()
+
+	// Go 1.8 inserts a ./ per RFC 3986 §4.2. Previous versions
+	// will be unaffected by this under the assumption that jsonBytes
+	// represents valid JSON
+	return strings.TrimLeft(encodedPath, "./")
+}
+
 // sendPublishRequest is the struct Pubnub's instance method that posts a publish request and
 // sends back the response to the channel.
 //
 // It accepts the following parameters:
 // channel: pubnub channel to publish to
 // publishUrlString: The url to which the message is to be appended.
+// storeInHistory
+// replicate: if replicate is passed as false, append `norep` query param as true (norep=true) when publishing a message
 // jsonBytes: the message to be sent.
+// metaBytes: meta message
 // callbackChannel: Channel on which to send the response.
 // errorChannel on which the error response is sent.
-func (pub *Pubnub) sendPublishRequest(context context.Context, w http.ResponseWriter, r *http.Request, channel string, publishURLString string, jsonBytes []byte, callbackChannel chan []byte, errorChannel chan []byte) {
-	//context := appengine.NewContext(r)
+func (pub *Pubnub) sendPublishRequest(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel, publishURLString string,
+	storeInHistory, replicate bool, jsonBytes string, metaBytes []byte,
+	callbackChannel, errorChannel chan []byte) {
 
-	u := &url.URL{Path: string(jsonBytes)}
-	encodedPath := u.String()
+	encodedPath := encodeJSONAsPathComponent(jsonBytes)
 	log.Infof(context, fmt.Sprintf("Publish: json: %s, encoded: %s", string(jsonBytes), encodedPath))
 
 	publishURL := fmt.Sprintf("%s%s", publishURLString, encodedPath)
-	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL, sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
+	publishURL = fmt.Sprintf("%s?%s&uuid=%s%s", publishURL,
+		sdkIdentificationParam, pub.GetUUID(), pub.addAuthParam(true))
+
+	if storeInHistory == false {
+		publishURL = fmt.Sprintf("%s&store=0", publishURL)
+	}
+
+	if !replicate {
+		publishURL = fmt.Sprintf("%s&norep=true", publishURL)
+	}
+
+	pub.publishCounterMu.Lock()
+	pub.publishCounter++
+	counter := strconv.FormatUint(pub.publishCounter, 10)
+	pub.publishCounterMu.Unlock()
+
+	log.Infof(context, fmt.Sprintf("INFO: Publish counter: %s", counter))
+
+	publishURL = fmt.Sprintf("%s&seqn=%s", publishURL, counter)
+
+	if metaBytes != nil {
+		metaEncodedPath := encodeJSONAsPathComponent(string(metaBytes))
+		publishURL = fmt.Sprintf("%s&meta=%s", publishURL, metaEncodedPath)
+	}
 
 	value, responseCode, err := pub.httpRequest(context, w, r, publishURL, nonSubscribeTrans)
+	pub.readPublishResponseAndCallSendResponse(context, w, r, channel, value, responseCode, err, callbackChannel, errorChannel)
+}
 
+func (pub *Pubnub) readPublishResponseAndCallSendResponse(context context.Context,
+	w http.ResponseWriter, r *http.Request, channel string, value []byte, responseCode int, err error, callbackChannel, errorChannel chan []byte) {
 	if (responseCode != 200) || (err != nil) {
 		if (value != nil) && (responseCode > 0) {
 			var s []interface{}
@@ -899,26 +1126,26 @@ func (pub *Pubnub) sendPublishRequest(context context.Context, w http.ResponseWr
 					pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
 				}
 			} else {
-				log.Errorf(context, fmt.Sprintf("Publish Error: %s", errJSON.Error()))
+				log.Infof(context, fmt.Sprintf("ERROR: Publish Error: %s", errJSON.Error()))
 				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, string(value), strconv.Itoa(responseCode))
 			}
 		} else if (err != nil) && (responseCode > 0) {
-			log.Errorf(context, fmt.Sprintf("Publish Failed: %s, ResponseCode: %d", err.Error(), responseCode))
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Failed: %s, ResponseCode: %d", err.Error(), responseCode))
 			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), strconv.Itoa(responseCode))
 		} else if err != nil {
-			log.Errorf(context, fmt.Sprintf("Publish Failed: %s", err.Error()))
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Failed: %s", err.Error()))
 			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, err.Error(), "")
 		} else {
-			log.Errorf(context, fmt.Sprintf("Publish Failed: ResponseCode: %d", responseCode))
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Failed: ResponseCode: %d", responseCode))
 			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, publishFailed, strconv.Itoa(responseCode))
 		}
 	} else {
 		_, _, _, errJSON := ParseJSON(value, pub.CipherKey)
 		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
-			log.Errorf(context, fmt.Sprintf("Publish Error: %s", errJSON.Error()))
+			log.Infof(context, fmt.Sprintf("ERROR: Publish Error: %s", errJSON.Error()))
 			pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, errJSON.Error(), "")
 		} else {
-			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			callbackChannel <- value
 		}
 	}
 }
@@ -982,10 +1209,10 @@ func invalidChannel(channel string, c chan []byte) bool {
 	return false
 }
 
-// Publish is the struct Pubnub's instance method that creates a publish request and calls
-// SendPublishRequest to post the request.
+// Fire is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
 //
-// It calls the InvalidChannel and InvalidMessage methods to validate the Pubnub channels and message.
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
 // Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
 // Creates the publish url
 // Calls json marshal
@@ -999,7 +1226,122 @@ func invalidChannel(channel string, c chan []byte) bool {
 // errorChannel on which the error response is sent.
 //
 // Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
-func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter, r *http.Request, channel string, message interface{}, callbackChannel chan []byte, errorChannel chan []byte) {
+// Sends storeInHistory as false and replicate as false.
+func (pub *Pubnub) Fire(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message interface{}, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMetaAndReplicate(context, w, r, channel, message, nil, false, doNotSerialize, false, callbackChannel, errorChannel)
+}
+
+// Publish is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message interface{},
+	callbackChannel, errorChannel chan []byte) {
+
+	pub.PublishExtendedWithMeta(context, w, r, channel, message, nil, true, false, callbackChannel, errorChannel)
+}
+
+// PublishExtended is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtended(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message interface{},
+	storeInHistory, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMeta(context, w, r, channel, message, nil, storeInHistory, doNotSerialize, callbackChannel, errorChannel)
+}
+
+// PublishExtendedWithMeta is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// meta: meta data for message filtering
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtendedWithMeta(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message, meta interface{},
+	storeInHistory, doNotSerialize bool,
+	callbackChannel, errorChannel chan []byte) {
+	pub.PublishExtendedWithMetaAndReplicate(context, w, r, channel, message, meta, storeInHistory, doNotSerialize, true, callbackChannel, errorChannel)
+}
+
+// PublishExtendedWithMetaAndReplicate is the struct Pubnub's instance method that creates a publish request and calls
+// sendPublishRequest to post the request.
+//
+// It calls the pub.invalidChannel and pub.invalidMessage methods to validate the Pubnub channels and message.
+// Calls the GetHmacSha256 to generate a signature if a secretKey is to be used.
+// Creates the publish url
+// Calls json marshal
+// Calls the EncryptString method is the cipherkey is used and calls json marshal
+// Closes the channel after the response is received
+//
+// It accepts the following parameters:
+// channel: The Pubnub channel to which the message is to be posted.
+// message: message to be posted.
+// meta: meta data for message filtering
+// storeInHistory: Message will be persisted in Storage & Playback db
+// doNotSerialize: Set this option to true if you use your own serializer. In
+// this case passed-in message should be a string or []byte
+// callbackChannel: Channel on which to send the response back.
+// errorChannel on which the error response is sent.
+//
+// Both callbackChannel and errorChannel are mandatory. If either is nil the code will panic
+func (pub *Pubnub) PublishExtendedWithMetaAndReplicate(context context.Context, w http.ResponseWriter,
+	r *http.Request, channel string, message, meta interface{},
+	storeInHistory, doNotSerialize, replicate bool,
+	callbackChannel, errorChannel chan []byte) {
+
+	var publishURLBuffer bytes.Buffer
+	var err, errMeta error
+	var jsonSerialized, jsonSerializedMeta []byte
+
 	checkCallbackNil(callbackChannel, false, "Publish")
 	checkCallbackNil(errorChannel, true, "Publish")
 
@@ -1024,7 +1366,7 @@ func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter, r *ht
 	} else {
 		signature = "0"
 	}
-	var publishURLBuffer bytes.Buffer
+
 	publishURLBuffer.WriteString("/publish")
 	publishURLBuffer.WriteString("/")
 	publishURLBuffer.WriteString(pub.PublishKey)
@@ -1036,26 +1378,51 @@ func (pub *Pubnub) Publish(context context.Context, w http.ResponseWriter, r *ht
 	publishURLBuffer.WriteString(url.QueryEscape(channel))
 	publishURLBuffer.WriteString("/0/")
 
-	jsonSerialized, err := json.Marshal(message)
+	if meta != nil {
+		jsonSerializedMeta, errMeta = json.Marshal(meta)
+		if errMeta != nil {
+			panic(fmt.Sprintf("error in serializing meta: %s", errMeta))
+		}
+	}
+
+	if doNotSerialize {
+		switch t := message.(type) {
+		case string:
+			jsonSerialized = []byte(message.(string))
+		case []byte:
+			jsonSerialized = message.([]byte)
+		default:
+			panic(fmt.Sprintf("Unable to send unserialized value of type %s", t))
+		}
+	} else {
+		jsonSerialized, err = json.Marshal(message)
+	}
+
 	if err != nil {
 		pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, fmt.Sprintf("error in serializing: %s", err), "")
 	} else {
+
 		if pub.CipherKey != "" {
 			//Encrypt and Serialize
-			jsonEncBytes, errEnc := json.Marshal(EncryptString(pub.CipherKey, fmt.Sprintf("%s", jsonSerialized)))
+			encrypted := EncryptString(pub.CipherKey, fmt.Sprintf("%s", jsonSerialized))
+			jsonEncBytes, errEnc := json.Marshal(encrypted)
 			if errEnc != nil {
 				log.Errorf(context, fmt.Sprintf("Publish error: %s", errEnc.Error()))
 				pub.sendResponseToChannel(errorChannel, channel, responseAsIsError, fmt.Sprintf("error in serializing: %s", errEnc), "")
 			} else {
-				pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(), jsonEncBytes, callbackChannel, errorChannel)
+				pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(),
+					storeInHistory, replicate, string(jsonEncBytes), jsonSerializedMeta, callbackChannel, errorChannel)
 			}
 		} else {
-			pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(), jsonSerialized, callbackChannel, errorChannel)
+			//messageStr := strings.Replace(string(jsonSerialized), "/", "%2F", -1)
+
+			pub.sendPublishRequest(context, w, r, channel, publishURLBuffer.String(), storeInHistory, replicate,
+				string(jsonSerialized), jsonSerializedMeta, callbackChannel, errorChannel)
 		}
 	}
 }
 
-// sendResponseToChannel is the struct Pubnub's instance method that sends a reponse on the channel
+// sendResponseToChannel is the struct Pubnub's instance method that sends a response on the channel
 // provided as an argument or to the subscribe / presence channel is the argument is nil.
 //
 // Constructs the response based on the action (1-9). In case the action is 5 sends the response
@@ -1212,7 +1579,7 @@ func checkQuerystringInit(queryStringInit bool) string {
 	return "?"
 }
 
-// parseHttpResponse parses the http response from the orgin for the subscribe resquest
+// parseHttpResponse parses the http response from the origin for the subscribe resquest
 // if errJson is not nil it sends an error response on the error channel.
 // In case of subscribe response it parses the returned data and splits if multiple messages are received.
 //
@@ -1966,6 +2333,110 @@ func (pub *Pubnub) executeSetUserState(context context.Context, w http.ResponseW
 	}
 }
 
+func (pub *Pubnub) ChannelGroupAddChannel(context context.Context,
+	w http.ResponseWriter, r *http.Request, group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupAddChannel")
+	checkCallbackNil(errorChannel, true, "ChannelGroupAddChannel")
+
+	pub.executeChannelGroup(context, w, r, "add", group, channel,
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) ChannelGroupRemoveChannel(context context.Context,
+	w http.ResponseWriter, r *http.Request, group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveChannel")
+	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveChannel")
+
+	pub.executeChannelGroup(context, w, r, "remove", group, channel,
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) ChannelGroupListChannels(context context.Context,
+	w http.ResponseWriter, r *http.Request, group string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupListChannels")
+	checkCallbackNil(errorChannel, true, "ChannelGroupListChannels")
+
+	pub.executeChannelGroup(context, w, r, "list_group", group, "",
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) ChannelGroupRemoveGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, group string,
+	callbackChannel, errorChannel chan []byte) {
+
+	checkCallbackNil(callbackChannel, false, "ChannelGroupRemoveGroup")
+	checkCallbackNil(errorChannel, true, "ChannelGroupRemoveGroup")
+
+	pub.executeChannelGroup(context, w, r, "remove_group", group, "",
+		callbackChannel, errorChannel)
+}
+
+func (pub *Pubnub) generateStringforCGRequest(action, group,
+	channel string) (requestURL bytes.Buffer) {
+	params := url.Values{}
+
+	requestURL.WriteString("/v1/channel-registration")
+	requestURL.WriteString("/sub-key/")
+	requestURL.WriteString(pub.SubscribeKey)
+	requestURL.WriteString("/channel-group/")
+	requestURL.WriteString(group)
+
+	switch action {
+	case "add":
+		fallthrough
+	case "remove":
+		params.Add(action, channel)
+	case "remove_group":
+		requestURL.WriteString("/remove")
+	}
+
+	if strings.TrimSpace(pub.AuthenticationKey) != "" {
+		params.Set("auth", pub.AuthenticationKey)
+	}
+
+	params.Set("uuid", pub.GetUUID())
+	params.Set(sdkIdentificationParamKey, sdkIdentificationParamVal)
+
+	requestURL.WriteString("?")
+	requestURL.WriteString(params.Encode())
+
+	return requestURL
+}
+
+func (pub *Pubnub) executeChannelGroup(context context.Context,
+	w http.ResponseWriter, r *http.Request, action, group, channel string,
+	callbackChannel, errorChannel chan []byte) {
+
+	requestURL := pub.generateStringforCGRequest(action, group, channel)
+
+	value, _, err := pub.httpRequest(context, w, r,
+		requestURL.String(), nonSubscribeTrans)
+
+	if err != nil {
+		log.Errorf(context, fmt.Sprintf("%s", err.Error()))
+		pub.sendResponseToChannel(errorChannel, "", responseAsIsError,
+			err.Error(), "")
+	} else {
+		_, _, _, errJSON := ParseJSON(value, pub.CipherKey)
+		if errJSON != nil && strings.Contains(errJSON.Error(), invalidJSON) {
+			log.Errorf(context, fmt.Sprintf("%s", errJSON.Error()))
+			pub.sendResponseToChannel(errorChannel, "", responseAsIsError,
+				errJSON.Error(), "")
+			pub.executeChannelGroup(context, w, r, action, group, channel,
+				callbackChannel, errorChannel)
+		} else {
+			callbackChannel <- []byte(fmt.Sprintf("%s", value))
+			pub.CloseExistingConnection()
+		}
+	}
+}
+
 // getData parses the interface data and decrypts the messages if the cipher key is provided.
 //
 // It accepts the following parameters:
@@ -2256,7 +2727,7 @@ func (pub *Pubnub) connect(context context.Context, w http.ResponseWriter, r *ht
 			Host:   origin,
 			Opaque: fmt.Sprintf("//%s%s", origin, opaqueURL),
 		}
-		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.6.3", runtime.GOOS)
+		useragent := fmt.Sprintf("ua_string=(%s) PubNub-Go-GAE/3.11.0", runtime.GOOS)
 
 		req.Header.Set("User-Agent", useragent)
 		if err == nil {

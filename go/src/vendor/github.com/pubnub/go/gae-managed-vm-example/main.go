@@ -4,31 +4,34 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	"github.com/pubnub/go/gae/messaging"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/channel"
-	"google.golang.org/appengine/log"
+	"github.com/pubnub/go/messaging"
+	"golang.org/x/net/websocket"
 	"html/template"
+	"log"
 	"math/big"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var mainTemplate = template.Must(template.ParseFiles("main.html"))
 var subscribeKey = "demo"
 var publishKey = "demo"
 var secretKey = "demo"
+var hostname = "localhost"
+var port = ":8080"
+var infoLogger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 var store = sessions.NewCookieStore([]byte(secretKey))
 
 func main() {
-	appengine.Main()
-	//init();
-}
+	/*n, err := os.Hostname()
+	if err == nil {
+		hostname = n
+	}*/
 
-func init() {
 	router := mux.NewRouter()
 	router = router.StrictSlash(true)
 	router.HandleFunc("/", handler)
@@ -49,15 +52,78 @@ func init() {
 	router.HandleFunc("/revokeSubscribe", revokeSubscribe)
 	router.HandleFunc("/grantSubscribe", grantSubscribe)
 	router.HandleFunc("/getUserState", getUserState)
-	router.HandleFunc("/signout", signout)
-	router.HandleFunc("/connect", connect)
-	router.HandleFunc("/keepAlive", keepAlive)
+	router.HandleFunc("/subscribe", subscribe)
+	http.Handle("/echo", websocket.Handler(EchoServer))
+	//router.HandleFunc("/signout", signout)
+	//router.HandleFunc("/connect", connect)
+	//router.HandleFunc("/keepAlive", keepAlive)
 	router.HandleFunc("/detailedHistory", detailedHistory)
 	router.HandleFunc(`/{rest:[a-zA-Z0-9=\-\/]+}`, handler)
 
 	http.Handle("/", router)
 	//http.Handle("/", handler)
+	log.Print("Listening on port ", port)
+	log.Fatal(http.ListenAndServe(port, nil))
+}
 
+type T struct {
+	Msg   string
+	Count int
+}
+
+var wsc *websocket.Conn
+
+func EchoServer(ws *websocket.Conn) {
+	wsc = ws
+	log.Print("in WS")
+	var data T
+	websocket.JSON.Receive(ws, &data)
+	log.Print("in WS", data)
+}
+
+// Echo the data received on the WebSocket.
+func SendToWS(message string) {
+	log.Print("sending to WS")
+	websocket.Message.Send(wsc, message)
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "ok")
+}
+
+func subscribe(w http.ResponseWriter, r *http.Request) {
+	var errorChannel = make(chan []byte)
+	var subscribeChannel = make(chan []byte)
+
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, "", infoLogger)
+
+	go pubInstance.Subscribe("test2", "", subscribeChannel, false, errorChannel)
+	go handleSubscribeResult(subscribeChannel, errorChannel, "Subscribe")
+}
+
+func handleSubscribeResult(successChannel, errorChannel chan []byte, action string) {
+	for {
+		select {
+		case success, ok := <-successChannel:
+			if !ok {
+				break
+			}
+			if string(success) != "[]" {
+				fmt.Println(fmt.Sprintf("%s Response: %s ", action, success))
+				fmt.Println("")
+			}
+		case failure, ok := <-errorChannel:
+			if !ok {
+				break
+			}
+			if string(failure) != "[]" {
+				if true {
+					fmt.Println(fmt.Sprintf("%s Error Callback: %s", action, failure))
+					fmt.Println("")
+				}
+			}
+		}
+	}
 }
 
 func detailedHistory(w http.ResponseWriter, r *http.Request) {
@@ -99,64 +165,55 @@ func detailedHistory(w http.ResponseWriter, r *http.Request) {
 		bReverse = true
 	}
 
-	//	ctx := context.NewContext(r)
-	ctx := createContext(r)
-
-	pubInstance := messaging.New(ctx, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	go pubInstance.History(ctx, w, r, ch, iLimit, iStart, iEnd, bReverse, successChannel, errorChannel)
-	handleResult(ctx, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History")
+	go pubInstance.History(ch, iLimit, iStart, iEnd, bReverse, false, successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Detailed History")
 }
 
-func createContext(r *http.Request) context.Context {
-	//parent := context.TODO()
-	//ctx := context.WithValue(parent, "request", r)
-	ctx := appengine.NewContext(r)
-	return ctx
-}
+/*func connect(w http.ResponseWriter, r *http.Request) {
+q := r.URL.Query()
+/*pubKey := q.Get("pubKey")
+subKey := q.Get("subKey")*/
+//uuid := q.Get("uuid")
+/*secKey := q.Get("secKey")
+cipher := q.Get("cipher")
+ssl := q.Get("ssl")
+bSsl := false
+if ssl == "1" {
+	bSsl = true
+}*/
 
-func connect(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	pubKey := q.Get("pubKey")
-	subKey := q.Get("subKey")
-	uuid := q.Get("uuid")
-	secKey := q.Get("secKey")
-	cipher := q.Get("cipher")
-	ssl := q.Get("ssl")
-	bSsl := false
-	if ssl == "1" {
-		bSsl = true
-	}
+//	c := context.NewContext(r)
+//c := createContext(r)
+//messaging.NewPubnub (c, w, r, pubKey, subKey, secKey, cipher, bSsl, uuid)
 
-	//	c := context.NewContext(r)
-	c := createContext(r)
-	messaging.SetSessionKeys(c, w, r, pubKey, subKey, secKey, cipher, bSsl, uuid)
-
-	session, err := store.Get(r, "example-session")
+/*session, err := store.Get(r, "example-session")
 	if err != nil {
-		log.Errorf(c, "Session store error %s", err.Error())
+		log.Print("Error: Session store error %s", err.Error())
 		http.Error(w, "Session store error", http.StatusInternalServerError)
 		return
 	}
 
+	c := appengine.NewContext(r)
 	tok, err := channel.Create(c, uuid)
 
 	if err != nil {
 		http.Error(w, "Couldn't create Channel", http.StatusInternalServerError)
-		log.Errorf(c, "channel.Create: %v", err)
+		log.Print("Error: channel.Create: %v", err)
 		return
 	}
 	session.Values["token"] = tok
 	err1 := session.Save(r, w)
 	if err1 != nil {
-		log.Errorf(c, "error1, %s", err1.Error())
+		log.Print("Error: error1, %s", err1.Error())
 	}
 	fmt.Fprintf(w, tok)
-}
+}*/
 
-func keepAlive(w http.ResponseWriter, r *http.Request) {
+/*func keepAlive(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -164,21 +221,19 @@ func signout(w http.ResponseWriter, r *http.Request) {
 	//c := context.NewContext(r)
 	c := createContext(r)
 	messaging.DeleteSession(c, w, r, secretKey)
-}
+}*/
 
 func getUserState(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	go pubInstance.GetUserState(c, w, r, ch, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Get User State")
+	go pubInstance.GetUserState(ch, uuid, successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Get User State")
 }
 
 func deleteUserState(w http.ResponseWriter, r *http.Request) {
@@ -186,14 +241,12 @@ func deleteUserState(w http.ResponseWriter, r *http.Request) {
 	ch := q.Get("ch")
 	key := q.Get("k")
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	go pubInstance.SetUserStateKeyVal(c, w, r, ch, key, "", successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Del User State")
+	go pubInstance.SetUserStateKeyVal(ch, key, "", successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Del User State")
 }
 
 func setUserStateJSON(w http.ResponseWriter, r *http.Request) {
@@ -201,14 +254,12 @@ func setUserStateJSON(w http.ResponseWriter, r *http.Request) {
 	ch := q.Get("ch")
 	j := q.Get("j")
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	go pubInstance.SetUserStateJSON(c, w, r, ch, j, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State JSON")
+	go pubInstance.SetUserStateJSON(ch, j, successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State JSON")
 }
 
 func setUserState(w http.ResponseWriter, r *http.Request) {
@@ -217,42 +268,34 @@ func setUserState(w http.ResponseWriter, r *http.Request) {
 	k := q.Get("k")
 	v := q.Get("v")
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	//setUserState
-
-	go pubInstance.SetUserStateKeyVal(c, w, r, ch, k, v, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State")
+	go pubInstance.SetUserStateKeyVal(ch, k, v, successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Set User State")
 }
 
 func auditPresence(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.AuditPresence(c, w, r, ch, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
+	go pubInstance.AuditPresence(ch, "", successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
 }
 
 func revokePresence(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantPresence(c, w, r, ch, false, false, 0, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
+	go pubInstance.GrantPresence(ch, false, false, 0, "", successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
 }
 
 func grantPresence(w http.ResponseWriter, r *http.Request) {
@@ -275,13 +318,11 @@ func grantPresence(w http.ResponseWriter, r *http.Request) {
 		iTTL = ival
 	}
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantPresence(c, w, r, ch, bRead, bWrite, iTTL, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
+	go pubInstance.GrantPresence(ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
 
 }
 
@@ -289,26 +330,22 @@ func auditSubscribe(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.AuditSubscribe(c, w, r, ch, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Subscribe")
+	go pubInstance.AuditSubscribe(ch, "", successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Subscribe")
 }
 
 func revokeSubscribe(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantSubscribe(c, w, r, ch, false, false, 0, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
+	go pubInstance.GrantSubscribe(ch, false, false, 0, "", successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
 }
 
 func grantSubscribe(w http.ResponseWriter, r *http.Request) {
@@ -331,13 +368,11 @@ func grantSubscribe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantSubscribe(c, w, r, ch, bRead, bWrite, iTTL, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
+	go pubInstance.GrantSubscribe(ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
 }
 
 func setAuthKey(w http.ResponseWriter, r *http.Request) {
@@ -345,19 +380,15 @@ func setAuthKey(w http.ResponseWriter, r *http.Request) {
 	authKey := q.Get("authkey")
 	uuid := q.Get("uuid")
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	pubInstance.SetAuthenticationKey(c, w, r, authKey)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
+	pubInstance.SetAuthenticationKey(authKey)
 	sendResponseToChannel(w, "Auth key set", r, uuid)
 }
 
 func getAuthKey(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	uuid := q.Get("uuid")
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	sendResponseToChannel(w, "Auth key: "+pubInstance.GetAuthenticationKey(), r, uuid)
 }
 
@@ -370,12 +401,10 @@ func publish(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	go pubInstance.Publish(c, w, r, ch, message, successChannel, errorChannel)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
+	go pubInstance.Publish(ch, message, successChannel, errorChannel)
 
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 }
 
 func globalHereNow(w http.ResponseWriter, r *http.Request) {
@@ -394,11 +423,9 @@ func globalHereNow(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	go pubInstance.GlobalHereNow(c, w, r, disableUUID, includeUserState, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Global Here Now")
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
+	go pubInstance.GlobalHereNow(disableUUID, includeUserState, successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Global Here Now")
 }
 
 func hereNow(w http.ResponseWriter, r *http.Request) {
@@ -420,11 +447,9 @@ func hereNow(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	go pubInstance.HereNow(c, w, r, channel, disableUUID, includeUserState, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
+	go pubInstance.HereNow(channel, "", disableUUID, includeUserState, successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "HereNow")
 }
 
 func whereNow(w http.ResponseWriter, r *http.Request) {
@@ -435,11 +460,9 @@ func whereNow(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	go pubInstance.WhereNow(c, w, r, whereNowUUID, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "WhereNow")
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
+	go pubInstance.WhereNow(whereNowUUID, successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "WhereNow")
 }
 
 func getTime(w http.ResponseWriter, r *http.Request) {
@@ -449,40 +472,23 @@ func getTime(w http.ResponseWriter, r *http.Request) {
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
 
-	//c := context.NewContext(r)
-	c := createContext(r)
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	go pubInstance.GetTime(c, w, r, successChannel, errorChannel)
-	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
+	go pubInstance.GetTime(successChannel, errorChannel)
+	handleResult(w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Time")
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	c := createContext(r)
-	log.Infof(c, "IN handler")
+	log.Print("Info: IN handler")
 	uuid := ""
-	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
+	pubInstance := messaging.NewPubnub(publishKey, subscribeKey, secretKey, "", true, uuid, infoLogger)
 	if pubInstance == nil {
-		log.Errorf(c, "Couldn't create pubnub instance")
+		log.Print("Error: Couldn't create pubnub instance")
 		http.Error(w, "Couldn't create pubnub instance", http.StatusInternalServerError)
 		return
 	}
 	nuuid := pubInstance.GetUUID()
-
-	session, err := store.Get(r, "example-session")
-	if err != nil {
-		log.Errorf(c, "Session store error %s", err.Error())
-		http.Error(w, "Session store error", http.StatusInternalServerError)
-		return
-	}
-
-	//Enhancement: can be kept in memcache
-	tok, err := channel.Create(c, nuuid)
-	if err != nil {
-		http.Error(w, "Couldn't create Channel", http.StatusInternalServerError)
-		log.Errorf(c, "channel.Create: %v", err)
-		return
-	}
-	session.Values["token"] = tok
+	log.Print("UUID: %s", nuuid)
+	tok := "s"
 
 	err1 := mainTemplate.Execute(w, map[string]string{
 		"token":        tok,
@@ -490,16 +496,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"subscribeKey": subscribeKey,
 		"publishKey":   publishKey,
 		"secretKey":    secretKey,
+		"hostname":     fmt.Sprintf("%s%s", hostname, port),
 	})
 	if err1 != nil {
-		log.Errorf(c, "mainTemplate: %v", err1)
+		log.Print("Error: mainTemplate: %v", err1)
 	}
 }
 
 func flush(w http.ResponseWriter) {
 	f, ok := w.(http.Flusher)
 	if ok && f != nil {
-		//log.Infof(c, "flush")
 		f.Flush()
 	} else {
 		// Response writer does not support flush.
@@ -509,63 +515,66 @@ func flush(w http.ResponseWriter) {
 }
 
 func sendResponseToChannel(w http.ResponseWriter, message string, r *http.Request, uuid string) {
-	//c := context.NewContext(r)
-	c := createContext(r)
-	err := channel.SendJSON(c, uuid, message)
-	log.Infof(c, "json")
-	if err != nil {
-		log.Errorf(c, "sending Game: %v", err)
-	}
 }
 
-func handleResultSubscribe(c context.Context, w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
+func handleResultSubscribe(w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
 	for {
 		select {
 
 		case success, ok := <-successChannel:
 			if !ok {
-				log.Infof(c, fmt.Sprintf("success!OK"))
+				log.Print(fmt.Sprintf("INFO: success!OK"))
 
 			}
 			if string(success) != "[]" {
-				log.Infof(c, "subscribe success:", string(success))
+				log.Print("Info: subscribe success:", string(success))
 			}
 			flush(w)
 		case failure, ok := <-errorChannel:
 			if !ok {
-				log.Infof(c, fmt.Sprintf("failure!OK"))
+				log.Print(fmt.Sprintf("Info: failure!OK"))
 			}
 			if string(failure) != "[]" {
-				log.Infof(c, "subscribe failure:", string(failure))
+				log.Print("Info: subscribe failure:", string(failure))
 			}
 		}
 	}
 }
 
-func handleResult(c context.Context, w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
+func handleResult(w http.ResponseWriter, r *http.Request, uuid string, successChannel, errorChannel chan []byte, timeoutVal uint16, action string) {
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(time.Duration(timeoutVal) * time.Second)
+		timeout <- true
+	}()
 	for {
 		select {
 
 		case success, ok := <-successChannel:
 			if !ok {
-				log.Infof(c, "success!OK")
+				log.Print("Info: success!OK")
 				break
 			}
 			if string(success) != "[]" {
-				log.Infof(c, "success:", string(success))
+				log.Print("Info: success:", string(success))
+				SendToWS(string(success))
 				sendResponseToChannel(w, string(success), r, uuid)
 			}
 
 			return
 		case failure, ok := <-errorChannel:
 			if !ok {
-				log.Infof(c, "fail1:", string("failure"))
+				log.Print("Info: fail1:", string("failure"))
 				break
 			}
 			if string(failure) != "[]" {
-				log.Infof(c, "fail:", string(failure))
+				log.Print("Info: fail:", string(failure))
 				sendResponseToChannel(w, string(failure), r, uuid)
 			}
+			return
+		case <-timeout:
+			fmt.Println(fmt.Sprintf("%s Handler timeout after %d secs", action, timeoutVal))
+			fmt.Println("")
 			return
 		}
 	}

@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	//"time"
 )
 
 var mainTemplate = template.Must(template.ParseFiles("main.html"))
@@ -167,6 +168,28 @@ func signout(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserState(w http.ResponseWriter, r *http.Request) {
+	/*successChannel := make(chan []byte)
+	errorChannel := make(chan []byte)
+	c := createContext(r)
+	pubInstance := messaging.New(c, "", w, r, publishKey, subscribeKey, secretKey, "", false)
+
+	go pubInstance.ChannelGroupAddChannel(c, w, r, "cg-user-a-friends", "ch-user-a-present", successChannel, errorChannel)
+
+	select {
+	case response := <-successChannel:
+		log.Infof(c, "success:", string(response))
+	case err := <-errorChannel:
+		log.Infof(c, "success:", string(err))
+	}
+
+	go pubInstance.ChannelGroupAddChannel(c, w, r, "cg-user-a-status-feed", "ch-user-a-present", successChannel, errorChannel)
+
+	select {
+	case response := <-successChannel:
+		log.Infof(c, "1success:", string(response))
+	case err := <-errorChannel:
+		log.Infof(c, "1success:", string(err))
+	}*/
 	q := r.URL.Query()
 	ch := q.Get("ch")
 	uuid := q.Get("uuid")
@@ -238,7 +261,7 @@ func auditPresence(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.AuditPresence(c, w, r, ch, successChannel, errorChannel)
+	go pubInstance.AuditPresence(c, w, r, ch, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Presence")
 }
 
@@ -251,7 +274,7 @@ func revokePresence(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantPresence(c, w, r, ch, false, false, 0, successChannel, errorChannel)
+	go pubInstance.GrantPresence(c, w, r, ch, false, false, 0, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
 }
 
@@ -280,7 +303,7 @@ func grantPresence(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantPresence(c, w, r, ch, bRead, bWrite, iTTL, successChannel, errorChannel)
+	go pubInstance.GrantPresence(c, w, r, ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Presence")
 
 }
@@ -294,7 +317,7 @@ func auditSubscribe(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.AuditSubscribe(c, w, r, ch, successChannel, errorChannel)
+	go pubInstance.AuditSubscribe(c, w, r, ch, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Audit Subscribe")
 }
 
@@ -307,7 +330,7 @@ func revokeSubscribe(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantSubscribe(c, w, r, ch, false, false, 0, successChannel, errorChannel)
+	go pubInstance.GrantSubscribe(c, w, r, ch, false, false, 0, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
 }
 
@@ -336,7 +359,7 @@ func grantSubscribe(w http.ResponseWriter, r *http.Request) {
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
-	go pubInstance.GrantSubscribe(c, w, r, ch, bRead, bWrite, iTTL, successChannel, errorChannel)
+	go pubInstance.GrantSubscribe(c, w, r, ch, bRead, bWrite, iTTL, "", successChannel, errorChannel)
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Revoke Subscribe")
 }
 
@@ -366,14 +389,46 @@ func publish(w http.ResponseWriter, r *http.Request) {
 	message := q.Get("m")
 	uuid := q.Get("uuid")
 	ch := q.Get("ch")
+	fire := q.Get("fire")
+	//meta, _ := url.QueryUnescape(q.Get("meta"))
+	metaKey := q.Get("metakey")
+	metaVal := q.Get("metaval")
+	storeInHistory := q.Get("storeInHistory")
+	storeInHistoryBool := false
+	if storeInHistory == "1" {
+		storeInHistoryBool = true
+	}
 
 	errorChannel := make(chan []byte)
 	successChannel := make(chan []byte)
+	meta := make(map[string]string)
+	if strings.TrimSpace(metaKey) != "" && strings.TrimSpace(metaVal) != "" {
+		meta[metaKey] = metaVal
+	} else {
+		meta = nil
+	}
 
 	//c := context.NewContext(r)
 	c := createContext(r)
+
+	/*message1 := make(map[string]string)
+	message1["author"] = "user-a"
+	message1["status"] = "I am reading about Advanced Channel Groups!"
+	message1["timestamp"] = time.Now().String()*/
+
 	pubInstance := messaging.New(c, uuid, w, r, publishKey, subscribeKey, secretKey, "", false)
-	go pubInstance.Publish(c, w, r, ch, message, successChannel, errorChannel)
+	//go pubInstance.Publish(c, w, r, "my_channel", message1, successChannel, errorChannel)
+
+	if fire == "1" {
+		go pubInstance.Fire(c, w, r, ch, message, false, successChannel, errorChannel)
+	} else if meta != nil {
+		log.Infof(c, fmt.Sprintf("Meta: %s", meta))
+		go pubInstance.PublishExtendedWithMeta(c, w, r, ch, message, meta, storeInHistoryBool, false, successChannel, errorChannel)
+	} else if storeInHistoryBool {
+		go pubInstance.PublishExtended(c, w, r, ch, message, storeInHistoryBool, false, successChannel, errorChannel)
+	} else {
+		go pubInstance.Publish(c, w, r, ch, message, successChannel, errorChannel)
+	}
 
 	handleResult(c, w, r, uuid, successChannel, errorChannel, messaging.GetNonSubscribeTimeout(), "Publish")
 }

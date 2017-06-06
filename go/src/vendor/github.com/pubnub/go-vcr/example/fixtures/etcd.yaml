@@ -1,0 +1,59 @@
+---
+version: 1
+interactions:
+- request:
+    body: value=bar
+    form:
+      value:
+      - bar
+    headers:
+      Content-Type:
+      - application/x-www-form-urlencoded
+    url: http://127.0.0.1:2379/v2/keys/foo
+    method: PUT
+  response:
+    body: |
+      {"action":"set","node":{"key":"/foo","value":"bar","modifiedIndex":4,"createdIndex":4}}
+    headers:
+      Content-Length:
+      - "88"
+      Content-Type:
+      - application/json
+      Date:
+      - Sat, 13 Feb 2016 11:34:05 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "4"
+      X-Raft-Index:
+      - "51"
+      X-Raft-Term:
+      - "2"
+    status: 201 Created
+    code: 201
+- request:
+    body: ""
+    form: {}
+    headers: {}
+    url: http://127.0.0.1:2379/v2/keys/foo?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/foo","value":"bar","modifiedIndex":4,"createdIndex":4}}
+    headers:
+      Content-Length:
+      - "88"
+      Content-Type:
+      - application/json
+      Date:
+      - Sat, 13 Feb 2016 11:34:05 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "4"
+      X-Raft-Index:
+      - "51"
+      X-Raft-Term:
+      - "2"
+    status: 200 OK
+    code: 200

@@ -1,0 +1,76 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateJSON/uuid/UUID_SetUserStateJSON/data?state=%7B%22testkey%22%3A+%22testval%22%2C%22testkey2%22%3A+%22testval2%22%7D&pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_SetUserStateJSON
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "payload": {"testkey2": "testval2", "testkey":
+      "testval"}, "service": "Presence"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - OPTIONS, GET, POST
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "114"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 07:57:24 GMT
+      Server:
+      - Pubnub Presence
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SetUserStateJSON/uuid/UUID_SetUserStateJSON/data?state=%7B%22testkey%22%3A%22testval%22%7D&pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_SetUserStateJSON
+    method: GET
+  response:
+    body: '{"status": 200, "message": "OK", "payload": {"testkey": "testval"}, "service":
+      "Presence"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - OPTIONS, GET, POST
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "90"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 25 Apr 2016 07:57:27 GMT
+      Server:
+      - Pubnub Presence
+    status: 200 OK
+    code: 200
+unclosed_requests: {}
