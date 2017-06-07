@@ -1,8 +1,11 @@
-// config package contains reused config variables.
+// Package config contains reused config variables.
 package config
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 	"path"
 	"runtime"
@@ -106,6 +109,7 @@ func dirURL(s, env string) string {
 	return u.String()
 }
 
+// VersionNum returns current version number.
 func VersionNum() int {
 	version, err := strconv.ParseUint(Version, 10, 32)
 	if err != nil {
@@ -113,6 +117,36 @@ func VersionNum() int {
 	}
 
 	return int(version)
+}
+
+// LatestKlientVersionNum returns latest klient version.
+func LatestKlientVersionNum() (int, error) {
+	return latestVersion(Konfig.Endpoints.KlientLatest.Public.String())
+}
+
+// LatestKDVersionNum returns latest KD(klientctl) version.
+func LatestKDVersionNum() (int, error) {
+	return latestVersion(Konfig.Endpoints.KDLatest.Public.String())
+}
+
+func latestVersion(url string) (int, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	p, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	version, err := strconv.ParseUint(string(bytes.TrimSpace(p)), 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(version), nil
 }
 
 func S3Klient(version int, env string) string {
