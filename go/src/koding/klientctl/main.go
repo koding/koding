@@ -645,7 +645,7 @@ error opening: %s
 			AutocompleteCommandFactory, log, "autocompletion",
 		),
 	}, {
-		Name:  "log",
+		Name:  "log", // Moved to cobra.
 		Usage: "Display logs.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{Name: "debug", Hidden: true},
@@ -657,7 +657,7 @@ error opening: %s
 		},
 		Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
 		Subcommands: []cli.Command{{
-			Name:   "upload",
+			Name:   "upload", // Moved to cobra.
 			Usage:  "Share a text file.",
 			Action: ctlcli.ExitErrAction(LogUpload, log, "upload"),
 		}},
