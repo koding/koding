@@ -22,6 +22,13 @@ func register(parent, name string) {
 		return
 	}
 
+	// Prevent duplicates.
+	for _, ms := range allMetrics[parent] {
+		if ms.name == name {
+			return
+		}
+	}
+
 	allMetrics[parent] = append(allMetrics[parent], metricStorage{
 		name: name,
 	})
