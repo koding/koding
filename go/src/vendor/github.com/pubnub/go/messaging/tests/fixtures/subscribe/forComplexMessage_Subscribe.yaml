@@ -1,0 +1,66 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=0&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"t":{"t":"14586610179764926","r":4},"m":[]}'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:09 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=14586610179764926&tr=4&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"t":{"t":"14586613295253763","r":4},"m":[{"a":"1","f":0,"i":"UUID_SubscriptionConnectedForComplex","s":1,"p":{"t":"14593254434932405","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_SubscriptionConnectedForComplex","b":"Channel_SubscriptionConnectedForComplex","d":[{"VersionID":"3.4","TimeToken":"13601488652764619","OperationName":"Publish","Channels":["ch1","ch
+      2"],"DemoMessage":{"DefaultMessage":"\"~!@#$%^\\u0026*()_+ `1234567890-= qwertyuiop[]\\\\
+      {}| asdfghjkl;'' :\\\" zxcvbnm,./ \\u003c\\u003e? \""},"SampleXML":"\"\\u003cdata\\u003e\\u003cname\\u003eDoe\\u003c/name\\u003e\\u003cage\\u003e42\\u003c/age\\u003e\\u003c/data\\u003e\""}]}]}'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "400"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:09 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests:
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_SubscriptionConnectedForComplex/0?uuid=UUID_SubscriptionConnectedForComplex&tt=14586613295253763&tr=4&pnsdk=PubNub-Go%2F3.14.0
+  : {}

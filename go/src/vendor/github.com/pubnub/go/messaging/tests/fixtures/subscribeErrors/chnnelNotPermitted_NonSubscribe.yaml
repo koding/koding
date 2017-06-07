@@ -1,0 +1,34 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-642a6fca-f5b9-11e5-9086-02ee2ddab7fe/channel/Channel_NotPermitted/leave?uuid=UUID_NotPermitted&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: |
+      {"message":"Forbidden","payload":{"channels":["Channel_NotPermitted"]},"error":true,"service":"Access Manager","status":403}
+    headers:
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache, no-store, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/javascript; charset=UTF-8
+      Date:
+      - Wed, 30 Mar 2016 17:01:46 GMT
+    status: 403 Forbidden
+    code: 403
+unclosed_requests: {}

@@ -1,0 +1,64 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0?uuid=UUID_AlreadySubscribed&tt=0&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"t":{"t":"14603735664245698","r":4},"m":[]}'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "24"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 11 Apr 2016 11:19:26 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0?uuid=UUID_AlreadySubscribed&tt=14603735664245698&tr=4&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"t":{"t":"14603735665857211","r":4},"m":[{"a":"1","f":0,"i":"UUID_AlreadySubscribed","s":1,"p":{"t":"14591685620543810","r":4},"k":"sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f","c":"Channel_AlreadySubscribed","d":["blah"]}]}'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Mon, 11 Apr 2016 11:19:26 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests:
+  ? http://ps.pndsn.com/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/Channel_AlreadySubscribed/0?uuid=UUID_AlreadySubscribed&tt=14603735665857211&tr=4&pnsdk=PubNub-Go%2F3.14.0
+  : {}

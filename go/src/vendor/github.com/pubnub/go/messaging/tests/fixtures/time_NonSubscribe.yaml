@@ -1,0 +1,33 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/time/0?pnsdk=PubNub-Go%2F3.14.0&uuid=testTime
+    method: GET
+  response:
+    body: '[14601341825375121]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "19"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Fri, 08 Apr 2016 16:49:42 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests: {}

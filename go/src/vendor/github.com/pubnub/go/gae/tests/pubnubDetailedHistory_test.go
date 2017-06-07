@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 	//"net/http/httptest"
-	"appengine/aetest"
+	"google.golang.org/appengine/aetest"
 )
 
 // TestDetailedHistoryStart prints a message on the screen to mark the beginning of

@@ -1,4 +1,5 @@
 // +build linux darwin
+// +build !cobra
 
 package main
 

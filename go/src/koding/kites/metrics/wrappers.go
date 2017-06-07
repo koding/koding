@@ -1,7 +1,9 @@
 package metrics
 
 import (
+	"bufio"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -62,7 +64,18 @@ func WrapHTTPHandler(dd *dogstatsd.Client, metricName string, handler http.Handl
 	}
 }
 
+// RegisterCLICommand registers given command to metrics dashboard.
+func RegisterCLICommand(m *Metrics, args ...string) {
+	if len(args) == 0 || m == nil || m.Datadog == nil {
+		return
+	}
+
+	register(m.Datadog.Namespace, strings.Join(args, "_"))
+}
+
 // WrapCLIActions injects the metrics as middlewares into cli.Commands Actions.
+//
+// TODO: Remove after codegangsta/cli is removed.
 func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName string, tagsFn func(string) []string) []cli.Command {
 	for i, command := range commands {
 		name := strings.TrimSpace(parentName + " " + command.Name)
@@ -77,6 +90,8 @@ func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName str
 }
 
 // WrapCLIAction wraps the actions of cli commands and adds metrics middlewares.
+//
+// TODO: Remove after codegangsta/cli is removed.
 func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, fullName string, tagsFn func(string) []string) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		metricName := strings.Replace(fullName, " ", "_", -1)
@@ -127,3 +142,33 @@ func (r *responseRecorder) WriteHeader(status int) {
 	r.code = status
 	r.ResponseWriter.WriteHeader(status)
 }
+
+// Flush implements http.Flusher interface
+func (r *responseRecorder) Flush() {
+	rr, ok := r.ResponseWriter.(http.Flusher)
+	if ok {
+		rr.Flush()
+	}
+}
+
+// Hijack implements http.Hijacker interface
+func (r *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hj, ok := r.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("responseWriter doesn't support hijacking: %T", r.ResponseWriter)
+	}
+
+	return hj.Hijack()
+}
+
+// Push implements http.Pusher interface
+func (r *responseRecorder) Push(target string, opts *http.PushOptions) error {
+	p, ok := r.ResponseWriter.(http.Pusher)
+	if !ok {
+		return fmt.Errorf("responseWriter doesn't support http.Pusher: %T", r.ResponseWriter)
+	}
+
+	return p.Push(target, opts)
+}
+
+// TODO: check possibility of implementing http.CloseNotifier
