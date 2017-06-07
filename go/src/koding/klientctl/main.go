@@ -688,7 +688,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:         "ssh",
+			Name:         "ssh", // Moved to cobra.
 			ShortName:    "s",
 			Usage:        "SSH into provided remote machine.",
 			Action:       ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
@@ -700,14 +700,14 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:  "config",
+			Name:  "config", // Moved to cobra.
 			Usage: "Manage remote machine configuration.",
 			Subcommands: []cli.Command{{
-				Name:   "set",
+				Name:   "set", // Moved to cobra.
 				Usage:  "Set a value for a given key.",
 				Action: ctlcli.ExitErrAction(MachineConfigSet, log, "set"),
 			}, {
-				Name:   "show",
+				Name:   "show", // Moved to cobra.
 				Usage:  "Show configuration.",
 				Action: ctlcli.ExitErrAction(MachineConfigShow, log, "show"),
 				Flags: []cli.Flag{
@@ -718,7 +718,7 @@ error opening: %s
 				},
 			}},
 		}, {
-			Name:         "mount",
+			Name:         "mount", // Moved to cobra.
 			Aliases:      []string{"m"},
 			Usage:        "Mount remote directory.",
 			Description:  cmdDescriptions["mount"],
@@ -726,7 +726,7 @@ error opening: %s
 			BashComplete: func(c *cli.Context) {},
 			Flags:        []cli.Flag{},
 			Subcommands: []cli.Command{{
-				Name:    "list",
+				Name:    "list", // Moved to cobra.
 				Aliases: []string{"ls"},
 				Usage:   "List available mounts.",
 				Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
@@ -741,7 +741,7 @@ error opening: %s
 					},
 				},
 			}, {
-				Name:        "sync",
+				Name:        "sync", // Moved to cobra.
 				Usage:       "Manage mount synchronization.",
 				Description: cmdDescriptions["mount-sync"],
 				Action:      ctlcli.ExitErrAction(MachineSyncMount, log, "sync"),
@@ -753,16 +753,16 @@ error opening: %s
 					},
 				},
 				Subcommands: []cli.Command{{
-					Name:   "pause",
+					Name:   "pause", // Moved to cobra.
 					Usage:  "Pause synchronization.",
 					Action: ctlcli.ExitErrAction(MachinePauseSyncMount, log, "pause"),
 				}, {
-					Name:   "resume",
+					Name:   "resume", // Moved to cobra.
 					Usage:  "Resume synchronization.",
 					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "resume"),
 				}},
 			}, {
-				Name:   "inspect",
+				Name:   "inspect", // Moved to cobra.
 				Hidden: true,
 				Usage:  "Advanced utilities for mount command.",
 				Action: ctlcli.ExitErrAction(MachineInspectMountCommand, log, "mount inspect"),
@@ -782,7 +782,7 @@ error opening: %s
 				},
 			}},
 		}, {
-			Name:         "umount",
+			Name:         "umount", // Moved to cobra.
 			ShortName:    "u",
 			Usage:        "Unmount remote directory.",
 			Description:  cmdDescriptions["umount"],
@@ -799,7 +799,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:            "exec",
+			Name:            "exec", // Moved to cobra.
 			ShortName:       "e",
 			Description:     cmdDescriptions["exec"],
 			Usage:           "Run a command in a started machine.",
@@ -807,7 +807,7 @@ error opening: %s
 			BashComplete:    func(c *cli.Context) {},
 			SkipFlagParsing: true,
 		}, {
-			Name:            "cp",
+			Name:            "cp", // Moved to cobra.
 			Description:     cmdDescriptions["cp"],
 			Usage:           "Copies a file between hosts on a network.",
 			Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
@@ -815,7 +815,7 @@ error opening: %s
 			BashComplete:    func(c *cli.Context) {},
 			Flags:           []cli.Flag{},
 		}, {
-			Name:   "start",
+			Name:   "start", // Moved to cobra.
 			Usage:  "Start a remove vm given by the <machine ID> | <alias> | <slug>.",
 			Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
 			Flags: []cli.Flag{
@@ -825,7 +825,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "stop",
+			Name:   "stop", // Moved to cobra.
 			Usage:  "Stop a remove vm given by the <machine ID> | <alias> | <slug>.",
 			Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
 			Flags: []cli.Flag{

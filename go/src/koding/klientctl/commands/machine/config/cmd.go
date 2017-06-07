@@ -1,4 +1,4 @@
-package machine
+package config
 
 import (
 	"koding/klientctl/commands/cli"
@@ -6,23 +6,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewCommand creates a command that manages remote machines.
+// NewCommand creates a command that manages remote machine configuration.
 func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "machine",
-		Short: "Manage remote machines",
+		Use:   "config",
+		Short: "Manage remote machine configuration",
 		RunE:  cli.PrintHelp(c.Err()),
 	}
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewCpCommand(c),
-		NewExecCommand(c),
-		NewListCommand(c),
-		NewSSHCommand(c),
-		NewStartCommand(c),
-		NewStopCommand(c),
-		NewUmountCommand(c),
+		NewSetCommand(c),
+		NewShowCommand(c),
 	)
 
 	// Middlewares.

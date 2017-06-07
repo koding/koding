@@ -1,30 +1,36 @@
-package mount
+package sync
 
 import (
+	"time"
+
 	"koding/klientctl/commands/cli"
 
 	"github.com/spf13/cobra"
 )
 
-type options struct{}
+type options struct {
+	timeout time.Duration
+}
 
-// NewCommand creates a command that allows to create mounts and manage their
-// properties.
+// NewCommand creates a command that manages mount file synchronization.
 func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
-		Use:     "mount",
-		Aliases: []string{"m"},
-		Short:   "Mount remote directory",
-		RunE:    command(c, opts),
+		Use:   "sync",
+		Short: "Manage mounted files synchronization",
+		RunE:  command(c, opts),
 	}
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewInspectCommand(c),
-		NewListCommand(c),
+		NewPauseCommand(c),
+		NewResumeCommand(c),
 	)
+
+	// Flags.
+	flags := cmd.Flags()
+	flags.DurationVar(&opts.timeout, "timeout", time.Minute, "max amount of time to wait")
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
