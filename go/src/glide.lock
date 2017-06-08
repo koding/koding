@@ -628,7 +628,7 @@ imports:
 - name: github.com/lann/squirrel
   version: caff2d522d550f0998629c85898ad35e8a603328
 - name: github.com/lib/pq
-  version: c4afb3f5ae09066d9aaec61eebd9496f7a852082
+  version: 8837942c3e09574accbc5f150e2c5e057189cace
   subpackages:
   - oid
 - name: github.com/logentries/le_goclient
