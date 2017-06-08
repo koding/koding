@@ -8,21 +8,18 @@ import (
 type ProxyType int
 
 const (
-    Local ProxyType = iota
+    Kubernetes ProxyType = iota
     Docker
-    Kubernetes
 )
 
 var ProxyType2String = map[ProxyType]string{
-    Local:      "local",
-    Docker:     "docker",
     Kubernetes: "kubernetes",
+    Docker:     "docker",
 }
 
 var String2ProxyType = map[string]ProxyType{
-    "local":        Local,
-    "docker":       Docker,
     "kubernetes":   Kubernetes,
+    "docker":       Docker,
 }
 
 // fmt.Stringer

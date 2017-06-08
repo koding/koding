@@ -171,8 +171,6 @@ type Konfig struct {
 	LockTimeout    time.Duration `json:"lockTimeout,omitempty"`
 	DisableMetrics bool          `json:"disableMetrics,string,omitempty"`
 	Debug          bool          `json:"debug,string,omitempty"`
-
-	MachineProxy proxy.ProxyType `json:"machineproxy"`
 }
 
 // KiteHome gives directory of the kite.key file.

@@ -18,11 +18,10 @@ import (
     kubev1 "k8s.io/apimachinery/pkg/apis/meta/v1"
     kuberc "k8s.io/apimachinery/pkg/util/remotecommand"
 	"k8s.io/client-go/kubernetes"
+    "k8s.io/client-go/pkg/api/v1"
     "k8s.io/client-go/rest"
     "k8s.io/client-go/tools/remotecommand"
 )
-
-var _ Proxy = (*KubernetesProxy)(nil)
 
 type KubernetesProxy struct {
     config *rest.Config
@@ -57,6 +56,20 @@ func (p *KubernetesProxy) Methods() []string {
     }
 
     return data
+}
+
+type ListRequest struct {}
+
+type ListKubernetesRequest struct {
+    ListRequest
+
+    Pod         string
+}
+
+type ListResponse struct {
+    Containers []v1.Container
+
+    // TODO (acbodine): Add standard pagination fields here.
 }
 
 func (p *KubernetesProxy) List(r *kite.Request) (interface{}, error) {
@@ -306,7 +319,7 @@ func (p *KubernetesProxy) exec(r *ExecKubernetesRequest) (*Exec, error) {
 
         // Notify requesting kite that the exec'd process, and all
         // our local routines are finished.
-        if err := r.Done.Call(true); err != nil {
+        if err := r.SessionEnded.Call(true); err != nil {
             fmt.Println(err)
         }
     }()

@@ -24,11 +24,5 @@ func TestFactory(t *testing.T) {
         if _, ok := p.(*proxy.KubernetesProxy); !ok {
             t.Fatal("Should return a Kubernetes proxy.")
         }
-    } else {
-
-        // Otherwise, we should receive a proxy.Local instance.
-        if _, ok := p.(*proxy.LocalProxy); !ok {
-            t.Fatal("Should return a Local proxy by default.")
-        }
     }
 }

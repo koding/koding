@@ -82,7 +82,7 @@ func (r *TestExecKubernetesRequest) Output(d *dnode.Partial) {
     r.output <- data
 }
 
-func (r *TestExecKubernetesRequest) Done(d *dnode.Partial) {
+func (r *TestExecKubernetesRequest) SessionEnded(d *dnode.Partial) {
     data := d.MustSliceOfLength(1)[0].MustBool()
 
     r.done <- data

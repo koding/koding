@@ -19,8 +19,8 @@ type IO struct {
 }
 
 type Remote struct {
-    Output      dnode.Function
-    Done        dnode.Function
+    Output          dnode.Function
+    SessionEnded    dnode.Function
 }
 
 type K8s struct {
@@ -79,17 +79,13 @@ func (r *Exec) Input(d *dnode.Partial) {
 func (r *Exec) ControlSequence(d *dnode.Partial) {
     data := d.MustSliceOfLength(1)[0].MustString()
 
-    // writer, err := charset.NewWriter("ISO-8859-1", r.in)
-    // if err != nil {
-    //     fmt.Println(err)
-    // }
-    //
-    // writer.Write([]byte(data))
     r.in <- []byte(data)
 }
 
-// Kill is a dnode.Function that is exposed to clients, allowing
-// them to kill the Exec instance.
-func (r *Exec) Kill(d *dnode.Partial) {
-    _ = r.cmd.Process.Kill()
+func (r *Exec) Close(d *dnode.Partial) {
+    // TODO:
+}
+
+func (r *Exec) Terminate(d *dnode.Partial) {
+    r.Close(d)
 }

@@ -1,9 +1,9 @@
-package info_test
+package proxy_test
 
 import (
 	"testing"
 
-    "koding/klient/info"
+	"koding/klient/proxy"
     "koding/klient/testutil"
 
     "github.com/koding/kite"
@@ -12,8 +12,13 @@ import (
 // TestInfo aims to validate the request/response transaction associated
 // with the 'klient.info' kite call between a kite and a klient kite.
 func TestInfo(t *testing.T) {
+	p, err := proxy.NewKubernetes()
+    if err != nil {
+        t.Skip(skipMessage)
+    }
+
     mapping := map[string]kite.HandlerFunc {
-        "klient.info": info.Info,
+        "klient.info": p.Info,
     }
 
     k, client := testutil.GetKites(mapping)
@@ -24,9 +29,9 @@ func TestInfo(t *testing.T) {
         t.Fatal(err)
     }
 
-    var data info.InfoResponse
+    var data proxy.InfoResponse
 
     if err = dnode.Unmarshal(data); err != nil {
-        t.Fatal("Response should be of type info.InfoResponse.")
+        t.Fatal("Response should be of type proxy.InfoResponse.")
     }
 }

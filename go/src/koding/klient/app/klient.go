@@ -526,8 +526,11 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("machine.index.get", index.KiteHandlerGet())
 
 	cProxy := proxy.Factory()
-	k.handleWith("proxy.list", cProxy.List)
-	k.handleWith("proxy.exec", cProxy.Exec)
+
+	if cProxy != nil {
+		k.handleWith("proxy.list", cProxy.List)
+		k.handleWith("proxy.exec", cProxy.Exec)
+	}
 
 	// Vagrant
 	k.handleFunc("vagrant.create", k.vagrant.Create)
@@ -558,11 +561,19 @@ func (k *Klient) RegisterMethods() {
 	k.handleFunc("exec", command.Exec)
 
 	// Terminal
-	k.handleWithSub("webterm.getSessions", k.terminal.GetSessions)
-	k.handleWithSub("webterm.connect", k.terminal.Connect)
-	k.handleWithSub("webterm.killSession", k.terminal.KillSession)
-	k.handleWithSub("webterm.killSessions", k.terminal.KillSessions)
-	k.handleWithSub("webterm.rename", k.terminal.RenameSession)
+	if cProxy != nil {
+		k.handleWithSub("webterm.getSessions", cProxy.GetSessions)
+		k.handleWithSub("webterm.connect", cProxy.Connect)
+		k.handleWithSub("webterm.killSession", cProxy.KillSession)
+		k.handleWithSub("webterm.killSessions", cProxy.KillSessions)
+		k.handleWithSub("webterm.rename", cProxy.RenameSession)
+	} else {
+		k.handleWithSub("webterm.getSessions", k.terminal.GetSessions)
+		k.handleWithSub("webterm.connect", k.terminal.Connect)
+		k.handleWithSub("webterm.killSession", k.terminal.KillSession)
+		k.handleWithSub("webterm.killSessions", k.terminal.KillSessions)
+		k.handleWithSub("webterm.rename", k.terminal.RenameSession)
+	}
 
 	// VM -> Client methods
 	ps := client.NewPubSub(k.log)

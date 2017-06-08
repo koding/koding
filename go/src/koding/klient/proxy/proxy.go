@@ -1,6 +1,9 @@
 package proxy
 
 import (
+    "koding/klient/info"
+    "koding/klient/terminal"
+
     "github.com/koding/kite"
 
     "k8s.io/client-go/kubernetes"
@@ -35,6 +38,10 @@ type Proxy interface {
     // Returns an ExecResponse representing a middle-man connection
     // that is proxying io to and from the remote container.
     Exec(*kite.Request) (interface{}, error)
+
+    // Extend the following interfaces.
+    info.Infoer
+    terminal.Terminal
 }
 
 // Factory provides a batteries included way of accessing a container proxy
@@ -44,7 +51,7 @@ func Factory() Proxy {
         return p
     }
 
-    return NewLocal()
+    return nil
 }
 
 func NewKubernetes() (Proxy, error) {
@@ -75,8 +82,4 @@ func NewKubernetes() (Proxy, error) {
     }
 
     return p, nil
-}
-
-func NewLocal() Proxy {
-    return &LocalProxy{}
 }

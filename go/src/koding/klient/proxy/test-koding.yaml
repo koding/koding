@@ -1,0 +1,32 @@
+# This Kubernetes pod spec serves to spin up the testing pod
+# environment that the Kuberentes based proxy tests expect.
+
+apiVersion: v1
+kind: Pod
+
+metadata:
+  name: test-klient
+
+spec:
+
+  containers:
+
+  # Koding klient container, the kite proxy.
+  - name: klient
+    image: acbodine/klient
+    env:
+    - name: TOKEN
+      value: 62b37400
+    volumeMounts:
+    - name: workspace
+      mountPath: /opt/kite/klient/workspace
+
+  # An example container as a Pod neighbor.
+  - name: express
+    image: acbodine/example-express
+
+  volumes:
+
+  # A scratch space for klient container.
+  - name: workspace
+    emptyDir: {}
