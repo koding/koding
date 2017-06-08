@@ -367,7 +367,7 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/hashicorp/hil
-  version: 6215360e5247e7c4bdc317a5f95e3fa5f084a33b
+  version: fac2259da677551de1fb92b844c4d020a38d8468
   subpackages:
   - ast
 - name: github.com/hashicorp/logutils
