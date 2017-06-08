@@ -43,7 +43,9 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 
 	bs.Log.Debug("Connecting to terraformer kite")
 
-	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
+	opts := bs.Session.Terraformer
+
+	tfKite, err := terraformer.Connect(opts.Endpoint, opts.SecretKey, opts.Kite)
 	if err != nil {
 		return nil, err
 	}

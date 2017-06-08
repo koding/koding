@@ -103,7 +103,9 @@ func (bs *BaseStack) Plan() (stack.Machines, error) {
 		return nil, err
 	}
 
-	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
+	opts := bs.Session.Terraformer
+
+	tfKite, err := terraformer.Connect(opts.Endpoint, opts.SecretKey, opts.Kite)
 	if err != nil {
 		return nil, err
 	}

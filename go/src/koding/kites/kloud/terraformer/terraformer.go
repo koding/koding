@@ -2,8 +2,9 @@ package terraformer
 
 import (
 	"fmt"
-	"koding/kites/terraformer"
 	"time"
+
+	"koding/kites/terraformer"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
@@ -15,19 +16,12 @@ type Terraformer struct {
 	kite   *kite.Kite
 }
 
-// Options are used to connect to a terraformer kite.
-type Options struct {
-	Endpoint  string
-	SecretKey string
-	Kite      *kite.Kite
-}
-
 // Connect connects to a remote terraformer instance with the given kite instance.
-func Connect(opts *Options) (*Terraformer, error) {
-	tfKite := opts.Kite.NewClient(opts.Endpoint)
+func Connect(endpoint, secretKey string, k *kite.Kite) (*Terraformer, error) {
+	tfKite := k.NewClient(endpoint)
 	tfKite.Auth = &kite.Auth{
 		Type: "kloud",
-		Key:  opts.SecretKey,
+		Key:  secretKey,
 	}
 
 	connected, err := tfKite.DialForever()
@@ -39,7 +33,7 @@ func Connect(opts *Options) (*Terraformer, error) {
 	<-connected
 
 	return &Terraformer{
-		kite:   opts.Kite,
+		kite:   k,
 		Client: tfKite,
 	}, nil
 }
