@@ -27,8 +27,9 @@ func NewUninstallCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.AdminRequired,             // Root privileges are required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs, // No custom arguments are accepted.
+		cli.NoArgs,                    // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd
