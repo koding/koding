@@ -2,6 +2,8 @@ package machine
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/commands/machine/config"
+	"koding/klientctl/commands/machine/mount"
 
 	"github.com/spf13/cobra"
 )
@@ -16,9 +18,11 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
+		config.NewCommand(c),
 		NewCpCommand(c),
 		NewExecCommand(c),
 		NewListCommand(c),
+		mount.NewCommand(c),
 		NewSSHCommand(c),
 		NewStartCommand(c),
 		NewStopCommand(c),

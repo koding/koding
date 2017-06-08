@@ -1,4 +1,4 @@
-package credential
+package cred
 
 import (
 	"koding/klientctl/commands/cli"

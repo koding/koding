@@ -1,4 +1,4 @@
-package init
+package initial
 
 import (
 	"koding/klientctl/commands/cli"
@@ -14,7 +14,7 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "Initialize new project",
+		Short: "Initialize a new project",
 		RunE:  command(c, opts),
 	}
 

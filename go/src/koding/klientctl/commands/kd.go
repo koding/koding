@@ -2,8 +2,21 @@
 package commands
 
 import (
+	"koding/klientctl/commands/auth"
+	"koding/klientctl/commands/bug"
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/commands/config"
+	"koding/klientctl/commands/cred"
+	"koding/klientctl/commands/daemon"
+	"koding/klientctl/commands/initial"
+	"koding/klientctl/commands/log"
 	"koding/klientctl/commands/machine"
+	"koding/klientctl/commands/metrics"
+	"koding/klientctl/commands/open"
+	"koding/klientctl/commands/stack"
+	"koding/klientctl/commands/status"
+	"koding/klientctl/commands/team"
+	"koding/klientctl/commands/template"
 	"koding/klientctl/commands/version"
 
 	"github.com/spf13/cobra"
@@ -19,8 +32,21 @@ func NewKdCommand(c *cli.CLI) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
+		bug.NewCommand(c),
+		auth.NewCommand(c),
+		config.NewCommand(c),
+		cred.NewCommand(c),
+		daemon.NewCommand(c),
+		initial.NewCommand(c),
+		log.NewCommand(c),
 		machine.NewCommand(c),
 		machine.NewListCommand(c, "machine", "list"),
+		metrics.NewCommand(c),
+		open.NewCommand(c),
+		stack.NewCommand(c),
+		status.NewCommand(c),
+		team.NewCommand(c),
+		template.NewCommand(c),
 		version.NewCommand(c),
 	)
 

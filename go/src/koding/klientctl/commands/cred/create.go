@@ -1,4 +1,4 @@
-package credential
+package cred
 
 import (
 	"koding/klientctl/commands/cli"
@@ -28,7 +28,7 @@ func NewCreateCommand(c *cli.CLI) *cobra.Command {
 	// Flags.
 	flags := cmd.Flags()
 	flags.StringVarP(&opts.provider, "provider", "p", "", "credential provider")
-	flags.StringVar(&opts.file, "file", "", "read from file")
+	flags.StringVarP(&opts.file, "file", "f", "", "read from file")
 	flags.StringVar(&opts.team, "team", "", "owner of the credential")
 	flags.StringVar(&opts.title, "title", "", "credential title")
 	flags.BoolVar(&opts.jsonOutput, "json", false, "output in JSON format")

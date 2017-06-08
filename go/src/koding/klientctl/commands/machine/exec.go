@@ -14,9 +14,10 @@ func NewExecCommand(c *cli.CLI) *cobra.Command {
 	opts := &execOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "exec",
-		Short: "Run a command on remote host",
-		RunE:  execCommand(c, opts),
+		Use:     "exec",
+		Aliases: []string{"e"},
+		Short:   "Run a command on remote host",
+		RunE:    execCommand(c, opts),
 	}
 
 	// Middlewares.

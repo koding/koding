@@ -2,6 +2,7 @@ package mount
 
 import (
 	"koding/klientctl/commands/cli"
+	msync "koding/klientctl/commands/machine/mount/sync"
 
 	"github.com/spf13/cobra"
 )
@@ -24,6 +25,7 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd.AddCommand(
 		NewInspectCommand(c),
 		NewListCommand(c),
+		msync.NewCommand(c),
 	)
 
 	// Middlewares.

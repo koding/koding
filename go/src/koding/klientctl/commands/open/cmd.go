@@ -1,4 +1,4 @@
-package version
+package open
 
 import (
 	"koding/klientctl/commands/cli"

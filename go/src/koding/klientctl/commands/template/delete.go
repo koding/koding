@@ -24,7 +24,7 @@ func NewDeleteCommand(c *cli.CLI) *cobra.Command {
 
 	// Flags.
 	flags := cmd.Flags()
-	flags.StringVar(&opts.template, "template", "", "limit to template name")
+	flags.StringVarP(&opts.template, "template", "t", "", "limit to template name")
 	flags.StringVar(&opts.id, "id", "", "limit to template id")
 	flags.BoolVar(&opts.force, "force", false, "confirm all questions")
 

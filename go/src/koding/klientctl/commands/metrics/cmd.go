@@ -10,9 +10,10 @@ import (
 // external sources.
 func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "metrics",
-		Short: "Publish events from external sources",
-		RunE:  cli.PrintHelp(c.Err()),
+		Use:    "metrics",
+		Short:  "Publish events from external sources",
+		Hidden: true,
+		RunE:   cli.PrintHelp(c.Err()),
 	}
 
 	// Subcommands.

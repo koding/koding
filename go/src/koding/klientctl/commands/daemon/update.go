@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"flag"
 	"koding/klientctl/commands/cli"
 
 	"github.com/spf13/cobra"
@@ -27,7 +26,7 @@ func NewUpdateCommand(c *cli.CLI) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVar(&opts.force, "force", false, "force retrieving configuration")
 	flags.BoolVar(&opts.contin, "continue", false, "internal use only")
-	flag.Lookup("continue").Hidden = true
+	flags.Lookup("continue").Hidden = true
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(

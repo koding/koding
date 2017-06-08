@@ -16,7 +16,7 @@ func NewWhoAmICommand(c *cli.CLI) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "whoami",
-		Short: "List available machines",
+		Short: "Display authentication details",
 		RunE:  whoAmICommand(c, opts),
 	}
 
