@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that manages authentication process.
-func NewCommand(c *cli.CLI) *cobra.Command {
+func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
 		Short: "User authorization",
@@ -16,9 +16,9 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewLoginCommand(c),
-		NewShowCommand(c),
-		NewRegisterCommand(c),
+		NewLoginCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewShowCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewRegisterCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
 	)
 
 	// Middlewares.

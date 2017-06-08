@@ -9,7 +9,7 @@ import (
 type uploadOptions struct{}
 
 // NewUploadCommand creates a command that uploads log files to Koding.
-func NewUploadCommand(c *cli.CLI) *cobra.Command {
+func NewUploadCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &uploadOptions{}
 
 	cmd := &cobra.Command{
@@ -20,6 +20,7 @@ func NewUploadCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

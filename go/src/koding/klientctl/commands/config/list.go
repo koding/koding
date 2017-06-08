@@ -11,7 +11,7 @@ type listOptions struct {
 }
 
 // NewListCommand creates a command that shows all available configurations.
-func NewListCommand(c *cli.CLI) *cobra.Command {
+func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &listOptions{}
 
 	cmd := &cobra.Command{
@@ -27,6 +27,7 @@ func NewListCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

@@ -15,7 +15,7 @@ type createOptions struct {
 }
 
 // NewCreateCommand creates a command that can create stacks.
-func NewCreateCommand(c *cli.CLI) *cobra.Command {
+func NewCreateCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &createOptions{}
 
 	cmd := &cobra.Command{
@@ -34,6 +34,7 @@ func NewCreateCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

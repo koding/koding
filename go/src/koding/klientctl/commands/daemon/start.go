@@ -9,7 +9,7 @@ import (
 type startOptions struct{}
 
 // NewStartCommand creates a command that is used to start service deamon.
-func NewStartCommand(c *cli.CLI) *cobra.Command {
+func NewStartCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &startOptions{}
 
 	cmd := &cobra.Command{
@@ -20,6 +20,7 @@ func NewStartCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

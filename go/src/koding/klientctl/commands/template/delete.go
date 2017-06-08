@@ -13,7 +13,7 @@ type deleteOptions struct {
 }
 
 // NewDeleteCommand creates a command that is used to delete stack templates.
-func NewDeleteCommand(c *cli.CLI) *cobra.Command {
+func NewDeleteCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &deleteOptions{}
 
 	cmd := &cobra.Command{
@@ -30,6 +30,7 @@ func NewDeleteCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

@@ -11,6 +11,8 @@ import (
 	"koding/klientctl/commands/initial"
 	"koding/klientctl/commands/log"
 	"koding/klientctl/commands/machine"
+	"koding/klientctl/commands/machine/mount"
+	"koding/klientctl/commands/machine/mount/sync"
 	"koding/klientctl/commands/metrics"
 	"koding/klientctl/commands/open"
 	"koding/klientctl/commands/stack"
@@ -37,14 +39,26 @@ func NewKdCommand(c *cli.CLI) *cobra.Command {
 		config.NewCommand(c),
 		cred.NewCommand(c),
 		daemon.NewCommand(c),
+		daemon.NewInstallCommand(c, "kd", "daemon"),
+		daemon.NewRestartCommand(c, "kd", "daemon"),
+		daemon.NewStartCommand(c, "kd", "daemon"),
+		daemon.NewStopCommand(c, "kd", "daemon"),
+		daemon.NewUninstallCommand(c, "kd", "daemon"),
+		daemon.NewUpdateCommand(c, "kd", "daemon"),
 		initial.NewCommand(c),
 		log.NewCommand(c),
 		machine.NewCommand(c),
-		machine.NewListCommand(c, "machine", "list"),
+		machine.NewCpCommand(c, "kd", "machine"),
+		machine.NewExecCommand(c, "kd", "machine"),
+		machine.NewListCommand(c, "kd", "machine"),
+		machine.NewSSHCommand(c, "kd", "machine"),
+		machine.NewUmountCommand(c, "kd", "machine"),
 		metrics.NewCommand(c),
+		mount.NewCommand(c, "kd", "machine"),
 		open.NewCommand(c),
 		stack.NewCommand(c),
 		status.NewCommand(c),
+		sync.NewCommand(c, "kd", "machine", "mount"),
 		team.NewCommand(c),
 		template.NewCommand(c),
 		version.NewCommand(c),

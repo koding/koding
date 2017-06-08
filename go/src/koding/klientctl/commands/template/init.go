@@ -14,7 +14,7 @@ type initOptions struct {
 }
 
 // NewInitCommand creates a command that generates a new stack template.
-func NewInitCommand(c *cli.CLI) *cobra.Command {
+func NewInitCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &initOptions{}
 
 	cmd := &cobra.Command{
@@ -31,6 +31,7 @@ func NewInitCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

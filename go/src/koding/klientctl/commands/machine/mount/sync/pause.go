@@ -9,7 +9,7 @@ import (
 type pauseOptions struct{}
 
 // NewPauseCommand creates a command that allows to pause mount synchronization.
-func NewPauseCommand(c *cli.CLI) *cobra.Command {
+func NewPauseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &pauseOptions{}
 
 	cmd := &cobra.Command{
@@ -20,6 +20,7 @@ func NewPauseCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

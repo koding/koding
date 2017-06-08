@@ -10,7 +10,7 @@ type unsetOptions struct{}
 
 // NewUnsetCommand creates a command that unsets configuration key, restoring
 // it to the default value.
-func NewUnsetCommand(c *cli.CLI) *cobra.Command {
+func NewUnsetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &unsetOptions{}
 
 	cmd := &cobra.Command{
@@ -21,6 +21,7 @@ func NewUnsetCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

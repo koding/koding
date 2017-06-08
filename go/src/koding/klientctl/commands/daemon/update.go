@@ -13,7 +13,7 @@ type updateOptions struct {
 
 // NewUpdateCommand creates a command that can be used to update the service to
 // the latest version.
-func NewUpdateCommand(c *cli.CLI) *cobra.Command {
+func NewUpdateCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &updateOptions{}
 
 	cmd := &cobra.Command{
@@ -30,6 +30,7 @@ func NewUpdateCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

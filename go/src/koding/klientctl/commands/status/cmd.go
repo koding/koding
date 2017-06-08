@@ -9,7 +9,7 @@ import (
 type options struct{}
 
 // NewCommand creates a command that can be used to check KD status.
-func NewCommand(c *cli.CLI) *cobra.Command {
+func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{

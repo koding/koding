@@ -12,7 +12,7 @@ type uninstallOptions struct {
 
 // NewUninstallCommand creates a command that is used to remove the deamon and
 // all other dependencies.
-func NewUninstallCommand(c *cli.CLI) *cobra.Command {
+func NewUninstallCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &uninstallOptions{}
 
 	cmd := &cobra.Command{
@@ -27,6 +27,7 @@ func NewUninstallCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

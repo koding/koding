@@ -9,7 +9,7 @@ import (
 type restartOptions struct{}
 
 // NewRestartCommand creates a command that is used to restart deamon service.
-func NewRestartCommand(c *cli.CLI) *cobra.Command {
+func NewRestartCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &restartOptions{}
 
 	cmd := &cobra.Command{
@@ -20,6 +20,7 @@ func NewRestartCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

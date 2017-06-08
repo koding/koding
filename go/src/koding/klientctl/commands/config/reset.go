@@ -12,7 +12,7 @@ type resetOptions struct {
 
 // NewResetCommand creates a command that resets configuration to the default
 // value fetched from Koding.
-func NewResetCommand(c *cli.CLI) *cobra.Command {
+func NewResetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &resetOptions{}
 
 	cmd := &cobra.Command{
@@ -29,6 +29,7 @@ Koding service.`,
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

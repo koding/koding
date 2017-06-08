@@ -11,7 +11,7 @@ type options struct{}
 
 // NewCommand creates a command that allows to create mounts and manage their
 // properties.
-func NewCommand(c *cli.CLI) *cobra.Command {
+func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
@@ -23,14 +23,15 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewInspectCommand(c),
-		NewListCommand(c),
-		msync.NewCommand(c),
+		NewInspectCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewListCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		msync.NewCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
 	)
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.NoArgs, // No custom arguments are accepted.
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
+		cli.NoArgs,                    // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

@@ -20,7 +20,7 @@ type registerOptions struct {
 
 // NewRegisterCommand creates a command that displays remote machines which belong
 // to the user or that can be accessed by their.
-func NewRegisterCommand(c *cli.CLI) *cobra.Command {
+func NewRegisterCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &registerOptions{}
 
 	cmd := &cobra.Command{
@@ -43,6 +43,7 @@ func NewRegisterCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(cli.ExtendAlias(cmd, aliasPath)...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

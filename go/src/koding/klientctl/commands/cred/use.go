@@ -10,7 +10,7 @@ type useOptions struct{}
 
 // NewUseCommand creates a command that can change default credential per
 // provider.
-func NewUseCommand(c *cli.CLI) *cobra.Command {
+func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &useOptions{}
 
 	cmd := &cobra.Command{
@@ -21,6 +21,7 @@ func NewUseCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
 		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 

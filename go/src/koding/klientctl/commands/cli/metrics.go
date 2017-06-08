@@ -30,7 +30,7 @@ func WithMetrics(aliasPath ...string) CobraCmdMiddleware {
 		}
 
 		// Use aliased command path when provided.
-		cmdPath := aliasPath
+		cmdPath := cli.ExtendAlias(cmd, rootCmd)
 		if len(cmdPath) == 0 {
 			cmdPath = strings.Split(rootCmd.CommandPath(), " ")
 		}
