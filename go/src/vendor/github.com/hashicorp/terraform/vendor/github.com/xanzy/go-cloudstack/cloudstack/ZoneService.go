@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -215,6 +215,7 @@ func (s *ZoneService) CreateZone(p *CreateZoneParams) (*CreateZoneResponse, erro
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -263,7 +264,6 @@ type CreateZoneResponse struct {
 		Resourcetype string `json:"resourcetype,omitempty"`
 		Value        string `json:"value,omitempty"`
 	} `json:"tags,omitempty"`
-	Vlan      string `json:"vlan,omitempty"`
 	Zonetoken string `json:"zonetoken,omitempty"`
 }
 
@@ -483,6 +483,7 @@ func (s *ZoneService) UpdateZone(p *UpdateZoneParams) (*UpdateZoneResponse, erro
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -531,7 +532,6 @@ type UpdateZoneResponse struct {
 		Resourcetype string `json:"resourcetype,omitempty"`
 		Value        string `json:"value,omitempty"`
 	} `json:"tags,omitempty"`
-	Vlan      string `json:"vlan,omitempty"`
 	Zonetoken string `json:"zonetoken,omitempty"`
 }
 
@@ -578,6 +578,7 @@ func (s *ZoneService) DeleteZone(p *DeleteZoneParams) (*DeleteZoneResponse, erro
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -726,43 +727,49 @@ func (s *ZoneService) NewListZonesParams() *ListZonesParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ZoneService) GetZoneID(name string) (string, error) {
+func (s *ZoneService) GetZoneID(name string, opts ...OptionFunc) (string, int, error) {
 	p := &ListZonesParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
 
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
+		}
+	}
+
 	l, err := s.ListZones(p)
 	if err != nil {
-		return "", err
+		return "", -1, err
 	}
 
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", name, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
 	if l.Count == 1 {
-		return l.Zones[0].Id, nil
+		return l.Zones[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.Zones {
 			if v.Name == name {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ZoneService) GetZoneByName(name string) (*Zone, int, error) {
-	id, err := s.GetZoneID(name)
+func (s *ZoneService) GetZoneByName(name string, opts ...OptionFunc) (*Zone, int, error) {
+	id, count, err := s.GetZoneID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetZoneByID(id)
+	r, count, err := s.GetZoneByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -770,11 +777,17 @@ func (s *ZoneService) GetZoneByName(name string) (*Zone, int, error) {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ZoneService) GetZoneByID(id string) (*Zone, int, error) {
+func (s *ZoneService) GetZoneByID(id string, opts ...OptionFunc) (*Zone, int, error) {
 	p := &ListZonesParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListZones(p)
 	if err != nil {
@@ -807,6 +820,7 @@ func (s *ZoneService) ListZones(p *ListZonesParams) (*ListZonesResponse, error) 
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -860,7 +874,6 @@ type Zone struct {
 		Resourcetype string `json:"resourcetype,omitempty"`
 		Value        string `json:"value,omitempty"`
 	} `json:"tags,omitempty"`
-	Vlan      string `json:"vlan,omitempty"`
 	Zonetoken string `json:"zonetoken,omitempty"`
 }
 
@@ -950,6 +963,7 @@ func (s *ZoneService) DedicateZone(p *DedicateZoneParams) (*DedicateZoneResponse
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -1021,6 +1035,7 @@ func (s *ZoneService) ReleaseDedicatedZone(p *ReleaseDedicatedZoneParams) (*Rele
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -1140,6 +1155,7 @@ func (s *ZoneService) ListDedicatedZones(p *ListDedicatedZonesParams) (*ListDedi
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 

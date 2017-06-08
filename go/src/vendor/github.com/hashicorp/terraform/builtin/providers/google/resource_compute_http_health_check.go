@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeHttpHealthCheck() *schema.Resource {
@@ -15,6 +14,9 @@ func resourceComputeHttpHealthCheck() *schema.Resource {
 		Read:   resourceComputeHttpHealthCheckRead,
 		Delete: resourceComputeHttpHealthCheckDelete,
 		Update: resourceComputeHttpHealthCheckUpdate,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
@@ -55,6 +57,7 @@ func resourceComputeHttpHealthCheck() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 			},
 
 			"request_path": &schema.Schema{
@@ -131,7 +134,7 @@ func resourceComputeHttpHealthCheckCreate(d *schema.ResourceData, meta interface
 	// It probably maybe worked, so store the ID now
 	d.SetId(hchk.Name)
 
-	err = computeOperationWaitGlobal(config, op, "Creating Http Health Check")
+	err = computeOperationWaitGlobal(config, op, project, "Creating Http Health Check")
 	if err != nil {
 		return err
 	}
@@ -187,7 +190,7 @@ func resourceComputeHttpHealthCheckUpdate(d *schema.ResourceData, meta interface
 	// It probably maybe worked, so store the ID now
 	d.SetId(hchk.Name)
 
-	err = computeOperationWaitGlobal(config, op, "Updating Http Health Check")
+	err = computeOperationWaitGlobal(config, op, project, "Updating Http Health Check")
 	if err != nil {
 		return err
 	}
@@ -206,25 +209,20 @@ func resourceComputeHttpHealthCheckRead(d *schema.ResourceData, meta interface{}
 	hchk, err := config.clientCompute.HttpHealthChecks.Get(
 		project, d.Id()).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			// The resource doesn't exist anymore
-			log.Printf("[WARN] Removing HTTP Health Check %q because it's gone", d.Get("name").(string))
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error reading HttpHealthCheck: %s", err)
+		return handleNotFoundError(err, d, fmt.Sprintf("HTTP Health Check %q", d.Get("name").(string)))
 	}
 
 	d.Set("host", hchk.Host)
 	d.Set("request_path", hchk.RequestPath)
 	d.Set("check_interval_sec", hchk.CheckIntervalSec)
-	d.Set("health_threshold", hchk.HealthyThreshold)
+	d.Set("healthy_threshold", hchk.HealthyThreshold)
 	d.Set("port", hchk.Port)
 	d.Set("timeout_sec", hchk.TimeoutSec)
 	d.Set("unhealthy_threshold", hchk.UnhealthyThreshold)
 	d.Set("self_link", hchk.SelfLink)
+	d.Set("name", hchk.Name)
+	d.Set("description", hchk.Description)
+	d.Set("project", project)
 
 	return nil
 }
@@ -244,7 +242,7 @@ func resourceComputeHttpHealthCheckDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error deleting HttpHealthCheck: %s", err)
 	}
 
-	err = computeOperationWaitGlobal(config, op, "Deleting Http Health Check")
+	err = computeOperationWaitGlobal(config, op, project, "Deleting Http Health Check")
 	if err != nil {
 		return err
 	}

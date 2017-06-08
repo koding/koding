@@ -58,6 +58,7 @@ const (
 // A ResourceVariable is a variable that is referencing the field
 // of a resource, such as "${aws_instance.foo.ami}"
 type ResourceVariable struct {
+	Mode  ResourceMode
 	Type  string // Resource type, i.e. "aws_instance"
 	Name  string // Resource name
 	Field string // Resource field
@@ -83,6 +84,13 @@ type SimpleVariable struct {
 	Key string
 }
 
+// TerraformVariable is a "terraform."-prefixed variable used to access
+// metadata about the Terraform run.
+type TerraformVariable struct {
+	Field string
+	key   string
+}
+
 // A UserVariable is a variable that is referencing a user variable
 // that is inputted from outside the configuration. This looks like
 // "${var.foo}"
@@ -100,6 +108,8 @@ func NewInterpolatedVariable(v string) (InterpolatedVariable, error) {
 		return NewPathVariable(v)
 	} else if strings.HasPrefix(v, "self.") {
 		return NewSelfVariable(v)
+	} else if strings.HasPrefix(v, "terraform.") {
+		return NewTerraformVariable(v)
 	} else if strings.HasPrefix(v, "var.") {
 		return NewUserVariable(v)
 	} else if strings.HasPrefix(v, "module.") {
@@ -148,6 +158,10 @@ func (v *ModuleVariable) FullKey() string {
 	return v.key
 }
 
+func (v *ModuleVariable) GoString() string {
+	return fmt.Sprintf("*%#v", *v)
+}
+
 func NewPathVariable(key string) (*PathVariable, error) {
 	var fieldType PathValueType
 	parts := strings.SplitN(key, ".", 2)
@@ -171,11 +185,28 @@ func (v *PathVariable) FullKey() string {
 }
 
 func NewResourceVariable(key string) (*ResourceVariable, error) {
-	parts := strings.SplitN(key, ".", 3)
-	if len(parts) < 3 {
-		return nil, fmt.Errorf(
-			"%s: resource variables must be three parts: type.name.attr",
-			key)
+	var mode ResourceMode
+	var parts []string
+	if strings.HasPrefix(key, "data.") {
+		mode = DataResourceMode
+		parts = strings.SplitN(key, ".", 4)
+		if len(parts) < 4 {
+			return nil, fmt.Errorf(
+				"%s: data variables must be four parts: data.TYPE.NAME.ATTR",
+				key)
+		}
+
+		// Don't actually need the "data." prefix for parsing, since it's
+		// always constant.
+		parts = parts[1:]
+	} else {
+		mode = ManagedResourceMode
+		parts = strings.SplitN(key, ".", 3)
+		if len(parts) < 3 {
+			return nil, fmt.Errorf(
+				"%s: resource variables must be three parts: TYPE.NAME.ATTR",
+				key)
+		}
 	}
 
 	field := parts[2]
@@ -201,6 +232,7 @@ func NewResourceVariable(key string) (*ResourceVariable, error) {
 	}
 
 	return &ResourceVariable{
+		Mode:  mode,
 		Type:  parts[0],
 		Name:  parts[1],
 		Field: field,
@@ -211,7 +243,14 @@ func NewResourceVariable(key string) (*ResourceVariable, error) {
 }
 
 func (v *ResourceVariable) ResourceId() string {
-	return fmt.Sprintf("%s.%s", v.Type, v.Name)
+	switch v.Mode {
+	case ManagedResourceMode:
+		return fmt.Sprintf("%s.%s", v.Type, v.Name)
+	case DataResourceMode:
+		return fmt.Sprintf("data.%s.%s", v.Type, v.Name)
+	default:
+		panic(fmt.Errorf("unknown resource mode %s", v.Mode))
+	}
 }
 
 func (v *ResourceVariable) FullKey() string {
@@ -248,12 +287,32 @@ func (v *SimpleVariable) GoString() string {
 	return fmt.Sprintf("*%#v", *v)
 }
 
+func NewTerraformVariable(key string) (*TerraformVariable, error) {
+	field := key[len("terraform."):]
+	return &TerraformVariable{
+		Field: field,
+		key:   key,
+	}, nil
+}
+
+func (v *TerraformVariable) FullKey() string {
+	return v.key
+}
+
+func (v *TerraformVariable) GoString() string {
+	return fmt.Sprintf("*%#v", *v)
+}
+
 func NewUserVariable(key string) (*UserVariable, error) {
 	name := key[len("var."):]
 	elem := ""
 	if idx := strings.Index(name, "."); idx > -1 {
 		elem = name[idx+1:]
 		name = name[:idx]
+	}
+
+	if len(elem) > 0 {
+		return nil, fmt.Errorf("Invalid dot index found: 'var.%s.%s'. Values in maps and lists can be referenced using square bracket indexing, like: 'var.mymap[\"key\"]' or 'var.mylist[1]'.", name, elem)
 	}
 
 	return &UserVariable{
@@ -284,18 +343,35 @@ func DetectVariables(root ast.Node) ([]InterpolatedVariable, error) {
 			return n
 		}
 
-		vn, ok := n.(*ast.VariableAccess)
-		if !ok {
+		switch vn := n.(type) {
+		case *ast.VariableAccess:
+			v, err := NewInterpolatedVariable(vn.Name)
+			if err != nil {
+				resultErr = err
+				return n
+			}
+			result = append(result, v)
+		case *ast.Index:
+			if va, ok := vn.Target.(*ast.VariableAccess); ok {
+				v, err := NewInterpolatedVariable(va.Name)
+				if err != nil {
+					resultErr = err
+					return n
+				}
+				result = append(result, v)
+			}
+			if va, ok := vn.Key.(*ast.VariableAccess); ok {
+				v, err := NewInterpolatedVariable(va.Name)
+				if err != nil {
+					resultErr = err
+					return n
+				}
+				result = append(result, v)
+			}
+		default:
 			return n
 		}
 
-		v, err := NewInterpolatedVariable(vn.Name)
-		if err != nil {
-			resultErr = err
-			return n
-		}
-
-		result = append(result, v)
 		return n
 	}
 

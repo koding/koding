@@ -377,7 +377,7 @@ imports:
   subpackages:
   - coordinate
 - name: github.com/hashicorp/terraform
-  version: efd6b997aef61c44cc25d8dc5743f4bdc71daa58
+  version: 5d7e0339779dbe5ca8d0f639a141353b6aa54d7b
   subpackages:
   - builtin/providers/archive
   - builtin/providers/atlas

@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -121,6 +121,7 @@ func (s *ProjectService) CreateProject(p *CreateProjectParams) (*CreateProjectRe
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -240,6 +241,7 @@ func (s *ProjectService) DeleteProject(p *DeleteProjectParams) (*DeleteProjectRe
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -334,6 +336,7 @@ func (s *ProjectService) UpdateProject(p *UpdateProjectParams) (*UpdateProjectRe
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -458,6 +461,7 @@ func (s *ProjectService) ActivateProject(p *ActivateProjectParams) (*ActivatePro
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -582,6 +586,7 @@ func (s *ProjectService) SuspendProject(p *SuspendProjectParams) (*SuspendProjec
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -805,43 +810,49 @@ func (s *ProjectService) NewListProjectsParams() *ListProjectsParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ProjectService) GetProjectID(name string) (string, error) {
+func (s *ProjectService) GetProjectID(name string, opts ...OptionFunc) (string, int, error) {
 	p := &ListProjectsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
 
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
+		}
+	}
+
 	l, err := s.ListProjects(p)
 	if err != nil {
-		return "", err
+		return "", -1, err
 	}
 
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", name, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
 	if l.Count == 1 {
-		return l.Projects[0].Id, nil
+		return l.Projects[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.Projects {
 			if v.Name == name {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ProjectService) GetProjectByName(name string) (*Project, int, error) {
-	id, err := s.GetProjectID(name)
+func (s *ProjectService) GetProjectByName(name string, opts ...OptionFunc) (*Project, int, error) {
+	id, count, err := s.GetProjectID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetProjectByID(id)
+	r, count, err := s.GetProjectByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -849,11 +860,17 @@ func (s *ProjectService) GetProjectByName(name string) (*Project, int, error) {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ProjectService) GetProjectByID(id string) (*Project, int, error) {
+func (s *ProjectService) GetProjectByID(id string, opts ...OptionFunc) (*Project, int, error) {
 	p := &ListProjectsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListProjects(p)
 	if err != nil {
@@ -886,6 +903,7 @@ func (s *ProjectService) ListProjects(p *ListProjectsParams) (*ListProjectsRespo
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -1098,11 +1116,17 @@ func (s *ProjectService) NewListProjectInvitationsParams() *ListProjectInvitatio
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *ProjectService) GetProjectInvitationByID(id string) (*ProjectInvitation, int, error) {
+func (s *ProjectService) GetProjectInvitationByID(id string, opts ...OptionFunc) (*ProjectInvitation, int, error) {
 	p := &ListProjectInvitationsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListProjectInvitations(p)
 	if err != nil {
@@ -1115,21 +1139,6 @@ func (s *ProjectService) GetProjectInvitationByID(id string) (*ProjectInvitation
 	}
 
 	if l.Count == 0 {
-		// If no matches, search all projects
-		p.p["projectid"] = "-1"
-
-		l, err = s.ListProjectInvitations(p)
-		if err != nil {
-			if strings.Contains(err.Error(), fmt.Sprintf(
-				"Invalid parameter id value=%s due to incorrect long value format, "+
-					"or entity does not exist", id)) {
-				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
-			}
-			return nil, -1, err
-		}
-	}
-
-	if l.Count == 0 {
 		return nil, l.Count, fmt.Errorf("No match found for %s: %+v", id, l)
 	}
 
@@ -1139,7 +1148,7 @@ func (s *ProjectService) GetProjectInvitationByID(id string) (*ProjectInvitation
 	return nil, l.Count, fmt.Errorf("There is more then one result for ProjectInvitation UUID: %s!", id)
 }
 
-// Lists projects and provides detailed information for listed projects
+// Lists project invitations and provides detailed information for listed invitations
 func (s *ProjectService) ListProjectInvitations(p *ListProjectInvitationsParams) (*ListProjectInvitationsResponse, error) {
 	resp, err := s.cs.newRequest("listProjectInvitations", p.toURLValues())
 	if err != nil {
@@ -1150,6 +1159,7 @@ func (s *ProjectService) ListProjectInvitations(p *ListProjectInvitationsParams)
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -1261,6 +1271,7 @@ func (s *ProjectService) UpdateProjectInvitation(p *UpdateProjectInvitationParam
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -1302,7 +1313,7 @@ func (s *ProjectService) NewDeleteProjectInvitationParams(id string) *DeleteProj
 	return p
 }
 
-// Accepts or declines project invitation
+// Deletes project invitation
 func (s *ProjectService) DeleteProjectInvitation(p *DeleteProjectInvitationParams) (*DeleteProjectInvitationResponse, error) {
 	resp, err := s.cs.newRequest("deleteProjectInvitation", p.toURLValues())
 	if err != nil {
@@ -1328,6 +1339,7 @@ func (s *ProjectService) DeleteProjectInvitation(p *DeleteProjectInvitationParam
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 

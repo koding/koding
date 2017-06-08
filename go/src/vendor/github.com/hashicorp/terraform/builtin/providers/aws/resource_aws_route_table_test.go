@@ -2,7 +2,7 @@ package aws
 
 import (
 	"fmt"
-	"os"
+	"regexp"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -59,11 +59,12 @@ func TestAccAWSRouteTable_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route_table.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccRouteTableConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
@@ -72,7 +73,7 @@ func TestAccAWSRouteTable_basic(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccRouteTableConfigChange,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
@@ -108,11 +109,12 @@ func TestAccAWSRouteTable_instance(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route_table.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccRouteTableConfigInstance,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
@@ -124,15 +126,45 @@ func TestAccAWSRouteTable_instance(t *testing.T) {
 	})
 }
 
+func TestAccAWSRouteTable_ipv6(t *testing.T) {
+	var v ec2.RouteTable
+
+	testCheck := func(*terraform.State) error {
+		// Expect 3: 2 IPv6 (local + all outbound) + 1 IPv4
+		if len(v.Routes) != 3 {
+			return fmt.Errorf("bad routes: %#v", v.Routes)
+		}
+
+		return nil
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route_table.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRouteTableConfigIpv6,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRouteTableExists("aws_route_table.foo", &v),
+					testCheck,
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSRouteTable_tags(t *testing.T) {
 	var route_table ec2.RouteTable
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRouteTableDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route_table.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccRouteTableConfigTags,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists("aws_route_table.foo", &route_table),
@@ -140,13 +172,29 @@ func TestAccAWSRouteTable_tags(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: testAccRouteTableConfigTagsUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists("aws_route_table.foo", &route_table),
 					testAccCheckTags(&route_table.Tags, "foo", ""),
 					testAccCheckTags(&route_table.Tags, "bar", "baz"),
 				),
+			},
+		},
+	})
+}
+
+// For GH-13545, Fixes panic on an empty route config block
+func TestAccAWSRouteTable_panicEmptyRoute(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route_table.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccRouteTableConfigPanicEmptyRoute,
+				ExpectError: regexp.MustCompile("The request must contain the parameter destinationCidrBlock or destinationIpv6CidrBlock"),
 			},
 		},
 	})
@@ -238,17 +286,12 @@ func TestAccAWSRouteTable_vpcPeering(t *testing.T) {
 		return nil
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-			if os.Getenv("AWS_ACCOUNT_ID") == "" {
-				t.Fatal("Error: Test TestAccAWSRouteTable_vpcPeering requires an Account ID in AWS_ACCOUNT_ID ")
-			}
-		},
+		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccRouteTableVpcPeeringConfig(os.Getenv("AWS_ACCOUNT_ID")),
+			{
+				Config: testAccRouteTableVpcPeeringConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
 						"aws_route_table.foo", &v),
@@ -288,7 +331,7 @@ func TestAccAWSRouteTable_vgwRoutePropagation(t *testing.T) {
 			testAccCheckRouteTableDestroy,
 		),
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccRouteTableVgwRoutePropagationConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckRouteTableExists(
@@ -341,6 +384,26 @@ resource "aws_route_table" "foo" {
 	route {
 		cidr_block = "10.4.0.0/16"
 		gateway_id = "${aws_internet_gateway.foo.id}"
+	}
+}
+`
+
+const testAccRouteTableConfigIpv6 = `
+resource "aws_vpc" "foo" {
+  cidr_block = "10.1.0.0/16"
+  assign_generated_ipv6_cidr_block = true
+}
+
+resource "aws_egress_only_internet_gateway" "foo" {
+	vpc_id = "${aws_vpc.foo.id}"
+}
+
+resource "aws_route_table" "foo" {
+	vpc_id = "${aws_vpc.foo.id}"
+
+	route {
+		ipv6_cidr_block = "::/0"
+		egress_only_gateway_id = "${aws_egress_only_internet_gateway.foo.id}"
 	}
 }
 `
@@ -401,9 +464,8 @@ resource "aws_route_table" "foo" {
 `
 
 // VPC Peering connections are prefixed with pcx
-// This test requires an ENV var, AWS_ACCOUNT_ID, with a valid AWS Account ID
-func testAccRouteTableVpcPeeringConfig(acc string) string {
-	cfg := `resource "aws_vpc" "foo" {
+const testAccRouteTableVpcPeeringConfig = `
+resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
 }
 
@@ -422,7 +484,6 @@ resource "aws_internet_gateway" "bar" {
 resource "aws_vpc_peering_connection" "foo" {
 		vpc_id = "${aws_vpc.foo.id}"
 		peer_vpc_id = "${aws_vpc.bar.id}"
-		peer_owner_id = "%s"
 		tags {
 			foo = "bar"
 		}
@@ -437,8 +498,6 @@ resource "aws_route_table" "foo" {
 	}
 }
 `
-	return fmt.Sprintf(cfg, acc)
-}
 
 const testAccRouteTableVgwRoutePropagationConfig = `
 resource "aws_vpc" "foo" {
@@ -453,5 +512,19 @@ resource "aws_route_table" "foo" {
 	vpc_id = "${aws_vpc.foo.id}"
 
 	propagating_vgws = ["${aws_vpn_gateway.foo.id}"]
+}
+`
+
+// For GH-13545
+const testAccRouteTableConfigPanicEmptyRoute = `
+resource "aws_vpc" "foo" {
+	cidr_block = "10.2.0.0/16"
+}
+
+resource "aws_route_table" "foo" {
+	vpc_id = "${aws_vpc.foo.id}"
+
+  route {
+  }
 }
 `

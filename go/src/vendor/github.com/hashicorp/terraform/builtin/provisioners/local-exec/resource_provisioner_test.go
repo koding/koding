@@ -5,13 +5,21 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform/config"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestResourceProvisioner_impl(t *testing.T) {
-	var _ terraform.ResourceProvisioner = new(ResourceProvisioner)
+	var _ terraform.ResourceProvisioner = Provisioner()
+}
+
+func TestProvisioner(t *testing.T) {
+	if err := Provisioner().(*schema.Provisioner).InternalValidate(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
 }
 
 func TestResourceProvider_Apply(t *testing.T) {
@@ -21,7 +29,8 @@ func TestResourceProvider_Apply(t *testing.T) {
 	})
 
 	output := new(terraform.MockUIOutput)
-	p := new(ResourceProvisioner)
+	p := Provisioner()
+
 	if err := p.Apply(output, nil, c); err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -39,12 +48,45 @@ func TestResourceProvider_Apply(t *testing.T) {
 	}
 }
 
+func TestResourceProvider_stop(t *testing.T) {
+	c := testConfig(t, map[string]interface{}{
+		// bash/zsh/ksh will exec a single command in the same process. This
+		// makes certain there's a subprocess in the shell.
+		"command": "sleep 30; sleep 30",
+	})
+
+	output := new(terraform.MockUIOutput)
+	p := Provisioner()
+
+	var err error
+	doneCh := make(chan struct{})
+	go func() {
+		defer close(doneCh)
+		err = p.Apply(output, nil, c)
+	}()
+
+	select {
+	case <-doneCh:
+		t.Fatal("should not finish quickly")
+	case <-time.After(50 * time.Millisecond):
+	}
+
+	// Stop it
+	p.Stop()
+
+	select {
+	case <-doneCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("should finish")
+	}
+}
+
 func TestResourceProvider_Validate_good(t *testing.T) {
 	c := testConfig(t, map[string]interface{}{
 		"command": "echo foo",
 	})
-	p := new(ResourceProvisioner)
-	warn, errs := p.Validate(c)
+
+	warn, errs := Provisioner().Validate(c)
 	if len(warn) > 0 {
 		t.Fatalf("Warnings: %v", warn)
 	}
@@ -55,8 +97,8 @@ func TestResourceProvider_Validate_good(t *testing.T) {
 
 func TestResourceProvider_Validate_missing(t *testing.T) {
 	c := testConfig(t, map[string]interface{}{})
-	p := new(ResourceProvisioner)
-	warn, errs := p.Validate(c)
+
+	warn, errs := Provisioner().Validate(c)
 	if len(warn) > 0 {
 		t.Fatalf("Warnings: %v", warn)
 	}
@@ -65,9 +107,7 @@ func TestResourceProvider_Validate_missing(t *testing.T) {
 	}
 }
 
-func testConfig(
-	t *testing.T,
-	c map[string]interface{}) *terraform.ResourceConfig {
+func testConfig(t *testing.T, c map[string]interface{}) *terraform.ResourceConfig {
 	r, err := config.NewRawConfig(c)
 	if err != nil {
 		t.Fatalf("bad: %s", err)

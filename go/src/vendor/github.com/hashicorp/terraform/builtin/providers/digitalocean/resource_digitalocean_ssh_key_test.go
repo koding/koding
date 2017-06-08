@@ -1,33 +1,38 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDigitalOceanSSHKey_Basic(t *testing.T) {
 	var key godo.Key
+	rInt := acctest.RandInt()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanSSHKeyDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccCheckDigitalOceanSSHKeyConfig_basic,
+			{
+				Config: testAccCheckDigitalOceanSSHKeyConfig_basic(rInt, publicKeyMaterial),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSSHKeyExists("digitalocean_ssh_key.foobar", &key),
-					testAccCheckDigitalOceanSSHKeyAttributes(&key),
 					resource.TestCheckResourceAttr(
-						"digitalocean_ssh_key.foobar", "name", "foobar"),
+						"digitalocean_ssh_key.foobar", "name", fmt.Sprintf("foobar-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_ssh_key.foobar", "public_key", testAccValidPublicKey),
+						"digitalocean_ssh_key.foobar", "public_key", publicKeyMaterial),
 				),
 			},
 		},
@@ -48,7 +53,7 @@ func testAccCheckDigitalOceanSSHKeyDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the key
-		_, _, err = client.Keys.GetByID(id)
+		_, _, err = client.Keys.GetByID(context.Background(), id)
 
 		if err == nil {
 			return fmt.Errorf("SSH key still exists")
@@ -56,17 +61,6 @@ func testAccCheckDigitalOceanSSHKeyDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckDigitalOceanSSHKeyAttributes(key *godo.Key) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		if key.Name != "foobar" {
-			return fmt.Errorf("Bad name: %s", key.Name)
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckDigitalOceanSSHKeyExists(n string, key *godo.Key) resource.TestCheckFunc {
@@ -89,7 +83,7 @@ func testAccCheckDigitalOceanSSHKeyExists(n string, key *godo.Key) resource.Test
 		}
 
 		// Try to find the key
-		foundKey, _, err := client.Keys.GetByID(id)
+		foundKey, _, err := client.Keys.GetByID(context.Background(), id)
 
 		if err != nil {
 			return err
@@ -105,12 +99,10 @@ func testAccCheckDigitalOceanSSHKeyExists(n string, key *godo.Key) resource.Test
 	}
 }
 
-var testAccCheckDigitalOceanSSHKeyConfig_basic = fmt.Sprintf(`
+func testAccCheckDigitalOceanSSHKeyConfig_basic(rInt int, key string) string {
+	return fmt.Sprintf(`
 resource "digitalocean_ssh_key" "foobar" {
-    name = "foobar"
+    name = "foobar-%d"
     public_key = "%s"
-}`, testAccValidPublicKey)
-
-var testAccValidPublicKey = strings.TrimSpace(`
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVERRN7/9484SOBJ3HSKxxNG5JN8owAjy5f9yYwcUg+JaUVuytn5Pv3aeYROHGGg+5G346xaq3DAwX6Y5ykr2fvjObgncQBnuU5KHWCECO/4h8uWuwh/kfniXPVjFToc+gnkqA+3RKpAecZhFXwfalQ9mMuYGFxn+fwn8cYEApsJbsEmb0iJwPiZ5hjFC8wREuiTlhPHDgkBLOiycd20op2nXzDbHfCHInquEe/gYxEitALONxm0swBOwJZwlTDOB7C6y2dzlrtxr1L59m7pCkWI4EtTRLvleehBoj3u7jB4usR
-`)
+}`, rInt, key)
+}

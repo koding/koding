@@ -1,11 +1,11 @@
 Terraform
 =========
 
-- Website: http://www.terraform.io
-- IRC: `#terraform-tool` on Freenode
+- Website: https://www.terraform.io
+- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
-![Terraform](https://raw.githubusercontent.com/hashicorp/terraform/master/website/source/assets/images/readme.png)
+![Terraform](https://rawgithub.com/hashicorp/terraform/master/website/source/assets/images/logo-hashicorp.svg)
 
 Terraform is a tool for building, changing, and versioning infrastructure safely and efficiently. Terraform can manage existing and popular service providers as well as custom in-house solutions.
 
@@ -29,13 +29,14 @@ All documentation is available on the [Terraform website](http://www.terraform.i
 Developing Terraform
 --------------------
 
-If you wish to work on Terraform itself or any of its built-in providers, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.6+ is *required*). Alternatively, you can use the Vagrantfile in the root of this repo to stand up a virtual machine with the appropriate dev tooling already set up for you.
+If you wish to work on Terraform itself or any of its built-in providers, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.8+ is *required*). Alternatively, you can use the Vagrantfile in the root of this repo to stand up a virtual machine with the appropriate dev tooling already set up for you.
 
-For local dev first make sure Go is properly installed, including setting up a [GOPATH](http://golang.org/doc/code.html#GOPATH). You will also need to add `$GOPATH/bin` to your `$PATH`. Next, install the following software packages, which are needed for some dependencies:
+For local dev first make sure Go is properly installed, including setting up a [GOPATH](http://golang.org/doc/code.html#GOPATH). You will also need to add `$GOPATH/bin` to your `$PATH`.
 
 Next, using [Git](https://git-scm.com/), clone this repository into `$GOPATH/src/github.com/hashicorp/terraform`. All the necessary dependencies are either vendored or automatically installed, so you just need to type `make`. This will compile the code and then run the tests. If this exits with exit status 0, then everything is working!
 
 ```sh
+$ cd "$GOPATH/src/github.com/hashicorp/terraform"
 $ make
 ```
 
@@ -69,13 +70,7 @@ $ make core-dev
 
 ### Dependencies
 
-Terraform stores its dependencies under `vendor/`, which [Go 1.6+ will automatically recognize and load](https://golang.org/cmd/go/#hdr-Vendor_Directories). We use [`godep`](https://github.com/tools/godep) to manage the vendored dependencies.
-
-Generally speaking, `godep` operations follow this pattern:
-
- 1. Get current state of dependencies into your `$GOPATH` with `godep restore`.
- 2. Make changes to the packages in `$GOPATH`.
- 3. Tell `godep` to capture those changes in the Terraform repo.
+Terraform stores its dependencies under `vendor/`, which [Go 1.6+ will automatically recognize and load](https://golang.org/cmd/go/#hdr-Vendor_Directories). We use [`govendor`](https://github.com/kardianos/govendor) to manage the vendored dependencies.
 
 If you're developing Terraform, there are a few tasks you might need to perform.
 
@@ -83,62 +78,35 @@ If you're developing Terraform, there are a few tasks you might need to perform.
 
 If you're adding a dependency, you'll need to vendor it in the same Pull Request as the code that depends on it. You should do this in a separate commit from your code, as makes PR review easier and Git history simpler to read in the future.
 
-Because godep captures new dependencies from the local `$GOPATH`, you first need to `godep restore` from the master branch to ensure that the only diff is your new dependency.
+To add a dependency:
 
 Assuming your work is on a branch called `my-feature-branch`, the steps look like this:
 
-```bash
-# Get latest master branch's dependencies staged in local $GOPATH
-git checkout master
-git pull
-godep restore -v
+1. Add the new package to your GOPATH:
 
-# Capture the new dependency referenced from my-feature-branch
-git checkout my-feature-branch
-git rebase master
-godep save ./...
+    ```bash
+    go get github.com/hashicorp/my-project
+    ```
 
-# There should now be a diff in `vendor/` with added files for your dependency,
-# and a diff in Godeps/Godeps.json with metadata for your dependency.
+2.  Add the new package to your `vendor/` directory:
 
-# Make a commit with your new dependencies added
-git add -A
-git commit -m "vendor: Capture new dependency upstream-pkg"
+    ```bash
+    govendor add github.com/hashicorp/my-project/package
+    ```
 
-# Push to your branch (may need -f if you rebased)
-git push origin my-feature-branch
-```
+3. Review the changes in git and commit them.
 
 #### Updating a dependency
 
-If you're updating an existing dependency, godep provides a specific command to snag the newer version from your `$GOPATH`.
+To update a dependency:
 
-```bash
-# Get latest master branch's dependencies staged in local $GOPATH
-git checkout master
-git pull
-godep restore -v
+1. Fetch the dependency:
 
-# Make your way to the dependency in question and checkout the target ref
-pushd $GOPATH/src/github.com/some/dependency
-git checkout v-1.next
+    ```bash
+    govendor fetch github.com/hashicorp/my-project
+    ```
 
-# Head back to Terraform on a feature branch and update the dependncy to the
-# version currently in your $GOPATH
-popd
-git checkout my-feature-branch
-godep update github.com/some/dependency/...
-
-# There should now be a diff in `vendor/` with changed files for your dependency,
-# and a diff in Godeps/Godeps.json with metadata for the updated dependency.
-
-# Make a commit with the updated dependency
-git add -A
-git commit -m "vendor: Update dependency upstream-pkg to 1.4.6"
-
-# Push to your branch
-git push origin my-feature-branch
-```
+2. Review the changes in git and commit them.
 
 ### Acceptance Tests
 
@@ -151,10 +119,10 @@ built-in providers. Our [Contributing Guide](https://github.com/hashicorp/terraf
 
 If you wish to cross-compile Terraform for another architecture, you can set the `XC_OS` and `XC_ARCH` environment variables to values representing the target operating system and architecture before calling `make`. The output is placed in the `pkg` subdirectory tree both expanded in a directory representing the OS/architecture combination and as a ZIP archive.
 
-For example, to compile 64-bit Linux binaries on Mac OS X Linux, you can run:
+For example, to compile 64-bit Linux binaries on Mac OS X, you can run:
 
 ```sh
-$ XC_OS=linux XC_ARCH=amd64 make bin 
+$ XC_OS=linux XC_ARCH=amd64 make bin
 ...
 $ file pkg/linux_amd64/terraform
 terraform: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, not stripped
@@ -184,3 +152,13 @@ $ tree ./pkg/ -P "terraform|*.zip"
 ```
 
 _Note: Cross-compilation uses [gox](https://github.com/mitchellh/gox), which requires toolchains to be built with versions of Go prior to 1.5. In order to successfully cross-compile with older versions of Go, you will need to run `gox -build-toolchain` before running the commands detailed above._
+
+#### Docker
+
+When using docker you don't need to have any of the Go development tools installed and you can clone terraform to any location on disk (doesn't have to be in your $GOPATH).  This is useful for users who want to build `master` or a specific branch for testing without setting up a proper Go environment.
+
+For example, run the following command to build terraform in a linux-based container for macOS.
+
+```sh
+docker run --rm -v $(pwd):/go/src/github.com/hashicorp/terraform -w /go/src/github.com/hashicorp/terraform -e XC_OS=darwin -e XC_ARCH=amd64 golang:latest bash -c "apt-get update && apt-get install -y zip && make bin"
+```
