@@ -586,7 +586,7 @@ imports:
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
 - name: github.com/koding/pubnub
-  version: 81a8244d6fdad19400c26d0a2df54c3ce630f686
+  version: ec1bf44bfa0f3f21e0db7272e98bbf5309a6cd36
 - name: github.com/koding/rabbitmq
   version: 85d8cac01c9bf45a9ad3c2c1a53640143e3f632a
 - name: github.com/koding/redis
