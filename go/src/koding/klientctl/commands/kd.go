@@ -36,6 +36,7 @@ func NewKdCommand(c *cli.CLI) *cobra.Command {
 	cmd.AddCommand(
 		bug.NewCommand(c),
 		auth.NewCommand(c),
+		cli.NewCommand(c),
 		config.NewCommand(c),
 		cred.NewCommand(c),
 		daemon.NewCommand(c),

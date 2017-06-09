@@ -19,6 +19,7 @@ import (
 // be replaced with provided aliasPath.
 func WithMetrics(aliasPath ...string) CobraCmdMiddleware {
 	return func(cli *CLI, rootCmd *cobra.Command) {
+		cli.registerMiddleware("with_metrics", rootCmd, aliasPath...)
 		tail := rootCmd.RunE
 		if tail == nil {
 			panic("cannot insert middleware into empty function")

@@ -8,6 +8,7 @@ import (
 
 // AdminRequired ensures that the user who runs given command has root privileges.
 func AdminRequired(cli *CLI, rootCmd *cobra.Command) {
+	cli.registerMiddleware("sudo_required", rootCmd)
 	tail := rootCmd.RunE
 	if tail == nil {
 		panic("cannot insert middleware into empty function")
