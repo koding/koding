@@ -3,7 +3,6 @@ package provider
 import (
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/terraformer"
-	tf "koding/kites/terraformer"
 	"koding/tools/util"
 
 	"golang.org/x/net/context"
@@ -111,7 +110,7 @@ func (bs *BaseStack) Plan() (stack.Machines, error) {
 	}
 	defer tfKite.Close()
 
-	tfReq := &tf.TerraformRequest{
+	tfReq := &terraformer.TerraformRequest{
 		Content:   out,
 		ContentID: bs.Req.Username + "-" + bs.Arg.(*stack.PlanRequest).StackTemplateID,
 		TraceID:   bs.TraceID,

@@ -6,7 +6,6 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/utils/object"
-	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
 )
@@ -90,7 +89,7 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 				if _, ok := destroyUniq[tmpl.Key]; !ok {
 					bs.Log.Info("Destroying bootstrap resources belonging to identifier '%s'", cred.Identifier)
 
-					_, err := tfKite.Destroy(&tf.TerraformRequest{
+					_, err := tfKite.Destroy(&terraformer.TerraformRequest{
 						ContentID: tmpl.Key,
 						TraceID:   bs.TraceID,
 					})
@@ -116,7 +115,7 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 
 				bs.Log.Debug("Final bootstrap template: %s", content)
 
-				state, err := tfKite.Apply(&tf.TerraformRequest{
+				state, err := tfKite.Apply(&terraformer.TerraformRequest{
 					Content:   content,
 					ContentID: tmpl.Key,
 					TraceID:   bs.TraceID,

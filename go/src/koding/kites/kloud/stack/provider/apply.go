@@ -21,7 +21,6 @@ import (
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/utils/object"
-	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
 )
@@ -206,7 +205,7 @@ func (bs *BaseStack) destroyAsync(ctx context.Context, req *stack.ApplyRequest) 
 		}
 		defer tfKite.Close()
 
-		tfReq := &tf.TerraformRequest{
+		tfReq := &terraformer.TerraformRequest{
 			ContentID: req.GroupName + "-" + req.StackID,
 			TraceID:   bs.TraceID,
 		}
@@ -321,7 +320,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		}
 	}()
 
-	tfReq := &tf.TerraformRequest{
+	tfReq := &terraformer.TerraformRequest{
 		Content:   bs.Builder.Stack.Template,
 		ContentID: t.Key,
 		TraceID:   bs.TraceID,

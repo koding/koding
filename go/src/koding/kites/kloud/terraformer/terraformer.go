@@ -4,11 +4,20 @@ import (
 	"fmt"
 	"time"
 
-	"koding/kites/terraformer"
-
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 )
+
+// TerraformRequest is a helper struct for terraformer kite requests.
+//
+// Copied from kites/terraformer/terraformer.go to avoid dependency
+// on the terraformer package.
+type TerraformRequest struct {
+	Content   string
+	Variables map[string]interface{}
+	ContentID string
+	TraceID   string
+}
 
 // Terraformer represents a remote terraformer instance.
 type Terraformer struct {
@@ -42,7 +51,7 @@ func (t *Terraformer) Close() {
 	t.Client.Close()
 }
 
-func (t *Terraformer) Plan(req *terraformer.TerraformRequest) (*terraform.Plan, error) {
+func (t *Terraformer) Plan(req *TerraformRequest) (*terraform.Plan, error) {
 	resp, err := t.Client.Tell("plan", req)
 	if err != nil {
 		return nil, err
@@ -56,7 +65,7 @@ func (t *Terraformer) Plan(req *terraformer.TerraformRequest) (*terraform.Plan, 
 	return plan, nil
 }
 
-func (t *Terraformer) Apply(req *terraformer.TerraformRequest) (*terraform.State, error) {
+func (t *Terraformer) Apply(req *TerraformRequest) (*terraform.State, error) {
 	resp, err := t.Client.Tell("apply", req)
 	if err != nil {
 		return nil, err
@@ -70,7 +79,7 @@ func (t *Terraformer) Apply(req *terraformer.TerraformRequest) (*terraform.State
 	return state, nil
 }
 
-func (t *Terraformer) Destroy(req *terraformer.TerraformRequest) (*terraform.State, error) {
+func (t *Terraformer) Destroy(req *TerraformRequest) (*terraform.State, error) {
 	resp, err := t.Client.Tell("destroy", req)
 	if err != nil {
 		return nil, err
