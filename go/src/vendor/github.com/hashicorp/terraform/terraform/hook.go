@@ -42,7 +42,7 @@ type Hook interface {
 	PreProvisionResource(*InstanceInfo, *InstanceState) (HookAction, error)
 	PostProvisionResource(*InstanceInfo, *InstanceState) (HookAction, error)
 	PreProvision(*InstanceInfo, string) (HookAction, error)
-	PostProvision(*InstanceInfo, string) (HookAction, error)
+	PostProvision(*InstanceInfo, string, error) (HookAction, error)
 	ProvisionOutput(*InstanceInfo, string, string)
 
 	// PreRefresh and PostRefresh are called before and after a single
@@ -52,6 +52,11 @@ type Hook interface {
 
 	// PostStateUpdate is called after the state is updated.
 	PostStateUpdate(*State) (HookAction, error)
+
+	// PreImportState and PostImportState are called before and after
+	// a single resource's state is being improted.
+	PreImportState(*InstanceInfo, string) (HookAction, error)
+	PostImportState(*InstanceInfo, []*InstanceState) (HookAction, error)
 }
 
 // NilHook is a Hook implementation that does nothing. It exists only to
@@ -87,7 +92,7 @@ func (*NilHook) PreProvision(*InstanceInfo, string) (HookAction, error) {
 	return HookActionContinue, nil
 }
 
-func (*NilHook) PostProvision(*InstanceInfo, string) (HookAction, error) {
+func (*NilHook) PostProvision(*InstanceInfo, string, error) (HookAction, error) {
 	return HookActionContinue, nil
 }
 
@@ -100,6 +105,14 @@ func (*NilHook) PreRefresh(*InstanceInfo, *InstanceState) (HookAction, error) {
 }
 
 func (*NilHook) PostRefresh(*InstanceInfo, *InstanceState) (HookAction, error) {
+	return HookActionContinue, nil
+}
+
+func (*NilHook) PreImportState(*InstanceInfo, string) (HookAction, error) {
+	return HookActionContinue, nil
+}
+
+func (*NilHook) PostImportState(*InstanceInfo, []*InstanceState) (HookAction, error) {
 	return HookActionContinue, nil
 }
 

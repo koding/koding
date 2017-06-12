@@ -2,12 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"time"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -17,38 +15,44 @@ func resourceArmRoute() *schema.Resource {
 		Read:   resourceArmRouteRead,
 		Update: resourceArmRouteCreate,
 		Delete: resourceArmRouteDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"route_table_name": &schema.Schema{
+			"route_table_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"address_prefix": &schema.Schema{
+			"address_prefix": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"next_hop_type": &schema.Schema{
+			"next_hop_type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validateRouteTableNextHopType,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return strings.ToLower(old) == strings.ToLower(new)
+				},
 			},
 
-			"next_hop_in_ip_address": &schema.Schema{
+			"next_hop_in_ip_address": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -82,26 +86,24 @@ func resourceArmRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	route := network.Route{
-		Name:       &name,
-		Properties: &properties,
+		Name: &name,
+		RoutePropertiesFormat: &properties,
 	}
 
-	resp, err := routesClient.CreateOrUpdate(resGroup, rtName, name, route)
+	_, error := routesClient.CreateOrUpdate(resGroup, rtName, name, route, make(chan struct{}))
+	err := <-error
 	if err != nil {
 		return err
 	}
-	d.SetId(*resp.ID)
 
-	log.Printf("[DEBUG] Waiting for Route (%s) to become available", name)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating"},
-		Target:  []string{"Succeeded"},
-		Refresh: routeStateRefreshFunc(client, resGroup, rtName, name),
-		Timeout: 10 * time.Minute,
+	read, err := routesClient.Get(resGroup, rtName, name)
+	if err != nil {
+		return err
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Route (%s) to become available: %s", name, err)
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Route %s/%s (resource group %s) ID", rtName, name, resGroup)
 	}
+	d.SetId(*read.ID)
 
 	return resourceArmRouteRead(d, meta)
 }
@@ -118,12 +120,22 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	routeName := id.Path["routes"]
 
 	resp, err := routesClient.Get(resGroup, rtName, routeName)
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
 	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure Route %s: %s", routeName, err)
+	}
+
+	d.Set("name", routeName)
+	d.Set("resource_group_name", resGroup)
+	d.Set("route_table_name", rtName)
+	d.Set("address_prefix", resp.RoutePropertiesFormat.AddressPrefix)
+	d.Set("next_hop_type", string(resp.RoutePropertiesFormat.NextHopType))
+
+	if resp.RoutePropertiesFormat.NextHopIPAddress != nil {
+		d.Set("next_hop_in_ip_address", resp.RoutePropertiesFormat.NextHopIPAddress)
 	}
 
 	return nil
@@ -144,18 +156,8 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	armMutexKV.Lock(rtName)
 	defer armMutexKV.Unlock(rtName)
 
-	_, err = routesClient.Delete(resGroup, rtName, routeName)
+	_, error := routesClient.Delete(resGroup, rtName, routeName, make(chan struct{}))
+	err = <-error
 
 	return err
-}
-
-func routeStateRefreshFunc(client *ArmClient, resourceGroupName string, routeTableName string, routeName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.routesClient.Get(resourceGroupName, routeTableName, routeName)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in routeStateRefreshFunc to Azure ARM for route '%s' (RG: '%s') (NSG: '%s'): %s", routeName, resourceGroupName, routeTableName, err)
-		}
-
-		return res, *res.Properties.ProvisioningState, nil
-	}
 }

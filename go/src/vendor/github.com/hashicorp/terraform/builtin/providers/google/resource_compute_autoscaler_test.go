@@ -10,18 +10,23 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-func TestAccAutoscaler_basic(t *testing.T) {
+func TestAccComputeAutoscaler_basic(t *testing.T) {
 	var ascaler compute.Autoscaler
+
+	var it_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
+	var tp_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
+	var igm_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
+	var autoscaler_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAutoscalerDestroy,
+		CheckDestroy: testAccCheckComputeAutoscalerDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccAutoscaler_basic,
+				Config: testAccComputeAutoscaler_basic(it_name, tp_name, igm_name, autoscaler_name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoscalerExists(
+					testAccCheckComputeAutoscalerExists(
 						"google_compute_autoscaler.foobar", &ascaler),
 				),
 			},
@@ -29,27 +34,32 @@ func TestAccAutoscaler_basic(t *testing.T) {
 	})
 }
 
-func TestAccAutoscaler_update(t *testing.T) {
+func TestAccComputeAutoscaler_update(t *testing.T) {
 	var ascaler compute.Autoscaler
+
+	var it_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
+	var tp_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
+	var igm_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
+	var autoscaler_name = fmt.Sprintf("autoscaler-test-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAutoscalerDestroy,
+		CheckDestroy: testAccCheckComputeAutoscalerDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccAutoscaler_basic,
+				Config: testAccComputeAutoscaler_basic(it_name, tp_name, igm_name, autoscaler_name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoscalerExists(
+					testAccCheckComputeAutoscalerExists(
 						"google_compute_autoscaler.foobar", &ascaler),
 				),
 			},
 			resource.TestStep{
-				Config: testAccAutoscaler_update,
+				Config: testAccComputeAutoscaler_update(it_name, tp_name, igm_name, autoscaler_name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAutoscalerExists(
+					testAccCheckComputeAutoscalerExists(
 						"google_compute_autoscaler.foobar", &ascaler),
-					testAccCheckAutoscalerUpdated(
+					testAccCheckComputeAutoscalerUpdated(
 						"google_compute_autoscaler.foobar", 10),
 				),
 			},
@@ -57,7 +67,7 @@ func TestAccAutoscaler_update(t *testing.T) {
 	})
 }
 
-func testAccCheckAutoscalerDestroy(s *terraform.State) error {
+func testAccCheckComputeAutoscalerDestroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*Config)
 
 	for _, rs := range s.RootModule().Resources {
@@ -75,7 +85,7 @@ func testAccCheckAutoscalerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAutoscalerExists(n string, ascaler *compute.Autoscaler) resource.TestCheckFunc {
+func testAccCheckComputeAutoscalerExists(n string, ascaler *compute.Autoscaler) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -104,7 +114,7 @@ func testAccCheckAutoscalerExists(n string, ascaler *compute.Autoscaler) resourc
 	}
 }
 
-func testAccCheckAutoscalerUpdated(n string, max int64) resource.TestCheckFunc {
+func testAccCheckComputeAutoscalerUpdated(n string, max int64) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -131,15 +141,16 @@ func testAccCheckAutoscalerUpdated(n string, max int64) resource.TestCheckFunc {
 	}
 }
 
-var testAccAutoscaler_basic = fmt.Sprintf(`
+func testAccComputeAutoscaler_basic(it_name, tp_name, igm_name, autoscaler_name string) string {
+	return fmt.Sprintf(`
 resource "google_compute_instance_template" "foobar" {
-	name = "ascaler-test-%s"
+	name = "%s"
 	machine_type = "n1-standard-1"
 	can_ip_forward = false
 	tags = ["foo", "bar"]
 
 	disk {
-		source_image = "debian-cloud/debian-7-wheezy-v20160301"
+		source_image = "debian-cloud/debian-8-jessie-v20160803"
 		auto_delete = true
 		boot = true
 	}
@@ -159,13 +170,13 @@ resource "google_compute_instance_template" "foobar" {
 
 resource "google_compute_target_pool" "foobar" {
 	description = "Resource created for Terraform acceptance testing"
-	name = "ascaler-test-%s"
+	name = "%s"
 	session_affinity = "CLIENT_IP_PROTO"
 }
 
 resource "google_compute_instance_group_manager" "foobar" {
 	description = "Terraform test instance group manager"
-	name = "ascaler-test-%s"
+	name = "%s"
 	instance_template = "${google_compute_instance_template.foobar.self_link}"
 	target_pools = ["${google_compute_target_pool.foobar.self_link}"]
 	base_instance_name = "foobar"
@@ -174,29 +185,32 @@ resource "google_compute_instance_group_manager" "foobar" {
 
 resource "google_compute_autoscaler" "foobar" {
 	description = "Resource created for Terraform acceptance testing"
-	name = "ascaler-test-%s"
+	name = "%s"
 	zone = "us-central1-a"
 	target = "${google_compute_instance_group_manager.foobar.self_link}"
 	autoscaling_policy = {
 		max_replicas = 5
-		min_replicas = 0
+		min_replicas = 1
 		cooldown_period = 60
 		cpu_utilization = {
 			target = 0.5
 		}
 	}
 
-}`, acctest.RandString(10), acctest.RandString(10), acctest.RandString(10), acctest.RandString(10))
+}
+`, it_name, tp_name, igm_name, autoscaler_name)
+}
 
-var testAccAutoscaler_update = fmt.Sprintf(`
+func testAccComputeAutoscaler_update(it_name, tp_name, igm_name, autoscaler_name string) string {
+	return fmt.Sprintf(`
 resource "google_compute_instance_template" "foobar" {
-	name = "ascaler-test-%s"
+	name = "%s"
 	machine_type = "n1-standard-1"
 	can_ip_forward = false
 	tags = ["foo", "bar"]
 
 	disk {
-		source_image = "debian-cloud/debian-7-wheezy-v20160301"
+		source_image = "debian-cloud/debian-8-jessie-v20160803"
 		auto_delete = true
 		boot = true
 	}
@@ -216,13 +230,13 @@ resource "google_compute_instance_template" "foobar" {
 
 resource "google_compute_target_pool" "foobar" {
 	description = "Resource created for Terraform acceptance testing"
-	name = "ascaler-test-%s"
+	name = "%s"
 	session_affinity = "CLIENT_IP_PROTO"
 }
 
 resource "google_compute_instance_group_manager" "foobar" {
 	description = "Terraform test instance group manager"
-	name = "ascaler-test-%s"
+	name = "%s"
 	instance_template = "${google_compute_instance_template.foobar.self_link}"
 	target_pools = ["${google_compute_target_pool.foobar.self_link}"]
 	base_instance_name = "foobar"
@@ -231,16 +245,18 @@ resource "google_compute_instance_group_manager" "foobar" {
 
 resource "google_compute_autoscaler" "foobar" {
 	description = "Resource created for Terraform acceptance testing"
-	name = "ascaler-test-%s"
+	name = "%s"
 	zone = "us-central1-a"
 	target = "${google_compute_instance_group_manager.foobar.self_link}"
 	autoscaling_policy = {
 		max_replicas = 10
-		min_replicas = 0
+		min_replicas = 1
 		cooldown_period = 60
 		cpu_utilization = {
 			target = 0.5
 		}
 	}
 
-}`, acctest.RandString(10), acctest.RandString(10), acctest.RandString(10), acctest.RandString(10))
+}
+`, it_name, tp_name, igm_name, autoscaler_name)
+}

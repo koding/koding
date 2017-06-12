@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -111,6 +111,7 @@ func (s *LimitService) UpdateResourceLimit(p *UpdateResourceLimitParams) (*Updat
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -201,6 +202,7 @@ func (s *LimitService) UpdateResourceCount(p *UpdateResourceCountParams) (*Updat
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -361,6 +363,7 @@ func (s *LimitService) ListResourceLimits(p *ListResourceLimitsParams) (*ListRes
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -410,6 +413,7 @@ func (s *LimitService) GetApiLimit(p *GetApiLimitParams) (*GetApiLimitResponse, 
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -463,6 +467,7 @@ func (s *LimitService) ResetApiLimit(p *ResetApiLimitParams) (*ResetApiLimitResp
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 

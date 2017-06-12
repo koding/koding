@@ -23,22 +23,25 @@ func resourceAwsNetworkAcl() *schema.Resource {
 		Read:   resourceAwsNetworkAclRead,
 		Delete: resourceAwsNetworkAclDelete,
 		Update: resourceAwsNetworkAclUpdate,
+		Importer: &schema.ResourceImporter{
+			State: resourceAwsNetworkAclImportState,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"vpc_id": &schema.Schema{
+			"vpc_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				Computed: false,
 			},
-			"subnet_id": &schema.Schema{
+			"subnet_id": {
 				Type:       schema.TypeString,
 				Optional:   true,
 				ForceNew:   true,
 				Computed:   false,
 				Deprecated: "Attribute subnet_id is deprecated on network_acl resources. Use subnet_ids instead",
 			},
-			"subnet_ids": &schema.Schema{
+			"subnet_ids": {
 				Type:          schema.TypeSet,
 				Optional:      true,
 				Computed:      true,
@@ -46,42 +49,46 @@ func resourceAwsNetworkAcl() *schema.Resource {
 				Elem:          &schema.Schema{Type: schema.TypeString},
 				Set:           schema.HashString,
 			},
-			"ingress": &schema.Schema{
+			"ingress": {
 				Type:     schema.TypeSet,
 				Required: false,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"from_port": &schema.Schema{
+						"from_port": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"to_port": &schema.Schema{
+						"to_port": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"rule_no": &schema.Schema{
+						"rule_no": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"action": &schema.Schema{
+						"action": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"protocol": &schema.Schema{
+						"protocol": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"cidr_block": &schema.Schema{
+						"cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"icmp_type": &schema.Schema{
+						"ipv6_cidr_block": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"icmp_type": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
-						"icmp_code": &schema.Schema{
+						"icmp_code": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
@@ -89,42 +96,46 @@ func resourceAwsNetworkAcl() *schema.Resource {
 				},
 				Set: resourceAwsNetworkAclEntryHash,
 			},
-			"egress": &schema.Schema{
+			"egress": {
 				Type:     schema.TypeSet,
 				Required: false,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"from_port": &schema.Schema{
+						"from_port": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"to_port": &schema.Schema{
+						"to_port": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"rule_no": &schema.Schema{
+						"rule_no": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"action": &schema.Schema{
+						"action": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"protocol": &schema.Schema{
+						"protocol": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"cidr_block": &schema.Schema{
+						"cidr_block": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"icmp_type": &schema.Schema{
+						"ipv6_cidr_block": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"icmp_type": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
-						"icmp_code": &schema.Schema{
+						"icmp_code": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
@@ -190,7 +201,8 @@ func resourceAwsNetworkAclRead(d *schema.ResourceData, meta interface{}) error {
 	for _, e := range networkAcl.Entries {
 		// Skip the default rules added by AWS. They can be neither
 		// configured or deleted by users.
-		if *e.RuleNumber == 32767 {
+		if *e.RuleNumber == awsDefaultAclRuleNumberIpv4 ||
+			*e.RuleNumber == awsDefaultAclRuleNumberIpv6 {
 			continue
 		}
 
@@ -285,6 +297,7 @@ func resourceAwsNetworkAclUpdate(d *schema.ResourceData, meta interface{}) error
 				if err != nil {
 					return fmt.Errorf("Failed to find acl association: acl %s with subnet %s: %s", d.Id(), r, err)
 				}
+				log.Printf("DEBUG] Replacing Network Acl Association (%s) with Default Network ACL ID (%s)", *association.NetworkAclAssociationId, *defaultAcl.NetworkAclId)
 				_, err = conn.ReplaceNetworkAclAssociation(&ec2.ReplaceNetworkAclAssociationInput{
 					AssociationId: association.NetworkAclAssociationId,
 					NetworkAclId:  defaultAcl.NetworkAclId,
@@ -324,7 +337,6 @@ func resourceAwsNetworkAclUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func updateNetworkAclEntries(d *schema.ResourceData, entryType string, conn *ec2.EC2) error {
-
 	if d.HasChange(entryType) {
 		o, n := d.GetChange(entryType)
 
@@ -343,16 +355,17 @@ func updateNetworkAclEntries(d *schema.ResourceData, entryType string, conn *ec2
 			return err
 		}
 		for _, remove := range toBeDeleted {
-
 			// AWS includes default rules with all network ACLs that can be
 			// neither modified nor destroyed. They have a custom rule
 			// number that is out of bounds for any other rule. If we
 			// encounter it, just continue. There's no work to be done.
-			if *remove.RuleNumber == 32767 {
+			if *remove.RuleNumber == awsDefaultAclRuleNumberIpv4 ||
+				*remove.RuleNumber == awsDefaultAclRuleNumberIpv6 {
 				continue
 			}
 
 			// Delete old Acl
+			log.Printf("[DEBUG] Destroying Network ACL Entry number (%d)", int(*remove.RuleNumber))
 			_, err := conn.DeleteNetworkAclEntry(&ec2.DeleteNetworkAclEntryInput{
 				NetworkAclId: aws.String(d.Id()),
 				RuleNumber:   remove.RuleNumber,
@@ -386,25 +399,36 @@ func updateNetworkAclEntries(d *schema.ResourceData, entryType string, conn *ec2
 				}
 			}
 
-			// AWS mutates the CIDR block into a network implied by the IP and
-			// mask provided. This results in hashing inconsistencies between
-			// the local config file and the state returned by the API. Error
-			// if the user provides a CIDR block with an inappropriate mask
-			if err := validateCIDRBlock(*add.CidrBlock); err != nil {
-				return err
+			if add.CidrBlock != nil && *add.CidrBlock != "" {
+				// AWS mutates the CIDR block into a network implied by the IP and
+				// mask provided. This results in hashing inconsistencies between
+				// the local config file and the state returned by the API. Error
+				// if the user provides a CIDR block with an inappropriate mask
+				if err := validateCIDRBlock(*add.CidrBlock); err != nil {
+					return err
+				}
 			}
 
-			// Add new Acl entry
-			_, connErr := conn.CreateNetworkAclEntry(&ec2.CreateNetworkAclEntryInput{
+			createOpts := &ec2.CreateNetworkAclEntryInput{
 				NetworkAclId: aws.String(d.Id()),
-				CidrBlock:    add.CidrBlock,
 				Egress:       add.Egress,
 				PortRange:    add.PortRange,
 				Protocol:     add.Protocol,
 				RuleAction:   add.RuleAction,
 				RuleNumber:   add.RuleNumber,
 				IcmpTypeCode: add.IcmpTypeCode,
-			})
+			}
+
+			if add.CidrBlock != nil && *add.CidrBlock != "" {
+				createOpts.CidrBlock = add.CidrBlock
+			}
+
+			if add.Ipv6CidrBlock != nil && *add.Ipv6CidrBlock != "" {
+				createOpts.Ipv6CidrBlock = add.Ipv6CidrBlock
+			}
+
+			// Add new Acl entry
+			_, connErr := conn.CreateNetworkAclEntry(createOpts)
 			if connErr != nil {
 				return fmt.Errorf("Error creating %s entry: %s", entryType, connErr)
 			}
@@ -455,12 +479,30 @@ func resourceAwsNetworkAclDelete(d *schema.ResourceData, meta interface{}) error
 				}
 
 				for _, a := range associations {
+					log.Printf("DEBUG] Replacing Network Acl Association (%s) with Default Network ACL ID (%s)", *a.NetworkAclAssociationId, *defaultAcl.NetworkAclId)
 					_, replaceErr := conn.ReplaceNetworkAclAssociation(&ec2.ReplaceNetworkAclAssociationInput{
 						AssociationId: a.NetworkAclAssociationId,
 						NetworkAclId:  defaultAcl.NetworkAclId,
 					})
 					if replaceErr != nil {
-						log.Printf("[ERR] Non retryable error in replacing associtions for Network ACL (%s): %s", d.Id(), replaceErr)
+						if replaceEc2err, ok := replaceErr.(awserr.Error); ok {
+							// It's possible that during an attempt to replace this
+							// association, the Subnet in question has already been moved to
+							// another ACL. This can happen if you're destroying a network acl
+							// and simultaneously re-associating it's subnet(s) with another
+							// ACL; Terraform may have already re-associated the subnet(s) by
+							// the time we attempt to destroy them, even between the time we
+							// list them and then try to destroy them. In this case, the
+							// association we're trying to replace will no longer exist and
+							// this call will fail. Here we trap that error and fail
+							// gracefully; the association we tried to replace gone, we trust
+							// someone else has taken ownership.
+							if replaceEc2err.Code() == "InvalidAssociationID.NotFound" {
+								log.Printf("[WARN] Network Association (%s) no longer found; Network Association likely updated or removed externally, removing from state", *a.NetworkAclAssociationId)
+								continue
+							}
+						}
+						log.Printf("[ERR] Non retry-able error in replacing associations for Network ACL (%s): %s", d.Id(), replaceErr)
 						return resource.NonRetryableError(replaceErr)
 					}
 				}
@@ -499,7 +541,13 @@ func resourceAwsNetworkAclEntryHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", protocol))
 	}
 
-	buf.WriteString(fmt.Sprintf("%s-", m["cidr_block"].(string)))
+	if v, ok := m["cidr_block"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["ipv6_cidr_block"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
 
 	if v, ok := m["ssl_certificate_id"]; ok {
 		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
@@ -518,11 +566,11 @@ func resourceAwsNetworkAclEntryHash(v interface{}) int {
 func getDefaultNetworkAcl(vpc_id string, conn *ec2.EC2) (defaultAcl *ec2.NetworkAcl, err error) {
 	resp, err := conn.DescribeNetworkAcls(&ec2.DescribeNetworkAclsInput{
 		Filters: []*ec2.Filter{
-			&ec2.Filter{
+			{
 				Name:   aws.String("default"),
 				Values: []*string{aws.String("true")},
 			},
-			&ec2.Filter{
+			{
 				Name:   aws.String("vpc-id"),
 				Values: []*string{aws.String(vpc_id)},
 			},
@@ -538,7 +586,7 @@ func getDefaultNetworkAcl(vpc_id string, conn *ec2.EC2) (defaultAcl *ec2.Network
 func findNetworkAclAssociation(subnetId string, conn *ec2.EC2) (networkAclAssociation *ec2.NetworkAclAssociation, err error) {
 	resp, err := conn.DescribeNetworkAcls(&ec2.DescribeNetworkAclsInput{
 		Filters: []*ec2.Filter{
-			&ec2.Filter{
+			{
 				Name:   aws.String("association.subnet-id"),
 				Values: []*string{aws.String(subnetId)},
 			},
@@ -566,8 +614,12 @@ func networkAclEntriesToMapList(networkAcls []*ec2.NetworkAclEntry) []map[string
 		acl := make(map[string]interface{})
 		acl["rule_no"] = *entry.RuleNumber
 		acl["action"] = *entry.RuleAction
-		acl["cidr_block"] = *entry.CidrBlock
-
+		if entry.CidrBlock != nil {
+			acl["cidr_block"] = *entry.CidrBlock
+		}
+		if entry.Ipv6CidrBlock != nil {
+			acl["ipv6_cidr_block"] = *entry.Ipv6CidrBlock
+		}
 		// The AWS network ACL API only speaks protocol numbers, and
 		// that's all we record.
 		if _, err := strconv.Atoi(*entry.Protocol); err != nil {

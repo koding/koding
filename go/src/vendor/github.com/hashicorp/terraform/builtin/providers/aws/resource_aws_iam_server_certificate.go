@@ -20,37 +20,41 @@ func resourceAwsIAMServerCertificate() *schema.Resource {
 		Create: resourceAwsIAMServerCertificateCreate,
 		Read:   resourceAwsIAMServerCertificateRead,
 		Delete: resourceAwsIAMServerCertificateDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceAwsIAMServerCertificateImport,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"certificate_body": &schema.Schema{
+			"certificate_body": {
 				Type:      schema.TypeString,
 				Required:  true,
 				ForceNew:  true,
 				StateFunc: normalizeCert,
 			},
 
-			"certificate_chain": &schema.Schema{
+			"certificate_chain": {
 				Type:      schema.TypeString,
 				Optional:  true,
 				ForceNew:  true,
 				StateFunc: normalizeCert,
 			},
 
-			"path": &schema.Schema{
+			"path": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "/",
 				ForceNew: true,
 			},
 
-			"private_key": &schema.Schema{
+			"private_key": {
 				Type:      schema.TypeString,
 				Required:  true,
 				ForceNew:  true,
 				StateFunc: normalizeCert,
+				Sensitive: true,
 			},
 
-			"name": &schema.Schema{
+			"name": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
@@ -66,7 +70,7 @@ func resourceAwsIAMServerCertificate() *schema.Resource {
 				},
 			},
 
-			"name_prefix": &schema.Schema{
+			"name_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -80,7 +84,7 @@ func resourceAwsIAMServerCertificate() *schema.Resource {
 				},
 			},
 
-			"arn": &schema.Schema{
+			"arn": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -138,10 +142,17 @@ func resourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interface{
 
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "NoSuchEntity" {
+				log.Printf("[WARN] IAM Server Cert (%s) not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			}
 			return fmt.Errorf("[WARN] Error reading IAM Server Certificate: %s: %s", awsErr.Code(), awsErr.Message())
 		}
 		return fmt.Errorf("[WARN] Error reading IAM Server Certificate: %s", err)
 	}
+
+	d.SetId(*resp.ServerCertificate.ServerCertificateMetadata.ServerCertificateId)
 
 	// these values should always be present, and have a default if not set in
 	// configuration, and so safe to reference with nil checks
@@ -161,7 +172,7 @@ func resourceAwsIAMServerCertificateRead(d *schema.ResourceData, meta interface{
 func resourceAwsIAMServerCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).iamconn
 	log.Printf("[INFO] Deleting IAM Server Certificate: %s", d.Id())
-	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
+	err := resource.Retry(10*time.Minute, func() *resource.RetryError {
 		_, err := conn.DeleteServerCertificate(&iam.DeleteServerCertificateInput{
 			ServerCertificateName: aws.String(d.Get("name").(string)),
 		})
@@ -171,6 +182,11 @@ func resourceAwsIAMServerCertificateDelete(d *schema.ResourceData, meta interfac
 				if awsErr.Code() == "DeleteConflict" && strings.Contains(awsErr.Message(), "currently in use by arn") {
 					log.Printf("[WARN] Conflict deleting server certificate: %s, retrying", awsErr.Message())
 					return resource.RetryableError(err)
+				}
+				if awsErr.Code() == "NoSuchEntity" {
+					log.Printf("[WARN] IAM Server Certificate (%s) not found, removing from state", d.Id())
+					d.SetId("")
+					return nil
 				}
 			}
 			return resource.NonRetryableError(err)
@@ -186,19 +202,42 @@ func resourceAwsIAMServerCertificateDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
+func resourceAwsIAMServerCertificateImport(
+	d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	d.Set("name", d.Id())
+	// private_key can't be fetched from any API call
+	return []*schema.ResourceData{d}, nil
+}
+
 func normalizeCert(cert interface{}) string {
 	if cert == nil || cert == (*string)(nil) {
 		return ""
 	}
 
+	var rawCert string
 	switch cert.(type) {
 	case string:
-		hash := sha1.Sum([]byte(strings.TrimSpace(cert.(string))))
-		return hex.EncodeToString(hash[:])
+		rawCert = cert.(string)
 	case *string:
-		hash := sha1.Sum([]byte(strings.TrimSpace(*cert.(*string))))
-		return hex.EncodeToString(hash[:])
+		rawCert = *cert.(*string)
 	default:
 		return ""
 	}
+
+	cleanVal := sha1.Sum(stripCR([]byte(strings.TrimSpace(rawCert))))
+	return hex.EncodeToString(cleanVal[:])
+}
+
+// strip CRs from raw literals. Lifted from go/scanner/scanner.go
+// See https://github.com/golang/go/blob/release-branch.go1.6/src/go/scanner/scanner.go#L479
+func stripCR(b []byte) []byte {
+	c := make([]byte, len(b))
+	i := 0
+	for _, ch := range b {
+		if ch != '\r' {
+			c[i] = ch
+			i++
+		}
+	}
+	return c[:i]
 }

@@ -5,24 +5,27 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAWSKmsAlias_basic(t *testing.T) {
+	rInt := acctest.RandInt()
+	kmsAliasTimestamp := time.Now().Format(time.RFC1123)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSKmsAliasDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAWSKmsSingleAlias,
+			{
+				Config: testAccAWSKmsSingleAlias(rInt, kmsAliasTimestamp),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKmsAliasExists("aws_kms_alias.single"),
 				),
 			},
-			resource.TestStep{
-				Config: testAccAWSKmsSingleAlias_modified,
+			{
+				Config: testAccAWSKmsSingleAlias_modified(rInt, kmsAliasTimestamp),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKmsAliasExists("aws_kms_alias.single"),
 				),
@@ -32,13 +35,15 @@ func TestAccAWSKmsAlias_basic(t *testing.T) {
 }
 
 func TestAccAWSKmsAlias_name_prefix(t *testing.T) {
+	rInt := acctest.RandInt()
+	kmsAliasTimestamp := time.Now().Format(time.RFC1123)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSKmsAliasDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAWSKmsSingleAlias,
+			{
+				Config: testAccAWSKmsSingleAlias(rInt, kmsAliasTimestamp),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKmsAliasExists("aws_kms_alias.name_prefix"),
 				),
@@ -48,13 +53,15 @@ func TestAccAWSKmsAlias_name_prefix(t *testing.T) {
 }
 
 func TestAccAWSKmsAlias_no_name(t *testing.T) {
+	rInt := acctest.RandInt()
+	kmsAliasTimestamp := time.Now().Format(time.RFC1123)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSKmsAliasDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAWSKmsSingleAlias,
+			{
+				Config: testAccAWSKmsSingleAlias(rInt, kmsAliasTimestamp),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKmsAliasExists("aws_kms_alias.nothing"),
 				),
@@ -64,13 +71,15 @@ func TestAccAWSKmsAlias_no_name(t *testing.T) {
 }
 
 func TestAccAWSKmsAlias_multiple(t *testing.T) {
+	rInt := acctest.RandInt()
+	kmsAliasTimestamp := time.Now().Format(time.RFC1123)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSKmsAliasDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAWSKmsMultipleAliases,
+			{
+				Config: testAccAWSKmsMultipleAliases(rInt, kmsAliasTimestamp),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSKmsAliasExists("aws_kms_alias.one"),
 					testAccCheckAWSKmsAliasExists("aws_kms_alias.two"),
@@ -113,8 +122,8 @@ func testAccCheckAWSKmsAliasExists(name string) resource.TestCheckFunc {
 	}
 }
 
-var kmsAliasTimestamp = time.Now().Format(time.RFC1123)
-var testAccAWSKmsSingleAlias = fmt.Sprintf(`
+func testAccAWSKmsSingleAlias(rInt int, timestamp string) string {
+	return fmt.Sprintf(`
 resource "aws_kms_key" "one" {
     description = "Terraform acc test One %s"
     deletion_window_in_days = 7
@@ -125,7 +134,7 @@ resource "aws_kms_key" "two" {
 }
 
 resource "aws_kms_alias" "name_prefix" {
-	name_prefix = "alias/tf-acc-key-alias"
+	name_prefix = "alias/tf-acc-key-alias-%d"
 	target_key_id = "${aws_kms_key.one.key_id}"
 }
 
@@ -134,11 +143,13 @@ resource "aws_kms_alias" "nothing" {
 }
 
 resource "aws_kms_alias" "single" {
-    name = "alias/tf-acc-key-alias"
+    name = "alias/tf-acc-key-alias-%d"
     target_key_id = "${aws_kms_key.one.key_id}"
-}`, kmsAliasTimestamp, kmsAliasTimestamp)
+}`, timestamp, timestamp, rInt, rInt)
+}
 
-var testAccAWSKmsSingleAlias_modified = fmt.Sprintf(`
+func testAccAWSKmsSingleAlias_modified(rInt int, timestamp string) string {
+	return fmt.Sprintf(`
 resource "aws_kms_key" "one" {
     description = "Terraform acc test One %s"
     deletion_window_in_days = 7
@@ -149,21 +160,24 @@ resource "aws_kms_key" "two" {
 }
 
 resource "aws_kms_alias" "single" {
-    name = "alias/tf-acc-key-alias"
+    name = "alias/tf-acc-key-alias-%d"
     target_key_id = "${aws_kms_key.two.key_id}"
-}`, kmsAliasTimestamp, kmsAliasTimestamp)
+}`, timestamp, timestamp, rInt)
+}
 
-var testAccAWSKmsMultipleAliases = fmt.Sprintf(`
+func testAccAWSKmsMultipleAliases(rInt int, timestamp string) string {
+	return fmt.Sprintf(`
 resource "aws_kms_key" "single" {
     description = "Terraform acc test One %s"
     deletion_window_in_days = 7
 }
 
 resource "aws_kms_alias" "one" {
-    name = "alias/tf-acc-key-alias-one"
+    name = "alias/tf-acc-alias-one-%d"
     target_key_id = "${aws_kms_key.single.key_id}"
 }
 resource "aws_kms_alias" "two" {
-    name = "alias/tf-acc-key-alias-two"
+    name = "alias/tf-acc-alias-two-%d"
     target_key_id = "${aws_kms_key.single.key_id}"
-}`, kmsAliasTimestamp)
+}`, timestamp, rInt, rInt)
+}

@@ -1,8 +1,10 @@
 package triton
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/joyent/gosdc/cloudapi"
+	"github.com/joyent/triton-go"
 )
 
 func resourceFirewallRule() *schema.Resource {
@@ -12,6 +14,9 @@ func resourceFirewallRule() *schema.Resource {
 		Read:   resourceFirewallRuleRead,
 		Update: resourceFirewallRuleUpdate,
 		Delete: resourceFirewallRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"rule": {
@@ -25,64 +30,73 @@ func resourceFirewallRule() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 			},
+			"description": {
+				Description: "Human-readable description of the rule",
+				Type:        schema.TypeString,
+				Optional:    true,
+			},
+			"global": {
+				Description: "Indicates whether or not the rule is global",
+				Type:        schema.TypeBool,
+				Computed:    true,
+			},
 		},
 	}
 }
 
 func resourceFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*cloudapi.Client)
+	client := meta.(*triton.Client)
 
-	rule, err := client.CreateFirewallRule(cloudapi.CreateFwRuleOpts{
-		Rule:    d.Get("rule").(string),
-		Enabled: d.Get("enabled").(bool),
+	rule, err := client.Firewall().CreateFirewallRule(context.Background(), &triton.CreateFirewallRuleInput{
+		Rule:        d.Get("rule").(string),
+		Enabled:     d.Get("enabled").(bool),
+		Description: d.Get("description").(string),
 	})
 	if err != nil {
 		return err
 	}
 
-	d.SetId(rule.Id)
+	d.SetId(rule.ID)
 
-	err = resourceFirewallRuleRead(d, meta)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return resourceFirewallRuleRead(d, meta)
 }
 
 func resourceFirewallRuleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*cloudapi.Client)
+	client := meta.(*triton.Client)
 
-	rule, err := client.GetFirewallRule(d.Id())
-
-	return rule != nil && err == nil, err
+	return resourceExists(client.Firewall().GetFirewallRule(context.Background(), &triton.GetFirewallRuleInput{
+		ID: d.Id(),
+	}))
 }
 
 func resourceFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*cloudapi.Client)
+	client := meta.(*triton.Client)
 
-	rule, err := client.GetFirewallRule(d.Id())
+	rule, err := client.Firewall().GetFirewallRule(context.Background(), &triton.GetFirewallRuleInput{
+		ID: d.Id(),
+	})
 	if err != nil {
 		return err
 	}
 
-	d.SetId(rule.Id)
+	d.SetId(rule.ID)
 	d.Set("rule", rule.Rule)
 	d.Set("enabled", rule.Enabled)
+	d.Set("global", rule.Global)
+	d.Set("description", rule.Description)
 
 	return nil
 }
 
 func resourceFirewallRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*cloudapi.Client)
+	client := meta.(*triton.Client)
 
-	_, err := client.UpdateFirewallRule(
-		d.Id(),
-		cloudapi.CreateFwRuleOpts{
-			Rule:    d.Get("rule").(string),
-			Enabled: d.Get("enabled").(bool),
-		},
-	)
+	_, err := client.Firewall().UpdateFirewallRule(context.Background(), &triton.UpdateFirewallRuleInput{
+		ID:          d.Id(),
+		Rule:        d.Get("rule").(string),
+		Enabled:     d.Get("enabled").(bool),
+		Description: d.Get("description").(string),
+	})
 	if err != nil {
 		return err
 	}
@@ -91,11 +105,9 @@ func resourceFirewallRuleUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*cloudapi.Client)
+	client := meta.(*triton.Client)
 
-	if err := client.DeleteFirewallRule(d.Id()); err != nil {
-		return err
-	}
-
-	return nil
+	return client.Firewall().DeleteFirewallRule(context.Background(), &triton.DeleteFirewallRuleInput{
+		ID: d.Id(),
+	})
 }

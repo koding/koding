@@ -2,12 +2,15 @@ package aws
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -17,20 +20,27 @@ func resourceAwsIamRole() *schema.Resource {
 		Read:   resourceAwsIamRoleRead,
 		Update: resourceAwsIamRoleUpdate,
 		Delete: resourceAwsIamRoleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"arn": &schema.Schema{
+			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"unique_id": &schema.Schema{
+
+			"unique_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+
+			"name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"name_prefix"},
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					// https://github.com/boto/botocore/blob/2485f5c/botocore/data/iam/2010-05-08/service-2.json#L8329-L8334
 					value := v.(string)
@@ -45,15 +55,49 @@ func resourceAwsIamRole() *schema.Resource {
 					return
 				},
 			},
-			"path": &schema.Schema{
+
+			"name_prefix": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					// https://github.com/boto/botocore/blob/2485f5c/botocore/data/iam/2010-05-08/service-2.json#L8329-L8334
+					value := v.(string)
+					if len(value) > 32 {
+						errors = append(errors, fmt.Errorf(
+							"%q cannot be longer than 32 characters, name is limited to 64", k))
+					}
+					if !regexp.MustCompile("^[\\w+=,.@-]*$").MatchString(value) {
+						errors = append(errors, fmt.Errorf(
+							"%q must match [\\w+=,.@-]", k))
+					}
+					return
+				},
+			},
+
+			"path": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "/",
 				ForceNew: true,
 			},
-			"assume_role_policy": &schema.Schema{
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateIamRoleDescription,
+			},
+
+			"assume_role_policy": {
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
+				ValidateFunc:     validateJsonString,
+			},
+
+			"create_date": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 		},
 	}
@@ -61,7 +105,15 @@ func resourceAwsIamRole() *schema.Resource {
 
 func resourceAwsIamRoleCreate(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
-	name := d.Get("name").(string)
+
+	var name string
+	if v, ok := d.GetOk("name"); ok {
+		name = v.(string)
+	} else if v, ok := d.GetOk("name_prefix"); ok {
+		name = resource.PrefixedUniqueId(v.(string))
+	} else {
+		name = resource.UniqueId()
+	}
 
 	request := &iam.CreateRoleInput{
 		Path:                     aws.String(d.Get("path").(string)),
@@ -69,11 +121,26 @@ func resourceAwsIamRoleCreate(d *schema.ResourceData, meta interface{}) error {
 		AssumeRolePolicyDocument: aws.String(d.Get("assume_role_policy").(string)),
 	}
 
-	createResp, err := iamconn.CreateRole(request)
+	if v, ok := d.GetOk("description"); ok {
+		request.Description = aws.String(v.(string))
+	}
+
+	var createResp *iam.CreateRoleOutput
+	err := resource.Retry(30*time.Second, func() *resource.RetryError {
+		var err error
+		createResp, err = iamconn.CreateRole(request)
+		// IAM users (referenced in Principal field of assume policy)
+		// can take ~30 seconds to propagate in AWS
+		if isAWSErr(err, "MalformedPolicyDocument", "Invalid principal in policy") {
+			return resource.RetryableError(err)
+		}
+		return resource.NonRetryableError(err)
+	})
 	if err != nil {
 		return fmt.Errorf("Error creating IAM Role %s: %s", name, err)
 	}
-	return resourceAwsIamRoleReadResult(d, createResp.Role)
+	d.SetId(*createResp.Role.RoleName)
+	return resourceAwsIamRoleRead(d, meta)
 }
 
 func resourceAwsIamRoleRead(d *schema.ResourceData, meta interface{}) error {
@@ -91,8 +158,42 @@ func resourceAwsIamRoleRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("Error reading IAM Role %s: %s", d.Id(), err)
 	}
-	return resourceAwsIamRoleReadResult(d, getResp.Role)
+
+	role := getResp.Role
+
+	if err := d.Set("name", role.RoleName); err != nil {
+		return err
+	}
+	if err := d.Set("arn", role.Arn); err != nil {
+		return err
+	}
+	if err := d.Set("path", role.Path); err != nil {
+		return err
+	}
+	if err := d.Set("unique_id", role.RoleId); err != nil {
+		return err
+	}
+	if err := d.Set("create_date", role.CreateDate.Format(time.RFC3339)); err != nil {
+		return err
+	}
+
+	if role.Description != nil {
+		// the description isn't present in the response to CreateRole.
+		if err := d.Set("description", role.Description); err != nil {
+			return err
+		}
+	}
+
+	assumRolePolicy, err := url.QueryUnescape(*role.AssumeRolePolicyDocument)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("assume_role_policy", assumRolePolicy); err != nil {
+		return err
+	}
+	return nil
 }
+
 func resourceAwsIamRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
 
@@ -111,23 +212,21 @@ func resourceAwsIamRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return nil
-}
+	if d.HasChange("description") {
+		roleDescriptionInput := &iam.UpdateRoleDescriptionInput{
+			RoleName:    aws.String(d.Id()),
+			Description: aws.String(d.Get("description").(string)),
+		}
+		_, err := iamconn.UpdateRoleDescription(roleDescriptionInput)
+		if err != nil {
+			if iamerr, ok := err.(awserr.Error); ok && iamerr.Code() == "NoSuchEntity" {
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("Error Updating IAM Role (%s) Assume Role Policy: %s", d.Id(), err)
+		}
+	}
 
-func resourceAwsIamRoleReadResult(d *schema.ResourceData, role *iam.Role) error {
-	d.SetId(*role.RoleName)
-	if err := d.Set("name", role.RoleName); err != nil {
-		return err
-	}
-	if err := d.Set("arn", role.Arn); err != nil {
-		return err
-	}
-	if err := d.Set("path", role.Path); err != nil {
-		return err
-	}
-	if err := d.Set("unique_id", role.RoleId); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -159,8 +258,17 @@ func resourceAwsIamRoleDelete(d *schema.ResourceData, meta interface{}) error {
 		RoleName: aws.String(d.Id()),
 	}
 
-	if _, err := iamconn.DeleteRole(request); err != nil {
-		return fmt.Errorf("Error deleting IAM Role %s: %s", d.Id(), err)
-	}
-	return nil
+	// IAM is eventually consistent and deletion of attached policies may take time
+	return resource.Retry(30*time.Second, func() *resource.RetryError {
+		_, err := iamconn.DeleteRole(request)
+		if err != nil {
+			awsErr, ok := err.(awserr.Error)
+			if ok && awsErr.Code() == "DeleteConflict" {
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(fmt.Errorf("Error deleting IAM Role %s: %s", d.Id(), err))
+		}
+		return nil
+	})
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeHttpsHealthCheck() *schema.Resource {
@@ -131,7 +130,7 @@ func resourceComputeHttpsHealthCheckCreate(d *schema.ResourceData, meta interfac
 	// It probably maybe worked, so store the ID now
 	d.SetId(hchk.Name)
 
-	err = computeOperationWaitGlobal(config, op, "Creating Https Health Check")
+	err = computeOperationWaitGlobal(config, op, project, "Creating Https Health Check")
 	if err != nil {
 		return err
 	}
@@ -187,7 +186,7 @@ func resourceComputeHttpsHealthCheckUpdate(d *schema.ResourceData, meta interfac
 	// It probably maybe worked, so store the ID now
 	d.SetId(hchk.Name)
 
-	err = computeOperationWaitGlobal(config, op, "Updating Https Health Check")
+	err = computeOperationWaitGlobal(config, op, project, "Updating Https Health Check")
 	if err != nil {
 		return err
 	}
@@ -206,15 +205,7 @@ func resourceComputeHttpsHealthCheckRead(d *schema.ResourceData, meta interface{
 	hchk, err := config.clientCompute.HttpsHealthChecks.Get(
 		project, d.Id()).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			log.Printf("[WARN] Removing HTTPS Health Check %q because it's gone", d.Get("name").(string))
-			// The resource doesn't exist anymore
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error reading HttpsHealthCheck: %s", err)
+		return handleNotFoundError(err, d, fmt.Sprintf("HTTPS Health Check %q", d.Get("name").(string)))
 	}
 
 	d.Set("host", hchk.Host)
@@ -244,7 +235,7 @@ func resourceComputeHttpsHealthCheckDelete(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error deleting HttpsHealthCheck: %s", err)
 	}
 
-	err = computeOperationWaitGlobal(config, op, "Deleting Https Health Check")
+	err = computeOperationWaitGlobal(config, op, project, "Deleting Https Health Check")
 	if err != nil {
 		return err
 	}

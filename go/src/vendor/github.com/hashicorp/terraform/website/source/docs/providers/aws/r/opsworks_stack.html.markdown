@@ -12,13 +12,14 @@ Provides an OpsWorks stack resource.
 
 ## Example Usage
 
-```
+```hcl
 resource "aws_opsworks_stack" "main" {
-    name = "awesome-stack"
-    region = "us-west-1"
-    service_role_arn = "${aws_iam_role.opsworks.arn}"
-    default_instance_profile_arn = "${aws_iam_instance_profile.opsworks.arn}"
-    custom_json = <<EOT
+  name                         = "awesome-stack"
+  region                       = "us-west-1"
+  service_role_arn             = "${aws_iam_role.opsworks.arn}"
+  default_instance_profile_arn = "${aws_iam_instance_profile.opsworks.arn}"
+
+  custom_json = <<EOT
 {
  "foobar": {
     "version": "1.0.0"
@@ -37,6 +38,7 @@ The following arguments are supported:
 * `service_role_arn` - (Required) The ARN of an IAM role that the OpsWorks service will act as.
 * `default_instance_profile_arn` - (Required) The ARN of an IAM Instance Profile that created instances
   will have by default.
+* `agent_version` - (Optional) If set to `"LATEST"`, OpsWorks will automatically install the latest version.
 * `berkshelf_version` - (Optional) If `manage_berkshelf` is enabled, the version of Berkshelf to use.
 * `color` - (Optional) Color to paint next to the stack's resources in the OpsWorks console.
 * `default_availability_zone` - (Optional) Name of the availability zone where instances will be created
@@ -59,6 +61,7 @@ The following arguments are supported:
 * `use_opsworks_security_groups` - (Optional) Boolean value controlling whether the standard OpsWorks
   security groups apply to created instances.
 * `vpc_id` - (Optional) The id of the VPC that this stack belongs to.
+* `custom_json` - (Optional) Custom JSON attributes to apply to the entire stack.
 
 The `custom_cookbooks_source` block supports the following arguments:
 
@@ -74,3 +77,11 @@ The `custom_cookbooks_source` block supports the following arguments:
 The following attributes are exported:
 
 * `id` - The id of the stack.
+
+## Import
+
+OpsWorks stacks can be imported using the `id`, e.g.
+
+```
+$ terraform import aws_opsworks_stack.bar 00000000-0000-0000-0000-000000000000
+```

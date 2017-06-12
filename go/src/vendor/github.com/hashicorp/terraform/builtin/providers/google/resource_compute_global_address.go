@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeGlobalAddress() *schema.Resource {
@@ -14,7 +13,9 @@ func resourceComputeGlobalAddress() *schema.Resource {
 		Create: resourceComputeGlobalAddressCreate,
 		Read:   resourceComputeGlobalAddressRead,
 		Delete: resourceComputeGlobalAddressDelete,
-
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
 				Type:     schema.TypeString,
@@ -60,7 +61,7 @@ func resourceComputeGlobalAddressCreate(d *schema.ResourceData, meta interface{}
 	// It probably maybe worked, so store the ID now
 	d.SetId(addr.Name)
 
-	err = computeOperationWaitGlobal(config, op, "Creating Global Address")
+	err = computeOperationWaitGlobal(config, op, project, "Creating Global Address")
 	if err != nil {
 		return err
 	}
@@ -79,19 +80,12 @@ func resourceComputeGlobalAddressRead(d *schema.ResourceData, meta interface{}) 
 	addr, err := config.clientCompute.GlobalAddresses.Get(
 		project, d.Id()).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			log.Printf("[WARN] Removing Global Address %q because it's gone", d.Get("name").(string))
-			// The resource doesn't exist anymore
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error reading address: %s", err)
+		return handleNotFoundError(err, d, fmt.Sprintf("Global Address %q", d.Get("name").(string)))
 	}
 
 	d.Set("address", addr.Address)
 	d.Set("self_link", addr.SelfLink)
+	d.Set("name", addr.Name)
 
 	return nil
 }
@@ -112,7 +106,7 @@ func resourceComputeGlobalAddressDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error deleting address: %s", err)
 	}
 
-	err = computeOperationWaitGlobal(config, op, "Deleting Global Address")
+	err = computeOperationWaitGlobal(config, op, project, "Deleting Global Address")
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeGlobalForwardingRule() *schema.Resource {
@@ -101,7 +100,7 @@ func resourceComputeGlobalForwardingRuleCreate(d *schema.ResourceData, meta inte
 	// It probably maybe worked, so store the ID now
 	d.SetId(frule.Name)
 
-	err = computeOperationWaitGlobal(config, op, "Creating Global Fowarding Rule")
+	err = computeOperationWaitGlobal(config, op, project, "Creating Global Fowarding Rule")
 	if err != nil {
 		return err
 	}
@@ -128,7 +127,7 @@ func resourceComputeGlobalForwardingRuleUpdate(d *schema.ResourceData, meta inte
 			return fmt.Errorf("Error updating target: %s", err)
 		}
 
-		err = computeOperationWaitGlobal(config, op, "Updating Global Forwarding Rule")
+		err = computeOperationWaitGlobal(config, op, project, "Updating Global Forwarding Rule")
 		if err != nil {
 			return err
 		}
@@ -152,15 +151,7 @@ func resourceComputeGlobalForwardingRuleRead(d *schema.ResourceData, meta interf
 	frule, err := config.clientCompute.GlobalForwardingRules.Get(
 		project, d.Id()).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			log.Printf("[WARN] Removing Global Forwarding Rule %q because it's gone", d.Get("name").(string))
-			// The resource doesn't exist anymore
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error reading GlobalForwardingRule: %s", err)
+		return handleNotFoundError(err, d, fmt.Sprintf("Global Forwarding Rule %q", d.Get("name").(string)))
 	}
 
 	d.Set("ip_address", frule.IPAddress)
@@ -186,7 +177,7 @@ func resourceComputeGlobalForwardingRuleDelete(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error deleting GlobalForwardingRule: %s", err)
 	}
 
-	err = computeOperationWaitGlobal(config, op, "Deleting GlobalForwarding Rule")
+	err = computeOperationWaitGlobal(config, op, project, "Deleting GlobalForwarding Rule")
 	if err != nil {
 		return err
 	}

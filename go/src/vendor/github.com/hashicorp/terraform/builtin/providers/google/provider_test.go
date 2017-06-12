@@ -1,6 +1,7 @@
 package google
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -63,7 +64,7 @@ func testAccPreCheck(t *testing.T) {
 		"CLOUDSDK_CORE_PROJECT",
 	}
 	if v := multiEnvSearch(projs); v == "" {
-		t.Fatalf("One of %s must be set for acceptance tests", strings.Join(creds, ", "))
+		t.Fatalf("One of %s must be set for acceptance tests", strings.Join(projs, ", "))
 	}
 
 	regs := []string{
@@ -71,8 +72,12 @@ func testAccPreCheck(t *testing.T) {
 		"GCLOUD_REGION",
 		"CLOUDSDK_COMPUTE_REGION",
 	}
-	if v := multiEnvSearch(regs); v != "us-central-1" {
-		t.Fatalf("One of %s must be set to us-central-1 for acceptance tests", strings.Join(creds, ", "))
+	if v := multiEnvSearch(regs); v != "us-central1" {
+		t.Fatalf("One of %s must be set to us-central1 for acceptance tests", strings.Join(regs, ", "))
+	}
+
+	if v := os.Getenv("GOOGLE_XPN_HOST_PROJECT"); v == "" {
+		t.Fatal("GOOGLE_XPN_HOST_PROJECT must be set for acceptance tests")
 	}
 }
 
@@ -82,4 +87,26 @@ func TestProvider_getRegionFromZone(t *testing.T) {
 	if expected != actual {
 		t.Fatalf("Region (%s) did not match expected value: %s", actual, expected)
 	}
+}
+
+// getTestRegion has the same logic as the provider's getRegion, to be used in tests.
+func getTestRegion(is *terraform.InstanceState, config *Config) (string, error) {
+	if res, ok := is.Attributes["region"]; ok {
+		return res, nil
+	}
+	if config.Region != "" {
+		return config.Region, nil
+	}
+	return "", fmt.Errorf("%q: required field is not set", "region")
+}
+
+// getTestProject has the same logic as the provider's getProject, to be used in tests.
+func getTestProject(is *terraform.InstanceState, config *Config) (string, error) {
+	if res, ok := is.Attributes["project"]; ok {
+		return res, nil
+	}
+	if config.Project != "" {
+		return config.Project, nil
+	}
+	return "", fmt.Errorf("%q: required field is not set", "project")
 }

@@ -21,7 +21,6 @@ import (
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/utils/object"
-	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
 )
@@ -198,13 +197,15 @@ func (bs *BaseStack) destroyAsync(ctx context.Context, req *stack.ApplyRequest) 
 	if bs.Builder.Stack.Stack.State() != stackstate.NotInitialized {
 		bs.Log.Debug("Connection to Terraformer")
 
-		tfKite, err := terraformer.Connect(bs.Session.Terraformer)
+		opts := bs.Session.Terraformer
+
+		tfKite, err := terraformer.Connect(opts.Endpoint, opts.SecretKey, opts.Kite)
 		if err != nil {
 			return err
 		}
 		defer tfKite.Close()
 
-		tfReq := &tf.TerraformRequest{
+		tfReq := &terraformer.TerraformRequest{
 			ContentID: req.GroupName + "-" + req.StackID,
 			TraceID:   bs.TraceID,
 		}
@@ -256,7 +257,9 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 
-	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
+	opts := bs.Session.Terraformer
+
+	tfKite, err := terraformer.Connect(opts.Endpoint, opts.SecretKey, opts.Kite)
 	if err != nil {
 		return err
 	}
@@ -317,7 +320,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		}
 	}()
 
-	tfReq := &tf.TerraformRequest{
+	tfReq := &terraformer.TerraformRequest{
 		Content:   bs.Builder.Stack.Template,
 		ContentID: t.Key,
 		TraceID:   bs.TraceID,

@@ -32,9 +32,10 @@ func TestAccAWSInternetGateway_basic(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckInternetGatewayDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_internet_gateway.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInternetGatewayDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: testAccInternetGatewayConfig,
@@ -70,9 +71,10 @@ func TestAccAWSInternetGateway_delete(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckInternetGatewayDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_internet_gateway.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInternetGatewayDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: testAccInternetGatewayConfig,
@@ -91,9 +93,10 @@ func TestAccAWSInternetGateway_tags(t *testing.T) {
 	var v ec2.InternetGateway
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckInternetGatewayDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_internet_gateway.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckInternetGatewayDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: testAccCheckInternetGatewayConfigTags,
@@ -179,12 +182,18 @@ func testAccCheckInternetGatewayExists(n string, ig *ec2.InternetGateway) resour
 const testAccNoInternetGatewayConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
+	tags {
+		Name = "testAccNoInternetGatewayConfig"
+	}
 }
 `
 
 const testAccInternetGatewayConfig = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
+	tags {
+		Name = "testAccInternetGatewayConfig"
+	}
 }
 
 resource "aws_internet_gateway" "foo" {
@@ -195,10 +204,16 @@ resource "aws_internet_gateway" "foo" {
 const testAccInternetGatewayConfigChangeVPC = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
+	tags {
+		Name = "testAccInternetGatewayConfigChangeVPC"
+	}
 }
 
 resource "aws_vpc" "bar" {
 	cidr_block = "10.2.0.0/16"
+	tags {
+		Name = "testAccInternetGatewayConfigChangeVPC_other"
+	}
 }
 
 resource "aws_internet_gateway" "foo" {
@@ -209,6 +224,9 @@ resource "aws_internet_gateway" "foo" {
 const testAccCheckInternetGatewayConfigTags = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
+	tags {
+		Name = "testAccCheckInternetGatewayConfigTags"
+	}
 }
 
 resource "aws_internet_gateway" "foo" {
@@ -222,6 +240,9 @@ resource "aws_internet_gateway" "foo" {
 const testAccCheckInternetGatewayConfigTagsUpdate = `
 resource "aws_vpc" "foo" {
 	cidr_block = "10.1.0.0/16"
+	tags {
+		Name = "testAccCheckInternetGatewayConfigTagsUpdate"
+	}
 }
 
 resource "aws_internet_gateway" "foo" {

@@ -6,7 +6,7 @@ description: |-
   Provides a GitHub membership resource.
 ---
 
-# github\_membership
+# github_membership
 
 Provides a GitHub membership resource.
 
@@ -16,11 +16,11 @@ destroyed, either the invitation will be cancelled or the user will be removed.
 
 ## Example Usage
 
-```
+```hcl
 # Add a user to the organization
 resource "github_membership" "membership_for_some_user" {
-    username = "SomeUser"
-    role = "member"
+  username = "SomeUser"
+  role     = "member"
 }
 ```
 
@@ -29,5 +29,14 @@ resource "github_membership" "membership_for_some_user" {
 The following arguments are supported:
 
 * `username` - (Required) The user to add to the organization.
-* `role` - (Optional) The role of the user within the organization. 
+* `role` - (Optional) The role of the user within the organization.
             Must be one of `member` or `admin`. Defaults to `member`.
+
+
+## Import
+
+Github Membership can be imported using an id made up of `organization:username`, e.g.
+
+```
+$ terraform import github_membership.member hashicorp:someuser
+```

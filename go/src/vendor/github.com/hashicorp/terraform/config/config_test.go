@@ -1,14 +1,35 @@
 package config
 
 import (
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/hil/ast"
+	"github.com/hashicorp/terraform/helper/logging"
 )
 
 // This is the directory where our test fixtures are.
 const fixtureDir = "./test-fixtures"
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	if testing.Verbose() {
+		// if we're verbose, use the logging requested by TF_LOG
+		logging.SetOutput()
+	} else {
+		// otherwise silence all logs
+		log.SetOutput(ioutil.Discard)
+	}
+
+	os.Exit(m.Run())
+}
 
 func TestConfigCopy(t *testing.T) {
 	c := testConfig(t, "copy-basic")
@@ -78,6 +99,24 @@ func TestConfigCount_string(t *testing.T) {
 	}
 }
 
+// Terraform GH-11800
+func TestConfigCount_list(t *testing.T) {
+	c := testConfig(t, "count-list")
+
+	// The key is to interpolate so it doesn't fail parsing
+	c.Resources[0].RawCount.Interpolate(map[string]ast.Variable{
+		"var.list": ast.Variable{
+			Value: []ast.Variable{},
+			Type:  ast.TypeList,
+		},
+	})
+
+	_, err := c.Resources[0].Count()
+	if err == nil {
+		t.Fatal("should error")
+	}
+}
+
 func TestConfigCount_var(t *testing.T) {
 	c := testConfig(t, "count-var")
 	_, err := c.Resources[0].Count()
@@ -86,10 +125,127 @@ func TestConfigCount_var(t *testing.T) {
 	}
 }
 
-func TestConfigValidate(t *testing.T) {
-	c := testConfig(t, "validate-good")
+func TestConfig_emptyCollections(t *testing.T) {
+	c := testConfig(t, "empty-collections")
+	if len(c.Variables) != 3 {
+		t.Fatalf("bad: expected 3 variables, got %d", len(c.Variables))
+	}
+	for _, variable := range c.Variables {
+		switch variable.Name {
+		case "empty_string":
+			if variable.Default != "" {
+				t.Fatalf("bad: wrong default %q for variable empty_string", variable.Default)
+			}
+		case "empty_map":
+			if !reflect.DeepEqual(variable.Default, map[string]interface{}{}) {
+				t.Fatalf("bad: wrong default %#v for variable empty_map", variable.Default)
+			}
+		case "empty_list":
+			if !reflect.DeepEqual(variable.Default, []interface{}{}) {
+				t.Fatalf("bad: wrong default %#v for variable empty_list", variable.Default)
+			}
+		default:
+			t.Fatalf("Unexpected variable: %s", variable.Name)
+		}
+	}
+}
+
+// This table test is the preferred way to test validation of configuration.
+// There are dozens of functions below which do not follow this that are
+// there mostly historically. They should be converted at some point.
+func TestConfigValidate_table(t *testing.T) {
+	cases := []struct {
+		Name      string
+		Fixture   string
+		Err       bool
+		ErrString string
+	}{
+		{
+			"basic good",
+			"validate-good",
+			false,
+			"",
+		},
+
+		{
+			"depends on module",
+			"validate-depends-on-module",
+			false,
+			"",
+		},
+
+		{
+			"depends on non-existent module",
+			"validate-depends-on-bad-module",
+			true,
+			"non-existent module 'foo'",
+		},
+
+		{
+			"data source with provisioners",
+			"validate-data-provisioner",
+			true,
+			"data sources cannot have",
+		},
+
+		{
+			"basic provisioners",
+			"validate-basic-provisioners",
+			false,
+			"",
+		},
+
+		{
+			"backend config with interpolations",
+			"validate-backend-interpolate",
+			true,
+			"cannot contain interp",
+		},
+		{
+			"nested types in variable default",
+			"validate-var-nested",
+			false,
+			"",
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("%d-%s", i, tc.Name), func(t *testing.T) {
+			c := testConfig(t, tc.Fixture)
+			err := c.Validate()
+			if (err != nil) != tc.Err {
+				t.Fatalf("err: %s", err)
+			}
+			if err != nil {
+				if tc.ErrString != "" && !strings.Contains(err.Error(), tc.ErrString) {
+					t.Fatalf("expected err to contain: %s\n\ngot: %s", tc.ErrString, err)
+				}
+
+				return
+			}
+		})
+	}
+
+}
+
+func TestConfigValidate_tfVersion(t *testing.T) {
+	c := testConfig(t, "validate-tf-version")
 	if err := c.Validate(); err != nil {
 		t.Fatalf("err: %s", err)
+	}
+}
+
+func TestConfigValidate_tfVersionBad(t *testing.T) {
+	c := testConfig(t, "validate-bad-tf-version")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_tfVersionInterpolations(t *testing.T) {
+	c := testConfig(t, "validate-tf-version-interp")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
 	}
 }
 
@@ -130,22 +286,8 @@ func TestConfigValidate_countCountVar(t *testing.T) {
 	}
 }
 
-func TestConfigValidate_countModuleVar(t *testing.T) {
-	c := testConfig(t, "validate-count-module-var")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should not be valid")
-	}
-}
-
 func TestConfigValidate_countNotInt(t *testing.T) {
 	c := testConfig(t, "validate-count-not-int")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should not be valid")
-	}
-}
-
-func TestConfigValidate_countResourceVar(t *testing.T) {
-	c := testConfig(t, "validate-count-resource-var")
 	if err := c.Validate(); err == nil {
 		t.Fatal("should not be valid")
 	}
@@ -172,6 +314,13 @@ func TestConfigValidate_countVarInvalid(t *testing.T) {
 	}
 }
 
+func TestConfigValidate_countVarUnknown(t *testing.T) {
+	c := testConfig(t, "validate-count-var-unknown")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
 func TestConfigValidate_dependsOnVar(t *testing.T) {
 	c := testConfig(t, "validate-depends-on-var")
 	if err := c.Validate(); err == nil {
@@ -188,6 +337,27 @@ func TestConfigValidate_dupModule(t *testing.T) {
 
 func TestConfigValidate_dupResource(t *testing.T) {
 	c := testConfig(t, "validate-dup-resource")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_ignoreChanges(t *testing.T) {
+	c := testConfig(t, "validate-ignore-changes")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+}
+
+func TestConfigValidate_ignoreChangesBad(t *testing.T) {
+	c := testConfig(t, "validate-ignore-changes-bad")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_ignoreChangesInterpolate(t *testing.T) {
+	c := testConfig(t, "validate-ignore-changes-interpolate")
 	if err := c.Validate(); err == nil {
 		t.Fatal("should not be valid")
 	}
@@ -216,8 +386,15 @@ func TestConfigValidate_moduleVarInt(t *testing.T) {
 
 func TestConfigValidate_moduleVarMap(t *testing.T) {
 	c := testConfig(t, "validate-module-var-map")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should be invalid")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
+	}
+}
+
+func TestConfigValidate_moduleVarList(t *testing.T) {
+	c := testConfig(t, "validate-module-var-list")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
 	}
 }
 
@@ -237,6 +414,26 @@ func TestConfigValidate_nil(t *testing.T) {
 
 func TestConfigValidate_outputBadField(t *testing.T) {
 	c := testConfig(t, "validate-output-bad-field")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_outputDescription(t *testing.T) {
+	c := testConfig(t, "validate-output-description")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if len(c.Outputs) != 1 {
+		t.Fatalf("got %d outputs; want 1", len(c.Outputs))
+	}
+	if got, want := "Number 5", c.Outputs[0].Description; got != want {
+		t.Fatalf("got description %q; want %q", got, want)
+	}
+}
+
+func TestConfigValidate_outputDuplicate(t *testing.T) {
+	c := testConfig(t, "validate-output-dup")
 	if err := c.Validate(); err == nil {
 		t.Fatal("should not be valid")
 	}
@@ -274,13 +471,6 @@ func TestConfigValidate_providerMultiRefGood(t *testing.T) {
 	c := testConfig(t, "validate-provider-multi-ref-good")
 	if err := c.Validate(); err != nil {
 		t.Fatalf("should be valid: %s", err)
-	}
-}
-
-func TestConfigValidate_providerMultiRefBad(t *testing.T) {
-	c := testConfig(t, "validate-provider-multi-ref-bad")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should not be valid")
 	}
 }
 
@@ -368,10 +558,10 @@ func TestConfigValidate_varDefault(t *testing.T) {
 	}
 }
 
-func TestConfigValidate_varDefaultBadType(t *testing.T) {
-	c := testConfig(t, "validate-var-default-bad-type")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should not be valid")
+func TestConfigValidate_varDefaultListType(t *testing.T) {
+	c := testConfig(t, "validate-var-default-list-type")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
 	}
 }
 
@@ -382,24 +572,24 @@ func TestConfigValidate_varDefaultInterpolate(t *testing.T) {
 	}
 }
 
+func TestConfigValidate_varDefaultInterpolateEscaped(t *testing.T) {
+	c := testConfig(t, "validate-var-default-interpolate-escaped")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid, but got err: %s", err)
+	}
+}
+
+func TestConfigValidate_varDup(t *testing.T) {
+	c := testConfig(t, "validate-var-dup")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
 func TestConfigValidate_varMultiExactNonSlice(t *testing.T) {
 	c := testConfig(t, "validate-var-multi-exact-non-slice")
 	if err := c.Validate(); err != nil {
 		t.Fatalf("should be valid: %s", err)
-	}
-}
-
-func TestConfigValidate_varMultiNonSlice(t *testing.T) {
-	c := testConfig(t, "validate-var-multi-non-slice")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should not be valid")
-	}
-}
-
-func TestConfigValidate_varMultiNonSliceProvisioner(t *testing.T) {
-	c := testConfig(t, "validate-var-multi-non-slice-provisioner")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should not be valid")
 	}
 }
 
@@ -458,43 +648,6 @@ func TestProviderConfigName(t *testing.T) {
 	}
 }
 
-func TestVariableDefaultsMap(t *testing.T) {
-	cases := []struct {
-		Default interface{}
-		Output  map[string]string
-	}{
-		{
-			nil,
-			nil,
-		},
-
-		{
-			"foo",
-			map[string]string{"var.foo": "foo"},
-		},
-
-		{
-			map[interface{}]interface{}{
-				"foo": "bar",
-				"bar": "baz",
-			},
-			map[string]string{
-				"var.foo":     "foo",
-				"var.foo.foo": "bar",
-				"var.foo.bar": "baz",
-			},
-		},
-	}
-
-	for i, tc := range cases {
-		v := &Variable{Name: "foo", Default: tc.Default}
-		actual := v.DefaultsMap()
-		if !reflect.DeepEqual(actual, tc.Output) {
-			t.Fatalf("%d: bad: %#v", i, actual)
-		}
-	}
-}
-
 func testConfig(t *testing.T, name string) *Config {
 	c, err := LoadFile(filepath.Join(fixtureDir, name, "main.tf"))
 	if err != nil {
@@ -502,4 +655,21 @@ func testConfig(t *testing.T, name string) *Config {
 	}
 
 	return c
+}
+
+func TestConfigDataCount(t *testing.T) {
+	c := testConfig(t, "data-count")
+	actual, err := c.Resources[0].Count()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if actual != 5 {
+		t.Fatalf("bad: %#v", actual)
+	}
+
+	// we need to make sure "count" has been removed from the RawConfig, since
+	// it's not a real key and won't validate.
+	if _, ok := c.Resources[0].RawConfig.Raw["count"]; ok {
+		t.Fatal("count key still exists in RawConfig")
+	}
 }
