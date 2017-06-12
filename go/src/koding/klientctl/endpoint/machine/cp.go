@@ -8,8 +8,7 @@ import (
 
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/transport/rsync"
-
-	"github.com/koding/logging"
+	"koding/klientctl/endpoint/stream"
 )
 
 // CpOptions stores options for `machine cp` call.
@@ -18,7 +17,7 @@ type CpOptions struct {
 	Identifier      string // Machine identifier.
 	SourcePath      string // Data source.
 	DestinationPath string // Data destination.
-	Log             logging.Logger
+	Streams         stream.Streamer
 }
 
 // Cp transfers file(s) between remote and local machine.
