@@ -11,11 +11,19 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/sns"
 )
 
 const awsSNSPendingConfirmationMessage = "pending confirmation"
 const awsSNSPendingConfirmationMessageWithoutSpaces = "pendingconfirmation"
+
+var SNSSubscriptionAttributeMap = map[string]string{
+	"topic_arn":            "TopicArn",
+	"endpoint":             "Endpoint",
+	"protocol":             "Protocol",
+	"raw_message_delivery": "RawMessageDelivery",
+}
 
 func resourceAwsSnsTopicSubscription() *schema.Resource {
 	return &schema.Resource{
@@ -23,25 +31,16 @@ func resourceAwsSnsTopicSubscription() *schema.Resource {
 		Read:   resourceAwsSnsTopicSubscriptionRead,
 		Update: resourceAwsSnsTopicSubscriptionUpdate,
 		Delete: resourceAwsSnsTopicSubscriptionDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"protocol": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: false,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(string)
-					forbidden := []string{"email", "sms"}
-					for _, f := range forbidden {
-						if strings.Contains(value, f) {
-							errors = append(
-								errors,
-								fmt.Errorf("Unsupported protocol (%s) for SNS Topic", value),
-							)
-						}
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     false,
+				ValidateFunc: validateSNSSubscriptionProtocol,
 			},
 			"endpoint": &schema.Schema{
 				Type:     schema.TypeString,
@@ -155,16 +154,30 @@ func resourceAwsSnsTopicSubscriptionRead(d *schema.ResourceData, meta interface{
 		SubscriptionArn: aws.String(d.Id()),
 	})
 	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFound" {
+			log.Printf("[WARN] SNS Topic Subscription (%s) not found, error code (404)", d.Id())
+			d.SetId("")
+			return nil
+		}
+
 		return err
 	}
 
 	if attributeOutput.Attributes != nil && len(attributeOutput.Attributes) > 0 {
 		attrHash := attributeOutput.Attributes
-		log.Printf("[DEBUG] raw message delivery: %s", *attrHash["RawMessageDelivery"])
-		if *attrHash["RawMessageDelivery"] == "true" {
-			d.Set("raw_message_delivery", true)
-		} else {
-			d.Set("raw_message_delivery", false)
+		resource := *resourceAwsSnsTopicSubscription()
+
+		for iKey, oKey := range SNSSubscriptionAttributeMap {
+			log.Printf("[DEBUG] Reading %s => %s", iKey, oKey)
+
+			if attrHash[oKey] != nil {
+				if resource.Schema[iKey] != nil {
+					var value string
+					value = *attrHash[oKey]
+					log.Printf("[DEBUG] Reading %s => %s -> %s", iKey, oKey, value)
+					d.Set(iKey, value)
+				}
+			}
 		}
 	}
 

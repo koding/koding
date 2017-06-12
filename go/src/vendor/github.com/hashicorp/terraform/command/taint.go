@@ -1,9 +1,14 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/hashicorp/terraform/command/clistate"
+	"github.com/hashicorp/terraform/state"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 // TaintCommand is a cli.Command implementation that manually taints
@@ -23,6 +28,8 @@ func (c *TaintCommand) Run(args []string) int {
 	cmdFlags.StringVar(&c.Meta.statePath, "state", DefaultStateFilename, "path")
 	cmdFlags.StringVar(&c.Meta.stateOutPath, "state-out", "", "path")
 	cmdFlags.StringVar(&c.Meta.backupPath, "backup", "", "path")
+	cmdFlags.BoolVar(&c.Meta.stateLock, "lock", true, "lock state")
+	cmdFlags.DurationVar(&c.Meta.stateLockTimeout, "lock-timeout", 0, "lock timeout")
 	cmdFlags.Usage = func() { c.Ui.Error(c.Help()) }
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
@@ -43,15 +50,53 @@ func (c *TaintCommand) Run(args []string) int {
 		module = "root." + module
 	}
 
-	// Get the state that we'll be modifying
-	state, err := c.State()
+	rsk, err := terraform.ParseResourceStateKey(name)
+	if err != nil {
+		c.Ui.Error(fmt.Sprintf("Failed to parse resource name: %s", err))
+		return 1
+	}
+
+	if !rsk.Mode.Taintable() {
+		c.Ui.Error(fmt.Sprintf("Resource '%s' cannot be tainted", name))
+		return 1
+	}
+
+	// Load the backend
+	b, err := c.Backend(nil)
+	if err != nil {
+		c.Ui.Error(fmt.Sprintf("Failed to load backend: %s", err))
+		return 1
+	}
+
+	// Get the state
+	env := c.Env()
+	st, err := b.State(env)
 	if err != nil {
 		c.Ui.Error(fmt.Sprintf("Failed to load state: %s", err))
 		return 1
 	}
+	if err := st.RefreshState(); err != nil {
+		c.Ui.Error(fmt.Sprintf("Failed to load state: %s", err))
+		return 1
+	}
+
+	if c.stateLock {
+		lockCtx, cancel := context.WithTimeout(context.Background(), c.stateLockTimeout)
+		defer cancel()
+
+		lockInfo := state.NewLockInfo()
+		lockInfo.Operation = "taint"
+		lockID, err := clistate.Lock(lockCtx, st, lockInfo, c.Ui, c.Colorize())
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("Error locking state: %s", err))
+			return 1
+		}
+
+		defer clistate.Unlock(st, lockID, c.Ui, c.Colorize())
+	}
 
 	// Get the actual state structure
-	s := state.State()
+	s := st.State()
 	if s.Empty() {
 		if allowMissing {
 			return c.allowMissingExit(name, module)
@@ -109,7 +154,11 @@ func (c *TaintCommand) Run(args []string) int {
 	rs.Taint()
 
 	log.Printf("[INFO] Writing state output to: %s", c.Meta.StateOutPath())
-	if err := c.Meta.PersistState(s); err != nil {
+	if err := st.WriteState(s); err != nil {
+		c.Ui.Error(fmt.Sprintf("Error writing state file: %s", err))
+		return 1
+	}
+	if err := st.PersistState(); err != nil {
 		c.Ui.Error(fmt.Sprintf("Error writing state file: %s", err))
 		return 1
 	}
@@ -141,6 +190,10 @@ Options:
   -backup=path        Path to backup the existing state file before
                       modifying. Defaults to the "-state-out" path with
                       ".backup" extension. Set to "-" to disable backup.
+
+  -lock=true          Lock the state file when locking is supported.
+
+  -lock-timeout=0s    Duration to retry a state lock.
 
   -module=path        The module path where the resource lives. By
                       default this will be root. Child modules can be specified

@@ -85,19 +85,21 @@ func TestInterpolationWalker_detect(t *testing.T) {
 	}
 
 	for i, tc := range cases {
-		var actual []string
-		detectFn := func(data *WalkData) error {
-			actual = append(actual, fmt.Sprintf("%s", data.Root))
-			return nil
-		}
+		t.Run(fmt.Sprintf("#%d", i), func(t *testing.T) {
+			var actual []string
+			detectFn := func(data *WalkData) error {
+				actual = append(actual, fmt.Sprintf("%s", data.Root))
+				return nil
+			}
 
-		if err := Walk(tc.Input, detectFn); err != nil {
-			t.Fatalf("err: %s", err)
-		}
+			if err := Walk(tc.Input, detectFn); err != nil {
+				t.Fatalf("err: %s", err)
+			}
 
-		if !reflect.DeepEqual(actual, tc.Result) {
-			t.Fatalf("%d: bad:\n\n%#v", i, actual)
-		}
+			if !reflect.DeepEqual(actual, tc.Result) {
+				t.Fatalf("%d: bad:\n\n%#v", i, actual)
+			}
+		})
 	}
 }
 

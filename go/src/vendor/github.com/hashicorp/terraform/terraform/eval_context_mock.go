@@ -9,6 +9,9 @@ import (
 // MockEvalContext is a mock version of EvalContext that can be used
 // for tests.
 type MockEvalContext struct {
+	StoppedCalled bool
+	StoppedValue  <-chan struct{}
+
 	HookCalled bool
 	HookHook   Hook
 	HookError  error
@@ -74,7 +77,7 @@ type MockEvalContext struct {
 
 	SetVariablesCalled    bool
 	SetVariablesModule    string
-	SetVariablesVariables map[string]string
+	SetVariablesVariables map[string]interface{}
 
 	DiffCalled bool
 	DiffDiff   *Diff
@@ -83,6 +86,11 @@ type MockEvalContext struct {
 	StateCalled bool
 	StateState  *State
 	StateLock   *sync.RWMutex
+}
+
+func (c *MockEvalContext) Stopped() <-chan struct{} {
+	c.StoppedCalled = true
+	return c.StoppedValue
 }
 
 func (c *MockEvalContext) Hook(fn func(Hook) (HookAction, error)) error {
@@ -183,7 +191,7 @@ func (c *MockEvalContext) Path() []string {
 	return c.PathPath
 }
 
-func (c *MockEvalContext) SetVariables(n string, vs map[string]string) {
+func (c *MockEvalContext) SetVariables(n string, vs map[string]interface{}) {
 	c.SetVariablesCalled = true
 	c.SetVariablesModule = n
 	c.SetVariablesVariables = vs

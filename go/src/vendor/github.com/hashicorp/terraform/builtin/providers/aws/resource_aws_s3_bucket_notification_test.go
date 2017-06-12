@@ -344,7 +344,7 @@ func testAccCheckAWSS3BucketLambdaFunctionConfiguration(n, i, t string, events [
 func testAccAWSS3BucketConfigWithTopicNotification(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_sns_topic" "topic" {
-    name = "terraform-test-topic"
+    name = "terraform-test-topic-%d"
 	policy = <<POLICY
 {
 	"Version":"2012-10-17",
@@ -353,7 +353,7 @@ resource "aws_sns_topic" "topic" {
 		"Effect": "Allow",
 		"Principal": {"AWS":"*"},
 		"Action": "SNS:Publish",
-		"Resource": "arn:aws:sns:*:*:terraform-test-topic",
+		"Resource": "arn:aws:sns:*:*:terraform-test-topic-%d",
 		"Condition":{
 			"ArnLike":{"aws:SourceArn":"${aws_s3_bucket.bucket.arn}"}
 		}
@@ -389,7 +389,7 @@ resource "aws_s3_bucket_notification" "notification" {
 		filter_suffix = ".log"
 	}
 }
-`, randInt, randInt)
+`, randInt, randInt, randInt, randInt)
 }
 
 func testAccAWSS3BucketConfigWithQueueNotification(randInt int) string {
@@ -452,9 +452,10 @@ resource "aws_lambda_permission" "allow_bucket" {
 
 resource "aws_lambda_function" "func" {
     filename = "test-fixtures/lambdatest.zip"
-    function_name = "example_lambda_name"
+    function_name = "example_lambda_name_%d"
     role = "${aws_iam_role.iam_for_lambda.arn}"
     handler = "exports.example"
+		runtime = "nodejs4.3"
 }
 
 resource "aws_s3_bucket" "bucket" {
@@ -475,13 +476,13 @@ resource "aws_s3_bucket_notification" "notification" {
 		filter_suffix = ".png"
 	}
 }
-`, randInt, randInt)
+`, randInt, randInt, randInt)
 }
 
 func testAccAWSS3BucketConfigWithTopicNotificationWithoutFilter(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_sns_topic" "topic" {
-    name = "terraform-test-topic"
+    name = "terraform-test-topic-%d"
 	policy = <<POLICY
 {
 	"Version":"2012-10-17",
@@ -490,7 +491,7 @@ resource "aws_sns_topic" "topic" {
 		"Effect": "Allow",
 		"Principal": {"AWS":"*"},
 		"Action": "SNS:Publish",
-		"Resource": "arn:aws:sns:*:*:terraform-test-topic",
+		"Resource": "arn:aws:sns:*:*:terraform-test-topic-%d",
 		"Condition":{
 			"ArnLike":{"aws:SourceArn":"${aws_s3_bucket.bucket.arn}"}
 		}
@@ -515,5 +516,5 @@ resource "aws_s3_bucket_notification" "notification" {
 		]
 	}
 }
-`, randInt)
+`, randInt, randInt, randInt)
 }

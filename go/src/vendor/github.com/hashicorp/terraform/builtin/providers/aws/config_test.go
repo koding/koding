@@ -1,376 +1,118 @@
 package aws
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
+	"reflect"
 	"testing"
+	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws"
+	awsCredentials "github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-func TestAWSConfig_shouldError(t *testing.T) {
-	resetEnv := unsetEnv(t)
-	defer resetEnv()
-	cfg := Config{}
-
-	c := getCreds(cfg.AccessKey, cfg.SecretKey, cfg.Token, cfg.Profile, cfg.CredsFilename)
-	_, err := c.Get()
-	if awsErr, ok := err.(awserr.Error); ok {
-		if awsErr.Code() != "NoCredentialProviders" {
-			t.Fatalf("Expected NoCredentialProviders error")
-		}
-	}
-	if err == nil {
-		t.Fatalf("Expected an error with empty env, keys, and IAM in AWS Config")
-	}
-}
-
-func TestAWSConfig_shouldBeStatic(t *testing.T) {
-	simple := []struct {
-		Key, Secret, Token string
-	}{
-		{
-			Key:    "test",
-			Secret: "secret",
-		}, {
-			Key:    "test",
-			Secret: "test",
-			Token:  "test",
+func TestGetSupportedEC2Platforms(t *testing.T) {
+	ec2Endpoints := []*awsMockEndpoint{
+		&awsMockEndpoint{
+			Request: &awsMockRequest{"POST", "/", "Action=DescribeAccountAttributes&" +
+				"AttributeName.1=supported-platforms&Version=2016-11-15"},
+			Response: &awsMockResponse{200, test_ec2_describeAccountAttributes_response, "text/xml"},
 		},
 	}
-
-	for _, c := range simple {
-		cfg := Config{
-			AccessKey: c.Key,
-			SecretKey: c.Secret,
-			Token:     c.Token,
-		}
-
-		creds := getCreds(cfg.AccessKey, cfg.SecretKey, cfg.Token, cfg.Profile, cfg.CredsFilename)
-		if creds == nil {
-			t.Fatalf("Expected a static creds provider to be returned")
-		}
-		v, err := creds.Get()
-		if err != nil {
-			t.Fatalf("Error gettings creds: %s", err)
-		}
-		if v.AccessKeyID != c.Key {
-			t.Fatalf("AccessKeyID mismatch, expected: (%s), got (%s)", c.Key, v.AccessKeyID)
-		}
-		if v.SecretAccessKey != c.Secret {
-			t.Fatalf("SecretAccessKey mismatch, expected: (%s), got (%s)", c.Secret, v.SecretAccessKey)
-		}
-		if v.SessionToken != c.Token {
-			t.Fatalf("SessionToken mismatch, expected: (%s), got (%s)", c.Token, v.SessionToken)
-		}
-	}
-}
-
-// TestAWSConfig_shouldIAM is designed to test the scenario of running Terraform
-// from an EC2 instance, without environment variables or manually supplied
-// credentials.
-func TestAWSConfig_shouldIAM(t *testing.T) {
-	// clear AWS_* environment variables
-	resetEnv := unsetEnv(t)
-	defer resetEnv()
-
-	// capture the test server's close method, to call after the test returns
-	ts := awsEnv(t)
-	defer ts()
-
-	// An empty config, no key supplied
-	cfg := Config{}
-
-	creds := getCreds(cfg.AccessKey, cfg.SecretKey, cfg.Token, cfg.Profile, cfg.CredsFilename)
-	if creds == nil {
-		t.Fatalf("Expected a static creds provider to be returned")
-	}
-
-	v, err := creds.Get()
+	closeFunc, sess, err := getMockedAwsApiSession("EC2", ec2Endpoints)
 	if err != nil {
-		t.Fatalf("Error gettings creds: %s", err)
+		t.Fatal(err)
 	}
-	if v.AccessKeyID != "somekey" {
-		t.Fatalf("AccessKeyID mismatch, expected: (somekey), got (%s)", v.AccessKeyID)
-	}
-	if v.SecretAccessKey != "somesecret" {
-		t.Fatalf("SecretAccessKey mismatch, expected: (somesecret), got (%s)", v.SecretAccessKey)
-	}
-	if v.SessionToken != "sometoken" {
-		t.Fatalf("SessionToken mismatch, expected: (sometoken), got (%s)", v.SessionToken)
-	}
-}
+	defer closeFunc()
+	conn := ec2.New(sess)
 
-// TestAWSConfig_shouldIAM is designed to test the scenario of running Terraform
-// from an EC2 instance, without environment variables or manually supplied
-// credentials.
-func TestAWSConfig_shouldIgnoreIAM(t *testing.T) {
-	resetEnv := unsetEnv(t)
-	defer resetEnv()
-	// capture the test server's close method, to call after the test returns
-	ts := awsEnv(t)
-	defer ts()
-	simple := []struct {
-		Key, Secret, Token string
-	}{
-		{
-			Key:    "test",
-			Secret: "secret",
-		}, {
-			Key:    "test",
-			Secret: "test",
-			Token:  "test",
-		},
-	}
-
-	for _, c := range simple {
-		cfg := Config{
-			AccessKey: c.Key,
-			SecretKey: c.Secret,
-			Token:     c.Token,
-		}
-
-		creds := getCreds(cfg.AccessKey, cfg.SecretKey, cfg.Token, cfg.Profile, cfg.CredsFilename)
-		if creds == nil {
-			t.Fatalf("Expected a static creds provider to be returned")
-		}
-		v, err := creds.Get()
-		if err != nil {
-			t.Fatalf("Error gettings creds: %s", err)
-		}
-		if v.AccessKeyID != c.Key {
-			t.Fatalf("AccessKeyID mismatch, expected: (%s), got (%s)", c.Key, v.AccessKeyID)
-		}
-		if v.SecretAccessKey != c.Secret {
-			t.Fatalf("SecretAccessKey mismatch, expected: (%s), got (%s)", c.Secret, v.SecretAccessKey)
-		}
-		if v.SessionToken != c.Token {
-			t.Fatalf("SessionToken mismatch, expected: (%s), got (%s)", c.Token, v.SessionToken)
-		}
-	}
-}
-
-var credentialsFileContents = `[myprofile]
-aws_access_key_id = accesskey
-aws_secret_access_key = secretkey
-`
-
-func TestAWSConfig_shouldBeShared(t *testing.T) {
-	file, err := ioutil.TempFile(os.TempDir(), "terraform_aws_cred")
+	platforms, err := GetSupportedEC2Platforms(conn)
 	if err != nil {
-		t.Fatalf("Error writing temporary credentials file: %s", err)
+		t.Fatalf("Expected no error, received: %s", err)
 	}
-	_, err = file.WriteString(credentialsFileContents)
-	if err != nil {
-		t.Fatalf("Error writing temporary credentials to file: %s", err)
-	}
-	err = file.Close()
-	if err != nil {
-		t.Fatalf("Error closing temporary credentials file: %s", err)
-	}
-
-	defer os.Remove(file.Name())
-
-	resetEnv := unsetEnv(t)
-	defer resetEnv()
-
-	if err := os.Setenv("AWS_PROFILE", "myprofile"); err != nil {
-		t.Fatalf("Error resetting env var AWS_PROFILE: %s", err)
-	}
-	if err := os.Setenv("AWS_SHARED_CREDENTIALS_FILE", file.Name()); err != nil {
-		t.Fatalf("Error resetting env var AWS_SHARED_CREDENTIALS_FILE: %s", err)
-	}
-
-	creds := getCreds("", "", "", "myprofile", file.Name())
-	if creds == nil {
-		t.Fatalf("Expected a provider chain to be returned")
-	}
-	v, err := creds.Get()
-	if err != nil {
-		t.Fatalf("Error gettings creds: %s", err)
-	}
-
-	if v.AccessKeyID != "accesskey" {
-		t.Fatalf("AccessKeyID mismatch, expected (%s), got (%s)", "accesskey", v.AccessKeyID)
-	}
-
-	if v.SecretAccessKey != "secretkey" {
-		t.Fatalf("SecretAccessKey mismatch, expected (%s), got (%s)", "accesskey", v.AccessKeyID)
+	expectedPlatforms := []string{"VPC", "EC2"}
+	if !reflect.DeepEqual(platforms, expectedPlatforms) {
+		t.Fatalf("Received platforms: %q\nExpected: %q\n", platforms, expectedPlatforms)
 	}
 }
 
-func TestAWSConfig_shouldBeENV(t *testing.T) {
-	// need to set the environment variables to a dummy string, as we don't know
-	// what they may be at runtime without hardcoding here
-	s := "some_env"
-	resetEnv := setEnv(s, t)
-
-	defer resetEnv()
-
-	cfg := Config{}
-	creds := getCreds(cfg.AccessKey, cfg.SecretKey, cfg.Token, cfg.Profile, cfg.CredsFilename)
-	if creds == nil {
-		t.Fatalf("Expected a static creds provider to be returned")
-	}
-	v, err := creds.Get()
-	if err != nil {
-		t.Fatalf("Error gettings creds: %s", err)
-	}
-	if v.AccessKeyID != s {
-		t.Fatalf("AccessKeyID mismatch, expected: (%s), got (%s)", s, v.AccessKeyID)
-	}
-	if v.SecretAccessKey != s {
-		t.Fatalf("SecretAccessKey mismatch, expected: (%s), got (%s)", s, v.SecretAccessKey)
-	}
-	if v.SessionToken != s {
-		t.Fatalf("SessionToken mismatch, expected: (%s), got (%s)", s, v.SessionToken)
-	}
-}
-
-// unsetEnv unsets enviornment variables for testing a "clean slate" with no
-// credentials in the environment
-func unsetEnv(t *testing.T) func() {
-	// Grab any existing AWS keys and preserve. In some tests we'll unset these, so
-	// we need to have them and restore them after
-	e := getEnv()
-	if err := os.Unsetenv("AWS_ACCESS_KEY_ID"); err != nil {
-		t.Fatalf("Error unsetting env var AWS_ACCESS_KEY_ID: %s", err)
-	}
-	if err := os.Unsetenv("AWS_SECRET_ACCESS_KEY"); err != nil {
-		t.Fatalf("Error unsetting env var AWS_SECRET_ACCESS_KEY: %s", err)
-	}
-	if err := os.Unsetenv("AWS_SESSION_TOKEN"); err != nil {
-		t.Fatalf("Error unsetting env var AWS_SESSION_TOKEN: %s", err)
-	}
-	if err := os.Unsetenv("AWS_PROFILE"); err != nil {
-		t.Fatalf("Error unsetting env var AWS_TOKEN: %s", err)
-	}
-	if err := os.Unsetenv("AWS_SHARED_CREDENTIALS_FILE"); err != nil {
-		t.Fatalf("Error unsetting env var AWS_SHARED_CREDENTIALS_FILE: %s", err)
-	}
-
-	return func() {
-		// re-set all the envs we unset above
-		if err := os.Setenv("AWS_ACCESS_KEY_ID", e.Key); err != nil {
-			t.Fatalf("Error resetting env var AWS_ACCESS_KEY_ID: %s", err)
-		}
-		if err := os.Setenv("AWS_SECRET_ACCESS_KEY", e.Secret); err != nil {
-			t.Fatalf("Error resetting env var AWS_SECRET_ACCESS_KEY: %s", err)
-		}
-		if err := os.Setenv("AWS_SESSION_TOKEN", e.Token); err != nil {
-			t.Fatalf("Error resetting env var AWS_SESSION_TOKEN: %s", err)
-		}
-		if err := os.Setenv("AWS_PROFILE", e.Profile); err != nil {
-			t.Fatalf("Error resetting env var AWS_PROFILE: %s", err)
-		}
-		if err := os.Setenv("AWS_SHARED_CREDENTIALS_FILE", e.CredsFilename); err != nil {
-			t.Fatalf("Error resetting env var AWS_SHARED_CREDENTIALS_FILE: %s", err)
-		}
-	}
-}
-
-func setEnv(s string, t *testing.T) func() {
-	e := getEnv()
-	// Set all the envs to a dummy value
-	if err := os.Setenv("AWS_ACCESS_KEY_ID", s); err != nil {
-		t.Fatalf("Error setting env var AWS_ACCESS_KEY_ID: %s", err)
-	}
-	if err := os.Setenv("AWS_SECRET_ACCESS_KEY", s); err != nil {
-		t.Fatalf("Error setting env var AWS_SECRET_ACCESS_KEY: %s", err)
-	}
-	if err := os.Setenv("AWS_SESSION_TOKEN", s); err != nil {
-		t.Fatalf("Error setting env var AWS_SESSION_TOKEN: %s", err)
-	}
-	if err := os.Setenv("AWS_PROFILE", s); err != nil {
-		t.Fatalf("Error setting env var AWS_PROFILE: %s", err)
-	}
-	if err := os.Setenv("AWS_SHARED_CREDENTIALS_FILE", s); err != nil {
-		t.Fatalf("Error setting env var AWS_SHARED_CREDENTIALS_FLE: %s", err)
-	}
-
-	return func() {
-		// re-set all the envs we unset above
-		if err := os.Setenv("AWS_ACCESS_KEY_ID", e.Key); err != nil {
-			t.Fatalf("Error resetting env var AWS_ACCESS_KEY_ID: %s", err)
-		}
-		if err := os.Setenv("AWS_SECRET_ACCESS_KEY", e.Secret); err != nil {
-			t.Fatalf("Error resetting env var AWS_SECRET_ACCESS_KEY: %s", err)
-		}
-		if err := os.Setenv("AWS_SESSION_TOKEN", e.Token); err != nil {
-			t.Fatalf("Error resetting env var AWS_SESSION_TOKEN: %s", err)
-		}
-		if err := os.Setenv("AWS_PROFILE", e.Profile); err != nil {
-			t.Fatalf("Error setting env var AWS_PROFILE: %s", err)
-		}
-		if err := os.Setenv("AWS_SHARED_CREDENTIALS_FILE", s); err != nil {
-			t.Fatalf("Error setting env var AWS_SHARED_CREDENTIALS_FLE: %s", err)
-		}
-	}
-}
-
-// awsEnv establishes a httptest server to mock out the internal AWS Metadata
-// service. IAM Credentials are retrieved by the EC2RoleProvider, which makes
-// API calls to this internal URL. By replacing the server with a test server,
-// we can simulate an AWS environment
-func awsEnv(t *testing.T) func() {
-	routes := routes{}
-	if err := json.Unmarshal([]byte(aws_routes), &routes); err != nil {
-		t.Fatalf("Failed to unmarshal JSON in AWS ENV test: %s", err)
-	}
+// getMockedAwsApiSession establishes a httptest server to simulate behaviour
+// of a real AWS API server
+func getMockedAwsApiSession(svcName string, endpoints []*awsMockEndpoint) (func(), *session.Session, error) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Header().Add("Server", "MockEC2")
-		for _, e := range routes.Endpoints {
-			if r.RequestURI == e.Uri {
-				fmt.Fprintln(w, e.Body)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		requestBody := buf.String()
+
+		log.Printf("[DEBUG] Received %s API %q request to %q: %s",
+			svcName, r.Method, r.RequestURI, requestBody)
+
+		for _, e := range endpoints {
+			if r.Method == e.Request.Method && r.RequestURI == e.Request.Uri && requestBody == e.Request.Body {
+				log.Printf("[DEBUG] Mocked %s API responding with %d: %s",
+					svcName, e.Response.StatusCode, e.Response.Body)
+
+				w.WriteHeader(e.Response.StatusCode)
+				w.Header().Set("Content-Type", e.Response.ContentType)
+				w.Header().Set("X-Amzn-Requestid", "1b206dd1-f9a8-11e5-becf-051c60f11c4a")
+				w.Header().Set("Date", time.Now().Format(time.RFC1123))
+
+				fmt.Fprintln(w, e.Response.Body)
+				return
 			}
 		}
+
+		w.WriteHeader(400)
+		return
 	}))
 
-	os.Setenv("AWS_METADATA_URL", ts.URL+"/latest")
-	return ts.Close
+	sc := awsCredentials.NewStaticCredentials("accessKey", "secretKey", "")
+
+	sess, err := session.NewSession(&aws.Config{
+		Credentials:                   sc,
+		Region:                        aws.String("us-east-1"),
+		Endpoint:                      aws.String(ts.URL),
+		CredentialsChainVerboseErrors: aws.Bool(true),
+	})
+
+	return ts.Close, sess, err
 }
 
-func getEnv() *currentEnv {
-	// Grab any existing AWS keys and preserve. In some tests we'll unset these, so
-	// we need to have them and restore them after
-	return &currentEnv{
-		Key:           os.Getenv("AWS_ACCESS_KEY_ID"),
-		Secret:        os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		Token:         os.Getenv("AWS_SESSION_TOKEN"),
-		Profile:       os.Getenv("AWS_TOKEN"),
-		CredsFilename: os.Getenv("AWS_SHARED_CREDENTIALS_FILE"),
-	}
+type awsMockEndpoint struct {
+	Request  *awsMockRequest
+	Response *awsMockResponse
 }
 
-// struct to preserve the current environment
-type currentEnv struct {
-	Key, Secret, Token, Profile, CredsFilename string
+type awsMockRequest struct {
+	Method string
+	Uri    string
+	Body   string
 }
 
-type routes struct {
-	Endpoints []*endpoint `json:"endpoints"`
-}
-type endpoint struct {
-	Uri  string `json:"uri"`
-	Body string `json:"body"`
+type awsMockResponse struct {
+	StatusCode  int
+	Body        string
+	ContentType string
 }
 
-const aws_routes = `
-{
-  "endpoints": [
-    {
-      "uri": "/latest/meta-data/iam/security-credentials",
-      "body": "test_role"
-    },
-    {
-      "uri": "/latest/meta-data/iam/security-credentials/test_role",
-      "body": "{\"Code\":\"Success\",\"LastUpdated\":\"2015-12-11T17:17:25Z\",\"Type\":\"AWS-HMAC\",\"AccessKeyId\":\"somekey\",\"SecretAccessKey\":\"somesecret\",\"Token\":\"sometoken\"}"
-    }
-  ]
-}
-`
+var test_ec2_describeAccountAttributes_response = `<DescribeAccountAttributesResponse xmlns="http://ec2.amazonaws.com/doc/2016-11-15/">
+  <requestId>7a62c49f-347e-4fc4-9331-6e8eEXAMPLE</requestId>
+  <accountAttributeSet>
+    <item>
+      <attributeName>supported-platforms</attributeName>
+      <attributeValueSet>
+        <item>
+          <attributeValue>VPC</attributeValue>
+        </item>
+        <item>
+          <attributeValue>EC2</attributeValue>
+        </item>
+      </attributeValueSet>
+    </item>
+  </accountAttributeSet>
+</DescribeAccountAttributesResponse>`

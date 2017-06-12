@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -87,6 +87,7 @@ func (s *RouterService) StartRouter(p *StartRouterParams) (*StartRouterResponse,
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -103,8 +104,10 @@ type StartRouterResponse struct {
 	Guestmacaddress     string `json:"guestmacaddress,omitempty"`
 	Guestnetmask        string `json:"guestnetmask,omitempty"`
 	Guestnetworkid      string `json:"guestnetworkid,omitempty"`
+	Guestnetworkname    string `json:"guestnetworkname,omitempty"`
 	Hostid              string `json:"hostid,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
+	Hypervisor          string `json:"hypervisor,omitempty"`
 	Id                  string `json:"id,omitempty"`
 	Ip6dns1             string `json:"ip6dns1,omitempty"`
 	Ip6dns2             string `json:"ip6dns2,omitempty"`
@@ -155,6 +158,7 @@ type StartRouterResponse struct {
 	Templateid          string `json:"templateid,omitempty"`
 	Version             string `json:"version,omitempty"`
 	Vpcid               string `json:"vpcid,omitempty"`
+	Vpcname             string `json:"vpcname,omitempty"`
 	Zoneid              string `json:"zoneid,omitempty"`
 	Zonename            string `json:"zonename,omitempty"`
 }
@@ -222,6 +226,7 @@ func (s *RouterService) RebootRouter(p *RebootRouterParams) (*RebootRouterRespon
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -238,8 +243,10 @@ type RebootRouterResponse struct {
 	Guestmacaddress     string `json:"guestmacaddress,omitempty"`
 	Guestnetmask        string `json:"guestnetmask,omitempty"`
 	Guestnetworkid      string `json:"guestnetworkid,omitempty"`
+	Guestnetworkname    string `json:"guestnetworkname,omitempty"`
 	Hostid              string `json:"hostid,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
+	Hypervisor          string `json:"hypervisor,omitempty"`
 	Id                  string `json:"id,omitempty"`
 	Ip6dns1             string `json:"ip6dns1,omitempty"`
 	Ip6dns2             string `json:"ip6dns2,omitempty"`
@@ -290,6 +297,7 @@ type RebootRouterResponse struct {
 	Templateid          string `json:"templateid,omitempty"`
 	Version             string `json:"version,omitempty"`
 	Vpcid               string `json:"vpcid,omitempty"`
+	Vpcname             string `json:"vpcname,omitempty"`
 	Zoneid              string `json:"zoneid,omitempty"`
 	Zonename            string `json:"zonename,omitempty"`
 }
@@ -369,6 +377,7 @@ func (s *RouterService) StopRouter(p *StopRouterParams) (*StopRouterResponse, er
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -385,8 +394,10 @@ type StopRouterResponse struct {
 	Guestmacaddress     string `json:"guestmacaddress,omitempty"`
 	Guestnetmask        string `json:"guestnetmask,omitempty"`
 	Guestnetworkid      string `json:"guestnetworkid,omitempty"`
+	Guestnetworkname    string `json:"guestnetworkname,omitempty"`
 	Hostid              string `json:"hostid,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
+	Hypervisor          string `json:"hypervisor,omitempty"`
 	Id                  string `json:"id,omitempty"`
 	Ip6dns1             string `json:"ip6dns1,omitempty"`
 	Ip6dns2             string `json:"ip6dns2,omitempty"`
@@ -437,6 +448,7 @@ type StopRouterResponse struct {
 	Templateid          string `json:"templateid,omitempty"`
 	Version             string `json:"version,omitempty"`
 	Vpcid               string `json:"vpcid,omitempty"`
+	Vpcname             string `json:"vpcname,omitempty"`
 	Zoneid              string `json:"zoneid,omitempty"`
 	Zonename            string `json:"zonename,omitempty"`
 }
@@ -504,6 +516,7 @@ func (s *RouterService) DestroyRouter(p *DestroyRouterParams) (*DestroyRouterRes
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -520,8 +533,10 @@ type DestroyRouterResponse struct {
 	Guestmacaddress     string `json:"guestmacaddress,omitempty"`
 	Guestnetmask        string `json:"guestnetmask,omitempty"`
 	Guestnetworkid      string `json:"guestnetworkid,omitempty"`
+	Guestnetworkname    string `json:"guestnetworkname,omitempty"`
 	Hostid              string `json:"hostid,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
+	Hypervisor          string `json:"hypervisor,omitempty"`
 	Id                  string `json:"id,omitempty"`
 	Ip6dns1             string `json:"ip6dns1,omitempty"`
 	Ip6dns2             string `json:"ip6dns2,omitempty"`
@@ -572,6 +587,7 @@ type DestroyRouterResponse struct {
 	Templateid          string `json:"templateid,omitempty"`
 	Version             string `json:"version,omitempty"`
 	Vpcid               string `json:"vpcid,omitempty"`
+	Vpcname             string `json:"vpcname,omitempty"`
 	Zoneid              string `json:"zoneid,omitempty"`
 	Zonename            string `json:"zonename,omitempty"`
 }
@@ -631,6 +647,7 @@ func (s *RouterService) ChangeServiceForRouter(p *ChangeServiceForRouterParams) 
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -646,8 +663,10 @@ type ChangeServiceForRouterResponse struct {
 	Guestmacaddress     string `json:"guestmacaddress,omitempty"`
 	Guestnetmask        string `json:"guestnetmask,omitempty"`
 	Guestnetworkid      string `json:"guestnetworkid,omitempty"`
+	Guestnetworkname    string `json:"guestnetworkname,omitempty"`
 	Hostid              string `json:"hostid,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
+	Hypervisor          string `json:"hypervisor,omitempty"`
 	Id                  string `json:"id,omitempty"`
 	Ip6dns1             string `json:"ip6dns1,omitempty"`
 	Ip6dns2             string `json:"ip6dns2,omitempty"`
@@ -698,6 +717,7 @@ type ChangeServiceForRouterResponse struct {
 	Templateid          string `json:"templateid,omitempty"`
 	Version             string `json:"version,omitempty"`
 	Vpcid               string `json:"vpcid,omitempty"`
+	Vpcname             string `json:"vpcname,omitempty"`
 	Zoneid              string `json:"zoneid,omitempty"`
 	Zonename            string `json:"zonename,omitempty"`
 }
@@ -937,53 +957,49 @@ func (s *RouterService) NewListRoutersParams() *ListRoutersParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *RouterService) GetRouterID(name string) (string, error) {
+func (s *RouterService) GetRouterID(name string, opts ...OptionFunc) (string, int, error) {
 	p := &ListRoutersParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
 
-	l, err := s.ListRouters(p)
-	if err != nil {
-		return "", err
-	}
-
-	if l.Count == 0 {
-		// If no matches, search all projects
-		p.p["projectid"] = "-1"
-
-		l, err = s.ListRouters(p)
-		if err != nil {
-			return "", err
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
 		}
 	}
 
+	l, err := s.ListRouters(p)
+	if err != nil {
+		return "", -1, err
+	}
+
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", name, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
 	if l.Count == 1 {
-		return l.Routers[0].Id, nil
+		return l.Routers[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.Routers {
 			if v.Name == name {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *RouterService) GetRouterByName(name string) (*Router, int, error) {
-	id, err := s.GetRouterID(name)
+func (s *RouterService) GetRouterByName(name string, opts ...OptionFunc) (*Router, int, error) {
+	id, count, err := s.GetRouterID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetRouterByID(id)
+	r, count, err := s.GetRouterByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -991,11 +1007,17 @@ func (s *RouterService) GetRouterByName(name string) (*Router, int, error) {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *RouterService) GetRouterByID(id string) (*Router, int, error) {
+func (s *RouterService) GetRouterByID(id string, opts ...OptionFunc) (*Router, int, error) {
 	p := &ListRoutersParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListRouters(p)
 	if err != nil {
@@ -1005,21 +1027,6 @@ func (s *RouterService) GetRouterByID(id string) (*Router, int, error) {
 			return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
 		}
 		return nil, -1, err
-	}
-
-	if l.Count == 0 {
-		// If no matches, search all projects
-		p.p["projectid"] = "-1"
-
-		l, err = s.ListRouters(p)
-		if err != nil {
-			if strings.Contains(err.Error(), fmt.Sprintf(
-				"Invalid parameter id value=%s due to incorrect long value format, "+
-					"or entity does not exist", id)) {
-				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
-			}
-			return nil, -1, err
-		}
 	}
 
 	if l.Count == 0 {
@@ -1043,6 +1050,7 @@ func (s *RouterService) ListRouters(p *ListRoutersParams) (*ListRoutersResponse,
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -1063,8 +1071,10 @@ type Router struct {
 	Guestmacaddress     string `json:"guestmacaddress,omitempty"`
 	Guestnetmask        string `json:"guestnetmask,omitempty"`
 	Guestnetworkid      string `json:"guestnetworkid,omitempty"`
+	Guestnetworkname    string `json:"guestnetworkname,omitempty"`
 	Hostid              string `json:"hostid,omitempty"`
 	Hostname            string `json:"hostname,omitempty"`
+	Hypervisor          string `json:"hypervisor,omitempty"`
 	Id                  string `json:"id,omitempty"`
 	Ip6dns1             string `json:"ip6dns1,omitempty"`
 	Ip6dns2             string `json:"ip6dns2,omitempty"`
@@ -1115,6 +1125,7 @@ type Router struct {
 	Templateid          string `json:"templateid,omitempty"`
 	Version             string `json:"version,omitempty"`
 	Vpcid               string `json:"vpcid,omitempty"`
+	Vpcname             string `json:"vpcname,omitempty"`
 	Zoneid              string `json:"zoneid,omitempty"`
 	Zonename            string `json:"zonename,omitempty"`
 }
@@ -1209,11 +1220,17 @@ func (s *RouterService) NewListVirtualRouterElementsParams() *ListVirtualRouterE
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *RouterService) GetVirtualRouterElementByID(id string) (*VirtualRouterElement, int, error) {
+func (s *RouterService) GetVirtualRouterElementByID(id string, opts ...OptionFunc) (*VirtualRouterElement, int, error) {
 	p := &ListVirtualRouterElementsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListVirtualRouterElements(p)
 	if err != nil {
@@ -1246,6 +1263,7 @@ func (s *RouterService) ListVirtualRouterElements(p *ListVirtualRouterElementsPa
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -1341,6 +1359,7 @@ func (s *RouterService) ConfigureVirtualRouterElement(p *ConfigureVirtualRouterE
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -1430,6 +1449,7 @@ func (s *RouterService) CreateVirtualRouterElement(p *CreateVirtualRouterElement
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	"strings"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -18,32 +17,31 @@ func resourceArmCdnProfile() *schema.Resource {
 		Read:   resourceArmCdnProfileRead,
 		Update: resourceArmCdnProfileUpdate,
 		Delete: resourceArmCdnProfileDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"location": &schema.Schema{
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
-			},
+			"location": locationSchema(),
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"sku": &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateCdnProfileSku,
+			"sku": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     validateCdnProfileSku,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"tags": tagsSchema(),
@@ -63,35 +61,29 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	properties := cdn.ProfilePropertiesCreateParameters{
+	cdnProfile := cdn.Profile{
+		Location: &location,
+		Tags:     expandTags(tags),
 		Sku: &cdn.Sku{
 			Name: cdn.SkuName(sku),
 		},
 	}
 
-	cdnProfile := cdn.ProfileCreateParameters{
-		Location:   &location,
-		Properties: &properties,
-		Tags:       expandTags(tags),
-	}
-
-	resp, err := cdnProfilesClient.Create(name, cdnProfile, resGroup)
+	_, error := cdnProfilesClient.Create(resGroup, name, cdnProfile, make(chan struct{}))
+	err := <-error
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*resp.ID)
+	read, err := cdnProfilesClient.Get(resGroup, name)
+	if err != nil {
+		return err
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read CDN Profile %s (resource group %s) ID", name, resGroup)
+	}
 
-	log.Printf("[DEBUG] Waiting for CDN Profile (%s) to become available", name)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating", "Creating"},
-		Target:  []string{"Succeeded"},
-		Refresh: cdnProfileStateRefreshFunc(client, resGroup, name),
-		Timeout: 10 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for CDN Profile (%s) to become available: %s", name, err)
-	}
+	d.SetId(*read.ID)
 
 	return resourceArmCdnProfileRead(d, meta)
 }
@@ -104,19 +96,23 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["Profiles"]
+	name := id.Path["profiles"]
 
-	resp, err := cdnProfilesClient.Get(name, resGroup)
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
+	resp, err := cdnProfilesClient.Get(resGroup, name)
 	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure CDN Profile %s: %s", name, err)
 	}
 
-	if resp.Properties != nil && resp.Properties.Sku != nil {
-		d.Set("sku", string(resp.Properties.Sku.Name))
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	if resp.Sku != nil {
+		d.Set("sku", string(resp.Sku.Name))
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -139,7 +135,8 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		Tags: expandTags(newTags),
 	}
 
-	_, err := cdnProfilesClient.Update(name, props, resGroup)
+	_, error := cdnProfilesClient.Update(resGroup, name, props, make(chan struct{}))
+	err := <-error
 	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Profile %q: %s", name, err)
 	}
@@ -155,32 +152,25 @@ func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["Profiles"]
+	name := id.Path["profiles"]
 
-	_, err = cdnProfilesClient.DeleteIfExists(name, resGroup)
+	_, error := cdnProfilesClient.Delete(resGroup, name, make(chan struct{}))
+	err = <-error
+	// TODO: check the status code
 
 	return err
-}
-
-func cdnProfileStateRefreshFunc(client *ArmClient, resourceGroupName string, cdnProfileName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.cdnProfilesClient.Get(cdnProfileName, resourceGroupName)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in cdnProfileStateRefreshFunc to Azure ARM for CND Profile '%s' (RG: '%s'): %s", cdnProfileName, resourceGroupName, err)
-		}
-		return res, string(res.Properties.ProvisioningState), nil
-	}
 }
 
 func validateCdnProfileSku(v interface{}, k string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	skus := map[string]bool{
-		"standard": true,
-		"premium":  true,
+		"standard_akamai":  true,
+		"premium_verizon":  true,
+		"standard_verizon": true,
 	}
 
 	if !skus[value] {
-		errors = append(errors, fmt.Errorf("CDN Profile SKU can only be Standard or Premium"))
+		errors = append(errors, fmt.Errorf("CDN Profile SKU can only be Premium_Verizon, Standard_Verizon or Standard_Akamai"))
 	}
 	return
 }

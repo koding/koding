@@ -15,13 +15,13 @@ func Example_basic() {
 		log.Fatal(err)
 	}
 
-	value, valueType, err := hil.Eval(tree, &hil.EvalConfig{})
+	result, err := hil.Eval(tree, &hil.EvalConfig{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Type: %s\n", valueType)
-	fmt.Printf("Value: %s\n", value)
+	fmt.Printf("Type: %s\n", result.Type)
+	fmt.Printf("Value: %s\n", result.Value)
 	// Output:
 	// Type: TypeString
 	// Value: 8

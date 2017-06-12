@@ -314,6 +314,7 @@ import:
 - package: github.com/mitchellh/ioprogress
 - package: github.com/narqo/go-dogstatsd-parser
 - package: github.com/skratchdot/open-golang
+- package: github.com/hashicorp/go-plugin
 ignore:
 - koding/tools/logger
 - config

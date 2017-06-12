@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -160,6 +160,7 @@ func (s *UserService) CreateUser(p *CreateUserParams) (*CreateUserResponse, erro
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -226,6 +227,7 @@ func (s *UserService) DeleteUser(p *DeleteUserParams) (*DeleteUserResponse, erro
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -365,6 +367,7 @@ func (s *UserService) UpdateUser(p *UpdateUserParams) (*UpdateUserResponse, erro
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -535,11 +538,17 @@ func (s *UserService) NewListUsersParams() *ListUsersParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *UserService) GetUserByID(id string) (*User, int, error) {
+func (s *UserService) GetUserByID(id string, opts ...OptionFunc) (*User, int, error) {
 	p := &ListUsersParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListUsers(p)
 	if err != nil {
@@ -572,6 +581,7 @@ func (s *UserService) ListUsers(p *ListUsersParams) (*ListUsersResponse, error) 
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -643,6 +653,7 @@ func (s *UserService) LockUser(p *LockUserParams) (*LockUserResponse, error) {
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -729,6 +740,7 @@ func (s *UserService) DisableUser(p *DisableUserParams) (*DisableUserResponse, e
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -796,6 +808,7 @@ func (s *UserService) EnableUser(p *EnableUserParams) (*EnableUserResponse, erro
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -862,6 +875,7 @@ func (s *UserService) GetUser(p *GetUserParams) (*GetUserResponse, error) {
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -928,6 +942,7 @@ func (s *UserService) GetVirtualMachineUserData(p *GetVirtualMachineUserDataPara
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -979,6 +994,7 @@ func (s *UserService) RegisterUserKeys(p *RegisterUserKeysParams) (*RegisterUser
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -1064,6 +1080,7 @@ func (s *UserService) ListLdapUsers(p *ListLdapUsersParams) (*ListLdapUsersRespo
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -1220,6 +1237,7 @@ func (s *UserService) ImportLdapUsers(p *ImportLdapUsersParams) (*ImportLdapUser
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
