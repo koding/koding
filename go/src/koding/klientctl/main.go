@@ -394,10 +394,10 @@ error opening: %s
 			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
 		}},
 	}, {
-		Name:  "config", // Moved to cobra.
+		Name:  "config", // Moved to cobra. DONE.
 		Usage: "Manage tool configuration.",
 		Subcommands: []cli.Command{{
-			Name:   "show", // Moved to cobra.
+			Name:   "show", // Moved to cobra. DONE.
 			Usage:  "Show configuration.",
 			Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
 			Flags: []cli.Flag{
@@ -411,7 +411,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:      "list", // Moved to cobra.
+			Name:      "list", // Moved to cobra. DONE.
 			ShortName: "ls",
 			Usage:     "List all available configurations.",
 			Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
@@ -422,19 +422,19 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "use", // Moved to cobra.
+			Name:   "use", // Moved to cobra. DONE.
 			Usage:  "Change active configuration.",
 			Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
 		}, {
-			Name:   "set", // Moved to cobra.
+			Name:   "set", // Moved to cobra. DONE.
 			Usage:  "Set a value for the given key, overwriting default one.",
 			Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
 		}, {
-			Name:   "unset", // Moved to cobra.
+			Name:   "unset", // Moved to cobra. DONE.
 			Usage:  "Unset the given key, restoring the defaut value.",
 			Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
 		}, {
-			Name:   "reset", // Moved to cobra.
+			Name:   "reset", // Moved to cobra. DONE.
 			Usage:  "Resets configuration to the default value fetched from Koding.",
 			Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
 			Flags: []cli.Flag{
