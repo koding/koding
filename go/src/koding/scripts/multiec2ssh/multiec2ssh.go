@@ -37,7 +37,7 @@ var ELBS = map[string]string{
 	"proxy-us-east-1":      "awseb-e-a-AWSEBLoa-RTLJ62SKJY5G",
 	"proxy-us-west-2":      "awseb-e-7-AWSEBLoa-1V808KG9PDQH5",
 	"proxy-ap-southeast-1": "awseb-e-u-AWSEBLoa-15H1DQTBBUMG",
-	"proxy-dev-us-e-1-v2":  "awseb-e-g-AWSEBLoa-16NJI1FAJCMRG",
+	"proxy-dev-us-e-1-v2":  "awseb-e-b-AWSEBLoa-1VBJV8WOETX0X",
 
 	// countly
 	"countlydev": "awseb-e-w-AWSEBLoa-4M5ML08503P6",
@@ -63,7 +63,7 @@ var ELB2Region = map[string]string{
 	"awseb-e-x-AWSEBLoa-2AG3XORA8JXC":  "us-east-1",
 	"awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9": "us-east-1",
 	"awseb-e-p-AWSEBLoa-1POHSLP6A7STY": "us-east-1",
-	"awseb-e-g-AWSEBLoa-16NJI1FAJCMRG": "us-east-1",
+	"awseb-e-b-AWSEBLoa-1VBJV8WOETX0X": "us-east-1",
 
 	// countly
 	"awseb-e-w-AWSEBLoa-4M5ML08503P6": "us-east-1",
