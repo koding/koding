@@ -931,10 +931,10 @@ error opening: %s
 			Action: ctlcli.ExitErrAction(TeamUse, log, "use"),
 		}},
 	}, {
-		Name:  "template", // Moved to cobra.
+		Name:  "template", // Moved to cobra. DONE.
 		Usage: "Manage stack templates.",
 		Subcommands: []cli.Command{{
-			Name:      "list", // Moved to cobra.
+			Name:      "list", // Moved to cobra. DONE.
 			ShortName: "ls",
 			Usage:     "List all stack templates.",
 			Action:    ctlcli.ExitErrAction(TemplateList, log, "list"),
@@ -953,7 +953,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "show", // Moved to cobra.
+			Name:   "show", // Moved to cobra. DONE.
 			Usage:  "Show details of a stack template.",
 			Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
 			Flags: []cli.Flag{
@@ -971,7 +971,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "delete", // Moved to cobra.
+			Name:   "delete", // Moved to cobra. DONE.
 			Usage:  "Delete a stack template.",
 			Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
 			Flags: []cli.Flag{
@@ -989,7 +989,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "init", // Moved to cobra.
+			Name:   "init", // Moved to cobra. DONE.
 			Usage:  "Generate a new stack template file.",
 			Action: ctlcli.ExitErrAction(TemplateInit, log, "init"),
 			Flags: []cli.Flag{

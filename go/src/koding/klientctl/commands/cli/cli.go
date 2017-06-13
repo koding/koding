@@ -19,6 +19,7 @@ import (
 // PrintJSON converts provided object to formatted JSON string and writes it to w.
 func PrintJSON(w io.Writer, v interface{}) {
 	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
 	enc.SetIndent("", "\t")
 	enc.Encode(v)
 }
