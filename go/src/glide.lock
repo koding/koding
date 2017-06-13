@@ -704,7 +704,7 @@ imports:
 - name: github.com/mitchellh/iochan
   version: 87b45ffd0e9581375c491fef3d32130bb15c5bd7
 - name: github.com/mitchellh/mapstructure
-  version: ca63d7c062ee3c9f34db231e352b60012b4fd0c1
+  version: d0303fe809921458f417bcf828397a65db30a7e4
 - name: github.com/mitchellh/multistep
   version: 162146fc57112954184d90266f4733e900ed05a5
 - name: github.com/mitchellh/osext
