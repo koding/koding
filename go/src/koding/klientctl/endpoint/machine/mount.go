@@ -274,9 +274,9 @@ func (c *Client) Umount(options *UmountOptions) (err error) {
 
 		err := c.klient().Call("machine.umount", umountReq, &umountRes)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "Cannot unmount %s (ID: %s): %s\n", umountRes.Mount, umountRes.MountID, err)
+			fmt.Fprintf(c.stream().Out(), "Cannot unmount %s (ID: %s): %s\n", umountRes.Mount, umountRes.MountID, err)
 		} else {
-			fmt.Fprintf(os.Stdout, "Successfully unmounted %s (ID: %s)\n", umountRes.Mount, umountRes.MountID)
+			fmt.Fprintf(c.stream().Out(), "Successfully unmounted %s (ID: %s)\n", umountRes.Mount, umountRes.MountID)
 		}
 	}
 

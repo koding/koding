@@ -179,11 +179,11 @@ error opening: %s
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{{
-		Name:  "metrics", // Moved to cobra.
+		Name:  "metrics", // Moved to cobra. DONE.
 		Usage: "Publish events from external sources.",
 		Subcommands: []cli.Command{{
 			Hidden:       true,  // do not show it to users.
-			Name:         "add", // Moved to cobra.
+			Name:         "add", // Moved to cobra. DONE.
 			Usage:        "Add new metric.",
 			Action:       ctlcli.ExitErrAction(MetricPushHandler(m, generateTagsForCLI), log, "add"),
 			BashComplete: func(c *cli.Context) {},
