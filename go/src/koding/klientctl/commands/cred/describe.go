@@ -1,7 +1,12 @@
 package cred
 
 import (
+	"fmt"
+	"text/tabwriter"
+
+	"koding/kites/kloud/stack"
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/credential"
 
 	"github.com/spf13/cobra"
 )
@@ -38,6 +43,40 @@ func NewDescribeCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func describeCommand(c *cli.CLI, opts *describeOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		descs, err := credential.Describe()
+		if err != nil {
+			return fmt.Errorf("error requesting credential description: %v", err)
+		}
+
+		if opts.provider != "" {
+			desc, ok := descs[opts.provider]
+			if !ok {
+				return fmt.Errorf("no description found for %q provider", opts.provider)
+			}
+
+			descs = stack.Descriptions{opts.provider: desc}
+		}
+
+		if opts.jsonOutput {
+			cli.PrintJSON(c.Out(), descs.Slice())
+			return nil
+		}
+
+		printDescs(c, descs.Slice())
+
 		return nil
+	}
+}
+
+func printDescs(c *cli.CLI, descs []*stack.Description) {
+	w := tabwriter.NewWriter(c.Out(), 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "PROVIDER\tATTRIBUTE\tTYPE\tSECRET")
+
+	for _, desc := range descs {
+		for _, field := range desc.Credential {
+			fmt.Fprintf(w, "%s\t%s\t%s\t%t\n", desc.Provider, field.Name, field.Type, field.Secret)
+		}
 	}
 }

@@ -1,7 +1,12 @@
 package cred
 
 import (
+	"fmt"
+	"text/tabwriter"
+
+	"koding/kites/kloud/stack"
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/credential"
 
 	"github.com/spf13/cobra"
 )
@@ -41,6 +46,46 @@ func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func listCommand(c *cli.CLI, opts *listOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		listOpts := &credential.ListOptions{
+			Provider: opts.provider,
+			Team:     opts.team,
+		}
+
+		creds, err := credential.List(listOpts)
+		if err != nil {
+			return err
+		}
+
+		if len(creds) == 0 {
+			return fmt.Errorf("you have no matching credentials attached to your Koding account")
+		}
+
+		if opts.jsonOutput {
+			cli.PrintJSON(c.Out(), creds)
+			return nil
+		}
+
+		printCreds(c, creds.ToSlice())
+
 		return nil
+	}
+}
+
+func printCreds(c *cli.CLI, creds []stack.CredentialItem) {
+	w := tabwriter.NewWriter(c.Out(), 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	used := credential.Used()
+
+	fmt.Fprintln(w, "ID\tTITLE\tTEAM\tPROVIDER\tUSED")
+
+	for _, cred := range creds {
+		isUsed := "-"
+
+		if ident, ok := used[cred.Provider]; ok && cred.Identifier == ident {
+			isUsed = "default"
+		}
+
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", cred.Identifier, cred.Title, cred.Team, cred.Provider, isUsed)
 	}
 }

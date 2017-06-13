@@ -445,11 +445,11 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:      "credential", // Moved to cobra.
+		Name:      "credential", // Moved to cobra. DONE.
 		ShortName: "c",
 		Usage:     "Manage stack credentials.",
 		Subcommands: []cli.Command{{
-			Name:      "list", // Moved to cobra.
+			Name:      "list", // Moved to cobra. DONE.
 			ShortName: "ls",
 			Usage:     "List imported stack credentials.",
 			Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
@@ -468,7 +468,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "create", // Moved to cobra.
+			Name:   "create", // Moved to cobra. DONE.
 			Usage:  "Create new stack credential.",
 			Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
 			Flags: []cli.Flag{
@@ -495,7 +495,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "init", // Mopved to cobra.
+			Name:   "init", // Mopved to cobra. DONE.
 			Usage:  "Create a credential file.",
 			Action: ctlcli.ExitErrAction(CredentialInit, log, "init"),
 			Flags: []cli.Flag{
@@ -514,11 +514,11 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "use", // Moved to cobra.
+			Name:   "use", // Moved to cobra. DONE.
 			Usage:  "Change default credential per provider.",
 			Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
 		}, {
-			Name:   "describe", // Moved to cobra.
+			Name:   "describe", // Moved to cobra. DONE.
 			Usage:  "Describe credential documents.",
 			Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
 			Flags: []cli.Flag{

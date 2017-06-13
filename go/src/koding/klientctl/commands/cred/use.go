@@ -1,7 +1,9 @@
 package cred
 
 import (
+	"errors"
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/credential"
 
 	"github.com/spf13/cobra"
 )
@@ -23,7 +25,7 @@ func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.ExactArgs(1),              // One argument is accepted.
 	)(c, cmd)
 
 	return cmd
@@ -31,6 +33,10 @@ func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func useCommand(c *cli.CLI, opts *useOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		if err := credential.Use(args[0]); err != nil {
+			return errors.New("error changing default credential: " + err.Error())
+		}
+
 		return nil
 	}
 }
