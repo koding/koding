@@ -1,4 +1,4 @@
-package main
+package bug
 
 import (
 	"bytes"
@@ -16,13 +16,12 @@ import (
 	konfig "koding/klientctl/config"
 	"koding/klientctl/endpoint/machine"
 	"koding/klientctl/helper"
+	"koding/klientctl/stream"
 
-	"github.com/koding/logging"
 	"github.com/skratchdot/open-golang/open"
-	cli "gopkg.in/urfave/cli.v1"
 )
 
-//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg main -prefix ../../../../.github/ -o issue.md.go ../../../../.github/ISSUE_TEMPLATE.md
+//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg bug -prefix ../../../../../.github/ -o issue.md.go ../../../../../.github/ISSUE_TEMPLATE.md
 
 type BugMetadata struct {
 	KiteID      string                  `json:"kiteID"`
@@ -47,12 +46,12 @@ func (bm *BugMetadata) ToFile() *machine.UploadedFile {
 	}
 }
 
-func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
+func Bug(s stream.Streamer) error {
 	meta := metadata()
 
 	resp, err := machine.ListMount(&machine.ListMountOptions{})
 	if err != nil {
-		return 1, err
+		return err
 	}
 
 	for id, mounts := range resp {
@@ -61,18 +60,17 @@ func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
 				Identifier: string(m.ID),
 				Sync:       true,
 				Filesystem: true,
-				Log:        log.New("bug"),
 			}
 
 			records, err := machine.InspectMount(opts)
 			if err != nil {
-				return 1, err
+				return err
 			}
 
 			if len(records.Sync) > 0 {
 				p, err := json.Marshal(records.Sync)
 				if err != nil {
-					return 1, err
+					return err
 				}
 
 				meta.Files = append(meta.Files, &machine.UploadedFile{
@@ -84,7 +82,7 @@ func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
 			if len(records.Filesystem) > 0 {
 				p, err := json.Marshal(records.Filesystem)
 				if err != nil {
-					return 1, err
+					return err
 				}
 
 				meta.Files = append(meta.Files, &machine.UploadedFile{
@@ -102,25 +100,25 @@ func Bug(_ *cli.Context, log logging.Logger, _ string) (int, error) {
 	report := meta.ToFile()
 
 	if err := machine.Upload(report); err != nil {
-		return 1, err
+		return err
 	}
 
-	s := signature(report.URL)
+	sign := signature(report.URL)
 	var t string
 
-	if u, ok := askScreencast(); ok {
-		t = fmt.Sprintf(asciicastBody, u, s)
+	if u, ok := askScreencast(s); ok {
+		t = fmt.Sprintf(asciicastBody, u, sign)
 	} else {
-		t = fmt.Sprintf(issueBody, s)
+		t = fmt.Sprintf(issueBody, sign)
 	}
 
 	if err := open.Start("https://github.com/koding/koding/issues/new?body=" + url.QueryEscape(t)); err != nil {
-		return 1, err
+		return err
 	}
 
-	fmt.Println(s)
+	fmt.Fprintln(s.Out(), s)
 
-	return 0, nil
+	return nil
 }
 
 func metadata() *BugMetadata {
@@ -174,12 +172,12 @@ func signature(uri string) string {
 	return hex.EncodeToString([]byte(u.Path))
 }
 
-func askScreencast() (*url.URL, bool) {
+func askScreencast(s stream.Streamer) (*url.URL, bool) {
 	if _, err := exec.LookPath("asciinema"); err != nil {
 		return nil, false
 	}
 
-	link, err := helper.Ask("Did you record your shell with asciinema? If yes, please provide a URL of the recording [none]: ")
+	link, err := helper.Fask(s.In(), s.Out(), "Did you record your shell with asciinema? If yes, please provide a URL of the recording [none]: ")
 	if err != nil {
 		return nil, false
 	}
@@ -190,7 +188,7 @@ func askScreencast() (*url.URL, bool) {
 
 	u, err := url.Parse(link)
 	if err != nil || u.Host != "asciinema.org" {
-		fmt.Fprintln(os.Stderr, "Invalid asciinema link, ignoring.")
+		fmt.Fprintln(s.Err(), "Invalid asciinema link, ignoring.")
 		return nil, false
 	}
 

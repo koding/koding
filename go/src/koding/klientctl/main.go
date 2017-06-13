@@ -26,12 +26,13 @@ import (
 
 	"koding/kites/metrics"
 	"koding/klientctl/auth"
+	"koding/klientctl/bug"
 	cobracli "koding/klientctl/commands/cli"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/endpoint/stream"
+	"koding/klientctl/stream"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -203,10 +204,10 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:  "auth", // Moved to cobra
+		Name:  "auth", // Moved to cobra. DONE.
 		Usage: "User authorization.",
 		Subcommands: []cli.Command{{
-			Name:   "login", // Moved to cobra.
+			Name:   "login", // Moved to cobra. DONE.
 			Usage:  "Log in to your kd.io or koding.com account.",
 			Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
 			Flags: []cli.Flag{
@@ -233,7 +234,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "show", // Moved to cobra.
+			Name:   "show", // Moved to cobra. DONE.
 			Usage:  "Show current session details.",
 			Action: ctlcli.ExitErrAction(AuthShow, log, "show"),
 			Flags: []cli.Flag{
@@ -246,9 +247,14 @@ error opening: %s
 			auth.NewRegisterSubCommand(log), // command: kd auth register // Moved to cobra.
 		},
 	}, {
-		Name:   "bug", // Moved to cobra.
-		Usage:  "Helps in sending a bug report.",
-		Action: ctlcli.ExitErrAction(Bug, log, "bug"),
+		Name:  "bug", // Moved to cobra. DONE.
+		Usage: "Helps in sending a bug report.",
+		Action: ctlcli.ExitErrAction(func(*cli.Context, logging.Logger, string) (int, error) {
+			if err := bug.Bug(stream.DefaultStreams); err != nil {
+				return 1, err
+			}
+			return 0, nil
+		}, log, "bug"),
 	}, {
 		Name:  "compat", // To be removed.
 		Usage: "Compatibility commands for use with old mounts.",
