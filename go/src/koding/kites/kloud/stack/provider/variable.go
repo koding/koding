@@ -5,25 +5,32 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 // Variable represents a Terraform variable
 // position in a raw string.
 type Variable struct {
-	Name string
-	From int
-	To   int
+	Name       string
+	From       int
+	To         int
+	Expression bool
 }
 
 var _ fmt.Stringer = (*Variable)(nil)
 
 // String implements the fmt.Stringer interface.
 func (v *Variable) String() string {
+	if v.Expression {
+		return "var." + v.Name
+	}
 	return "${var." + v.Name + "}"
 }
 
 // ReadVariables gives a list of variables read from s.
 func ReadVariables(s string) []Variable {
+	const prefix = "var."
+
 	if strings.Count(s, "${") == 0 {
 		return nil
 	}
@@ -46,18 +53,51 @@ func ReadVariables(s string) []Variable {
 
 		name := strings.TrimSpace(s[i : i+k])
 
-		if !strings.HasPrefix(name, "var.") {
+		if strings.HasPrefix(name, prefix) {
+			vars = append(vars, Variable{
+				Name: name[len(prefix):],
+				From: i - 2,
+				To:   i + k + 1,
+			})
 			continue
 		}
 
-		vars = append(vars, Variable{
-			Name: name[4:],
-			From: i - 2,
-			To:   i + k + 1,
-		})
+		match := 0
+
+		for l, r := range name {
+			switch {
+			case match >= len(prefix):
+				if isVarChar(r) {
+					match++
+					if l != len(name)-1 {
+						break
+					} else {
+						l++
+					}
+				}
+
+				vars = append(vars, Variable{
+					Name:       name[l-match+len(prefix) : l],
+					From:       i + l - match,
+					To:         i + l,
+					Expression: true,
+				})
+
+				match = 0
+			case r == rune(prefix[match]):
+				match++
+			default:
+				match = 0
+			}
+		}
+
 	}
 
 	return vars
+}
+
+func isVarChar(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsNumber(r) || r == '-' || r == '_'
 }
 
 // ReplaceVariables replaces all variables with the given blank.

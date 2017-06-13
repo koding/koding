@@ -1,0 +1,35 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3&tt=0&uuid=UUID_Multiple_CAU&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '[[],"14592519402599982",""]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "27"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 29 Mar 2016 11:45:40 GMT
+    status: 200 OK
+    code: 200
+unclosed_requests:
+  ? http://ps.pndsn.com/v2/subscribe/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/,/0?channel-group=Group_ConAndUnsMult_1,Group_ConAndUnsMult_2,Group_ConAndUnsMult_3&tt=14592519402599982&uuid=UUID_Multiple_CAU&pnsdk=PubNub-Go%2F3.14.0
+  : {}

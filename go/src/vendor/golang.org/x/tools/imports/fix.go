@@ -73,8 +73,11 @@ type packageInfo struct {
 	Globals map[string]bool // symbol => true
 }
 
-// dirPackageInfo gets information from other files in the package.
-func dirPackageInfo(srcDir, filename string) (*packageInfo, error) {
+// dirPackageInfo exposes the dirPackageInfoFile function so that it can be overridden.
+var dirPackageInfo = dirPackageInfoFile
+
+// dirPackageInfoFile gets information from other files in the package.
+func dirPackageInfoFile(pkgName, srcDir, filename string) (*packageInfo, error) {
 	considerTests := strings.HasSuffix(filename, "_test.go")
 
 	// Handle file from stdin
@@ -178,7 +181,7 @@ func fixImports(fset *token.FileSet, f *ast.File, filename string) (added []stri
 			}
 			if !loadedPackageInfo {
 				loadedPackageInfo = true
-				packageInfo, _ = dirPackageInfo(srcDir, filename)
+				packageInfo, _ = dirPackageInfo(f.Name.Name, srcDir, filename)
 			}
 			if decls[pkgName] == nil && (packageInfo == nil || !packageInfo.Globals[pkgName]) {
 				refs[pkgName][v.Sel.Name] = true
@@ -378,11 +381,6 @@ func (s byImportPathShortLength) Less(i, j int) bool {
 }
 func (s byImportPathShortLength) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
-var visitedSymlinks struct {
-	sync.Mutex
-	m map[string]struct{}
-}
-
 // guarded by populateIgnoreOnce; populates ignoredDirs.
 func populateIgnore() {
 	for _, srcDir := range build.Default.SrcDirs() {
@@ -459,23 +457,26 @@ func shouldTraverse(dir string, fi os.FileInfo) bool {
 	if skipDir(ts) {
 		return false
 	}
+	// Check for symlink loops by statting each directory component
+	// and seeing if any are the same file as ts.
+	for {
+		parent := filepath.Dir(path)
+		if parent == path {
+			// Made it to the root without seeing a cycle.
+			// Use this symlink.
+			return true
+		}
+		parentInfo, err := os.Stat(parent)
+		if err != nil {
+			return false
+		}
+		if os.SameFile(ts, parentInfo) {
+			// Cycle. Don't traverse.
+			return false
+		}
+		path = parent
+	}
 
-	realParent, err := filepath.EvalSymlinks(dir)
-	if err != nil {
-		fmt.Fprint(os.Stderr, err)
-		return false
-	}
-	realPath := filepath.Join(realParent, fi.Name())
-	visitedSymlinks.Lock()
-	defer visitedSymlinks.Unlock()
-	if visitedSymlinks.m == nil {
-		visitedSymlinks.m = make(map[string]struct{})
-	}
-	if _, ok := visitedSymlinks.m[realPath]; ok {
-		return false
-	}
-	visitedSymlinks.m[realPath] = struct{}{}
-	return true
 }
 
 var testHookScanDir = func(dir string) {}
@@ -763,6 +764,7 @@ func findImportGoPath(pkgName string, symbols map[string]bool, filename string) 
 			case loadExportsSem <- struct{}{}:
 				select {
 				case <-done:
+					return
 				default:
 				}
 			case <-done:

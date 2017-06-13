@@ -9,8 +9,6 @@ module.exports = fetchIntercomKey = (callback = noop) ->
 
     team = groupsController.getCurrentGroup()
 
-    intercomAppId = if groupsController.canEditGroup()
-    then globals.config.intercomAppId
-    else team.customize?.intercomAppId
+    intercomAppId = team.customize?.intercomAppId
 
     callback intercomAppId

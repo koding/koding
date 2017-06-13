@@ -1,30 +1,11 @@
 package pubnub
 
 import (
-	"os"
 	"testing"
 )
 
-func newClientWithPAMSettings(id string) *ClientSettings {
-	subscribeKey := os.Getenv("PUBNUB_PAM_SUBSCRIBE_KEY")
-	publishKey := os.Getenv("PUBNUB_PAM_PUBLISH_KEY")
-	secretKey := os.Getenv("PUBNUB_PAM_SECRET_KEY")
-
-	cs := new(ClientSettings)
-	if id == "" {
-		uuid := os.Getenv("PUBNUB_UUID")
-		cs.ID = uuid
-	}
-
-	cs.SubscribeKey = subscribeKey
-	cs.PublishKey = publishKey
-	cs.SecretKey = secretKey
-
-	return cs
-}
-
 func TestGrantAccess(t *testing.T) {
-	cs := newClientWithPAMSettings("tester")
+	cs := newClientSettings("tester")
 	gc := NewPubNubClient(cs)
 	defer func() {
 		gc.Close()
@@ -44,7 +25,7 @@ func TestGrantAccess(t *testing.T) {
 }
 
 func TestGrantAccessWithGranter(t *testing.T) {
-	cs := newClientWithPAMSettings("-1")
+	cs := newClientSettings("-1")
 	ag := NewAccessGrant(NewAccessGrantOptions(), cs)
 
 	a := new(AuthSettings)

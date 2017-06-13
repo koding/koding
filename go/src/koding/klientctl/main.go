@@ -9,6 +9,9 @@
 //
 // TODO: Most kd commands are implemented in this main package, but they're being
 // moved to their own packages.
+
+// +build !cobra
+
 package main
 
 import (
@@ -19,21 +22,19 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"time"
 
-	"koding/kites/kloud/utils/object"
 	"koding/kites/metrics"
 	"koding/klientctl/auth"
+	cobracli "koding/klientctl/commands/cli"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
-	authendpoint "koding/klientctl/endpoint/auth"
-	endpointconfig "koding/klientctl/endpoint/config"
 	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/endpoint/team"
 	"koding/klientctl/util"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // ExitingWithMessageCommand is a function which prints the given message to
@@ -56,13 +57,6 @@ var signals = []os.Signal{
 	os.Interrupt,
 	os.Kill,
 }
-
-// log is used as a global loggger, for commands like ListCommand that
-// need refactoring to support instance based commands.
-//
-// TODO: Remove this after all commands have been refactored into structs. Ie, the
-// cli rewrite.
-var log logging.Logger
 
 var debug = os.Getenv("KD_DEBUG") == "1"
 
@@ -164,12 +158,15 @@ error opening: %s
 
 	signal.Notify(sig, signals...)
 
-	m, err := metrics.New("kd")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "metrics wont be collected: ", err)
-	}
-	if m != nil {
-		defer m.Close()
+	var m *metrics.Metrics
+
+	if !config.Konfig.DisableMetrics {
+		var err error
+		if m, err = metrics.New("kd"); err != nil {
+			fmt.Fprintln(os.Stderr, "metrics will not be collected: ", err)
+		} else {
+			defer m.Close()
+		}
 	}
 
 	app := cli.NewApp()
@@ -740,6 +737,27 @@ error opening: %s
 					},
 				},
 			}, {
+				Name:        "sync",
+				Usage:       "Manage mount synchronization.",
+				Description: cmdDescriptions["mount-sync"],
+				Action:      ctlcli.ExitErrAction(MachineSyncMount, log, "sync"),
+				Flags: []cli.Flag{
+					cli.DurationFlag{
+						Name:  "timeout, t",
+						Usage: "Maximum time to wait.",
+						Value: time.Minute,
+					},
+				},
+				Subcommands: []cli.Command{{
+					Name:   "pause",
+					Usage:  "Pause synchronization.",
+					Action: ctlcli.ExitErrAction(MachinePauseSyncMount, log, "pause"),
+				}, {
+					Name:   "resume",
+					Usage:  "Resume synchronization.",
+					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "resume"),
+				}},
+			}, {
 				Name:   "inspect",
 				Hidden: true,
 				Usage:  "Advanced utilities for mount command.",
@@ -859,16 +877,6 @@ error opening: %s
 				},
 			},
 		}},
-	}, {
-		Name:   "sync",
-		Usage:  "Wait for mount synchronization to finish.",
-		Action: ctlcli.ExitErrAction(Sync, log, "sync"),
-		Flags: []cli.Flag{
-			cli.DurationFlag{
-				Name:  "timeout, t",
-				Usage: "Maximum time to wait.",
-			},
-		},
 	}, {
 		Name:  "team",
 		Usage: "List available teams and set team context.",
@@ -997,6 +1005,7 @@ error opening: %s
 		find(app.Commands, "machine", "list"),
 		find(app.Commands, "machine", "ssh"),
 		find(app.Commands, "machine", "mount"),
+		find(app.Commands, "machine", "mount", "sync"),
 		find(app.Commands, "machine", "umount"),
 		find(app.Commands, "machine", "exec"),
 		find(app.Commands, "machine", "cp"),
@@ -1008,7 +1017,14 @@ error opening: %s
 		find(app.Commands, "daemon", "restart"),
 	)
 
-	app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, generateTagsForCLI)
+	if !config.Konfig.DisableMetrics {
+		app.Commands = metrics.WrapCLIActions(m.Datadog, app.Commands, "", generateTagsForCLI)
+	}
+
+	if os.Getenv("GENERATE_DATADOG_DASHBOARD") != "" {
+		metrics.CreateMetricsDash()
+	}
+
 	app.Run(args)
 }
 
@@ -1056,54 +1072,8 @@ func requiresDaemon(args []string) bool {
 }
 
 func generateTagsForCLI(full string) []string {
-	tags := make([]string, 0)
-
-	// add commands
-	names := strings.Split(full, " ")
-	tags = metrics.AppendTag(tags, "commandName", full)
-	tags = metrics.AppendTag(tags, "rootCommandName", names[0])
-	for _, n := range names[1:] {
-		tags = metrics.AppendTag(tags, "subCommandName", n)
-	}
-
-	// add current config
-	configs, err := endpointconfig.Used()
-	if err == nil {
-		var ignoredFields = []string{
-			"kiteKey",
-			"kiteKeyFile",
-			"environment",
-			"tunnelID",
-		}
-		obj := ob.Build(configs, ignoredFields...)
-		for _, key := range obj.Keys() {
-			val := obj[key]
-			if val == nil || fmt.Sprintf("%v", val) == "" {
-				continue
-			}
-			tags = metrics.AppendTag(tags, key, val)
-		}
-	}
-
-	// add current team info
-	if t := team.Used(); t != nil && t.Valid() == nil {
-		tags = metrics.AppendTag(tags, "teamName", t.Name)
-	}
-
-	if info := authendpoint.Used(); info != nil && info.Username != "" {
-		tags = metrics.AppendTag(tags, "username", info.Username)
-	}
-
-	tags = metrics.AppendTag(tags, "version", config.VersionNum())
-
-	// TODO: add guest OS info
-
-	return tags
-}
-
-var ob = &object.Builder{
-	Tag:           "json",
-	Sep:           "_",
-	Recursive:     true,
-	FlatStringers: true,
+	return append(
+		cobracli.CommandPathTags(strings.Split(full, " ")...),
+		cobracli.ApplicationInfoTags()...,
+	)
 }

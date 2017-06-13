@@ -1,0 +1,68 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/Channel_SubscriptionConnectedForComplex/0/%7B%22VersionID%22:%223.4%22,%22TimeToken%22:%2213601488652764619%22,%22OperationName%22:%22Publish%22,%22Channels%22:%5B%22ch1%22,%22ch%202%22%5D,%22DemoMessage%22:%7B%22DefaultMessage%22:%22%5C%22~%21@%23$%25%5E%5C%5Cu0026%2A%28%29_+%20%601234567890-=%20qwertyuiop%5B%5D%5C%5C%5C%5C%20%7B%7D%7C%20asdfghjkl;%27%20:%5C%5C%5C%22%20zxcvbnm,./%20%5C%5Cu003c%5C%5Cu003e%3F%20%5C%22%22%7D,%22SampleXML%22:%22%5C%22%5C%5Cu003cdata%5C%5Cu003e%5C%5Cu003cname%5C%5Cu003eDoe%5C%5Cu003c/name%5C%5Cu003e%5C%5Cu003cage%5C%5Cu003e42%5C%5Cu003c/age%5C%5Cu003e%5C%5Cu003c/data%5C%5Cu003e%5C%22%22%7D?pnsdk=PubNub-Go%2F3.14.0&uuid=UUID_SubscriptionConnectedForComplex&seqn=1
+    method: GET
+  response:
+    body: '[1,"Sent","14586613295261991"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:09 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_SubscriptionConnectedForComplex/leave?uuid=UUID_SubscriptionConnectedForComplex&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - OPTIONS, GET, POST
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "74"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Tue, 22 Mar 2016 15:42:09 GMT
+      Server:
+      - Pubnub Presence
+    status: 200 OK
+    code: 200
+unclosed_requests: {}

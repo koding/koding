@@ -21,10 +21,23 @@ type Anteroom struct {
 	closed bool          // set to true when the object was closed.
 	stopC  chan struct{} // channel used to close queue dispatching go-routine.
 
-	mu     sync.Mutex
-	evs    map[string]*msync.Event // Change name to change event map.
-	synced int64                   // How many events are processing.
-	idle   *subscribers            // Subscribers waiting for idle signals.
+	paused int64 // stops dequeue when non-zero.
+
+	evsMu sync.Mutex
+	evs   map[string]*msync.Event // Change name to change event map.
+
+	cursMu sync.Mutex
+	curs   map[string]*pendingEvent // Paths currently processed.
+
+	synced int64        // How many events are processing.
+	idle   *subscribers // Subscribers waiting for idle signals.
+}
+
+// pendingEvent describes pending event. It can only be sent to receiver worker
+// if ready flag is set to true.
+type pendingEvent struct {
+	ev    *msync.Event
+	ready bool
 }
 
 // NewAnteroom creates a new Anteroom object. Once it's created, Close method
@@ -38,6 +51,7 @@ func NewAnteroom() *Anteroom {
 		wakeupC: make(chan struct{}, 1),
 		stopC:   stopC,
 		evs:     make(map[string]*msync.Event),
+		curs:    make(map[string]*pendingEvent),
 		idle:    newSubscribers(stopC),
 	}
 
@@ -50,8 +64,8 @@ func NewAnteroom() *Anteroom {
 // synchronization its meta-data will be coalesced and the same context will
 // be returned.
 func (a *Anteroom) Commit(c *index.Change) context.Context {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
 
 	// Return closed context when this object is no longer valid.
 	if a.closed {
@@ -112,10 +126,14 @@ func (a *Anteroom) Events() <-chan *msync.Event {
 // be interpreted as a number of files waiting for synchronization. Comparing
 // items and queued events shows how fast syncers are able to synchronize files.
 func (a *Anteroom) Status() (items int, synced int) {
-	a.mu.Lock()
+	a.evsMu.Lock()
 	items = len(a.evs)
 	synced = int(atomic.LoadInt64(&a.synced))
-	a.mu.Unlock()
+	a.evsMu.Unlock()
+
+	if a.IsPaused() {
+		synced = -2
+	}
 
 	return items, synced
 }
@@ -124,8 +142,8 @@ func (a *Anteroom) Status() (items int, synced int) {
 // in disconnected state and each contexts returned by it are closed.
 func (a *Anteroom) Close() error {
 	a.once.Do(func() {
-		a.mu.Lock()
-		defer a.mu.Unlock()
+		a.evsMu.Lock()
+		defer a.evsMu.Unlock()
 
 		// Mark all events as deprecated and detach them from the queue.
 		for path, ev := range a.evs {
@@ -155,7 +173,10 @@ func (a *Anteroom) Close() error {
 // close c - once c received value, it can be reused to receive
 // another one with second IdleNotify call.
 func (a *Anteroom) IdleNotify(c chan<- bool, timeout time.Duration) {
-	if atomic.LoadInt64(&a.synced) == 0 {
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
+
+	if atomic.LoadInt64(&a.synced) == 0 && len(a.evs) == 0 {
 		select {
 		case c <- true:
 		default:
@@ -184,13 +205,62 @@ func (a *Anteroom) dequeue() {
 		wakeupTick = time.NewTicker(30 * time.Second)
 	)
 
+	// Pop event from the queue. If received event is present in current
+	// processed map, the event must be stopped until already sent one is
+	// executed. This prevents situations where two parallel workers executes
+	// different changes on the same file.
+	pop := func() *msync.Event {
+		a.cursMu.Lock()
+		defer a.cursMu.Unlock()
+
+		// Pop any pending events.
+		for path, pev := range a.curs {
+			if pev != nil && pev.ready {
+				a.curs[path] = nil
+				return pev.ev
+			}
+		}
+
+		for {
+			ev := a.queue.Pop()
+			if ev == nil {
+				return nil
+			}
+
+			switch pending, ok := a.curs[ev.Change().Path()]; {
+			case ok && pending != nil:
+				// Event is pending so it could not be in Pop state. Commit
+				// logic makes this branch impossible since events in queue
+				// are coalesced.
+				panic("duplicated event received from waiting queue" + ev.String())
+			case ok && pending == nil:
+				// Similar event is already processed by worker go-routine.
+				// Store new one as pending.
+				a.curs[ev.Change().Path()] = &pendingEvent{
+					ev:    ev,
+					ready: false,
+				}
+			case !ok:
+				// There are no similar events being processed. Mark current one
+				// as sent to workers.
+				a.curs[ev.Change().Path()] = nil
+				return ev
+			}
+		}
+	}
+
 	tryPop := func() {
+		// If anteroom is paused, don't process the events.
+		if a.IsPaused() {
+			return
+		}
+
 		// Event haven't been sent yet.
 		if ev != nil {
 			return
 		}
 
-		if ev = a.queue.Pop(); ev == nil {
+		if ev = pop(); ev == nil {
 			evC = nil // queue is empty - turn off event channel.
 		} else {
 			atomic.AddInt64(&a.synced, 1)
@@ -202,7 +272,12 @@ func (a *Anteroom) dequeue() {
 	for {
 		select {
 		case evC <- ev:
-			if ev = a.queue.Pop(); ev == nil {
+			if a.IsPaused() {
+				ev, evC = nil, nil // paused - turn off event channel.
+				return
+			}
+
+			if ev = pop(); ev == nil {
 				evC = nil // queue is empty - turn off event channel.
 			} else {
 				atomic.AddInt64(&a.synced, 1)
@@ -233,20 +308,57 @@ func (a *Anteroom) wakeup() {
 // Detach removes the change from coalescing events map only if stored id
 // is equal to provided one.
 func (a *Anteroom) Detach(path string, id uint64) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
 
 	if ev, ok := a.evs[path]; ok && ev.ID() == id {
-		a.Unsync()
 		delete(a.evs, path)
+		a.unsync(path)
 	}
 }
 
 // Unsync is called by event which is considered done.
-func (a *Anteroom) Unsync() {
-	if atomic.AddInt64(&a.synced, -1) == 0 {
+func (a *Anteroom) Unsync(path string) {
+	a.evsMu.Lock()
+	defer a.evsMu.Unlock()
+
+	a.unsync(path)
+}
+
+func (a *Anteroom) unsync(path string) {
+	if atomic.AddInt64(&a.synced, -1) == 0 && len(a.evs) == 0 {
 		a.idle.done(true)
 	}
+
+	// Remove event from currently processed ones.
+	a.cursMu.Lock()
+	if pev, ok := a.curs[path]; ok {
+		if pev != nil {
+			pev.ready = true
+		} else {
+			delete(a.curs, path)
+		}
+	}
+	a.cursMu.Unlock()
+
+	a.wakeup()
+}
+
+// Pause prevets Anteroom from sending new events.
+func (a *Anteroom) Pause() {
+	atomic.StoreInt64(&a.paused, 1)
+	a.idle.done(false)
+}
+
+// Resume resumes anteroom when it's paused.
+func (a *Anteroom) Resume() {
+	atomic.StoreInt64(&a.paused, -1)
+	a.wakeup()
+}
+
+// IsPaused indicates whether Anteroom is paused or not.
+func (a *Anteroom) IsPaused() bool {
+	return atomic.LoadInt64(&a.paused) > 0
 }
 
 type subscriber struct {

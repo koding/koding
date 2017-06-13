@@ -17,9 +17,9 @@ import (
 	"koding/klientctl/endpoint/machine"
 	"koding/klientctl/endpoint/team"
 
-	"github.com/codegangsta/cli"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // MachineListCommand returns list of remote machines belonging to the user or
@@ -354,7 +354,7 @@ func MachineConfigSet(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-// MachineCondifShow displays machine's key=value pairs.
+// MachineConfigShow displays machine's key=value pairs.
 func MachineConfigShow(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	ident := c.Args().Get(0)
 	json := c.Bool("json")
@@ -375,6 +375,75 @@ func MachineConfigShow(c *cli.Context, _ logging.Logger, _ string) (int, error) 
 	}
 
 	return 0, nil
+}
+
+// MachineSyncMount waits until all mount events are synced.
+func MachineSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	return machineSyncMount(c, &machine.SyncMountOptions{})
+}
+
+// MachinePauseSyncMount pauses synchronization for a given mount.
+func MachinePauseSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	return machineSyncMount(c, &machine.SyncMountOptions{
+		Pause: true,
+	})
+}
+
+// MachineResumeSyncMount resumes paused synchronization for a given mount.
+func MachineResumeSyncMount(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	return machineSyncMount(c, &machine.SyncMountOptions{
+		Resume: true,
+	})
+}
+
+func machineSyncMount(c *cli.Context, opts *machine.SyncMountOptions) (int, error) {
+	ident := c.Args().Get(0)
+	if ident == "" {
+		var err error
+		if ident, err = os.Getwd(); err != nil {
+			return 1, err
+		}
+	}
+
+	opts.Identifier = ident
+	opts.Timeout = c.Duration("timeout")
+
+	if err := machine.SyncMount(opts); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+func waitForMount(path string) (err error) {
+	const timeout = 1 * time.Minute
+
+	done := make(chan error)
+
+	go func() {
+		opts := &machine.SyncMountOptions{
+			Identifier: path,
+			Timeout:    timeout,
+		}
+
+		done <- machine.SyncMount(opts)
+	}()
+
+	notice := time.After(1 * time.Second)
+
+	select {
+	case err = <-done:
+	case <-notice:
+		fmt.Fprintf(os.Stderr, "Waiting for mount... ")
+
+		if err = <-done; err == nil {
+			fmt.Fprintln(os.Stderr, "ok")
+		} else {
+			fmt.Fprintln(os.Stderr, "error")
+		}
+	}
+
+	return err
 }
 
 func machineCommand(c *cli.Context, fn func(string) (string, error)) error {
@@ -559,12 +628,12 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]mount.Info) {
 				info.ID,
 				alias,
 				info.Mount,
-				dashIfNegative(sign, info.Count),
-				dashIfNegative(sign, info.CountAll),
-				dashIfNegative(sign, info.Queued),
-				errorIfNegative(info.Syncing),
-				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSize))),
-				dashIfNegative(sign, humanize.IBytes(uint64(info.DiskSizeAll))),
+				dashIfError(sign, info.Count),
+				dashIfError(sign, info.CountAll),
+				dashIfError(sign, info.Queued),
+				formatWithNegative(info.Syncing),
+				dashIfError(sign, humanize.IBytes(uint64(info.DiskSize))),
+				dashIfError(sign, humanize.IBytes(uint64(info.DiskSizeAll))),
 			)
 		}
 	}
@@ -577,16 +646,19 @@ func printJSON(v interface{}) {
 	enc.Encode(v)
 }
 
-func errorIfNegative(val int) string {
-	if val < 0 {
-		return "err"
+func formatWithNegative(val int) string {
+	switch val {
+	case -2:
+		return "paused"
+	case -1:
+		return "error"
+	default:
+		return strconv.Itoa(val)
 	}
-
-	return strconv.Itoa(val)
 }
 
-func dashIfNegative(sign int, val interface{}) string {
-	if sign < 0 {
+func dashIfError(sign int, val interface{}) string {
+	if sign == -1 {
 		return "-"
 	}
 

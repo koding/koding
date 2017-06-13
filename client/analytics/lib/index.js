@@ -6,7 +6,7 @@ require('./routehandler')()
 import 'analytics/styl'
 
 export default class AnalyticsAppController extends AppController {
-  constructor (options = {}, data) {
+  constructor(options = {}, data) {
     if (data == null) {
       data = kd.singletons.groupsController.getCurrentGroup()
     }
@@ -15,12 +15,12 @@ export default class AnalyticsAppController extends AppController {
     }
     super(options, data)
   }
-  checkRoute (route) {
+  checkRoute(route) {
     return /^\/(?:Analytics).*/.test(route)
   }
 }
 
 AnalyticsAppController.options = {
   name: 'Analytics',
-  behavior: 'application'
+  behavior: 'application',
 }

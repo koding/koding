@@ -1,0 +1,67 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?pnsdk=PubNub-Go%2F3.14.0&r=1&timestamp=1457161956&ttl=4&uuid=3a3053a7407da58980129ac89a598c3f&w=1&signature=GsQFhb1S7SW8uR0VTnHLhnbxHfSiJQ_BpUjCx0UPhzw=
+    method: GET
+  response:
+    body: '{"message":"Success","payload":{"level":"subkey","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":4,"r":1,"w":1,"m":0},"service":"Access
+      Manager","status":200}'
+    headers:
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache, no-store, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "177"
+      Content-Type:
+      - text/javascript; charset=UTF-8
+      Date:
+      - Sat, 05 Mar 2016 07:12:36 GMT
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v1/auth/grant/sub-key/sub-c-90c51098-c040-11e5-a316-0619f8945a4f?pnsdk=PubNub-Go%2F3.14.0&r=0&timestamp=1457161961&uuid=3a3053a7407da58980129ac89a598c3f&w=0&signature=yO1RPSW9PleUmgt7j_ETv3usQCx8TgSphX8hrDGHdKg=
+    method: GET
+  response:
+    body: '{"message":"Success","payload":{"level":"subkey","subscribe_key":"sub-c-90c51098-c040-11e5-a316-0619f8945a4f","ttl":1,"r":0,"w":0,"m":0},"service":"Access
+      Manager","status":200}'
+    headers:
+      Access-Control-Allow-Headers:
+      - Origin, X-Requested-With, Content-Type, Accept
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache, no-store, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "177"
+      Content-Type:
+      - text/javascript; charset=UTF-8
+      Date:
+      - Sat, 05 Mar 2016 07:12:41 GMT
+    status: 200 OK
+    code: 200

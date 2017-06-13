@@ -22,9 +22,8 @@ Configuration = (options = {}) ->
   options.region or= 'dev'
   options.configName or= 'dev'
   options.environment or= 'dev'
+  options.ebEnvName = options.environment
   options.projectRoot or= path.join __dirname, '/..'
-  options.version or= '2.0' # TBD
-  options.build or= '1111'
   options.tunnelHostedZoneName = 'dev-t.koding.com'
   options.tunnelHostedZoneCallerRef = 'devtunnelproxy_hosted_zone_v0'
   options.tunnelserverHostedZone or= 'dev.koding.me'
@@ -46,6 +45,7 @@ Configuration = (options = {}) ->
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
   options.proxySubdomain or= 'dev-p'
+  options.watchNode = yes
 
   try fs.lstatSync options.credentialPath
   catch

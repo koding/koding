@@ -19,6 +19,7 @@ var p = &provider.Provider{
 	Name:         "google",
 	ResourceName: "compute_instance",
 	Userdata:     "user-data",
+	UserdataPath: []string{"google_compute_instance", "*", "metadata", "user-data"},
 	Machine:      newMachine,
 	Stack:        newStack,
 	Schema: &provider.Schema{

@@ -5,6 +5,8 @@ module.exports = (KONFIG, options, credentials) ->
   GOBIN = '%(ENV_KONFIG_PROJECTROOT)s/go/bin'
   GOPATH = '%(ENV_KONFIG_PROJECTROOT)s/go'
 
+  nodeProgram = if options.watchNode then './watch-node' else 'node'
+
   workers =
     bucketproxies       :
       group             : 'bucket'
@@ -122,7 +124,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
-        command         : './watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js'
+        command         : "#{nodeProgram} %(ENV_KONFIG_PROJECTROOT)s/servers/index.js"
       healthCheckURLs   : [
           "http://localhost:#{options.publicPort}/swagger.json"
           "http://localhost:#{options.publicPort}/apidocs"
@@ -153,7 +155,7 @@ module.exports = (KONFIG, options, credentials) ->
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
       supervisord       :
-        command         : './watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js'
+        command         : "#{nodeProgram} %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
       nginx             :
         locations       : [
           { location: '/xhr' }
@@ -162,7 +164,38 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURLs   : [ "http://localhost:#{KONFIG.social.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    socialapi:
+    emailer             :
+      group             : 'webserver'
+      disabled          : yes
+      supervisord       :
+        command         :
+          run           : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer'
+
+    notification        :
+      group             : 'webserver'
+      disabled          : yes
+      supervisord       :
+        command         :
+          run           : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/notification -p 4560'
+      ports             :
+        incoming        : '4560'
+      nginx             :
+        websocket       : yes
+        locations       : [
+          { location    : '/notify' }
+          {
+            location    : '~ /api/social/private/dispatcher/(.*)' # handle dispatcher requests
+            proxyPass   : 'http://notification/$1$is_args$args'
+            internalOnly: yes
+          }
+        ]
+      # if it's required to have more than 1 instance of notification worker
+      # sticky sessions should be enabled on the load balancer if it's willing
+      # to use long polling (xhr-polling/stream) ~ GG
+      instances         : 1
+      instanceAsArgument: '-i'
+
+    socialapi           :
       group             : 'socialapi'
       instances         : 1
       ports             :
@@ -318,7 +351,7 @@ module.exports = (KONFIG, options, credentials) ->
         ]
 
     userproxies         :
-      group             : 'proxy'
+      group             : if options.environment is 'default' then 'webserver' else 'proxy'
       nginx             :
         websocket       : yes
         locations       : [
@@ -338,6 +371,13 @@ module.exports = (KONFIG, options, credentials) ->
               'proxy_send_timeout 21600s;'
             ]
           }
+        ]
+
+    tunnelproxies:
+      group             : 'proxy'
+      nginx             :
+        websocket       : yes
+        locations       : [
           {
             location    : "~ ^\\/-\\/prodtunnel\\/(?<tunnel>.+?)\.#{KONFIG.tunnelserver.hostedzone}(?<rest>.*)"
             proxyPass   : "http://$tunnel.#{KONFIG.tunnelserver.hostedzone}$rest"
@@ -359,3 +399,18 @@ module.exports = (KONFIG, options, credentials) ->
             ]
           }
         ]
+
+  # if requested disable workers
+  disabledWorkers = options?.disabledWorkers ? []
+  for worker in disabledWorkers
+    delete workers[worker]
+
+  # if not enabled then disable the one should be disabled
+  enabledWorkers = options?.enabledWorkers ? []
+  for key, worker of workers when worker.disabled
+    if key in enabledWorkers
+      worker.disabled = no
+    else
+      delete workers[key]
+
+  return workers

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/codegangsta/cli"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 func BenchmarkMetricsOverheadTags(b *testing.B) {
@@ -37,7 +37,7 @@ func BenchmarkMetricsOverheadAll(b *testing.B) {
 		actionFn := func(*cli.Context) error {
 			return nil
 		}
-		wrappedActionFn := metrics.WrapCLIAction(m.Datadog, actionFn, generateTagsForCLI)
+		wrappedActionFn := metrics.WrapCLIAction(m.Datadog, actionFn, "", generateTagsForCLI)
 		c := &cli.Context{
 			Command: cli.Command{
 				Name: "full name",

@@ -267,7 +267,7 @@ func (s *Server) serveTCPConn(conn net.Conn) {
 func (s *Server) handleWSConn(w http.ResponseWriter, r *http.Request, ident string, port int) error {
 	hj, ok := w.(http.Hijacker)
 	if !ok {
-		return errors.New("webserver doesn't support hijacking")
+		return fmt.Errorf("webserver doesn't support hijacking: %T", w)
 	}
 
 	conn, _, err := hj.Hijack()
@@ -411,7 +411,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) (ctErr e
 
 	hj, ok := w.(http.Hijacker)
 	if !ok {
-		return errors.New("webserver doesn't support hijacking")
+		return fmt.Errorf("webserver doesn't support hijacking: %T", w)
 	}
 
 	conn, _, err := hj.Hijack()

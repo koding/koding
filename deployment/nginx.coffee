@@ -140,12 +140,12 @@ createLocations = (KONFIG) ->
   workers = KONFIG.workers
 
   locations = ''
-  for name, options of workers
+  for name, options of workers when not options.disabled
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
-    continue unless options.nginx?.locations
+    continue  unless options.nginx?.locations
 
-    continue if options.nginx?.disableLocation?
+    continue  if options.nginx?.disableLocation
 
     # some of the locations can be limited to some environments, while creating
     # nginx locations filter with this info
@@ -412,7 +412,9 @@ createHealthcheck = (KONFIG) ->
   '''
 
 createIPRoutes = (KONFIG) ->
-  return '' if not isProxy KONFIG.ebEnvName
+  unless KONFIG.environment in ['default', 'dev']
+    if not isProxy KONFIG.ebEnvName
+      return ''
 
   return '''
     location ~^/-/ip$ {

@@ -28,10 +28,6 @@ type PresenceDaily struct {
 	IsProcessed bool `json:"isProcessed"`
 }
 
-type countRes struct {
-	Count int
-}
-
 type accountRes struct {
 	AccountId int64
 }
@@ -55,13 +51,16 @@ func (a *PresenceDaily) CountDistinctProcessedByGroupName(groupName string) (int
 
 // countDistinctByGroupName counts distinct account ids
 func (a *PresenceDaily) countDistinctByGroupNameAndStatus(groupName string, status bool) (int, error) {
-	res := &countRes{}
+	res := struct {
+		Count int
+	}{}
+
 	return res.Count, bongo.B.DB.
 		Table(a.BongoName()).
 		Model(&PresenceDaily{}).
 		Where("group_name = ? and is_processed = ?", groupName, status).
 		Select("count(distinct account_id)").
-		Scan(res).Error
+		Scan(&res).Error
 }
 
 // ProcessByGroupName sets items as processed by their group's name

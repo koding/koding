@@ -3,7 +3,9 @@ package machinegroup
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"koding/klient/machine"
@@ -183,6 +185,105 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 		MountID:  mountID,
 		Prefetch: p,
 	}, nil
+}
+
+// ManageMountRequest defines machine group manage mount request.
+type ManageMountRequest struct {
+	MountID mount.ID `json:"mountID"`
+	Pause   bool     `json:"pause,omitempty"`
+	Resume  bool     `json:"resume,omitempty"`
+}
+
+// ManageMountResponse defines machine group manage mount response.
+type ManageMountResponse struct {
+	Paused bool `json:"paused"`
+}
+
+// ManageMount configures dynamic state of the mount.
+func (g *Group) ManageMount(req *ManageMountRequest) (*ManageMountResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	sc, err := g.sync.Sync(req.MountID)
+	if err != nil {
+		return nil, err
+	}
+
+	// If both pause and resume are set, we treat this as no-op.
+	if req.Pause && !req.Resume {
+		sc.Anteroom().Pause()
+	}
+	if req.Resume && !req.Pause {
+		sc.Anteroom().Resume()
+	}
+
+	return &ManageMountResponse{
+		Paused: sc.Anteroom().IsPaused(),
+	}, nil
+}
+
+// MountIDRequest defines machine group MountID request.
+type MountIDRequest struct {
+	// Identifier is a string that identifiers existing mount.
+	Identifier string `json:"identifier"`
+}
+
+// MountIDResponse defines machine group MountID response.
+type MountIDResponse struct {
+	// MountID is a unique identifier of a mount.
+	MountID mount.ID `json:"mountID"`
+}
+
+// MountID gets mount ID from provided identifier. This method looks up
+// mount IDs first and if, there are no matches, mount local paths.
+func (g *Group) MountID(req *MountIDRequest) (res *MountIDResponse, err error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	res = &MountIDResponse{}
+	if res.MountID, err = g.getMountID(req.Identifier); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (g *Group) getMountID(identifier string) (mountID mount.ID, err error) {
+	if mountID, err = mount.IDFromString(identifier); err == nil {
+		return
+	}
+
+	absPath, e := filepath.Abs(identifier)
+	if mountID, err = g.mount.Path(absPath); e == nil && err == nil {
+		return
+	}
+
+	return g.lookup(identifier)
+}
+
+func (g *Group) lookup(path string) (mount.ID, error) {
+	const sep = string(os.PathSeparator)
+
+	for path != "" && path != "/" {
+		id, err := g.mount.Path(path)
+		if err == nil {
+			return id, nil
+		}
+		if err != mount.ErrMountNotFound {
+			return "", err
+		}
+
+		if i := strings.LastIndex(path, sep); i != -1 {
+			path = path[:i]
+			continue
+		}
+
+		break
+	}
+
+	return "", mount.ErrMountNotFound
 }
 
 // UpdateIndexRequest defines index update request.
@@ -466,19 +567,4 @@ func (g *Group) InspectMount(req *InspectMountRequest) (*InspectMountResponse, e
 	}
 
 	return res, nil
-}
-
-// getMountID looks up and converts provided identifier to mount ID.
-func (g *Group) getMountID(identifier string) (mountID mount.ID, err error) {
-	if mountID, err = mount.IDFromString(identifier); err == nil {
-		return
-	}
-
-	absPath, e := filepath.Abs(identifier)
-	if mountID, err = g.mount.Path(absPath); e != nil || err != nil {
-		g.log.Error("Cannot found mount with identifier: %s", identifier)
-		return "", fmt.Errorf("unknown mount: %q", identifier)
-	}
-
-	return
 }

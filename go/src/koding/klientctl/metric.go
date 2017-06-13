@@ -5,13 +5,18 @@ import (
 	"koding/klientctl/ctlcli"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // MetricPushHandler accepts metrics from external sources.
 func MetricPushHandler(m *metrics.Metrics, tagsFn func(string) []string) ctlcli.ExitingErrCommand {
 	return func(c *cli.Context, log logging.Logger, _ string) (int, error) {
+		// metrics might be disabled.
+		if m == nil || m.Datadog == nil {
+			return 0, nil
+		}
+
 		tags := tagsFn("cli_external")
 
 		val := c.Float64("count")

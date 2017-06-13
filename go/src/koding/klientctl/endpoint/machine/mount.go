@@ -287,22 +287,46 @@ func (c *Client) Umount(options *UmountOptions) (err error) {
 	return nil
 }
 
-// WaitIdleOptions describes options for "machine.mount.waitIdle" method's request.
-type WaitIdleOptions struct {
+// SyncMountOptions stores options for `machine mount sync` call.
+type SyncMountOptions struct {
 	Identifier string
-	Path       string
+	Pause      bool
+	Resume     bool
 	Timeout    time.Duration
 }
 
-// WaitIdle waits for all the sync operations for finish
-// for the given mount.
-func (c *Client) WaitIdle(opts *WaitIdleOptions) error {
-	ch := make(chan bool)
-
-	req := &machinegroup.WaitIdleRequest{
+// SyncMount allows to configure mount synchronization settings and provides
+// way to ensure that all synchronization events are processed.
+func (c *Client) SyncMount(opts *SyncMountOptions) error {
+	// Get mount ID from provided identifer.
+	mountIDReq := &machinegroup.MountIDRequest{
 		Identifier: opts.Identifier,
-		Path:       opts.Path,
-		Timeout:    opts.Timeout,
+	}
+	var mountIDRes machinegroup.MountIDResponse
+	if err := c.klient().Call("machine.mount.id", mountIDReq, &mountIDRes); err != nil {
+		return err
+	}
+
+	// Set mount synchronization settings.
+	manageMountReq := &machinegroup.ManageMountRequest{
+		MountID: mountIDRes.MountID,
+		Pause:   opts.Pause,
+		Resume:  opts.Resume,
+	}
+	var manageMountRes machinegroup.ManageMountResponse
+	if err := c.klient().Call("machine.mount.manage", manageMountReq, &manageMountRes); err != nil {
+		return err
+	}
+
+	if opts.Pause || opts.Resume {
+		return nil
+	}
+
+	// Wait for idle synchronization status.
+	ch := make(chan bool)
+	req := &machinegroup.WaitIdleRequest{
+		MountID: mountIDRes.MountID,
+		Timeout: opts.Timeout,
 		Done: dnode.Callback(func(r *dnode.Partial) {
 			ch <- r.One().MustBool()
 		}),
@@ -417,8 +441,8 @@ func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 	return DefaultClient.ListMount(opts)
 }
 
-// WaitIdle waits for mount's synchronization to complete using DefaultClient.
-func WaitIdle(opts *WaitIdleOptions) error { return DefaultClient.WaitIdle(opts) }
+// SyncMount manages mount synchronization.
+func SyncMount(opts *SyncMountOptions) error { return DefaultClient.SyncMount(opts) }
 
 // InspectMount inspects existing mount using DefaultClient.
 func InspectMount(opts *InspectMountOptions) (machinegroup.InspectMountResponse, error) {

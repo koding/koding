@@ -1,10 +1,10 @@
 package provider_test
 
 import (
-	"koding/kites/kloud/stack/provider"
 	"reflect"
-
 	"testing"
+
+	"koding/kites/kloud/stack/provider"
 )
 
 func TestVariables(t *testing.T) {
@@ -66,6 +66,99 @@ func TestVariables(t *testing.T) {
 				To:   44,
 			}},
 			"bar******foo***foo",
+		},
+		"single expression variable": {
+			"${base64encode(var.foo)}",
+			[]provider.Variable{{
+				Name:       "foo",
+				From:       15,
+				To:         22,
+				Expression: true,
+			}},
+			"${base64encode(***)}",
+		},
+		"multiple expression variables": {
+			"${func(var.foo123, var.bar-bar, var.baz_baz)}",
+			[]provider.Variable{{
+				Name:       "foo123",
+				From:       7,
+				To:         17,
+				Expression: true,
+			}, {
+				Name:       "bar-bar",
+				From:       19,
+				To:         30,
+				Expression: true,
+			}, {
+				Name:       "baz_baz",
+				From:       32,
+				To:         43,
+				Expression: true,
+			}},
+			"${func(***, ***, ***)}",
+		},
+		"variables mix": {
+			"abc ${func(var.foo, var.bar)} ${ var.baz}${var.qux} ${g(var.a, var.b)} def",
+			[]provider.Variable{{
+				Name:       "foo",
+				From:       11,
+				To:         18,
+				Expression: true,
+			}, {
+				Name:       "bar",
+				From:       20,
+				To:         27,
+				Expression: true,
+			}, {
+				Name: "baz",
+				From: 30,
+				To:   41,
+			}, {
+				Name: "qux",
+				From: 41,
+				To:   51,
+			}, {
+				Name:       "a",
+				From:       56,
+				To:         61,
+				Expression: true,
+			}, {
+				Name:       "b",
+				From:       63,
+				To:         68,
+				Expression: true,
+			}},
+			"abc ${func(***, ***)} ****** ${g(***, ***)} def",
+		},
+		"reset after partial match": {
+			`${func(var.foo, "var", ".cde", var.bar)}`,
+			[]provider.Variable{{
+				Name:       "foo",
+				From:       7,
+				To:         14,
+				Expression: true,
+			}, {
+				Name:       "bar",
+				From:       31,
+				To:         38,
+				Expression: true,
+			}},
+			`${func(***, "var", ".cde", ***)}`,
+		},
+		"ternary operator expression": {
+			`${terraform.env == "devel" ? var.foo : var.bar}`,
+			[]provider.Variable{{
+				Name:       "foo",
+				From:       29,
+				To:         36,
+				Expression: true,
+			}, {
+				Name:       "bar",
+				From:       39,
+				To:         46,
+				Expression: true,
+			}},
+			`${terraform.env == "devel" ? *** : ***}`,
 		},
 	}
 

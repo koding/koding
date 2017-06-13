@@ -58,7 +58,7 @@
   TCP connection is used as the foundation for `yamux.Client()`. Once a yamux
   session is established, we are able to use this single connection to have
   multiple streams, which are multiplexed over this one connection.  A `control
-  conneciton` is created and client starts to listen it.  `client.Start` is
+  connection` is created and client starts to listen it.  `client.Start` is
   blocking.
 
 # Control Handshake

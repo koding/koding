@@ -226,7 +226,7 @@ func (g *Group) bootstrap() {
 	// Start clients for all available addresses and for mounts even if they
 	// may have no address, they will need disconnected client.
 	for _, id := range idset.Union(addressIDs, mountsIDs) {
-		if err := g.client.Create(id, g.dynamicAddr(id)); err != nil {
+		if err := g.client.Create(id, g.dynamicAddr(id), g.addrSet(id)); err != nil {
 			g.log.Error("Cannot create client for %s: %s", id, err)
 		}
 	}
@@ -291,6 +291,29 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 func (g *Group) dynamicAddr(id machine.ID) client.DynamicAddrFunc {
 	return func(network string) (machine.Addr, error) {
 		return g.address.Latest(id, network)
+	}
+}
+
+// addrSet creates a functor that allows to update machine address book.
+func (g *Group) addrSet(id machine.ID) client.AddrSetFunc {
+	return func(addr machine.Addr) {
+		a, err := g.address.Latest(id, addr.Network)
+		if err != nil && err != machine.ErrAddrNotFound {
+			return
+		}
+
+		if err == machine.ErrAddrNotFound {
+			g.address.Add(id, addr)
+			return
+		}
+
+		// BoltDB optimization. No need to add address when its latest value is
+		// already equal to the one that this function tries to set.
+		if a.Value == addr.Value {
+			return
+		}
+
+		g.address.Add(id, addr)
 	}
 }
 

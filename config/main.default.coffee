@@ -22,9 +22,8 @@ Configuration = (options = {}) ->
   options.region or= 'default'
   options.configName or= 'default'
   options.environment or= 'default'
+  options.ebEnvName = options.environment
   options.projectRoot or= path.join __dirname, '/..'
-  options.version or= '2.0' # TBD
-  options.build or= '1111'
   options.tunnelHostedZoneName = 'dev-t.koding.com'
   options.tunnelHostedZoneCallerRef = 'devtunnelproxy_hosted_zone_v0'
   options.tunnelserverHostedZone or= 'dev.koding.me'
@@ -71,29 +70,29 @@ Configuration = (options = {}) ->
     botchannel : yes
     gitlab     : no
 
-  KONFIG = require('./generateKonfig')(options, credentials)
-
-  KONFIG.workers = require('./workers')(KONFIG, options, credentials)
-
-  KONFIG.workers.emailer =
-    group       : 'webserver'
-    supervisord :
-      command   :
-        run     : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer'
-
+  options.enabledWorkers = [
+    'notification'
+    'emailer'
+  ]
 
   options.disabledWorkers = [
     'algoliaconnector'
     'gatekeeper'
+    'dispatcher'
   ]
 
-  for worker in options.disabledWorkers
-    delete KONFIG.workers[worker]
-
+  KONFIG = require('./generateKonfig')(options, credentials)
+  KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   # Disable Sneaker for kloud.
   KONFIG.kloud.noSneaker = true
+
+  endpoint = "#{options.protocol}//#{options.domains.main}"
+  KONFIG.goKoding.endpoints.ip.public = "#{endpoint}/-/ip"
+  KONFIG.goKoding.endpoints.ipCheck.public = "#{endpoint}/-/ipCheck"
+  KONFIG.goKoding.endpoints.kdLatest.public = "#{endpoint}/a/kd/#{options.environment}/latest-version.txt"
+  KONFIG.goKoding.endpoints.klientLatest.public = "#{endpoint}/a/klient/#{options.environment}/latest-version.txt"
 
   options.requirementCommands = [
     '$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh'

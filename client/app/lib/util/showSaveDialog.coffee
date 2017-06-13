@@ -5,7 +5,6 @@ KDInputView     = kd.InputView
 KDLabelView     = kd.LabelView
 KDDialogView    = kd.DialogView
 IDEFinderItem   = require 'ide/finder/idefinderitem'
-envDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = showSaveDialog = (container, callback = kd.noop, options = {}) ->

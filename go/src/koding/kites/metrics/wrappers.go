@@ -1,18 +1,21 @@
 package metrics
 
 import (
+	"bufio"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 
 	dogstatsd "github.com/DataDog/datadog-go/statsd"
-	"github.com/codegangsta/cli"
 	"github.com/koding/kite"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // WrapKiteHandler wraps the kite handlers adds metrics middlewares.
 func WrapKiteHandler(dd *dogstatsd.Client, metricName string, handler kite.HandlerFunc) kite.HandlerFunc {
+	register(dd.Namespace, metricName)
 	return func(r *kite.Request) (interface{}, error) {
 		start := time.Now()
 		resp, err := handler.ServeKite(r)
@@ -43,6 +46,7 @@ func WrapKiteHandler(dd *dogstatsd.Client, metricName string, handler kite.Handl
 
 // WrapHTTPHandler wraps the http handlers adds metrics middlewares.
 func WrapHTTPHandler(dd *dogstatsd.Client, metricName string, handler http.HandlerFunc) http.HandlerFunc {
+	register(dd.Namespace, metricName)
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		rr := newResponseRecorder(w)
@@ -60,22 +64,36 @@ func WrapHTTPHandler(dd *dogstatsd.Client, metricName string, handler http.Handl
 	}
 }
 
+// RegisterCLICommand registers given command to metrics dashboard.
+func RegisterCLICommand(m *Metrics, args ...string) {
+	if len(args) == 0 || m == nil || m.Datadog == nil {
+		return
+	}
+
+	register(m.Datadog.Namespace, strings.Join(args, "_"))
+}
+
 // WrapCLIActions injects the metrics as middlewares into cli.Commands Actions.
-func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, tagsFn func(string) []string) []cli.Command {
+//
+// TODO: Remove after codegangsta/cli is removed.
+func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName string, tagsFn func(string) []string) []cli.Command {
 	for i, command := range commands {
+		name := strings.TrimSpace(parentName + " " + command.Name)
+		register(dd.Namespace, strings.Replace(name, " ", "_", -1))
 		if command.Action != nil {
-			commands[i].Action = WrapCLIAction(dd, command.Action.(cli.ActionFunc), tagsFn)
+			commands[i].Action = WrapCLIAction(dd, command.Action.(cli.ActionFunc), name, tagsFn)
 		}
-		commands[i].Subcommands = WrapCLIActions(dd, command.Subcommands, tagsFn)
+		commands[i].Subcommands = WrapCLIActions(dd, command.Subcommands, name, tagsFn)
 	}
 
 	return commands
 }
 
 // WrapCLIAction wraps the actions of cli commands and adds metrics middlewares.
-func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, tagsFn func(string) []string) cli.ActionFunc {
+//
+// TODO: Remove after codegangsta/cli is removed.
+func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, fullName string, tagsFn func(string) []string) cli.ActionFunc {
 	return func(c *cli.Context) error {
-		fullName := c.Command.FullName()
 		metricName := strings.Replace(fullName, " ", "_", -1)
 
 		start := time.Now()
@@ -124,3 +142,33 @@ func (r *responseRecorder) WriteHeader(status int) {
 	r.code = status
 	r.ResponseWriter.WriteHeader(status)
 }
+
+// Flush implements http.Flusher interface
+func (r *responseRecorder) Flush() {
+	rr, ok := r.ResponseWriter.(http.Flusher)
+	if ok {
+		rr.Flush()
+	}
+}
+
+// Hijack implements http.Hijacker interface
+func (r *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hj, ok := r.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("responseWriter doesn't support hijacking: %T", r.ResponseWriter)
+	}
+
+	return hj.Hijack()
+}
+
+// Push implements http.Pusher interface
+func (r *responseRecorder) Push(target string, opts *http.PushOptions) error {
+	p, ok := r.ResponseWriter.(http.Pusher)
+	if !ok {
+		return fmt.Errorf("responseWriter doesn't support http.Pusher: %T", r.ResponseWriter)
+	}
+
+	return p.Push(target, opts)
+}
+
+// TODO: check possibility of implementing http.CloseNotifier

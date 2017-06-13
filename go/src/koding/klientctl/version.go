@@ -5,8 +5,8 @@ import (
 
 	"koding/klientctl/config"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 type version struct {
@@ -24,7 +24,7 @@ func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
 		KiteID:      config.Konfig.KiteConfig().Id,
 	}
 
-	v.Latest, _ = latestVersion(config.Konfig.Endpoints.KDLatest.Public.String())
+	v.Latest, _ = config.LatestKDVersionNum()
 
 	if c.Bool("json") {
 		printJSON(v)

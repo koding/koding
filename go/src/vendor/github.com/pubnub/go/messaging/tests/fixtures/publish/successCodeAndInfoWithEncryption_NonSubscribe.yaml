@@ -1,0 +1,32 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/publish/pub-c-071e1a3f-607f-4351-bdd1-73a8eb21ba7c/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/0/successCodeAndInfo/0/%225c69IWbJmfgAF18380MRmWe+1V3gHYH4Wxnlzm4l0RM=%22?pnsdk=PubNub-Go%2F3.14.0&uuid=efc7182f4021463280ec12ff30a6741e&seqn=1
+    method: GET
+  response:
+    body: '[1,"Sent","14570025379708944"]'
+    headers:
+      Access-Control-Allow-Methods:
+      - GET
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "30"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 03 Mar 2016 10:55:37 GMT
+    status: 200 OK
+    code: 200

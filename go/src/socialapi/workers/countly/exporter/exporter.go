@@ -12,12 +12,10 @@ import (
 
 // CountlyExporter exports events to countly..
 type CountlyExporter struct {
-	client         *client.Client
-	log            logging.Logger
-	globalOwner    string
-	groupDataCache *groupDataCache
-	disabled       bool // if countly integration is disabled.
-	fixApps        bool // if we should create non existing apps.
+	client   *client.Client
+	log      logging.Logger
+	api      *api.CountlyAPI
+	disabled bool // if countly integration is disabled.
 }
 
 // NewCountlyExporter creates exporter for countly.
@@ -29,11 +27,9 @@ func NewCountlyExporter(cfg *config.Config) *CountlyExporter {
 			client.SetBaseURL(cfg.Countly.Host),
 			client.SetLogger(logger),
 		),
-		log:            logger,
-		globalOwner:    cfg.Countly.AppOwner,
-		groupDataCache: newGroupCache(),
-		disabled:       cfg.Countly.Disabled,
-		fixApps:        cfg.Countly.FixApps,
+		log:      logger,
+		disabled: cfg.Countly.Disabled,
+		api:      api.NewCountlyAPI(cfg),
 	}
 }
 
@@ -49,38 +45,22 @@ func (c *CountlyExporter) Send(event *eventexporter.Event) error {
 		c.log.Debug("skipping event, does not have group %+v", event)
 		return nil
 	}
-
-	groupData, _ := c.groupDataCache.BySlug(slug)
-	appKey := ""
-	if groupData != nil {
-		appKey, _ = groupData.Payload.GetString("countly.appKey")
+	// preserve backward compatibility
+	if event.Duration == 0 && event.Count == 0 {
+		event.Count = 1
 	}
 
-	if appKey == "" {
-		if !c.fixApps {
-			return nil
-		}
-
-		cres, err := api.NewCountlyAPI(config.MustGet()).CreateApp(slug)
-		if err != nil {
-			return err
-		}
-
-		appKey = cres.AppID
-		groupData, err = c.groupDataCache.Refresh(slug)
-		if err != nil {
-			return err
-		}
-	}
-
-	events := []client.Event{{
+	return c.api.Publish(slug, client.Event{
 		Key:          event.Name,
-		Count:        1,
+		Count:        int(event.Count),
+		Dur:          int(event.Duration.Seconds()),
 		Segmentation: event.Properties,
-	}}
+	})
 
-	return c.client.WriteEvent(appKey, slug, events)
 }
+
+// Name returns the name of the exporter.
+func (CountlyExporter) Name() string { return "countly" }
 
 // Close closes the exporter.
 func (c *CountlyExporter) Close() error {

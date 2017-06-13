@@ -59,12 +59,14 @@ func Equal(got, want string, fn func(string) string) error {
 		return fmt.Errorf(`failed to parse "want" JSON: %s`, err)
 	}
 
-	if err := mask(v1, fn); err != nil {
-		return err
-	}
+	if fn != nil {
+		if err := mask(v1, fn); err != nil {
+			return err
+		}
 
-	if err := mask(v2, fn); err != nil {
-		return err
+		if err := mask(v2, fn); err != nil {
+			return err
+		}
 	}
 
 	if !reflect.DeepEqual(v1, v2) {

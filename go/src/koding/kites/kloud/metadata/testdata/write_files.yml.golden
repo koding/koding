@@ -1,5 +1,5 @@
 #cloud-config
-hostname: user
+hostname: ${var.koding_account_profile_nickname}
 output:
   all: '| tee -a /var/log/cloud-init-output.log'
 runcmd:
@@ -10,22 +10,33 @@ users:
   groups:
   - sudo
   lock_passwd: true
-  name: johndoe
+  name: ${var.koding_account_profile_nickname}
   shell: /bin/bash
   sudo:
   - ALL=(ALL) NOPASSWD:ALL
 write_files:
 - content: test
   path: /tmp/helloworld.txt
-- content: kitekey
-  path: /etc/kite/kite.key
+- content: "#!/bin/bash\n\n# Koding post-provision script responsible for deploying
+    a klient service.\n#\n# Copyright (C) 2012-2017 Koding Inc., all rights reserved.\n\nset
+    -euo pipefail\n\n# The following variables are passed via terraform's variable
+    block.\nexport KODING_USERNAME=\"$${KODING_USERNAME:-${var.koding_account_profile_nickname}}\"\nexport
+    KLIENT_URL=\"$${KLIENT_URL:-${var.koding_klient_url}}\"\nexport SCREEN_URL=\"$${SCREEN_URL:-${var.koding_screen_url}}\"\n\ntrap
+    \"echo _KD_DONE_ | tee -a /var/log/cloud-init-output.log\" EXIT\n\nmain() {\n\techo
+    \"127.0.0.1 $${KODING_USERNAME}\" >> /etc/hosts\n\n\ttouch /var/log/klient.log
+    \\\n\t      /var/log/cloud-init-output.log\n\n\tmkdir -p /opt/kite/klient\n\tcurl
+    --location --silent --show-error --retry 5 \"$${KLIENT_URL}\" --output /tmp/klient.gz\n\tgzip
+    --decompress --force --stdout /tmp/klient.gz > /opt/kite/klient/klient\n\tchmod
+    +x /opt/kite/klient/klient\n\n\tchown -R \"$${KODING_USERNAME}\" \\\n\t\t/opt/kite
+    \\\n\t\t/var/log/klient.log \\\n\t\t/var/log/cloud-init-output.log\n\n\t/opt/kite/klient/klient
+    -metadata-user \"$${KODING_USERNAME}\" -metadata-file /var/lib/koding/metadata.json
+    run\n\n\tif [ -x /var/lib/koding/user-data.sh ]; then\n\t\t/var/lib/koding/user-data.sh\n\tfi\n}\n\nmain
+    &>>/var/log/cloud-init-output.log\n"
+  path: /var/lib/koding/provision.sh
+  permissions: "0755"
 - content: metadata
   path: /var/lib/koding/metadata.json
   permissions: "0644"
 - content: userdata
-  encoding: b64
   path: /var/lib/koding/user-data.sh
-  permissions: "0755"
-- content: provision
-  path: /var/lib/koding/provision.sh
   permissions: "0755"

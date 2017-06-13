@@ -71,6 +71,9 @@ generateWorkerSection = (app, options = {}) ->
       partialPort = port.substring(0, port.length - 1)
       section.command = section.command.replace new RegExp(port), "#{partialPort}%(process_num)d"
 
+    if instanceArg = options.instanceAsArgument
+      section.command = "#{section.command} #{instanceArg} %(process_num)d"
+
   # %(process_num) must be present within process_name when numprocs > 1
   if section.numprocs > 1
     section.process_name = '%(program_name)s_%(process_num)d'

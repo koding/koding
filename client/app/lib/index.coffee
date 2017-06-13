@@ -43,7 +43,6 @@ bootup = ->
   if globals.config.environment in ['dev', 'default', 'sandbox']
     global._kd      = kd
     global._remote  = remote
-    global._createTestMachine = require 'app/util/createTestMachine'
 
   if globals.currentGroup?
     globals.config.entryPoint.slug = globals.currentGroup.slug
@@ -71,7 +70,7 @@ bootup = ->
   mainController.ready ->
     setupChatlio()
     require('./setupcountly')()
-    # setupIntercom()
+    setupIntercom()
 
 
   ###

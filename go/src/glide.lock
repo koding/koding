@@ -178,8 +178,6 @@ imports:
   version: 1bef4b5a4aab0b06a9b4d47a1715f8fee5038583
 - name: github.com/codahale/sneaker
   version: 3e52e64a6c73d7b793bb817c3c8f8078475c2094
-- name: github.com/codegangsta/cli
-  version: 1efa31f08b9333f1bd4882d61f9d668a70cd902e
 - name: github.com/coreos/etcd
   version: 38c370a7c54fc64f58f9c329487d7104e353b549
   subpackages:
@@ -485,6 +483,8 @@ imports:
   version: 20bca5a7a57282e241fac83ec9ea42538027f1c1
   subpackages:
   - term
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/influxdata/influxdb
   version: a0004b68577cdbfc921463404eab839c50f14a0c
   subpackages:
@@ -552,14 +552,14 @@ imports:
 - name: github.com/koding/ec2dynamicdata
   version: 56f69f128b37c6bdfd61a6cac4b4b87e517fa2ee
 - name: github.com/koding/eventexporter
-  version: e769c96fc1198f2971f218e982165fe12a7ca879
+  version: 8c411a9ed989426b2aa5bbcc6c9515cb3c76caf5
 - name: github.com/koding/integration
   version: 3b2ca892270503b8ca590d9d0b58df6db60bb7b5
   subpackages:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: cdd66cedbdf88da7755d890de22d9d6a16642323
+  version: 656c6e46843887d6336831ade1a4e89c01e0733d
   subpackages:
   - config
   - dnode
@@ -580,13 +580,13 @@ imports:
 - name: github.com/koding/logging
   version: 8b5a689ed69b1c7cd1e3595276fc2a352d7818e0
 - name: github.com/koding/metrics
-  version: 9a17123e052386b38746eb19fe9ec6f5bb047c90
+  version: f0a635a6f6b95045c3e183c86e49ff00ab640af2
 - name: github.com/koding/multiconfig
   version: 58dd6d6a05babfd20a5982e8d9e5f0bfb232618b
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
 - name: github.com/koding/pubnub
-  version: a3b695f8d7b6f32014aba0a929b000bd66a33f30
+  version: ec1bf44bfa0f3f21e0db7272e98bbf5309a6cd36
 - name: github.com/koding/rabbitmq
   version: 85d8cac01c9bf45a9ad3c2c1a53640143e3f632a
 - name: github.com/koding/redis
@@ -602,7 +602,7 @@ imports:
   subpackages:
   - cmd/provider-github
 - name: github.com/koding/tunnel
-  version: a8916da506030b5dc78ae2fb0208fdff3e571792
+  version: b32c339ebea44867d633ac4d1a316f1fdac016e6
   subpackages:
   - proto
 - name: github.com/koding/vagrantutil
@@ -734,6 +734,8 @@ imports:
   version: 609b752a95effbbef26d134ac18ed6f57e01b98e
 - name: github.com/moul/gotty-client
   version: 92f0c24d5b2985522174e3ff5ad882a1c4d7f1d9
+- name: github.com/narqo/go-dogstatsd-parser
+  version: cc11c25c4b3c0dc684c0025140bec1ee5984b558
 - name: github.com/nesv/go-dynect
   version: 2dc6a86cf75ce4b33516d2a13c9c0c378310cf3b
   subpackages:
@@ -776,9 +778,11 @@ imports:
 - name: github.com/pkg/sftp
   version: e84cc8c755ca39b7b64f510fe1fffc1b51f210a5
 - name: github.com/pubnub/go
-  version: b7075cd5d74870710dfa5e3ebe8b4cb5c88a02fe
+  version: 877250964fc316c67994cd7cad5870828fa35a07
   subpackages:
   - messaging
+- name: github.com/pubnub/go-vcr
+  version: dce903a128d986ff9193994098bc078166e1dee8
 - name: github.com/racker/perigee
   version: 44a7879d89b7040bcdb51164a83292ef5bf9deec
 - name: github.com/rainycape/unidecode
@@ -845,6 +849,12 @@ imports:
   - convey/reporting
 - name: github.com/soniah/dnsmadeeasy
   version: 5578a8c15e33958c61cf7db720b6181af65f4a9e
+- name: github.com/spf13/cobra
+  version: 8d4ce3549a0bf0e3569df3aae7423b7743cd05a9
+  subpackages:
+  - cobra
+- name: github.com/spf13/pflag
+  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/sthulb/mime
   version: 698462dc9685d7743511c26da726c1b0c1cfb111
   subpackages:
@@ -865,6 +875,8 @@ imports:
   - codec
 - name: github.com/Unknwon/com
   version: d9bcf409c8a368d06c9b347705c381e7c12d54df
+- name: gopkg.in/urfave/cli.v1
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: github.com/VerbalExpressions/GoVerbalExpressions
   version: 9cfb19cb04c9f48489be15cbacac3d3af9d7706a
 - name: github.com/vmware/govmomi
@@ -912,7 +924,7 @@ imports:
   - ssh/agent
   - ssh/terminal
 - name: golang.org/x/net
-  version: d379faa25cbdc04d653984913a2ceb43b0bc46d7
+  version: 1a26cf06691746ee35aa7113c9b37289afc7ea28
   subpackages:
   - context
   - context/ctxhttp
@@ -922,18 +934,18 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/sync
-  version: 86ddc858aa39d0f6cccccd733e482ddc52b852e9
+  version: f52d1811a62927559de87708c8913c1650ce4f26
   subpackages:
   - errgroup
 - name: golang.org/x/oauth2
-  version: efb10a30610e617dbb17fc243f4cc61a8cfa2903
+  version: f047394b6d14284165300fd82dad67edb3a4d7f6
   subpackages:
   - google
   - internal
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: e48874b42435b4347fc52bdee0424a52abc974d7
+  version: dbc2be9168a660ef302e04b6ff6406de6f967473
   subpackages:
   - unix
   - windows
@@ -942,12 +954,12 @@ imports:
   - windows/svc/eventlog
   - windows/svc/mgr
 - name: golang.org/x/text
-  version: f28f36722d5ef2f9655ad3de1f248e3e52ad5ebd
+  version: 19e51611da83d6be54ddafce4a4af510cb3e9ea4
   subpackages:
   - transform
   - unicode/norm
 - name: golang.org/x/tools
-  version: 03d3934baf81f2387349b58864cb98b6fe7cf85e
+  version: bf4b54dc687c73b6ef63de8b8abf0ad3951e3edc
   subpackages:
   - go/loader
   - go/types

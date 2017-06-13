@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/klientctl/config"
 
-	"github.com/codegangsta/cli"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // cmdDescriptions is the help text shown to user. Note in addition to adding
@@ -36,6 +36,15 @@ var cmdDescriptions = map[string]string{
    can by obtained by running "kd machine list" command.
 
    <local-path> can be relative or absolute, if the folder does not exit, it will be created.`,
+	),
+	"mount-sync": fmtDesc(
+		"[<mount-id> | <path> | <command>] [<options>...]",
+		`Wait or disable mount synchronization for a given mount.
+
+   If neither <mount-id> nor <path> is provided, the <path> will be assumed as current
+   working directory.
+
+   Pause command does not stop currently running synchronization jobs.`,
 	),
 	"exec": fmtDesc(
 		"(<local-mount-path> | @<machine-id>) <command> [<args>...]",

@@ -1,10 +1,14 @@
 #!/usr/bin/env coffee
-argv = require('minimist')(process.argv.slice(2))
 log = console.log
 fs = require 'fs'
 os = require 'os'
 path = require 'path'
+minimist = require 'minimist'
 { extend, defaults, clone } = require 'underscore'
+
+argv = minimist process.argv.slice(2), {
+  string: ['version']
+}
 
 defaultEnv = argv.config or process.env.DEFAULTENV or 'default'
 
@@ -14,35 +18,21 @@ log "# ./configure assumes development environment - comes bundled with options 
 log "# override them as you see fit with command line arguments like --config --branch etc."
 log ""
 
-version = undefined
-
 # clone all the arguments to options
 options = extend {}, argv
 
-# TODO - get rid of this step, all configs already sets their own default options
-#
 # set sane defaults for _some_ options.
 defaults options,
-  projectRoot: __dirname
   config: defaultEnv
-  region: defaultEnv
-  build: 1
-  environment: defaultEnv
-  onlyconfigure: no
-  deploy: no
-  ebEnvName: defaultEnv
   envFileName: '.env'
-
 
 options.inheritEnvVars = if argv.hasOwnProperty 'without-envvars' then no else yes
 options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
+options.watchNode = argv.hasOwnProperty 'watch-node'
 options.sendEventsToSegment = if argv['disable-segment'] then off else on
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:#{options.publicPort or '8090'}"
-  # if git commit id consists only numbers, js converts it to number
-  options.version        = "#{options.version or version or "1.0"}"
-  options.tag            = options.tag     or version or "1.0"
 
   log "Configuring with options:"
   log "-------------------------"
@@ -149,10 +139,10 @@ updateVault = ->
     rest()
 
 try
-  version = require('git-rev-sync').short()
+  options.version = require('git-rev-sync').short()
 catch
   try
-    version = fs.readFileSync(path.join(__dirname, './VERSION'), 'utf-8').trim()
+    options.version = fs.readFileSync(path.join(__dirname, './VERSION'), 'utf-8').trim()
 
 if argv.hostname
   options.hostname = argv.hostname

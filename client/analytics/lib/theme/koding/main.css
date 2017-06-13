@@ -1,12 +1,17 @@
 /* KODING THEME */
 body { font-family: 'Proxima Nova', 'proxima-nova', Helvetica, Arial, Ubuntu, Helvetica, sans-serif; }
 
+#top-bar { display: none !important; }
+body > div.pace { display: none !important; }
+#content-container { padding: 16px 16px 35px 16px !important; }
+
 /* SIDEBAR */
 #sidebar { background-color:#262626; }
 #sidebar-top { display: none; }
 #sidebar-app-select { display: none !important; }
 #sidebar-bottom-container { bottom: 0; display: none; }
 #sidebar .slimScrollDiv, #sidebar-menu { height: 100% !important; }
+#sidebar-menu { margin-top: 0px !important; border-top: none !important; }
 #sidebar-menu .sidebar-menu .item .text { font-family: 'Proxima Nova', 'proxima-nova', Helvetica, Arial, Ubuntu, Helvetica, sans-serif; }
 #sidebar-menu .sidebar-menu>.item.active { background-color: #212121; border-top-color: transparent; border-bottom-color: transparent; }
 #sidebar-menu .sidebar-menu .item.menu-active { border-color: transparent; }
@@ -14,4 +19,4 @@ body { font-family: 'Proxima Nova', 'proxima-nova', Helvetica, Arial, Ubuntu, He
 #sidebar-menu .sidebar-menu .item .ion-chevron-right { padding-top: 9px; }
 
 /* FOOTER */
-#content-footer { display: none !important;}
+#version-info { display: none !important; }

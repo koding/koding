@@ -70,6 +70,10 @@ type Kloud struct {
 	Stats        *statsd.Client
 	metricsProxy *metrics.Publisher
 
+	// presenceCollector publishes presence ping requests to koding for user
+	// action tracking.
+	presenceCollector *PresenceCollector
+
 	closeChan chan struct{}
 	closeOnce sync.Once
 }
@@ -115,6 +119,9 @@ type Config struct {
 
 	// TunnelURL overwrites default tunnelserver url. Used by vagrant provider.
 	TunnelURL string
+
+	// KiteMetricsPublishURL holds the endpoint for publishing kite metrics.
+	KiteMetricsPublishURL string
 
 	// Private key to create kite.key
 	PrivateKey string `required:"true"`
@@ -264,6 +271,10 @@ func New(conf *Config) (*Kloud, error) {
 		transport.Log = sess.Log
 	}
 
+	presenceClient := client.NewInternal(e.Social().Private.String())
+	presenceClient.HTTPClient = restClient
+	kloud.presenceCollector = NewPresenceCollector(presenceClient)
+
 	kloud.Stack.Environment = conf.Environment
 	kloud.Stack.Endpoints = e
 	kloud.Stack.Userdata = sess.Userdata
@@ -271,8 +282,6 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
 	kloud.Stack.TeamClient = team.NewClient(team.NewMongoDatabase())
-	kloud.Stack.PresenceClient = client.NewInternal(e.Social().Private.String())
-	kloud.Stack.PresenceClient.HTTPClient = restClient
 	kloud.Stack.RemoteClient = &remoteapi.Client{
 		Client:    storeOpts.Client,
 		Transport: transport,
@@ -326,7 +335,7 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
-	publisher, err := metrics.NewPublisher()
+	publisher, err := metrics.NewPublisher(conf.KiteMetricsPublishURL)
 	if err != nil {
 		return nil, err
 	}
@@ -404,6 +413,7 @@ func New(conf *Config) (*Kloud, error) {
 // HandleFunc adds our middlewares into kite handlers.
 func (k *Kloud) HandleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
 	f = kitemetrics.WrapKiteHandler(k.Stats, pattern, f)
+	f = k.presenceCollector.Collect(f)
 	return k.Kite.HandleFunc(pattern, f)
 }
 

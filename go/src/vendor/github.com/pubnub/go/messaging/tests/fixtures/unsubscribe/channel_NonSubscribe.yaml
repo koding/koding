@@ -1,0 +1,39 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - ua_string=(linux) PubNub-Go/3.14.0
+    url: http://ps.pndsn.com/v2/presence/sub-key/sub-c-5c4fdcc6-c040-11e5-a316-0619f8945a4f/channel/Channel_UnsubscribeChannel/leave?uuid=UUID_UnsubscribeChannel&pnsdk=PubNub-Go%2F3.14.0
+    method: GET
+  response:
+    body: '{"status": 200, "action": "leave", "message": "OK", "service": "Presence"}'
+    headers:
+      Accept-Ranges:
+      - bytes
+      Access-Control-Allow-Methods:
+      - OPTIONS, GET, POST
+      Access-Control-Allow-Origin:
+      - '*'
+      Age:
+      - "0"
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - "74"
+      Content-Type:
+      - text/javascript; charset="UTF-8"
+      Date:
+      - Thu, 24 Mar 2016 08:35:26 GMT
+      Server:
+      - Pubnub Presence
+    status: 200 OK
+    code: 200
+unclosed_requests: {}

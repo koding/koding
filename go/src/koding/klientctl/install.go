@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	konfig "koding/kites/config"
@@ -18,9 +16,9 @@ import (
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 
-	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
 	"github.com/koding/service"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 type ServiceOptions struct {
@@ -114,26 +112,6 @@ func (p *serviceProgram) Stop(s service.Service) error {
 	return nil
 }
 
-func latestVersion(url string) (int, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
-	p, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return 0, err
-	}
-
-	version, err := strconv.ParseUint(string(bytes.TrimSpace(p)), 10, 32)
-	if err != nil {
-		return 0, err
-	}
-
-	return int(version), nil
-}
-
 // The implementation of InstallCommandFactory, with an error return. This
 // allows us to track the error metrics.
 func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit int, err error) {
@@ -189,7 +167,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	fmt.Println("Downloading...")
 
-	version, err := latestVersion(config.Konfig.Endpoints.KlientLatest.Public.String())
+	version, err := config.LatestKlientVersionNum()
 	if err != nil {
 		fmt.Printf(FailedDownloadingKlient)
 		return 1, fmt.Errorf("error getting latest klient version: %s", err)
