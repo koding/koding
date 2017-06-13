@@ -8,7 +8,6 @@ import (
 
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/transport/rsync"
-	"koding/klientctl/endpoint/stream"
 )
 
 // CpOptions stores options for `machine cp` call.
@@ -17,7 +16,6 @@ type CpOptions struct {
 	Identifier      string // Machine identifier.
 	SourcePath      string // Data source.
 	DestinationPath string // Data destination.
-	Streams         stream.Streamer
 }
 
 // Cp transfers file(s) between remote and local machine.
@@ -52,7 +50,7 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 	// Add private path to command.
 	_, _, privPath, err := sshGetKeyPath()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot copy requested data: %s\n", err)
+		fmt.Fprintf(c.stream().Err(), "Cannot copy requested data: %s\n", err)
 		return err
 	}
 
@@ -64,10 +62,10 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 	fmt.Fprintf(os.Stdout, "Checking transfer size...\n")
 
 	if n, size, err := cmd.DryRun(ctx); err != nil {
-		c.log().Warning("Cannot obtain transfer size: %v", err)
-		fmt.Fprintf(os.Stdout, "Copying files: remaining time is unknown\n")
+		c.stream().Log().Warning("Cannot obtain transfer size: %v", err)
+		fmt.Fprintf(c.stream().Out(), "Copying files: remaining time is unknown\n")
 	} else {
-		cpRes.Command.Progress = rsync.Progress(os.Stdout, n, size)
+		cpRes.Command.Progress = rsync.Progress(c.stream().Out(), n, size)
 	}
 
 	return cpRes.Command.Run(ctx)
