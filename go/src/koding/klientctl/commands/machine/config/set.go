@@ -2,6 +2,7 @@ package config
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &setOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "set",
+		Use:   "set <machine-id> <key> <value>",
 		Short: "Set configuration value",
 		RunE:  setCommand(c, opts),
 	}
@@ -22,7 +23,7 @@ func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.ExactArgs(3),              // Three arguments are accepted.
 	)(c, cmd)
 
 	return cmd
@@ -30,6 +31,10 @@ func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func setCommand(c *cli.CLI, opts *setOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		ident := args[0]
+		key := args[1]
+		value := args[2]
+
+		return machine.Set(ident, key, value)
 	}
 }

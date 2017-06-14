@@ -16,7 +16,7 @@ func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &useOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "use",
+		Use:   "use <identifier>",
 		Short: "Change default credential per provider",
 		RunE:  useCommand(c, opts),
 	}

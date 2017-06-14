@@ -707,14 +707,14 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:  "config", // Moved to cobra.
+			Name:  "config", // Moved to cobra. DONE.
 			Usage: "Manage remote machine configuration.",
 			Subcommands: []cli.Command{{
-				Name:   "set", // Moved to cobra.
+				Name:   "set", // Moved to cobra. DONE.
 				Usage:  "Set a value for a given key.",
 				Action: ctlcli.ExitErrAction(MachineConfigSet, log, "set"),
 			}, {
-				Name:   "show", // Moved to cobra.
+				Name:   "show", // Moved to cobra. DONE.
 				Usage:  "Show configuration.",
 				Action: ctlcli.ExitErrAction(MachineConfigShow, log, "show"),
 				Flags: []cli.Flag{
