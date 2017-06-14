@@ -888,10 +888,10 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:  "team", // Moved to cobra.
+		Name:  "team", // Moved to cobra. DONE.
 		Usage: "List available teams and set team context.",
 		Subcommands: []cli.Command{{
-			Name:   "show", // Moved to cobra.
+			Name:   "show", // Moved to cobra. DONE.
 			Usage:  "Shows your currently used team.",
 			Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
 			Flags: []cli.Flag{
@@ -901,7 +901,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "list", // Moved to cobra.
+			Name:   "list", // Moved to cobra. DONE.
 			Usage:  "Lists user's teams.",
 			Action: ctlcli.ExitErrAction(TeamList, log, "list"),
 			Flags: []cli.Flag{
@@ -916,7 +916,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "whoami", // Moved to cobra.
+			Name:   "whoami", // Moved to cobra. DONE.
 			Usage:  "Displays current authentication details.",
 			Action: ctlcli.ExitErrAction(TeamWhoami, log, "whoami"),
 			Flags: []cli.Flag{
@@ -926,7 +926,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "use", // Moved to cobra.
+			Name:   "use", // Moved to cobra. DONE.
 			Usage:  "Switch team context.",
 			Action: ctlcli.ExitErrAction(TeamUse, log, "use"),
 		}},
