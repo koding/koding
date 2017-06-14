@@ -10,14 +10,11 @@ import (
 	"koding/kites/kloud/stack"
 	kmachine "koding/klient/machine"
 	"koding/klient/machine/machinegroup"
-
-	"github.com/koding/logging"
 )
 
 // ListOptions stores options for `machine list` call.
 type ListOptions struct {
 	MachineID string
-	Log       logging.Logger
 }
 
 // List retrieves user's machines from kloud.

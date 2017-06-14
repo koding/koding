@@ -1,0 +1,44 @@
+files:
+  # syslog
+  # - "/var/log/messages"
+
+  # koding application logs
+  - "/var/log/koding/*.log"
+
+  # nginx logs
+  - "/var/log/nginx/*.log"
+
+  # supervisor manages our workers/servers
+  - "/var/log/supervisor/supervisord.log"
+
+  # server internal messages
+  - "/var/log/secure"
+
+  # aws instance creation logs
+  - "/var/log/cfn-init-cmd.log"
+  - "/var/log/cfn-init.log"
+  - "/var/log/cloud-init.log"
+  - "/var/log/cloud-init-output.log"
+
+  # aws deploy operation logs
+  - "/var/log/directory-hooks-executor.log"
+  - "/var/log/eb-activity.log"
+  - "/var/log/eb-cfn-init-call.log"
+  - "/var/log/eb-cfn-init.log"
+  - "/var/log/eb-commandprocessor.log"
+  - "/var/log/eb-publish-logs.log"
+  - "/var/log/eb-tools.log"
+  - "/var/log/eb-version-deployment.log"
+
+  # cron outputs
+  - "/var/log/cron"
+
+  # dmesg logs
+  - "/var/log/dmesg"
+
+  # snort alerts
+  - "/var/log/snort/alerts"
+
+exclude_files:
+  - "memmon-stderr---supervisor"
+  - "memmon-stdout---supervisor"

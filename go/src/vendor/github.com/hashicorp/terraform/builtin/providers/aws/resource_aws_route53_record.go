@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -26,30 +27,34 @@ func resourceAwsRoute53Record() *schema.Resource {
 		Read:   resourceAwsRoute53RecordRead,
 		Update: resourceAwsRoute53RecordUpdate,
 		Delete: resourceAwsRoute53RecordDelete,
-
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		SchemaVersion: 2,
+		MigrateState:  resourceAwsRoute53RecordMigrateState,
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				StateFunc: func(v interface{}) string {
-					value := v.(string)
+					value := strings.TrimSuffix(v.(string), ".")
 					return strings.ToLower(value)
 				},
 			},
 
-			"fqdn": &schema.Schema{
+			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"type": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"type": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateRoute53RecordType,
 			},
 
-			"zone_id": &schema.Schema{
+			"zone_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -62,44 +67,41 @@ func resourceAwsRoute53Record() *schema.Resource {
 				},
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:          schema.TypeInt,
 				Optional:      true,
 				ConflictsWith: []string{"alias"},
 			},
 
-			// Weight uses a special sentinel value to indicate it's presense.
-			// Because 0 is a valid value for Weight, we default to -1 so that any
-			// inclusion of a weight (zero or not) will be a usable value
-			"weight": &schema.Schema{
+			"weight": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  -1,
+				Removed:  "Now implemented as weighted_routing_policy; Please see https://www.terraform.io/docs/providers/aws/r/route53_record.html",
 			},
 
-			"set_identifier": &schema.Schema{
+			"set_identifier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
-			"alias": &schema.Schema{
+			"alias": {
 				Type:          schema.TypeSet,
 				Optional:      true,
 				ConflictsWith: []string{"records", "ttl"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"zone_id": &schema.Schema{
+						"zone_id": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
 
-						"name": &schema.Schema{
-							Type:     schema.TypeString,
-							Required: true,
+						"name": {
+							Type:      schema.TypeString,
+							Required:  true,
+							StateFunc: normalizeAwsAliasName,
 						},
 
-						"evaluate_target_health": &schema.Schema{
+						"evaluate_target_health": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
@@ -108,17 +110,105 @@ func resourceAwsRoute53Record() *schema.Resource {
 				Set: resourceAwsRoute53AliasRecordHash,
 			},
 
-			"failover": &schema.Schema{ // PRIMARY | SECONDARY
+			"failover": { // PRIMARY | SECONDARY
+				Type:     schema.TypeString,
+				Optional: true,
+				Removed:  "Now implemented as failover_routing_policy; see docs",
+			},
+
+			"failover_routing_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"geolocation_routing_policy",
+					"latency_routing_policy",
+					"weighted_routing_policy",
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: func(v interface{}, k string) (ws []string, es []error) {
+								value := v.(string)
+								if value != "PRIMARY" && value != "SECONDARY" {
+									es = append(es, fmt.Errorf("Failover policy type must be PRIMARY or SECONDARY"))
+								}
+								return
+							},
+						},
+					},
+				},
+			},
+
+			"latency_routing_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"failover_routing_policy",
+					"geolocation_routing_policy",
+					"weighted_routing_policy",
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"region": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"geolocation_routing_policy": { // AWS Geolocation
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"failover_routing_policy",
+					"latency_routing_policy",
+					"weighted_routing_policy",
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"continent": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"country": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"subdivision": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"weighted_routing_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ConflictsWith: []string{
+					"failover_routing_policy",
+					"geolocation_routing_policy",
+					"latency_routing_policy",
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"weight": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"health_check_id": { // ID of health check
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 
-			"health_check_id": &schema.Schema{ // ID of health check
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"records": &schema.Schema{
+			"records": {
 				Type:          schema.TypeSet,
 				ConflictsWith: []string{"alias"},
 				Elem:          &schema.Schema{Type: schema.TypeString},
@@ -133,13 +223,124 @@ func resourceAwsRoute53RecordUpdate(d *schema.ResourceData, meta interface{}) er
 	// Route 53 supports CREATE, DELETE, and UPSERT actions. We use UPSERT, and
 	// AWS dynamically determines if a record should be created or updated.
 	// Amazon Route 53 can update an existing resource record set only when all
-	// of the following values match: Name, Type
-	// (and SetIdentifier, which we don't use yet).
-	// See http://docs.aws.amazon.com/Route53/latest/APIReference/API_ChangeResourceRecordSets_Requests.html#change-rrsets-request-action
-	//
-	// Because we use UPSERT, for resouce update here we simply fall through to
-	// our resource create function.
-	return resourceAwsRoute53RecordCreate(d, meta)
+	// of the following values match: Name, Type and SetIdentifier
+	// See http://docs.aws.amazon.com/Route53/latest/APIReference/API_ChangeResourceRecordSets.html
+
+	if !d.HasChange("type") && !d.HasChange("set_identifier") {
+		// If neither type nor set_identifier changed we use UPSERT,
+		// for resouce update here we simply fall through to
+		// our resource create function.
+		return resourceAwsRoute53RecordCreate(d, meta)
+	}
+
+	// Otherwise we delete the existing record and create a new record within
+	// a transactional change
+	conn := meta.(*AWSClient).r53conn
+	zone := cleanZoneID(d.Get("zone_id").(string))
+
+	var err error
+	zoneRecord, err := conn.GetHostedZone(&route53.GetHostedZoneInput{Id: aws.String(zone)})
+	if err != nil {
+		return err
+	}
+	if zoneRecord.HostedZone == nil {
+		return fmt.Errorf("[WARN] No Route53 Zone found for id (%s)", zone)
+	}
+
+	// Build the to be deleted record
+	en := expandRecordName(d.Get("name").(string), *zoneRecord.HostedZone.Name)
+	typeo, _ := d.GetChange("type")
+
+	oldRec := &route53.ResourceRecordSet{
+		Name: aws.String(en),
+		Type: aws.String(typeo.(string)),
+	}
+
+	if v, _ := d.GetChange("ttl"); v.(int) != 0 {
+		oldRec.TTL = aws.Int64(int64(v.(int)))
+	}
+
+	// Resource records
+	if v, _ := d.GetChange("records"); v != nil {
+		recs := v.(*schema.Set).List()
+		if len(recs) > 0 {
+			oldRec.ResourceRecords = expandResourceRecords(recs, typeo.(string))
+		}
+	}
+
+	// Alias record
+	if v, _ := d.GetChange("alias"); v != nil {
+		aliases := v.(*schema.Set).List()
+		if len(aliases) == 1 {
+			alias := aliases[0].(map[string]interface{})
+			oldRec.AliasTarget = &route53.AliasTarget{
+				DNSName:              aws.String(alias["name"].(string)),
+				EvaluateTargetHealth: aws.Bool(alias["evaluate_target_health"].(bool)),
+				HostedZoneId:         aws.String(alias["zone_id"].(string)),
+			}
+		}
+	}
+
+	if v, _ := d.GetChange("set_identifier"); v.(string) != "" {
+		oldRec.SetIdentifier = aws.String(v.(string))
+	}
+
+	// Build the to be created record
+	rec, err := resourceAwsRoute53RecordBuildSet(d, *zoneRecord.HostedZone.Name)
+	if err != nil {
+		return err
+	}
+
+	// Delete the old and create the new records in a single batch. We abuse
+	// StateChangeConf for this to retry for us since Route53 sometimes returns
+	// errors about another operation happening at the same time.
+	changeBatch := &route53.ChangeBatch{
+		Comment: aws.String("Managed by Terraform"),
+		Changes: []*route53.Change{
+			{
+				Action:            aws.String("DELETE"),
+				ResourceRecordSet: oldRec,
+			},
+			{
+				Action:            aws.String("CREATE"),
+				ResourceRecordSet: rec,
+			},
+		},
+	}
+
+	req := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: aws.String(cleanZoneID(*zoneRecord.HostedZone.Id)),
+		ChangeBatch:  changeBatch,
+	}
+
+	log.Printf("[DEBUG] Updating resource records for zone: %s, name: %s\n\n%s",
+		zone, *rec.Name, req)
+
+	respRaw, err := changeRoute53RecordSet(conn, req)
+	if err != nil {
+		return errwrap.Wrapf("[ERR]: Error building changeset: {{err}}", err)
+	}
+
+	changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
+
+	// Generate an ID
+	vars := []string{
+		zone,
+		strings.ToLower(d.Get("name").(string)),
+		d.Get("type").(string),
+	}
+	if v, ok := d.GetOk("set_identifier"); ok {
+		vars = append(vars, v.(string))
+	}
+
+	d.SetId(strings.Join(vars, "_"))
+
+	err = waitForRoute53RecordSetToSync(conn, cleanChangeID(*changeInfo.Id))
+	if err != nil {
+		return err
+	}
+
+	return resourceAwsRoute53RecordRead(d, meta)
 }
 
 func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) error {
@@ -167,7 +368,7 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 	changeBatch := &route53.ChangeBatch{
 		Comment: aws.String("Managed by Terraform"),
 		Changes: []*route53.Change{
-			&route53.Change{
+			{
 				Action:            aws.String("UPSERT"),
 				ResourceRecordSet: rec,
 			},
@@ -182,13 +383,41 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 	log.Printf("[DEBUG] Creating resource records for zone: %s, name: %s\n\n%s",
 		zone, *rec.Name, req)
 
+	respRaw, err := changeRoute53RecordSet(conn, req)
+	if err != nil {
+		return errwrap.Wrapf("[ERR]: Error building changeset: {{err}}", err)
+	}
+
+	changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
+
+	// Generate an ID
+	vars := []string{
+		zone,
+		strings.ToLower(d.Get("name").(string)),
+		d.Get("type").(string),
+	}
+	if v, ok := d.GetOk("set_identifier"); ok {
+		vars = append(vars, v.(string))
+	}
+
+	d.SetId(strings.Join(vars, "_"))
+
+	err = waitForRoute53RecordSetToSync(conn, cleanChangeID(*changeInfo.Id))
+	if err != nil {
+		return err
+	}
+
+	return resourceAwsRoute53RecordRead(d, meta)
+}
+
+func changeRoute53RecordSet(conn *route53.Route53, input *route53.ChangeResourceRecordSetsInput) (interface{}, error) {
 	wait := resource.StateChangeConf{
 		Pending:    []string{"rejected"},
 		Target:     []string{"accepted"},
 		Timeout:    5 * time.Minute,
 		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			resp, err := conn.ChangeResourceRecordSets(req)
+			resp, err := conn.ChangeResourceRecordSets(input)
 			if err != nil {
 				if r53err, ok := err.(awserr.Error); ok {
 					if r53err.Code() == "PriorRequestNotComplete" {
@@ -205,26 +434,11 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 		},
 	}
 
-	respRaw, err := wait.WaitForState()
-	if err != nil {
-		return err
-	}
-	changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
+	return wait.WaitForState()
+}
 
-	// Generate an ID
-	vars := []string{
-		zone,
-		strings.ToLower(d.Get("name").(string)),
-		d.Get("type").(string),
-	}
-	if v, ok := d.GetOk("set_identifier"); ok {
-		vars = append(vars, v.(string))
-	}
-
-	d.SetId(strings.Join(vars, "_"))
-
-	// Wait until we are done
-	wait = resource.StateChangeConf{
+func waitForRoute53RecordSetToSync(conn *route53.Route53, requestId string) error {
+	wait := resource.StateChangeConf{
 		Delay:      30 * time.Second,
 		Pending:    []string{"PENDING"},
 		Target:     []string{"INSYNC"},
@@ -232,20 +446,34 @@ func resourceAwsRoute53RecordCreate(d *schema.ResourceData, meta interface{}) er
 		MinTimeout: 5 * time.Second,
 		Refresh: func() (result interface{}, state string, err error) {
 			changeRequest := &route53.GetChangeInput{
-				Id: aws.String(cleanChangeID(*changeInfo.Id)),
+				Id: aws.String(requestId),
 			}
 			return resourceAwsGoRoute53Wait(conn, changeRequest)
 		},
 	}
-	_, err = wait.WaitForState()
-	if err != nil {
-		return err
-	}
-
-	return resourceAwsRoute53RecordRead(d, meta)
+	_, err := wait.WaitForState()
+	return err
 }
 
 func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) error {
+	// If we don't have a zone ID we're doing an import. Parse it from the ID.
+	if _, ok := d.GetOk("zone_id"); !ok {
+		parts := strings.Split(d.Id(), "_")
+
+		//we check that we have parsed the id into the correct number of segments
+		//we need at least 3 segments!
+		if len(parts) == 1 || len(parts) < 3 {
+			return fmt.Errorf("Error Importing aws_route_53 record. Please make sure the record ID is in the form ZONEID_RECORDNAME_TYPE (i.e. Z4KAPRWWNC7JR_dev_A")
+		}
+
+		d.Set("zone_id", parts[0])
+		d.Set("name", parts[1])
+		d.Set("type", parts[2])
+		if len(parts) > 3 {
+			d.Set("set_identifier", parts[3])
+		}
+	}
+
 	record, err := findRecord(d, meta)
 	if err != nil {
 		switch err {
@@ -258,20 +486,63 @@ func resourceAwsRoute53RecordRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	err = d.Set("records", flattenResourceRecords(record.ResourceRecords))
+	err = d.Set("records", flattenResourceRecords(record.ResourceRecords, *record.Type))
 	if err != nil {
 		return fmt.Errorf("[DEBUG] Error setting records for: %s, error: %#v", d.Id(), err)
 	}
 
-	d.Set("ttl", record.TTL)
-	// Only set the weight if it's non-nil, otherwise we end up with a 0 weight
-	// which has actual contextual meaning with Route 53 records
-	//   See http://docs.aws.amazon.com/fr_fr/Route53/latest/APIReference/API_ChangeResourceRecordSets_Examples.html
-	if record.Weight != nil {
-		d.Set("weight", record.Weight)
+	if alias := record.AliasTarget; alias != nil {
+		name := normalizeAwsAliasName(*alias.DNSName)
+		d.Set("alias", []interface{}{
+			map[string]interface{}{
+				"zone_id": *alias.HostedZoneId,
+				"name":    name,
+				"evaluate_target_health": *alias.EvaluateTargetHealth,
+			},
+		})
 	}
+
+	d.Set("ttl", record.TTL)
+
+	if record.Failover != nil {
+		v := []map[string]interface{}{{
+			"type": aws.StringValue(record.Failover),
+		}}
+		if err := d.Set("failover_routing_policy", v); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting failover records for: %s, error: %#v", d.Id(), err)
+		}
+	}
+
+	if record.GeoLocation != nil {
+		v := []map[string]interface{}{{
+			"continent":   aws.StringValue(record.GeoLocation.ContinentCode),
+			"country":     aws.StringValue(record.GeoLocation.CountryCode),
+			"subdivision": aws.StringValue(record.GeoLocation.SubdivisionCode),
+		}}
+		if err := d.Set("geolocation_routing_policy", v); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting gelocation records for: %s, error: %#v", d.Id(), err)
+		}
+	}
+
+	if record.Region != nil {
+		v := []map[string]interface{}{{
+			"region": aws.StringValue(record.Region),
+		}}
+		if err := d.Set("latency_routing_policy", v); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting latency records for: %s, error: %#v", d.Id(), err)
+		}
+	}
+
+	if record.Weight != nil {
+		v := []map[string]interface{}{{
+			"weight": aws.Int64Value((record.Weight)),
+		}}
+		if err := d.Set("weighted_routing_policy", v); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting weighted records for: %s, error: %#v", d.Id(), err)
+		}
+	}
+
 	d.Set("set_identifier", record.SetIdentifier)
-	d.Set("failover", record.Failover)
 	d.Set("health_check_id", record.HealthCheckId)
 
 	return nil
@@ -305,6 +576,7 @@ func findRecord(d *schema.ResourceData, meta interface{}) (*route53.ResourceReco
 		}
 		return nil, err
 	}
+
 	en := expandRecordName(d.Get("name").(string), *zoneRecord.HostedZone.Name)
 	log.Printf("[DEBUG] Expanded record name: %s", en)
 	d.Set("fqdn", en)
@@ -359,7 +631,7 @@ func resourceAwsRoute53RecordDelete(d *schema.ResourceData, meta interface{}) er
 	changeBatch := &route53.ChangeBatch{
 		Comment: aws.String("Deleted by Terraform"),
 		Changes: []*route53.Change{
-			&route53.Change{
+			{
 				Action:            aws.String("DELETE"),
 				ResourceRecordSet: rec,
 			},
@@ -373,13 +645,33 @@ func resourceAwsRoute53RecordDelete(d *schema.ResourceData, meta interface{}) er
 		ChangeBatch:  changeBatch,
 	}
 
+	respRaw, err := deleteRoute53RecordSet(conn, req)
+	if err != nil {
+		return errwrap.Wrapf("[ERR]: Error building changeset: {{err}}", err)
+	}
+
+	changeInfo := respRaw.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
+	if changeInfo == nil {
+		log.Printf("[INFO] No ChangeInfo Found. Waiting for Sync not required")
+		return nil
+	}
+
+	err = waitForRoute53RecordSetToSync(conn, cleanChangeID(*changeInfo.Id))
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func deleteRoute53RecordSet(conn *route53.Route53, input *route53.ChangeResourceRecordSetsInput) (interface{}, error) {
 	wait := resource.StateChangeConf{
 		Pending:    []string{"rejected"},
 		Target:     []string{"accepted"},
 		Timeout:    5 * time.Minute,
 		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			_, err := conn.ChangeResourceRecordSets(req)
+			resp, err := conn.ChangeResourceRecordSets(input)
 			if err != nil {
 				if r53err, ok := err.(awserr.Error); ok {
 					if r53err.Code() == "PriorRequestNotComplete" {
@@ -390,22 +682,18 @@ func resourceAwsRoute53RecordDelete(d *schema.ResourceData, meta interface{}) er
 
 					if r53err.Code() == "InvalidChangeBatch" {
 						// This means that the record is already gone.
-						return 42, "accepted", nil
+						return resp, "accepted", nil
 					}
 				}
 
 				return 42, "failure", err
 			}
 
-			return 42, "accepted", nil
+			return resp, "accepted", nil
 		},
 	}
 
-	if _, err := wait.WaitForState(); err != nil {
-		return err
-	}
-
-	return nil
+	return wait.WaitForState()
 }
 
 func resourceAwsRoute53RecordBuildSet(d *schema.ResourceData, zoneName string) (*route53.ResourceRecordSet, error) {
@@ -454,27 +742,69 @@ func resourceAwsRoute53RecordBuildSet(d *schema.ResourceData, zoneName string) (
 		}
 	}
 
-	if v, ok := d.GetOk("failover"); ok {
+	if v, ok := d.GetOk("failover_routing_policy"); ok {
 		if _, ok := d.GetOk("set_identifier"); !ok {
-			return nil, fmt.Errorf(`provider.aws: aws_route53_record: %s: "set_identifier": required field is not set when "failover" is set`, d.Get("name").(string))
+			return nil, fmt.Errorf(`provider.aws: aws_route53_record: %s: "set_identifier": required field is not set when "failover_routing_policy" is set`, d.Get("name").(string))
 		}
-		rec.Failover = aws.String(v.(string))
+		records := v.([]interface{})
+		if len(records) > 1 {
+			return nil, fmt.Errorf("You can only define a single failover_routing_policy per record")
+		}
+		failover := records[0].(map[string]interface{})
+
+		rec.Failover = aws.String(failover["type"].(string))
 	}
 
 	if v, ok := d.GetOk("health_check_id"); ok {
 		rec.HealthCheckId = aws.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("weighted_routing_policy"); ok {
+		if _, ok := d.GetOk("set_identifier"); !ok {
+			return nil, fmt.Errorf(`provider.aws: aws_route53_record: %s: "set_identifier": required field is not set when "weight_routing_policy" is set`, d.Get("name").(string))
+		}
+		records := v.([]interface{})
+		if len(records) > 1 {
+			return nil, fmt.Errorf("You can only define a single weighed_routing_policy per record")
+		}
+		weight := records[0].(map[string]interface{})
+
+		rec.Weight = aws.Int64(int64(weight["weight"].(int)))
+	}
+
 	if v, ok := d.GetOk("set_identifier"); ok {
 		rec.SetIdentifier = aws.String(v.(string))
 	}
 
-	w := d.Get("weight").(int)
-	if w > -1 {
+	if v, ok := d.GetOk("latency_routing_policy"); ok {
 		if _, ok := d.GetOk("set_identifier"); !ok {
-			return nil, fmt.Errorf(`provider.aws: aws_route53_record: %s: "set_identifier": required field is not set when "weight" is set`, d.Get("name").(string))
+			return nil, fmt.Errorf(`provider.aws: aws_route53_record: %s: "set_identifier": required field is not set when "latency_routing_policy" is set`, d.Get("name").(string))
 		}
-		rec.Weight = aws.Int64(int64(w))
+		records := v.([]interface{})
+		if len(records) > 1 {
+			return nil, fmt.Errorf("You can only define a single latency_routing_policy per record")
+		}
+		latency := records[0].(map[string]interface{})
+
+		rec.Region = aws.String(latency["region"].(string))
+	}
+
+	if v, ok := d.GetOk("geolocation_routing_policy"); ok {
+		if _, ok := d.GetOk("set_identifier"); !ok {
+			return nil, fmt.Errorf(`provider.aws: aws_route53_record: %s: "set_identifier": required field is not set when "geolocation_routing_policy" is set`, d.Get("name").(string))
+		}
+		geolocations := v.([]interface{})
+		if len(geolocations) > 1 {
+			return nil, fmt.Errorf("You can only define a single geolocation_routing_policy per record")
+		}
+		geolocation := geolocations[0].(map[string]interface{})
+
+		rec.GeoLocation = &route53.GeoLocation{
+			ContinentCode:   nilString(geolocation["continent"].(string)),
+			CountryCode:     nilString(geolocation["country"].(string)),
+			SubdivisionCode: nilString(geolocation["subdivision"].(string)),
+		}
+		log.Printf("[DEBUG] Creating geolocation: %#v", geolocation)
 	}
 
 	return rec, nil
@@ -508,7 +838,11 @@ func expandRecordName(name, zone string) string {
 	rn := strings.ToLower(strings.TrimSuffix(name, "."))
 	zone = strings.TrimSuffix(zone, ".")
 	if !strings.HasSuffix(rn, zone) {
-		rn = strings.Join([]string{name, zone}, ".")
+		if len(name) == 0 {
+			rn = zone
+		} else {
+			rn = strings.Join([]string{name, zone}, ".")
+		}
 	}
 	return rn
 }
@@ -516,9 +850,28 @@ func expandRecordName(name, zone string) string {
 func resourceAwsRoute53AliasRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", normalizeAwsAliasName(m["name"].(string))))
 	buf.WriteString(fmt.Sprintf("%s-", m["zone_id"].(string)))
 	buf.WriteString(fmt.Sprintf("%t-", m["evaluate_target_health"].(bool)))
 
 	return hashcode.String(buf.String())
+}
+
+// nilString takes a string as an argument and returns a string
+// pointer. The returned pointer is nil if the string argument is
+// empty, otherwise it is a pointer to a copy of the string.
+func nilString(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return aws.String(s)
+}
+
+func normalizeAwsAliasName(alias interface{}) string {
+	input := alias.(string)
+	if strings.HasPrefix(input, "dualstack.") {
+		return strings.Replace(input, "dualstack.", "", -1)
+	}
+
+	return strings.TrimRight(input, ".")
 }

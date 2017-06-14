@@ -29,9 +29,9 @@ We'll improve our configuration by assigning an elastic IP to
 the EC2 instance we're managing. Modify your `example.tf` and
 add the following:
 
-```
+```hcl
 resource "aws_eip" "ip" {
-	instance = "${aws_instance.example.id}"
+  instance = "${aws_instance.example.id}"
 }
 ```
 
@@ -59,24 +59,35 @@ will look something like the following:
 
 ```
 $ terraform plan
-...
 
 + aws_eip.ip
-    instance:   "" => "${aws_instance.example.id}"
-    private_ip: "" => "<computed>"
-    public_ip:  "" => "<computed>"
+    allocation_id:     "<computed>"
+    association_id:    "<computed>"
+    domain:            "<computed>"
+    instance:          "${aws_instance.example.id}"
+    network_interface: "<computed>"
+    private_ip:        "<computed>"
+    public_ip:         "<computed>"
 
 + aws_instance.example
-    ami:               "" => "ami-b8b061d0"
-    availability_zone: "" => "<computed>"
-    instance_type:     "" => "t1.micro"
-    key_name:          "" => "<computed>"
-    private_dns:       "" => "<computed>"
-    private_ip:        "" => "<computed>"
-    public_dns:        "" => "<computed>"
-    public_ip:         "" => "<computed>"
-    security_groups:   "" => "<computed>"
-    subnet_id:         "" => "<computed>"
+    ami:                      "ami-b374d5a5"
+    availability_zone:        "<computed>"
+    ebs_block_device.#:       "<computed>"
+    ephemeral_block_device.#: "<computed>"
+    instance_state:           "<computed>"
+    instance_type:            "t2.micro"
+    key_name:                 "<computed>"
+    placement_group:          "<computed>"
+    private_dns:              "<computed>"
+    private_ip:               "<computed>"
+    public_dns:               "<computed>"
+    public_ip:                "<computed>"
+    root_block_device.#:      "<computed>"
+    security_groups.#:        "<computed>"
+    source_dest_check:        "true"
+    subnet_id:                "<computed>"
+    tenancy:                  "<computed>"
+    vpc_security_group_ids.#: "<computed>"
 ```
 
 Terraform will create two resources: the instance and the elastic
@@ -89,11 +100,22 @@ Next, run `terraform apply`. The output will look similar to the
 following:
 
 ```
+$ terraform apply
 aws_instance.example: Creating...
-  ami:           "" => "ami-b8b061d0"
-  instance_type: "" => "t1.micro"
+  ami:                      "" => "ami-b374d5a5"
+  instance_type:            "" => "t2.micro"
+  [..]
+aws_instance.example: Still creating... (10s elapsed)
+aws_instance.example: Creation complete
 aws_eip.ip: Creating...
-  instance: "" => "i-0e737b25"
+  allocation_id:     "" => "<computed>"
+  association_id:    "" => "<computed>"
+  domain:            "" => "<computed>"
+  instance:          "" => "i-f3d77d69"
+  network_interface: "" => "<computed>"
+  private_ip:        "" => "<computed>"
+  public_ip:         "" => "<computed>"
+aws_eip.ip: Creation complete
 
 Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 ```
@@ -123,10 +145,10 @@ However, you can also specify explicit dependencies with the
 we could modify the "aws\_eip" resource to the following, which
 effectively does the same thing and is redundant:
 
-```
+```hcl
 resource "aws_eip" "ip" {
-	instance = "${aws_instance.example.id}"
-	depends_on = ["aws_instance.example"]
+  instance   = "${aws_instance.example.id}"
+  depends_on = ["aws_instance.example"]
 }
 ```
 
@@ -142,10 +164,10 @@ We can now augment the configuration with another EC2 instance.
 Because this doesn't rely on any other resource, it can be
 created in parallel to everything else.
 
-```
+```hcl
 resource "aws_instance" "another" {
-	ami = "ami-b8b061d0"
-	instance_type = "t1.micro"
+  ami           = "ami-b374d5a5"
+  instance_type = "t2.micro"
 }
 ```
 

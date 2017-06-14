@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -120,6 +120,7 @@ func (s *ConfigurationService) UpdateConfiguration(p *UpdateConfigurationParams)
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -264,6 +265,7 @@ func (s *ConfigurationService) ListConfigurations(p *ListConfigurationsParams) (
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -312,6 +314,7 @@ func (s *ConfigurationService) ListCapabilities(p *ListCapabilitiesParams) (*Lis
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -322,6 +325,8 @@ type ListCapabilitiesResponse struct {
 
 type Capability struct {
 	Allowusercreateprojects   bool   `json:"allowusercreateprojects,omitempty"`
+	Allowuserexpungerecovervm bool   `json:"allowuserexpungerecovervm,omitempty"`
+	Allowuserviewdestroyedvm  bool   `json:"allowuserviewdestroyedvm,omitempty"`
 	Apilimitinterval          int    `json:"apilimitinterval,omitempty"`
 	Apilimitmax               int    `json:"apilimitmax,omitempty"`
 	Cloudstackversion         string `json:"cloudstackversion,omitempty"`
@@ -401,6 +406,7 @@ func (s *ConfigurationService) ListDeploymentPlanners(p *ListDeploymentPlannersP
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -502,6 +508,7 @@ func (s *ConfigurationService) ListLdapConfigurations(p *ListLdapConfigurationsP
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -571,6 +578,7 @@ func (s *ConfigurationService) AddLdapConfiguration(p *AddLdapConfigurationParam
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -622,6 +630,7 @@ func (s *ConfigurationService) DeleteLdapConfiguration(p *DeleteLdapConfiguratio
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 

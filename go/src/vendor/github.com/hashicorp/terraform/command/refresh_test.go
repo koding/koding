@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/copy"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/mitchellh/cli"
 )
@@ -59,7 +60,13 @@ func TestRefresh(t *testing.T) {
 	}
 }
 
-func TestRefresh_badState(t *testing.T) {
+func TestRefresh_empty(t *testing.T) {
+	// Create a temporary working directory that is empty
+	td := tempDir(t)
+	copy.CopyDir(testFixturePath("refresh-empty"), td)
+	defer os.RemoveAll(td)
+	defer testChdir(t, td)()
+
 	p := testProvider()
 	ui := new(cli.MockUi)
 	c := &RefreshCommand{
@@ -69,12 +76,55 @@ func TestRefresh_badState(t *testing.T) {
 		},
 	}
 
+	p.RefreshFn = nil
+	p.RefreshReturn = &terraform.InstanceState{ID: "yes"}
+
 	args := []string{
-		"-state", "i-should-not-exist-ever",
+		td,
+	}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: %d\n\n%s", code, ui.ErrorWriter.String())
+	}
+
+	if p.RefreshCalled {
+		t.Fatal("refresh should not be called")
+	}
+}
+
+func TestRefresh_lockedState(t *testing.T) {
+	state := testState()
+	statePath := testStateFile(t, state)
+
+	unlock, err := testLockState("./testdata", statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer unlock()
+
+	p := testProvider()
+	ui := new(cli.MockUi)
+	c := &RefreshCommand{
+		Meta: Meta{
+			ContextOpts: testCtxConfig(p),
+			Ui:          ui,
+		},
+	}
+
+	p.RefreshFn = nil
+	p.RefreshReturn = &terraform.InstanceState{ID: "yes"}
+
+	args := []string{
+		"-state", statePath,
 		testFixturePath("refresh"),
 	}
-	if code := c.Run(args); code != 1 {
-		t.Fatalf("bad: %d\n\n%s", code, ui.ErrorWriter.String())
+
+	if code := c.Run(args); code == 0 {
+		t.Fatal("expected error")
+	}
+
+	output := ui.ErrorWriter.String()
+	if !strings.Contains(output, "lock") {
+		t.Fatal("command output does not look like a lock error:", output)
 	}
 }
 
@@ -173,7 +223,7 @@ func TestRefresh_defaultState(t *testing.T) {
 	}
 
 	p.RefreshFn = nil
-	p.RefreshReturn = &terraform.InstanceState{ID: "yes"}
+	p.RefreshReturn = newInstanceState("yes")
 
 	args := []string{
 		testFixturePath("refresh"),
@@ -200,7 +250,8 @@ func TestRefresh_defaultState(t *testing.T) {
 	actual := newState.RootModule().Resources["test_instance.foo"].Primary
 	expected := p.RefreshReturn
 	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("bad: %#v", actual)
+		t.Logf("expected:\n%#v", expected)
+		t.Fatalf("bad:\n%#v", actual)
 	}
 
 	f, err = os.Open(statePath + DefaultBackupExtension)
@@ -218,6 +269,109 @@ func TestRefresh_defaultState(t *testing.T) {
 	expected = originalState.RootModule().Resources["test_instance.foo"].Primary
 	if !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("bad: %#v", actual)
+	}
+}
+
+func TestRefresh_futureState(t *testing.T) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if err := os.Chdir(testFixturePath("refresh")); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	defer os.Chdir(cwd)
+
+	state := testState()
+	state.TFVersion = "99.99.99"
+	statePath := testStateFile(t, state)
+
+	p := testProvider()
+	ui := new(cli.MockUi)
+	c := &RefreshCommand{
+		Meta: Meta{
+			ContextOpts: testCtxConfig(p),
+			Ui:          ui,
+		},
+	}
+
+	args := []string{
+		"-state", statePath,
+	}
+	if code := c.Run(args); code == 0 {
+		t.Fatal("should fail")
+	}
+
+	if p.RefreshCalled {
+		t.Fatal("refresh should not be called")
+	}
+
+	f, err := os.Open(statePath)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	newState, err := terraform.ReadState(f)
+	f.Close()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	actual := strings.TrimSpace(newState.String())
+	expected := strings.TrimSpace(state.String())
+	if actual != expected {
+		t.Fatalf("bad:\n\n%s", actual)
+	}
+}
+
+func TestRefresh_pastState(t *testing.T) {
+	state := testState()
+	state.TFVersion = "0.1.0"
+	statePath := testStateFile(t, state)
+
+	p := testProvider()
+	ui := new(cli.MockUi)
+	c := &RefreshCommand{
+		Meta: Meta{
+			ContextOpts: testCtxConfig(p),
+			Ui:          ui,
+		},
+	}
+
+	p.RefreshFn = nil
+	p.RefreshReturn = &terraform.InstanceState{ID: "yes"}
+
+	args := []string{
+		"-state", statePath,
+		testFixturePath("refresh"),
+	}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("bad: %d\n\n%s", code, ui.ErrorWriter.String())
+	}
+
+	if !p.RefreshCalled {
+		t.Fatal("refresh should be called")
+	}
+
+	f, err := os.Open(statePath)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	newState, err := terraform.ReadState(f)
+	f.Close()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	actual := strings.TrimSpace(newState.String())
+	expected := strings.TrimSpace(testRefreshStr)
+	if actual != expected {
+		t.Fatalf("bad:\n\n%s", actual)
+	}
+
+	if newState.TFVersion != terraform.Version {
+		t.Fatalf("bad:\n\n%s", newState.TFVersion)
 	}
 }
 
@@ -244,7 +398,7 @@ func TestRefresh_outPath(t *testing.T) {
 	}
 
 	p.RefreshFn = nil
-	p.RefreshReturn = &terraform.InstanceState{ID: "yes"}
+	p.RefreshReturn = newInstanceState("yes")
 
 	args := []string{
 		"-state", statePath,
@@ -474,7 +628,7 @@ func TestRefresh_backup(t *testing.T) {
 	}
 
 	p.RefreshFn = nil
-	p.RefreshReturn = &terraform.InstanceState{ID: "yes"}
+	p.RefreshReturn = newInstanceState("yes")
 
 	args := []string{
 		"-state", statePath,
@@ -559,7 +713,7 @@ func TestRefresh_disableBackup(t *testing.T) {
 	}
 
 	p.RefreshFn = nil
-	p.RefreshReturn = &terraform.InstanceState{ID: "yes"}
+	p.RefreshReturn = newInstanceState("yes")
 
 	args := []string{
 		"-state", statePath,
@@ -608,6 +762,10 @@ func TestRefresh_disableBackup(t *testing.T) {
 	if err == nil || !os.IsNotExist(err) {
 		t.Fatalf("backup should not exist")
 	}
+	_, err = os.Stat("-")
+	if err == nil || !os.IsNotExist(err) {
+		t.Fatalf("backup should not exist")
+	}
 }
 
 func TestRefresh_displaysOutputs(t *testing.T) {
@@ -636,6 +794,20 @@ func TestRefresh_displaysOutputs(t *testing.T) {
 	actual := ui.OutputWriter.String()
 	if !strings.Contains(actual, outputValue) {
 		t.Fatalf("Expected:\n%s\n\nTo include: %q", actual, outputValue)
+	}
+}
+
+// When creating an InstaneState for direct comparison to one contained in
+// terraform.State, all fields must be initialized (duplicating the
+// InstanceState.init() method)
+func newInstanceState(id string) *terraform.InstanceState {
+	return &terraform.InstanceState{
+		ID:         id,
+		Attributes: make(map[string]string),
+		Ephemeral: terraform.EphemeralState{
+			ConnInfo: make(map[string]string),
+		},
+		Meta: make(map[string]interface{}),
 	}
 }
 

@@ -19,33 +19,37 @@ Certs uploaded to IAM can easily work with other AWS services such as:
 For information about server certificates in IAM, see [Managing Server
 Certificates][2] in AWS Documentation.
 
+~> **Note:** All arguments including the private key will be stored in the raw state as plain-text.
+[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
 ## Example Usage
 
 **Using certs on file:**
 
-```
+```hcl
 resource "aws_iam_server_certificate" "test_cert" {
-  name = "some_test_cert"
+  name             = "some_test_cert"
   certificate_body = "${file("self-ca-cert.pem")}"
-  private_key = "${file("test-key.pem")}"
+  private_key      = "${file("test-key.pem")}"
 }
 ```
 
 **Example with cert in-line:**
 
-```
+```hcl
 resource "aws_iam_server_certificate" "test_cert_alt" {
   name = "alt_test_cert"
+
   certificate_body = <<EOF
 -----BEGIN CERTIFICATE-----
 [......] # cert contents
 -----END CERTIFICATE-----
 EOF
 
-  private_key =  <<EOF
+  private_key = <<EOF
 -----BEGIN RSA PRIVATE KEY-----
 [......] # cert contents
------END CERTIFICATE-----
+-----END RSA PRIVATE KEY-----
 EOF
 }
 ```
@@ -59,8 +63,7 @@ recommended you utilize the `name_prefix` attribute and enable the
 to create a new, updated `aws_iam_server_certificate` resource and replace it in
 dependant resources before attempting to destroy the old version.
 
-
-```
+```hcl
 resource "aws_iam_server_certificate" "test_cert" {
   name_prefix      = "example-cert"
   certificate_body = "${file("self-ca-cert.pem")}"
@@ -90,17 +93,17 @@ resource "aws_elb" "ourapp" {
 
 The following arguments are supported:
 
-* `name` - (Optional) The name of the Server Certificate. Do not include the 
-  path in this value.If omitted, Terraform will assign a random, unique name.
+* `name` - (Optional) The name of the Server Certificate. Do not include the
+  path in this value. If omitted, Terraform will assign a random, unique name.
 * `name_prefix` - (Optional) Creates a unique name beginning with the specified
   prefix. Conflicts with `name`.
-* `certificate_body` – (Required) The contents of the public key certificate in 
+* `certificate_body` – (Required) The contents of the public key certificate in
   PEM-encoded format.
-* `certificate_chain` – (Optional) The contents of the certificate chain. 
-  This is typically a concatenation of the PEM-encoded public key certificates 
-  of the chain. 
+* `certificate_chain` – (Optional) The contents of the certificate chain.
+  This is typically a concatenation of the PEM-encoded public key certificates
+  of the chain.
 * `private_key` – (Required) The contents of the private key in PEM-encoded format.
-* `path` - (Optional) The IAM path for the server certificate.  If it is not 
+* `path` - (Optional) The IAM path for the server certificate.  If it is not
     included, it defaults to a slash (/). If this certificate is for use with
     AWS CloudFront, the path must be in format `/cloudfront/your_path_here`.
     See [IAM Identifiers][1] for more details on IAM Paths.
@@ -116,5 +119,4 @@ The following arguments are supported:
 
 [1]: https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html
 [2]: https://docs.aws.amazon.com/IAM/latest/UserGuide/ManagingServerCerts.html
-[lifecycle]: http://localhost:4567/docs/configuration/resources.html
-
+[lifecycle]: /docs/configuration/resources.html

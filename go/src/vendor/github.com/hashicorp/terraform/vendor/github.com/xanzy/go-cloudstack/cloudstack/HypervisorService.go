@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ func (s *HypervisorService) ListHypervisors(p *ListHypervisorsParams) (*ListHype
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -144,6 +145,7 @@ func (s *HypervisorService) UpdateHypervisorCapabilities(p *UpdateHypervisorCapa
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -236,11 +238,17 @@ func (s *HypervisorService) NewListHypervisorCapabilitiesParams() *ListHyperviso
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *HypervisorService) GetHypervisorCapabilityByID(id string) (*HypervisorCapability, int, error) {
+func (s *HypervisorService) GetHypervisorCapabilityByID(id string, opts ...OptionFunc) (*HypervisorCapability, int, error) {
 	p := &ListHypervisorCapabilitiesParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListHypervisorCapabilities(p)
 	if err != nil {
@@ -273,6 +281,7 @@ func (s *HypervisorService) ListHypervisorCapabilities(p *ListHypervisorCapabili
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 

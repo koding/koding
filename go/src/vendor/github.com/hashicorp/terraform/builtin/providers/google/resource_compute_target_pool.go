@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeTargetPool() *schema.Resource {
@@ -16,76 +15,86 @@ func resourceComputeTargetPool() *schema.Resource {
 		Read:   resourceComputeTargetPoolRead,
 		Delete: resourceComputeTargetPoolDelete,
 		Update: resourceComputeTargetPoolUpdate,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"backup_pool": &schema.Schema{
+			"backup_pool": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: false,
 			},
 
-			"description": &schema.Schema{
+			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
-			"failover_ratio": &schema.Schema{
+			"failover_ratio": {
 				Type:     schema.TypeFloat,
 				Optional: true,
 				ForceNew: true,
 			},
 
-			"health_checks": &schema.Schema{
+			"health_checks": {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: false,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"instances": &schema.Schema{
+			"instances": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				ForceNew: false,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"project": &schema.Schema{
+			"project": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 			},
 
-			"region": &schema.Schema{
+			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 			},
 
-			"self_link": &schema.Schema{
+			"self_link": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"session_affinity": &schema.Schema{
+			"session_affinity": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  "NONE",
 			},
 		},
 	}
 }
 
 func convertStringArr(ifaceArr []interface{}) []string {
-	arr := make([]string, len(ifaceArr))
-	for i, v := range ifaceArr {
-		arr[i] = v.(string)
+	var arr []string
+	for _, v := range ifaceArr {
+		if v == nil {
+			continue
+		}
+		arr = append(arr, v.(string))
 	}
 	return arr
 }
@@ -106,7 +115,7 @@ func convertHealthChecks(config *Config, project string, names []string) ([]stri
 
 // Instances do not need to exist yet, so we simply generate URLs.
 // Instances can be full URLS or zone/name
-func convertInstances(config *Config, project string, names []string) ([]string, error) {
+func convertInstancesToUrls(config *Config, project string, names []string) ([]string, error) {
 	urls := make([]string, len(names))
 	for i, name := range names {
 		if strings.HasPrefix(name, "https://www.googleapis.com/compute/v1/") {
@@ -144,7 +153,7 @@ func resourceComputeTargetPoolCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	instanceUrls, err := convertInstances(
+	instanceUrls, err := convertInstancesToUrls(
 		config, project, convertStringArr(d.Get("instances").([]interface{})))
 	if err != nil {
 		return err
@@ -172,7 +181,7 @@ func resourceComputeTargetPoolCreate(d *schema.ResourceData, meta interface{}) e
 	// It probably maybe worked, so store the ID now
 	d.SetId(tpool.Name)
 
-	err = computeOperationWaitRegion(config, op, region, "Creating Target Pool")
+	err = computeOperationWaitRegion(config, op, project, region, "Creating Target Pool")
 	if err != nil {
 		return err
 	}
@@ -251,7 +260,7 @@ func resourceComputeTargetPoolUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error updating health_check: %s", err)
 		}
 
-		err = computeOperationWaitRegion(config, op, region, "Updating Target Pool")
+		err = computeOperationWaitRegion(config, op, project, region, "Updating Target Pool")
 		if err != nil {
 			return err
 		}
@@ -267,7 +276,7 @@ func resourceComputeTargetPoolUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error updating health_check: %s", err)
 		}
 
-		err = computeOperationWaitRegion(config, op, region, "Updating Target Pool")
+		err = computeOperationWaitRegion(config, op, project, region, "Updating Target Pool")
 		if err != nil {
 			return err
 		}
@@ -279,11 +288,11 @@ func resourceComputeTargetPoolUpdate(d *schema.ResourceData, meta interface{}) e
 		from_, to_ := d.GetChange("instances")
 		from := convertStringArr(from_.([]interface{}))
 		to := convertStringArr(to_.([]interface{}))
-		fromUrls, err := convertInstances(config, project, from)
+		fromUrls, err := convertInstancesToUrls(config, project, from)
 		if err != nil {
 			return err
 		}
-		toUrls, err := convertInstances(config, project, to)
+		toUrls, err := convertInstancesToUrls(config, project, to)
 		if err != nil {
 			return err
 		}
@@ -301,7 +310,7 @@ func resourceComputeTargetPoolUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error updating instances: %s", err)
 		}
 
-		err = computeOperationWaitRegion(config, op, region, "Updating Target Pool")
+		err = computeOperationWaitRegion(config, op, project, region, "Updating Target Pool")
 		if err != nil {
 			return err
 		}
@@ -316,7 +325,7 @@ func resourceComputeTargetPoolUpdate(d *schema.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("Error updating instances: %s", err)
 		}
-		err = computeOperationWaitRegion(config, op, region, "Updating Target Pool")
+		err = computeOperationWaitRegion(config, op, project, region, "Updating Target Pool")
 		if err != nil {
 			return err
 		}
@@ -334,7 +343,7 @@ func resourceComputeTargetPoolUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error updating backup_pool: %s", err)
 		}
 
-		err = computeOperationWaitRegion(config, op, region, "Updating Target Pool")
+		err = computeOperationWaitRegion(config, op, project, region, "Updating Target Pool")
 		if err != nil {
 			return err
 		}
@@ -344,6 +353,26 @@ func resourceComputeTargetPoolUpdate(d *schema.ResourceData, meta interface{}) e
 	d.Partial(false)
 
 	return resourceComputeTargetPoolRead(d, meta)
+}
+
+func convertInstancesFromUrls(urls []string) []string {
+	result := make([]string, 0, len(urls))
+	for _, url := range urls {
+		urlArray := strings.Split(url, "/")
+		instance := fmt.Sprintf("%s/%s", urlArray[len(urlArray)-3], urlArray[len(urlArray)-1])
+		result = append(result, instance)
+	}
+	return result
+}
+
+func convertHealthChecksFromUrls(urls []string) []string {
+	result := make([]string, 0, len(urls))
+	for _, url := range urls {
+		urlArray := strings.Split(url, "/")
+		healthCheck := fmt.Sprintf("%s", urlArray[len(urlArray)-1])
+		result = append(result, healthCheck)
+	}
+	return result
 }
 
 func resourceComputeTargetPoolRead(d *schema.ResourceData, meta interface{}) error {
@@ -362,19 +391,28 @@ func resourceComputeTargetPoolRead(d *schema.ResourceData, meta interface{}) err
 	tpool, err := config.clientCompute.TargetPools.Get(
 		project, region, d.Id()).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			log.Printf("[WARN] Removing Target Pool %q because it's gone", d.Get("name").(string))
-			// The resource doesn't exist anymore
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error reading TargetPool: %s", err)
+		return handleNotFoundError(err, d, fmt.Sprintf("Target Pool %q", d.Get("name").(string)))
 	}
 
+	regionUrl := strings.Split(tpool.Region, "/")
 	d.Set("self_link", tpool.SelfLink)
-
+	d.Set("backup_pool", tpool.BackupPool)
+	d.Set("description", tpool.Description)
+	d.Set("failover_ratio", tpool.FailoverRatio)
+	if tpool.HealthChecks != nil {
+		d.Set("health_checks", convertHealthChecksFromUrls(tpool.HealthChecks))
+	} else {
+		d.Set("health_checks", nil)
+	}
+	if tpool.Instances != nil {
+		d.Set("instances", convertInstancesFromUrls(tpool.Instances))
+	} else {
+		d.Set("instances", nil)
+	}
+	d.Set("name", tpool.Name)
+	d.Set("region", regionUrl[len(regionUrl)-1])
+	d.Set("session_affinity", tpool.SessionAffinity)
+	d.Set("project", project)
 	return nil
 }
 
@@ -398,7 +436,7 @@ func resourceComputeTargetPoolDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error deleting TargetPool: %s", err)
 	}
 
-	err = computeOperationWaitRegion(config, op, region, "Deleting Target Pool")
+	err = computeOperationWaitRegion(config, op, project, region, "Deleting Target Pool")
 	if err != nil {
 		return err
 	}

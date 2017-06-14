@@ -17,8 +17,9 @@ func TestUntaint(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -49,7 +50,7 @@ test_instance.foo:
 	testStateOutput(t, statePath, expected)
 }
 
-func TestUntaint_indexRequired(t *testing.T) {
+func TestUntaint_lockedState(t *testing.T) {
 	state := &terraform.State{
 		Modules: []*terraform.ModuleState{
 			&terraform.ModuleState{
@@ -57,9 +58,9 @@ func TestUntaint_indexRequired(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
-							&terraform.InstanceState{ID: "bar2"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -67,6 +68,11 @@ func TestUntaint_indexRequired(t *testing.T) {
 		},
 	}
 	statePath := testStateFile(t, state)
+	unlock, err := testLockState("./testdata", statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer unlock()
 
 	ui := new(cli.MockUi)
 	c := &UntaintCommand{
@@ -80,68 +86,13 @@ func TestUntaint_indexRequired(t *testing.T) {
 		"test_instance.foo",
 	}
 	if code := c.Run(args); code == 0 {
-		t.Fatalf("Expected non-zero exit. Output:\n\n%s", ui.OutputWriter.String())
+		t.Fatal("expected error")
 	}
 
-	// Nothing should have gotten untainted
-	expected := strings.TrimSpace(`
-test_instance.foo: (2 tainted)
-  ID = <not created>
-  Tainted ID 1 = bar
-  Tainted ID 2 = bar2
-	`)
-	testStateOutput(t, statePath, expected)
-
-	// Should have gotten an error message mentioning index
-	errOut := ui.ErrorWriter.String()
-	errContains := "please specify an index"
-	if !strings.Contains(errOut, errContains) {
-		t.Fatalf("Expected err output: %s, to contain: %s", errOut, errContains)
+	output := ui.ErrorWriter.String()
+	if !strings.Contains(output, "lock") {
+		t.Fatal("command output does not look like a lock error:", output)
 	}
-}
-
-func TestUntaint_indexSpecified(t *testing.T) {
-	state := &terraform.State{
-		Modules: []*terraform.ModuleState{
-			&terraform.ModuleState{
-				Path: []string{"root"},
-				Resources: map[string]*terraform.ResourceState{
-					"test_instance.foo": &terraform.ResourceState{
-						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
-							&terraform.InstanceState{ID: "bar2"},
-						},
-					},
-				},
-			},
-		},
-	}
-	statePath := testStateFile(t, state)
-
-	ui := new(cli.MockUi)
-	c := &UntaintCommand{
-		Meta: Meta{
-			Ui: ui,
-		},
-	}
-
-	args := []string{
-		"-state", statePath,
-		"-index", "1",
-		"test_instance.foo",
-	}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("bad: %d\n\n%s", code, ui.ErrorWriter.String())
-	}
-
-	// Nothing should have gotten untainted
-	expected := strings.TrimSpace(`
-test_instance.foo: (1 tainted)
-  ID = bar2
-  Tainted ID 1 = bar
-	`)
-	testStateOutput(t, statePath, expected)
 }
 
 func TestUntaint_backup(t *testing.T) {
@@ -157,8 +108,9 @@ func TestUntaint_backup(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -183,9 +135,8 @@ func TestUntaint_backup(t *testing.T) {
 
 	// Backup is still tainted
 	testStateOutput(t, path+".backup", strings.TrimSpace(`
-test_instance.foo: (1 tainted)
-  ID = <not created>
-  Tainted ID 1 = bar
+test_instance.foo: (tainted)
+  ID = bar
 	`))
 
 	// State is untainted
@@ -208,8 +159,9 @@ func TestUntaint_backupDisable(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -273,8 +225,9 @@ func TestUntaint_defaultState(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -311,8 +264,9 @@ func TestUntaint_missing(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -345,8 +299,9 @@ func TestUntaint_missingAllow(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -385,8 +340,9 @@ func TestUntaint_stateOut(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -411,9 +367,8 @@ func TestUntaint_stateOut(t *testing.T) {
 	}
 
 	testStateOutput(t, path, strings.TrimSpace(`
-test_instance.foo: (1 tainted)
-  ID = <not created>
-  Tainted ID 1 = bar
+test_instance.foo: (tainted)
+  ID = bar
 	`))
 	testStateOutput(t, "foo", strings.TrimSpace(`
 test_instance.foo:
@@ -429,8 +384,9 @@ func TestUntaint_module(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.foo": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -440,8 +396,9 @@ func TestUntaint_module(t *testing.T) {
 				Resources: map[string]*terraform.ResourceState{
 					"test_instance.blah": &terraform.ResourceState{
 						Type: "test_instance",
-						Tainted: []*terraform.InstanceState{
-							&terraform.InstanceState{ID: "bar"},
+						Primary: &terraform.InstanceState{
+							ID:      "bar",
+							Tainted: true,
 						},
 					},
 				},
@@ -467,9 +424,8 @@ func TestUntaint_module(t *testing.T) {
 	}
 
 	testStateOutput(t, statePath, strings.TrimSpace(`
-test_instance.foo: (1 tainted)
-  ID = <not created>
-  Tainted ID 1 = bar
+test_instance.foo: (tainted)
+  ID = bar
 
 module.child:
   test_instance.blah:

@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -17,24 +18,32 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 		Read:   resourceAwsIamInstanceProfileRead,
 		Update: resourceAwsIamInstanceProfileUpdate,
 		Delete: resourceAwsIamInstanceProfileDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"arn": &schema.Schema{
+			"arn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"create_date": &schema.Schema{
+
+			"create_date": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"unique_id": &schema.Schema{
+
+			"unique_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+
+			"name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"name_prefix"},
 				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
 					// https://github.com/boto/botocore/blob/2485f5c/botocore/data/iam/2010-05-08/service-2.json#L8196-L8201
 					value := v.(string)
@@ -49,17 +58,48 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 					return
 				},
 			},
-			"path": &schema.Schema{
+
+			"name_prefix": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					// https://github.com/boto/botocore/blob/2485f5c/botocore/data/iam/2010-05-08/service-2.json#L8196-L8201
+					value := v.(string)
+					if len(value) > 64 {
+						errors = append(errors, fmt.Errorf(
+							"%q cannot be longer than 64 characters, name is limited to 128", k))
+					}
+					if !regexp.MustCompile("^[\\w+=,.@-]+$").MatchString(value) {
+						errors = append(errors, fmt.Errorf(
+							"%q must match [\\w+=,.@-]", k))
+					}
+					return
+				},
+			},
+
+			"path": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "/",
 				ForceNew: true,
 			},
-			"roles": &schema.Schema{
-				Type:     schema.TypeSet,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+
+			"roles": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"role"},
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				Deprecated:    "Use `role` instead. Only a single role can be passed to an IAM Instance Profile",
+			},
+
+			"role": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"roles"},
 			},
 		},
 	}
@@ -67,7 +107,22 @@ func resourceAwsIamInstanceProfile() *schema.Resource {
 
 func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
-	name := d.Get("name").(string)
+
+	var name string
+	if v, ok := d.GetOk("name"); ok {
+		name = v.(string)
+	} else if v, ok := d.GetOk("name_prefix"); ok {
+		name = resource.PrefixedUniqueId(v.(string))
+	} else {
+		name = resource.UniqueId()
+	}
+
+	_, hasRoles := d.GetOk("roles")
+	_, hasRole := d.GetOk("role")
+
+	if hasRole == false && hasRoles == false {
+		return fmt.Errorf("Either `role` or `roles` (deprecated) must be specified when creating an IAM Instance Profile")
+	}
 
 	request := &iam.CreateInstanceProfileInput{
 		InstanceProfileName: aws.String(name),
@@ -83,7 +138,18 @@ func resourceAwsIamInstanceProfileCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating IAM instance profile %s: %s", name, err)
 	}
 
-	return instanceProfileSetRoles(d, iamconn)
+	waiterRequest := &iam.GetInstanceProfileInput{
+		InstanceProfileName: aws.String(name),
+	}
+	// don't return until the IAM service reports that the instance profile is ready.
+	// this ensures that terraform resources which rely on the instance profile will 'see'
+	// that the instance profile exists.
+	err = iamconn.WaitUntilInstanceProfileExists(waiterRequest)
+	if err != nil {
+		return fmt.Errorf("Timed out while waiting for instance profile %s: %s", name, err)
+	}
+
+	return resourceAwsIamInstanceProfileUpdate(d, meta)
 }
 
 func instanceProfileAddRole(iamconn *iam.IAM, profileName, roleName string) error {
@@ -156,11 +222,35 @@ func instanceProfileRemoveAllRoles(d *schema.ResourceData, iamconn *iam.IAM) err
 func resourceAwsIamInstanceProfileUpdate(d *schema.ResourceData, meta interface{}) error {
 	iamconn := meta.(*AWSClient).iamconn
 
-	if !d.HasChange("roles") {
-		return nil
+	d.Partial(true)
+
+	if d.HasChange("role") {
+		oldRole, newRole := d.GetChange("role")
+
+		if oldRole.(string) != "" {
+			err := instanceProfileRemoveRole(iamconn, d.Id(), oldRole.(string))
+			if err != nil {
+				return fmt.Errorf("Error adding role %s to IAM instance profile %s: %s", oldRole.(string), d.Id(), err)
+			}
+		}
+
+		if newRole.(string) != "" {
+			err := instanceProfileAddRole(iamconn, d.Id(), newRole.(string))
+			if err != nil {
+				return fmt.Errorf("Error adding role %s to IAM instance profile %s: %s", newRole.(string), d.Id(), err)
+			}
+		}
+
+		d.SetPartial("role")
 	}
 
-	return instanceProfileSetRoles(d, iamconn)
+	if d.HasChange("roles") {
+		return instanceProfileSetRoles(d, iamconn)
+	}
+
+	d.Partial(false)
+
+	return nil
 }
 
 func resourceAwsIamInstanceProfileRead(d *schema.ResourceData, meta interface{}) error {
@@ -210,6 +300,11 @@ func instanceProfileReadResult(d *schema.ResourceData, result *iam.InstanceProfi
 	}
 	if err := d.Set("path", result.Path); err != nil {
 		return err
+	}
+	d.Set("unique_id", result.InstanceProfileId)
+
+	if result.Roles != nil && len(result.Roles) > 0 {
+		d.Set("role", result.Roles[0].RoleName) //there will only be 1 role returned
 	}
 
 	roles := &schema.Set{F: schema.HashString}

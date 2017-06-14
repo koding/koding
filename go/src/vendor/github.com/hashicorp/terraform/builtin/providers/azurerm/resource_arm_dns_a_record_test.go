@@ -75,7 +75,7 @@ func TestAccAzureRMDnsARecord_withTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsARecordExists("azurerm_dns_a_record.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_dns_a_record.test", "tags.#", "2"),
+						"azurerm_dns_a_record.test", "tags.%", "2"),
 				),
 			},
 
@@ -84,7 +84,7 @@ func TestAccAzureRMDnsARecord_withTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsARecordExists("azurerm_dns_a_record.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_dns_a_record.test", "tags.#", "1"),
+						"azurerm_dns_a_record.test", "tags.%", "1"),
 				),
 			},
 		},
@@ -142,7 +142,7 @@ func testCheckAzureRMDnsARecordDestroy(s *terraform.State) error {
 
 var testAccAzureRMDnsARecord_basic = `
 resource "azurerm_resource_group" "test" {
-    name = "acctest_rg_%d"
+    name = "acctestRG_%d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {
@@ -161,7 +161,7 @@ resource "azurerm_dns_a_record" "test" {
 
 var testAccAzureRMDnsARecord_updateRecords = `
 resource "azurerm_resource_group" "test" {
-    name = "acctest_rg_%d"
+    name = "acctestRG_%d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {
@@ -180,7 +180,7 @@ resource "azurerm_dns_a_record" "test" {
 
 var testAccAzureRMDnsARecord_withTags = `
 resource "azurerm_resource_group" "test" {
-    name = "acctest_rg_%d"
+    name = "acctestRG_%d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {
@@ -204,7 +204,7 @@ resource "azurerm_dns_a_record" "test" {
 
 var testAccAzureRMDnsARecord_withTagsUpdate = `
 resource "azurerm_resource_group" "test" {
-    name = "acctest_rg_%d"
+    name = "acctestRG_%d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {

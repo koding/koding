@@ -32,7 +32,7 @@ func noArgs(cmd *cobra.Command, args []string) error {
 	}
 
 	if cmd.HasSubCommands() {
-		return fmt.Errorf("\n" + strings.TrimRight(cmd.UsageString(), "\n"))
+		return fmt.Errorf("unknown command %q for %q", strings.Join(args, " "), cmd.Name())
 	}
 
 	return fmt.Errorf("%q does not support any arguments", cmd.CommandPath())

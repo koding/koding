@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structs"
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -178,10 +179,20 @@ func (b *Builder) Decode(in, out interface{}) error {
 	}
 }
 
+func extractValue(_, _ reflect.Type, v interface{}) (interface{}, error) {
+	if out, ok := v.(*terraform.OutputState); ok {
+		return out.Value, nil
+	}
+	return v, nil
+}
+
+var _ mapstructure.DecodeHookFuncType = extractValue
+
 func decode(tag string, in, out interface{}) error {
 	cfg := &mapstructure.DecoderConfig{
-		Result:  out,
-		TagName: tag,
+		Result:     out,
+		TagName:    tag,
+		DecodeHook: extractValue,
 	}
 	dec, err := mapstructure.NewDecoder(cfg)
 	if err != nil {

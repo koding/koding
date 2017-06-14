@@ -8,6 +8,10 @@ import (
 
 // EvalContext is the interface that is given to eval nodes to execute.
 type EvalContext interface {
+	// Stopped returns a channel that is closed when evaluation is stopped
+	// via Terraform.Context.Stop()
+	Stopped() <-chan struct{}
+
 	// Path is the current module path.
 	Path() []string
 
@@ -68,7 +72,7 @@ type EvalContext interface {
 	// SetVariables sets the variables for the module within
 	// this context with the name n. This function call is additive:
 	// the second parameter is merged with any previous call.
-	SetVariables(string, map[string]string)
+	SetVariables(string, map[string]interface{})
 
 	// Diff returns the global diff as well as the lock that should
 	// be used to modify that diff.

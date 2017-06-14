@@ -1,10 +1,12 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -17,7 +19,7 @@ func TestAccDigitalOceanFloatingIP_Region(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanFloatingIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccCheckDigitalOceanFloatingIPConfig_region,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
@@ -31,14 +33,15 @@ func TestAccDigitalOceanFloatingIP_Region(t *testing.T) {
 
 func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 	var floatingIP godo.FloatingIP
+	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanFloatingIPDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccCheckDigitalOceanFloatingIPConfig_droplet,
+			{
+				Config: testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
 					resource.TestCheckResourceAttr(
@@ -58,7 +61,7 @@ func testAccCheckDigitalOceanFloatingIPDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the key
-		_, _, err := client.FloatingIPs.Get(rs.Primary.ID)
+		_, _, err := client.FloatingIPs.Get(context.Background(), rs.Primary.ID)
 
 		if err == nil {
 			return fmt.Errorf("Floating IP still exists")
@@ -83,7 +86,7 @@ func testAccCheckDigitalOceanFloatingIPExists(n string, floatingIP *godo.Floatin
 		client := testAccProvider.Meta().(*godo.Client)
 
 		// Try to find the FloatingIP
-		foundFloatingIP, _, err := client.FloatingIPs.Get(rs.Primary.ID)
+		foundFloatingIP, _, err := client.FloatingIPs.Get(context.Background(), rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -104,23 +107,19 @@ resource "digitalocean_floating_ip" "foobar" {
   region = "nyc3"
 }`
 
-var testAccCheckDigitalOceanFloatingIPConfig_droplet = fmt.Sprintf(`
-resource "digitalocean_ssh_key" "foobar" {
-  name       = "foobar"
-  public_key = "%s"
-}
-
+func testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt int) string {
+	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz"
+  name               = "baz-%d"
   size               = "1gb"
-  image              = "centos-5-8-x32"
+  image              = "centos-7-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
-  ssh_keys           = ["${digitalocean_ssh_key.foobar.id}"]
 }
 
 resource "digitalocean_floating_ip" "foobar" {
   droplet_id = "${digitalocean_droplet.foobar.id}"
   region     = "${digitalocean_droplet.foobar.region}"
-}`, testAccValidPublicKey)
+}`, rInt)
+}
