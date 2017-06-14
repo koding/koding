@@ -534,10 +534,10 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:  "daemon", // Moved to cobra.
+		Name:  "daemon", // Moved to cobra. DONE.
 		Usage: "Manage KD Daemon service.",
 		Subcommands: []cli.Command{{
-			Name:   "install", // Moved to cobra.
+			Name:   "install", // Moved to cobra. DONE.
 			Usage:  "Install the daemon and dependencies.",
 			Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
 			Flags: []cli.Flag{
@@ -568,7 +568,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "uninstall", // Moved to cobra.
+			Name:   "uninstall", // Moved to cobra. DONE.
 			Usage:  "Uninstall the daemon and dependencies.",
 			Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
 			Flags: []cli.Flag{
@@ -578,7 +578,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "update", // Moved to cobra.
+			Name:   "update", // Moved to cobra. DONE.
 			Usage:  "Update KD and KD Daemon to the latest versions.",
 			Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
 			Flags: []cli.Flag{
@@ -594,15 +594,15 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "start", // Moved to cobra.
+			Name:   "start", // Moved to cobra. DONE.
 			Usage:  "Start the daemon service.",
 			Action: ctlcli.ExitErrAction(DaemonStart, log, "start"),
 		}, {
-			Name:   "restart", // Moved to cobra.
+			Name:   "restart", // Moved to cobra. DONE.
 			Usage:  "Restart the daemon service.",
 			Action: ctlcli.ExitErrAction(DaemonRestart, log, "restart"),
 		}, {
-			Name:   "stop", // Moved to cobra.
+			Name:   "stop", // Moved to cobra. DONE.
 			Usage:  "Stop the daemon service.",
 			Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
 		}},

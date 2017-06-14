@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/daemon"
 
 	"github.com/spf13/cobra"
 )
@@ -31,6 +32,6 @@ func NewRestartCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func restartCommand(c *cli.CLI, opts *restartOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		return daemon.Restart()
 	}
 }
