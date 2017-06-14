@@ -8,6 +8,9 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"koding/klientctl/autocomplete"
 	"koding/klientctl/config"
 	"koding/klientctl/cp"
@@ -17,14 +20,17 @@ import (
 	"koding/klientctl/open"
 	"koding/klientctl/remount"
 	"koding/klientctl/repair"
+	"koding/klientctl/status"
 	"koding/mountcli"
-	"os"
-	"strings"
 
 	"github.com/koding/logging"
 	"github.com/koding/service"
 	cli "gopkg.in/urfave/cli.v1"
 )
+
+// TODO(leeola): deprecate this default, instead passing it as a dependency
+// to the users of it.
+var defaultHealthChecker *status.HealthChecker
 
 // MountCommandFactory creates a mount.Command instance and runs it with
 // Stdin and Out.

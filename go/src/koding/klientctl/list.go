@@ -11,7 +11,9 @@ import (
 
 	"koding/klient/remote/machine"
 	"koding/klientctl/klient"
+	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
+	"koding/klientctl/status"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -150,6 +152,24 @@ func getListOfMachines(kite *kite.Client) (list.KiteInfos, error) {
 	}
 
 	return infos, nil
+}
+
+func getListErrRes(err error, healthChecker *status.HealthChecker) string {
+	res, ok := healthChecker.CheckAllWithResponse()
+
+	// If the health check response is not okay, return that because it's likely
+	// more informed (such as no internet, etc)
+	if !ok {
+		return res
+	}
+
+	// Because healthChecker couldn't find anything wrong, but we know there is an
+	// err, check to see if it's a getKites err
+	if klientctlerrors.IsListReconnectingErr(err) {
+		return ReconnectingToKontrol
+	}
+
+	return FailedListMachines
 }
 
 // shortenPath takes a path and returnes a "Fish" like path.

@@ -3,8 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
-	"koding/klientctl/config"
 	"time"
+
+	"koding/klientctl/config"
+	"koding/klientctl/status"
 
 	"github.com/koding/logging"
 	cli "gopkg.in/urfave/cli.v1"
@@ -51,7 +53,7 @@ func WaitUntilStopped(address string, attempts int, pauseIntv time.Duration) err
 	for i := 0; i < 5; i++ {
 		time.Sleep(pauseIntv)
 
-		if !IsKlientRunning(address) {
+		if !status.IsKlientRunning(address) {
 			return nil
 		}
 	}

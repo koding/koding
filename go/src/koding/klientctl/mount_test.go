@@ -5,17 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"koding/klient/remote/req"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"koding/klient/kiteerrortypes"
+	"koding/klient/remote/req"
 	"koding/klient/remote/restypes"
 	klienttestutil "koding/klient/testutil"
 	"koding/klient/util"
 	"koding/klientctl/list"
+	"koding/klientctl/status"
 	"koding/klientctl/util/testutil"
 
 	"github.com/koding/kite/dnode"
@@ -24,7 +25,7 @@ import (
 )
 
 func init() {
-	defaultHealthChecker = NewDefaultHealthChecker(klienttestutil.DiscardLogger)
+	defaultHealthChecker = status.NewDefaultHealthChecker(klienttestutil.DiscardLogger)
 }
 
 // BlockingIO is a struct primarily for mocking the behavior of Stdin. Stdin blocks

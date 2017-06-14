@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+
 	"koding/klientctl/config"
+	"koding/klientctl/status"
 
 	"github.com/koding/logging"
 	cli "gopkg.in/urfave/cli.v1"
@@ -27,7 +29,7 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	fmt.Printf("Restarting the %s, this may take a moment...\n", config.KlientName)
 
-	klientWasRunning := IsKlientRunning(config.Konfig.Endpoints.Klient.Private.String())
+	klientWasRunning := status.IsKlientRunning(config.Konfig.Endpoints.Klient.Private.String())
 
 	if klientWasRunning {
 		// If klient is running, stop it, and tell the user if we fail

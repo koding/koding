@@ -32,6 +32,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/daemon"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/status"
 	"koding/klientctl/stream"
 	"koding/klientctl/util"
 
@@ -116,7 +117,7 @@ func run(args []string) {
 	// to the users of it.
 	//
 	// init the defaultHealthChecker with the log.
-	defaultHealthChecker = NewDefaultHealthChecker(log)
+	defaultHealthChecker = status.NewDefaultHealthChecker(log)
 
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
@@ -625,7 +626,7 @@ error opening: %s
 		Name:        "status", // Moved to cobra.
 		Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 		Description: cmdDescriptions["status"],
-		Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
+		Action:      ctlcli.ExitAction(status.StatusCommand, log, "status"),
 	}, {
 		Name:        "autocompletion", // Deprecated.
 		Usage:       "Enable autocompletion support for bash and fish shells",
