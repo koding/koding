@@ -610,7 +610,7 @@ error opening: %s
 		Usage:  "Initializes KD project.",
 		Action: ctlcli.ExitErrAction(Init, log, "init"),
 	}, {
-		Name:        "version", // Moved to cobra.
+		Name:        "version", // Moved to cobra. DONE.
 		Usage:       "Display version information.",
 		HideHelp:    true,
 		Description: cmdDescriptions["version"],
@@ -651,7 +651,7 @@ error opening: %s
 			AutocompleteCommandFactory, log, "autocompletion",
 		),
 	}, {
-		Name:  "log", // Moved to cobra.
+		Name:  "log", // Moved to cobra. DONE.
 		Usage: "Display logs.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{Name: "debug", Hidden: true},
@@ -663,12 +663,12 @@ error opening: %s
 		},
 		Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
 		Subcommands: []cli.Command{{
-			Name:   "upload", // Moved to cobra.
+			Name:   "upload", // Moved to cobra. DONE.
 			Usage:  "Share a text file.",
 			Action: ctlcli.ExitErrAction(LogUpload, log, "upload"),
 		}},
 	}, {
-		Name: "open", // Moved to cobra.
+		Name: "open", // Moved to cobra. DONE.
 		Usage: fmt.Sprintf(
 			"Open the given file(s) on the Koding UI",
 		),

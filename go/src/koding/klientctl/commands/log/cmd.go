@@ -1,7 +1,11 @@
 package log
 
 import (
+	"fmt"
+	"io"
+
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/logcmd"
 
 	"github.com/spf13/cobra"
 )
@@ -50,6 +54,34 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func command(c *cli.CLI, opts *options) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		// Fill our log options from the CLI. Any empty options are okay, as
+		// the command struct is responsible for verifying valid opts.
+		logOpts := logcmd.Options{
+			Debug:             opts.debug || c.IsDebug(),
+			KdLog:             !opts.noKdLog,
+			KlientLog:         !opts.noKlientLog,
+			KdLogLocation:     opts.kdLogFile,
+			KlientLogLocation: opts.klientLogFile,
+			Lines:             opts.lines,
+		}
+
+		init := logcmd.Init{
+			Stdout: c.Out(),
+			Log:    c.Log(),
+			Helper: func(w io.Writer) {
+				cli.PrintHelp(w)
+			},
+		}
+
+		logCmd, err := logcmd.NewCommand(init, logOpts)
+		if err != nil {
+			return fmt.Errorf("unable to create log command")
+		}
+
+		if exitCode, err := logCmd.Run(); err != nil {
+			return cli.NewError(exitCode, err)
+		}
+
 		return nil
 	}
 }

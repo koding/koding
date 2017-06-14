@@ -89,3 +89,30 @@ func maxArgs(max int, cmd *cobra.Command, args []string) error {
 
 	return fmt.Errorf("%q requires at most %d argument(s)", cmd.CommandPath(), max)
 }
+
+// MinArgs returns nil error only if command is called with at least min
+// arguments inclusively.
+func MinArgs(min int) CobraCmdMiddleware {
+	return func(cli *CLI, rootCmd *cobra.Command) {
+		tail := rootCmd.PreRunE
+		rootCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+			if err := minArgs(min, cmd, args); err != nil {
+				return err
+			}
+
+			if tail != nil {
+				return tail(cmd, args)
+			}
+
+			return nil
+		}
+	}
+}
+
+func minArgs(max int, cmd *cobra.Command, args []string) error {
+	if len(args) >= max {
+		return nil
+	}
+
+	return fmt.Errorf("%q requires at least %d argument(s)", cmd.CommandPath(), max)
+}
