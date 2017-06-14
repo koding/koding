@@ -842,10 +842,10 @@ error opening: %s
 			},
 		}},
 	}, {
-		Name:  "stack", // Moved to cobra.
+		Name:  "stack", // Moved to cobra. DONE.
 		Usage: "Manage stacks.",
 		Subcommands: []cli.Command{{
-			Name:   "create", // Moved to cobra.
+			Name:   "create", // Moved to cobra. DONE.
 			Usage:  "Create new stack.",
 			Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
 			Flags: []cli.Flag{
@@ -872,7 +872,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:      "list", // Moved to cobra.
+			Name:      "list", // Moved to cobra. DONE.
 			ShortName: "ls",
 			Usage:     "List all stacks.",
 			Action:    ctlcli.ExitErrAction(StackList, log, "list"),
