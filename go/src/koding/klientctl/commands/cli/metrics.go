@@ -15,12 +15,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func WithMetrics(cli *CLI, rootCmd *cobra.Command) {
-	WithMetricsAlias()(cli, rootCmd)
-}
-
-func WithMetricsAlias(aliasPath ...string) CobraCmdMiddleware {
+// WithMetrics allows to gather metrics for a given command. Command path can
+// be replaced with provided aliasPath.
+func WithMetrics(aliasPath ...string) CobraCmdMiddleware {
 	return func(cli *CLI, rootCmd *cobra.Command) {
+		cli.registerMiddleware("with_metrics", rootCmd, aliasPath...)
 		tail := rootCmd.RunE
 		if tail == nil {
 			panic("cannot insert middleware into empty function")
@@ -32,7 +31,7 @@ func WithMetricsAlias(aliasPath ...string) CobraCmdMiddleware {
 		}
 
 		// Use aliased command path when provided.
-		cmdPath := aliasPath
+		cmdPath := ExtendAlias(rootCmd, aliasPath)
 		if len(cmdPath) == 0 {
 			cmdPath = strings.Split(rootCmd.CommandPath(), " ")
 		}

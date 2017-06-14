@@ -22,6 +22,7 @@ database lock timeout with:
 // WithInitializedCache ensures that config cache is accessible and attached to
 // config default cache client.
 func WithInitializedCache(cli *CLI, rootCmd *cobra.Command) {
+	cli.registerMiddleware("initialized_cache", rootCmd)
 	tail := rootCmd.RunE
 	if tail == nil {
 		panic("cannot insert middleware into empty function")
