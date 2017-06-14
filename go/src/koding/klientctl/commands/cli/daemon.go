@@ -10,6 +10,7 @@ import (
 
 // DaemonRequired returns an error when klient daemon is not installed.
 func DaemonRequired(cli *CLI, rootCmd *cobra.Command) {
+	cli.registerMiddleware("daemon_required", rootCmd)
 	tail := rootCmd.RunE
 	if tail == nil {
 		panic("cannot insert middleware into empty function")

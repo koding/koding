@@ -36,3 +36,12 @@ func ApplyForAll(ccm CobraCmdMiddleware) (ccmRet CobraCmdMiddleware) {
 
 	return ccmRet
 }
+
+// ExtendAlias adds comand name to alias path only if the slice is not empty.
+func ExtendAlias(cmd *cobra.Command, aliasPath []string) []string {
+	if cmd == nil || len(aliasPath) == 0 {
+		return aliasPath
+	}
+
+	return append(aliasPath, cmd.Name())
+}
