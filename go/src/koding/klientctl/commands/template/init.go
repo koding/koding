@@ -54,11 +54,12 @@ func NewInitCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func initCommand(c *cli.CLI, opts *initOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return templateInit(c, opts.output, opts.defaults, opts.provider)
+		return Init(c, opts.output, opts.defaults, opts.provider)
 	}
 }
 
-func templateInit(c *cli.CLI, output string, useDefaults bool, providerName string) error {
+// Init initializes a template.
+func Init(c *cli.CLI, output string, useDefaults bool, providerName string) error {
 	if _, err := os.Stat(output); err == nil && !useDefaults {
 		yn, err := helper.Fask(c.In(), c.Out(), "Do you want to overwrite %q file? [y/N]: ", output)
 		if err != nil {

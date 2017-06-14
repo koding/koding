@@ -606,7 +606,7 @@ error opening: %s
 			Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
 		}},
 	}, {
-		Name:   "init", // Moved to cobra.
+		Name:   "init", // Moved to cobra. DONE.
 		Usage:  "Initializes KD project.",
 		Action: ctlcli.ExitErrAction(Init, log, "init"),
 	}, {

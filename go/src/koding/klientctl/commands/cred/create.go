@@ -61,7 +61,7 @@ func createCommand(c *cli.CLI, opts *createOptions) cli.CobraFuncE {
 			Title:    opts.title,
 		}
 
-		if err := credentialCreate(c, opts.file, createOpts, opts.jsonOutput); err != nil {
+		if err := Create(c, opts.file, createOpts, opts.jsonOutput); err != nil {
 			return err
 		}
 
@@ -69,7 +69,8 @@ func createCommand(c *cli.CLI, opts *createOptions) cli.CobraFuncE {
 	}
 }
 
-func credentialCreate(c *cli.CLI, file string, opts *credential.CreateOptions, js bool) error {
+// Create creates new credentials.
+func Create(c *cli.CLI, file string, opts *credential.CreateOptions, js bool) error {
 	var p []byte
 	var err error
 
