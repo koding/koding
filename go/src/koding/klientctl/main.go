@@ -748,7 +748,7 @@ error opening: %s
 					},
 				},
 			}, {
-				Name:        "sync", // Moved to cobra.
+				Name:        "sync", // Moved to cobra. DONE.
 				Usage:       "Manage mount synchronization.",
 				Description: cmdDescriptions["mount-sync"],
 				Action:      ctlcli.ExitErrAction(MachineSyncMount, log, "sync"),
@@ -760,11 +760,11 @@ error opening: %s
 					},
 				},
 				Subcommands: []cli.Command{{
-					Name:   "pause", // Moved to cobra.
+					Name:   "pause", // Moved to cobra. DONE.
 					Usage:  "Pause synchronization.",
 					Action: ctlcli.ExitErrAction(MachinePauseSyncMount, log, "pause"),
 				}, {
-					Name:   "resume", // Moved to cobra.
+					Name:   "resume", // Moved to cobra. DONE.
 					Usage:  "Resume synchronization.",
 					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "resume"),
 				}},
