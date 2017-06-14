@@ -69,7 +69,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	if arg.Destroy {
 		err = bs.destroy(ctx, arg)
 	} else {
-		err = bs.apply(ctx, arg)
+		go bs.apply(ctx, arg)
 	}
 
 	if err != nil {
@@ -81,7 +81,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	}, nil
 }
 
-func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) error {
+func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) {
 	log := bs.Log.New(req.StackID)
 
 	bs.Eventer.Push(&eventer.Event{
@@ -89,19 +89,28 @@ func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) error {
 		Status:  machinestate.Building,
 	})
 
-	go func() {
-		finalEvent := &eventer.Event{
-			Message:    bs.Req.Method + " finished",
-			Status:     machinestate.Running,
-			Percentage: 100,
+	finalEvent := &eventer.Event{
+		Message:    bs.Req.Method + " finished",
+		Status:     machinestate.Running,
+		Percentage: 100,
+	}
+
+	start := time.Now()
+
+	modelhelper.SetStackState(req.StackID, "Stack building started", stackstate.Building)
+	log.Info("======> %s started <======", strings.ToUpper(bs.Req.Method))
+
+	var err error
+	defer func() {
+		if v := recover(); v != nil {
+			if e, ok := v.(error); ok {
+				err = e
+			} else {
+				err = fmt.Errorf("%v", v)
+			}
 		}
 
-		start := time.Now()
-
-		modelhelper.SetStackState(req.StackID, "Stack building started", stackstate.Building)
-		log.Info("======> %s started <======", strings.ToUpper(bs.Req.Method))
-
-		if err := bs.applyAsync(ctx, req); err != nil {
+		if err != nil {
 			modelhelper.SetStackState(req.StackID, "Stack building failed", stackstate.NotInitialized)
 			finalEvent.Status = machinestate.NotInitialized
 
@@ -118,7 +127,7 @@ func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) error {
 		bs.Eventer.Push(finalEvent)
 	}()
 
-	return nil
+	err = bs.applyAsync(ctx, req)
 }
 
 func (bs *BaseStack) destroy(ctx context.Context, req *stack.ApplyRequest) error {
