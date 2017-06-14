@@ -109,10 +109,37 @@ func MinArgs(min int) CobraCmdMiddleware {
 	}
 }
 
-func minArgs(max int, cmd *cobra.Command, args []string) error {
-	if len(args) >= max {
+func minArgs(min int, cmd *cobra.Command, args []string) error {
+	if len(args) >= min {
 		return nil
 	}
 
-	return fmt.Errorf("%q requires at least %d argument(s)", cmd.CommandPath(), max)
+	return fmt.Errorf("%q requires at least %d argument(s)", cmd.CommandPath(), min)
+}
+
+// RangeArgs returns nil error only if command is called with number of
+// arguments between specified range inclusively.
+func RangeArgs(min, max int) CobraCmdMiddleware {
+	return func(cli *CLI, rootCmd *cobra.Command) {
+		tail := rootCmd.PreRunE
+		rootCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
+			if err := rangeArgs(min, max, cmd, args); err != nil {
+				return err
+			}
+
+			if tail != nil {
+				return tail(cmd, args)
+			}
+
+			return nil
+		}
+	}
+}
+
+func rangeArgs(min, max int, cmd *cobra.Command, args []string) error {
+	if len(args) >= min && len(args) <= max {
+		return nil
+	}
+
+	return fmt.Errorf("%q requires at least %d and at most %d argument(s)", cmd.CommandPath(), min, max)
 }

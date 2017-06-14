@@ -725,7 +725,7 @@ error opening: %s
 				},
 			}},
 		}, {
-			Name:         "mount", // Moved to cobra.
+			Name:         "mount", // Moved to cobra. DONE.
 			Aliases:      []string{"m"},
 			Usage:        "Mount remote directory.",
 			Description:  cmdDescriptions["mount"],
@@ -733,7 +733,7 @@ error opening: %s
 			BashComplete: func(c *cli.Context) {},
 			Flags:        []cli.Flag{},
 			Subcommands: []cli.Command{{
-				Name:    "list", // Moved to cobra.
+				Name:    "list", // Moved to cobra. DONE.
 				Aliases: []string{"ls"},
 				Usage:   "List available mounts.",
 				Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
@@ -769,7 +769,7 @@ error opening: %s
 					Action: ctlcli.ExitErrAction(MachineResumeSyncMount, log, "resume"),
 				}},
 			}, {
-				Name:   "inspect", // Moved to cobra.
+				Name:   "inspect", // Moved to cobra. DONE.
 				Hidden: true,
 				Usage:  "Advanced utilities for mount command.",
 				Action: ctlcli.ExitErrAction(MachineInspectMountCommand, log, "mount inspect"),
