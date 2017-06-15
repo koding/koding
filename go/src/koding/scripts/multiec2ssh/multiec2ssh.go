@@ -26,7 +26,7 @@ var (
 	flagFolderPath = flag.String("flagFolderPath", "/Users/siesta/Documents/koding/credential", "credential repo folder path")
 )
 
-var ELBS = map[string]string{
+var elbs = map[string]string{
 	// app
 	"prod":       "awseb-e-x-AWSEBLoa-2AG3XORA8JXC",
 	"latest":     "awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9",
@@ -44,21 +44,21 @@ var ELBS = map[string]string{
 	"countly":    "awseb-e-k-AWSEBLoa-XNAR4M9CZ9R8",
 }
 
-var Tags = map[string]string{
+var tags = map[string]string{
 	// app
 	"prod":    "prod.koding.com",
 	"latest":  "latest.koding.com",
 	"sandbox": "sandbox.koding.com",
 }
 
-var ELB2Region = map[string]string{
+var elb2region = map[string]string{
 	// proxies
 	"awseb-e-s-AWSEBLoa-1LOTB5BKTJJBW": "eu-west-1",
 	"awseb-e-a-AWSEBLoa-RTLJ62SKJY5G":  "us-east-1",
 	"awseb-e-7-AWSEBLoa-1V808KG9PDQH5": "us-west-2",
 	"awseb-e-u-AWSEBLoa-15H1DQTBBUMG":  "ap-southeast-1",
 
-	// app ELBs
+	// app elbs
 	"awseb-e-m-AWSEBLoa-1WDL87HGH01FI": "us-east-1",
 	"awseb-e-x-AWSEBLoa-2AG3XORA8JXC":  "us-east-1",
 	"awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9": "us-east-1",
@@ -71,7 +71,7 @@ var ELB2Region = map[string]string{
 }
 
 func getEC2(elbName string) *ec2.EC2 {
-	reg, ok := ELB2Region[elbName]
+	reg, ok := elb2region[elbName]
 	if !ok {
 		panic(elbName)
 	}
@@ -90,7 +90,7 @@ func getEC2(elbName string) *ec2.EC2 {
 }
 
 func getELB(elbName string) *elb.ELB {
-	reg, ok := ELB2Region[elbName]
+	reg, ok := elb2region[elbName]
 	if !ok {
 		panic(elbName)
 	}
@@ -114,13 +114,13 @@ func main() {
 
 	currentELBInstances := make([]string, 0)
 
-	elbNames, ok := ELBS[*flagHost]
+	elbNames, ok := elbs[*flagHost]
 	if !ok {
 		log.Fatalf("%s not found", *flagHost)
 	}
 
 	if *flagFiltered {
-		tagName := Tags[*flagHost]
+		tagName := tags[*flagHost]
 		var err error
 		currentELBInstances, err = GetchInstancesByTag(elbNames, tagName)
 		if err != nil {
