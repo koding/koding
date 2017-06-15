@@ -131,7 +131,7 @@ func shouldRetry(resp *http.Response, err error) (bool, error) {
 	// the server time to recover, as 500's are typically not permanent
 	// errors and may relate to outages on the server side. This will catch
 	// invalid response codes as well, like 0 and 999.
-	if resp.StatusCode == 0 || resp.StatusCode >= 500 {
+	if resp.StatusCode == 0 || resp.StatusCode >= http.StatusInternalServerError {
 		return true, nil
 	}
 
