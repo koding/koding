@@ -679,11 +679,11 @@ error opening: %s
 		},
 		Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
 	}, {
-		Name:         "machine", // Moved to cobra.
+		Name:         "machine", // Moved to cobra. DONE.
 		Usage:        "Manage remote machines.",
 		BashComplete: func(c *cli.Context) {},
 		Subcommands: []cli.Command{{
-			Name:         "list", // Moved to cobra.
+			Name:         "list", // Moved to cobra. DONE.
 			ShortName:    "ls",
 			Usage:        "List available machines.",
 			Action:       ctlcli.ExitErrAction(MachineListCommand, log, "list"),
@@ -695,7 +695,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:         "ssh", // Moved to cobra.
+			Name:         "ssh", // Moved to cobra. DONE.
 			ShortName:    "s",
 			Usage:        "SSH into provided remote machine.",
 			Action:       ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
@@ -789,7 +789,7 @@ error opening: %s
 				},
 			}},
 		}, {
-			Name:         "umount", // Moved to cobra.
+			Name:         "umount", // Moved to cobra. DONE.
 			ShortName:    "u",
 			Usage:        "Unmount remote directory.",
 			Description:  cmdDescriptions["umount"],
@@ -806,7 +806,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:            "exec", // Moved to cobra.
+			Name:            "exec", // Moved to cobra. DONE.
 			ShortName:       "e",
 			Description:     cmdDescriptions["exec"],
 			Usage:           "Run a command in a started machine.",
@@ -814,7 +814,7 @@ error opening: %s
 			BashComplete:    func(c *cli.Context) {},
 			SkipFlagParsing: true,
 		}, {
-			Name:            "cp", // Moved to cobra.
+			Name:            "cp", // Moved to cobra. DONE.
 			Description:     cmdDescriptions["cp"],
 			Usage:           "Copies a file between hosts on a network.",
 			Action:          ctlcli.ExitErrAction(MachineCpCommand, log, "cp"),
@@ -822,7 +822,7 @@ error opening: %s
 			BashComplete:    func(c *cli.Context) {},
 			Flags:           []cli.Flag{},
 		}, {
-			Name:   "start", // Moved to cobra.
+			Name:   "start", // Moved to cobra. DONE.
 			Usage:  "Start a remove vm given by the <machine ID> | <alias> | <slug>.",
 			Action: ctlcli.ExitErrAction(MachineStart, log, "start"),
 			Flags: []cli.Flag{
@@ -832,7 +832,7 @@ error opening: %s
 				},
 			},
 		}, {
-			Name:   "stop", // Moved to cobra.
+			Name:   "stop", // Moved to cobra. DONE.
 			Usage:  "Stop a remove vm given by the <machine ID> | <alias> | <slug>.",
 			Action: ctlcli.ExitErrAction(MachineStop, log, "stop"),
 			Flags: []cli.Flag{
