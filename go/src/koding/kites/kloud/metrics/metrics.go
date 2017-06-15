@@ -3,6 +3,7 @@ package metrics
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -101,6 +102,10 @@ func publishToCountly(url string, r []byte, log kite.Logger) error {
 		// each request should not take more than 5 sec
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
+
+		if _, err := req.Seek(0, io.SeekStart); err != nil {
+			return fmt.Errorf("failed to seek body: %v", err)
+		}
 
 		retry, err = shouldRetry(ctxhttp.Post(ctx, nil, url, "application/json", req))
 		if err != nil {
