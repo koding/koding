@@ -11,6 +11,9 @@ workflows:
   default:
     jobs:
       - dependencies
+      - configure:
+          requires:
+            - dependencies
 
 jobs:
   dependencies:
@@ -44,5 +47,21 @@ jobs:
             - client/landing/node_modules
       - save_cache:
           key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          paths:
+            - .
+
+  configure:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: credentials
+          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
+      - run:
+          name: configure
+          command: ./configure --config dev --version $(git rev-parse --short HEAD) --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort "80"
+      - save_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
           paths:
             - .
