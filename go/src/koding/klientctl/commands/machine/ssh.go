@@ -2,6 +2,7 @@ package machine
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/spf13/cobra"
 )
@@ -29,7 +30,7 @@ func NewSSHCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.ExactArgs(1),              // One argument must be provided.
 	)(c, cmd)
 
 	return cmd
@@ -37,6 +38,11 @@ func NewSSHCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func sshCommand(c *cli.CLI, opts *sshOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		sshOpts := &machine.SSHOptions{
+			Identifier: args[0],
+			Username:   opts.username,
+		}
+
+		return machine.SSH(sshOpts)
 	}
 }

@@ -2,6 +2,7 @@ package mount
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,7 @@ func NewInspectCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.ExactArgs(1),              // One argument is required.
 	)(c, cmd)
 
 	return cmd
@@ -41,6 +42,25 @@ func NewInspectCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func inspectCommand(c *cli.CLI, opts *inspectOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		// Enable sync option when there is none set explicitly. Tree may be too
+		// large to show it implicitly.
+		if !opts.sync && !opts.tree && !opts.filesystem {
+			opts.sync = true
+		}
+
+		inspectOpts := &machine.InspectMountOptions{
+			Identifier: args[0],
+			Sync:       opts.sync,
+			Tree:       opts.tree,
+			Filesystem: opts.filesystem,
+		}
+
+		records, err := machine.InspectMount(inspectOpts)
+		if err != nil {
+			return err
+		}
+
+		cli.PrintJSON(c.Out(), records)
 		return nil
 	}
 }

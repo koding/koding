@@ -1,7 +1,10 @@
 package team
 
 import (
+	"fmt"
+	"koding/kites/kloud/team"
 	"koding/klientctl/commands/cli"
+	epteam "koding/klientctl/endpoint/team"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +16,7 @@ func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &useOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "use",
+		Use:   "use <team>",
 		Short: "Switch team context",
 		RunE:  useCommand(c, opts),
 	}
@@ -22,7 +25,7 @@ func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.ExactArgs(1),              // One argument is accepted.
 	)(c, cmd)
 
 	return cmd
@@ -30,6 +33,30 @@ func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func useCommand(c *cli.CLI, opts *useOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		ident := args[0]
+		teams, err := epteam.List(&epteam.ListOptions{})
+		if err != nil {
+			return err
+		}
+
+		var team *team.Team
+		for _, t := range teams {
+			if t.Name == ident || t.Slug == ident {
+				team = t
+				break
+			}
+		}
+
+		if team == nil {
+			return fmt.Errorf("unable to find %q team", ident)
+		}
+
+		epteam.Use(&epteam.Team{
+			Name: team.Name,
+		})
+
+		fmt.Fprintln(c.Err(), "You are currently logged in to the following team:", team.Name)
+
 		return nil
 	}
 }

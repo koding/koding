@@ -1,6 +1,11 @@
 package config
 
 import (
+	"fmt"
+	"text/tabwriter"
+
+	konfig "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/klientctl/commands/cli"
 
 	"github.com/spf13/cobra"
@@ -28,7 +33,7 @@ func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs, // No custom arguments are accepted.
+		cli.NoArgs,                    // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd
@@ -36,6 +41,26 @@ func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func listCommand(c *cli.CLI, opts *listOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		konfigs := configstore.List()
+
+		if opts.jsonOutput {
+			cli.PrintJSON(c.Out(), konfigs)
+			return nil
+		}
+
+		printKonfigs(c, konfigs.Slice())
+
 		return nil
+	}
+}
+
+func printKonfigs(c *cli.CLI, konfigs []*konfig.Konfig) {
+	w := tabwriter.NewWriter(c.Out(), 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "ID\tKODING URL")
+
+	for _, konfig := range konfigs {
+		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.KodingPublic())
 	}
 }

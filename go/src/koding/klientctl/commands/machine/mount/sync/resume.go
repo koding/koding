@@ -23,7 +23,7 @@ func NewResumeCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.MaxArgs(1),                // At most one argument is accepted.
 	)(c, cmd)
 
 	return cmd
@@ -31,6 +31,6 @@ func NewResumeCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func resumeCommand(c *cli.CLI, opts *resumeOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		return command(c, &options{resume: true})(cmd, args)
 	}
 }

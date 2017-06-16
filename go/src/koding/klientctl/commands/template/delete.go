@@ -1,7 +1,11 @@
 package template
 
 import (
+	"errors"
+	"fmt"
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/remoteapi"
+	"koding/klientctl/helper"
 
 	"github.com/spf13/cobra"
 )
@@ -40,6 +44,45 @@ func NewDeleteCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func deleteCommand(c *cli.CLI, opts *deleteOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		f := &remoteapi.Filter{
+			ID:   opts.id,
+			Slug: opts.template,
+		}
+
+		if f.ID == "" && f.Slug == "" {
+			return errors.New("error deleting template - missing slug name")
+		}
+
+		if f.ID == "" {
+			tmpls, err := remoteapi.ListTemplates(f)
+			if err != nil {
+				return err
+			}
+
+			if len(tmpls) != 1 {
+				return fmt.Errorf("error deleting template - got %d templates, expecting only one", len(tmpls))
+			}
+
+			f.ID = tmpls[0].ID
+		}
+
+		if !opts.force {
+			s, err := helper.Fask(c.In(), c.Out(), `Please type "yes" to confirm you want to delete the resource []: `)
+			if err != nil {
+				return err
+			}
+
+			if s != "yes" {
+				return errors.New("confirmation failed, aborting")
+			}
+		}
+
+		if err := remoteapi.DeleteTemplate(f.ID); err != nil {
+			return err
+		}
+
+		fmt.Fprintf(c.Out(), "Stack template with %q ID deleted successfully.\n", f.ID)
+
 		return nil
 	}
 }

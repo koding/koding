@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/daemon"
 
 	"github.com/spf13/cobra"
 )
@@ -41,6 +42,10 @@ func NewUpdateCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func updateCommand(c *cli.CLI, opts *updateOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		daemonOpts := &daemon.Opts{
+			Force: opts.force,
+		}
+
+		return daemon.Update(daemonOpts)
 	}
 }

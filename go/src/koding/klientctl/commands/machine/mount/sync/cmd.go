@@ -1,15 +1,19 @@
 package sync
 
 import (
+	"os"
 	"time"
 
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/spf13/cobra"
 )
 
 type options struct {
 	timeout time.Duration
+	pause   bool
+	resume  bool
 }
 
 // NewCommand creates a command that manages mount file synchronization.
@@ -36,14 +40,32 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.MaxArgs(1),                // At most one argument is accepted.
 	)(c, cmd)
 
 	return cmd
 }
 
 func command(c *cli.CLI, opts *options) cli.CobraFuncE {
-	return func(cmd *cobra.Command, args []string) error {
-		return nil
+	return func(cmd *cobra.Command, args []string) (err error) {
+		var ident string
+		if len(args) > 0 {
+			ident = args[0]
+		}
+
+		if ident == "" {
+			if ident, err = os.Getwd(); err != nil {
+				return err
+			}
+		}
+
+		syncOpts := &machine.SyncMountOptions{
+			Identifier: ident,
+			Pause:      opts.pause,
+			Resume:     opts.resume,
+			Timeout:    opts.timeout,
+		}
+
+		return machine.SyncMount(syncOpts)
 	}
 }
