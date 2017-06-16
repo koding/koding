@@ -12,7 +12,7 @@ import (
 type useOptions struct{}
 
 // NewUseCommand creates a command that can change currently active configuration.
-func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewUseCommand(c *cli.CLI) *cobra.Command {
 	opts := &useOptions{}
 
 	cmd := &cobra.Command{
@@ -23,8 +23,7 @@ func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(1),              // One argument is accepted.
+		cli.ExactArgs(1), // One argument is accepted.
 	)(c, cmd)
 
 	return cmd

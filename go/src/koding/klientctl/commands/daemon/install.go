@@ -19,7 +19,7 @@ type installOptions struct {
 
 // NewInstallCommand creates a command that is used to install the deamon and
 // other KD dependencies.
-func NewInstallCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewInstallCommand(c *cli.CLI) *cobra.Command {
 	opts := &installOptions{}
 
 	cmd := &cobra.Command{
@@ -39,9 +39,8 @@ func NewInstallCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.AdminRequired,             // Root privileges are required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.AdminRequired, // Root privileges are required.
+		cli.NoArgs,        // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

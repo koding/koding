@@ -4,6 +4,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// AliasAnnotation is a cobra command annotation key that stores alternative
+// name for the command. This name should be used by middlewares instead of
+// command path.
+const AliasAnnotation = "command-alias-annotation"
+
 // CobraFuncE is a shortcut for cobra operation handlers that return errors.
 type CobraFuncE func(cmd *cobra.Command, args []string) error
 
@@ -37,11 +42,28 @@ func ApplyForAll(ccm CobraCmdMiddleware) (ccmRet CobraCmdMiddleware) {
 	return ccmRet
 }
 
-// ExtendAlias adds comand name to alias path only if the slice is not empty.
-func ExtendAlias(cmd *cobra.Command, aliasPath []string) []string {
-	if cmd == nil || len(aliasPath) == 0 {
-		return aliasPath
+// Alias adds alias annotation to command and all its subcommands.
+func Alias(cmd *cobra.Command, aliasPath string) *cobra.Command {
+	// Do nothing when alias annotation is already set.
+	if _, ok := cmd.Annotations[AliasAnnotation]; ok {
+		return cmd
 	}
 
-	return append(aliasPath, cmd.Name())
+	// Include command name to path.
+	aliasPath += " " + cmd.Name()
+
+	// Initialize map if it's nil.
+	if cmd.Annotations == nil {
+		cmd.Annotations = make(map[string]string)
+	}
+
+	// Apply to current.
+	cmd.Annotations[AliasAnnotation] = aliasPath
+
+	// Recursively apply to all subcommands.
+	for _, subcmd := range cmd.Commands() {
+		Alias(subcmd, aliasPath)
+	}
+
+	return cmd
 }

@@ -16,7 +16,7 @@ type options struct {
 }
 
 // NewCommand creates a command that is used to open provided files in Koding UI.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
@@ -31,9 +31,8 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.MinArgs(1),                // At least 1 argument must be provided.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.MinArgs(1),     // At least 1 argument must be provided.
 	)(c, cmd)
 
 	return cmd

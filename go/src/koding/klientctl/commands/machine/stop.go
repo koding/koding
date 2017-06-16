@@ -14,7 +14,7 @@ type stopOptions struct {
 }
 
 // NewStopCommand creates a command that can stop a remote machine.
-func NewStopCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewStopCommand(c *cli.CLI) *cobra.Command {
 	opts := &stopOptions{}
 
 	cmd := &cobra.Command{
@@ -29,9 +29,8 @@ func NewStopCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(1),              // One argument is required.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.ExactArgs(1),   // One argument is required.
 	)(c, cmd)
 
 	return cmd

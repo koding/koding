@@ -10,7 +10,7 @@ import (
 type stopOptions struct{}
 
 // NewStopCommand creates a command that is used to stop deamon service.
-func NewStopCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewStopCommand(c *cli.CLI) *cobra.Command {
 	opts := &stopOptions{}
 
 	cmd := &cobra.Command{
@@ -21,10 +21,9 @@ func NewStopCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.AdminRequired,             // Root privileges are required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.AdminRequired,  // Root privileges are required.
+		cli.NoArgs,         // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

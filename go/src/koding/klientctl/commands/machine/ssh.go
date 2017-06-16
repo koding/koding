@@ -12,7 +12,7 @@ type sshOptions struct {
 }
 
 // NewSSHCommand creates a command that allows to SSH into remote machine.
-func NewSSHCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewSSHCommand(c *cli.CLI) *cobra.Command {
 	opts := &sshOptions{}
 
 	cmd := &cobra.Command{
@@ -28,9 +28,8 @@ func NewSSHCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(1),              // One argument must be provided.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.ExactArgs(1),   // One argument must be provided.
 	)(c, cmd)
 
 	return cmd

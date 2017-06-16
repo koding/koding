@@ -27,7 +27,7 @@ type initOptions struct {
 }
 
 // NewInitCommand creates a command that generates a new stack template.
-func NewInitCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewInitCommand(c *cli.CLI) *cobra.Command {
 	opts := &initOptions{}
 
 	cmd := &cobra.Command{
@@ -44,9 +44,8 @@ func NewInitCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.NoArgs,         // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

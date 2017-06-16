@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that can list teams and set team context.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "team",
 		Short: "List available teams and set their context",
@@ -16,10 +16,10 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewListCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewShowCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewUseCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewWhoAmICommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewListCommand(c),
+		NewShowCommand(c),
+		NewUseCommand(c),
+		NewWhoAmICommand(c),
 	)
 
 	// Middlewares.

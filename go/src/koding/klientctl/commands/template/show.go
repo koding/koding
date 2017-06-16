@@ -21,7 +21,7 @@ type showOptions struct {
 }
 
 // NewShowCommand creates a command that shows details of a given stack template.
-func NewShowCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewShowCommand(c *cli.CLI) *cobra.Command {
 	opts := &showOptions{}
 
 	cmd := &cobra.Command{
@@ -38,9 +38,8 @@ func NewShowCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.MaxArgs(1),                // No more than 1 arg.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.MaxArgs(1),     // No more than 1 arg.
 	)(c, cmd)
 
 	return cmd

@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that manages stack credentials.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "credential",
 		Aliases: []string{"c"},
@@ -17,11 +17,11 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewCreateCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewDescribeCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewInitCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewListCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewUseCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewCreateCommand(c),
+		NewDescribeCommand(c),
+		NewInitCommand(c),
+		NewListCommand(c),
+		NewUseCommand(c),
 	)
 
 	// Middlewares.

@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that manages stack templates.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "template",
 		Short: "Manage stack templates",
@@ -16,10 +16,10 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewDeleteCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewInitCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewListCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewShowCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewDeleteCommand(c),
+		NewInitCommand(c),
+		NewListCommand(c),
+		NewShowCommand(c),
 	)
 
 	// Middlewares.

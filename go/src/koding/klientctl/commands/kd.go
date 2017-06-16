@@ -40,26 +40,26 @@ func NewKdCommand(c *cli.CLI) *cobra.Command {
 		config.NewCommand(c),
 		cred.NewCommand(c),
 		daemon.NewCommand(c),
-		daemon.NewInstallCommand(c, "kd", "daemon"),
-		daemon.NewRestartCommand(c, "kd", "daemon"),
-		daemon.NewStartCommand(c, "kd", "daemon"),
-		daemon.NewStopCommand(c, "kd", "daemon"),
-		daemon.NewUninstallCommand(c, "kd", "daemon"),
-		daemon.NewUpdateCommand(c, "kd", "daemon"),
+		cli.Alias(daemon.NewInstallCommand(c), "kd daemon"),
+		cli.Alias(daemon.NewRestartCommand(c), "kd daemon"),
+		cli.Alias(daemon.NewStartCommand(c), "kd daemon"),
+		cli.Alias(daemon.NewStopCommand(c), "kd daemon"),
+		cli.Alias(daemon.NewUninstallCommand(c), "kd daemon"),
+		cli.Alias(daemon.NewUpdateCommand(c), "kd daemon"),
 		initial.NewCommand(c),
 		log.NewCommand(c),
 		machine.NewCommand(c),
-		machine.NewCpCommand(c, "kd", "machine"),
-		machine.NewExecCommand(c, "kd", "machine"),
-		machine.NewListCommand(c, "kd", "machine"),
-		machine.NewSSHCommand(c, "kd", "machine"),
-		machine.NewUmountCommand(c, "kd", "machine"),
+		cli.Alias(machine.NewCpCommand(c), "kd machine"),
+		cli.Alias(machine.NewExecCommand(c), "kd machine"),
+		cli.Alias(machine.NewListCommand(c), "kd machine"),
+		cli.Alias(machine.NewSSHCommand(c), "kd machine"),
+		cli.Alias(machine.NewUmountCommand(c), "kd machine"),
 		metrics.NewCommand(c),
-		mount.NewCommand(c, "kd", "machine"),
+		cli.Alias(mount.NewCommand(c), "kd machine"),
 		open.NewCommand(c),
 		stack.NewCommand(c),
 		status.NewCommand(c),
-		sync.NewCommand(c, "kd", "machine", "mount"),
+		cli.Alias(sync.NewCommand(c), "kd machine mount"),
 		team.NewCommand(c),
 		template.NewCommand(c),
 		version.NewCommand(c),
@@ -67,6 +67,7 @@ func NewKdCommand(c *cli.CLI) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
+		cli.ApplyForAll(cli.WithMetrics),          // Collect metrics for all commands.
 		cli.ApplyForAll(cli.CloseOnExitCtlCli),    // Run ctlcli.Close for all commands.
 		cli.ApplyForAll(cli.WithLoggedInfo),       // Log invocation and errors for all commands.
 		cli.ApplyForAll(cli.WithInitializedCache), // Use cache for all commands.

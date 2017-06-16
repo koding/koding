@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that manages KD configuration.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage tool configuration",
@@ -16,12 +16,12 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewListCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewResetCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewSetCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewShowCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewUnsetCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewUseCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewListCommand(c),
+		NewResetCommand(c),
+		NewSetCommand(c),
+		NewShowCommand(c),
+		NewUnsetCommand(c),
+		NewUseCommand(c),
 	)
 
 	// Middlewares.

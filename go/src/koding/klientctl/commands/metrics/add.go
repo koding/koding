@@ -14,7 +14,7 @@ type addOptions struct {
 }
 
 // NewAddCommand creates a command that allows to add new metric.
-func NewAddCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewAddCommand(c *cli.CLI) *cobra.Command {
 	opts := &addOptions{}
 
 	cmd := &cobra.Command{
