@@ -18,7 +18,9 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cmd.AddCommand(
 		NewLoginCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
 		NewShowCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewRegisterCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+
+		// Register command is disabled due to: #11027
+		// NewRegisterCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
 	)
 
 	// Middlewares.
