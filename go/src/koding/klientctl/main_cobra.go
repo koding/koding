@@ -12,6 +12,7 @@ import (
 	"koding/klientctl/commands/cli"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/machine"
 )
 
 func main() {
@@ -24,6 +25,10 @@ func main() {
 
 	c := cli.NewCLI(os.Stdin, os.Stdout, os.Stderr, logHandler)
 	go handleSignals(c) // Start signal handler.
+
+	// Initialize default client with CLI's stream. This is required until
+	// machine I/O logic is moved to CLI.
+	machine.DefaultClient.Stream = c
 
 	kloud.DefaultLog = c.Log()
 

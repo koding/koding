@@ -1,7 +1,10 @@
 package machine
 
 import (
+	"errors"
+
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/spf13/cobra"
 )
@@ -31,7 +34,6 @@ func NewUmountCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd
@@ -39,6 +41,16 @@ func NewUmountCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func umountCommand(c *cli.CLI, opts *umountOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		if !opts.all && len(args) == 0 {
+			return errors.New("no mounts provided")
+		}
+
+		umountOpts := &machine.UmountOptions{
+			Identifiers: args,
+			Force:       opts.force,
+			All:         opts.all,
+		}
+
+		return machine.Umount(umountOpts)
 	}
 }

@@ -1,8 +1,13 @@
 package auth
 
 import (
+	"fmt"
+	"net/url"
+
 	"koding/klientctl/commands/cli"
 	"koding/klientctl/config"
+	"koding/klientctl/ctlcli"
+	"koding/klientctl/endpoint/auth"
 
 	"github.com/spf13/cobra"
 )
@@ -44,6 +49,48 @@ func NewLoginCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func loginCommand(c *cli.CLI, opts *loginOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		kodingURL, err := url.Parse(opts.baseURL)
+		if err != nil {
+			return fmt.Errorf("%q is not a valid URL value: %s", opts.baseURL, err)
+		}
+
+		f, err := auth.NewFacade(&auth.FacadeOptions{
+			Base: kodingURL,
+			Log:  c.Log(),
+		})
+		if err != nil {
+			return err
+		}
+
+		ctlcli.CloseOnExit(f)
+
+		fmt.Fprintln(c.Err(), "Logging to", kodingURL, "...")
+
+		loginOpts := &auth.LoginOptions{
+			Team:  opts.team,
+			Token: opts.token,
+			Force: opts.force,
+		}
+
+		resp, err := f.Login(loginOpts)
+		if err != nil {
+			return fmt.Errorf("error logging into your Koding account: %v", err)
+		}
+
+		if opts.jsonOutput {
+			cli.PrintJSON(c.Out(), resp)
+			return nil
+		}
+
+		if resp.GroupName != "" {
+			fmt.Fprintln(c.Out(), "Successfully logged in to the following team:", resp.GroupName)
+		} else {
+			fmt.Fprintf(c.Out(), "Successfully authenticated to Koding.\n\nPlease run \"kd auth login "+
+				"[--team myteam]\" in order to login to your team.\n")
+		}
+
+		fmt.Fprintf(c.Out(), "\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n")
+
 		return nil
 	}
 }

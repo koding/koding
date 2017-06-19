@@ -1,7 +1,10 @@
 package machine
 
 import (
+	"fmt"
+
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +31,7 @@ func NewStartCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.ExactArgs(1),              // One argument is required.
 	)(c, cmd)
 
 	return cmd
@@ -36,6 +39,23 @@ func NewStartCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func startCommand(c *cli.CLI, opts *startOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		event, err := machine.Start(args[0])
+		if err != nil {
+			return err
+		}
+
+		for e := range machine.Wait(event) {
+			if e.Error != nil {
+				err = e.Error
+			}
+
+			if opts.jsonOutput {
+				cli.PrintJSON(c.Out(), e)
+			} else {
+				fmt.Fprintf(c.Out(), "[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+			}
+		}
+
+		return err
 	}
 }

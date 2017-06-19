@@ -1,7 +1,10 @@
 package status
 
 import (
+	"fmt"
+
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/status"
 
 	"github.com/spf13/cobra"
 )
@@ -29,6 +32,12 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func command(c *cli.CLI, opts *options) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		res, ok := status.NewDefaultHealthChecker(c.Log()).CheckAllWithResponse()
+		fmt.Fprintln(c.Out(), res)
+		if !ok {
+			return fmt.Errorf("health check failed")
+		}
+
 		return nil
 	}
 }

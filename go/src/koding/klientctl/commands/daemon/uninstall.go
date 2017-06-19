@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/daemon"
 
 	"github.com/spf13/cobra"
 )
@@ -37,6 +38,10 @@ func NewUninstallCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func uninstallCommand(c *cli.CLI, opts *uninstallOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		daemonOpts := &daemon.Opts{
+			Force: opts.force,
+		}
+
+		return daemon.Uninstall(daemonOpts)
 	}
 }
