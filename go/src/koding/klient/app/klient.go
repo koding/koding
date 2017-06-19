@@ -502,6 +502,7 @@ func (k *Klient) RegisterMethods() {
 	// Machine group handlers.
 	k.handleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
 	k.handleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
+	k.handleFunc("machine.identifier.list", machinegroup.KiteHandlerIdentifierList(k.machines))
 	k.handleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
 	k.handleFunc("machine.mount.head", machinegroup.KiteHandlerHeadMount(k.machines))
 	k.handleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"koding/klient/machine"
+	"koding/klient/machine/machinegroup/idset"
 )
 
 // IDRequest defines machine group ID request.
@@ -44,4 +45,67 @@ func (g *Group) ID(req *IDRequest) (*IDResponse, error) {
 
 	g.log.Error("Cannot find machine with identifier: %s", req.Identifier)
 	return nil, machine.ErrMachineNotFound
+}
+
+// IdentifierListRequest defines machine group IdentifierList request.
+type IdentifierListRequest struct {
+	// Return cached machine IDs.
+	IDs bool `json:"ids"`
+
+	// Return cached machine aliases.
+	Aliases bool `json:"aliases"`
+
+	// Return cached machine IPs.
+	IPs bool `josn:"ips"`
+}
+
+// IdentifierListResponse defines machine group IdentifierList response.
+type IdentifierListResponse struct {
+	Identifiers []string `json:"identifiers"`
+}
+
+// IdentifierList returns the machine identifiers which can be IDs, aliases
+// or/and IPs.
+func (g *Group) IdentifierList(req *IdentifierListRequest) (*IdentifierListResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	var (
+		regAlias   = g.alias.Registered()
+		regAddress = g.address.Registered()
+		regClient  = g.client.Registered()
+		regMount   = g.mount.Registered()
+	)
+
+	var identifiers []string
+	if req.IDs {
+		union := idset.Union(
+			idset.Union(regAlias, regAddress),
+			idset.Union(regClient, regMount),
+		)
+		for _, id := range union {
+			identifiers = append(identifiers, string(id))
+		}
+	}
+
+	if req.Aliases {
+		for _, id := range regAlias {
+			if alias, err := g.alias.Create(id); err == nil {
+				identifiers = append(identifiers, alias)
+			}
+		}
+	}
+
+	if req.IPs {
+		for _, id := range regAddress {
+			if ipAddr, err := g.address.Latest(id, "ip"); err == nil {
+				identifiers = append(identifiers, ipAddr.Value)
+			}
+		}
+	}
+
+	return &IdentifierListResponse{
+		Identifiers: identifiers,
+	}, nil
 }
