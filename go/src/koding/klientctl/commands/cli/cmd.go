@@ -21,7 +21,7 @@ func NewCommand(c *CLI) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewBashCompletionCommand(c),
+		NewAutocompleteCommand(c),
 	)
 
 	// Middlewares.

@@ -15,17 +15,17 @@ import (
 
 const autocompletionFilePath = "/usr/local/etc/bash_completion.d/kd"
 
-type bashCompletionOptions struct{}
+type autocompleteOptions struct{}
 
-// NewBashCompletionCommand creates a command that allows generates file
+// NewAutocompleteCommand creates a command that allows generates file
 // completion for root command and all its subcommands.
-func NewBashCompletionCommand(c *CLI) *cobra.Command {
-	opts := &bashCompletionOptions{}
+func NewAutocompleteCommand(c *CLI) *cobra.Command {
+	opts := &autocompleteOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "bash-completion [<filepath> | - ]",
-		Short: "Generate bash completion file",
-		RunE:  bashCompletionCommand(c, opts),
+		Use:   "autocomplete [<filepath> | - ]",
+		Short: "Generate shell autocompletion script",
+		RunE:  autocompleteCommand(c, opts),
 	}
 
 	// Middlewares.
@@ -36,7 +36,7 @@ func NewBashCompletionCommand(c *CLI) *cobra.Command {
 	return cmd
 }
 
-func bashCompletionCommand(c *CLI, opts *bashCompletionOptions) CobraFuncE {
+func autocompleteCommand(c *CLI, opts *autocompleteOptions) CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
 		rootCmd := cmd.Root()
 		if len(args) == 0 {
