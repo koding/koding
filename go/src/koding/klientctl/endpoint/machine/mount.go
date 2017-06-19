@@ -187,6 +187,27 @@ func (c *Client) ListMount(options *ListMountOptions) (map[string][]mount.Info, 
 	return listMountRes.Mounts, nil
 }
 
+// MountIdentifiersOptions stores options for "machine mount identifiers" call.
+type MountIdentifiersOptions struct {
+	MountIds  bool
+	BasePaths bool
+}
+
+// MountIdentifiers returns cached mounts identifiers.
+func (c *Client) MountIdentifiers(options *MountIdentifiersOptions) ([]string, error) {
+	mountIdentifiersReq := &machinegroup.MountIdentifierListRequest{
+		MountIds:  options.MountIds,
+		BasePaths: options.BasePaths,
+	}
+	var mountIdentifiersRes machinegroup.MountIdentifierListResponse
+
+	if err := c.klient().Call("machine.mount.identifier.list", mountIdentifiersReq, &mountIdentifiersRes); err != nil {
+		return nil, err
+	}
+
+	return mountIdentifiersRes.Identifiers, nil
+}
+
 // InspectMountOptions stores options for `machine mount inspect` call.
 type InspectMountOptions struct {
 	Identifier string // Mount identifier.

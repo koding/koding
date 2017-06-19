@@ -12,6 +12,29 @@ import (
 	"koding/klient/machine/machinegroup"
 )
 
+// IdentifiersOptions stores options for "machine identifiers" call.
+type IdentifiersOptions struct {
+	IDs     bool
+	Aliases bool
+	IPs     bool
+}
+
+// Identifiers returns cached machine identifiers.
+func (c *Client) Identifiers(options *IdentifiersOptions) ([]string, error) {
+	identifiersReq := &machinegroup.IdentifierListRequest{
+		IDs:     options.IDs,
+		Aliases: options.Aliases,
+		IPs:     options.IPs,
+	}
+	var identifiersRes machinegroup.IdentifierListResponse
+
+	if err := c.klient().Call("machine.identifier.list", identifiersReq, &identifiersRes); err != nil {
+		return nil, err
+	}
+
+	return identifiersRes.Identifiers, nil
+}
+
 // ListOptions stores options for `machine list` call.
 type ListOptions struct {
 	MachineID string
