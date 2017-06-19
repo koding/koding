@@ -121,7 +121,7 @@ func TestKubernetesExec(t *testing.T) {
 
         K8s: proxy.K8s{
             Namespace:      "default",
-            Pod:            "koding",
+            Pod:            "test-klient",
             Container:      "klient",
         },
     }
@@ -204,7 +204,7 @@ func TestKubernetesExecWithInput(t *testing.T) {
 
         K8s: proxy.K8s{
             Namespace:      "default",
-            Pod:            "koding",
+            Pod:            "test-klient",
             Container:      "klient",
         },
     }
@@ -297,7 +297,7 @@ func TestKubernetesExecTerminal(t *testing.T) {
 
         K8s: proxy.K8s{
             Namespace:      "default",
-            Pod:            "koding",
+            Pod:            "test-klient",
             Container:      "klient",
         },
     }

@@ -8,6 +8,12 @@ import (
 	"github.com/koding/kite"
 )
 
+type InfoRequest struct {
+
+	// Whether or not to perform whois lookup.
+	Lookup			bool
+}
+
 type InfoResponse struct {
 	// ProviderName is the name of the machine (vm or otherwise) provider,
 	// as identified by the
@@ -29,13 +35,8 @@ type Infoer interface {
 //
 // See also `kite.info`.
 func Info(r *kite.Request) (interface{}, error) {
-	providerName, err := CheckProvider()
-	if err != nil {
-		return InfoResponse{}, err
-	}
-
-	i := &InfoResponse{
-		ProviderName: 	providerName.String(),
+	res := &InfoResponse{
+		// ProviderName: 	providerName.String(),
 		Username:     	config.CurrentUser.Username,
 		Home:         	config.CurrentUser.HomeDir,
 		OS:           	runtime.GOOS,
@@ -43,10 +44,26 @@ func Info(r *kite.Request) (interface{}, error) {
 	}
 
 	for _, group := range config.CurrentUser.Groups {
-		i.Groups = append(i.Groups, group.Name)
+		res.Groups = append(res.Groups, group.Name)
+	}
+	sort.Strings(res.Groups)
+
+	var req *InfoRequest
+
+	err := r.Args.One().Unmarshal(&req)
+	if err == nil && !req.Lookup {
+
+		// If we were explicitly told not to perform a provider lookup,
+		// then return UnknownProvider here.
+		res.ProviderName = UnknownProvider.String()
+		return res, nil
 	}
 
-	sort.Strings(i.Groups)
+	providerName, err := CheckProvider()
+	if err != nil {
+		return InfoResponse{}, err
+	}
+	res.ProviderName = providerName.String()
 
-	return i, nil
+	return res, nil
 }
