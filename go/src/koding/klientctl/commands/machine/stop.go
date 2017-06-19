@@ -18,7 +18,7 @@ func NewStopCommand(c *cli.CLI) *cobra.Command {
 	opts := &stopOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "stop",
+		Use:   "stop <machine-identifier>",
 		Short: "Stop remote machine",
 		RunE:  stopCommand(c, opts),
 	}

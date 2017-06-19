@@ -20,8 +20,9 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
-		Use:   "open",
+		Use:   "open <file>...",
 		Short: "Open given files in Koding UI",
+		Long:  "Open a file on the Koding UI, if the given machine is visible on Koding.",
 		RunE:  command(c, opts),
 	}
 

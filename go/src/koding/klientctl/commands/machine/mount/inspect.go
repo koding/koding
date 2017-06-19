@@ -18,7 +18,7 @@ func NewInspectCommand(c *cli.CLI) *cobra.Command {
 	opts := &inspectOptions{}
 
 	cmd := &cobra.Command{
-		Use:    "inspect",
+		Use:    "inspect <mount-id>",
 		Short:  "Show mount debug information",
 		RunE:   inspectCommand(c, opts),
 		Hidden: true,

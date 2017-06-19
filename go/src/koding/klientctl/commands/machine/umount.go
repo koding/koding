@@ -19,7 +19,7 @@ func NewUmountCommand(c *cli.CLI) *cobra.Command {
 	opts := &umountOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "umount",
+		Use:     "umount (<mount-id> | <mount-path>)...",
 		Aliases: []string{"unmount", "u"},
 		Short:   "Unmount remote directory",
 		RunE:    umountCommand(c, opts),
