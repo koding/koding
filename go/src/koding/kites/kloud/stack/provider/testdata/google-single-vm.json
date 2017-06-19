@@ -1,0 +1,24 @@
+{
+	"provider": {
+		"google": {
+			"credentials": "${var.google_credentials}",
+			"project": "${var.google_project}",
+			"region": "${var.google_region}"
+		}
+	},
+	"resource": {
+		"google_compute_instance": {
+			"google-instance": {
+				"disk": {
+					"image": "ubuntu-1404-lts"
+				},
+				"machine_type": "f1-micro",
+				"metadata": {
+					"user-data": "# let's create a file on your root folder:\necho \"hello world!\" >> /helloworld.txt\n# please note: all commands under user_data will be run as root.\n# now add your credentials and save this stack.\n# once vm finishes building, you can see this file by typing\n# ls /\n#\n# for more information please use the search box above"
+				},
+				"name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
+				"zone": "us-central1-a"
+			}
+		}
+	}
+}

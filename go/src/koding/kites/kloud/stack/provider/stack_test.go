@@ -8,10 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/azure"
+	"koding/kites/kloud/provider/google"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/stack/provider/providertest"
@@ -19,7 +21,6 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/testkeys"
-	"github.com/koding/logging"
 )
 
 var update = flag.Bool("update-golden", false, "Update golden files.")
@@ -76,7 +77,6 @@ var cases = map[string]struct {
 				SubnetName:       "subnet",
 			},
 		},
-
 		build: func(bs *provider.BaseStack) stack.Stacker {
 			return &azure.Stack{
 				BaseStack: bs,
@@ -88,12 +88,32 @@ var cases = map[string]struct {
 			"testdata/azure-custom-endpoint.json",
 		},
 	},
+	"google": {
+		provider: google.Provider,
+		cred: &stack.Credential{
+			Credential: &google.Cred{
+				Credentials: "{}",
+				Project:     "koding",
+				Region:      "us-east1",
+			},
+			Bootstrap: &google.Bootstrap{
+				KodingNetworkID: "id-12345",
+			},
+		},
+		build: func(bs *provider.BaseStack) stack.Stacker {
+			return &google.Stack{
+				BaseStack: bs,
+			}
+		},
+		templates: []string{
+			"testdata/google-single-vm.json",
+			"testdata/google-multiple-vms.json",
+		},
+	},
 }
 
 func TestAzure_ApplyTemplate(t *testing.T) {
 	flag.Parse()
-
-	log := logging.NewCustom("test", true)
 
 	for name, cas := range cases {
 		for _, tmpl := range cas.templates {
@@ -127,6 +147,12 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 						Username: "user",
 					},
 					KlientIDs: make(stack.KiteMap),
+					Log:       log,
+					Keys: &publickeys.Keys{
+						PublicKey:  testkeys.Public,
+						PrivateKey: testkeys.Private,
+						KeyName:    "koding",
+					},
 				})
 
 				stack, err := s.ApplyTemplate(cas.cred)
@@ -165,7 +191,7 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 //
 func stripNondeterministicResources(name string) string {
 	switch name {
-	case "0", "1", "2", "user_data", "custom_data", "name":
+	case "0", "1", "2", "user-data", "ssh-keys", "user_data", "custom_data", "name":
 		return "***"
 	default:
 		return ""
