@@ -272,6 +272,27 @@ func KiteHandlerMountID(g *Group) kite.HandlerFunc {
 	}
 }
 
+// KiteHandlerMountIdentifierList creates a kite handler function that, when
+// called, invokes machine group MountIdentifierList method.
+func KiteHandlerMountIdentifierList(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &MountIdentifierListRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.MountIdentifierList(req)
+		if err != nil {
+			return nil, newError(err)
+		}
+
+		return res, nil
+	}
+}
+
 // KiteHandlerManageMount creates a kite handler function that, when called,
 // invokes machine group ManageMount method.
 func KiteHandlerManageMount(g *Group) kite.HandlerFunc {

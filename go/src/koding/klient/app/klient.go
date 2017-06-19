@@ -511,6 +511,7 @@ func (k *Klient) RegisterMethods() {
 	k.handleFunc("machine.mount.inspect", machinegroup.KiteHandlerInspectMount(k.machines))
 	k.handleFunc("machine.mount.waitIdle", k.machines.HandleWaitIdle)
 	k.handleFunc("machine.mount.id", machinegroup.KiteHandlerMountID(k.machines))
+	k.handleFunc("machine.mount.identifier.list", machinegroup.KiteHandlerMountIdentifierList(k.machines))
 	k.handleFunc("machine.mount.manage", machinegroup.KiteHandlerManageMount(k.machines))
 	k.handleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
 	k.handleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))

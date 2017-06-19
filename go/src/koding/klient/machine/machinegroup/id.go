@@ -5,6 +5,7 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup/idset"
+	"sort"
 )
 
 // IDRequest defines machine group ID request.
@@ -64,8 +65,7 @@ type IdentifierListResponse struct {
 	Identifiers []string `json:"identifiers"`
 }
 
-// IdentifierList returns the machine identifiers which can be IDs, aliases
-// or/and IPs.
+// IdentifierList returns machine identifiers which can be IDs, aliases or/and IPs.
 func (g *Group) IdentifierList(req *IdentifierListRequest) (*IdentifierListResponse, error) {
 	if req == nil {
 		return nil, errors.New("invalid nil request")
@@ -105,6 +105,7 @@ func (g *Group) IdentifierList(req *IdentifierListRequest) (*IdentifierListRespo
 		}
 	}
 
+	sort.Strings(identifiers)
 	return &IdentifierListResponse{
 		Identifiers: identifiers,
 	}, nil

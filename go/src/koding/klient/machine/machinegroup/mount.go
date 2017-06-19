@@ -14,6 +14,7 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/prefetch"
 	"koding/klient/machine/mount/sync/history"
+	"sort"
 )
 
 // MountRequest defines machine group mount request.
@@ -284,6 +285,58 @@ func (g *Group) lookup(path string) (mount.ID, error) {
 	}
 
 	return "", mount.ErrMountNotFound
+}
+
+// MountIdentifierListRequest defines mount identifier list request.
+type MountIdentifierListRequest struct {
+	// Return mount IDs.
+	MountIds bool `json:"mountIDs"`
+
+	// Return mount base part of local paths. They may overlap.
+	BasePaths bool `json:"basePaths"`
+}
+
+// MountIdentifierListResponse defines mount identifier list response.
+type MountIdentifierListResponse struct {
+	Identifiers []string `json:"identifiers"`
+}
+
+// MountIdentifierList returns mount identifiers which can be IDs or/and base paths.
+func (g *Group) MountIdentifierList(req *MountIdentifierListRequest) (*MountIdentifierListResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	var (
+		regMount    = g.mount.Registered()
+		basePaths   = map[string]struct{}{}
+		identifiers []string
+	)
+
+	for _, id := range regMount {
+		mounts, err := g.mount.All(id)
+		if err != nil {
+			continue
+		}
+
+		for mountID, m := range mounts {
+			if req.MountIds {
+				identifiers = append(identifiers, string(mountID))
+			}
+			basePaths[filepath.Base(m.Path)] = struct{}{}
+		}
+	}
+
+	if req.BasePaths {
+		for basePath := range basePaths {
+			identifiers = append(identifiers, basePath)
+		}
+	}
+
+	sort.Strings(identifiers)
+	return &MountIdentifierListResponse{
+		Identifiers: identifiers,
+	}, nil
 }
 
 // UpdateIndexRequest defines index update request.
