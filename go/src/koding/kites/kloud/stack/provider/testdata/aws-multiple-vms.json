@@ -8,6 +8,7 @@
 	"resource": {
 		"aws_instance": {
 			"aws-instance": {
+				"count": 3,
 				"instance_type": "t2.nano",
 				"tags": {
 					"Name": "${var.koding_user_username}-${var.koding_group_slug}"
