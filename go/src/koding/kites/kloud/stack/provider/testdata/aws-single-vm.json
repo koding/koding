@@ -1,0 +1,19 @@
+{
+	"provider": {
+		"aws": {
+			"access_key": "${var.aws_access_key}",
+			"secret_key": "${var.aws_secret_key}"
+		}
+	},
+	"resource": {
+		"aws_instance": {
+			"aws-instance": {
+				"instance_type": "t2.nano",
+				"tags": {
+					"Name": "${var.koding_user_username}-${var.koding_group_slug}"
+				},
+				"user_data": "# let's create a file on your root folder:\necho \"hello world!\" >> /helloworld.txt\n# please note: all commands under user_data will be run as root.\n# now add your credentials and save this stack.\n# once vm finishes building, you can see this file by typing\n# ls /\n#\n# for more information please use the search box above"
+			}
+		}
+	}
+}

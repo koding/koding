@@ -1,0 +1,57 @@
+{
+	"provider": {
+		"azure": {
+			"publish_settings": "${var.azure_publish_settings}",
+			"subscription_id": "${var.azure_subscription_id}"
+		}
+	},
+	"resource": {
+		"azure_instance": {
+			"example-instance": {
+				"count": 3,
+				"custom_data": "***",
+				"endpoint": [
+					{
+						"name": "***",
+						"private_port": 56789,
+						"protocol": "tcp",
+						"public_port": 56789
+					},
+					{
+						"name": "***",
+						"private_port": 22,
+						"protocol": "tcp",
+						"public_port": 22
+					}
+				],
+				"hosted_service_name": "hosted-service",
+				"image": "Ubuntu Server 14.04 LTS",
+				"location": "",
+				"password": "${lookup(var.passwords_example-instance, count.index)}",
+				"security_group": "security-group",
+				"size": "Basic_A1",
+				"ssh_key_thumbprint": "12:23:45:56:67:89:90",
+				"storage_service_name": "storage-serice",
+				"subnet": "subnet",
+				"username": "user",
+				"virtual_network": "virtual-network"
+			}
+		}
+	},
+	"variable": {
+		"kitekeys_example-instance": {
+			"default": {
+				"0": "***",
+				"1": "***",
+				"2": "***"
+			}
+		},
+		"passwords_example-instance": {
+			"default": {
+				"0": "***",
+				"1": "***",
+				"2": "***"
+			}
+		}
+	}
+}
