@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+
+	"koding/kites/config/configstore"
 	"koding/klientctl/commands/cli"
 
 	"github.com/spf13/cobra"
@@ -13,7 +16,7 @@ func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	opts := &setOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "set",
+		Use:   "set <key> <value>",
 		Short: "Set a value for the given key",
 		RunE:  setCommand(c, opts),
 	}
@@ -21,7 +24,7 @@ func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs, // No custom arguments are accepted.
+		cli.ExactArgs(2),              // Two arguments are accepted.
 	)(c, cmd)
 
 	return cmd
@@ -29,6 +32,12 @@ func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func setCommand(c *cli.CLI, opts *setOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		if err := configstore.Set(args[0], args[1]); err != nil {
+			return err
+		}
+
+		fmt.Fprintf(c.Out(), "Changed %q setting.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", args[0])
+
 		return nil
 	}
 }

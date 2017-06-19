@@ -1,7 +1,11 @@
 package config
 
 import (
+	"fmt"
+
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/config"
+	cfg "koding/klientctl/endpoint/config"
 
 	"github.com/spf13/cobra"
 )
@@ -30,7 +34,7 @@ Koding service.`,
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs, // No custom arguments are accepted.
+		cli.NoArgs,                    // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd
@@ -38,6 +42,16 @@ Koding service.`,
 
 func resetCommand(c *cli.CLI, opts *resetOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
+		resetOpts := &cfg.ResetOpts{
+			Force: opts.force,
+		}
+
+		if err := cfg.Reset(resetOpts); err != nil {
+			return err
+		}
+
+		fmt.Fprintf(c.Out(), "Reset %s.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", config.Konfig.KodingPublic())
+
 		return nil
 	}
 }

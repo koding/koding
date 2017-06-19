@@ -1,4 +1,4 @@
-package main
+package status
 
 import (
 	"bytes"
@@ -11,10 +11,41 @@ import (
 	"koding/httputil"
 	"koding/klientctl/config"
 	"koding/klientctl/klient"
-	"koding/klientctl/klientctlerrors"
 
 	kodinglogging "github.com/koding/logging"
 	cli "gopkg.in/urfave/cli.v1"
+)
+
+const waitRetry = "Please wait a moment and try again."
+
+// KlientIsntRunning is an error printed to the user if klient is not running.
+// Usually from the health checker.
+var KlientIsntRunning = fmt.Sprintf(
+	`Error: The %s does not appear to be running. Please run
+the following command to start it:
+
+    sudo kd start
+`,
+	config.KlientName,
+)
+
+// ReconnectingToKontrol is used when we have encountered specific errors pertaining
+// to being disconnected from kontrol. This should be used *after* a proper health
+// check, because if their internet is down, it's more meaningful than saying
+// we are reconnecting to Koding.
+//
+// Plus, if they get no internet, and *then* reconnecting, it shows we are making
+// progress in restoring functionality.
+var ReconnectingToKontrol = fmt.Sprintf(
+	`%s has been disconnected from Koding, and is in the process of reconnecting.
+Please wait a few minutes and try again.`,
+	config.Name,
+)
+
+// FailedListMachines is a generic remote.list error. We include wait a moment
+// to retry, since this is often connection related.
+var FailedListMachines = fmt.Sprintf(
+	"Error: Failed to list machines.\n%s", waitRetry,
 )
 
 var kiteHTTPResponse = []byte("Welcome to SockJS!")
@@ -25,10 +56,6 @@ var defaultClient = httputil.NewClient(&httputil.ClientConfig{
 	TLSHandshakeTimeout:   3 * time.Second,
 	ResponseHeaderTimeout: 3 * time.Second,
 })
-
-// TODO(leeola): deprecate this default, instead passing it as a dependency
-// to the users of it.
-var defaultHealthChecker *HealthChecker
 
 // HealthChecker implements state for the various HealthCheck functions,
 // ideal for mocking the health check interfaces (local kite, remote http,
@@ -489,22 +516,4 @@ func IsKlientRunning(a string) bool {
 	}
 
 	return bytes.Compare(kiteHTTPResponse, bytes.TrimSpace(p)) == 0
-}
-
-func getListErrRes(err error, healthChecker *HealthChecker) string {
-	res, ok := healthChecker.CheckAllWithResponse()
-
-	// If the health check response is not okay, return that because it's likely
-	// more informed (such as no internet, etc)
-	if !ok {
-		return res
-	}
-
-	// Because healthChecker couldn't find anything wrong, but we know there is an
-	// err, check to see if it's a getKites err
-	if klientctlerrors.IsListReconnectingErr(err) {
-		return ReconnectingToKontrol
-	}
-
-	return FailedListMachines
 }

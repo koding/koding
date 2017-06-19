@@ -75,7 +75,6 @@ func MachineSSHCommand(c *cli.Context, log logging.Logger, _ string) (int, error
 	opts := &machine.SSHOptions{
 		Identifier: idents[0],
 		Username:   c.String("username"),
-		Log:        log.New("machine:ssh"),
 	}
 
 	if err := machine.SSH(opts); err != nil {
@@ -108,7 +107,6 @@ func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, err
 		Identifier: ident,
 		Path:       path,
 		RemotePath: remotePath,
-		Log:        log.New("machine:mount"),
 	}
 
 	if err := machine.Mount(opts); err != nil {
@@ -135,7 +133,6 @@ func MachineListMountCommand(c *cli.Context, log logging.Logger, _ string) (int,
 
 	opts := &machine.ListMountOptions{
 		MountID: c.String("filter"),
-		Log:     log.New("machine:mount:list"),
 	}
 
 	mounts, err := machine.ListMount(opts)
@@ -170,7 +167,6 @@ func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, er
 		Identifiers: idents,
 		Force:       c.Bool("force"),
 		All:         all,
-		Log:         log.New("machine:umount"),
 	}
 
 	if err := machine.Umount(opts); err != nil {
@@ -265,7 +261,6 @@ func MachineCpCommand(c *cli.Context, log logging.Logger, _ string) (int, error)
 		Identifier:      ident,
 		SourcePath:      source,
 		DestinationPath: dest,
-		Log:             log.New("machine:cp"),
 	}
 
 	if err := machine.Cp(opts); err != nil {
@@ -299,7 +294,6 @@ func MachineInspectMountCommand(c *cli.Context, log logging.Logger, _ string) (i
 		Sync:       isSync,
 		Tree:       isTree,
 		Filesystem: isFilesystem,
-		Log:        log.New("machine:inspect"),
 	}
 
 	records, err := machine.InspectMount(opts)

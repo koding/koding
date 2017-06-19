@@ -12,6 +12,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/list"
+	"koding/klientctl/status"
 	"koding/klientctl/util"
 
 	"github.com/koding/kite/dnode"
@@ -63,7 +64,7 @@ type UnmountCommand struct {
 	helper ctlcli.Helper
 
 	// The HealthChecker we'll use if we suspect that there may be problems.
-	healthChecker *HealthChecker
+	healthChecker *status.HealthChecker
 
 	// The fileRemover removes files, typically via os.Remove()
 	fileRemover func(string) error

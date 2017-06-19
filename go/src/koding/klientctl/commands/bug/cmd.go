@@ -1,6 +1,7 @@
 package bug
 
 import (
+	"koding/klientctl/bug"
 	"koding/klientctl/commands/cli"
 
 	"github.com/spf13/cobra"
@@ -28,8 +29,8 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	return cmd
 }
 
-func command(c *cli.CLI, opts *options) cli.CobraFuncE {
+func command(c *cli.CLI, _ *options) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		return bug.Bug(c)
 	}
 }

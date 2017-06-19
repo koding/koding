@@ -3,6 +3,7 @@ package daemon
 import (
 	"koding/klientctl/commands/cli"
 	"koding/klientctl/config"
+	"koding/klientctl/daemon"
 
 	"github.com/spf13/cobra"
 )
@@ -48,6 +49,15 @@ func NewInstallCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func installCommand(c *cli.CLI, opts *installOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		daemonOpts := &daemon.Opts{
+			Force:   opts.force,
+			Prefix:  opts.prefix,
+			Baseurl: opts.baseURL,
+			Token:   opts.token,
+			Team:    opts.team,
+			Skip:    opts.skip,
+		}
+
+		return daemon.Install(daemonOpts)
 	}
 }

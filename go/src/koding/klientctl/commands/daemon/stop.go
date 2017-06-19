@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/daemon"
 
 	"github.com/spf13/cobra"
 )
@@ -31,6 +32,6 @@ func NewStopCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func stopCommand(c *cli.CLI, opts *stopOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		return daemon.Stop()
 	}
 }

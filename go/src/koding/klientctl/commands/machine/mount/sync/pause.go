@@ -22,7 +22,7 @@ func NewPauseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired,            // Deamon service is required.
 		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.MaxArgs(1),                // At most one argument is accepted.
 	)(c, cmd)
 
 	return cmd
@@ -30,6 +30,6 @@ func NewPauseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 func pauseCommand(c *cli.CLI, opts *pauseOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		return nil
+		return command(c, &options{pause: true})(cmd, args)
 	}
 }
