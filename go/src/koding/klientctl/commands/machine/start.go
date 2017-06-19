@@ -18,7 +18,7 @@ func NewStartCommand(c *cli.CLI) *cobra.Command {
 	opts := &startOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "start",
+		Use:   "start <machine-identifier>",
 		Short: "Start remote machine",
 		RunE:  startCommand(c, opts),
 	}

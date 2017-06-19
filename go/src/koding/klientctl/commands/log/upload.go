@@ -18,8 +18,8 @@ func NewUploadCommand(c *cli.CLI) *cobra.Command {
 	opts := &uploadOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "upload",
-		Short: "Share log files with Koding",
+		Use:   "upload <file>",
+		Short: "Share log file with Koding",
 		RunE:  uploadCommand(c, opts),
 	}
 

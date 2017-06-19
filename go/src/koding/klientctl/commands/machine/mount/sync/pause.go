@@ -13,7 +13,7 @@ func NewPauseCommand(c *cli.CLI) *cobra.Command {
 	opts := &pauseOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "pause",
+		Use:   "pause [<mount-id> | <path>]",
 		Short: "Pause file synchronization",
 		RunE:  pauseCommand(c, opts),
 	}

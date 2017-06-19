@@ -20,10 +20,18 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
-		Use:     "mount",
+		Use:     "mount <machine-identifier>[:<remote-path>] [<local-path>]",
 		Aliases: []string{"m"},
 		Short:   "Mount remote directory",
-		RunE:    command(c, opts),
+		Long: `Mount <remote-path> from remote machine to <local-path>.
+
+With <machine-identifier> argument, kd machine mount identifies requested machine.
+Either machine ID, machine alias or IP can be used as identifier and all of them
+can by obtained by running "kd machine list" command.
+
+<local-path> can be relative or absolute, if the folder does not exit, it will
+be created.`,
+		RunE: command(c, opts),
 	}
 
 	// Subcommands.

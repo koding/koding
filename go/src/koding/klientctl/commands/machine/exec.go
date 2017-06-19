@@ -22,9 +22,17 @@ func NewExecCommand(c *cli.CLI) *cobra.Command {
 	opts := &execOptions{}
 
 	cmd := &cobra.Command{
-		Use:                "exec",
-		Aliases:            []string{"e"},
-		Short:              "Run a command on remote host",
+		Use:     "exec (<local-mount-path> | @<machine-id>) <command> [<args>...]",
+		Aliases: []string{"e"},
+		Short:   "Run a command on remote host",
+		Long: `Run <command> on a remote machine specified by either @<machine-id> or <local-mount-path>.
+
+If <local-mount-path> is provided, kd is going to look up a remote machine by
+reading the remote source of the mount. The mount must be active and the remote
+end on-line.
+
+In order to run a <command> on a remote machine that has no local mounts, use
+@<machine-id> argument instead.`,
 		DisableFlagParsing: true,
 		RunE:               execCommand(c, opts),
 	}
@@ -32,6 +40,7 @@ func NewExecCommand(c *cli.CLI) *cobra.Command {
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
 		cli.DaemonRequired, // Deamon service is required.
+		cli.HelpForNoFlags, // Custom help handler.
 		cli.MinArgs(2),     // At least two arguments are required.
 	)(c, cmd)
 

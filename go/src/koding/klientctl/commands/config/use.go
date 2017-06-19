@@ -16,7 +16,7 @@ func NewUseCommand(c *cli.CLI) *cobra.Command {
 	opts := &useOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "use <configuration-id>",
+		Use:   "use <config-id>",
 		Short: "Change active configuration",
 		RunE:  useCommand(c, opts),
 	}

@@ -18,6 +18,7 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Check service status",
+		Long:  "This command checks if kd is installed and operative.",
 		RunE:  command(c, opts),
 	}
 
