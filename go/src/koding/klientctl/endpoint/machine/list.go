@@ -164,5 +164,8 @@ func fromMachineStateString(raw string) kmachine.State {
 	return ms2State[machinestate.States[raw]]
 }
 
+// Identifiers returns cached machine identifiers using DefaultClient.
+func Identifiers(opts *IdentifiersOptions) ([]string, error) { return DefaultClient.Identifiers(opts) }
+
 // List retrieves user's machines from kloud using DefaultClient.
 func List(opts *ListOptions) ([]*Info, error) { return DefaultClient.List(opts) }

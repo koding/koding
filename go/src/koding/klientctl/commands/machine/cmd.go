@@ -22,6 +22,7 @@ func NewCommand(c *cli.CLI) *cobra.Command {
 		NewCpCommand(c),
 		NewExecCommand(c),
 		NewListCommand(c),
+		NewIdentifiersCommand(c),
 		mount.NewCommand(c),
 		NewSSHCommand(c),
 		NewStartCommand(c),

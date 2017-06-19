@@ -461,6 +461,11 @@ func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 // SyncMount manages mount synchronization.
 func SyncMount(opts *SyncMountOptions) error { return DefaultClient.SyncMount(opts) }
 
+// MountIdentifiers returns cached mount identifiers using DefaultClient.
+func MountIdentifiers(opts *MountIdentifiersOptions) ([]string, error) {
+	return DefaultClient.MountIdentifiers(opts)
+}
+
 // InspectMount inspects existing mount using DefaultClient.
 func InspectMount(opts *InspectMountOptions) (machinegroup.InspectMountResponse, error) {
 	return DefaultClient.InspectMount(opts)
