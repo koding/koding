@@ -77,13 +77,15 @@ func (r *Exec) Input(d *dnode.Partial) {
 // ControlSequence is a dnode.Function that is exposed to the client,
 // allowing them to send control character sequences to an Exec instance.
 func (r *Exec) ControlSequence(d *dnode.Partial) {
-    data := d.MustSliceOfLength(1)[0].MustString()
-
-    r.in <- []byte(data)
+    r.Input(d)
 }
 
 func (r *Exec) Close(d *dnode.Partial) {
-    // TODO:
+
+    // The proxy goroutines that are proxying i/o to and from
+    // the exec'd process will terminate when the input channel
+    // is closed.
+    close(r.in)
 }
 
 func (r *Exec) Terminate(d *dnode.Partial) {

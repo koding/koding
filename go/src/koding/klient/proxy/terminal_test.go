@@ -39,3 +39,26 @@ func TestGetSessions(t *testing.T) {
 
     fmt.Println(data)
 }
+
+// NOTE: Implementing a TestConnect is redundant with the test cases
+// under kuberentes_test.go. The proxy.Connect kite.HandlerFunc that
+// will return a similar object to the requesting kite that is currently
+// returned from webterm.connect kite method. Similar meaning they have
+// the same dnode.Function interfaces for sending and receiving as a
+// terminal.Server object.
+
+func TestKillSession(t *testing.T) {
+    t.Skip("Not implemented.")
+}
+
+func TestKillSessions(t *testing.T) {
+    t.Skip("Not implemented.")
+}
+
+func TestRenameSession(t *testing.T) {
+    t.Skip("Not implemented.")
+}
+
+func TestCloseSessions(t *testing.T) {
+    t.Skip("Not implemented.")
+}

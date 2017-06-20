@@ -1,21 +1,38 @@
 package proxy
 
 import (
+    "os/user"
     "sync"
 
     "github.com/koding/kite"
 )
 
+// User represents the Koding user that is making requests.
 type User struct {
     sessions    map[string]*Exec
     sync.Mutex
 }
 
+// AddSession adds the Exec instance to the requesting
+// User's map of sessions with the provided id.
 func (u *User) AddSession(id string, e *Exec) {
     u.Lock()
     defer u.Unlock()
 
     u.sessions[id] = e
+}
+
+func (u *User) TerminateSession(id string) {
+    u.Lock()
+    defer u.Unlock()
+
+    e, ok := u.sessions[id]
+    if !ok {
+        return
+    }
+
+    // Tell the Exec instance to terminate.
+    e.Terminate(nil)
 }
 
 // Session returns the corresponding *Exec instance when the specified
@@ -60,6 +77,17 @@ func (s *Singleton) User(id string) *User {
     return s.users[id]
 }
 
+func (s *Singleton) DeleteUser(id string) {
+    s.Lock()
+    defer s.Unlock()
+
+    if _, ok := s.users[id]; !ok {
+        return
+    }
+
+    delete(s.users, id)
+}
+
 var singleton *Singleton
 var once sync.Once
 
@@ -75,14 +103,24 @@ func instance() *Singleton {
 
 // Implement the terminal.Terminal interface
 func (p *KubernetesProxy) GetSessions(r *kite.Request) (interface{}, error) {
-    user := instance().User(r.Username)
+    user, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
 
-    return user.Sessions(), nil
+    store := instance().User(user.Username)
+
+    return store.Sessions(), nil
 }
 
 // Implement the terminal.Terminal interface
 func (p *KubernetesProxy) Connect(r *kite.Request) (interface{}, error) {
-    user := instance().User(r.Username)
+    user, err := user.Current()
+    if err != nil {
+        return nil, err
+    }
+
+    store := instance().User(user.Username)
 
     // TODO (acbodine): exec'ing to K8s api is different from how the
     // existing terminal implementation carries on a TTY session. For
@@ -96,27 +134,63 @@ func (p *KubernetesProxy) Connect(r *kite.Request) (interface{}, error) {
 
     e, _ := resp.(*Exec)
 
-    user.AddSession(e.Session, e)
+    store.AddSession(e.Session, e)
 
     return resp, err
 }
 
 // Implement the terminal.Terminal interface
 func (p *KubernetesProxy) KillSession(r *kite.Request) (interface{}, error) {
-    return nil, nil
+    var params struct {
+        Session     string
+    }
+
+    if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+    user, err := user.Current()
+    if err != nil {
+        return nil, err
+    }
+
+    store := instance().User(user.Username)
+
+    store.TerminateSession(params.Session)
+
+    return true, nil
 }
 
 // Implement the terminal.Terminal interface
 func (p *KubernetesProxy) KillSessions(r *kite.Request) (interface{}, error) {
-    return nil, nil
+    user, err := user.Current()
+    if err != nil {
+        return nil, err
+    }
+
+    store := instance().User(user.Username)
+
+    for _, id := range store.Sessions() {
+        store.TerminateSession(id)
+    }
+
+    return true, nil
 }
 
 // Implement the terminal.Terminal interface
 func (p *KubernetesProxy) RenameSession(r *kite.Request) (interface{}, error) {
-    return nil, nil
+
+    // TODO (acbodine): do we need this?
+    return true, nil
 }
 
 // Implement the terminal.Terminal interface
-func (p *KubernetesProxy) CloseSessions(string) {
-    return
+func (p *KubernetesProxy) CloseSessions(username string) {
+    store := instance().User(username)
+
+    for _, id := range store.Sessions() {
+        store.TerminateSession(id)
+    }
+
+    instance().DeleteUser(username)
 }

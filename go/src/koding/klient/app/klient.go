@@ -462,8 +462,19 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("os.exec", kos.Exec)
 	k.handleWithSub("os.kill", kos.Kill)
 
+	// Delegate to proxy package to decide if a container proxy is suitable
+	// for this particular klient instance environment.
+	cProxy := proxy.Factory()
+
 	// Klient Info method(s)
-	k.handleWithSub("klient.info", info.Info)
+	//
+	// If we are in a container environment, override the
+	// kite handler.
+	infoHandler := info.Info
+	if cProxy != nil {
+		infoHandler = proxy.Info
+	}
+	k.handleWithSub("klient.info", infoHandler)
 
 	// Collaboration, is used by our Koding.com browser client.
 	k.handleFunc("klient.disable", control.Disable)
@@ -525,8 +536,7 @@ func (k *Klient) RegisterMethods() {
 	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
 	k.handleWithSub("machine.index.get", index.KiteHandlerGet())
 
-	cProxy := proxy.Factory()
-
+	// Container proxy add-ons.
 	if cProxy != nil {
 		k.handleWith("proxy.list", cProxy.List)
 		k.handleWith("proxy.exec", cProxy.Exec)
@@ -561,18 +571,26 @@ func (k *Klient) RegisterMethods() {
 	k.handleFunc("exec", command.Exec)
 
 	// Terminal
+	//
+	// If we are in a container environment, override how Koding's
+	// front-end connects to the stack components this klient is
+	// managing.
+	webtermHandlers := map[string]kite.HandlerFunc{
+		"webterm.getSessions":		k.terminal.GetSessions,
+		"webterm.connect":			k.terminal.Connect,
+		"webterm.killSession":		k.terminal.KillSession,
+		"webterm.killSessions":		k.terminal.KillSessions,
+		"webterm.rename":			k.terminal.RenameSession,
+	}
 	if cProxy != nil {
-		k.handleWithSub("webterm.getSessions", cProxy.GetSessions)
-		k.handleWithSub("webterm.connect", cProxy.Connect)
-		k.handleWithSub("webterm.killSession", cProxy.KillSession)
-		k.handleWithSub("webterm.killSessions", cProxy.KillSessions)
-		k.handleWithSub("webterm.rename", cProxy.RenameSession)
-	} else {
-		k.handleWithSub("webterm.getSessions", k.terminal.GetSessions)
-		k.handleWithSub("webterm.connect", k.terminal.Connect)
-		k.handleWithSub("webterm.killSession", k.terminal.KillSession)
-		k.handleWithSub("webterm.killSessions", k.terminal.KillSessions)
-		k.handleWithSub("webterm.rename", k.terminal.RenameSession)
+		webtermHandlers["webterm.getSessions"]	= cProxy.GetSessions
+		webtermHandlers["webterm.connect"]		= cProxy.Connect
+		webtermHandlers["webterm.killSession"]	= cProxy.KillSession
+		webtermHandlers["webterm.killSessions"]	= cProxy.KillSessions
+		webtermHandlers["webterm.rename"]		= cProxy.RenameSession
+	}
+	for k, v := range webtermHandlers {
+		k.handleWithSub(k, v)
 	}
 
 	// VM -> Client methods
