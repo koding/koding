@@ -24,42 +24,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	bashCompletionFunc = `__kd_parse_machine()
-{
-    local kd_output
-    if kd_output=$(kd machine identifiers 2>/dev/null); then
-        out=($(echo "${kd_output}"))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
-}
-
-__kd_parse_mount()
-{
-	local kd_output
-    if kd_output=$(kd machine mount identifiers 2>/dev/null); then
-        out=($(echo "${kd_output}"))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
-}
-
-__custom_func() {
-    case ${last_command} in
-        kd_ssh | kd_machine_ssh | kd_machine_config_show | kd_machine_start | kd_machine_stop)
-            __kd_parse_machine
-            return
-            ;;
-        kd_machine_umount | kd_machine_unmount | kd_unmount | kd_umount | kd_machine_mount_inspect)
-            __kd_parse_mount
-            return
-            ;;
-        *)
-            ;;
-    esac
-}
-`
-)
-
 // NewKdCommand creates a root command for kd.
 func NewKdCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
