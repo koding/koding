@@ -15,7 +15,8 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
-var p = &provider.Provider{
+// Provider is a GCE kloud provider.
+var Provider = &provider.Provider{
 	Name:         "google",
 	ResourceName: "compute_instance",
 	Userdata:     "user-data",
@@ -30,7 +31,7 @@ var p = &provider.Provider{
 }
 
 func init() {
-	provider.Register(p)
+	provider.Register(Provider)
 }
 
 // RegionType represents google's geographical region code.
