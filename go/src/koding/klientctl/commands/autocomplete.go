@@ -53,13 +53,41 @@ __kd_cp_completion()
     esac
 }
 
-__kd_parse_mount()
+# This command returns mount IDs and base local mount paths.
+# Usage: __kd_remote_machines [OPTIONS]
+# Available OPTIONS:
+#     -e Exclude mount paths.
+#
+__kd_existing_mounts()
 {
-	local kd_output
-    if kd_output=$(kd machine mount identifiers 2>/dev/null); then
+    local kd_output flag cmd_options OPTIND=1
+    while getopts "e" flag "$@"; do
+        case $flag in
+            e) cmd_options="${cmd_options} --base-path=false" ;;
+        esac
+    done
+
+    if kd_output=$(kd machine mount identifiers ${cmd_options} 2>/dev/null); then
         out=($(echo "${kd_output}"))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+        COMPREPLY=( "${COMPREPLY[@]}"  $( compgen -W "${out[*]}" -- "$cur" ) )
     fi
+}
+
+# This command provides auto completion abilities for mount subcommand.
+__kd_mount_completion()
+{
+    case ${prev} in
+        mount)
+            if [[ "$cur" == *:* ]]; then
+                _filedir -d # Add remote file support.
+            else
+                __kd_remote_machines -s ":"
+            fi
+            ;;
+        *)
+            _filedir -d
+            ;;
+    esac
 }
 
 __custom_func() {
@@ -73,8 +101,11 @@ __custom_func() {
         kd_machine_cp | kd_cp)
             __kd_cp_completion
             ;;
-        kd_machine_umount | kd_machine_unmount | kd_unmount | kd_umount | kd_machine_mount_inspect)
-            __kd_parse_mount
+        kd_machine_umount | kd_machine_unmount | kd_unmount | kd_umount | kd_machine_mount_inspect | kd_sync | kd_sync_pause | kd_sync_resume | kd_machine_mount_sync_pause | kd_machine_mount_sync_resume)
+            __kd_existing_mounts -e
+            ;;
+        kd_mount | kd_machine_mount)
+            __kd_mount_completion
             ;;
         *)
             ;;
