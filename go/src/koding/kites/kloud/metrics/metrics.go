@@ -3,13 +3,16 @@ package metrics
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"time"
 
 	"golang.org/x/net/context/ctxhttp"
 
+	"github.com/cenkalti/backoff"
 	"github.com/koding/kite"
 )
 
@@ -77,14 +80,7 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-		defer cancel()
-		_, err := ctxhttp.Post(ctx, nil, p.metricsEndpoint, "application/json", bytes.NewReader(argOne.Raw))
-		if err != nil {
-			r.LocalKite.Log.Error("Err while publishing metrics: %s", err)
-		}
-	}()
+	go publishToCountly(p.metricsEndpoint, argOne.Raw, r.LocalKite.Log)
 
 	return nil, nil
 }
@@ -92,4 +88,60 @@ func (p *Publisher) Publish(r *kite.Request) (interface{}, error) {
 // Close closes the underlying connection.
 func (p *Publisher) Close() error {
 	return p.conn.Close()
+}
+
+func publishToCountly(url string, r []byte, log kite.Logger) error {
+	req := bytes.NewReader(r)
+
+	ticker := backoff.NewTicker(newBackoff())
+	defer ticker.Stop()
+
+	var err error
+	var retry bool
+	for range ticker.C {
+		// each request should not take more than 5 sec
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		if _, err := req.Seek(0, io.SeekStart); err != nil {
+			return fmt.Errorf("failed to seek body: %v", err)
+		}
+
+		retry, err = shouldRetry(ctxhttp.Post(ctx, nil, url, "application/json", req))
+		if err != nil {
+			log.Error("Err while publishing metrics: %s", err)
+		}
+
+		if retry {
+			log.Error("err while operating will retry...")
+			continue
+		}
+
+		break
+	}
+
+	return err
+}
+
+func shouldRetry(resp *http.Response, err error) (bool, error) {
+	if err != nil {
+		return true, err
+	}
+	// Check the response code. We retry on 500-range responses to allow
+	// the server time to recover, as 500's are typically not permanent
+	// errors and may relate to outages on the server side. This will catch
+	// invalid response codes as well, like 0 and 999.
+	if resp.StatusCode == 0 || resp.StatusCode >= http.StatusInternalServerError {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func newBackoff() backoff.BackOff {
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = time.Millisecond * 250
+	bo.MaxInterval = time.Second * 1
+	bo.MaxElapsedTime = time.Minute * 2
+	return bo
 }

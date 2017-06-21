@@ -34,7 +34,7 @@ func (k *Klient) initRemote() {
 }
 
 func (k *Klient) handleRemoteFunc(method string, fn kite.HandlerFunc) {
-	fn = metrics.WrapKiteHandler(k.metrics, method, fn)
+	fn = metrics.WrapKiteHandler(k.metrics.Datadog, method, fn)
 	k.kite.HandleFunc(method, func(r *kite.Request) (interface{}, error) {
 		resp, err := fn(r)
 		if err != nil {
