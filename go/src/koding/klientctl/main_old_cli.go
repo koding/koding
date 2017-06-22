@@ -10,7 +10,7 @@
 // TODO: Most kd commands are implemented in this main package, but they're being
 // moved to their own packages.
 
-// +build !cobra
+// +build urfavecli
 
 package main
 
