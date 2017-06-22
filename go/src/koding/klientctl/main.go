@@ -1088,4 +1088,3 @@ func generateTagsForCLI(full string) []string {
 		cobracli.ApplicationInfoTags()...,
 	)
 }
-test
