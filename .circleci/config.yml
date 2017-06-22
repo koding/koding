@@ -23,6 +23,9 @@ workflows:
       - go:
           requires:
             - configure
+      - go-test:
+          requires:
+            - go
 
 jobs:
   dependencies:
@@ -154,6 +157,45 @@ jobs:
           paths:
             - go/bin
             - go/pkg
+      - save_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
+          paths:
+            - .
+
+  go-test:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: check kite configuration
+          command: ./run exec scripts/gotests.sh kites koding/kites/config
+      - run:
+          name: check generated JSON files
+          command: ./run exec scripts/check-generated-files.sh
+      - run:
+          name: test kites
+          command: ./run exec go/src/koding/kites/e2etest/e2etest.sh
+      - run:
+          name: test klient
+          command: ./run exec scripts/test-klient.sh
+      - run:
+          name: test kd
+          command: ./run exec scripts/test-kd.sh
+      - run:
+          name: test kontrol
+          command: ./run exec scripts/gotests.sh koding/kites/kontrol/kontrol
+      - run:
+          name: test kloud
+          command: ./run exec scripts/gotests.sh kites \
+            koding/kites/kloud/provider/... koding/kites/kloud/credential/... \
+            koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
+      - run:
+          name: codecov
+          command: |
+            [[ -n "$CODECOV_TOKEN" ]] && \
+              bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
+              exit 0
       - save_cache:
           key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
           paths:
