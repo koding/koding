@@ -1,5 +1,3 @@
-// +build cobra
-
 package main
 
 import (
