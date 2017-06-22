@@ -44,10 +44,15 @@ func main() {
 	c.Close()
 }
 
+var signals = []os.Signal{
+	os.Interrupt,
+	os.Kill,
+}
+
 // handleSignals is used to gracefully close all resources registered to ctlcli.
 func handleSignals(c *cli.CLI) {
 	sigC := make(chan os.Signal, 1)
-	signal.Notify(sigC, os.Interrupt, os.Kill)
+	signal.Notify(sigC, signals...)
 
 	sig := <-sigC
 	c.Log().Info("Closing after %v signal", sig)
