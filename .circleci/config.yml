@@ -14,6 +14,9 @@ workflows:
       - configure:
           requires:
             - dependencies
+      - lint:
+          requires:
+            - dependencies
 
 jobs:
   dependencies:
@@ -65,3 +68,12 @@ jobs:
           key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
           paths:
             - .
+
+  lint:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: coffeelint
+          command: $(npm bin)/coffeelint --quiet .
