@@ -4,7 +4,7 @@ jobs:
 
   build:
 
-    resource_class: large
+    resource_class: xlarge
 
     docker:
       - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
@@ -136,6 +136,21 @@ jobs:
             - go-{{ .Branch }}-{{ .Revision }}
             - go-{{ .Branch }}
             - go-master
+
+      - run:
+          name: touch files restored from cache
+          command: |
+            timestamp=$(date --date="@$(($(date +%s) + 60))" +%m%d%H%M)
+            find go/bin -exec touch {} -t $timestamp \;
+            find go/pkg -exec touch {} -t $timestamp \;
+
+      - run:
+          name: touch changed go source files
+          command: |
+            timestamp=$(date --date="@$(($(date +%s) + 120))" +%m%d%H%M)
+            base=origin/master
+            head=$(git rev-parse HEAD)
+            git diff --name-only $base...$head go/ | xargs --no-run-if-empty touch -t $timestamp
 
       - run: env GOGC=10 go/build.sh
 

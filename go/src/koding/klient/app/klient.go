@@ -51,7 +51,6 @@ import (
 
 	endpointkloud "koding/klientctl/endpoint/kloud"
 
-	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/kontrol/onceevery"
@@ -92,7 +91,7 @@ type Klient struct {
 	// addresses or the connection is behind a firewall.
 	tunnel *tunnel.Tunnel
 
-	metrics *dogstatsd.Client
+	metrics *metrics.Metrics
 	log     kite.Logger
 
 	// config stores all necessary configuration needed for Klient to work.
@@ -385,7 +384,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		},
 		presenceEvery: onceevery.New(1 * time.Hour),
 		kloud:         kloud,
-		metrics:       m.Datadog,
+		metrics:       m,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -593,7 +592,7 @@ func (k *Klient) RegisterMethods() {
 }
 
 func (k *Klient) handleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
-	f = metrics.WrapKiteHandler(k.metrics, pattern, f)
+	f = metrics.WrapKiteHandler(k.metrics.Datadog, pattern, f)
 	return k.kite.HandleFunc(pattern, f)
 }
 
@@ -857,6 +856,10 @@ func (k *Klient) register(registerURL *url.URL) error {
 }
 
 func (k *Klient) Close() {
+	if k.metrics != nil {
+		k.metrics.Close()
+	}
+
 	k.collabCloser.Close()
 	k.collab.Close()
 	k.kite.Close()
