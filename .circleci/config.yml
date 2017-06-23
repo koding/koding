@@ -29,6 +29,9 @@ workflows:
       - backend:
           requires:
             - go
+      - integration-tests:
+          requires:
+            - configure
 
 jobs:
   dependencies:
@@ -257,3 +260,26 @@ jobs:
             [[ -n "$CODECOV_TOKEN" ]] && \
               bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
               exit 0
+
+  integration-tests:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: launch test hosts
+          command: |
+            chmod 600 scripts/test-instance/koding-test-instances-2015-06.pem
+            set -o pipefail
+            ./run exec scripts/test-instance/launch --branch $CIRCLE_BRANCH --commit $CIRCLE_SHA1 | tee INSTANCE_DATA
+      - run:
+          name: run test suites
+          environment:
+            LOG_PREFIX: $CIRCLE_PROJECT_REPONAME-$CIRCLE_PROJECT_USERNAME-$CIRCLE_BUILD_NUM
+          command: |
+            ./run exec scripts/test-instance/check-connectivity INSTANCE_DATA $LOG_PREFIX
+            ./run exec scripts/ci/run-tests INSTANCE_DATA
+            status=$?
+            [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA $LOG_PREFIX || :
+            [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
+            [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
