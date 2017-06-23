@@ -7,7 +7,6 @@ import (
 	"koding/klient/logfetcher"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
-	"koding/klientctl/util"
 	"os"
 
 	"github.com/koding/logging"
@@ -54,7 +53,7 @@ type Command struct {
 	// Embedded Init gives us our Klient/etc instances.
 	Init
 	Options Options
-	Stdout  *util.Fprint
+	Stdout  io.Writer
 }
 
 func NewCommand(i Init, o Options) (*Command, error) {
@@ -70,7 +69,7 @@ func NewCommand(i Init, o Options) (*Command, error) {
 		Init:    i,
 		Options: o,
 		// Override the init stdout writer with an Fprint writer
-		Stdout: util.NewFprint(i.Stdout),
+		Stdout: i.Stdout,
 	}
 
 	return c, nil
@@ -133,7 +132,7 @@ func (c *Command) tailFile(path string, n int) error {
 	}
 
 	for _, l := range lines {
-		c.Stdout.Printlnf(l)
+		fmt.Fprintln(c.Stdout, l)
 	}
 
 	return nil

@@ -38,7 +38,6 @@ import (
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/sync/rsync"
 	kos "koding/klient/os"
-	"koding/klient/remote"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
 	"koding/klient/terminal"
@@ -97,12 +96,6 @@ type Klient struct {
 	// config stores all necessary configuration needed for Klient to work.
 	// It's supplied with the NewKlient() function.
 	config *KlientConfig
-
-	// remote handles persistence of remote related options, including
-	// mounting folders, listing remote machines that this Klient is
-	// connected to, and so on. It is typically called from a local kite,
-	// and is responsible for Klient's `remote.*` methods.
-	remote *remote.Remote
 
 	// machines manages a group of machines that can be seen or used by Klient.
 	//
@@ -308,13 +301,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	// TODO(rjeczalik): Enable after TMS-848.
 	// mountEvents := make(chan *mount.Event)
 
-	remoteOpts := &remote.RemoteOptions{
-		Kite:    k,
-		Log:     k.Log,
-		Storage: storage.New(db),
-		// EventSub: mountEvents,
-	}
-
 	machinesOpts := &machinegroup.Options{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
 		Builder:         mclient.NewKiteBuilder(k),
@@ -366,7 +352,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		usage:    usg,
 		log:      k.Log,
 		config:   conf,
-		remote:   remote.NewRemote(remoteOpts),
 		uploader: up,
 		machines: machines,
 		updater: &Updater{
@@ -800,11 +785,6 @@ func (k *Klient) Run() {
 	// to Kontrol with new registerURL which will point to public
 	// side of the tunnel.
 	go k.tunnel.Start()
-
-	// Initializing the remote re-establishes any previously-running remote
-	// connections, such as mounted folders. This needs to be run *after*
-	// Klient is setup and running, to get a valid connection to Kontrol.
-	go k.initRemote()
 
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 

@@ -13,128 +13,19 @@ import (
 
 	"koding/klientctl/autocomplete"
 	"koding/klientctl/config"
-	"koding/klientctl/cp"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
 	"koding/klientctl/logcmd"
 	"koding/klientctl/open"
-	"koding/klientctl/remount"
-	"koding/klientctl/repair"
 	"koding/klientctl/status"
-	"koding/mountcli"
 
 	"github.com/koding/logging"
-	"github.com/koding/service"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
 // TODO(leeola): deprecate this default, instead passing it as a dependency
 // to the users of it.
 var defaultHealthChecker *status.HealthChecker
-
-// MountCommandFactory creates a mount.Command instance and runs it with
-// Stdin and Out.
-func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
-	log = log.New(fmt.Sprintf("command:%s", cmdName))
-
-	opts := MountOptions{
-		Name:             c.Args().Get(0),
-		LocalPath:        c.Args().Get(1),
-		RemotePath:       c.String("remotepath"), // note the lowercase of all chars
-		NoIgnore:         c.Bool("noignore"),
-		NoPrefetchMeta:   c.Bool("noprefetch-meta"),
-		NoWatch:          c.Bool("nowatch"),
-		PrefetchAll:      c.Bool("prefetch-all"),
-		PrefetchInterval: c.Int("prefetch-interval"),
-		Trace:            c.Bool("trace"),
-		OneWaySync:       c.Bool("oneway-sync"),
-		OneWayInterval:   c.Int("oneway-interval"),
-		Debug:            c.Bool("debug") || config.Konfig.Debug,
-		Fuse:             c.Bool("fuse"),
-
-		// Used for prefetch
-		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
-		SSHDefaultKeyName: config.SSHDefaultKeyName,
-	}
-
-	return &MountCommand{
-		Options:       opts,
-		Stdout:        os.Stdout,
-		Stdin:         os.Stdin,
-		Log:           log,
-		KlientOptions: klient.NewKlientOptions(),
-		helper:        ctlcli.CommandHelper(c, "mount"),
-		homeDirGetter: homeDirGetter,
-	}
-}
-
-// UnmountCommandFactory creates a UnmountCommand instance and runs it with
-// Stdin and Out.
-func UnmountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
-	log = log.New(fmt.Sprintf("command:%s", cmdName))
-
-	// Full our unmount options from the CLI. Any empty options are okay, as
-	// the command struct is responsible for verifying valid opts.
-	opts := UnmountOptions{
-		MountName: c.Args().First(),
-	}
-
-	return &UnmountCommand{
-		Options:       opts,
-		Stdout:        os.Stdout,
-		Stdin:         os.Stdin,
-		Log:           log,
-		KlientOptions: klient.NewKlientOptions(),
-		helper:        ctlcli.CommandHelper(c, cmdName),
-		healthChecker: defaultHealthChecker,
-		fileRemover:   os.Remove,
-		mountFinder:   mountcli.NewMountcli(),
-	}
-}
-
-// RepairCommandFactory creates a repair.Command instance and runs it with
-// Stdin and Out.
-func RepairCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
-	log = log.New(fmt.Sprintf("command:%s", cmdName))
-
-	// Fill our repair options from the CLI. Any empty options are okay, as
-	// the command struct is responsible for verifying valid opts.
-	opts := repair.Options{
-		MountName: c.Args().First(),
-		Version:   config.VersionNum(),
-	}
-
-	return &repair.Command{
-		Options:       opts,
-		Stdout:        os.Stdout,
-		Stdin:         os.Stdin,
-		Log:           log,
-		KlientOptions: klient.NewKlientOptions(),
-		Helper:        ctlcli.CommandHelper(c, cmdName),
-		// Used to create our KlientService instance. Really needs to be improved in
-		// the future, once it has proper access to a config package
-		ServiceConstructor: func() (service.Service, error) { return newService(nil) },
-	}
-}
-
-func RemountCommandFactory(c *cli.Context, _ logging.Logger, _ string) int {
-	if len(c.Args()) != 1 {
-		cli.ShowCommandHelp(c, "remount")
-		return 1
-	}
-
-	cmd := remount.RemountCommand{
-		MountName:     c.Args()[0],
-		KlientOptions: klient.NewKlientOptions(),
-	}
-
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Error: %s", err)
-		return 1
-	}
-
-	return 0
-}
 
 // AutocompleteCommandFactory creates a autocomplete.Command instance and runs it with
 // Stdin and Out.
@@ -157,41 +48,6 @@ func AutocompleteCommandFactory(c *cli.Context, log logging.Logger, cmdName stri
 		return ctlcli.NewErrorCommand(
 			os.Stdout, log, err,
 			"Unable to create autocomplete command",
-		)
-	}
-
-	return cmd
-}
-
-func CpCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
-	log = log.New(fmt.Sprintf("command:%s", cmdName))
-
-	// Fill our repair options from the CLI. Any empty options are okay, as
-	// the command struct is responsible for verifying valid opts.
-	opts := cp.Options{
-		Debug:       c.Bool("debug") || config.Konfig.Debug,
-		Source:      c.Args().First(),
-		Destination: c.Args().Get(1), // Get the 2nd arg
-
-		// Used for prefetch
-		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
-		SSHDefaultKeyName: config.SSHDefaultKeyName,
-	}
-
-	init := cp.Init{
-		Stdout:        os.Stdout,
-		Log:           log,
-		KlientOptions: klient.NewKlientOptions(),
-		Helper:        ctlcli.CommandHelper(c, cmdName),
-		HomeDirGetter: homeDirGetter,
-		HealthChecker: defaultHealthChecker,
-	}
-
-	cmd, err := cp.NewCommand(init, opts)
-	if err != nil {
-		return ctlcli.NewErrorCommand(
-			os.Stdout, log, err,
-			"Unable to create cp command",
 		)
 	}
 

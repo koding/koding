@@ -24,15 +24,6 @@ func (k *Klient) addRemoteHandlers() {
 	k.handleRemoteFunc("remote.getPathSize", k.remote.GetPathSize)
 }
 
-// Initializing the remote re-establishes any previously-running remote
-// connections, such as mounted folders. This needs to be run *after*
-// Klient is setup and running, to get a valid connection to Kontrol.
-func (k *Klient) initRemote() {
-	if err := k.remote.Initialize(); err != nil {
-		k.log.Error("Failed to initialize Remote. Error: %s", err.Error())
-	}
-}
-
 func (k *Klient) handleRemoteFunc(method string, fn kite.HandlerFunc) {
 	fn = metrics.WrapKiteHandler(k.metrics.Datadog, method, fn)
 	k.kite.HandleFunc(method, func(r *kite.Request) (interface{}, error) {
