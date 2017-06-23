@@ -32,6 +32,12 @@ workflows:
       - integration-tests:
           requires:
             - configure
+      - deploy:
+          requires:
+            - dependencies
+          filters:
+            branches:
+              only: /(sandbox|latest|production)/
 
 jobs:
   dependencies:
@@ -283,3 +289,15 @@ jobs:
             [[ $status -ne 0 ]] && ./run exec scripts/test-instance/upload-logs INSTANCE_DATA $LOG_PREFIX || :
             [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
             [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
+
+  deploy:
+    <<: *defaults
+    steps:
+      - run:
+          name: deploy
+          command: |
+            case "$CIRCLE_BRANCH" in
+              sandbox | latest | production) BRANCH=$CIRCLE_BRANCH ;;
+              *) BRANCH=sandbox ;;
+            esac
+            env BRANCH=$BRANCH scripts/ci/deploy
