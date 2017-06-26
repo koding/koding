@@ -13,7 +13,6 @@ import (
 	"koding/klientctl/klient"
 
 	kodinglogging "github.com/koding/logging"
-	cli "gopkg.in/urfave/cli.v1"
 )
 
 const waitRetry = "Please wait a moment and try again."
@@ -150,37 +149,6 @@ func (e ErrKodingService) Error() string {
 }
 func (e ErrMissingSystemBinary) Error() string {
 	return fmt.Sprintf("ErrMissingSystemBinary: %s: %s", e.BinaryName, e.Message)
-}
-
-// StatusCommand informs the user about the status of the Klient service. It
-// does this in multiple stages, to help identify specific problems.
-//
-// 1. First it checks if the expected localhost http response is
-// available. If it isn't, klient is not running properly or something
-// else had taken the port.
-//
-// 2. Next, it checks if the auth is working properly, by dialing
-// klient. Because we already checked if the http response was working,
-// something else may be wrong. Such as the key not existing, or
-// somehow kd using the wrong key, etc.
-//
-// 3. Lastly it checks if the user's IP has the exposed klient port. This
-// is not an error because outgoing klient communication will still work,
-// but incoming klient functionality will obviously be limited. So by
-// checking, we can inform the user.
-func StatusCommand(c *cli.Context, log kodinglogging.Logger, _ string) int {
-	if len(c.Args()) != 0 {
-		cli.ShowCommandHelp(c, "status")
-		return 1
-	}
-
-	res, ok := NewDefaultHealthChecker(log).CheckAllWithResponse()
-	fmt.Println(res)
-	if !ok {
-		return 1
-	}
-
-	return 0
 }
 
 func (c *HealthChecker) SystemRequirements() error {

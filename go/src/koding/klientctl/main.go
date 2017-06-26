@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -29,8 +28,8 @@ func main() {
 	}
 
 	// Initialize log handler.
-	var logHandler io.Writer = ioutil.Discard
-	if f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666); err == nil {
+	var logHandler = ioutil.Discard
+	if f, err := os.OpenFile(config.GetKdLogPath(), os.O_WRONLY|os.O_APPEND, 0666); err == nil {
 		logHandler = f
 		ctlcli.CloseOnExit(f)
 	}
