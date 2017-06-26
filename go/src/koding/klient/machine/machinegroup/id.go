@@ -2,10 +2,10 @@ package machinegroup
 
 import (
 	"errors"
+	"sort"
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup/idset"
-	"sort"
 )
 
 // IDRequest defines machine group ID request.

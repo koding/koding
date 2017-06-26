@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/prefetch"
 	"koding/klient/machine/mount/sync/history"
-	"sort"
 )
 
 // MountRequest defines machine group mount request.
