@@ -17,7 +17,7 @@ type describeOptions struct {
 }
 
 // NewDescribeCommand creates a command that describes credential documents.
-func NewDescribeCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewDescribeCommand(c *cli.CLI) *cobra.Command {
 	opts := &describeOptions{}
 
 	cmd := &cobra.Command{
@@ -33,9 +33,8 @@ func NewDescribeCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.NoArgs,         // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

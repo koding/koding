@@ -14,7 +14,7 @@ type startOptions struct {
 }
 
 // NewStartCommand creates a command that can start a remote machine.
-func NewStartCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewStartCommand(c *cli.CLI) *cobra.Command {
 	opts := &startOptions{}
 
 	cmd := &cobra.Command{
@@ -29,9 +29,8 @@ func NewStartCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(1),              // One argument is required.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.ExactArgs(1),   // One argument is required.
 	)(c, cmd)
 
 	return cmd

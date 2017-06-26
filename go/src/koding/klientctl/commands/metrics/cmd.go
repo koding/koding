@@ -8,7 +8,7 @@ import (
 
 // NewCommand creates a command that allows to manually publish events from
 // external sources.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "metrics",
 		Short:  "Publish events from external sources",
@@ -18,7 +18,7 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewAddCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewAddCommand(c),
 	)
 
 	// Middlewares.

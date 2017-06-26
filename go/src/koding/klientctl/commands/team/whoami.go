@@ -17,7 +17,7 @@ type whoAmIOptions struct {
 }
 
 // NewWhoAmICommand creates a command that displays authentication details.
-func NewWhoAmICommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewWhoAmICommand(c *cli.CLI) *cobra.Command {
 	opts := &whoAmIOptions{}
 
 	cmd := &cobra.Command{
@@ -32,9 +32,8 @@ func NewWhoAmICommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.NoArgs,         // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

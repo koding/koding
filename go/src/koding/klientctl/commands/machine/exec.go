@@ -18,7 +18,7 @@ type execOptions struct{}
 
 // NewExecCommand creates a command that can run arbitrary command on remote
 // machine.
-func NewExecCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewExecCommand(c *cli.CLI) *cobra.Command {
 	opts := &execOptions{}
 
 	cmd := &cobra.Command{
@@ -31,9 +31,8 @@ func NewExecCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.MinArgs(2),                // At least two arguments are required.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.MinArgs(2),     // At least two arguments are required.
 	)(c, cmd)
 
 	return cmd

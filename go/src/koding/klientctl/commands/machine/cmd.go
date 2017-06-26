@@ -9,7 +9,7 @@ import (
 )
 
 // NewCommand creates a command that manages remote machines.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "machine",
 		Short: "Manage remote machines",
@@ -18,15 +18,15 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		config.NewCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewCpCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewExecCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewListCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		mount.NewCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewSSHCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewStartCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewStopCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewUmountCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		config.NewCommand(c),
+		NewCpCommand(c),
+		NewExecCommand(c),
+		NewListCommand(c),
+		mount.NewCommand(c),
+		NewSSHCommand(c),
+		NewStartCommand(c),
+		NewStopCommand(c),
+		NewUmountCommand(c),
 	)
 
 	// Middlewares.

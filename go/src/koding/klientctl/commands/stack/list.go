@@ -17,7 +17,7 @@ type listOptions struct {
 }
 
 // NewListCommand creates a command that can list stacks.
-func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewListCommand(c *cli.CLI) *cobra.Command {
 	opts := &listOptions{}
 
 	cmd := &cobra.Command{
@@ -34,9 +34,8 @@ func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.DaemonRequired, // Deamon service is required.s
+		cli.NoArgs,         // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

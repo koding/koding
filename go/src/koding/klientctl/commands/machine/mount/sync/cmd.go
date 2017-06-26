@@ -17,7 +17,7 @@ type options struct {
 }
 
 // NewCommand creates a command that manages mount file synchronization.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
@@ -28,8 +28,8 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewPauseCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewResumeCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewPauseCommand(c),
+		NewResumeCommand(c),
 	)
 
 	// Flags.
@@ -38,9 +38,8 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.MaxArgs(1),                // At most one argument is accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.MaxArgs(1),     // At most one argument is accepted.
 	)(c, cmd)
 
 	return cmd
