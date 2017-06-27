@@ -20,7 +20,7 @@ type options struct {
 }
 
 // NewCommand creates a command that displays logs.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
@@ -31,7 +31,7 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewUploadCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewUploadCommand(c),
 	)
 
 	// Flags.

@@ -19,7 +19,7 @@ type listOptions struct {
 
 // NewListCommand creates a command that displays remote machines which belong
 // to the user or that can be accessed by their.
-func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewListCommand(c *cli.CLI) *cobra.Command {
 	opts := &listOptions{}
 
 	cmd := &cobra.Command{
@@ -36,9 +36,8 @@ func NewListCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.NoArgs,         // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

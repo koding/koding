@@ -21,7 +21,7 @@ type loginOptions struct {
 }
 
 // NewLoginCommand creates a command that allows to log into Koding account.
-func NewLoginCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewLoginCommand(c *cli.CLI) *cobra.Command {
 	opts := &loginOptions{}
 
 	cmd := &cobra.Command{
@@ -40,8 +40,7 @@ func NewLoginCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.NoArgs, // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd

@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
-	"strings"
 
 	"koding/kites/metrics"
 	"koding/klientctl/config"
@@ -127,13 +126,11 @@ func (c *CLI) Middlewares() map[string][]string {
 	return all
 }
 
-func (c *CLI) registerMiddleware(name string, cmd *cobra.Command, aliasPath ...string) {
+func (c *CLI) registerMiddleware(name string, cmd *cobra.Command) {
 	f := func() (desc string) {
-		cmdAliasPath := ExtendAlias(cmd, aliasPath)
-
 		desc = cmd.CommandPath()
-		if len(cmdAliasPath) != 0 {
-			desc += " (alias: " + strings.Join(cmdAliasPath, " ") + ")"
+		if aliasPath := cmd.Annotations[AliasAnnotation]; len(aliasPath) != 0 {
+			desc += " (alias: " + aliasPath + ")"
 		}
 
 		return desc

@@ -9,7 +9,7 @@ type options struct{}
 // NewCommand creates a command that displays debug information specific to
 // command line interface. It allows to examine requirements of all application
 // commands.
-func NewCommand(c *CLI, _ ...string) *cobra.Command {
+func NewCommand(c *CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{

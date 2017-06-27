@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that manages remote machine configuration.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage remote machine configuration",
@@ -16,8 +16,8 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewSetCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewShowCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewSetCommand(c),
+		NewShowCommand(c),
 	)
 
 	// Middlewares.

@@ -12,7 +12,7 @@ import (
 type setOptions struct{}
 
 // NewSetCommand creates a command that allows to set configuration key value.
-func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewSetCommand(c *cli.CLI) *cobra.Command {
 	opts := &setOptions{}
 
 	cmd := &cobra.Command{
@@ -23,8 +23,7 @@ func NewSetCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(2),              // Two arguments are accepted.
+		cli.ExactArgs(2), // Two arguments are accepted.
 	)(c, cmd)
 
 	return cmd

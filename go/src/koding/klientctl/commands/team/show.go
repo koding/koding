@@ -14,7 +14,7 @@ type showOptions struct {
 }
 
 // NewShowCommand creates a command that displays currently used team.
-func NewShowCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewShowCommand(c *cli.CLI) *cobra.Command {
 	opts := &showOptions{}
 
 	cmd := &cobra.Command{
@@ -29,9 +29,8 @@ func NewShowCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.NoArgs,                    // No custom arguments are accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.NoArgs,         // No custom arguments are accepted.
 	)(c, cmd)
 
 	return cmd
