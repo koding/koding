@@ -98,6 +98,11 @@ Configuration = (options = {}) ->
     realtime            :
       instances         : 3
 
+    remote_syslog       :
+      group             : 'misc'
+      supervisord       :
+        command         : 'remote_syslog --config %(ENV_KONFIG_PROJECTROOT)s/deployment/papertrail.yml --no-detach --hostname=%(ENV_HOSTNAME)s --dest-host=%(ENV_PAPERTRAIL_HOST)s --dest-port=%(ENV_PAPERTRAIL_PORT)s'
+
 
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
