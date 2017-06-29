@@ -157,7 +157,8 @@ jobs:
             timestamp=$(date --date="@$(($(date +%s) + 120))" +%m%d%H%M)
             base=origin/master
             head=$(git rev-parse HEAD)
-            git diff --name-only $base...$head go/ | xargs --no-run-if-empty touch -t $timestamp
+            git diff --name-only $base...$head go/ | xargs --no-run-if-empty touch --no-create -t $timestamp
+
       - run: env GOGC=10 go/build.sh
       - save_cache:
           key: go-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
