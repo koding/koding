@@ -12,20 +12,19 @@ type useOptions struct{}
 
 // NewUseCommand creates a command that can change default credential per
 // provider.
-func NewUseCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewUseCommand(c *cli.CLI) *cobra.Command {
 	opts := &useOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "use <identifier>",
+		Use:   "use <credential-id>",
 		Short: "Change default credential per provider",
 		RunE:  useCommand(c, opts),
 	}
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(1),              // One argument is accepted.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.ExactArgs(1),   // One argument is accepted.
 	)(c, cmd)
 
 	return cmd

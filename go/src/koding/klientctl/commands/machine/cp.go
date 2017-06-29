@@ -14,21 +14,27 @@ import (
 type cpOptions struct{}
 
 // NewCpCommand creates a command that allows to copy files between machines.
-func NewCpCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCpCommand(c *cli.CLI) *cobra.Command {
 	opts := &cpOptions{}
 
 	cmd := &cobra.Command{
-		Use:                "cp",
-		Short:              "Copy file(s) between machines",
+		Use:   "cp [<machine-identifier>:]<source-path> [<machine-identifier>:]<destination-path>",
+		Short: "Copy file(s) between machines",
+		Long: `Copy file(s) from <source-path> to the <destination-path>.
+
+Either <source-path> or <destination-path> must contain <machine-identifier>.
+Thus, it's not possible to copy files between two remote machines.
+
+If <destination-path> doesn't exist, it will be created.`,
 		DisableFlagParsing: true,
 		RunE:               cpCommand(c, opts),
 	}
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.DaemonRequired,            // Deamon service is required.
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(2),              // Two arguments are required.
+		cli.DaemonRequired, // Deamon service is required.
+		cli.HelpForNoFlags, // Custom help handler.
+		cli.ExactArgs(2),   // Two arguments are required.
 	)(c, cmd)
 
 	return cmd

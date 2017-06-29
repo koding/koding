@@ -12,12 +12,13 @@ import (
 type options struct{}
 
 // NewCommand creates a command that can be used to check KD status.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Check service status",
+		Long:  "This command checks if kd is installed and operative.",
 		RunE:  command(c, opts),
 	}
 

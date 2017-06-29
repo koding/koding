@@ -14,19 +14,18 @@ import (
 type uploadOptions struct{}
 
 // NewUploadCommand creates a command that uploads log files to Koding.
-func NewUploadCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewUploadCommand(c *cli.CLI) *cobra.Command {
 	opts := &uploadOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "upload",
-		Short: "Share log files with Koding",
+		Use:   "upload <file>",
+		Short: "Share log file with Koding",
 		RunE:  uploadCommand(c, opts),
 	}
 
 	// Middlewares.
 	cli.MultiCobraCmdMiddleware(
-		cli.WithMetrics(aliasPath...), // Gather statistics for this command.
-		cli.ExactArgs(1),              // One argument is accepted.
+		cli.ExactArgs(1), // One argument is accepted.
 	)(c, cmd)
 
 	return cmd

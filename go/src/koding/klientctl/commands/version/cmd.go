@@ -14,7 +14,7 @@ type options struct {
 }
 
 // NewCommand creates a command that displays current version of this application.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	opts := &options{}
 
 	cmd := &cobra.Command{

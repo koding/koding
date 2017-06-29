@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that manages deamon service.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "daemon",
 		Short: "Manage deamon service",
@@ -16,12 +16,12 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewInstallCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewRestartCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewStartCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewStopCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewUninstallCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewUpdateCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewInstallCommand(c),
+		NewRestartCommand(c),
+		NewStartCommand(c),
+		NewStopCommand(c),
+		NewUninstallCommand(c),
+		NewUpdateCommand(c),
 	)
 
 	// Middlewares.

@@ -7,7 +7,7 @@ import (
 )
 
 // NewCommand creates a command that manages machine stacks.
-func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
+func NewCommand(c *cli.CLI) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stack",
 		Short: "Manage stacks",
@@ -16,8 +16,8 @@ func NewCommand(c *cli.CLI, aliasPath ...string) *cobra.Command {
 
 	// Subcommands.
 	cmd.AddCommand(
-		NewCreateCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
-		NewListCommand(c, cli.ExtendAlias(cmd, aliasPath)...),
+		NewCreateCommand(c),
+		NewListCommand(c),
 	)
 
 	// Middlewares.
