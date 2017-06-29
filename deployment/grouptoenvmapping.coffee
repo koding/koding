@@ -24,6 +24,7 @@ groupToEnv =
   'default'     : [ 'default' ]
   'bucket'      : envs
   'static'      : envs
+  'misc'        : envs
 
 module.exports.isAllowed = (group, env) ->
   # if group name is not in groupToEnv
