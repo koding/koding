@@ -19,6 +19,11 @@ func NewCommand(c *CLI) *cobra.Command {
 		Hidden: true,
 	}
 
+	// Subcommands.
+	cmd.AddCommand(
+		NewAutocompleteCommand(c),
+	)
+
 	// Middlewares.
 	MultiCobraCmdMiddleware(
 		NoArgs, // No custom arguments are accepted.

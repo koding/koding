@@ -38,6 +38,7 @@ be created.`,
 	cmd.AddCommand(
 		NewInspectCommand(c),
 		NewListCommand(c),
+		NewIdentifiersCommand(c),
 		msync.NewCommand(c),
 	)
 

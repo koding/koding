@@ -16,7 +16,7 @@ func NewSSHCommand(c *cli.CLI) *cobra.Command {
 	opts := &sshOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "ssh",
+		Use:     "ssh <machine-identifier>",
 		Aliases: []string{"s"},
 		Short:   "SSH to remote machine",
 		RunE:    sshCommand(c, opts),
