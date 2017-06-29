@@ -1,50 +1,50 @@
 version: 2
 
+defaults: &defaults
+  resource_class: medium
+  docker:
+    - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
+  working_directory: /koding
+
+workflows:
+  version: 2
+  default:
+    jobs:
+      - dependencies
+      - configure:
+          requires:
+            - dependencies
+      - lint:
+          requires:
+            - dependencies
+      - client:
+          requires:
+            - configure
+      - go:
+          requires:
+            - configure
+      - go-test:
+          requires:
+            - go
+      - backend:
+          requires:
+            - go
+      - integration-tests:
+          requires:
+            - configure
+      - deploy:
+          requires:
+            - dependencies
+          filters:
+            branches:
+              only: /(sandbox|latest|production)/
+
 jobs:
-
-  build:
-
-    resource_class: xlarge
-
-    docker:
-      - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
-
-      - image: mongo:3.2.8
-        cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
-
-      - image: koding/postgres
-
-      - image: rabbitmq:3
-        env:
-            RABBITMQ_VM_MEMORY_HIGH_WATERMARK: "2048MB"
-
-      - image: redis
-
-      # countly will listen at port 80 till we can give -p "$KONFIG_COUNTLY_APIPORT:80"
-      - image: koding/countly-server:latest
-        environment:
-          COUNTLY_PATH: /countly
-          COUNTLY_WITH_DEFAULT_DATA: 1
-
-    working_directory: ~/koding
-
+  dependencies:
+    <<: *defaults
     steps:
       - checkout
-
-      - run:
-          name: start a deploy job
-          command: |
-            case "$CIRCLE_BRANCH" in
-              sandbox | latest | production) ;;
-              *) exit 0 ;;
-            esac
-
-            curl --user ${CIRCLE_API_TOKEN}: \
-                 --data build_parameters[CIRCLE_JOB]=deploy \
-                 https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/$CIRCLE_BRANCH
-
       - run: scripts/check_package_json_constraints.sh
-
       - restore_cache:
           keys:
             - node_modules-{{ checksum "package.json" }}
@@ -54,11 +54,9 @@ jobs:
       - restore_cache:
           keys:
             - landing-node_modules-{{ checksum "client/landing/package.json" }}
-
       - run:
           name: npm install
           command: npm install --unsafe-perm
-
       - save_cache:
           key: node_modules-{{ checksum "package.json" }}
           paths:
@@ -71,44 +69,52 @@ jobs:
           key: landing-node_modules-{{ checksum "client/landing/package.json" }}
           paths:
             - client/landing/node_modules
+      - save_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          paths:
+            - .
 
+  configure:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: credentials
+          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
+      - run:
+          name: configure
+          command: ./configure --config dev --version $(git rev-parse --short HEAD) --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort "80"
+      - save_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
+          paths:
+            - .
+
+  lint:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: coffeelint
           command: $(npm bin)/coffeelint --quiet .
 
-      - run:
-          name: credentials
-          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
-
-      - run:
-          name: configure
-          command: ./configure --config dev --version $(git rev-parse --short HEAD) --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort "80"
-
-      - run:
-          name: launch test hosts
-          command: |
-            chmod 600 scripts/test-instance/koding-test-instances-2015-06.pem
-            set -o pipefail
-            ./run exec scripts/test-instance/launch --branch $CIRCLE_BRANCH --commit $CIRCLE_SHA1 | tee INSTANCE_DATA
-
-      - run:
-          name: check remote API consistency
-          command: ./run exec scripts/api-generator.coffee --check
-
+  client:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: check client code quality
           command: scripts/check_client_code_quality.sh
-
       - restore_cache:
           keys:
             - client-happypack-{{ .Branch }}-{{ .Revision }}
             - client-happypack-{{ .Branch }}
             - client-happypack-master
-
       - run:
           name: build client
           command: make -C client dist
-
       - run:
           name: sync website assets
           command: |
@@ -117,7 +123,6 @@ jobs:
               --no-mime-magic --guess-mime-type --acl-public \
               website/a/p/p/$(git rev-parse --short HEAD)/ \
               s3://koding-assets/a/p/p/$(git rev-parse --short HEAD)/
-
       - save_cache:
           key: client-happypack-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
           paths:
@@ -127,23 +132,25 @@ jobs:
           paths:
             - client/.happypack
 
-      - type: shell
-        name: Go Meta Linter
-        command: scripts/gometalinter.sh
-
+  go:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Go Meta Linter
+          command: scripts/gometalinter.sh
       - restore_cache:
           keys:
             - go-{{ .Branch }}-{{ .Revision }}
             - go-{{ .Branch }}
             - go-master
-
       - run:
           name: touch files restored from cache
           command: |
             timestamp=$(date --date="@$(($(date +%s) + 60))" +%m%d%H%M)
             find go/bin -exec touch {} -t $timestamp \;
             find go/pkg -exec touch {} -t $timestamp \;
-
       - run:
           name: touch changed go source files
           command: |
@@ -153,7 +160,6 @@ jobs:
             git diff --name-only $base...$head go/ | xargs --no-run-if-empty touch --no-create -t $timestamp
 
       - run: env GOGC=10 go/build.sh
-
       - save_cache:
           key: go-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
           paths:
@@ -164,70 +170,115 @@ jobs:
           paths:
             - go/bin
             - go/pkg
+      - save_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
+          paths:
+            - .
 
+  go-test:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: check kite configuration
           command: ./run exec scripts/gotests.sh kites koding/kites/config
-
       - run:
           name: check generated JSON files
           command: ./run exec scripts/check-generated-files.sh
-
       - run:
           name: test kites
           command: ./run exec go/src/koding/kites/e2etest/e2etest.sh
-
       - run:
           name: test klient
           command: ./run exec scripts/test-klient.sh
-
       - run:
           name: test kd
           command: ./run exec scripts/test-kd.sh
-
       - run:
           name: test kontrol
           command: ./run exec scripts/gotests.sh koding/kites/kontrol/kontrol
-
       - run:
           name: test kloud
           command: ./run exec scripts/gotests.sh kites \
             koding/kites/kloud/provider/... koding/kites/kloud/credential/... \
             koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
+      - run:
+          name: codecov
+          command: |
+            [[ -n "$CODECOV_TOKEN" ]] && \
+              bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
+              exit 0
+      - save_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
+          paths:
+            - .
 
+  backend:
+    resource_class: xlarge
+    docker:
+      - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
+      - image: mongo:3.2.8
+        cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
+      - image: koding/postgres
+      - image: rabbitmq:3
+        env:
+            RABBITMQ_VM_MEMORY_HIGH_WATERMARK: "2048MB"
+      - image: redis
+      - image: koding/countly-server:latest
+        environment:
+          COUNTLY_PATH: /countly
+          COUNTLY_WITH_DEFAULT_DATA: 1
+    working_directory: /koding
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: check remote API consistency
+          command: ./run exec scripts/api-generator.coffee --check
       - run:
           name: run database migration
           command: ./run migrations up
-
       - run:
           name: test mongo models
           command: ./run exec go test koding/db/mongodb/modelhelper
-
       - run:
           name: run
           command: |
             ./run exec supervisord -c supervisord.conf
-
             # kill previous nginx
             rm -rf /etc/nginx/sites-enabled || echo "does not exist"
             rm -rf /etc/nginx/conf.d || echo "does not exist"
             pkill nginx
             nginx -c $(pwd)/nginx.conf
-
             ./run health-check 30 600
-
       - run:
           name: test social API
           command: ./run exec env EXTRAS=-convey-story=true make -C go/src/socialapi testapi
-
       - run:
           name: test web server
           command: ./run exec scripts/node-testing/mocha-runner servers/lib/server
-
       - run:
           name: test social worker
           command: ./run exec scripts/node-testing/mocha-runner workers/social/lib/social
+      - run:
+          name: codecov
+          command: |
+            [[ -n "$CODECOV_TOKEN" ]] && \
+              bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
+              exit 0
 
+  integration-tests:
+    <<: *defaults
+    steps:
+      - restore_cache:
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: launch test hosts
+          command: |
+            chmod 600 scripts/test-instance/koding-test-instances-2015-06.pem
+            set -o pipefail
+            ./run exec scripts/test-instance/launch --branch $CIRCLE_BRANCH --commit $CIRCLE_SHA1 | tee INSTANCE_DATA
       - run:
           name: run test suites
           environment:
@@ -240,41 +291,9 @@ jobs:
             [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
             [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
 
-      - run:
-          name: codecov
-          command: |
-            [[ -n "$CODECOV_TOKEN" ]] && \
-              bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
-              exit 0
-
   deploy:
-
-    docker:
-      - image: koding/circle@sha256:dec761b93b060282748019f40012988f4f4677f40827fd763579358f17e3c8ea
-
-    working_directory: ~/koding
-
+    <<: *defaults
     steps:
-      - checkout
-
-      - restore_cache:
-          keys:
-            - node_modules-{{ checksum "package.json" }}
-      - restore_cache:
-          keys:
-            - client-node_modules-{{ checksum "client/package.json" }}
-      - restore_cache:
-          keys:
-            - landing-node_modules-{{ checksum "client/landing/package.json" }}
-
-      - run:
-          name: npm install
-          command: npm install --unsafe-perm
-
-      - run:
-          name: credentials
-          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
-
       - run:
           name: deploy
           command: |
@@ -282,5 +301,4 @@ jobs:
               sandbox | latest | production) BRANCH=$CIRCLE_BRANCH ;;
               *) BRANCH=sandbox ;;
             esac
-
             env BRANCH=$BRANCH scripts/ci/deploy
