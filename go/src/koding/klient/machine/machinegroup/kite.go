@@ -58,6 +58,27 @@ func KiteHandlerID(g *Group) kite.HandlerFunc {
 	}
 }
 
+// KiteHandlerIdentifierList creates a kite handler function that, when called,
+// invokes machine group IdentifierList method.
+func KiteHandlerIdentifierList(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &IdentifierListRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.IdentifierList(req)
+		if err != nil {
+			return nil, newError(err)
+		}
+
+		return res, nil
+	}
+}
+
 // KiteHandlerSSH creates a kite handler function that, when called, invokes
 // machine group SSH method.
 func KiteHandlerSSH(g *Group) kite.HandlerFunc {
@@ -243,6 +264,27 @@ func KiteHandlerMountID(g *Group) kite.HandlerFunc {
 		}
 
 		res, err := g.MountID(req)
+		if err != nil {
+			return nil, newError(err)
+		}
+
+		return res, nil
+	}
+}
+
+// KiteHandlerMountIdentifierList creates a kite handler function that, when
+// called, invokes machine group MountIdentifierList method.
+func KiteHandlerMountIdentifierList(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &MountIdentifierListRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.MountIdentifierList(req)
 		if err != nil {
 			return nil, newError(err)
 		}

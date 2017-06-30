@@ -187,6 +187,27 @@ func (c *Client) ListMount(options *ListMountOptions) (map[string][]mount.Info, 
 	return listMountRes.Mounts, nil
 }
 
+// MountIdentifiersOptions stores options for "machine mount identifiers" call.
+type MountIdentifiersOptions struct {
+	MountIds  bool
+	BasePaths bool
+}
+
+// MountIdentifiers returns cached mounts identifiers.
+func (c *Client) MountIdentifiers(options *MountIdentifiersOptions) ([]string, error) {
+	mountIdentifiersReq := &machinegroup.MountIdentifierListRequest{
+		MountIds:  options.MountIds,
+		BasePaths: options.BasePaths,
+	}
+	var mountIdentifiersRes machinegroup.MountIdentifierListResponse
+
+	if err := c.klient().Call("machine.mount.identifier.list", mountIdentifiersReq, &mountIdentifiersRes); err != nil {
+		return nil, err
+	}
+
+	return mountIdentifiersRes.Identifiers, nil
+}
+
 // InspectMountOptions stores options for `machine mount inspect` call.
 type InspectMountOptions struct {
 	Identifier string // Mount identifier.
@@ -439,6 +460,11 @@ func ListMount(opts *ListMountOptions) (map[string][]mount.Info, error) {
 
 // SyncMount manages mount synchronization.
 func SyncMount(opts *SyncMountOptions) error { return DefaultClient.SyncMount(opts) }
+
+// MountIdentifiers returns cached mount identifiers using DefaultClient.
+func MountIdentifiers(opts *MountIdentifiersOptions) ([]string, error) {
+	return DefaultClient.MountIdentifiers(opts)
+}
 
 // InspectMount inspects existing mount using DefaultClient.
 func InspectMount(opts *InspectMountOptions) (machinegroup.InspectMountResponse, error) {
