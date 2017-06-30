@@ -246,6 +246,7 @@ module.exports.create = (KONFIG, environment) ->
   worker_processes #{if inDevEnvironment then 1 else 16};
   master_process #{if inDevEnvironment then 'off' else 'on'};
 
+  daemon off;
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
