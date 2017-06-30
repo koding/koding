@@ -424,6 +424,74 @@ generateDev = (KONFIG, options) ->
       fi
     }
 
+    function k8s () {
+      params=(start stop)
+      param=$1
+      case "${params[@]}" in  *"$param"*)
+        ;;
+      *)
+        echo "Error: Command not found: $param"
+        echo "Usage: ./run k8s COMMAND"
+        echo ""
+        echo "Commands:  "
+        echo "  start : install the services in Kubernetes pods"
+        echo "  stop  : stop the currently running Kubernetes cluster"
+
+        echo ""
+        exit 1
+      ;;
+      esac
+
+      if [ "$param" == "start" ]; then
+        # Dependency on a hypervisor will be dropped off in the future
+        command -v VirtualBox       >/dev/null 2>&1 || { echo >&2 "I require VirtualBox but it's not installed.  Aborting."; exit 1; }
+        command -v minikube         >/dev/null 2>&1 || { echo >&2 "I require a Kubernetes cluster. To install minikube: \
+                (curl -Lo minikube curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-$(uname | awk '{print tolower($0)}')-amd64 && chmod +x minikube && mv minikube /usr/local/bin/)"; exit 1;}
+        command -v kubectl          >/dev/null 2>&1 || { echo >&2 "I require kubectl. To install kubectl: \
+                (curl -L -O https://storage.googleapis.com/kubernetes-release/release/v1.6.4/bin/$(uname | awk '{print tolower($0)}')/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/)"; exit 1;}
+        command -v helm             >/dev/null 2>&1 || { echo >&2 "I require helm but it's not installed. To install helm: \
+                (curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh && chmod 700 get_helm.sh && ./get_helm.sh)"; exit 1; }
+
+        minikube start
+        helm init
+
+        export TILLER_POD_NAME=$(kubectl get pods -n kube-system -l app=helm  -o jsonpath="{.items[0].metadata.name}")
+        k8s_health_check $TILLER_POD_NAME kube-system 5 120
+
+      else
+        # TODO: stop the cluster, maybe even have an option to kill the cluster?
+        minikube stop
+      fi
+    }
+
+    function k8s_health_check () {
+      # args: $1: POD NAME, $2: NAMESPACE, $3: health check interval (recommended 5 seconds), $4: timeout duration
+      declare interval=$3
+      declare timeout=$4
+      declare duration=0
+
+      sleep $interval
+      declare response_code=$(kubectl exec -n $2 $1 -- echo 'i am alive')
+
+      echo -n 'health-check: '
+
+      until [[ $response_code != *"error"* ]]; do
+        if [ $duration -eq $timeout ]; then
+          echo ' timed out!'
+          exit 255
+        fi
+
+        echo -n '.'
+
+        sleep $interval
+        duration=$((duration + interval))
+
+        declare response_code=$(kubectl exec -n $2 $1 -- echo 'i am alive')
+      done
+
+      echo ' succeeded!'
+    }
+
     function switch_client_version () {
       if [ "$1" == "default" ]; then
         rm $KONFIG_PROJECTROOT/CLIENTVERSION
@@ -658,6 +726,9 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "switchclient" ]; then
       switch_client_version $2
+
+    elif [ "$1" == "k8s" ]; then
+      k8s $2
 
     else
       echo "Unknown command: $1"
