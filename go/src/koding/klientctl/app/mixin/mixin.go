@@ -2,6 +2,7 @@ package mixin
 
 import (
 	"koding/kites/kloud/metadata"
+	"koding/kites/kloud/utils/object"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -13,8 +14,12 @@ var App = New(MustAsset("app.yaml"))
 
 // Mixin represents a raw mixin object.
 type Mixin struct {
-	Machine   map[string]interface{} `json:"machine" yaml:"machine"`
-	CloudInit metadata.CloudInit     `json:"cloudinit" yaml:"cloudinit"`
+	Machine  map[string]interface{} `json:"machine" yaml:"machine"`
+	Variable []struct {
+		Name    string      `json:"name" yaml:"name"`
+		Default interface{} `json:"default" yaml:"default"`
+	} `json:"variable" yaml:"variable"`
+	CloudInit metadata.CloudInit `json:"cloudinit" yaml:"cloudinit"`
 }
 
 // New gives new mixin by unmarshaling yaml-encoded p
@@ -32,6 +37,9 @@ func New(p []byte) *Mixin {
 	if len(m.CloudInit) == 0 {
 		panic("empty cloud-init script")
 	}
+
+	m.Machine = object.FixYAML(m.Machine).(map[string]interface{})
+	m.CloudInit = metadata.CloudInit(object.FixYAML((map[string]interface{})(m.CloudInit)).(map[string]interface{}))
 
 	return &m
 }

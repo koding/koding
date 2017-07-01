@@ -2,11 +2,10 @@ machine:
   koding_always_on: true
   koding_mounts:
     default: "/var/lib/koding/app"
+variable:
+- name: web_port
+  default: 8080
 cloudinit:
-  users:
-  - name: "${var.koding_account_profile_nickname}"
-    ssh_authorized_keys:
-    - "${var.userInput_publicKey}"
   write_files:
   - path: "/var/lib/koding/run"
     permissions: 0755
@@ -17,8 +16,8 @@ cloudinit:
       docker run     \
         --rm         \
         --name app   \
-        -p ${var.userInput_webPort}:${var.userInput_webPort} \
-        -e PORT=${var.userInput_webPort} \
+        -p ${var.userInput_web_port}:${var.userInput_web_port} \
+        -e PORT=${var.userInput_web_port} \
         -v /var/lib/koding/app:/app \
         rjeczalik/buildstep:latest  \
         /bin/bash -c '/build/builder && /start web'
@@ -34,3 +33,6 @@ cloudinit:
   - chown -R ${var.koding_account_profile_nickname}:${var.koding_account_profile_nickname}
     /var/lib/koding/app
   - docker pull rjeczalik/buildstep:latest
+  - echo
+  - echo Your application stack is ready to use!
+  - echo

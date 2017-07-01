@@ -2,15 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"text/tabwriter"
 
-	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/app"
 	"koding/klientctl/endpoint/remoteapi"
-	"koding/klientctl/endpoint/stack"
 	"koding/klientctl/endpoint/team"
 	"koding/remoteapi/models"
 
@@ -19,52 +16,15 @@ import (
 )
 
 func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	var p []byte
-	var err error
-
-	switch file := c.String("file"); file {
-	case "":
-		return 1, errors.New("no template file was provided")
-	case "-":
-		p, err = ioutil.ReadAll(os.Stdin)
-	default:
-		p, err = ioutil.ReadFile(file)
-	}
-
-	if err != nil {
-		return 1, errors.New("error reading template file: " + err.Error())
-	}
-
-	fmt.Fprintln(os.Stderr, "Creating stack... ")
-
-	opts := &stack.CreateOptions{
+	opts := &app.StackOptions{
 		Team:        c.String("team"),
 		Title:       c.String("title"),
 		Credentials: c.StringSlice("credential"),
-		Template:    p,
+		File:        c.String("file"),
 	}
 
-	resp, err := stack.Create(opts)
-	if err != nil {
-		return 1, errors.New("error creating stack: " + err.Error())
-	}
-
-	if c.Bool("json") {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "\t")
-		enc.Encode(resp)
-
-		return 0, nil
-	}
-
-	fmt.Fprintf(os.Stderr, "\nCreatad %q stack with %s ID.\nWaiting for the stack to finish building...\n\n", resp.Title, resp.StackID)
-
-	for e := range kloud.Wait(resp.EventID) {
-		if e.Error != nil {
-			return 1, fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
-		}
-
-		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	if _, _, err := app.BuildStack(opts); err != nil {
+		return 1, err
 	}
 
 	return 0, nil

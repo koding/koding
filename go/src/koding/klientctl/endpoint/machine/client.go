@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
@@ -50,13 +51,14 @@ type Client struct {
 
 // ExecOptions represents available parameters for the Exec method.
 type ExecOptions struct {
-	MachineID string       // machine ID
-	Path      string       // if it resides inside existing mount, machine ID is inferred from it
-	Cmd       string       // binary to execute
-	Args      []string     // command line flags for the binary
-	Stdout    func(string) // stdout callback, called in-order if not nil
-	Stderr    func(string) // stderr callback, called in-order if not nil
-	Exit      func(int)    // process exit callback, guaranteed to get called last if not nil
+	MachineID     string        // machine ID
+	Path          string        // if it resides inside existing mount, machine ID is inferred from it
+	Cmd           string        // binary to execute
+	Args          []string      // command line flags for the binary
+	Stdout        func(string)  // stdout callback, called in-order if not nil
+	Stderr        func(string)  // stderr callback, called in-order if not nil
+	Exit          func(int)     // process exit callback, guaranteed to get called last if not nil
+	WaitConnected time.Duration // max amount of time to wait until klient establishes connection with remote
 }
 
 // KillOptions represents available parameters for the Kill method.
@@ -74,8 +76,9 @@ func (c *Client) Exec(opts *ExecOptions) (int, error) {
 			Args: opts.Args,
 		},
 		MachineRequest: machinegroup.MachineRequest{
-			MachineID: machine.ID(opts.MachineID),
-			Path:      opts.Path,
+			MachineID:     machine.ID(opts.MachineID),
+			Path:          opts.Path,
+			WaitConnected: opts.WaitConnected,
 		},
 	}
 

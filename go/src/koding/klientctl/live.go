@@ -1,37 +1,38 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	kstack "koding/kites/kloud/stack"
-	"koding/kites/kloud/utils/object"
+	"koding/klientctl/app"
 	"koding/klientctl/config"
 	"koding/klientctl/endpoint/credential"
-	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/endpoint/stack"
+	"koding/klientctl/endpoint/machine"
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
 	"github.com/koding/logging"
 	cli "gopkg.in/urfave/cli.v1"
-	yaml "gopkg.in/yaml.v2"
 )
 
-func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
+func Live(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	if err := isLocked(); err != nil {
 		return 1, err
 	}
 
+	var vars map[string]string
+
 	if _, err := os.Stat(config.Konfig.Template.File); os.IsNotExist(err) {
 		fmt.Printf("Initializing with new %s template file...\n\n", config.Konfig.Template.File)
 
-		if _, err := templateInit(config.Konfig.Template.File, false, ""); err != nil {
+		var err error
+		if vars, err = templateInit(config.Konfig.Template.File, false, ""); err != nil {
 			return 1, err
 		}
 	}
@@ -106,96 +107,66 @@ func Init(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		ident = credential.Used()[provider]
 	}
 
-	fmt.Printf("Creating new stack...\n\n")
-	defTitle := strings.Title(fmt.Sprintf("%s %s Stack", kstack.Pokemon(), provider))
-
-	title, err := helper.Ask("Stack name [%s]: ", defTitle)
-	if err != nil {
-		return 1, err
-	}
-
-	if title == "" {
-		title = defTitle
-	}
-
-	opts := &stack.CreateOptions{
+	opts := &app.StackOptions{
 		Team:        team.Used().Name,
-		Title:       title,
 		Credentials: []string{ident},
 		Template:    p,
 	}
 
-	resp, err := stack.Create(opts)
+	stack, machines, err := app.BuildStack(opts)
 	if err != nil {
 		return 1, err
 	}
 
-	fmt.Fprintf(os.Stderr, "\nCreatad %q stack with %s ID.\nWaiting for the stack to finish building...\n\n", resp.Title, resp.StackID)
+	// copy files
 
-	for e := range kloud.Wait(resp.EventID) {
-		if e.Error != nil {
-			return 1, fmt.Errorf("\nBuilding %q stack failed:\n%s\n", resp.Title, e.Error)
-		}
-
-		fmt.Printf("[%d%%] %s\n", e.Event.Percentage, e.Event.Message)
+	wd, err := os.Getwd()
+	if err != nil {
+		return 1, err
 	}
 
-	if err := writelock(resp.StackID, resp.Title); err != nil {
+	cpOpts := &machine.CpOptions{
+		Identifier:      machines[0].ID,
+		SourcePath:      wd,
+		DestinationPath: filepath.FromSlash("/var/lib/koding/app/"),
+		Log:             log.New("cp"),
+	}
+
+	fmt.Fprintf(os.Stderr, "\nUploading project files from current directory to your remote...\n\n")
+
+	if err := machine.Cp(cpOpts); err != nil {
+		return 1, err
+	}
+
+	// build application
+
+	fmt.Fprintf(os.Stderr, "\nBiulding your project...\n\n")
+
+	done := make(chan int, 1)
+	fn := func(line string) {
+		fmt.Fprintf(os.Stderr, "%s | %s\n", machines[0].Slug, line)
+	}
+
+	execOpts := &machine.ExecOptions{
+		MachineID:     machines[0].ID,
+		Cmd:           "/var/lib/koding/run",
+		Stdout:        fn,
+		Stderr:        fn,
+		Exit:          func(exit int) { done <- exit },
+		WaitConnected: 30 * time.Second,
+	}
+
+	if _, err := machine.Exec(execOpts); err != nil {
+		return 1, err
+	}
+
+	<-done
+
+	_ = vars
+
+	if err := writelock(stack.ID, *stack.Title); err != nil {
 		return 1, err
 	}
 
 	return 0, nil
-}
-
-type lock struct {
-	Stack struct {
-		ID    string `yaml:"id"`
-		Title string `yaml:"title"`
-	} `yaml:"stack"`
-}
-
-func isLocked() error {
-	p, err := ioutil.ReadFile(".kd.lock")
-	if os.IsNotExist(err) {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-
-	var l lock
-
-	if err := yaml.Unmarshal(p, &l); err != nil {
-		return err
-	}
-
-	return fmt.Errorf("Project already initialized with %q stack (%s)", l.Stack.Title, l.Stack.ID)
-}
-
-func writelock(id, title string) error {
-	var l lock
-	l.Stack.ID = id
-	l.Stack.Title = title
-
-	p, err := yaml.Marshal(&l)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(".kd.lock", p, 0644)
-}
-
-func readTemplate(file string) ([]byte, error) {
-	p, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-
-	var m map[string]interface{}
-
-	if err := yaml.Unmarshal(p, &m); err != nil {
-		return nil, err
-	}
-
-	return json.Marshal(object.FixYAML(m))
 }

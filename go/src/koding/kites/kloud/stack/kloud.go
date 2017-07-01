@@ -170,12 +170,24 @@ func (k *Kloud) ValidateUser(req *keygen.AuthRequest) error {
 
 // ReadProviders reads all providers used in the given stack template.
 func ReadProviders(template []byte) ([]string, error) {
+	return ReadProvidersWithUnmarshal(template, json.Unmarshal)
+}
+
+// ReadProvidersWithUnmarshal reads all providers specified in the given
+// template. The template is going to be decoded using the unmarshal func.
+func ReadProvidersWithUnmarshal(template []byte, unmarshal func([]byte, interface{}) error) ([]string, error) {
 	var v struct {
 		Provider map[string]struct{} `json:"provider"`
 	}
 
-	if err := json.Unmarshal(template, &v); err != nil {
+	if err := unmarshal(template, &v); err != nil {
 		return nil, err
+	}
+
+	delete(v.Provider, "")
+
+	if len(v.Provider) == 0 {
+		return nil, errors.New("no provider found")
 	}
 
 	providers := make([]string, 0, len(v.Provider))
@@ -200,8 +212,6 @@ func ReadProvider(template []byte) (string, error) {
 	}
 
 	switch len(providers) {
-	case 0:
-		return "", errors.New("no provider found")
 	case 1:
 		return providers[0], nil
 	default:
