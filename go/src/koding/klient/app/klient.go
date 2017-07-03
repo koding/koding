@@ -451,9 +451,6 @@ func (k *Klient) RegisterMethods() {
 	k.handleFunc("klient.unshare", k.collab.Unshare)
 	k.handleFunc("klient.shared", k.collab.Shared)
 
-	// Adds the remote.* methods, depending on OS.
-	k.addRemoteHandlers()
-
 	// SSH keys
 	k.handleWithSub("sshkeys.list", sshkeys.List)
 	k.handleWithSub("sshkeys.add", sshkeys.Add)
