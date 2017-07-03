@@ -30,6 +30,7 @@ func NewKdCommand(c *cli.CLI) *cobra.Command {
 		Use:   "kd [command]",
 		Short: "kd is a CLI tool that allows user to interact with their infrastructure.",
 		RunE:  cli.PrintHelp(c.Err()),
+		BashCompletionFunction: bashCompletionFunc,
 	}
 
 	// Subcommands.

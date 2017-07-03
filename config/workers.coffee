@@ -8,6 +8,12 @@ module.exports = (KONFIG, options, credentials) ->
   nodeProgram = if options.watchNode then './watch-node' else 'node'
 
   workers =
+    nginx:
+      group: 'webserver'
+      supervisord:
+        command: 'nginx -c %(ENV_KONFIG_PROJECTROOT)s/nginx.conf'
+        stopsignal: 'QUIT'
+
     bucketproxies       :
       group             : 'bucket'
       nginx             :

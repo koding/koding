@@ -14,7 +14,7 @@ func NewResumeCommand(c *cli.CLI) *cobra.Command {
 	opts := &resumeOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "resume [<mount-id> | <path>]",
+		Use:   "resume [<mount-id> | <mount-path>]",
 		Short: "Resume file synchronization",
 		RunE:  resumeCommand(c, opts),
 	}
