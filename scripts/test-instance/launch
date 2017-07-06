@@ -27,6 +27,10 @@ unless keyName
   console.error 'error: key name is not set'
   process.exit 1
 
+unless process.env.TEST_AMI
+  console.error 'error: TEST_AMI environment variable is not set'
+  process.exit 1
+
 AWS = require './aws'
 EC2 = new AWS.EC2()
 R53 = new AWS.Route53()
@@ -72,7 +76,7 @@ userData =
   """
 
 params =
-  ImageId          : (require './ami').id
+  ImageId          : process.env.TEST_AMI
   InstanceType     : 'm4.large'
   MinCount         : argv.count
   MaxCount         : argv.count
