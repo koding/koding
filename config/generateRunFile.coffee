@@ -492,6 +492,35 @@ generateDev = (KONFIG, options) ->
       echo ' succeeded!'
     }
 
+    function k8s_health_check () {
+      declare interval=$2
+      declare timeout=$3
+      declare duration=0
+
+      sleep $interval
+      kubectl exec $1 -- echo 'i am alive' >/tmp/response.log 2>&1
+      declare response_code=$(tail -1 /tmp/response.log)
+
+      echo -n 'health-check: '
+
+      until [[ $response_code != *"error"* ]]; do
+        if [ $duration -eq $timeout ]; then
+          echo ' timed out!'
+          exit 255
+        fi
+
+        echo -n '.'
+
+        sleep $interval
+        duration=$((duration + interval))
+
+        kubectl exec $1 -- echo 'i am alive' >/tmp/response.log 2>&1
+        declare response_code=$(tail -1 /tmp/response.log)
+      done
+
+      echo ' succeeded!'
+    }
+
     function switch_client_version () {
       if [ "$1" == "default" ]; then
         rm $KONFIG_PROJECTROOT/CLIENTVERSION
