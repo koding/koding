@@ -37,9 +37,6 @@ generateDev = (KONFIG, options) ->
 
     SERVICES="mongo redis postgres rabbitmq countly"
 
-    NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
-    NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
-
     #{options.requirementCommands?.join "\n"}
 
     trap ctrl_c INT
@@ -47,19 +44,6 @@ generateDev = (KONFIG, options) ->
     function ctrl_c () {
       supervisorctl shutdown
       exit 1;
-    }
-
-    function nginxstop () {
-      if [ -a $NGINX_PID ]; then
-        echo "stopping nginx"
-        nginx -c $NGINX_CONF -g "pid $NGINX_PID;" -s quit
-      fi
-    }
-
-    function nginxrun () {
-      nginxstop
-      echo "starting nginx"
-      nginx -c $NGINX_CONF -g "pid $NGINX_PID;"
     }
 
     function checkrunfile () {
@@ -148,7 +132,6 @@ generateDev = (KONFIG, options) ->
       echo "  run log [worker]          : to see of specified worker logs only"
       echo "  run buildservices         : to initialize and start services"
       echo "  run services              : to stop and restart services"
-      echo "  run nginx                 : to stop and restart nginx"
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
       echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
@@ -479,8 +462,6 @@ generateDev = (KONFIG, options) ->
       ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
-
-      nginxrun
     }
 
     function services () {
@@ -499,8 +480,6 @@ generateDev = (KONFIG, options) ->
 
       echo "Starting services: $SERVICES"
       docker start $SERVICES
-
-      nginxrun
     }
 
     function removeDockerByName () {
@@ -643,9 +622,6 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "services" ]; then
       check_service_dependencies
       services
-
-    elif [ "$1" == "nginx" ]; then
-      nginxrun
 
     elif [ "$1" == "buildservices" ]; then
       check_service_dependencies
