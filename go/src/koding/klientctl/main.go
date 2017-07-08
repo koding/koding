@@ -1,3 +1,5 @@
+// +build !urfavecli
+
 package main
 
 import (
@@ -29,10 +31,6 @@ func main() {
 	machine.DefaultClient.Stream = c
 
 	kloud.DefaultLog = c.Log()
-
-	// Hack for unused remote(compat) commands. It should be removed when we
-	// drop all of them.
-	log = c.Log()
 
 	if err := commands.NewKdCommand(c).Execute(); err != nil {
 		c.Close()

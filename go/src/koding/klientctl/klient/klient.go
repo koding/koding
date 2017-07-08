@@ -13,7 +13,6 @@ import (
 	"koding/klient/fs"
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
-	"koding/klientctl/list"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -167,21 +166,6 @@ func (k *Klient) Tell(methodName string, reqs ...interface{}) (*dnode.Partial, e
 // interact with legacy code.
 func (k *Klient) GetClient() *kite.Client {
 	return k.Client
-}
-
-// RemoteList the current machines.
-func (k *Klient) RemoteList() (list.KiteInfos, error) {
-	res, err := k.Client.TellWithTimeout("remote.list", defaultKlientTimeout)
-	if err != nil {
-		return nil, err
-	}
-
-	var infos []list.KiteInfo
-	if err := res.Unmarshal(&infos); err != nil {
-		return nil, err
-	}
-
-	return infos, nil
 }
 
 // RemoteCache calls klient's remote.cache method.
