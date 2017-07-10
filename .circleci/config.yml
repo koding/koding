@@ -246,11 +246,6 @@ jobs:
           name: run
           command: |
             ./run exec supervisord -c supervisord.conf
-            # kill previous nginx
-            rm -rf /etc/nginx/sites-enabled || echo "does not exist"
-            rm -rf /etc/nginx/conf.d || echo "does not exist"
-            pkill nginx
-            nginx -c $(pwd)/nginx.conf
             ./run health-check 30 600
       - run:
           name: test social API
