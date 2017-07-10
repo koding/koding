@@ -56,6 +56,13 @@ var sudoRequiredFor = []string{
 	"daemon",
 }
 
+// log is used as a global loggger, for commands like ListCommand that
+// need refactoring to support instance based commands.
+//
+// TODO: Remove this after all commands have been refactored into structs. Ie, the
+// cli rewrite.
+var log logging.Logger
+
 var signals = []os.Signal{
 	os.Interrupt,
 	os.Kill,
@@ -256,144 +263,6 @@ error opening: %s
 			}
 			return 0, nil
 		}, log, "bug"),
-	}, {
-		Name:  "compat", // To be removed.
-		Usage: "Compatibility commands for use with old mounts.",
-		Subcommands: []cli.Command{{
-			Name:      "list", // To be removed.
-			ShortName: "ls",
-			Usage:     "List running machines for user.",
-			Action:    ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "json",
-					Usage: "Output in JSON format",
-				},
-				cli.BoolFlag{
-					Name:  "all",
-					Usage: "Include machines that have been offline for more than 24h.",
-				},
-			},
-			Subcommands: []cli.Command{
-				{
-					Name:   "mounts", // To be removed.
-					Usage:  "List the mounted machines.",
-					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format",
-						},
-					},
-				},
-			},
-		}, {
-			Name:        "mount", // To be removed.
-			ShortName:   "m",
-			Usage:       "Mount a remote folder to a local folder.",
-			Description: cmdDescriptions["compat-mount"],
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "remotepath, r",
-					Usage: "Full path of remote folder in machine to mount.",
-				},
-				cli.BoolFlag{
-					Name:  "oneway-sync, s",
-					Usage: "Copy remote folder to local and sync on interval. (fastest runtime).",
-				},
-				cli.IntFlag{
-					Name:  "oneway-interval",
-					Usage: "Sets how frequently local folder will sync with remote, in seconds. ",
-					Value: 2,
-				},
-				cli.BoolFlag{
-					Name:  "fuse, f",
-					Usage: "Mount the remote folder via Fuse.",
-				},
-				cli.BoolFlag{
-					Name:  "noprefetch-meta, p",
-					Usage: "For fuse: Retrieve only top level folder/files. Rest is fetched on request (fastest to mount).",
-				},
-				cli.BoolFlag{
-					Name:  "prefetch-all, a",
-					Usage: "For fuse: Prefetch all contents of the remote directory up front.",
-				},
-				cli.IntFlag{
-					Name:  "prefetch-interval",
-					Usage: "For fuse: Sets how frequently remote folder will sync with local, in seconds.",
-				},
-				cli.BoolFlag{
-					Name:  "nowatch, w",
-					Usage: "For fuse: Disable watching for changes on remote machine.",
-				},
-				cli.BoolFlag{
-					Name:  "noignore, i",
-					Usage: "For fuse: Retrieve all files and folders, including ignored folders like .git & .svn.",
-				},
-				cli.BoolFlag{
-					Name:  "trace, t",
-					Usage: "Turn on trace logs.",
-				},
-			},
-			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
-			BashComplete: ctlcli.FactoryCompletion(
-				MountCommandFactory, log, "mount",
-			),
-		}, {
-			Name:        "ssh", // To be removed.
-			ShortName:   "s",
-			Usage:       "SSH into the machine.",
-			Description: cmdDescriptions["ssh"],
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-				cli.StringFlag{
-					Name:  "username",
-					Usage: "The username to ssh into on the remote machine.",
-				},
-			},
-			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
-		}, {
-			Name:            "run", // To be removed.
-			Usage:           "Run command on remote or local machine.",
-			Description:     cmdDescriptions["run"],
-			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
-			SkipFlagParsing: true,
-		}, {
-			Name:   "repair", // To be removed.
-			Usage:  "Repair the given mount",
-			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
-		}, {
-			Name: "cp", // To be removed.
-			Usage: fmt.Sprintf(
-				"Copy a file from one one machine to another",
-			),
-			Description: cmdDescriptions["compat-cp"],
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name: "debug",
-				},
-			},
-			Action: ctlcli.FactoryAction(
-				CpCommandFactory, log, "cp",
-			),
-			BashComplete: ctlcli.FactoryCompletion(
-				CpCommandFactory, log, "cp",
-			),
-		}, {
-			Name:        "unmount", // To be removed.
-			ShortName:   "u",
-			Usage:       "Unmount previously mounted machine.",
-			Description: cmdDescriptions["compat-unmount"],
-			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
-		}, {
-			Name:        "remount", // To be removed.
-			ShortName:   "r",
-			Usage:       "Remount previously mounted machine using same settings.",
-			Description: cmdDescriptions["remount"],
-			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
-		}},
 	}, {
 		Name:  "config", // Moved to cobra. DONE.
 		Usage: "Manage tool configuration.",

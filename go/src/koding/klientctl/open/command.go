@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
+
 	"koding/klient/kiteerrortypes"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/klient"
-	"koding/klientctl/klientctlerrors"
-	"koding/klientctl/util"
-	"strings"
 
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
 
@@ -61,7 +61,7 @@ type Command struct {
 	// Embedded Init gives us our Klient/etc instances.
 	Init
 	Options Options
-	Stdout  *util.Fprint
+	Stdout  io.Writer
 
 	// do not print an error's err.Error() string at the end of running. This
 	// is useful to use a custom error message for specific errors.
@@ -81,7 +81,7 @@ func NewCommand(i Init, o Options) (*Command, error) {
 		Init:    i,
 		Options: o,
 		// Override the init stdout writer with an Fprint writer
-		Stdout: util.NewFprint(i.Stdout),
+		Stdout: i.Stdout,
 	}
 
 	return c, nil
@@ -95,7 +95,7 @@ func (c *Command) Help() {
 func (c *Command) Run() (exit int, err error) {
 	defer func() {
 		if err != nil && !c.dontPrintErr {
-			c.Stdout.Printlnf(err.Error())
+			fmt.Fprintln(c.Stdout, err.Error())
 		}
 	}()
 
@@ -146,17 +146,17 @@ func (c *Command) runOpen() error {
 	}
 
 	if len(dirs) != 0 {
-		c.Stdout.Printlnf(
+		fmt.Fprintf(c.Stdout,
 			`Directories cannot be opened in the WebIDE.
 Ignoring the following directories:
-    %s`,
+    %s\n`,
 			strings.Join(dirs, "\n    "))
 	}
 
 	if err := c.Klient.LocalOpenFiles(files...); err != nil {
-		if klientctlerrors.IsKiteOfTypeErr(err, kiteerrortypes.NoSubscribers) {
+		if IsKiteOfTypeErr(err, kiteerrortypes.NoSubscribers) {
 			c.dontPrintErr = true
-			c.Stdout.Printlnf(`Unable to open the requested files on the Koding UI.
+			fmt.Fprintln(c.Stdout, `Unable to open the requested files on the Koding UI.
 
 Please make sure this machine is visible on the Koding UI, and that you're
 viewing it. If needed, refresh your browser so that Koding UI properly listens for
@@ -168,4 +168,20 @@ this "open files" request.`)
 	}
 
 	return nil
+}
+
+func IsKiteOfTypeErr(err error, t string) bool {
+	if err == nil {
+		return false
+	}
+
+	kiteErr, ok := err.(*kite.Error)
+	switch {
+	case !ok:
+		return false
+	case kiteErr.Type != t:
+		return false
+	default:
+		return true
+	}
 }

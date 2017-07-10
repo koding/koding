@@ -4,7 +4,6 @@ import (
 	"koding/klient/command"
 	"koding/klient/fs"
 	"koding/klient/remote/req"
-	"koding/klientctl/list"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -14,8 +13,6 @@ type FakeKlient struct {
 	callCounts map[string]int
 
 	ReturnClient *kite.Client
-
-	ReturnInfos list.KiteInfos
 
 	ReturnMountInfo    req.MountInfoResponse
 	ReturnMountInfoErr error
@@ -58,11 +55,6 @@ func (k *FakeKlient) GetCallCount(method string) int {
 func (k *FakeKlient) RemoteStatus(req.Status) error {
 	k.incrementCallCount("RemoteStatus")
 	return nil
-}
-
-func (k *FakeKlient) RemoteList() (list.KiteInfos, error) {
-	k.incrementCallCount("RemoteList")
-	return k.ReturnInfos, nil
 }
 
 func (k *FakeKlient) GetClient() *kite.Client {

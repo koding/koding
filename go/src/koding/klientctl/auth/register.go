@@ -3,16 +3,17 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
-	"koding/httputil"
-	"koding/klientctl/config"
-	"koding/klientctl/ctlcli"
-	endpointauth "koding/klientctl/endpoint/auth"
-	"koding/klientctl/helper"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"strings"
+
+	"koding/httputil"
+	"koding/klientctl/config"
+	"koding/klientctl/ctlcli"
+	endpointauth "koding/klientctl/endpoint/auth"
+	"koding/klientctl/helper"
 
 	"github.com/koding/logging"
 	cli "gopkg.in/urfave/cli.v1"

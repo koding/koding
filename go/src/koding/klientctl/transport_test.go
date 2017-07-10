@@ -2,7 +2,6 @@ package main
 
 import (
 	"koding/klient/remote/req"
-	"koding/klientctl/list"
 
 	"github.com/koding/kite/dnode"
 )
@@ -30,13 +29,7 @@ func (f *fakeTransport) Tell(methodName string, reqs ...interface{}) (res *dnode
 type fakeKlient struct {
 	Transport
 
-	Remotes list.KiteInfos
-
 	RemoteUsername string
-}
-
-func (f *fakeKlient) RemoteList() (list.KiteInfos, error) {
-	return f.Remotes, nil
 }
 
 func (k *fakeKlient) RemoteCurrentUsername(req.CurrentUsernameOptions) (string, error) {
