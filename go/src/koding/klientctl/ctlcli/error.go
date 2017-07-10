@@ -1,8 +1,8 @@
 package ctlcli
 
 import (
+	"fmt"
 	"io"
-	"koding/klientctl/util"
 
 	"github.com/koding/logging"
 )
@@ -10,7 +10,7 @@ import (
 // ErrorCommand implements a Command interface for an error - printing the error
 // or a custom message when Run is called.
 type ErrorCommand struct {
-	Stdout  *util.Fprint
+	Stdout  io.Writer
 	Log     logging.Logger
 	Message string
 	Error   error
@@ -18,7 +18,7 @@ type ErrorCommand struct {
 
 func NewErrorCommand(stdout io.Writer, log logging.Logger, err error, msg string) *ErrorCommand {
 	return &ErrorCommand{
-		Stdout:  util.NewFprint(stdout),
+		Stdout:  stdout,
 		Log:     log.New("errorCommand"),
 		Message: msg,
 		Error:   err,
@@ -28,9 +28,9 @@ func NewErrorCommand(stdout io.Writer, log logging.Logger, err error, msg string
 // Print the message to the user if not empty, otherwise print the error string.
 func (c *ErrorCommand) Print() {
 	if c.Message != "" {
-		c.Stdout.Printlnf(c.Message)
+		fmt.Fprintln(c.Stdout, c.Message)
 	} else {
-		c.Stdout.Printlnf(c.Error.Error())
+		fmt.Fprintln(c.Stdout, c.Error.Error())
 	}
 }
 
