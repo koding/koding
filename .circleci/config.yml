@@ -73,15 +73,15 @@ jobs:
           key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           paths:
             - .
+      - run:
+          name: credentials
+          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
 
   configure:
     <<: *defaults
     steps:
       - restore_cache:
           key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: credentials
-          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
       - run:
           name: configure
           command: ./configure --config dev --version $(git rev-parse --short HEAD) --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort "80"
