@@ -69,13 +69,13 @@ jobs:
           key: landing-node_modules-{{ checksum "client/landing/package.json" }}
           paths:
             - client/landing/node_modules
+      - run:
+          name: credentials
+          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
       - save_cache:
           key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           paths:
             - .
-      - run:
-          name: credentials
-          command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
 
   configure:
     <<: *defaults
