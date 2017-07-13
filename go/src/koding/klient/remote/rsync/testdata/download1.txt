@@ -1,18 +1,0 @@
-receiving incremental file list
-created directory rsyncWeb
-Web/
-Web/file.txt
-           0   0%    0.00kB/s    0:00:00    14647296  35%   13.67MB/s    0:00:01    34242560  83%   16.09MB/s    0:00:00    40984576 100%   16.19MB/s    0:00:02 (xfer#1, to-check=5/7)
-Web/index.html
-           0   0%    0.00kB/s    0:00:00        1971 100%    5.01kB/s    0:00:00 (xfer#2, to-check=4/7)
-Web/perl.pl
-           0   0%    0.00kB/s    0:00:00        1620 100%    4.12kB/s    0:00:00 (xfer#3, to-check=3/7)
-Web/php.php
-           0   0%    0.00kB/s    0:00:00        1572 100%    4.00kB/s    0:00:00 (xfer#4, to-check=2/7)
-Web/python.py
-           0   0%    0.00kB/s    0:00:00        9894 100%   25.10kB/s    0:00:00 (xfer#5, to-check=1/7)
-Web/ruby.rb
-           0   0%    0.00kB/s    0:00:00        1662 100%    4.22kB/s    0:00:00 (xfer#6, to-check=0/7)
-
-sent 145 bytes  received 41011742 bytes  9113752.67 bytes/sec
-total size is 41001295  speedup is 1.00
