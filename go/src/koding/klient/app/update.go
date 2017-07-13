@@ -16,7 +16,6 @@ import (
 
 	"koding/kites/config"
 	konfig "koding/klient/config"
-	"koding/klient/remote/mount"
 	kdconf "koding/klientctl/config"
 
 	version "github.com/hashicorp/go-version"
@@ -32,7 +31,6 @@ type Updater struct {
 	KontrolURL     string
 	Log            kite.Logger
 	Wait           sync.WaitGroup
-	MountEvents    <-chan *mount.Event
 }
 
 type UpdateData struct {
@@ -239,60 +237,16 @@ func (u *Updater) Run() {
 	u.Log.Info("Starting Updater with following options:\n\tinterval of: %s\n\tendpoint: %s",
 		u.Interval, u.endpointVersion(konfig.Environment))
 
-	mounts := make(map[string]struct{})
-	enabled := true
 	ticker := time.NewTicker(u.Interval)
-
 	for {
-		select {
-		case ev, ok := <-u.MountEvents:
-			if !ok {
-				return
-			}
+		<-ticker.C
 
-			// decide whether it's a new mount, failed mount or successful unmount
-			switch ev.Type {
-			case mount.EventMounting, mount.EventMounted:
-				if ev.Err != nil {
-					ok = false // failed mount
-				} else {
-					ok = true // successful mount or mount in progress
-				}
+		if err := u.checkAndMigrate(); err != nil {
+			u.Log.Warning("self-migrate: %s", err)
+		}
 
-			case mount.EventUnmounted:
-				ok = false // successful unmount
-			}
-
-			// track or untracked mounted path
-			if ok {
-				mounts[ev.Path] = struct{}{}
-			} else {
-				delete(mounts, ev.Path)
-			}
-
-			// enable or disable autoupdate ticker
-			if len(mounts) > 0 {
-				u.Log.Debug("%d mounted dirs, disabling updater", len(mounts))
-
-				enabled = false
-			} else {
-				u.Log.Debug("no mounted dirs, enabling updater")
-
-				enabled = true
-			}
-
-		case <-ticker.C:
-			if !enabled {
-				continue
-			}
-
-			if err := u.checkAndMigrate(); err != nil {
-				u.Log.Warning("self-migrate: %s", err)
-			}
-
-			if err := u.checkAndUpdate(); err != nil {
-				u.Log.Warning("self-update: %s", err)
-			}
+		if err := u.checkAndUpdate(); err != nil {
+			u.Log.Warning("self-update: %s", err)
 		}
 	}
 }

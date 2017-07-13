@@ -359,8 +359,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 			Interval:       conf.UpdateInterval,
 			CurrentVersion: conf.Version,
 			KontrolURL:     k.Config.KontrolURL,
-			// MountEvents:    mountEvents,
-			Log: k.Log,
+			Log:            k.Log,
 		},
 		logUploadDelay: 3 * time.Minute,
 		presence: &presence.Client{
