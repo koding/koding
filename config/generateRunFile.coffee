@@ -473,7 +473,7 @@ generateDev = (KONFIG, options) ->
       sleep $interval
       declare response_code=$(kubectl exec -n $2 $1 -- echo 'i am alive')
 
-      echo -n 'health-check: '
+      echo -n $5 : 'health-check : '
 
       until [[ $response_code != *"error"* ]]; do
         if [ $duration -eq $timeout ]; then
