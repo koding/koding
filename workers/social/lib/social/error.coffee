@@ -4,9 +4,11 @@ KnownErrors =
 
 module.exports = class KodingError extends Error
 
+  encoder   = require 'htmlencode'
+
   constructor: (message, name, errorObject) ->
 
-    return new KodingError message  unless this instanceof KodingError
+    return new KodingError encoder.XSSEncode message  unless this instanceof KodingError
 
     Error.call this
 
