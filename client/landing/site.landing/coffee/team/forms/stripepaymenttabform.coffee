@@ -86,8 +86,39 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     super
 
-    Payment.formatCardNumber @number.getElement()
-    Payment.formatCardCVC @cvc.getElement()
+    utils.loadStripe().then (client) =>
+
+      @stripeClient = client
+
+      style =
+        base:
+          fontSize: '18px'
+          fontFamily: "'Proxima Nova','proxima-nova',Helvetica,Arial"
+          color: '#4a4a4a'
+          '::placeholder':
+            color: '#ccc'
+            fontWeight: 300
+
+      elements = client.elements()
+      @cardNumber = elements.create('cardNumber', { style, classes: base: 'kdinput text' })
+      cardExpiry = elements.create('cardExpiry', { style, classes: base: 'kdinput text' })
+      cardCvc = elements.create('cardCvc', { placeholder: '•••', style, classes: base: 'kdinput text' })
+
+      @cardNumber.on 'ready', => @emit 'ready'
+
+      @number.mountTo @cardNumber
+      @cvc.mountTo cardCvc
+      @expiration.mountTo cardExpiry
+
+      [@cardNumber, cardExpiry, cardCvc].forEach (element) =>
+        element.on 'change', =>
+          @forEachInputView (input) -> input.resetDecoration()
+
+
+  focusFirstElement: ->
+    @ready => @cardNumber.focus()
+
+
   submit: (event) ->
     kd.utils.stopDOMEvent event
 
