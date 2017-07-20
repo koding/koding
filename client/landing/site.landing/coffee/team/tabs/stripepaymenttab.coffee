@@ -20,11 +20,8 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
       navItems : []
 
     @form = new StripePaymentTabForm
-      callback: @bound 'onSubmit'
-
-    utils.loadStripe().then =>
-      if kd.config.environment isnt 'production'
-        @submitWithDummyCard()
+      onSubmitSuccess: @bound 'onSubmitSuccess'
+      onSubmitError: @bound 'onSubmitError'
 
 
   submitWithDummyCard: ->
@@ -33,32 +30,18 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
     @form.submit()
 
 
-  onSubmit: (formData) ->
-
-    if utils.getPayment()
-      return @onSubmitSuccess()
-
-    utils.authorizeCreditCard(formData)
-      .then @bound 'onSubmitSuccess'
-      .catch @bound 'onSubmitError'
-
-
-  onSubmitError: (error) ->
+  onSubmitError: (error = { message: 'There is a problem. Please try again!' }) ->
 
     @form.emit 'FormSubmitFailed'
 
-    if error.param and view = @form[error.param]
-      input = view.input
+    if /number/.test error?.code
+      @form.number.decorateValidation error.message
+    else if /cvc/.test error?.code
+      @form.cvc.decorateValidation error.message
+    else if /expiry/.test error?.code
+      @form.expiration.decorateValidation error.message
     else
-      try
-        error = JSON.parse error.description
-        if error.code is 'card_declined'
-          input = @form['number'].input
-      catch
-        error = { message: 'There is a problem. Please try again!' }
-
-    input?.parent.setClass 'validation-error'
-    new kd.NotificationView { title: error.message }
+      @form.number.decorateValidation error.message
 
 
   onSubmitSuccess: ->

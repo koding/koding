@@ -88,6 +88,13 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     Payment.formatCardNumber @number.getElement()
     Payment.formatCardCVC @cvc.getElement()
+  submit: (event) ->
+    kd.utils.stopDOMEvent event
+
+    utils.authorizeCreditCard(@stripeClient, @cardNumber)
+      .then (token) => @options.onSubmitSuccess token
+      .catch (err) => @options.onSubmitError err
+
 
 
   getResetFormLink: ->
