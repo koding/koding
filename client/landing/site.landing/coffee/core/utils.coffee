@@ -534,19 +534,27 @@ module.exports = utils = {
 
     $.ajax options
 
-  loadStripe: -> new Promise (resolve, reject) ->
+  loadStripe: do (client = null) -> -> new Promise (resolve, reject) ->
 
-    return resolve global.Stripe  if global.Stripe
+    return resolve(client)  if client
 
     global.document.head.appendChild (new kd.CustomHTMLView
       tagName    : 'script'
       attributes :
         type     : 'text/javascript'
-        src      : 'https://js.stripe.com/v2/'
+        src      : "https://js.stripe.com/v2/"
       bind       : 'load'
       load       : ->
-        Stripe.setPublishableKey kd.config.stripe.token
-        return resolve(global.Stripe)
+        global.document.head.appendChild (new kd.CustomHTMLView
+          tagName    : 'script'
+          attributes :
+            type     : 'text/javascript'
+            src      : "https://js.stripe.com/v3/"
+          bind       : 'load'
+          load       : ->
+            client = Stripe kd.config.stripe.token
+            return resolve(client)
+        ).getElement()
     ).getElement()
 
 
