@@ -42,13 +42,10 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     kd.singletons.router.on 'RouteInfoHandled', =>
 
-      @resetValues()
-
       return  unless card = utils.getPayment()?.card
 
       @resetFormLink.show()
-      @setValues card
-      @makeDisabled()
+      @forEachInputView (input) -> input.hide()
 
 
   forEachInputView: (callback) ->
