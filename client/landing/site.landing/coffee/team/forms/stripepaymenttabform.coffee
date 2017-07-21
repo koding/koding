@@ -97,9 +97,21 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
             fontWeight: 300
 
       elements = client.elements()
-      @cardNumber = elements.create('cardNumber', { style, classes: base: 'kdinput text' })
-      cardExpiry = elements.create('cardExpiry', { style, classes: base: 'kdinput text' })
-      cardCvc = elements.create('cardCvc', { placeholder: '•••', style, classes: base: 'kdinput text' })
+      @cardNumber = elements.create 'cardNumber', {
+        style
+        classes: { base: 'kdinput text' }
+      }
+
+      cardExpiry = elements.create 'cardExpiry', {
+        style
+        classes: { base: 'kdinput text' }
+      }
+
+      cardCvc = elements.create 'cardCvc', {
+        style
+        placeholder: '•••'
+        classes: { base: 'kdinput text' }
+      }
 
       @cardNumber.on 'ready', => @emit 'ready'
 

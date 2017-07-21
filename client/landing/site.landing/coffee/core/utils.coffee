@@ -534,14 +534,14 @@ module.exports = utils = {
       tagName    : 'script'
       attributes :
         type     : 'text/javascript'
-        src      : "https://js.stripe.com/v2/"
+        src      : 'https://js.stripe.com/v2/'
       bind       : 'load'
       load       : ->
         global.document.head.appendChild (new kd.CustomHTMLView
           tagName    : 'script'
           attributes :
             type     : 'text/javascript'
-            src      : "https://js.stripe.com/v3/"
+            src      : 'https://js.stripe.com/v3/'
           bind       : 'load'
           load       : ->
             client = Stripe kd.config.stripe.token
