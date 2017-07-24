@@ -557,6 +557,14 @@ module.exports = utils = {
       else resolve response.token.id
 
 
+  submitWithDummyToken: (client) ->
+    STRIPE_TEST_TOKEN = 'tok_visa'
+    { email } = utils.getTeamData().signup
+
+    utils.makeChargeRequest STRIPE_TEST_TOKEN, email
+      .then -> utils.savePaymentToken STRIPE_TEST_TOKEN
+
+
   authorizeCreditCard: (client, cardElement) ->
     { email } = utils.getTeamData().signup
 
