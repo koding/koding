@@ -49,7 +49,7 @@ cleanPayment = ->
   eraseCardInfo()
   delete global._payment
 
-getPayment = -> global._payment
+getPayment = -> global._payment ? {}
 
 
 module.exports = utils = {
