@@ -44,13 +44,17 @@ button
   overflow                  visible
 
 .login-input-view
+  border                    1px solid #d9d9d9
+  rounded                   3px
   margin                    0 0 17px 0
   bg                        color white
-  margin                    0 auto 21px !important
+  margin                    0 auto 21px
   borderBox()
+  min-height                62px
 
-  .kdinput.text
-    border                  1px solid #d9d9d9
+  div.kdinput.text
+  input.kdinput.text
+    border                  none
     font-size               18px
     letter-spacing          .31px
     line-height             22px
@@ -62,7 +66,6 @@ button
     rounded                 3px
     font-weight             400
     bg                      color, transparent
-    rounded                 3px
     borderBox()
     &:focus
       shadow                none
