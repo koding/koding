@@ -22,12 +22,7 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
     @form = new StripePaymentTabForm
       onSubmitSuccess: @bound 'onSubmitSuccess'
       onSubmitError: @bound 'onSubmitError'
-
-
-  submitWithDummyCard: ->
-    @form.makeDisabled()
-    @form.setValues utils.getDummyCard()
-    @form.submit()
+      shouldSkip: kd.config.environment isnt 'production'
 
 
   onSubmitError: (error = { message: 'There is a problem. Please try again!' }) ->

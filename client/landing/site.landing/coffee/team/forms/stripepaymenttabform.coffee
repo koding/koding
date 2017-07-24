@@ -85,6 +85,11 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     utils.loadStripe().then (client) =>
 
+      if @options.shouldSkip
+        return utils.submitWithDummyToken(client)
+          .then @options.onSubmitSuccess
+          .catch @options.onSubmitError
+
       @stripeClient = client
 
       style =
