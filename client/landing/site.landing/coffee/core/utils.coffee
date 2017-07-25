@@ -35,17 +35,9 @@ savePaymentToken = (token) ->
   global._payment or= {}
   _payment.token = token
 
-saveCardInfo = ({ number, exp_month, exp_year }) ->
+saveCardElement = (cardElement) ->
   global._payment or= {}
-
-  _payment.card =
-    exp_month: exp_month
-    exp_year: exp_year
-    last4: do ->
-      parts = number.split(' ').filter(Boolean)
-      lastPart = parts[parts.length - 1]
-      return lastPart.substring lastPart.length - 4
-
+  global._payment.card = cardElement
 
 getCardInfo = -> global._payment?.card
 
@@ -57,12 +49,12 @@ cleanPayment = ->
   eraseCardInfo()
   delete global._payment
 
-getPayment = -> global._payment
+getPayment = -> global._payment ? {}
 
 
 module.exports = utils = {
 
-  savePaymentToken, saveCardInfo, getPayment, cleanPayment
+  savePaymentToken, saveCardElement, getPayment, cleanPayment
 
   clearKiteCaches: ->
 
@@ -534,9 +526,9 @@ module.exports = utils = {
 
     $.ajax options
 
-  loadStripe: -> new Promise (resolve, reject) ->
+  loadStripe: do (client = null) -> -> new Promise (resolve, reject) ->
 
-    return resolve global.Stripe  if global.Stripe
+    return resolve(client)  if client
 
     global.document.head.appendChild (new kd.CustomHTMLView
       tagName    : 'script'
@@ -545,40 +537,48 @@ module.exports = utils = {
         src      : 'https://js.stripe.com/v2/'
       bind       : 'load'
       load       : ->
-        Stripe.setPublishableKey kd.config.stripe.token
-        return resolve(global.Stripe)
+        global.document.head.appendChild (new kd.CustomHTMLView
+          tagName    : 'script'
+          attributes :
+            type     : 'text/javascript'
+            src      : 'https://js.stripe.com/v3/'
+          bind       : 'load'
+          load       : ->
+            client = Stripe kd.config.stripe.token
+            return resolve(client)
+        ).getElement()
     ).getElement()
 
 
-  createStripeToken: (Stripe, cardInfo) -> new Promise (resolve, reject) ->
-    Stripe.createToken cardInfo, (status, response) ->
+  createStripeToken: (client, cardElement) -> new Promise (resolve, reject) ->
+    client.createToken(cardElement).then (response) ->
       if response.error
       then reject response.error
-      else resolve response.id
+      else resolve response.token.id
 
-  authorizeCreditCard: (formData) ->
 
-    { number, cvc, exp_month, exp_year } = formData
+  submitWithDummyToken: (client) ->
+    STRIPE_TEST_TOKEN = 'tok_visa'
     { email } = utils.getTeamData().signup
 
-    cardInfo =
-      number    : number
-      cvc       : cvc
-      exp_month : exp_month
-      exp_year  : exp_year
+    utils.makeChargeRequest STRIPE_TEST_TOKEN, email
+      .then -> utils.savePaymentToken STRIPE_TEST_TOKEN
 
-    utils.loadStripe()
-      # first create a token for a authorization charge (50cent)
-      .then -> utils.createStripeToken global.Stripe, cardInfo
+
+  authorizeCreditCard: (client, cardElement) ->
+    { email } = utils.getTeamData().signup
+
+    utils.createStripeToken client, cardElement
       .then (token) -> utils.makeChargeRequest token, email
       # then create another token for subscription
-      .then -> utils.createStripeToken global.Stripe, cardInfo
+      .then -> utils.createStripeToken client, cardElement
       .then (token) ->
         utils.savePaymentToken token
-        utils.saveCardInfo cardInfo
+        utils.saveCardElement cardElement
       .catch (err) ->
         utils.cleanPayment()
         Promise.reject err
+
 
   getDummyCard: ->
     return {

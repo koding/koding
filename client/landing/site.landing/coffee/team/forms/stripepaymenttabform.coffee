@@ -4,6 +4,8 @@ LoginViewInlineForm = require '../../login/loginviewinlineform'
 LoginInputView = require '../../login/logininputview'
 Payment = require 'payment'
 Cookies = require 'js-cookie'
+CardInput = require './cardinput'
+
 
 module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
@@ -15,62 +17,9 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     team = utils.getTeamData()
 
-    @number = new LoginInputView
-      inputOptions   :
-        name         : 'number'
-        label        : 'Card Number'
-        placeholder  : '•••• •••• •••• ••••'
-        attributes   :
-          maxlength  : 19 # 16 + 3 spaces
-          autocomplete : 'cc-number'
-        validate     :
-          rules      :
-            required : yes
-          messages   :
-            required : 'Card Number is invalid'
-
-    @cvc = new LoginInputView
-      inputOptions   :
-        name         : 'cvc'
-        label        : 'CVC'
-        placeholder  : '•••'
-        attributes   :
-          maxlength  : 4
-          autocomplete : 'cc-csc'
-        validate     :
-          rules      :
-            required : yes
-          messages   :
-            required : 'CVC is invalid'
-
-    @exp_month = new LoginInputView
-      inputOptions   :
-        name         : 'exp_month'
-        label        : 'Month'
-        placeholder  : '••'
-        attributes   :
-          maxlength  : 2
-          autocomplete : 'cc-exp-month'
-        validate     :
-          rules      :
-            required : yes
-          messages   :
-            required : 'Expiration Month is invalid'
-
-    @exp_year = new LoginInputView
-      cssClass       : 'exp-year'
-      inputOptions   :
-        name         : 'exp_year'
-        label        : 'Year'
-        placeholder  : '••'
-        attributes   :
-          maxlength  : 2
-          autocomplete : 'cc-exp-year'
-        validate     :
-          rules      :
-            required : yes
-          messages   :
-            required : 'Expiration Year is invalid'
+    @number = new CardInput { label: 'Card Number' }
+    @cvc = new CardInput { label: 'CVC' }
+    @expiration = new CardInput { label: 'Expiration' }
 
     @whyTip = new kd.CustomHTMLView
       cssClass : 'TeamsModal-ccwarning'
@@ -93,17 +42,14 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     kd.singletons.router.on 'RouteInfoHandled', =>
 
-      @resetValues()
-
-      return  unless card = utils.getPayment()?.card
+      return  unless token = utils.getPayment().token
 
       @resetFormLink.show()
-      @setValues card
-      @makeDisabled()
+      @forEachInputView (input) -> input.hide()
 
 
   forEachInputView: (callback) ->
-    [@number, @cvc, @exp_month, @exp_year].forEach callback
+    [@number, @cvc, @expiration].forEach callback
 
 
   resetValues: ->
@@ -137,8 +83,63 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     super
 
-    Payment.formatCardNumber @number.getElement()
-    Payment.formatCardCVC @cvc.getElement()
+    utils.loadStripe().then (client) =>
+
+      if @options.shouldSkip
+        return utils.submitWithDummyToken(client)
+          .then @options.onSubmitSuccess
+          .catch @options.onSubmitError
+
+      @stripeClient = client
+
+      style =
+        base:
+          fontSize: '18px'
+          fontFamily: "'Proxima Nova','proxima-nova',Helvetica,Arial"
+          color: '#4a4a4a'
+          '::placeholder':
+            color: '#ccc'
+            fontWeight: 300
+
+      elements = client.elements()
+      @cardNumber = elements.create 'cardNumber', {
+        style
+        classes: { base: 'kdinput text' }
+      }
+
+      cardExpiry = elements.create 'cardExpiry', {
+        style
+        classes: { base: 'kdinput text' }
+      }
+
+      cardCvc = elements.create 'cardCvc', {
+        style
+        placeholder: '•••'
+        classes: { base: 'kdinput text' }
+      }
+
+      @cardNumber.on 'ready', => @emit 'ready'
+
+      @number.mountTo @cardNumber
+      @cvc.mountTo cardCvc
+      @expiration.mountTo cardExpiry
+
+      [@cardNumber, cardExpiry, cardCvc].forEach (element) =>
+        element.on 'change', =>
+          @forEachInputView (input) -> input.resetDecoration()
+
+
+  focusFirstElement: ->
+    @ready => @cardNumber.focus()
+
+
+  submit: (event) ->
+    kd.utils.stopDOMEvent event
+
+    utils.authorizeCreditCard(@stripeClient, @cardNumber)
+      .then (token) => @options.onSubmitSuccess token
+      .catch (err) => @options.onSubmitError err
+
 
 
   getResetFormLink: ->
@@ -170,8 +171,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
     {{> @number}}
     <div class="form-group">
       {{> @cvc}}
-      {{> @exp_month}}
-      {{> @exp_year}}
+      {{> @expiration}}
     </div>
     {{> @whyTip }}
     {{> @button}}
