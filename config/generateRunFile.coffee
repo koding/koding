@@ -444,6 +444,7 @@ generateDev = (KONFIG, options) ->
 
       if [ "$param" == "start" ]; then
         # Dependency on a hypervisor will be dropped off in the future
+        command -v docker           >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
         command -v VirtualBox       >/dev/null 2>&1 || { echo >&2 "I require VirtualBox but it's not installed.  Aborting."; exit 1; }
         command -v minikube         >/dev/null 2>&1 || { echo >&2 "I require a Kubernetes cluster. To install minikube: \
                 (curl -Lo minikube curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-$(uname | awk '{print tolower($0)}')-amd64 && chmod +x minikube && mv minikube /usr/local/bin/)"; exit 1;}
@@ -452,8 +453,20 @@ generateDev = (KONFIG, options) ->
         command -v helm             >/dev/null 2>&1 || { echo >&2 "I require helm but it's not installed. To install helm: \
                 (curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh && chmod 700 get_helm.sh && ./get_helm.sh)"; exit 1; }
 
-        minikube start
-        helm init
+        # minikube must be deleted and recreated if a disk resize is needed
+        minikube start --disk-size 50g
+
+        export MINIKUBE_IP=$(minikube ip)
+        eval $(minikube docker-env)
+
+        docker image inspect baseinstall:v1 >/dev/null 2>&1 && echo yes || echo no >/tmp/response.log 2>&1
+
+        export IMAGE_RESPONSE=$(tail -1 /tmp/response.log)
+
+        if [[ "$IMAGE_RESPONSE" == "no" ]]; then
+          echo 'base installation docker image for koding was not found, building the image:\n'
+          docker build -t baseinstall:v1 -f Dockerfile-k8s-base .
+        fi
 
         export TILLER_POD_NAME=$(kubectl get pods -n kube-system -l app=helm  -o jsonpath="{.items[0].metadata.name}")
         k8s_health_check $TILLER_POD_NAME kube-system 5 120
