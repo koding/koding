@@ -74,11 +74,11 @@ func newDetails() *Details {
 		},
 		Vagrant: map[string]*Package{
 			"darwin": {
-				URL:     mustURL("https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.7.dmg"),
+				URL:     mustURL("https://releases.hashicorp.com/vagrant/1.8.7/vagrant_1.8.7.dmg"),
 				Version: "1.8.7",
 			},
 			"linux": {
-				URL:     mustURL("https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.7_x86_64.deb"),
+				URL:     mustURL("https://releases.hashicorp.com/vagrant/1.8.7/vagrant_1.8.7_x86_64.deb"),
 				Version: "1.8.7",
 			},
 		},

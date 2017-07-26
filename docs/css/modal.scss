@@ -4,18 +4,18 @@
 $alabaster: #F7F7F7;
 $shakespeare: #56A2D3;
 
+
+$modalClose: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAAI1JREFUGBmNkNENgCAMRG0H48MZHEcx6jq6ggE2cCGwR6wxjSb2g7Svx1FKMcaDiFbn3NK8hPR7wS2XUrac85xSmqwOTPow2GsPIIRQnmLLSF3QEGfPzDOY5jLSiPoWolAxclxQUa1x/InbUd2+nq5mdnBAywh7wgrsTCq+PuVZQCsLH56DQ4S42ChG3QkuZXH6QsyXEwAAAABJRU5ErkJggg==');
+$modalClose-2: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAARxJREFUOBGtlDESgjAQRU04hpfwBMBVKG0cGm0cLbQTC7Wx9CpwAy/hMRjc77DMItkEHLcgIfv/Y4fNrKmqats0zdIYc0mS5Dz7IcqyXJEti6LoZAGjlzmtBSUOU3mt50q+RV3XG0uBF47dFGir3bGZ1oeN47igzVEcjoI6YMc0TW+GQYpgz3m5+rQdEAafkIEhTQ8YgoZg8A+AGhTnFLIB+GeDX+IEwumoBsccThiSKhBJBarC4LF4/DPUCpXq+NtqlU6gA8YXf3pTXDDupi/HpfcqHGMIaTpgSMgVYPVpP0CfQILkXvMYSmA4yhGmdlACsf+G0pBe4x5mQjgaBk/bLL4BMxrSucXYptyT6Dl3U3wguIUHlZHwRev9DS/WpZdxeYXjAAAAAElFTkSuQmCC');
+
 .u-icon {
   &.u-modalClose {
-    background-image: var(--icon-modalClose);
+    background-image: $modalClose;
     height: 10px;
     width: 10px;
   }
 }
 
-:root {
-  --icon-modalClose: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAAI1JREFUGBmNkNENgCAMRG0H48MZHEcx6jq6ggE2cCGwR6wxjSb2g7Svx1FKMcaDiFbn3NK8hPR7wS2XUrac85xSmqwOTPow2GsPIIRQnmLLSF3QEGfPzDOY5jLSiPoWolAxclxQUa1x/InbUd2+nq5mdnBAywh7wgrsTCq+PuVZQCsLH56DQ4S42ChG3QkuZXH6QsyXEwAAAABJRU5ErkJggg==');
-  --icon-modalClose-2: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAARxJREFUOBGtlDESgjAQRU04hpfwBMBVKG0cGm0cLbQTC7Wx9CpwAy/hMRjc77DMItkEHLcgIfv/Y4fNrKmqats0zdIYc0mS5Dz7IcqyXJEti6LoZAGjlzmtBSUOU3mt50q+RV3XG0uBF47dFGir3bGZ1oeN47igzVEcjoI6YMc0TW+GQYpgz3m5+rQdEAafkIEhTQ8YgoZg8A+AGhTnFLIB+GeDX+IEwumoBsccThiSKhBJBarC4LF4/DPUCpXq+NtqlU6gA8YXf3pTXDDupi/HpfcqHGMIaTpgSMgVYPVpP0CfQILkXvMYSmA4yhGmdlACsf+G0pBe4x5mQjgaBk/bLL4BMxrSucXYptyT6Dl3U3wguIUHlZHwRev9DS/WpZdxeYXjAAAAAElFTkSuQmCC');
-}
 .Modal,
 .Overlay {
   transition: opacity .5s ease;
@@ -95,7 +95,7 @@ only screen and (min-device-pixel-ratio: 2) {
 
   .u-icon {
     &.u-modalClose {
-      background-image: var(--icon-modalClose-2);
+      background-image: $modalClose-2;
       background-size: 100%;
     }
   }
