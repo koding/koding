@@ -30,10 +30,12 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
                    '''
 
     @button = new kd.ButtonView
+      domId: 'payment-submit-button'
       title: 'NEXT'
       style: 'TeamsModal-button'
       type: 'submit'
       loader: yes
+      callback: @bound 'submit'
 
     @backLink = @getButtonLink 'BACK', '/Team/Domain'
     @resetFormLink = @getResetFormLink()
