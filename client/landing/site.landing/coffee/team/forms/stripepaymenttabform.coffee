@@ -37,6 +37,12 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       loader: yes
       callback: @bound 'submit'
 
+    @button.once 'viewAppended', =>
+      utils.loadRecaptchaScript =>
+        grecaptcha?.render 'payment-submit-button',
+          sitekey: kd.config.recaptcha.invisible_key
+          callback: @bound 'onRecaptchaSuccess'
+
     @backLink = @getButtonLink 'BACK', '/Team/Domain'
     @resetFormLink = @getResetFormLink()
 
