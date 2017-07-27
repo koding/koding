@@ -158,6 +158,8 @@ module.exports = (options) ->
   recaptcha =
     secret: ''
     public: ''
+    invisible_secret: ''
+    invisible_public: ''
   segment = ''
   kontrol =
     publicKey: '$KONFIG_PROJECTROOT/generated/private_keys/kontrol/kontrol.pub'

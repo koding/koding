@@ -68,6 +68,7 @@ module.exports = (options, credentials) ->
   recaptcha =
     enabled: options.recaptchaEnabled
     secret: credentials.recaptcha.secret
+    invisible_secret: credentials.recaptcha.invisible_secret
     url: 'https://www.google.com/recaptcha/api/siteverify'
 
   kontrol =
