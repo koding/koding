@@ -11,10 +11,6 @@ import:
 - package: github.com/samuel/go-zookeeper
 - package: github.com/RangelReale/osin
 - package: github.com/VerbalExpressions/GoVerbalExpressions
-- package: github.com/algolia/algoliasearch-client-go
-  version: 57109f4eaa904be65be61a5e7c8ab257b95b9321
-  subpackages:
-  - algoliasearch
 - package: github.com/aws/aws-sdk-go
   subpackages:
   - aws

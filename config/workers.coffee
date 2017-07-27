@@ -269,13 +269,6 @@ module.exports = (KONFIG, options, credentials) ->
           }
         ]
 
-    algoliaconnector    :
-      group             : 'socialapi'
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/algoliaconnector"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector"
-
     realtime            :
       group             : 'socialapi'
       supervisord       :

@@ -43,14 +43,10 @@ export COMMANDS=(
 	socialapi/workers/cmd/realtime/gatekeeper
 	socialapi/workers/cmd/realtime/dispatcher
 	socialapi/workers/cmd/migrator
-	socialapi/workers/cmd/algoliaconnector
-	socialapi/workers/cmd/algoliaconnector/deletedaccountremover
 	socialapi/workers/cmd/presence
 	socialapi/workers/cmd/collaboration
 	socialapi/workers/cmd/email/emailsender
 	socialapi/workers/cmd/team
-	socialapi/workers/algoliaconnector/tagmigrator
-	socialapi/workers/algoliaconnector/contentmigrator
 	vendor/github.com/koding/kite/kitectl
 	vendor/github.com/canthefason/go-watcher
 	vendor/github.com/mattes/migrate

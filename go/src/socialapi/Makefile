@@ -67,10 +67,6 @@ testteamintegration:
 	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
 	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/tests
 
-testalgolia:
-	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/algoliaconnector/algoliaconnector
-
 # testcollaboration runs the unit and integration tests of collaboration worker
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
