@@ -30,10 +30,18 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
                    '''
 
     @button = new kd.ButtonView
+      domId: 'payment-submit-button'
       title: 'NEXT'
       style: 'TeamsModal-button'
       type: 'submit'
       loader: yes
+      callback: @bound 'submit'
+
+    @button.once 'viewAppended', =>
+      utils.loadRecaptchaScript =>
+        grecaptcha?.render 'payment-submit-button',
+          sitekey: kd.config.recaptcha.invisible_key
+          callback: @bound 'onRecaptchaSuccess'
 
     @backLink = @getButtonLink 'BACK', '/Team/Domain'
     @resetFormLink = @getResetFormLink()
@@ -136,9 +144,21 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
   submit: (event) ->
     kd.utils.stopDOMEvent event
 
+    @button.hideLoader()
+
+    grecaptcha?.execute()
+
+
+  onRecaptchaSuccess: (token) ->
+
+    @button.showLoader()
     utils.authorizeCreditCard(@stripeClient, @cardNumber)
-      .then (token) => @options.onSubmitSuccess token
-      .catch (err) => @options.onSubmitError err
+      .then (token) =>
+        @button.hideLoader()
+        @options.onSubmitSuccess token
+      .catch (err) =>
+        @button.hideLoader()
+        @options.onSubmitError err
 
 
 
