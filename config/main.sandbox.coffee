@@ -33,7 +33,6 @@ Configuration = (options = {}) ->
   options.debugGithubAPI or= no
   options.autoConfirmAccounts or= no
   options.secureCookie = yes
-  options.algoliaIndexSuffix = '.sandbox'
   options.socialQueueName = "koding-social-#{options.configName}"
   options.sendEventsToSegment = yes
   options.scheme = 'https'

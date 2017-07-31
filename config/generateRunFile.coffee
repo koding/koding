@@ -456,12 +456,6 @@ generateDev = (KONFIG, options) ->
         restorecountly
       fi
       restoredefaultpostgresdump
-
-      echo "#---> CLEARING ALGOLIA INDEXES: <---#"
-      pushd $KONFIG_PROJECTROOT
-      ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
-      ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
-      ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
     }
 
     function services () {

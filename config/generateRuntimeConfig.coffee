@@ -30,7 +30,6 @@ module.exports = (KONFIG, credentials, options) ->
     google               : { apiKey: credentials.google.apiKey }
     gitlab               : { team: credentials.gitlab.team }
     embedly              : { apiKey: credentials.embedly.apiKey }
-    algolia              : { appId: credentials.algolia.appId, indexSuffix: options.algoliaIndexSuffix }
     github               : { clientId: credentials.github.clientId }
     pubnub               : { subscribekey: credentials.pubnub.subscribekey, ssl: credentials.pubnub.ssl,  enabled: credentials.pubnub.enabled }
     newkontrol           : { url: KONFIG.kontrol.url }

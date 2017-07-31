@@ -54,12 +54,6 @@ module.exports = (options, credentials) ->
     hostedzone      : options.tunnelserverHostedZone
     basevirtualhost : options.tunnelserverBasevirtualHost
 
-  algoliaSecret =
-    appId: credentials.algolia.appId
-    indexSuffix: options.algoliaIndexSuffix
-    apiSecretKey: credentials.algolia.apiSecretKey
-    apiSearchOnlyKey: credentials.algolia.apiSearchOnlyKey
-
   gatekeeper =
     host: 'localhost'
     port: '7200'
@@ -153,7 +147,6 @@ module.exports = (options, credentials) ->
     countly                : credentials.countly
     clearbit               : credentials.clearbit
 
-    algolia                : algoliaSecret
     gatekeeper             : gatekeeper
     customDomain           : options.customDomain
     email                  : email
