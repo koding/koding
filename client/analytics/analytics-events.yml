@@ -1,0 +1,86 @@
+# analytics related subset of events.yml
+
+koding events:
+ - accepted invitation
+ - accepted shared vm
+ - added aws keys
+ - added aws keys failed
+ - added aws keys passed
+ - canceled stack setup
+ - changed their email
+ - changed their password
+ - cloned stack template
+ - confirmed & logged in using token
+ - connected slack
+ - created new drawing board
+ - created new file
+ - created new terminal session
+ - deleted credentials
+ - deleted stack
+ - deleted stack template
+ - disabled 2-factor auth
+ - edit stack
+ - enabled 2-factor auth
+ - failed to create a team
+ - failed to join a team
+ - failed to login
+ - filetree compressed file / folder to targz
+ - filetree compressed file / folder to zip
+ - filetree created new file
+ - filetree created new folder
+ - filetree deleted file / folder
+ - filetree duplicated file / folder
+ - filetree extracted file
+ - filetree refreshed
+ - filetree renamed file / folder
+ - filetree watched file
+ - finished editing stack
+ - finished register
+ - installed kd
+ - invited team members
+ - joined team
+ - leave team
+ - left shared vm
+ - logged in
+ - logged out
+ - made stack default
+ - modified credentials
+ - needed two factor authentication
+ - opened all terminal sessions
+ - opened existing terminal session
+ - reinitialized stack
+ - rejected shared vm
+ - requested a new password
+ - requested pin to change email
+ - requested team list
+ - requires two-factor authentication
+ - selected aws provider
+ - selected azure provider
+ - selected bitbucket service
+ - selected digitalocean provider
+ - selected github service
+ - selected gitlab service
+ - selected google provider
+ - selected vagrant provider
+ - selected yourgitserver service
+ - sent invitation
+ - set vm to always on
+ - setup stack
+ - skipped stack setup guide
+ - stack build failed
+ - stack build successfully
+ - startcollaboration
+ - started editing default stack
+ - started editing stack
+ - started kd install
+
+kd events:
+ - attempted to ssh to machine
+ - installed kd
+ - installing kd failed
+ - mount check failed
+ - mount check success
+ - mounted machine
+ - ran command on mount
+ - ssh to machine failed
+ - unmounted machine
