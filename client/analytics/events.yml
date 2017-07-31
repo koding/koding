@@ -1,0 +1,103 @@
+koding events:
+ - accepted invitation
+ - accepted shared vm
+ - added aws keys
+ - added aws keys failed
+ - added aws keys passed
+ - bought a subscription
+ - canceled stack setup
+ - canceled their subscription
+ - changed billing cycle
+ - changed their email
+ - changed their password
+ - cloned stack template
+ - confirmed & logged in using token
+ - connected slack
+ - created new drawing board
+ - created new file
+ - created new terminal session
+ - deleted credentials
+ - deleted stack
+ - deleted stack template
+ - disabled 2-factor auth
+ - displayed a modal
+ - edit stack
+ - enabled 2-factor auth
+ - entered a registered email
+ - entered a valid domain
+ - entered a valid username
+ - entered an invalid domain
+ - entered an invalid username
+ - entered an unregistered email
+ - failed to create a team
+ - failed to join a team
+ - failed to login
+ - failed to pay
+ - filetree compressed file / folder to targz
+ - filetree compressed file / folder to zip
+ - filetree created new file
+ - filetree created new folder
+ - filetree deleted file / folder
+ - filetree duplicated file / folder
+ - filetree extracted file
+ - filetree refreshed
+ - filetree renamed file / folder
+ - filetree watched file
+ - finished editing stack
+ - finished register
+ - installed kd
+ - invited team members
+ - joined new pricing tier
+ - joined team
+ - leave team
+ - left shared vm
+ - logged in
+ - logged out
+ - made stack default
+ - modified credentials
+ - navigated to team login page
+ - needed two factor authentication
+ - opened all terminal sessions
+ - opened existing terminal session
+ - payment failed
+ - payment succeeded
+ - received an invoice
+ - reinitialized stack
+ - rejected shared vm
+ - requested a new password
+ - requested pin to change email
+ - requested team list
+ - requires two-factor authentication
+ - selected a plan
+ - selected aws provider
+ - selected azure provider
+ - selected bitbucket service
+ - selected digitalocean provider
+ - selected github service
+ - selected gitlab service
+ - selected google provider
+ - selected vagrant provider
+ - selected yourgitserver service
+ - sendmessage
+ - sent invitation
+ - set vm to always on
+ - setup stack
+ - seven days trial started
+ - skipped stack setup guide
+ - stack build failed
+ - stack build successfully
+ - startcollaboration
+ - started editing default stack
+ - started editing stack
+ - started kd install
+
+kd events:
+ - attempted to ssh to machine
+ - installed kd
+ - installing kd failed
+ - mount check failed
+ - mount check success
+ - mounted machine
+ - ran command on mount
+ - ssh to machine failed
+ - unmounted machine
