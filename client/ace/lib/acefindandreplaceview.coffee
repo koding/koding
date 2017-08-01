@@ -3,11 +3,11 @@ KDButtonView        = kd.ButtonView
 KDCustomHTMLView    = kd.CustomHTMLView
 KDHitEnterInputView = kd.HitEnterInputView
 KDMultipleChoice    = kd.MultipleChoice
-JView               = require 'app/jview'
+
 $                   = require 'jquery'
 keycode             = require 'keycode'
 
-module.exports = class AceFindAndReplaceView extends JView
+module.exports = class AceFindAndReplaceView extends kd.View
 
   constructor: (options = {}, data) ->
 
