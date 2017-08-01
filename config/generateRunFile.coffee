@@ -25,7 +25,6 @@ generateDev = (KONFIG, options) ->
     fi
 
     function is_ready () {
-      exit 0
       check_connectivity mongo
       check_connectivity postgres
       check_connectivity redis
