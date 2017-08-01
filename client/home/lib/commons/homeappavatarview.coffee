@@ -1,6 +1,5 @@
 kd               = require 'kd'
-JView            = require 'app/jview'
-JCustomHTMLView  = require 'app/jcustomhtmlview'
+
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
 whoami           = require 'app/util/whoami'
 
@@ -10,7 +9,6 @@ whoami           = require 'app/util/whoami'
 
 module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -37,16 +35,15 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
     then '{{#(profile.nickname)}}'
     else "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-    @profileName = new JCustomHTMLView
+    @profileName = new kd.CustomHTMLView
       cssClass   : 'HomeAppView-Nav--fullname'
       pistachio  : pistachio
     , account
 
-    @teamName = new JCustomHTMLView
+    @teamName = new kd.CustomHTMLView
       cssClass   : 'HomeAppView-Nav--teamName'
       pistachio  : '{{ #(title)}}'
     , groupsController.getCurrentGroup()
-
 
 
   pistachio: ->
