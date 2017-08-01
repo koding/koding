@@ -3,7 +3,7 @@ KDCustomHTMLView     = kd.CustomHTMLView
 Encoder              = require 'htmlencode'
 async                = require 'async'
 remote               = require 'app/remote'
-JView                = require 'app/jview'
+
 s3upload             = require 'app/util/s3upload'
 whoami               = require 'app/util/whoami'
 showError            = require 'app/util/showError'
@@ -18,7 +18,7 @@ notify = (title, duration = 2000) -> new kd.NotificationView { title, duration }
 
 module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

@@ -2,10 +2,10 @@ kd                          = require 'kd'
 KDButtonView                = kd.ButtonView
 KDCustomHTMLView            = kd.CustomHTMLView
 KDHitEnterInputView         = kd.HitEnterInputView
-JView                       = require 'app/jview'
+
 keycode                     = require 'keycode'
 
-module.exports = class GotoLineView extends JView
+module.exports = class GotoLineView extends kd.View
 
   constructor: (options = {}, data) ->
 

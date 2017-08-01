@@ -2,7 +2,7 @@ kd                        = require 'kd'
 KDButtonViewWithMenu      = kd.ButtonViewWithMenu
 KDCustomHTMLView          = kd.CustomHTMLView
 KDModalView               = kd.ModalView
-JView                     = require 'app/jview'
+
 FSHelper                  = require 'app/util/fs/fshelper'
 Ace                       = require './ace'
 AceFindAndReplaceView     = require './acefindandreplaceview'
@@ -21,7 +21,7 @@ Encoder                   = require 'htmlencode'
 ###
 
 
-module.exports = class AceView extends JView
+module.exports = class AceView extends kd.View
 
   constructor: (options = {}, file) ->
 

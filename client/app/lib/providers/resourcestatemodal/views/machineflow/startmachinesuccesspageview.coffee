@@ -1,7 +1,7 @@
 kd = require 'kd'
-JView = require 'app/jview'
 
-module.exports = class StartMachineSuccessPageView extends JView
+
+module.exports = class StartMachineSuccessPageView extends kd.View
 
   constructor: (options = {}, data) ->
 

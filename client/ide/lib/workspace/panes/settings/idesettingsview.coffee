@@ -1,8 +1,8 @@
 kd = require 'kd'
-JView = require 'app/jview'
 
 
-module.exports = class IDESettingsView extends JView
+
+module.exports = class IDESettingsView extends kd.View
 
   constructor: (options = {}, data) ->
 

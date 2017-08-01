@@ -1,8 +1,8 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 WizardProgressPane = require './wizardprogresspane'
 
-module.exports = class BuildStackHeaderView extends JView
+module.exports = class BuildStackHeaderView extends kd.View
 
   constructor: (options, data) ->
 

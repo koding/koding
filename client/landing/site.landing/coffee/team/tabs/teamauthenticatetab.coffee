@@ -1,10 +1,10 @@
 kd = require 'kd'
-JView              = require './../../core/jview'
+
 MainHeaderView     = require './../../core/mainheaderview'
 
 module.exports = class TeamAuthenticateTab extends kd.TabPaneView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

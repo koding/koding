@@ -1,5 +1,5 @@
 kd             = require 'kd'
-JView          = require 'app/jview'
+
 globals        = require 'globals'
 kookies        = require 'kookies'
 timeago        = require 'timeago'
@@ -8,7 +8,6 @@ KDListItemView = kd.ListItemView
 
 module.exports = class AccountSessionListItem extends KDListItemView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -30,6 +29,9 @@ module.exports = class AccountSessionListItem extends KDListItemView
       deleteButtonOptions.tooltip = { title : 'This will log you out!', placement: 'left' }
 
     @deleteButton = new kd.ButtonView deleteButtonOptions
+
+
+  viewAppended: kd.View::viewAppended
 
 
   pistachio: ->

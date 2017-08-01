@@ -2,8 +2,8 @@ kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDLabelView = kd.LabelView
-JView = require 'app/jview'
-module.exports = class NFinderItemDeleteView extends JView
+
+module.exports = class NFinderItemDeleteView extends kd.View
 
   constructor: ->
 

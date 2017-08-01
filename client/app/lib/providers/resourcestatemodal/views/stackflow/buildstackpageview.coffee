@@ -1,12 +1,12 @@
 debug = (require 'debug') 'resourcestatemodal:buildstackpage'
 kd = require 'kd'
-JView = require 'app/jview'
+
 IDETailerPane = require 'ide/workspace/panes/idetailerpane'
 BuildStackLogsPane = require './buildstacklogspane'
 helpers = require '../../helpers'
 constants = require '../../constants'
 
-module.exports = class BuildStackPageView extends JView
+module.exports = class BuildStackPageView extends kd.View
 
   constructor: (options = {}, data) ->
 

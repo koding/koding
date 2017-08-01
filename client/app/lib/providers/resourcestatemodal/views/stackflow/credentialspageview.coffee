@@ -1,11 +1,11 @@
 kd = require 'kd'
 async = require 'async'
-JView = require 'app/jview'
+
 globals = require 'globals'
 CredentialForm = require './credentialform'
 KDCredentialForm = require './kdcredentialform'
 
-module.exports = class CredentialsPageView extends JView
+module.exports = class CredentialsPageView extends kd.View
 
   SHARED_CREDENTIAL_TITLE = 'Use default credential'
 

@@ -1,6 +1,6 @@
 kd                   = require 'kd'
 remote               = require 'app/remote'
-JView                = require 'app/jview'
+
 whoami               = require 'app/util/whoami'
 CustomLinkView       = require 'app/customlinkview'
 
@@ -16,7 +16,6 @@ WARNINGS =
 
 module.exports = class HomeAccountChangePassword extends kd.CustomHTMLView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 

@@ -1,7 +1,7 @@
 kd             = require 'kd'
 $              = require 'jquery'
 utils          = require './../core/utils'
-JView          = require './../core/jview'
+
 MainHeaderView = require './../core/mainheaderview'
 FindTeamForm   = require './findteamform'
 FindTeamHelper = require './findteamhelper'
@@ -20,7 +20,7 @@ track = (action, properties = {}) ->
 
 module.exports = class FindTeamView extends kd.TabPaneView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

@@ -1,13 +1,13 @@
 _ = require 'lodash'
 kd = require 'kd'
-JView = require '../../core/jview'
+
 MainHeaderView = require '../../core/mainheaderview'
 StripePaymentTabForm = require '../forms/stripepaymenttabform'
 utils = require '../../core/utils'
 
 module.exports = class StripePaymentTab extends kd.TabPaneView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

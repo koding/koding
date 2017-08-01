@@ -1,10 +1,10 @@
 kd                          = require 'kd'
-JView                       = require 'app/jview'
+
 ApplicationTabHandleHolder  = require 'app/commonviews/applicationview/applicationtabhandleholder'
 ApplicationTabView          = require 'app/commonviews/applicationview/applicationtabview'
 
 
-module.exports = class IDEWorkspaceTabView extends JView
+module.exports = class IDEWorkspaceTabView extends kd.View
 
   constructor: (options = {}, data) ->
 
