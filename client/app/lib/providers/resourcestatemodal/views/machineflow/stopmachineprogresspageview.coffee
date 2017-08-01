@@ -1,9 +1,9 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 helpers = require '../../helpers'
 constants = require '../../constants'
 
-module.exports = class StopMachineProgressPageView extends JView
+module.exports = class StopMachineProgressPageView extends kd.View
 
   constructor: (options = {}, data) ->
 

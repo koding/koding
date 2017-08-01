@@ -1,12 +1,12 @@
 checkFlag = require '../../util/checkFlag'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-JView = require '../../jview'
+
 LinkView = require './linkview'
 
 module.exports = class ProfileLinkView extends LinkView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
     options.noTooltip ?= yes
@@ -56,7 +56,7 @@ module.exports = class ProfileLinkView extends LinkView
   pistachio: ->
     { payload } = @getOptions()
     { profile } = @getData()
-    JView::pistachio.call this,
+    kd.View::pistachio.call this,
       if payload?.integrationTitle
       then "#{payload.integrationTitle}"
       else if profile.firstName is '' and profile.lastName is ''

@@ -1,10 +1,10 @@
 kd    = require 'kd'
-JView = require 'app/jview'
+
 strip = require 'app/util/stripHTMLtoText'
 
 module.exports = class BannerNotificationView extends kd.CustomHTMLView
 
-  JView.mixin @prototype
+
 
   constructor:(options = {}, data) ->
 
