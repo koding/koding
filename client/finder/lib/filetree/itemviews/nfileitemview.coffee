@@ -1,14 +1,12 @@
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDLoaderView = kd.LoaderView
-JView = require 'app/jview'
+
 FSHelper = require 'app/util/fs/fshelper'
 Encoder = require 'htmlencode'
 
 
 module.exports = class NFileItemView extends KDCustomHTMLView
-
-  JView.mixin @prototype
 
   # loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
 
@@ -65,8 +63,8 @@ module.exports = class NFileItemView extends KDCustomHTMLView
   mouseDown: -> yes
 
   viewAppended: ->
-    @setTemplate @pistachio()
-    @template.update()
+
+    super
 
     @hideLoader()
     @decorateItem()
