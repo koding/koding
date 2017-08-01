@@ -1,5 +1,5 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 remote = require 'app/remote'
 Events = require '../events'
 
@@ -42,7 +42,7 @@ module.exports = class CredentialsListController extends AccountCredentialListCo
       callback : => @emit Events.CredentialChangesRevertRequested
       title    : 'Revert Changes'
 
-    @selectionView = listView.addSubView new JView
+    @selectionView = listView.addSubView new kd.View
       cssClass   : 'selection-view hidden'
       pistachio  : '
         Currently selected provider: <b>{{#(provider)}}</b> <cite />

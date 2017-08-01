@@ -1,6 +1,6 @@
 debug = (require 'debug') 'nse:documentationview'
 kd = require 'kd'
-JView = require 'app/jview'
+
 Events = require '../events'
 
 KodingListController = require 'app/kodinglist/kodinglistcontroller'
@@ -13,7 +13,8 @@ DocsClient = makeHttpClient { baseURL: '/-/terraform/' }
 
 class DocumentationItem extends kd.ListItemView
 
-  JView.mixin @prototype
+  viewAppended: kd.View::viewAppended
+
   pistachio: -> '{h3{#(title)}}{{#(description)}}'
 
   mouseDown: ->
@@ -79,6 +80,8 @@ module.exports = class DocumentationView extends kd.View
 
 
   viewAppended: ->
+
+    super
 
     @addSubView @docView = new kd.View
       cssClass: 'docs-content has-markdown'
