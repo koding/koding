@@ -45,10 +45,6 @@ module.exports = (options) ->
     password: 'guest'
     heartbeat: 10
     vhost: '/'
-  algolia =
-    appId: ''
-    apiSecretKey: ''
-    apiSearchOnlyKey: ''
   postgres =
     host: "#{options.serviceHost}"
     port: '5432'
@@ -197,7 +193,6 @@ module.exports = (options) ->
     mongo
     redis
     rabbitmq
-    algolia
     postgres
     kontrolPostgres
     pubnub

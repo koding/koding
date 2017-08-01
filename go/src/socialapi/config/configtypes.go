@@ -19,9 +19,6 @@ type (
 		// Email holds the required configuration data for email related workers
 		Email Email
 
-		// Algolia holds configuration parameters for Aloglia search engine
-		Algolia Algolia
-
 		// Mixpanel holds configuration parameters for mixpanel
 		Mixpanel Mixpanel
 
@@ -71,15 +68,6 @@ type (
 		ForcedRecipientUsername string `env:"key=KONFIG_SOCIALAPI_EMAIL_FORCEDRECIPIENTUSERNAME"`
 		Username                string `env:"key=KONFIG_SOCIALAPI_EMAIL_USERNAME                 required"`
 		Password                string `env:"key=KONFIG_SOCIALAPI_EMAIL_PASSWORD                 required"`
-	}
-
-	// Algolia holds Algolia service credentials
-	Algolia struct {
-		AppId            string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APPID                        required"`
-		ApiKey           string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APIKEY                       required"`
-		ApiSecretKey     string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISECRETKEY                 required"`
-		IndexSuffix      string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX                  required"`
-		ApiSearchOnlyKey string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISEARCHONLYKEY             required"`
 	}
 
 	// Mixpanel holds mixpanel credentials

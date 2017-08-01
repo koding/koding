@@ -71,8 +71,6 @@ func (mwc *Controller) Start() {
 
 	mwc.createChangelogChannel()
 
-	mwc.migrateAllAccountsToAlgolia()
-
 	mwc.GrantPublicAccess()
 
 	mwc.CreateBotUser()
