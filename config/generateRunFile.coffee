@@ -445,36 +445,47 @@ generateDev = (KONFIG, options) ->
       if [ "$param" == "start" ]; then
         # Dependency on a hypervisor will be dropped off in the future
         command -v docker           >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
-        command -v VirtualBox       >/dev/null 2>&1 || { echo >&2 "I require VirtualBox but it's not installed.  Aborting."; exit 1; }
         command -v minikube         >/dev/null 2>&1 || { echo >&2 "I require a Kubernetes cluster. To install minikube: \
-                (curl -Lo minikube curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-$(uname | awk '{print tolower($0)}')-amd64 && chmod +x minikube && mv minikube /usr/local/bin/)"; exit 1;}
+                (curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-$(uname | awk '{print tolower($0)}')-amd64 && chmod +x minikube && mv minikube /usr/local/bin/)"; exit 1;}
         command -v kubectl          >/dev/null 2>&1 || { echo >&2 "I require kubectl. To install kubectl: \
                 (curl -L -O https://storage.googleapis.com/kubernetes-release/release/v1.6.4/bin/$(uname | awk '{print tolower($0)}')/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/)"; exit 1;}
-        command -v helm             >/dev/null 2>&1 || { echo >&2 "I require helm but it's not installed. To install helm: \
-                (curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh && chmod 700 get_helm.sh && ./get_helm.sh)"; exit 1; }
 
-        # minikube must be deleted and recreated if a disk resize is needed
-        minikube start --disk-size 50g
+        # for local development, minikube must be deleted and recreated if a disk resize is needed
+        sudo -E minikube start --vm-driver=none # for local development: minikube start --disk-size 50g --cpus 2 --memory 5120
 
-        export MINIKUBE_IP=$(minikube ip)
-        eval $(minikube docker-env)
+        sleep 25
 
-        docker image inspect baseinstall:v1 >/dev/null 2>&1 && echo yes || echo no >/tmp/response.log 2>&1
+        sudo sed --in-place --expression 's@path: \/opt\/koding@path: '"$(pwd)"'@g' deployment/kubernetes/services-pod/containers.yaml
+        kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/namespace.yaml
+        kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/services-pod/containers.yaml
 
-        export IMAGE_RESPONSE=$(tail -1 /tmp/response.log)
+        sleep 25
+        echo "checking if pod is ready"
+        check_pod_ready
+        export BACKEND_POD_NAME=$(kubectl get pods --namespace service-dev -o jsonpath="{.items[0].metadata.name}")
+        sleep 10
 
-        if [[ "$IMAGE_RESPONSE" == "no" ]]; then
-          echo 'base installation docker image for koding was not found, building the image:\n'
-          docker build -t baseinstall:v1 -f Dockerfile-k8s-base .
-        fi
+        k8s_health_check $BACKEND_POD_NAME service-dev 5 120 backend-services
 
-        export TILLER_POD_NAME=$(kubectl get pods -n kube-system -l app=helm  -o jsonpath="{.items[0].metadata.name}")
-        k8s_health_check $TILLER_POD_NAME kube-system 5 120
+        # guest user can only connect via localhost, a test user equivalent to guest will be created to check connectivity via POD IP.
+        # more info on guest user update: https://www.rabbitmq.com/blog/2014/04/02/breaking-things-with-rabbitmq-3-3/
+        k8s_health_check $BACKEND_POD_NAME service-dev 5 120 rabbitmq
+        sleep 25
+        kubectl exec -n service-dev $BACKEND_POD_NAME -c rabbitmq -- bash -c "rabbitmqctl add_user test test && rabbitmqctl set_user_tags test administrator && rabbitmqctl set_permissions -p / test '.*' '.*' '.*'"
+
+        k8s_connectivity_check $BACKEND_POD_NAME service-dev backend-services
+
+        echo "all services are ready"
 
       else
         # TODO: stop the cluster, maybe even have an option to kill the cluster?
         minikube stop
       fi
+    }
+
+    function k8s_connectivity_check () {
+      # args: $1: POD NAME, $2: NAMESPACE, $3: container name
+      kubectl exec -n $2 $1 -c $3 -- bash -c "./run is_ready"
     }
 
     function k8s_health_check () {
@@ -484,7 +495,8 @@ generateDev = (KONFIG, options) ->
       declare duration=0
 
       sleep $interval
-      declare response_code=$(kubectl exec -n $2 $1 -- echo 'i am alive')
+
+      declare response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive')
 
       echo -n $5 : 'health-check : '
 
@@ -499,24 +511,19 @@ generateDev = (KONFIG, options) ->
         sleep $interval
         duration=$((duration + interval))
 
-        declare response_code=$(kubectl exec -n $2 $1 -- echo 'i am alive')
+        declare response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive')
       done
 
       echo ' succeeded!'
     }
 
-    function k8s_health_check () {
-      declare interval=$2
-      declare timeout=$3
+    function check_pod_ready () {
+      declare interval=5
+      declare timeout=600
       declare duration=0
+      declare response_code=$(kubectl get pods --namespace service-dev -o jsonpath="{.items[0].status.phase}")
 
-      sleep $interval
-      kubectl exec $1 -- echo 'i am alive' >/tmp/response.log 2>&1
-      declare response_code=$(tail -1 /tmp/response.log)
-
-      echo -n 'health-check: '
-
-      until [[ $response_code != *"error"* ]]; do
+      until [[ $response_code != *"Pending"* ]]; do
         if [ $duration -eq $timeout ]; then
           echo ' timed out!'
           exit 255
@@ -527,11 +534,10 @@ generateDev = (KONFIG, options) ->
         sleep $interval
         duration=$((duration + interval))
 
-        kubectl exec $1 -- echo 'i am alive' >/tmp/response.log 2>&1
-        declare response_code=$(tail -1 /tmp/response.log)
+        declare response_code=$(kubectl get pods --namespace service-dev -o jsonpath="{.items[0].status.phase}")
       done
 
-      echo ' succeeded!'
+      echo 'pod is in the ready state'
     }
 
     function switch_client_version () {
