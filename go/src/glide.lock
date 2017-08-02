@@ -1002,9 +1002,9 @@ imports:
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/alecthomas/kingpin.v2
-  version: e9044be3ab2a8e11d4e1f418d12f0790d57e8d70
+  version: 1087e65c9441605df944fb12c33f0fe7072d18ca
 - name: gopkg.in/alecthomas/kingpin.v3-unstable
-  version: cf3c3c40a98621504e3ca4b45af0c037d3e971cb
+  version: 23bcc3c4eae3c47e1384a1aef1d611e5603b8dfc
 - name: gopkg.in/ini.v1
   version: 177219109c97e7920c933e21c9b25f874357b237
 - name: gopkg.in/macaron.v1
@@ -1026,7 +1026,7 @@ imports:
 - name: cloud.google.com/go/compute/metadata
   version: 4c4584f3b5aa40a0217ea68afc9adad12b38eca1
 - name: gopkg.in/yaml.v2
-  version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
+  version: 25c4ec802a7d637f88d584ab26798e94ad14c13b
 - name: labix.org/v2/mgo
   version: "287"
   subpackages:
