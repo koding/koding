@@ -1,12 +1,12 @@
 kd               = require 'kd'
-JView            = require 'app/jview'
+
 KDCustomHTMLView = kd.CustomHTMLView
 globals          = require 'globals'
 CustomLinkView   = require 'app/customlinkview'
 
 module.exports = class AccountCredentialListItem extends kd.ListItemView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 
@@ -46,6 +46,9 @@ module.exports = class AccountCredentialListItem extends kd.ListItemView
         item     : this
         cssClass : 'HomeAppView--link primary'
         click    : => delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
+
+
+  viewAppended: kd.View::viewAppended
 
 
   pistachio: ->

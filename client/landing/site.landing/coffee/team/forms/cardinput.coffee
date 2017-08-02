@@ -1,7 +1,7 @@
 kd = require 'kd'
-JView = require '../../core/jview'
 
-module.exports = class CardInput extends JView
+
+module.exports = class CardInput extends kd.View
 
   constructor: (options = {}, data) ->
     options.cssClass = kd.utils.curry 'login-input-view', options.cssClass

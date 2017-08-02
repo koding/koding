@@ -3,14 +3,14 @@ regexps = require '../../util/regexps'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 ErrorlessImageView = require '../../errorlessimageview'
-JView = require '../../jview'
+
 LinkView = require '../linkviews/linkview'
 TeamFlux = require 'app/flux/teams'
 globals = require 'globals'
 
 module.exports = class AvatarView extends LinkView
 
-  JView.mixin @prototype
+  #
 
   constructor: (options = {}, data) ->
 
@@ -183,7 +183,7 @@ module.exports = class AvatarView extends LinkView
 
   viewAppended: ->
 
-    JView::viewAppended.call this
+    super
 
     { width, height } = @getOptions().size
     @setCss 'background-size', "#{width}px #{height}px"

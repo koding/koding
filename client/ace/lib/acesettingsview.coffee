@@ -1,11 +1,11 @@
 kd           = require 'kd'
 KDSelectBox  = kd.SelectBox
 KodingSwitch = require 'app/commonviews/kodingswitch'
-JView        = require 'app/jview'
+
 settings     = require './settings'
 
 
-module.exports = class AceSettingsView extends JView
+module.exports = class AceSettingsView extends kd.View
 
   constructor: ->
     super

@@ -1,9 +1,9 @@
 kd                = require 'kd'
-JView             = require 'app/jview'
+
 generatePassword  = require 'app/util/generatePassword'
 
 
-module.exports = class IDEPane extends JView
+module.exports = class IDEPane extends kd.View
 
 
   constructor: (options = {}, data) ->

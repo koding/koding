@@ -47,8 +47,8 @@ stylModulesLoader = ->
     test: /\.stylus$/
     include: CLIENT_PATH
     loader: ExtractTextPlugin.extract
-      fallbackLoader: 'style-loader'
-      loader: [
+      fallback: 'style-loader'
+      use: [
         'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
         'stylus-loader'
       ]
@@ -59,8 +59,8 @@ stylGlobalLoader = ->
     test: /\.styl$/
     include: CLIENT_PATH
     loader: ExtractTextPlugin.extract
-      fallbackLoader: 'style-loader'
-      loader: [ 'css-loader', 'stylus-loader' ]
+      fallback: 'style-loader'
+      use: [ 'css-loader', 'stylus-loader' ]
   }
 
 cssModulesLoader = ->
@@ -68,8 +68,8 @@ cssModulesLoader = ->
     test: /\.css$/,
     include: /flexboxgrid/,
     loader: ExtractTextPlugin.extract
-      fallbackLoader: 'style-loader'
-      loader: [ 'css-loader?modules' ]
+      fallback: 'style-loader'
+      use: [ 'css-loader?modules' ]
   }
 
 cssGlobalLoader = ->
@@ -78,8 +78,8 @@ cssGlobalLoader = ->
     include: CLIENT_PATH
     exclude: /flexboxgrid/,
     loader: ExtractTextPlugin.extract
-      fallbackLoader: 'style-loader'
-      loader: [ 'css-loader' ]
+      fallback: 'style-loader'
+      use: [ 'css-loader' ]
   }
 
 staticAssetLoaders = ->
