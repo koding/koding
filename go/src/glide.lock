@@ -909,7 +909,7 @@ imports:
 - name: github.com/zorkian/go-datadog-api
   version: 178291ca485aa5eeea1299d6eedc9d0729d79ff9
 - name: golang.org/x/crypto
-  version: 728b753d0135da6801d45a38e6f43ff55779c5c2
+  version: 558b6879de74bc843225cde5686419267ff707ca
   subpackages:
   - curve25519
   - ed25519
@@ -920,7 +920,7 @@ imports:
   - ssh/agent
   - ssh/terminal
 - name: golang.org/x/net
-  version: 1a26cf06691746ee35aa7113c9b37289afc7ea28
+  version: f5079bd7f6f74e23c4d65efa0f4ce14cbd6a3c0f
   subpackages:
   - context
   - context/ctxhttp
@@ -930,18 +930,18 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/sync
-  version: f52d1811a62927559de87708c8913c1650ce4f26
+  version: 86ddc858aa39d0f6cccccd733e482ddc52b852e9
   subpackages:
   - errgroup
 - name: golang.org/x/oauth2
-  version: f047394b6d14284165300fd82dad67edb3a4d7f6
+  version: efb10a30610e617dbb17fc243f4cc61a8cfa2903
   subpackages:
   - google
   - internal
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: dbc2be9168a660ef302e04b6ff6406de6f967473
+  version: e48874b42435b4347fc52bdee0424a52abc974d7
   subpackages:
   - unix
   - windows
@@ -950,12 +950,14 @@ imports:
   - windows/svc/eventlog
   - windows/svc/mgr
 - name: golang.org/x/text
-  version: 19e51611da83d6be54ddafce4a4af510cb3e9ea4
+  version: f28f36722d5ef2f9655ad3de1f248e3e52ad5ebd
   subpackages:
   - transform
   - unicode/norm
+- name: golang.org/x/arch
+  version: f108ada9a904dba57ca1c9ef5026e1e89cb735a8
 - name: golang.org/x/tools
-  version: bf4b54dc687c73b6ef63de8b8abf0ad3951e3edc
+  version: 9badcbe49be523255546b669968041d707ece12e
   subpackages:
   - go/loader
   - go/types
@@ -1072,7 +1074,7 @@ imports:
 - name: github.com/docker/go-units
   version: 8a7beacffa3009a9ac66bad506b18ffdd110cf97
 - name: github.com/stretchr/testify
-  version: 18a02ba4a312f95da08ff4cfc0055750ce50ae9e
+  version: 05e8a0eda380579888eb53c394909df027f06991
 - name: github.com/dustin/go-humanize
   version: 7a41df006ff9af79a29f0ffa9c5f21fbe6314a2d
 - name: github.com/PuerkitoBio/urlesc
