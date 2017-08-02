@@ -26,8 +26,12 @@
   - [Consuming all remaining arguments](#consuming-all-remaining-arguments)
   - [Struct tag interpolation](#struct-tag-interpolation)
   - [Bash/ZSH Shell Completion](#bashzsh-shell-completion)
+    - [Additional API](#additional-api)
   - [Supporting -h for help](#supporting--h-for-help)
   - [Custom help](#custom-help)
+    - [Adding a new help command](#adding-a-new-help-command)
+    - [Default help template](#default-help-template)
+    - [Compact help template](#compact-help-template)
 
 <!-- /MarkdownTOC -->
 
@@ -512,20 +516,46 @@ ips := IPList(kingpin.Arg("ips", "IP addresses to ping."))
 
 ### Struct tag interpolation
 
-Kingpin v3 supports basic flag and arg definitions through struct tags:
+Kingpin v3 now supports defining flags, arguments and commands via
+struct reflection. If desired, this can (almost) completely replace
+the fluent-style interface.
+
+The name of the flag will default to the CamelCase name transformed to camel-
+case. This can be overridden with the "long" tag.
+
+All basic Go types are supported including floats, ints, strings,
+time.Duration, and slices of same.
+
+For compatibility, also supports the tags used by https://github.com/jessevdk/go-flags
 
 ```go
 type MyFlags struct {
   Arg string `arg:"true" help:"An argument"`
   Debug bool `help:"Enable debug mode."`
   URL string `help:"URL to connect to." default:"localhost:80"`
+
+  Login struct {
+    Name string `help:"Username to authenticate with." args:"true"`
+  } `help:"Login to server."`
 }
 
 flags := &MyFlags{}
 kingpin.Struct(flags)
 ```
 
-The `help` tag must be present for a flag to be defined.
+Supported struct tags are:
+
+| Tag             | Description                                 |
+| --------------- | ------------------------------------------- |
+| `help`          | Help text.                                  |
+| `placeholder`   | Placeholder text.                           |
+| `default`       | Default value.                              |
+| `short`         | Short name, if flag.                        |
+| `long`          | Long name, for overriding field name.       |
+| `required`      | If present, flag/arg is required.           |
+| `hidden`        | If present, flag/arg/command is hidden.     |
+| `enum`          | For enums, a comma separated list of cases. |
+| `arg`           | If true, field is an argument.              |
 
 ### Bash/ZSH Shell Completion
 
@@ -626,20 +656,30 @@ You can see an in depth example of the completion API within
 
 ### Supporting -h for help
 
-`kingpin.CommandLine.HelpFlag.Short('h')`
+`kingpin.CommandLine.GetFlag("help").Short('h')`
 
 ### Custom help
 
-Kingpin v2 supports templatised help using the text/template library.
+Kingpin supports templatised help using the text/template library.
 
 You can specify the template to use with the [Application.UsageTemplate()](http://godoc.org/gopkg.in/alecthomas/kingpin.v2#Application.UsageTemplate) function.
 
-There are four included templates: `kingpin.DefaultUsageTemplate` is the default,
-`kingpin.CompactUsageTemplate` provides a more compact representation for more complex command-line structures,
-`kingpin.SeparateOptionalFlagsUsageTemplate` looks like the default template, but splits required
-and optional command flags into separate lists, and `kingpin.ManPageTemplate` is used to generate man pages.
+There are four included templates: `kingpin.DefaultUsageTemplate` is the
+default, `kingpin.CompactUsageTemplate` provides a more compact representation
+for more complex command-line structures,  and `kingpin.ManPageTemplate` is
+used to generate man pages.
 
 See the above templates for examples of usage, and the the function [UsageForContextWithTemplate()](https://github.com/alecthomas/kingpin/blob/master/usage.go#L198) method for details on the context.
+
+#### Adding a new help command
+
+It is often useful to add extra help formats, such as man pages, etc. Here's how you'd add a `--help-man` flag:
+
+```go
+kingpin.Flag("help-man", "Generate man page.").
+  UsageActionTemplate(kingpin.ManPageTemplate).
+  Bool()
+```
 
 #### Default help template
 

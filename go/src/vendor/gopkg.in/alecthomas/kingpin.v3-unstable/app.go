@@ -9,11 +9,8 @@ import (
 )
 
 var (
-	ErrCommandNotSpecified = fmt.Errorf("command not specified")
-)
-
-var (
-	envarTransformRegexp = regexp.MustCompile(`[^a-zA-Z_]+`)
+	errCommandNotSpecified = TError("command not specified")
+	envarTransformRegexp   = regexp.MustCompile(`[^a-zA-Z_]+`)
 )
 
 // An Application contains the definitions of flags, arguments and commands
@@ -27,69 +24,79 @@ type Application struct {
 
 	author         string
 	version        string
-	writer         io.Writer // Destination for usage and errors.
-	usageTemplate  string
+	output         io.Writer // Destination for usage.
+	errors         io.Writer
 	terminate      func(status int) // See Terminate()
 	noInterspersed bool             // can flags be interspersed with args (or must they come first)
 	defaultEnvars  bool
 	completion     bool
 	helpFlag       *Clause
 	helpCommand    *CmdClause
+	defaultUsage   *UsageContext
 }
 
 // New creates a new Kingpin application instance.
 func New(name, help string) *Application {
 	a := &Application{
-		Name:          name,
-		Help:          help,
-		writer:        os.Stderr,
-		usageTemplate: DefaultUsageTemplate,
-		terminate:     os.Exit,
+		Name:      name,
+		Help:      help,
+		output:    os.Stdout,
+		errors:    os.Stderr,
+		terminate: os.Exit,
+		defaultUsage: &UsageContext{
+			Template: DefaultUsageTemplate,
+		},
 	}
 	a.flagGroup = newFlagGroup()
 	a.argGroup = newArgGroup()
 	a.cmdGroup = newCmdGroup(a)
-	a.helpFlag = a.Flag("help", "Show context-sensitive help (also try --help-long and --help-man).")
+	a.helpFlag = a.Flag("help", T("Show context-sensitive help.")).Action(func(a *Application, e *ParseElement, c *ParseContext) error {
+		a.UsageForContext(c)
+		a.terminate(0)
+		return nil
+	})
 	a.helpFlag.Bool()
-	a.Flag("help-long", "Generate long help.").Hidden().Bool()
-	a.Flag("help-man", "Generate a man page.").Hidden().Bool()
-	a.Flag("completion-bash", "Output possible completions for the given args.").Hidden().BoolVar(&a.completion)
-	a.Flag("completion-script-bash", "Generate completion script for bash.").Hidden().PreAction(a.generateBashCompletionScript).Bool()
-	a.Flag("completion-script-zsh", "Generate completion script for ZSH.").Hidden().PreAction(a.generateZSHCompletionScript).Bool()
+	a.Flag("completion-bash", T("Output possible completions for the given args.")).Hidden().BoolVar(&a.completion)
+	a.Flag("completion-script-bash", T("Generate completion script for bash.")).Hidden().PreAction(a.generateBashCompletionScript).Bool()
+	a.Flag("completion-script-zsh", T("Generate completion script for ZSH.")).Hidden().PreAction(a.generateZSHCompletionScript).Bool()
 
 	return a
 }
 
-func (a *Application) generateLongHelp(e *ParseElement, c *ParseContext) error {
-	a.Writer(os.Stdout)
-	if err := a.UsageForContextWithTemplate(c, 2, LongHelpTemplate); err != nil {
+// Struct allows applications to define flags with struct tags.
+//
+// Supported struct tags are: help, placeholder, default, short, long, required, hidden, env,
+// enum, and arg.
+//
+// The name of the flag will default to the CamelCase name transformed to camel-case. This can
+// be overridden with the "long" tag.
+//
+// All basic Go types are supported including floats, ints, strings, time.Duration,
+// and slices of same.
+//
+// For compatibility, also supports the tags used by https://github.com/jessevdk/go-flags
+func (a *Application) Struct(v interface{}) error {
+	return a.fromStruct(nil, v)
+}
+
+func (a *Application) generateBashCompletionScript(_ *Application, e *ParseElement, c *ParseContext) error {
+	usageContext := &UsageContext{
+		Template: BashCompletionTemplate,
+	}
+	a.Writers(os.Stdout, os.Stderr)
+	if err := a.UsageForContextWithTemplate(usageContext, c); err != nil {
 		return err
 	}
 	a.terminate(0)
 	return nil
 }
 
-func (a *Application) generateManPage(e *ParseElement, c *ParseContext) error {
-	a.Writer(os.Stdout)
-	if err := a.UsageForContextWithTemplate(c, 2, ManPageTemplate); err != nil {
-		return err
+func (a *Application) generateZSHCompletionScript(_ *Application, e *ParseElement, c *ParseContext) error {
+	usageContext := &UsageContext{
+		Template: ZshCompletionTemplate,
 	}
-	a.terminate(0)
-	return nil
-}
-
-func (a *Application) generateBashCompletionScript(e *ParseElement, c *ParseContext) error {
-	a.Writer(os.Stdout)
-	if err := a.UsageForContextWithTemplate(c, 2, BashCompletionTemplate); err != nil {
-		return err
-	}
-	a.terminate(0)
-	return nil
-}
-
-func (a *Application) generateZSHCompletionScript(e *ParseElement, c *ParseContext) error {
-	a.Writer(os.Stdout)
-	if err := a.UsageForContextWithTemplate(c, 2, ZshCompletionTemplate); err != nil {
+	a.Writers(os.Stdout, os.Stderr)
+	if err := a.UsageForContextWithTemplate(usageContext, c); err != nil {
 		return err
 	}
 	a.terminate(0)
@@ -131,16 +138,24 @@ func (a *Application) Terminate(terminate func(int)) *Application {
 	return a
 }
 
-// Specify the writer to use for usage and errors. Defaults to os.Stderr.
-func (a *Application) Writer(w io.Writer) *Application {
-	a.writer = w
+// Writer specifies the writer to use for usage and errors. Defaults to os.Stderr.
+func (a *Application) Writers(out, err io.Writer) *Application {
+	a.output = out
+	a.errors = err
 	return a
 }
 
 // UsageTemplate specifies the text template to use when displaying usage
-// information. The default is UsageTemplate.
+// information via --help. The default is DefaultUsageTemplate.
 func (a *Application) UsageTemplate(template string) *Application {
-	a.usageTemplate = template
+	a.defaultUsage.Template = template
+	return a
+}
+
+// UsageContext specifies the UsageContext to use when displaying usage
+// information via --help.
+func (a *Application) UsageContext(context *UsageContext) *Application {
+	a.defaultUsage = context
 	return a
 }
 
@@ -166,11 +181,7 @@ func (a *Application) parseContext(ignoreDefault bool, args []string) (*ParseCon
 // This will populate all flag and argument values, call all callbacks, and so
 // on.
 func (a *Application) Parse(args []string) (command string, err error) {
-
 	context, parseErr := a.ParseContext(args)
-	selected := []string{}
-	var setValuesErr error
-
 	if context == nil {
 		// Since we do not throw error immediately, there could be a case
 		// where a context returns nil. Protect against that.
@@ -181,7 +192,7 @@ func (a *Application) Parse(args []string) (command string, err error) {
 		return "", err
 	}
 
-	selected, setValuesErr = a.setValues(context)
+	selected, setValuesErr := a.setValues(context)
 
 	if err = a.applyPreActions(context, !a.completion); err != nil {
 		return "", err
@@ -197,7 +208,7 @@ func (a *Application) Parse(args []string) (command string, err error) {
 
 		a.maybeHelp(context)
 		if !context.EOL() {
-			return "", fmt.Errorf("unexpected argument '%s'", context.Peek())
+			return "", TError("unexpected argument '{{.Arg0}}'", V{"Arg0": context.Peek()})
 		}
 
 		if setValuesErr != nil {
@@ -205,7 +216,7 @@ func (a *Application) Parse(args []string) (command string, err error) {
 		}
 
 		command, err = a.execute(context, selected)
-		if err == ErrCommandNotSpecified {
+		if err == errCommandNotSpecified {
 			a.writeUsage(context, nil)
 		}
 	}
@@ -235,9 +246,9 @@ func (a *Application) maybeHelp(context *ParseContext) {
 // Version adds a --version flag for displaying the application version.
 func (a *Application) Version(version string) *Application {
 	a.version = version
-	a.Flag("version", "Show application version.").
-		PreAction(func(*ParseElement, *ParseContext) error {
-			fmt.Fprintln(a.writer, version)
+	a.Flag("version", T("Show application version.")).
+		PreAction(func(*Application, *ParseElement, *ParseContext) error {
+			fmt.Fprintln(a.output, version)
 			a.terminate(0)
 			return nil
 		}).
@@ -245,6 +256,7 @@ func (a *Application) Version(version string) *Application {
 	return a
 }
 
+// Author sets the author name for usage templates.
 func (a *Application) Author(author string) *Application {
 	a.author = author
 	return a
@@ -274,21 +286,22 @@ func (a *Application) init() error {
 	if a.initialized {
 		return nil
 	}
-	if a.cmdGroup.have() && a.argGroup.have() {
-		return fmt.Errorf("can't mix top-level Arg()s with Command()s")
+	if err := a.checkArgCommandMixing(); err != nil {
+		return err
 	}
 
 	// If we have subcommands, add a help command at the top-level.
 	if a.cmdGroup.have() {
 		var command []string
-		a.helpCommand = a.Command("help", "Show help.").
-			PreAction(func(element *ParseElement, context *ParseContext) error {
+		a.helpCommand = a.Command("help", T("Show help.")).
+			PreAction(func(_ *Application, element *ParseElement, context *ParseContext) error {
 				a.Usage(command)
+				command = []string{}
 				a.terminate(0)
 				return nil
 			})
 		a.helpCommand.
-			Arg("command", "Show help on command.").
+			Arg("command", T("Show help on command.")).
 			StringsVar(&command)
 		// Make help first command.
 		l := len(a.commandOrder)
@@ -326,11 +339,11 @@ func checkDuplicateFlags(current *CmdClause, flagGroups []*flagGroup) error {
 		for _, flag := range current.flagOrder {
 			if flag.shorthand != 0 {
 				if _, ok := flags.short[string(flag.shorthand)]; ok {
-					return fmt.Errorf("duplicate short flag -%c", flag.shorthand)
+					return TError("duplicate short flag -{{.Arg0}}", V{"Arg0": flag.shorthand})
 				}
 			}
 			if _, ok := flags.long[flag.name]; ok {
-				return fmt.Errorf("duplicate long flag --%s", flag.name)
+				return TError("duplicate long flag --{{.Arg0}}", V{"Arg0": flag.name})
 			}
 		}
 	}
@@ -357,7 +370,7 @@ func (a *Application) execute(context *ParseContext, selected []string) (string,
 
 	command := strings.Join(selected, " ")
 	if command == "" && a.cmdGroup.have() {
-		return "", ErrCommandNotSpecified
+		return "", errCommandNotSpecified
 	}
 	return command, err
 }
@@ -399,7 +412,7 @@ func (a *Application) validateRequired(context *ParseContext) error {
 		if flagElements[flag.name] == nil {
 			// Check required flags were provided.
 			if flag.needsValue() {
-				return fmt.Errorf("required flag --%s not provided", flag.name)
+				return TError("required flag --{{.Arg0}} not provided", V{"Arg0": flag.name})
 			}
 		}
 	}
@@ -407,7 +420,7 @@ func (a *Application) validateRequired(context *ParseContext) error {
 	for _, arg := range context.arguments.args {
 		if argElements[arg.name] == nil {
 			if arg.needsValue() {
-				return fmt.Errorf("required argument '%s' not provided", arg.name)
+				return TError("required argument '{{.Arg0}}' not provided", V{"Arg0": arg.name})
 			}
 		}
 	}
@@ -426,7 +439,7 @@ func (a *Application) setValues(context *ParseContext) (selected []string, err e
 			clause := element.OneOf.Flag
 			if _, ok := flagSet[clause.name]; ok {
 				if v, ok := clause.value.(cumulativeValue); !ok || !v.IsCumulative() {
-					return nil, fmt.Errorf("flag '%s' cannot be repeated", clause.name)
+					return nil, TError("flag '{{.Arg0}}' cannot be repeated", V{"Arg0": clause.name})
 				}
 			}
 			if err = clause.value.Set(*element.Value); err != nil {
@@ -452,8 +465,11 @@ func (a *Application) setValues(context *ParseContext) (selected []string, err e
 		}
 	}
 
-	if lastCmd != nil && len(lastCmd.commands) > 0 {
-		return nil, fmt.Errorf("must select a subcommand of '%s'", lastCmd.FullCommand())
+	if lastCmd == nil || lastCmd.optionalSubcommands {
+		return
+	}
+	if len(lastCmd.commands) > 0 {
+		return nil, TError("must select a subcommand of '{{.Arg0}}'", V{"Arg0": lastCmd.FullCommand()})
 	}
 
 	return
@@ -461,7 +477,7 @@ func (a *Application) setValues(context *ParseContext) (selected []string, err e
 
 // Errorf prints an error message to w in the format "<appname>: error: <message>".
 func (a *Application) Errorf(format string, args ...interface{}) {
-	fmt.Fprintf(a.writer, a.Name+": error: "+format+"\n", args...)
+	fmt.Fprintf(a.errors, a.Name+T(": error: ")+format+"\n", args...)
 }
 
 // Fatalf writes a formatted error to w then terminates with exit status 1.
@@ -582,11 +598,11 @@ func (a *Application) applyPreActions(context *ParseContext, dispatch bool) erro
 	if !dispatch {
 		return nil
 	}
-	if err := a.actionMixin.applyPreActions(nil, context); err != nil {
+	if err := a.actionMixin.applyPreActions(a, nil, context); err != nil {
 		return err
 	}
 	for _, element := range context.Elements {
-		if err := a.actionMixin.applyPreActions(element, context); err != nil {
+		if err := a.actionMixin.applyPreActions(a, element, context); err != nil {
 			return err
 		}
 		var applier actionApplier
@@ -598,7 +614,7 @@ func (a *Application) applyPreActions(context *ParseContext, dispatch bool) erro
 		case element.OneOf.Cmd != nil:
 			applier = element.OneOf.Cmd
 		}
-		if err := applier.applyPreActions(element, context); err != nil {
+		if err := applier.applyPreActions(a, element, context); err != nil {
 			return err
 		}
 	}
@@ -606,12 +622,12 @@ func (a *Application) applyPreActions(context *ParseContext, dispatch bool) erro
 }
 
 func (a *Application) applyActions(context *ParseContext) error {
-	if err := a.actionMixin.applyActions(nil, context); err != nil {
+	if err := a.actionMixin.applyActions(a, nil, context); err != nil {
 		return err
 	}
 	// Dispatch to actions.
 	for _, element := range context.Elements {
-		if err := a.actionMixin.applyActions(element, context); err != nil {
+		if err := a.actionMixin.applyActions(a, element, context); err != nil {
 			return err
 		}
 		var applier actionApplier
@@ -623,7 +639,7 @@ func (a *Application) applyActions(context *ParseContext) error {
 		case element.OneOf.Cmd != nil:
 			applier = element.OneOf.Cmd
 		}
-		if err := applier.applyActions(element, context); err != nil {
+		if err := applier.applyActions(a, element, context); err != nil {
 			return err
 		}
 	}

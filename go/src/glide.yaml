@@ -172,17 +172,6 @@ import:
 - package: github.com/streadway/simpleuuid
 - package: github.com/stripe/stripe-go
 - package: github.com/stvp/slug
-- package: golang.org/x/crypto
-  subpackages:
-  - ssh
-- package: golang.org/x/net
-  subpackages:
-  - context
-  - trace
-  - websocket
-- package: golang.org/x/oauth2
-  subpackages:
-  - jwt
 - package: google.golang.org/api
   subpackages:
   - drive/v2
@@ -243,11 +232,27 @@ import:
 - package: github.com/segmentio/backo-go
 - package: github.com/xtgo/uuid
 - package: golang.org/x/sys/unix
+- package: golang.org/x/text/unicode/norm
+- package: golang.org/x/tools/go/loader
+- package: golang.org/x/arch
+- package: golang.org/x/sync
+  subpackages:
+  - errgroup
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh
+- package: golang.org/x/net
+  subpackages:
+  - context
+  - trace
+  - websocket
+- package: golang.org/x/oauth2
+  subpackages:
+  - jwt
 - package: github.com/vaughan0/go-ini
 - package: github.com/jtolds/gls
 - package: github.com/oschwald/maxminddb-golang
 - package: github.com/smartystreets/assertions
-- package: golang.org/x/text/unicode/norm
 - package: github.com/f2prateek/clearbit-go
 - package: github.com/rjeczalik/gh/webhook
 - package: github.com/mattn/go-colorable
@@ -256,7 +261,6 @@ import:
 - package: github.com/gocql/gocql
 - package: github.com/mattn/go-sqlite3
 - package: github.com/kisielk/gotool
-- package: golang.org/x/tools/go/loader
 - package: github.com/kr/binarydist
 - package: github.com/google/go-github/github
 - package: github.com/google/shlex
@@ -264,9 +268,6 @@ import:
 - package: github.com/opencontainers/runc
 - package: github.com/kardianos/osext
 - package: gopkg.in/urfave/cli.v1
-- package: golang.org/x/sync
-  subpackages:
-  - errgroup
 - package: github.com/martint17r/osin-mongo-storage
   subpackages:
   - mgostore

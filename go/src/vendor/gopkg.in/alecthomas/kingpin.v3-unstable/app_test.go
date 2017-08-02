@@ -77,7 +77,7 @@ func TestArgsRequiredAfterNonRequiredErrors(t *testing.T) {
 }
 
 func TestArgsMultipleRequiredThenNonRequired(t *testing.T) {
-	c := newTestApp().Writer(ioutil.Discard)
+	c := newTestApp().Writers(ioutil.Discard, ioutil.Discard)
 	cmd := c.Command("cmd", "")
 	cmd.Arg("a", "a").Required().String()
 	cmd.Arg("b", "b").Required().String()
@@ -92,7 +92,7 @@ func TestArgsMultipleRequiredThenNonRequired(t *testing.T) {
 func TestDispatchCallbackIsCalled(t *testing.T) {
 	dispatched := false
 	c := newTestApp()
-	c.Command("cmd", "").Action(func(element *ParseElement, context *ParseContext) error {
+	c.Command("cmd", "").Action(func(_ *Application, element *ParseElement, context *ParseContext) error {
 		dispatched = true
 		return nil
 	})
@@ -175,6 +175,15 @@ func TestSubCommandRequired(t *testing.T) {
 	c0.Command("c1", "")
 	_, err := app.Parse([]string{"c0"})
 	assert.Error(t, err)
+}
+
+func TestOptionalSubcommandsApp(t *testing.T) {
+	app := newTestApp()
+	c0 := app.Command("c0", "").OptionalSubcommands()
+	c0.Command("c1", "")
+	s, err := app.Parse([]string{"c0"})
+	assert.NoError(t, err)
+	assert.Equal(t, "c0", s)
 }
 
 func TestInterspersedFalse(t *testing.T) {
@@ -407,12 +416,12 @@ func TestApplicationWideActions(t *testing.T) {
 	c.Arg("arg", "").String()
 
 	preValues := []string{}
-	a.PreAction(func(element *ParseElement, context *ParseContext) error {
+	a.PreAction(func(_ *Application, element *ParseElement, context *ParseContext) error {
 		preValues = append(preValues, *element.Value)
 		return nil
 	})
 	values := []string{}
-	a.Action(func(element *ParseElement, context *ParseContext) error {
+	a.Action(func(_ *Application, element *ParseElement, context *ParseContext) error {
 		values = append(values, *element.Value)
 		return nil
 	})
