@@ -1,6 +1,7 @@
 package main
 
 import (
+	"runtime"
 	"text/template"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 )
 
 // Config for gometalinter. This can be loaded from a JSON file with --config.
-type Config struct {
+type Config struct { // nolint: aligncheck
 	// A map of linter name to "<command>:<pattern>".
 	//
 	// <command> should always include {path} as the target directory to execute. Globs in <command>
@@ -73,16 +74,18 @@ var (
 		"gocyclo":     "github.com/alecthomas/gocyclo",
 		"goimports":   "golang.org/x/tools/cmd/goimports",
 		"golint":      "github.com/golang/lint/golint",
-		"gosimple":    "honnef.co/go/simple/cmd/gosimple",
+		"gosimple":    "honnef.co/go/tools/cmd/gosimple",
 		"gotype":      "golang.org/x/tools/cmd/gotype",
 		"ineffassign": "github.com/gordonklaus/ineffassign",
 		"interfacer":  "github.com/mvdan/interfacer/cmd/interfacer",
 		"lll":         "github.com/walle/lll/cmd/lll",
 		"misspell":    "github.com/client9/misspell/cmd/misspell",
-		"staticcheck": "honnef.co/go/staticcheck/cmd/staticcheck",
+		"safesql":     "github.com/stripe/safesql",
+		"staticcheck": "honnef.co/go/tools/cmd/staticcheck",
 		"structcheck": "github.com/opennota/check/cmd/structcheck",
 		"unconvert":   "github.com/mdempsky/unconvert",
-		"unused":      "honnef.co/go/unused/cmd/unused",
+		"unparam":     "github.com/mvdan/unparam",
+		"unused":      "honnef.co/go/tools/cmd/unused",
 		"varcheck":    "github.com/opennota/check/cmd/varcheck",
 	}
 	acceptsEllipsis = map[string]bool{
@@ -97,7 +100,7 @@ var (
 		"varcheck":    true,
 		"unconvert":   true,
 	}
-	slowLinters = []string{"structcheck", "varcheck", "errcheck", "aligncheck", "testify", "test", "interfacer", "unconvert", "deadcode"}
+	slowLinters = []string{"structcheck", "varcheck", "errcheck", "aligncheck", "testify", "test", "interfacer", "unconvert", "deadcode", "safesql", "staticcheck", "unparam", "unused", "gosimple"}
 	sortKeys    = []string{"none", "path", "line", "column", "severity", "message", "linter"}
 
 	// Linter definitions.
@@ -118,11 +121,13 @@ var (
 		"interfacer":  `interfacer {path}:PATH:LINE:COL:MESSAGE`,
 		"lll":         `lll -g -l {maxlinelength} {path}/*.go:PATH:LINE:MESSAGE`,
 		"misspell":    "misspell -j 1 {path}/*.go:PATH:LINE:COL:MESSAGE",
+		"safesql":     `safesql {path}:^- (?P<path>.*?\.go):(?P<line>\d+):(?P<col>\d+)$`,
 		"staticcheck": "staticcheck {path}:PATH:LINE:COL:MESSAGE",
 		"structcheck": `structcheck {tests=-t} {path}:^(?:[^:]+: )?(?P<path>.*?\.go):(?P<line>\d+):(?P<col>\d+):\s*(?P<message>.+)$`,
 		"test":        `go test {path}:^--- FAIL: .*$\s+(?P<path>.*?\.go):(?P<line>\d+): (?P<message>.*)$`,
 		"testify":     `go test {path}:Location:\s+(?P<path>.*?\.go):(?P<line>\d+)$\s+Error:\s+(?P<message>[^\n]+)`,
 		"unconvert":   "unconvert {path}:PATH:LINE:COL:MESSAGE",
+		"unparam":     `unparam {path}:PATH:LINE:COL:MESSAGE`,
 		"unused":      `unused {path}:PATH:LINE:COL:MESSAGE`,
 		"varcheck":    `varcheck {path}:^(?:[^:]+: )?(?P<path>.*?\.go):(?P<line>\d+):(?P<col>\d+):\s*(?P<message>.*)$`,
 		"vet":         `go tool vet {path}/*.go:` + vetRe,
@@ -145,8 +150,10 @@ var (
 			"gocyclo":     "cyclomatic complexity {cyclo} of function {function}() is high (> {mincyclo})",
 			"gofmt":       "file is not gofmted with -s",
 			"goimports":   "file is not goimported",
+			"safesql":     "potentially unsafe SQL statement",
 			"structcheck": "unused struct field {message}",
-			"varcheck":    "unused global variable {message}",
+			"unparam":     "parameter {message}",
+			"varcheck":    "unused variable or constant {message}",
 		},
 		Enable: []string{
 			"aligncheck",
@@ -168,7 +175,7 @@ var (
 			"vetshadow",
 		},
 		VendoredLinters: true,
-		Concurrency:     16,
+		Concurrency:     runtime.NumCPU(),
 		Cyclo:           10,
 		LineLength:      80,
 		MinConfidence:   0.8,
@@ -176,6 +183,6 @@ var (
 		MinConstLength:  3,
 		DuplThreshold:   50,
 		Sort:            []string{"none"},
-		Deadline:        time.Second * 5,
+		Deadline:        time.Second * 30,
 	}
 )
