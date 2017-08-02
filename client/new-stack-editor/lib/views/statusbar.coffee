@@ -1,8 +1,8 @@
 kd = require 'kd'
-JView = require 'app/jview'
 
 
-module.exports = class Statusbar extends JView
+
+module.exports = class Statusbar extends kd.View
 
 
   constructor: (options = {}, data) ->

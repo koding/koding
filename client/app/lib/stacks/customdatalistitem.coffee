@@ -1,10 +1,7 @@
-kd    = require 'kd'
-JView = require 'app/jview'
-
+kd = require 'kd'
 
 module.exports = class CustomDataListItem extends kd.ListItemView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -34,6 +31,9 @@ module.exports = class CustomDataListItem extends kd.ListItemView
       loader    :
         color   : '#666'
       callback  : => delegate.emit 'ItemSelected', @getData()
+
+
+  viewAppended: kd.View::viewAppended
 
 
   pistachio: ->

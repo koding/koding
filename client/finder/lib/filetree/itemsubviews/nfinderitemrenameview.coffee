@@ -1,8 +1,8 @@
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-JView = require 'app/jview'
+
 NFinderRenameInput = require './nfinderrenameinput'
-module.exports = class NFinderItemRenameView extends JView
+module.exports = class NFinderItemRenameView extends kd.View
 
   constructor: (options, data) ->
 

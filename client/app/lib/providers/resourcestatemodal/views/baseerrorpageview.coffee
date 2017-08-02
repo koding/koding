@@ -1,9 +1,8 @@
 kd = require 'kd'
 _  = require 'lodash'
-JView = require 'app/jview'
 
 
-module.exports = class BaseErrorPageView extends JView
+module.exports = class BaseErrorPageView extends kd.View
 
   constructor: (options = {}, data) ->
 

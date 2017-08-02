@@ -1,12 +1,12 @@
 remote = require('../../remote')
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-JView = require '../../jview'
+
 
 
 module.exports = class LinkView extends KDCustomHTMLView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

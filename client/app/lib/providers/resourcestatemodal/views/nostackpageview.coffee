@@ -1,7 +1,7 @@
 kd = require 'kd'
-JView = require 'app/jview'
 
-module.exports = class NoStackPageView extends JView
+
+module.exports = class NoStackPageView extends kd.View
 
   pistachio: ->
 

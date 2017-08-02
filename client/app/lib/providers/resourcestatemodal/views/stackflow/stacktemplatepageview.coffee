@@ -1,9 +1,9 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 Encoder = require 'htmlencode'
 StackTemplateEditorView = require 'stack-editor/editor/stacktemplateeditorview'
 
-module.exports = class StackTemplatePageView extends JView
+module.exports = class StackTemplatePageView extends kd.View
 
   constructor: (options = {}, data) ->
 

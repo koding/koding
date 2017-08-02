@@ -1,8 +1,8 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KodingSwitch = require 'app/commonviews/kodingswitch'
-JView = require 'app/jview'
-module.exports = class NSetPermissionsView extends JView
+
+module.exports = class NSetPermissionsView extends kd.View
 
   constructor: ->
 

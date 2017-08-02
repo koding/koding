@@ -1,12 +1,11 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 Events = require '../events'
 globals = require 'globals'
 
 
 module.exports = class CredentialListItem extends kd.ListItemView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -71,6 +70,9 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
 
   verifyCredential: ->
+
+
+  viewAppended: kd.View::viewAppended
 
 
   pistachio: ->
