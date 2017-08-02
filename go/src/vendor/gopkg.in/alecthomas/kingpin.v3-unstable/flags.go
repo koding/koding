@@ -1,9 +1,6 @@
 package kingpin
 
-import (
-	"fmt"
-	"strings"
-)
+import "strings"
 
 type flagGroup struct {
 	short     map[string]*Clause
@@ -58,12 +55,12 @@ func (f *flagGroup) checkDuplicates() error {
 	for _, flag := range f.flagOrder {
 		if flag.shorthand != 0 {
 			if _, ok := seenShort[flag.shorthand]; ok {
-				return fmt.Errorf("duplicate short flag -%c", flag.shorthand)
+				return TError("duplicate short flag -{{.Arg0}}", V{"Arg0": flag.shorthand})
 			}
 			seenShort[flag.shorthand] = true
 		}
 		if _, ok := seenLong[flag.name]; ok {
-			return fmt.Errorf("duplicate long flag --%s", flag.name)
+			return TError("duplicate long flag --{{.Arg0}}", V{"Arg0": flag.name})
 		}
 		seenLong[flag.name] = true
 	}
@@ -82,7 +79,6 @@ loop:
 
 		case TokenLong, TokenShort:
 			flagToken := token
-			defaultValue := ""
 			var flag *Clause
 			var ok bool
 			invert := false
@@ -100,17 +96,18 @@ loop:
 					invert = true
 				}
 				if !ok {
-					return nil, fmt.Errorf("unknown long flag '%s'", flagToken)
+					return nil, TError("unknown long flag '{{.Arg0}}'", V{"Arg0": flagToken})
 				}
 			} else {
 				flag, ok = f.short[name]
 				if !ok {
-					return nil, fmt.Errorf("unknown short flag '%s'", flagToken)
+					return nil, TError("unknown short flag '{{.Arg0}}'", V{"Arg0": flagToken})
 				}
 			}
 
 			context.Next()
 
+			var defaultValue string
 			if fb, ok := flag.value.(boolFlag); ok && fb.IsBoolFlag() {
 				if invert {
 					defaultValue = "false"
@@ -120,12 +117,12 @@ loop:
 			} else {
 				if invert {
 					context.Push(token)
-					return nil, fmt.Errorf("unknown long flag '%s'", flagToken)
+					return nil, TError("unknown long flag '{{.Arg0}}'", V{"Arg0": flagToken})
 				}
 				token = context.Peek()
 				if token.Type != TokenArg {
 					context.Push(token)
-					return nil, fmt.Errorf("expected argument for flag '%s'", flagToken)
+					return nil, TError("expected argument for flag '{{.Arg0}}'", V{"Arg0": flagToken})
 				}
 				context.Next()
 				defaultValue = token.Value
