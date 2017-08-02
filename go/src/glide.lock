@@ -975,7 +975,7 @@ imports:
   - sqladmin/v1beta4
   - storage/v1
 - name: google.golang.org/appengine
-  version: 6bde959377a90acb53366051d7d587bfd7171354
+  version: c5a90ac045b779001847fec87403f5cba090deae
   subpackages:
   - internal
   - internal/app_identity
