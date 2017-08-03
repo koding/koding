@@ -1,3 +1,4 @@
+// nolint: golint
 package kingpin
 
 import (
@@ -10,6 +11,15 @@ import (
 
 type FlagGroupModel struct {
 	Flags []*ClauseModel
+}
+
+func (f *FlagGroupModel) FlagByName(name string) *ClauseModel {
+	for _, flag := range f.Flags {
+		if flag.Name == name {
+			return flag
+		}
+	}
+	return nil
 }
 
 func (f *FlagGroupModel) FlagSummary() string {
@@ -28,7 +38,7 @@ func (f *FlagGroupModel) FlagSummary() string {
 		}
 	}
 	if count != len(out) {
-		out = append(out, "[<flags>]")
+		out = append(out, T("[<flags>]"))
 	}
 	return strings.Join(out, " ")
 }
@@ -43,6 +53,7 @@ type ClauseModel struct {
 	Required    bool
 	Hidden      bool
 	Value       Value
+	Cumulative  bool
 }
 
 func (c *ClauseModel) String() string {
@@ -82,11 +93,17 @@ func (a *ArgGroupModel) ArgSummary() string {
 	out := []string{}
 	for _, arg := range a.Args {
 		h := "<" + arg.Name + ">"
+		if arg.Cumulative {
+			h += " ..."
+		}
 		if !arg.Required {
 			h = "[" + h
 			depth++
 		}
 		out = append(out, h)
+	}
+	if len(out) == 0 {
+		return ""
 	}
 	out[len(out)-1] = out[len(out)-1] + strings.Repeat("]", depth)
 	return strings.Join(out, " ")
@@ -98,6 +115,9 @@ type CmdGroupModel struct {
 
 func (c *CmdGroupModel) FlattenedCommands() (out []*CmdModel) {
 	for _, cmd := range c.Commands {
+		if cmd.OptionalSubcommands {
+			out = append(out, cmd)
+		}
 		if len(cmd.Commands) == 0 {
 			out = append(out, cmd)
 		}
@@ -107,20 +127,48 @@ func (c *CmdGroupModel) FlattenedCommands() (out []*CmdModel) {
 }
 
 type CmdModel struct {
-	Name        string
-	Aliases     []string
-	Help        string
-	FullCommand string
-	Depth       int
-	Hidden      bool
-	Default     bool
+	Name                string
+	Aliases             []string
+	Help                string
+	Depth               int
+	Hidden              bool
+	Default             bool
+	OptionalSubcommands bool
+	Parent              *CmdModel
 	*FlagGroupModel
 	*ArgGroupModel
 	*CmdGroupModel
 }
 
 func (c *CmdModel) String() string {
-	return c.FullCommand
+	return c.CmdSummary()
+}
+
+func (c *CmdModel) CmdSummary() string {
+	out := []string{}
+	for cursor := c; cursor != nil; cursor = cursor.Parent {
+		text := cursor.Name
+		if cursor.Default {
+			text = "*" + text
+		}
+		if flags := cursor.FlagSummary(); flags != "" {
+			text += " " + flags
+		}
+		if args := cursor.ArgSummary(); args != "" {
+			text += " " + args
+		}
+		out = append([]string{text}, out...)
+	}
+	return strings.Join(out, " ")
+}
+
+// FullCommand is the command path to this node, excluding positional arguments and flags.
+func (c *CmdModel) FullCommand() string {
+	out := []string{}
+	for i := c; i != nil; i = i.Parent {
+		out = append([]string{i.Name}, out...)
+	}
+	return strings.Join(out, " ")
 }
 
 type ApplicationModel struct {
@@ -133,6 +181,45 @@ type ApplicationModel struct {
 	*FlagGroupModel
 }
 
+func (a *ApplicationModel) AppSummary() string {
+	summary := a.Name
+	if flags := a.FlagSummary(); flags != "" {
+		summary += " " + flags
+	}
+	if args := a.ArgSummary(); args != "" {
+		summary += " " + args
+	}
+	if len(a.Commands) > 0 {
+		summary += " <command>"
+	}
+	return summary
+}
+
+func (a *ApplicationModel) FindModelForCommand(cmd *CmdClause) *CmdModel {
+	if cmd == nil {
+		return nil
+	}
+	path := []string{}
+	for c := cmd; c != nil; c = c.parent {
+		path = append([]string{c.name}, path...)
+	}
+	var selected *CmdModel
+	cursor := a.CmdGroupModel
+	for _, component := range path {
+		for _, cmd := range cursor.Commands {
+			if cmd.Name == component {
+				selected = cmd
+				cursor = cmd.CmdGroupModel
+				break
+			}
+		}
+	}
+	if selected == nil {
+		panic("this shouldn't happen")
+	}
+	return selected
+}
+
 func (a *Application) Model() *ApplicationModel {
 	return &ApplicationModel{
 		Name:           a.Name,
@@ -141,7 +228,7 @@ func (a *Application) Model() *ApplicationModel {
 		Author:         a.author,
 		FlagGroupModel: a.flagGroup.Model(),
 		ArgGroupModel:  a.argGroup.Model(),
-		CmdGroupModel:  a.cmdGroup.Model(),
+		CmdGroupModel:  a.cmdGroup.Model(nil),
 	}
 }
 
@@ -162,42 +249,46 @@ func (f *flagGroup) Model() *FlagGroupModel {
 }
 
 func (f *Clause) Model() *ClauseModel {
+	_, cumulative := f.value.(cumulativeValue)
 	return &ClauseModel{
 		Name:        f.name,
 		Help:        f.help,
-		Short:       rune(f.shorthand),
+		Short:       f.shorthand,
 		Default:     f.defaultValues,
 		Envar:       f.envar,
 		PlaceHolder: f.placeholder,
 		Required:    f.required,
 		Hidden:      f.hidden,
 		Value:       f.value,
+		Cumulative:  cumulative,
 	}
 }
 
-func (c *cmdGroup) Model() *CmdGroupModel {
+func (c *cmdGroup) Model(parent *CmdModel) *CmdGroupModel {
 	m := &CmdGroupModel{}
 	for _, cm := range c.commandOrder {
-		m.Commands = append(m.Commands, cm.Model())
+		m.Commands = append(m.Commands, cm.Model(parent))
 	}
 	return m
 }
 
-func (c *CmdClause) Model() *CmdModel {
+func (c *CmdClause) Model(parent *CmdModel) *CmdModel {
 	depth := 0
 	for i := c; i != nil; i = i.parent {
 		depth++
 	}
-	return &CmdModel{
-		Name:           c.name,
-		Aliases:        c.aliases,
-		Help:           c.help,
-		Depth:          depth,
-		Hidden:         c.hidden,
-		Default:        c.isDefault,
-		FullCommand:    c.FullCommand(),
-		FlagGroupModel: c.flagGroup.Model(),
-		ArgGroupModel:  c.argGroup.Model(),
-		CmdGroupModel:  c.cmdGroup.Model(),
+	cmd := &CmdModel{
+		Name:                c.name,
+		Parent:              parent,
+		Aliases:             c.aliases,
+		Help:                c.help,
+		Depth:               depth,
+		Hidden:              c.hidden,
+		Default:             c.isDefault,
+		OptionalSubcommands: c.optionalSubcommands,
+		FlagGroupModel:      c.flagGroup.Model(),
+		ArgGroupModel:       c.argGroup.Model(),
 	}
+	cmd.CmdGroupModel = c.cmdGroup.Model(cmd)
+	return cmd
 }

@@ -101,6 +101,7 @@ elektron/node_modules
 
 .env.sh
 .env.json
+package-lock.json
 website/apidocs/lang
 
 credential

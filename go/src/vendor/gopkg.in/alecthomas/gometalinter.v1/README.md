@@ -1,4 +1,28 @@
-# Go Meta Linter [![Build Status](https://travis-ci.org/alecthomas/gometalinter.png)](https://travis-ci.org/alecthomas/gometalinter)
+# Go Meta Linter
+[![Build Status](https://travis-ci.org/alecthomas/gometalinter.png)](https://travis-ci.org/alecthomas/gometalinter) [![Gitter chat](https://badges.gitter.im/alecthomas.png)](https://gitter.im/alecthomas/Lobby)
+
+<!-- MarkdownTOC -->
+
+- [Editor integration](#editor-integration)
+- [Supported linters](#supported-linters)
+- [Configuration file](#configuration-file)
+- [Installing](#installing)
+- [Comment directives](#comment-directives)
+- [Quickstart](#quickstart)
+- [FAQ](#faq)
+  - [Exit status](#exit-status)
+  - [What's the best way to use `gometalinter` in CI?](#whats-the-best-way-to-use-gometalinter-in-ci)
+  - [How do I make `gometalinter` work with Go 1.5 vendoring?](#how-do-i-make-gometalinter-work-with-go-15-vendoring)
+  - [Why does `gometalinter --install` install a fork of gocyclo?](#why-does-gometalinter---install-install-a-fork-of-gocyclo)
+  - [Gometalinter is not working](#gometalinter-is-not-working)
+    - [1. Update to the latest build of gometalinter and all linters](#1-update-to-the-latest-build-of-gometalinter-and-all-linters)
+    - [2. Analyse the debug output](#2-analyse-the-debug-output)
+    - [3. Report an issue.](#3-report-an-issue)
+- [Details](#details)
+- [Checkstyle XML format](#checkstyle-xml-format)
+
+<!-- /MarkdownTOC -->
+
 
 The number of tools for statically checking Go source for errors and warnings
 is impressive.
@@ -20,7 +44,7 @@ It is intended for use with editor/IDE integration.
 - [SublimeLinter plugin](https://github.com/alecthomas/SublimeLinter-contrib-gometalinter).
 - [vim-go](https://github.com/fatih/vim-go) with the `:GoMetaLinter` command.
 - [syntastic (vim)](https://github.com/scrooloose/syntastic/wiki/Go:---gometalinter) `let g:syntastic_go_checkers = ['gometalinter']`
-- [Atom linter plugin](https://atom.io/packages/gometalinter-linter).
+- [Atom go-plus package](https://atom.io/packages/go-plus).
 - [Emacs Flycheck checker](https://github.com/favadi/flycheck-gometalinter).
 - [Go for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=lukehoban.Go).
 
@@ -41,8 +65,8 @@ It is intended for use with editor/IDE integration.
 - [interfacer](https://github.com/mvdan/interfacer) - Suggest narrower interfaces that can be used.
 - [unconvert](https://github.com/mdempsky/unconvert) - Detect redundant type conversions.
 - [goconst](https://github.com/jgautheron/goconst) - Finds repeated strings that could be replaced by a constant.
-- [gosimple](https://github.com/dominikh/go-simple) - Report simplifications in code.
-- [staticcheck](https://github.com/dominikh/go-staticcheck) - Statically detect bugs, both obvious and subtle ones.
+- [gosimple](https://github.com/dominikh/go-tools/tree/master/cmd/gosimple) - Report simplifications in code.
+- [staticcheck](https://github.com/dominikh/go-tools/tree/master/cmd/staticcheck) - Statically detect bugs, both obvious and subtle ones.
 - [gas](https://github.com/GoASTScanner/gas) - Inspects source code for security problems by scanning the Go AST.
 
 Disabled by default (enable with `--enable=<linter>`):
@@ -53,11 +77,13 @@ Disabled by default (enable with `--enable=<linter>`):
 - [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports) - Checks missing or unreferenced package imports.
 - [lll](https://github.com/walle/lll) - Report long lines (see `--line-length=N`).
 - [misspell](https://github.com/client9/misspell) - Finds commonly misspelled English words.
-- [unused](https://github.com/dominikh/go-unused) - Find unused variables.
+- [unparam](https://github.com/mvdan/unparam) - Find unused function parameters.
+- [unused](https://github.com/dominikh/go-tools/tree/master/cmd/unused) - Find unused variables.
+- [safesql](https://github.com/stripe/safesql) - Finds potential SQL injection vulnerabilities.
 
 Additional linters can be added through the command line with `--linter=NAME:COMMAND:PATTERN` (see [below](#details)).
 
-### Configuration file
+## Configuration file
 
 gometalinter now supports a JSON configuration file which can be loaded via
 `--config=<file>`. The format of this file is determined by the Config struct
@@ -87,13 +113,52 @@ There are two options for installing gometalinter.
 2. Install from HEAD with: `go get -u github.com/alecthomas/gometalinter`.
    This has the downside that changes to gometalinter may break.
 
+## Comment directives
+
+gometalinter supports suppression of linter messages via comment directives. The
+form of the directive is:
+
+```
+// nolint[: <linter>[, <linter>, ...]]
+```
+
+Suppression works in the following way:
+
+1. Line-level suppression
+
+    A comment directive suppresses any linter messages on that line.
+
+    eg. In this example any messages for `a := 10` will be suppressed and errcheck
+    messages for `defer r.Close()` will also be suppressed.
+
+    ```go
+    a := 10 // nolint
+    a = 2
+    defer r.Close() // nolint: errcheck
+    ```
+
+2. Statement-level suppression
+
+    A comment directive at the same indentation level as a statement it
+    immediately precedes will also suppress any linter messages in that entire
+    statement.
+
+    eg. In this example all messages for `SomeFunc()` will be suppressed.
+
+    ```go
+    // nolint
+    func SomeFunc() {
+    }
+    ```
+
+Implementation details: gometalinter now performs parsing of Go source code,
+to extract linter directives and associate them with line ranges. To avoid
+unnecessary processing, parsing is on-demand: the first time a linter emits a
+message for a file, that file is parsed for directives.
+
 ## Quickstart
 
-Install gometalinter:
-
-```
-$ go get -u github.com/alecthomas/gometalinter
-```
+Install gometalinter (see above).
 
 Install all known linters:
 
@@ -115,10 +180,12 @@ Installing:
   goconst
   gosimple
   staticcheck
+  unparam
   unused
   misspell
   lll
   gas
+  safesql
 ```
 
 Run it:
@@ -165,7 +232,10 @@ There are two main problems running in a CI:
 1. <s>Linters break, causing `gometalinter --install --update` to error</s> (this is no longer an issue as all linters are vendored).
 2. `gometalinter` adds a new linter.
 
-There is no great solution to 1, but for 2, the best option is to disable all linters, then explicitly enable the ones you want:
+I have solved 1 by vendoring the linters.
+
+For 2, the best option is to disable all linters, then explicitly enable the
+ones you want:
 
     gometalinter --disable-all --enable=errcheck --enable=vet --enable=vetshadow ...
 
