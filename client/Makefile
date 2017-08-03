@@ -20,7 +20,7 @@ development: node_modules bongo_schema watch-dev
 dist: node_modules bongo_schema landing build-prod
 
 bongo_schema:
-	$(RUN) exec $(SCRIPTS)/generate-bongo-schema --file $(MKFILE_DIR).schema.json
+	$(RUN) exec $(SCRIPTS)/generate-bongo-schema --file $(MKFILE_DIR).schema.json || exit 1;
 
 node_modules:
 	$(SCRIPTS)/check-node_modules.sh $(CLIENT) || npm install
