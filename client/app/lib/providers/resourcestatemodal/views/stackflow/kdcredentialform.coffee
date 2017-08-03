@@ -1,5 +1,5 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 CredentialForm = require './credentialform'
 getKdCmd = require 'app/util/getKdCmd'
 copyToClipboard = require 'app/util/copyToClipboard'
@@ -9,7 +9,7 @@ module.exports = class KDCredentialForm extends CredentialForm
 
   getScrollableContent: ->
 
-    @codeBlock = new JView
+    @codeBlock = new kd.View
       tagName   : 'code'
       cssClass  : 'block'
       pistachio : """
@@ -23,7 +23,7 @@ module.exports = class KDCredentialForm extends CredentialForm
       kdCmd    : 'Generating install url...'
     }
 
-    return new JView {
+    return new kd.View {
       pistachioParams : { @codeBlock, @form }
       pistachio       : '''
         <article>

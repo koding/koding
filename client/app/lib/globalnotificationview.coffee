@@ -5,10 +5,10 @@ kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 CustomLinkView = require './customlinkview'
-JView = require './jview'
 
 
-module.exports = class GlobalNotificationView extends JView
+
+module.exports = class GlobalNotificationView extends kd.View
 
   constructor: ->
 

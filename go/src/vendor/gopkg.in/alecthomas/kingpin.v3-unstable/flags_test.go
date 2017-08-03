@@ -1,10 +1,8 @@
 package kingpin
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -57,8 +55,7 @@ func TestInvalidFlagDefaultCanBeOverridden(t *testing.T) {
 }
 
 func TestRequiredFlag(t *testing.T) {
-	app := newTestApp()
-	app.Version("0.0.0").Writer(ioutil.Discard)
+	app := newTestApp().Version("0.0.0")
 	exits := 0
 	app.Terminate(func(int) { exits++ })
 	app.Flag("a", "").Required().Bool()
@@ -328,60 +325,4 @@ func TestCombinationEnumOptions(t *testing.T) {
 	args = b.resolveCompletions()
 	assert.Equal(t, []string{"opt5", "opt6"}, args)
 
-}
-
-func TestFlagsStruct(t *testing.T) {
-	type MyFlags struct {
-		Debug bool     `help:"Enable debug mode."`
-		URL   string   `help:"URL to connect to." default:"localhost:80"`
-		Names []string `help:"Names of things."`
-	}
-	a := newTestApp()
-	actual := &MyFlags{}
-	err := a.Struct(actual)
-	assert.NoError(t, err)
-	assert.NotNil(t, a.flagGroup.long["debug"])
-	assert.NotNil(t, a.flagGroup.long["url"])
-
-	*actual = MyFlags{}
-	a.Parse([]string{})
-	assert.Equal(t, &MyFlags{URL: "localhost:80"}, actual)
-
-	*actual = MyFlags{}
-	a.Parse([]string{"--debug"})
-	assert.Equal(t, &MyFlags{Debug: true, URL: "localhost:80"}, actual)
-
-	*actual = MyFlags{}
-	a.Parse([]string{"--url=w3.org"})
-	assert.Equal(t, &MyFlags{URL: "w3.org"}, actual)
-
-	*actual = MyFlags{}
-	a.Parse([]string{"--names=alec", "--names=bob"})
-	assert.Equal(t, &MyFlags{URL: "localhost:80", Names: []string{"alec", "bob"}}, actual)
-
-	type RequiredFlag struct {
-		Flag bool `help:"A flag." required:"true"`
-	}
-
-	a = newTestApp()
-	rflags := &RequiredFlag{}
-	err = a.Struct(rflags)
-	assert.NoError(t, err)
-	_, err = a.Parse([]string{})
-	assert.Error(t, err)
-	_, err = a.Parse([]string{"--flag"})
-	assert.NoError(t, err)
-	assert.Equal(t, &RequiredFlag{Flag: true}, rflags)
-
-	type DurationFlag struct {
-		Elapsed time.Duration `help:"Elapsed time."`
-	}
-
-	a = newTestApp()
-	dflag := &DurationFlag{}
-	err = a.Struct(dflag)
-	assert.NoError(t, err)
-	_, err = a.Parse([]string{"--elapsed=5s"})
-	assert.NoError(t, err)
-	assert.Equal(t, 5*time.Second, dflag.Elapsed)
 }

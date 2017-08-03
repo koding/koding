@@ -1,10 +1,8 @@
 kd      = require 'kd'
-JView   = require 'app/jview'
 globals = require 'globals'
 
 module.exports = class ChangeTeamListItem extends kd.ListItemView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -52,6 +50,9 @@ module.exports = class ChangeTeamListItem extends kd.ListItemView
       attributes :
         href     : actionLink
         target   : '_self'
+
+
+  viewAppended: kd.View::viewAppended
 
 
   pistachio: ->

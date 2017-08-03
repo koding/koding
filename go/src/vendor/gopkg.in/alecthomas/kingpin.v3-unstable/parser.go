@@ -2,7 +2,6 @@ package kingpin
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strings"
 	"unicode/utf8"
@@ -22,17 +21,17 @@ const (
 func (t TokenType) String() string {
 	switch t {
 	case TokenShort:
-		return "short flag"
+		return T("short flag")
 	case TokenLong:
-		return "long flag"
+		return T("long flag")
 	case TokenArg:
-		return "argument"
+		return T("argument")
 	case TokenError:
-		return "error"
+		return T("error")
 	case TokenEOL:
-		return "<EOL>"
+		return T("<EOL>")
 	}
-	return "?"
+	return T("unknown")
 }
 
 var (
@@ -66,9 +65,9 @@ func (t *Token) String() string {
 	case TokenArg:
 		return t.Value
 	case TokenError:
-		return "error: " + t.Value
+		return T("error: ") + t.Value
 	case TokenEOL:
-		return "<EOL>"
+		return T("<EOL>")
 	default:
 		panic("unhandled type")
 	}
@@ -131,6 +130,23 @@ type ParseContext struct {
 	argumenti       int // Cursor into arguments
 	// Flags, arguments and commands encountered and collected during parse.
 	Elements ParseElements
+}
+
+// LastCmd returns true if the element is the last (sub)command
+// being evaluated.
+func (p *ParseContext) LastCmd(element *ParseElement) bool {
+	lastCmdIndex := -1
+	eIndex := -2
+	for i, e := range p.Elements {
+		if element == e {
+			eIndex = i
+		}
+
+		if e.OneOf.Cmd != nil {
+			lastCmdIndex = i
+		}
+	}
+	return lastCmdIndex == eIndex
 }
 
 func (p *ParseContext) nextArg() *Clause {
@@ -240,17 +256,6 @@ func (p *ParseContext) Next() *Token {
 			p.args = append([]string{"-" + arg[1+size:]}, p.args...)
 		}
 		return &Token{p.argi, TokenShort, short}
-	} else if strings.HasPrefix(arg, "@") {
-		expanded, err := ExpandArgsFromFile(arg[1:])
-		if err != nil {
-			return &Token{p.argi, TokenError, err.Error()}
-		}
-		if p.argi >= len(p.args) {
-			p.args = append(p.args[:p.argi-1], expanded...)
-		} else {
-			p.args = append(p.args[:p.argi-1], append(expanded, p.args[p.argi+1:]...)...)
-		}
-		return p.Next()
 	}
 
 	return &Token{p.argi, TokenArg, arg}
@@ -276,6 +281,9 @@ func (p *ParseContext) pop() *Token {
 }
 
 func (p *ParseContext) String() string {
+	if p.SelectedCommand == nil {
+		return ""
+	}
 	return p.SelectedCommand.FullCommand()
 }
 
@@ -313,7 +321,7 @@ func ExpandArgsFromFile(filename string) (out []string, err error) {
 	return
 }
 
-func parse(context *ParseContext, app *Application) (err error) {
+func parse(context *ParseContext, app *Application) (err error) { // nolint: gocyclo
 	context.mergeFlags(app.flagGroup)
 	context.mergeArgs(app.argGroup)
 
@@ -341,6 +349,19 @@ loop:
 			}
 
 		case TokenArg:
+			if context.arguments.have() {
+				if app.noInterspersed {
+					// no more flags
+					context.argsOnly = true
+				}
+				arg := context.nextArg()
+				if arg != nil {
+					context.matchedArg(arg, token.String())
+					context.Next()
+					continue
+				}
+			}
+
 			if cmds.have() {
 				selectedDefault := false
 				cmd, ok := cmds.commands[token.String()]
@@ -352,7 +373,7 @@ loop:
 						}
 					}
 					if cmd == nil {
-						return fmt.Errorf("expected command but got %q", token)
+						return TError("expected command but got {{.Arg0}}", V{"Arg0": token})
 					}
 				}
 				if cmd == app.helpCommand {
@@ -364,20 +385,10 @@ loop:
 				if !selectedDefault {
 					context.Next()
 				}
-			} else if context.arguments.have() {
-				if app.noInterspersed {
-					// no more flags
-					context.argsOnly = true
-				}
-				arg := context.nextArg()
-				if arg == nil {
-					break loop
-				}
-				context.matchedArg(arg, token.String())
-				context.Next()
-			} else {
-				break loop
+				continue
 			}
+
+			break loop
 
 		case TokenEOL:
 			break loop
@@ -396,14 +407,14 @@ loop:
 	}
 
 	if !context.EOL() {
-		return fmt.Errorf("unexpected %s", context.Peek())
+		return TError("unexpected '{{.Arg0}}'", V{"Arg0": context.Peek()})
 	}
 
 	// Set defaults for all remaining args.
 	for arg := context.nextArg(); arg != nil && !arg.consumesRemainder(); arg = context.nextArg() {
 		for _, defaultValue := range arg.defaultValues {
 			if err := arg.value.Set(defaultValue); err != nil {
-				return fmt.Errorf("invalid default value '%s' for argument '%s'", defaultValue, arg.name)
+				return TError("invalid default value '{{.Arg0}}' for argument '{{.Arg1}}'", V{"Arg0": defaultValue, "Arg1": arg.name})
 			}
 		}
 	}

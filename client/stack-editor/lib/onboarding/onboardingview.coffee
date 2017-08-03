@@ -1,5 +1,5 @@
 kd                    = require 'kd'
-JView                 = require 'app/jview'
+
 Tracker               = require 'app/util/tracker'
 CustomLinkView        = require 'app/customlinkview'
 { jsonToYaml }        = require 'app/util/stacks/yamlutils'
@@ -7,7 +7,7 @@ CustomLinkView        = require 'app/customlinkview'
 ProviderSelectionView = require './providerselectionview'
 
 
-module.exports = class OnboardingView extends JView
+module.exports = class OnboardingView extends kd.View
 
   constructor: (options = {}, data) ->
 

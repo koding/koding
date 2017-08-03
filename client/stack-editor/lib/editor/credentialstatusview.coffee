@@ -1,13 +1,13 @@
 kd             = require 'kd'
 KDView         = kd.View
-JView          = require 'app/jview'
+
 remote         = require 'app/remote'
 curryIn        = require 'app/util/curryIn'
 
 
 module.exports = class CredentialStatusView extends KDView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

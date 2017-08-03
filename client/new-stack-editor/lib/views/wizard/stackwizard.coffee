@@ -1,11 +1,11 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 
 Events = require '../../events'
 ProviderSelectionView = require './providerselectionview'
 
 
-module.exports = class StackWizard extends JView
+module.exports = class StackWizard extends kd.View
 
   constructor: (options = {}, data) ->
 

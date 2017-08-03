@@ -1,7 +1,7 @@
 kd              = require 'kd'
 $               = require 'jquery'
 utils           = require './../../core/utils'
-JView           = require './../../core/jview'
+
 MainHeaderView  = require './../../core/mainheaderview'
 ResetInlineForm = require './../../login/resetform'
 
@@ -13,7 +13,7 @@ track = (action, properties = {}) ->
 
 module.exports = class TeamResetTab extends kd.TabPaneView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

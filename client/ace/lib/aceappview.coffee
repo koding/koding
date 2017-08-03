@@ -4,7 +4,7 @@ KDNotificationView = kd.NotificationView
 KDTabPaneView = kd.TabPaneView
 KDView = kd.View
 nick = require 'app/util/nick'
-JView = require 'app/jview'
+
 FSHelper = require 'app/util/fs/fshelper'
 getPublicURLOfPath = require 'app/util/getPublicURLOfPath'
 ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicationtabhandleholder'
@@ -14,7 +14,7 @@ AceView = require './aceview'
 
 module.exports =
 
-class AceAppView extends JView
+class AceAppView extends kd.View
 
   constructor: (options = {}, data) ->
 

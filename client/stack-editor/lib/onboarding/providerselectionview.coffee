@@ -1,11 +1,11 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 globals = require 'globals'
 Tracker = require 'app/util/tracker'
 checkFlag = require 'app/util/checkFlag'
 
 
-module.exports = class ProviderSelectionView extends JView
+module.exports = class ProviderSelectionView extends kd.View
 
   constructor: (options = {}, data) ->
 

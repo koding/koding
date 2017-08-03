@@ -1,9 +1,9 @@
 kd = require 'kd'
-JView = require './jview'
+
 
 module.exports = module.exports = class CustomLinkView extends kd.CustomHTMLView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data = {}) ->
 

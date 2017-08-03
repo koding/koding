@@ -3,7 +3,7 @@ KDButtonView                = kd.ButtonView
 KDCustomHTMLView            = kd.CustomHTMLView
 KDHitEnterInputView         = kd.HitEnterInputView
 KDMultipleChoice            = kd.MultipleChoice
-JView                       = require 'app/jview'
+
 $                           = require 'jquery'
 keycode                     = require 'keycode'
 Encoder                     = require 'htmlencode'
@@ -20,7 +20,7 @@ REGEXES =
   contextLineRegex : /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
 
 
-module.exports = class IDEContentSearchView extends JView
+module.exports = class IDEContentSearchView extends kd.View
 
   constructor: (options = {}, data) ->
 

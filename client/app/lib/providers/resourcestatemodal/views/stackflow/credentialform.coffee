@@ -1,8 +1,8 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 showError = require 'app/util/showError'
 
-module.exports = class CredentialForm extends JView
+module.exports = class CredentialForm extends kd.View
 
   constructor: (options = {}, data) ->
 

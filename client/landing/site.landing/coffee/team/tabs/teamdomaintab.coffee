@@ -1,12 +1,12 @@
 kd                = require 'kd'
 utils             = require './../../core/utils'
-JView             = require './../../core/jview'
+
 MainHeaderView    = require './../../core/mainheaderview'
 TeamDomainTabForm = require './../forms/teamdomaintabform'
 
 module.exports = class TeamDomainTab extends kd.TabPaneView
 
-  JView.mixin @prototype
+
 
   constructor:(options = {}, data) ->
 
