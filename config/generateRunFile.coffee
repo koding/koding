@@ -25,12 +25,11 @@ generateDev = (KONFIG, options) ->
     fi
 
     function is_ready () {
-      exit 0
       check_connectivity mongo
       check_connectivity postgres
       check_connectivity redis
       check_connectivity rabbitmq
-      check_connectivity countly
+      # check_connectivity countly
     }
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
