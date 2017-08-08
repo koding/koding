@@ -3,7 +3,7 @@ debug = (require 'debug') 'nse:toolbar'
 $ = require 'jquery'
 _ = require 'lodash'
 kd = require 'kd'
-JView = require 'app/jview'
+
 
 Events = require '../events'
 Banner = require './banner'
@@ -11,7 +11,7 @@ Banner = require './banner'
 EnvironmentFlux = require 'app/flux/environment'
 
 
-module.exports = class Toolbar extends JView
+module.exports = class Toolbar extends kd.View
 
 
   constructor: (options = {}, data) ->

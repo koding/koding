@@ -1,7 +1,7 @@
 $                                     = require 'jquery'
 kd                                    = require 'kd'
 utils                                 = require './../core/utils'
-JView                                 = require './../core/jview'
+
 CustomLinkView                        = require './../core/customlinkview'
 LoginInputView                        = require './logininputview'
 LoginInlineForm                       = require './loginform'
@@ -13,7 +13,7 @@ ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
 { getGroupNameFromLocation }          = utils
 
 
-module.exports = class LoginView extends JView
+module.exports = class LoginView extends kd.View
 
   ENTER                = 13
   USERNAME_VALID       = no
@@ -110,8 +110,7 @@ module.exports = class LoginView extends JView
 
   viewAppended: ->
 
-    @setTemplate @pistachio()
-    @template.update()
+    super
 
     query = kd.utils.parseQuery document.location.search.replace '?', ''
 

@@ -204,10 +204,12 @@ func BenchmarkAdversarialDelete(b *testing.B) {
 				m.Load(i)
 
 				if i%mapSize == 0 {
+					var key int
 					m.Range(func(k, _ interface{}) bool {
-						m.Delete(k)
+						key = k.(int)
 						return false
 					})
+					m.Delete(key)
 					m.Store(i, i)
 				}
 			}

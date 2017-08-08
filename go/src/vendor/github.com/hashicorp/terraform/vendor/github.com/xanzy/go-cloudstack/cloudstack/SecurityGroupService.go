@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,38 @@ import (
 	"strconv"
 	"strings"
 )
+
+// Helper function for maintaining backwards compatibility
+func convertAuthorizeSecurityGroupIngressResponse(b []byte) ([]byte, error) {
+	var raw struct {
+		Ingressrule []interface{} `json:"ingressrule"`
+	}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return nil, err
+	}
+
+	if len(raw.Ingressrule) != 1 {
+		return b, nil
+	}
+
+	return json.Marshal(raw.Ingressrule[0])
+}
+
+// Helper function for maintaining backwards compatibility
+func convertAuthorizeSecurityGroupEgressResponse(b []byte) ([]byte, error) {
+	var raw struct {
+		Egressrule []interface{} `json:"egressrule"`
+	}
+	if err := json.Unmarshal(b, &raw); err != nil {
+		return nil, err
+	}
+
+	if len(raw.Egressrule) != 1 {
+		return b, nil
+	}
+
+	return json.Marshal(raw.Egressrule[0])
+}
 
 type CreateSecurityGroupParams struct {
 	p map[string]interface{}
@@ -107,10 +139,15 @@ func (s *SecurityGroupService) CreateSecurityGroup(p *CreateSecurityGroupParams)
 		return nil, err
 	}
 
+	if resp, err = getRawValue(resp); err != nil {
+		return nil, err
+	}
+
 	var r CreateSecurityGroupResponse
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -181,6 +218,8 @@ type CreateSecurityGroupResponse struct {
 		Resourcetype string `json:"resourcetype,omitempty"`
 		Value        string `json:"value,omitempty"`
 	} `json:"tags,omitempty"`
+	Virtualmachinecount int      `json:"virtualmachinecount,omitempty"`
+	Virtualmachineids   []string `json:"virtualmachineids,omitempty"`
 }
 
 type DeleteSecurityGroupParams struct {
@@ -269,6 +308,7 @@ func (s *SecurityGroupService) DeleteSecurityGroup(p *DeleteSecurityGroupParams)
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -327,8 +367,8 @@ func (p *AuthorizeSecurityGroupIngressParams) toURLValues() url.Values {
 	if v, found := p.p["usersecuritygrouplist"]; found {
 		i := 0
 		for k, vv := range v.(map[string]string) {
-			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].key", i), k)
-			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].value", i), vv)
+			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].account", i), k)
+			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].group", i), vv)
 			i++
 		}
 	}
@@ -466,10 +506,16 @@ func (s *SecurityGroupService) AuthorizeSecurityGroupIngress(p *AuthorizeSecurit
 			return nil, err
 		}
 
+		b, err = convertAuthorizeSecurityGroupIngressResponse(b)
+		if err != nil {
+			return nil, err
+		}
+
 		if err := json.Unmarshal(b, &r); err != nil {
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -556,6 +602,7 @@ func (s *SecurityGroupService) RevokeSecurityGroupIngress(p *RevokeSecurityGroup
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -615,8 +662,8 @@ func (p *AuthorizeSecurityGroupEgressParams) toURLValues() url.Values {
 	if v, found := p.p["usersecuritygrouplist"]; found {
 		i := 0
 		for k, vv := range v.(map[string]string) {
-			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].key", i), k)
-			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].value", i), vv)
+			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].account", i), k)
+			u.Set(fmt.Sprintf("usersecuritygrouplist[%d].group", i), vv)
 			i++
 		}
 	}
@@ -754,10 +801,16 @@ func (s *SecurityGroupService) AuthorizeSecurityGroupEgress(p *AuthorizeSecurity
 			return nil, err
 		}
 
+		b, err = convertAuthorizeSecurityGroupEgressResponse(b)
+		if err != nil {
+			return nil, err
+		}
+
 		if err := json.Unmarshal(b, &r); err != nil {
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -844,6 +897,7 @@ func (s *SecurityGroupService) RevokeSecurityGroupEgress(p *RevokeSecurityGroupE
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -1015,53 +1069,49 @@ func (s *SecurityGroupService) NewListSecurityGroupsParams() *ListSecurityGroups
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *SecurityGroupService) GetSecurityGroupID(keyword string) (string, error) {
+func (s *SecurityGroupService) GetSecurityGroupID(keyword string, opts ...OptionFunc) (string, int, error) {
 	p := &ListSecurityGroupsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["keyword"] = keyword
 
-	l, err := s.ListSecurityGroups(p)
-	if err != nil {
-		return "", err
-	}
-
-	if l.Count == 0 {
-		// If no matches, search all projects
-		p.p["projectid"] = "-1"
-
-		l, err = s.ListSecurityGroups(p)
-		if err != nil {
-			return "", err
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
 		}
 	}
 
+	l, err := s.ListSecurityGroups(p)
+	if err != nil {
+		return "", -1, err
+	}
+
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", keyword, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", keyword, l)
 	}
 
 	if l.Count == 1 {
-		return l.SecurityGroups[0].Id, nil
+		return l.SecurityGroups[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.SecurityGroups {
 			if v.Name == keyword {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", keyword, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", keyword, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *SecurityGroupService) GetSecurityGroupByName(name string) (*SecurityGroup, int, error) {
-	id, err := s.GetSecurityGroupID(name)
+func (s *SecurityGroupService) GetSecurityGroupByName(name string, opts ...OptionFunc) (*SecurityGroup, int, error) {
+	id, count, err := s.GetSecurityGroupID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetSecurityGroupByID(id)
+	r, count, err := s.GetSecurityGroupByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -1069,11 +1119,17 @@ func (s *SecurityGroupService) GetSecurityGroupByName(name string) (*SecurityGro
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *SecurityGroupService) GetSecurityGroupByID(id string) (*SecurityGroup, int, error) {
+func (s *SecurityGroupService) GetSecurityGroupByID(id string, opts ...OptionFunc) (*SecurityGroup, int, error) {
 	p := &ListSecurityGroupsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListSecurityGroups(p)
 	if err != nil {
@@ -1083,21 +1139,6 @@ func (s *SecurityGroupService) GetSecurityGroupByID(id string) (*SecurityGroup, 
 			return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
 		}
 		return nil, -1, err
-	}
-
-	if l.Count == 0 {
-		// If no matches, search all projects
-		p.p["projectid"] = "-1"
-
-		l, err = s.ListSecurityGroups(p)
-		if err != nil {
-			if strings.Contains(err.Error(), fmt.Sprintf(
-				"Invalid parameter id value=%s due to incorrect long value format, "+
-					"or entity does not exist", id)) {
-				return nil, 0, fmt.Errorf("No match found for %s: %+v", id, l)
-			}
-			return nil, -1, err
-		}
 	}
 
 	if l.Count == 0 {
@@ -1121,6 +1162,7 @@ func (s *SecurityGroupService) ListSecurityGroups(p *ListSecurityGroupsParams) (
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -1196,4 +1238,6 @@ type SecurityGroup struct {
 		Resourcetype string `json:"resourcetype,omitempty"`
 		Value        string `json:"value,omitempty"`
 	} `json:"tags,omitempty"`
+	Virtualmachinecount int      `json:"virtualmachinecount,omitempty"`
+	Virtualmachineids   []string `json:"virtualmachineids,omitempty"`
 }

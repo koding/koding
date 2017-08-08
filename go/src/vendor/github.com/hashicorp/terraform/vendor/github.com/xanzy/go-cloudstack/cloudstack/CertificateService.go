@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -131,6 +131,7 @@ func (s *CertificateService) UploadCustomCertificate(p *UploadCustomCertificateP
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 

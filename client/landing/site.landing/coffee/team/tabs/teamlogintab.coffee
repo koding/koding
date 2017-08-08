@@ -1,6 +1,6 @@
 kd              = require 'kd'
 utils           = require './../../core/utils'
-JView           = require './../../core/jview'
+
 MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
 Encoder         = require 'htmlencode'
@@ -14,7 +14,7 @@ track = (action, properties = {}) ->
 
 module.exports = class TeamLoginTab extends kd.TabPaneView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

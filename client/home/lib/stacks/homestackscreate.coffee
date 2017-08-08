@@ -1,9 +1,9 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 
 module.exports = class HomeStacksCreate extends kd.CustomHTMLView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

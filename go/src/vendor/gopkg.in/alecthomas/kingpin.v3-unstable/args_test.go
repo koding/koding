@@ -1,9 +1,8 @@
 package kingpin
 
 import (
-	"io/ioutil"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -26,8 +25,7 @@ func TestArgRemainderErrorsWhenNotLast(t *testing.T) {
 
 func TestArgMultipleRequired(t *testing.T) {
 	terminated := false
-	app := New("test", "")
-	app.Version("0.0.0").Writer(ioutil.Discard)
+	app := newTestApp().Version("0.0.0")
 	app.Arg("a", "").Required().String()
 	app.Arg("b", "").Required().String()
 	app.Terminate(func(int) { terminated = true })
@@ -38,7 +36,7 @@ func TestArgMultipleRequired(t *testing.T) {
 	assert.Error(t, err)
 	_, err = app.Parse([]string{"A", "B"})
 	assert.NoError(t, err)
-	_, err = app.Parse([]string{"--version"})
+	_, _ = app.Parse([]string{"--version"})
 	assert.True(t, terminated)
 }
 

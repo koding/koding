@@ -1,0 +1,39 @@
+{
+	"provider": {
+		"google": {
+			"credentials": "${var.google_credentials}",
+			"project": "${var.google_project}",
+			"region": "${var.google_region}"
+		}
+	},
+	"resource": {
+		"google_compute_instance": {
+			"google-instance": {
+				"count": 3,
+				"disk": [
+					{
+						"image": "ubuntu-1404-lts"
+					}
+				],
+				"machine_type": "f1-micro",
+				"metadata": {
+					"ssh-keys": "***",
+					"user-data": "***"
+				},
+				"name": "***",
+				"network_interface": {
+					"access_config": {},
+					"network": "id-12345"
+				},
+				"zone": "us-central1-a"
+			}
+		}
+	},
+	"variable": {
+		"kitekeys_google-instance": {
+			"default": {
+				"0": "***"
+			}
+		}
+	}
+}

@@ -1,12 +1,12 @@
 debug = (require 'debug') 'nse:toolbar:banner'
 
 kd = require 'kd'
-JView = require 'app/jview'
+
 
 Events = require '../events'
 
 
-module.exports = class Banner extends JView
+module.exports = class Banner extends kd.View
 
 
   constructor: (options = {}, data) ->

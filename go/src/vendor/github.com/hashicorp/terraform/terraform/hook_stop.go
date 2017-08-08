@@ -38,7 +38,7 @@ func (h *stopHook) PreProvision(*InstanceInfo, string) (HookAction, error) {
 	return h.hook()
 }
 
-func (h *stopHook) PostProvision(*InstanceInfo, string) (HookAction, error) {
+func (h *stopHook) PostProvision(*InstanceInfo, string, error) (HookAction, error) {
 	return h.hook()
 }
 
@@ -50,6 +50,14 @@ func (h *stopHook) PreRefresh(*InstanceInfo, *InstanceState) (HookAction, error)
 }
 
 func (h *stopHook) PostRefresh(*InstanceInfo, *InstanceState) (HookAction, error) {
+	return h.hook()
+}
+
+func (h *stopHook) PreImportState(*InstanceInfo, string) (HookAction, error) {
+	return h.hook()
+}
+
+func (h *stopHook) PostImportState(*InstanceInfo, []*InstanceState) (HookAction, error) {
 	return h.hook()
 }
 

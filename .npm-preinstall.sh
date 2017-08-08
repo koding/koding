@@ -2,4 +2,4 @@
 
 set -o errexit
 
-scripts/reset-node-modules.sh
+scripts/de-reset-node-modules.sh

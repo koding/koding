@@ -38,7 +38,6 @@ import (
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/sync/rsync"
 	kos "koding/klient/os"
-	"koding/klient/remote"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
 	"koding/klient/terminal"
@@ -51,7 +50,6 @@ import (
 
 	endpointkloud "koding/klientctl/endpoint/kloud"
 
-	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/kontrol/onceevery"
@@ -92,18 +90,12 @@ type Klient struct {
 	// addresses or the connection is behind a firewall.
 	tunnel *tunnel.Tunnel
 
-	metrics *dogstatsd.Client
+	metrics *metrics.Metrics
 	log     kite.Logger
 
 	// config stores all necessary configuration needed for Klient to work.
 	// It's supplied with the NewKlient() function.
 	config *KlientConfig
-
-	// remote handles persistence of remote related options, including
-	// mounting folders, listing remote machines that this Klient is
-	// connected to, and so on. It is typically called from a local kite,
-	// and is responsible for Klient's `remote.*` methods.
-	remote *remote.Remote
 
 	// machines manages a group of machines that can be seen or used by Klient.
 	//
@@ -309,13 +301,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	// TODO(rjeczalik): Enable after TMS-848.
 	// mountEvents := make(chan *mount.Event)
 
-	remoteOpts := &remote.RemoteOptions{
-		Kite:    k,
-		Log:     k.Log,
-		Storage: storage.New(db),
-		// EventSub: mountEvents,
-	}
-
 	machinesOpts := &machinegroup.Options{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
 		Builder:         mclient.NewKiteBuilder(k),
@@ -367,7 +352,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		usage:    usg,
 		log:      k.Log,
 		config:   conf,
-		remote:   remote.NewRemote(remoteOpts),
 		uploader: up,
 		machines: machines,
 		updater: &Updater{
@@ -375,8 +359,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 			Interval:       conf.UpdateInterval,
 			CurrentVersion: conf.Version,
 			KontrolURL:     k.Config.KontrolURL,
-			// MountEvents:    mountEvents,
-			Log: k.Log,
+			Log:            k.Log,
 		},
 		logUploadDelay: 3 * time.Minute,
 		presence: &presence.Client{
@@ -385,7 +368,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		},
 		presenceEvery: onceevery.New(1 * time.Hour),
 		kloud:         kloud,
-		metrics:       m.Datadog,
+		metrics:       m,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -467,9 +450,6 @@ func (k *Klient) RegisterMethods() {
 	k.handleFunc("klient.unshare", k.collab.Unshare)
 	k.handleFunc("klient.shared", k.collab.Shared)
 
-	// Adds the remote.* methods, depending on OS.
-	k.addRemoteHandlers()
-
 	// SSH keys
 	k.handleWithSub("sshkeys.list", sshkeys.List)
 	k.handleWithSub("sshkeys.add", sshkeys.Add)
@@ -503,6 +483,7 @@ func (k *Klient) RegisterMethods() {
 	// Machine group handlers.
 	k.handleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
 	k.handleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
+	k.handleFunc("machine.identifier.list", machinegroup.KiteHandlerIdentifierList(k.machines))
 	k.handleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
 	k.handleFunc("machine.mount.head", machinegroup.KiteHandlerHeadMount(k.machines))
 	k.handleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
@@ -511,6 +492,7 @@ func (k *Klient) RegisterMethods() {
 	k.handleFunc("machine.mount.inspect", machinegroup.KiteHandlerInspectMount(k.machines))
 	k.handleFunc("machine.mount.waitIdle", k.machines.HandleWaitIdle)
 	k.handleFunc("machine.mount.id", machinegroup.KiteHandlerMountID(k.machines))
+	k.handleFunc("machine.mount.identifier.list", machinegroup.KiteHandlerMountIdentifierList(k.machines))
 	k.handleFunc("machine.mount.manage", machinegroup.KiteHandlerManageMount(k.machines))
 	k.handleFunc("machine.umount", machinegroup.KiteHandlerUmount(k.machines))
 	k.handleFunc("machine.cp", machinegroup.KiteHandlerCp(k.machines))
@@ -593,7 +575,7 @@ func (k *Klient) RegisterMethods() {
 }
 
 func (k *Klient) handleFunc(pattern string, f kite.HandlerFunc) *kite.Method {
-	f = metrics.WrapKiteHandler(k.metrics, pattern, f)
+	f = metrics.WrapKiteHandler(k.metrics.Datadog, pattern, f)
 	return k.kite.HandleFunc(pattern, f)
 }
 
@@ -800,11 +782,6 @@ func (k *Klient) Run() {
 	// side of the tunnel.
 	go k.tunnel.Start()
 
-	// Initializing the remote re-establishes any previously-running remote
-	// connections, such as mounted folders. This needs to be run *after*
-	// Klient is setup and running, to get a valid connection to Kontrol.
-	go k.initRemote()
-
 	k.log.Info("Using version: '%s' querystring: '%s'", k.config.Version, k.kite.Id)
 
 	// TODO(rjeczalik): Enable after TMS-848.
@@ -857,6 +834,10 @@ func (k *Klient) register(registerURL *url.URL) error {
 }
 
 func (k *Klient) Close() {
+	if k.metrics != nil {
+		k.metrics.Close()
+	}
+
 	k.collabCloser.Close()
 	k.collab.Close()
 	k.kite.Close()

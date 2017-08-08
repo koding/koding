@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -168,43 +168,49 @@ func (s *PoolService) NewListStoragePoolsParams() *ListStoragePoolsParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *PoolService) GetStoragePoolID(name string) (string, error) {
+func (s *PoolService) GetStoragePoolID(name string, opts ...OptionFunc) (string, int, error) {
 	p := &ListStoragePoolsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
 
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
+		}
+	}
+
 	l, err := s.ListStoragePools(p)
 	if err != nil {
-		return "", err
+		return "", -1, err
 	}
 
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", name, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
 	if l.Count == 1 {
-		return l.StoragePools[0].Id, nil
+		return l.StoragePools[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.StoragePools {
 			if v.Name == name {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *PoolService) GetStoragePoolByName(name string) (*StoragePool, int, error) {
-	id, err := s.GetStoragePoolID(name)
+func (s *PoolService) GetStoragePoolByName(name string, opts ...OptionFunc) (*StoragePool, int, error) {
+	id, count, err := s.GetStoragePoolID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetStoragePoolByID(id)
+	r, count, err := s.GetStoragePoolByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -212,11 +218,17 @@ func (s *PoolService) GetStoragePoolByName(name string) (*StoragePool, int, erro
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *PoolService) GetStoragePoolByID(id string) (*StoragePool, int, error) {
+func (s *PoolService) GetStoragePoolByID(id string, opts ...OptionFunc) (*StoragePool, int, error) {
 	p := &ListStoragePoolsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListStoragePools(p)
 	if err != nil {
@@ -249,6 +261,7 @@ func (s *PoolService) ListStoragePools(p *ListStoragePoolsParams) (*ListStorageP
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -468,6 +481,7 @@ func (s *PoolService) CreateStoragePool(p *CreateStoragePoolParams) (*CreateStor
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -514,6 +528,10 @@ func (p *UpdateStoragePoolParams) toURLValues() url.Values {
 		vv := strconv.FormatInt(v.(int64), 10)
 		u.Set("capacityiops", vv)
 	}
+	if v, found := p.p["enabled"]; found {
+		vv := strconv.FormatBool(v.(bool))
+		u.Set("enabled", vv)
+	}
 	if v, found := p.p["id"]; found {
 		u.Set("id", v.(string))
 	}
@@ -537,6 +555,14 @@ func (p *UpdateStoragePoolParams) SetCapacityiops(v int64) {
 		p.p = make(map[string]interface{})
 	}
 	p.p["capacityiops"] = v
+	return
+}
+
+func (p *UpdateStoragePoolParams) SetEnabled(v bool) {
+	if p.p == nil {
+		p.p = make(map[string]interface{})
+	}
+	p.p["enabled"] = v
 	return
 }
 
@@ -576,6 +602,7 @@ func (s *PoolService) UpdateStoragePool(p *UpdateStoragePoolParams) (*UpdateStor
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -660,6 +687,7 @@ func (s *PoolService) DeleteStoragePool(p *DeleteStoragePoolParams) (*DeleteStor
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -746,6 +774,7 @@ func (s *PoolService) FindStoragePoolsForMigration(p *FindStoragePoolsForMigrati
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 

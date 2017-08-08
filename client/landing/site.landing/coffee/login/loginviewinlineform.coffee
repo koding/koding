@@ -1,16 +1,15 @@
 kd = require 'kd'
-JView = require './../core/jview'
+
 _     = require 'lodash'
 
 
 module.exports = class LoginViewInlineForm extends kd.FormView
 
-  JView.mixin @prototype
+
 
   viewAppended: ->
 
-    @setTemplate @pistachio()
-    @template.update()
+    super
 
     @on 'FormValidationFailed', @button.bound 'hideLoader'
 

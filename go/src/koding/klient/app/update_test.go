@@ -1,128 +1,15 @@
 package app_test
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 	"sync"
-	"testing"
 	"time"
 
-	"github.com/koding/logging"
-
 	"koding/kites/tunnelproxy/discover/discovertest"
-	"koding/klient/app"
-	"koding/klient/remote/mount"
 )
-
-func TestUpdater(t *testing.T) {
-	const timeout = 250 * time.Millisecond
-
-	events := make(chan *mount.Event)
-	defer close(events)
-
-	s := StartUpdateServer()
-
-	u := &app.Updater{
-		Endpoint:    s.URL().String(),
-		Interval:    50 * time.Millisecond,
-		Log:         logging.NewCustom("updater", true),
-		MountEvents: events,
-	}
-
-	go u.Run()
-
-	if err := s.WaitForLatestReq(timeout); err != nil {
-		t.Fatal(err)
-	}
-
-	// Send a mouting event and ensure no
-	// update attempt was made afterwards.
-	events <- &mount.Event{
-		Path: "/path1",
-		Type: mount.EventMounting,
-	}
-
-	// From this point update server will mark every latest request as illegal.
-	s.Enable(false)
-
-	if err := s.WaitForLatestReq(timeout); err == nil {
-		t.Fatal("expected to timeout waiting for latest with disabled autoupdates")
-	}
-
-	// Send event that mouting succeeded, still no update requests expected.
-	events <- &mount.Event{
-		Path: "/path1",
-		Type: mount.EventMounted,
-	}
-
-	if err := s.WaitForLatestReq(timeout); err == nil {
-		t.Fatal("expected to timeout waiting for latest with disabled autoupdates")
-	}
-
-	// Send unmount event, but for different path that was previously reported
-	// as mounted - this event should be ignored, autoupdates still disabled.
-	events <- &mount.Event{
-		Path: "/pathX",
-		Type: mount.EventUnmounted,
-	}
-
-	// Only confirmed umount enables autoupdate, since unmounting
-	// can traisition to failed - this event also does not enable autoupdates.
-	events <- &mount.Event{
-		Path: "/path1",
-		Type: mount.EventUnmounting,
-	}
-
-	if err := s.WaitForLatestReq(timeout); err == nil {
-		t.Fatal("expected to timeout waiting for latest with disabled autoupdates")
-	}
-
-	// Send unmount event for previous mount and expect autoupdates to turn on.
-	events <- &mount.Event{
-		Path: "/path1",
-		Type: mount.EventUnmounted,
-	}
-
-	s.Enable(true)
-
-	if err := s.WaitForLatestReq(timeout); err != nil {
-		t.Fatal(err)
-	}
-
-	// Send mounting event, expect autoupdates to turn off, send the mount
-	// was failed and expect the autoupdates to turn on again.
-	events <- &mount.Event{
-		Path: "/path1",
-		Type: mount.EventMounting,
-	}
-
-	s.Enable(false)
-
-	if err := s.WaitForLatestReq(timeout); err == nil {
-		t.Fatal("expected to timeout waiting for latest with disabled autoupdates")
-	}
-
-	events <- &mount.Event{
-		Path: "/path1",
-		Type: mount.EventMounting,
-		Err:  errors.New("mount failed"),
-	}
-
-	s.Enable(true)
-
-	if err := s.WaitForLatestReq(timeout); err != nil {
-		t.Fatal(err)
-	}
-
-	// Ensure no update request was made while the autoupdates
-	// were expected to be disabled.
-	if err := s.Err(); err != nil {
-		t.Fatal(err)
-	}
-}
 
 type UpdateServer struct {
 	mu          sync.Mutex

@@ -89,7 +89,7 @@ func TestInterpolationWalker_detect(t *testing.T) {
 
 	for i, tc := range cases {
 		var actual []string
-		detectFn := func(root ast.Node) (string, error) {
+		detectFn := func(root ast.Node) (interface{}, error) {
 			actual = append(actual, fmt.Sprintf("%s", root))
 			return "", nil
 		}
@@ -109,7 +109,7 @@ func TestInterpolationWalker_replace(t *testing.T) {
 	cases := []struct {
 		Input  interface{}
 		Output interface{}
-		Value  string
+		Value  interface{}
 	}{
 		{
 			Input: map[string]interface{}{
@@ -159,7 +159,7 @@ func TestInterpolationWalker_replace(t *testing.T) {
 					"bing",
 				},
 			},
-			Value: NewStringList([]string{"bar", "baz"}).String(),
+			Value: []interface{}{"bar", "baz"},
 		},
 
 		{
@@ -169,23 +169,31 @@ func TestInterpolationWalker_replace(t *testing.T) {
 					"bing",
 				},
 			},
-			Output: map[string]interface{}{},
-			Value:  NewStringList([]string{UnknownVariableValue, "baz"}).String(),
+			Output: map[string]interface{}{
+				"foo": []interface{}{
+					UnknownVariableValue,
+					"baz",
+					"bing",
+				},
+			},
+			Value: []interface{}{UnknownVariableValue, "baz"},
 		},
 	}
 
 	for i, tc := range cases {
-		fn := func(ast.Node) (string, error) {
+		fn := func(ast.Node) (interface{}, error) {
 			return tc.Value, nil
 		}
 
-		w := &interpolationWalker{F: fn, Replace: true}
-		if err := reflectwalk.Walk(tc.Input, w); err != nil {
-			t.Fatalf("err: %s", err)
-		}
+		t.Run(fmt.Sprintf("walk-%d", i), func(t *testing.T) {
+			w := &interpolationWalker{F: fn, Replace: true}
+			if err := reflectwalk.Walk(tc.Input, w); err != nil {
+				t.Fatalf("err: %s", err)
+			}
 
-		if !reflect.DeepEqual(tc.Input, tc.Output) {
-			t.Fatalf("%d: bad:\n\nexpected:%#v\ngot:%#v", i, tc.Output, tc.Input)
-		}
+			if !reflect.DeepEqual(tc.Input, tc.Output) {
+				t.Fatalf("%d: bad:\n\nexpected:%#v\ngot:%#v", i, tc.Output, tc.Input)
+			}
+		})
 	}
 }

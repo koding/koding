@@ -9,15 +9,12 @@ import (
 
 	"koding/klient/machine/machinegroup"
 	"koding/klientctl/ssh"
-
-	"github.com/koding/logging"
 )
 
 // SSHOptions stores options for `machine ssh` call.
 type SSHOptions struct {
 	Identifier string // Machine identifier.
 	Username   string // Remote machine user to log as.
-	Log        logging.Logger
 }
 
 // SSH connects to remote machine using SSH protocol.
@@ -69,9 +66,11 @@ func (c *Client) SSH(options *SSHOptions) error {
 		args = append(args, "-p", strconv.Itoa(sshRes.Port))
 	}
 
-	options.Log.Info("Executing command: ssh %s", strings.Join(args, " "))
+	c.stream().Log().Info("Executing command: ssh %s", strings.Join(args, " "))
 	cmd := exec.Command("ssh", args...)
-	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	cmd.Stdin = c.stream().In()
+	cmd.Stdout = c.stream().Out()
+	cmd.Stderr = c.stream().Err()
 	return cmd.Run()
 }
 

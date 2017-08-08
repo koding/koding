@@ -6,7 +6,7 @@ description: |-
   Provides a GitHub team resource.
 ---
 
-# github\_team
+# github_team
 
 Provides a GitHub team resource.
 
@@ -15,12 +15,12 @@ a new team will be created. When destroyed, that team will be removed.
 
 ## Example Usage
 
-```
+```hcl
 # Add a team to the organization
 resource "github_team" "some_team" {
-	name = "some-team"
-	description = "Some cool team"
-	privacy = "closed"
+  name        = "some-team"
+  description = "Some cool team"
+  privacy     = "closed"
 }
 ```
 
@@ -38,3 +38,11 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the created team.
+
+## Import
+
+Github Teams can be imported using the github team Id e.g.
+
+```
+$ terraform import github_team.core 1234567
+```

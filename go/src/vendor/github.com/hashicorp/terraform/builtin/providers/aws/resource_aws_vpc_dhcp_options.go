@@ -19,6 +19,9 @@ func resourceAwsVpcDhcpOptions() *schema.Resource {
 		Read:   resourceAwsVpcDhcpOptionsRead,
 		Update: resourceAwsVpcDhcpOptionsUpdate,
 		Delete: resourceAwsVpcDhcpOptionsDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"domain_name": &schema.Schema{
@@ -123,7 +126,7 @@ func resourceAwsVpcDhcpOptionsCreate(d *schema.ResourceData, meta interface{}) e
 		Pending: []string{"pending"},
 		Target:  []string{"created"},
 		Refresh: resourceDHCPOptionsStateRefreshFunc(conn, d.Id()),
-		Timeout: 1 * time.Minute,
+		Timeout: 5 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf(
@@ -144,7 +147,18 @@ func resourceAwsVpcDhcpOptionsRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := conn.DescribeDhcpOptions(req)
 	if err != nil {
-		return fmt.Errorf("Error retrieving DHCP Options: %s", err)
+		ec2err, ok := err.(awserr.Error)
+		if !ok {
+			return fmt.Errorf("Error retrieving DHCP Options: %s", err.Error())
+		}
+
+		if ec2err.Code() == "InvalidDhcpOptionID.NotFound" {
+			log.Printf("[WARN] DHCP Options (%s) not found, removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving DHCP Options: %s", err.Error())
 	}
 
 	if len(resp.DhcpOptions) == 0 {

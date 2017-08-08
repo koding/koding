@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/errormessages"
-	"koding/klientctl/util"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -63,7 +62,7 @@ func (i Init) CheckValid() error {
 // Command implements the klientctl.Command interface for `kd autocompletion`
 type Command struct {
 	Options Options
-	Stdout  *util.Fprint
+	Stdout  io.Writer
 	Log     logging.Logger
 
 	// The ctlcli Helper. See the type docs for a better understanding of this.
@@ -78,7 +77,7 @@ func NewCommand(i Init, o Options) (*Command, error) {
 	c := &Command{
 		Options: o,
 		Log:     i.Log,
-		Stdout:  util.NewFprint(i.Stdout),
+		Stdout:  i.Stdout,
 		Helper:  i.Helper,
 	}
 
@@ -89,7 +88,7 @@ func NewCommand(i Init, o Options) (*Command, error) {
 func (c *Command) Help() {
 	if c.Helper == nil {
 		// Ugh, talk about a bad UX
-		c.Stdout.Printlnf("Error: Help was requested but command has no helper.")
+		fmt.Fprintln(c.Stdout, "Error: Help was requested but command has no helper.")
 		return
 	}
 
@@ -114,7 +113,7 @@ func (c *Command) Run() (int, error) {
 			return 1, err
 		}
 	default:
-		c.Stdout.Printlnf("Only bash and fish shells are supported currently.")
+		fmt.Fprintln(c.Stdout, "Only bash and fish shells are supported currently.")
 		// Commented out for use when we support more than just bash and fish.
 		//c.Stdout.Printlnf(
 		//	"The shell %s is unsupported by %s at this time.",
@@ -123,7 +122,7 @@ func (c *Command) Run() (int, error) {
 		//)
 	}
 
-	c.Stdout.Printlnf(
+	fmt.Fprintln(c.Stdout,
 		`Successfully installed kd autocomplete. Note you need to restart your shell or
 source your shell config file for autocomplete to work in current session.`,
 	)
@@ -135,7 +134,7 @@ func (c *Command) InstallFish() (err error) {
 	installDir := c.Options.FishDir
 	if installDir == "" {
 		if installDir, err = c.getDefaultFishDir(); err != nil {
-			c.Stdout.Printlnf(errormessages.FishDefaultPathMissing)
+			fmt.Fprintln(c.Stdout, errormessages.FishDefaultPathMissing)
 			return err
 		}
 	}
@@ -143,14 +142,14 @@ func (c *Command) InstallFish() (err error) {
 	c.Log.Info("Installing fish autocomplete. installDir:%q", installDir)
 
 	if err := os.MkdirAll(installDir, 0755); err != nil {
-		c.Stdout.Printlnf(errormessages.FishDirFailed)
+		fmt.Fprintln(c.Stdout, errormessages.FishDirFailed)
 		return err
 	}
 
 	installPath := filepath.Join(installDir, fishFilename)
 	err = ioutil.WriteFile(installPath, []byte(fishCompletionContents), 0644)
 	if err != nil {
-		c.Stdout.Printlnf(errormessages.FishWriteFailed)
+		fmt.Fprintln(c.Stdout, errormessages.FishWriteFailed)
 		return err
 	}
 
@@ -210,18 +209,18 @@ func (c *Command) InstallBash() error {
 
 	err := os.MkdirAll(installDir, 0755)
 	if isPermDeniedErr(err) {
-		c.Stdout.Printlnf(errormessages.BashPermissionError)
+		fmt.Fprintln(c.Stdout, errormessages.BashPermissionError)
 		return err
 	}
 	if err != nil {
-		c.Stdout.Printlnf(errormessages.BashDirFailed)
+		fmt.Fprintln(c.Stdout, errormessages.BashDirFailed)
 		return err
 	}
 
 	installPath := filepath.Join(installDir, bashFilename)
 	err = ioutil.WriteFile(installPath, []byte(bashCompletionContents), 0644)
 	if err != nil {
-		c.Stdout.Printlnf(errormessages.BashWriteFailed)
+		fmt.Fprintln(c.Stdout, errormessages.BashWriteFailed)
 		return err
 	}
 
@@ -233,25 +232,25 @@ func (c *Command) AppendToBashrc() error {
 	// is logged in with root.
 	usr, err := c.getSudoOrCurrentUser()
 	if err != nil {
-		c.Stdout.Printlnf(errormessages.FailedToGetCurrentUser)
+		fmt.Fprintln(c.Stdout, errormessages.FailedToGetCurrentUser)
 		return err
 	}
 
 	bashrcPath := filepath.Join(usr.HomeDir, ".bashrc")
 	f, err := os.OpenFile(bashrcPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		c.Stdout.Printlnf(errormessages.FailedToAppendBashrc)
+		fmt.Fprintln(c.Stdout, errormessages.FailedToAppendBashrc)
 		return err
 	}
 	defer f.Close()
 
 	if _, err := f.WriteString(bashSource); err != nil {
-		c.Stdout.Printlnf(errormessages.FailedToAppendBashrc)
+		fmt.Fprintln(c.Stdout, errormessages.FailedToAppendBashrc)
 		return err
 	}
 
 	if err := c.chownToUser(bashrcPath, usr); err != nil {
-		c.Stdout.Printlnf(errormessages.FailedToChown)
+		fmt.Fprintln(c.Stdout, errormessages.FailedToChown)
 		return err
 	}
 
@@ -269,7 +268,7 @@ func isPermDeniedErr(err error) bool {
 func (c *Command) Autocomplete(args ...string) error {
 	completions := []string{"bash", "fish"}
 	for _, cmplt := range completions {
-		c.Stdout.Printlnf(cmplt)
+		fmt.Fprintln(c.Stdout, cmplt)
 	}
 	return nil
 }

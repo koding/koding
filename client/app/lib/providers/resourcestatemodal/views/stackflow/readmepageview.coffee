@@ -1,8 +1,8 @@
 kd = require 'kd'
-JView = require 'app/jview'
+
 applyMarkdown = require 'app/util/applyMarkdown'
 
-module.exports = class ReadmePageView extends JView
+module.exports = class ReadmePageView extends kd.View
 
   constructor: (options = {}, data) ->
 

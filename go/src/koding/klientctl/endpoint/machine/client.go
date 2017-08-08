@@ -15,10 +15,10 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 	koding "koding/klientctl/endpoint/remoteapi"
+	"koding/klientctl/stream"
 	"koding/remoteapi/models"
 
 	"github.com/koding/kite/dnode"
-	"github.com/koding/logging"
 )
 
 // TODO(rjeczalik): rename to klient package
@@ -40,7 +40,7 @@ type Client struct {
 	Klient kloud.Transport
 	Kloud  *kloud.Client
 	Koding *koding.Client
-	Log    logging.Logger
+	Stream stream.Streamer
 
 	k        kloud.Transport
 	once     sync.Once // for c.init()
@@ -305,11 +305,11 @@ func (c *Client) kloud() *kloud.Client {
 	return kloud.DefaultClient
 }
 
-func (c *Client) log() logging.Logger {
-	if c.Log != nil {
-		return c.Log
+func (c *Client) stream() stream.Streamer {
+	if c.Stream != nil {
+		return c.Stream
 	}
-	return kloud.DefaultLog
+	return stream.DefaultStreams
 }
 
 // Exec runs the given command in a remote machine using DefaultClient.

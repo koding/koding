@@ -8,6 +8,12 @@ module.exports = (KONFIG, options, credentials) ->
   nodeProgram = if options.watchNode then './watch-node' else 'node'
 
   workers =
+    nginx:
+      group: 'webserver'
+      supervisord:
+        command: 'nginx -c %(ENV_KONFIG_PROJECTROOT)s/nginx.conf'
+        stopsignal: 'QUIT'
+
     bucketproxies       :
       group             : 'bucket'
       nginx             :
@@ -262,13 +268,6 @@ module.exports = (KONFIG, options, credentials) ->
             internalOnly: yes
           }
         ]
-
-    algoliaconnector    :
-      group             : 'socialapi'
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/algoliaconnector"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector"
 
     realtime            :
       group             : 'socialapi'

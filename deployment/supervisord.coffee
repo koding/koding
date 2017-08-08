@@ -51,7 +51,7 @@ generateWorkerSection = (app, options = {}) ->
     autorestart             : yes
     startsecs               : 10
     startretries            : 5
-    stopsignal              : 'TERM'
+    stopsignal              : options.stopsignal or 'TERM'
     stopwaitsecs            : 10
     stopasgroup             : yes
     killasgroup             : yes

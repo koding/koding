@@ -1,10 +1,9 @@
 kd    = require 'kd'
-JView = require '../../jview'
+
 showError = require 'app/util/showError'
 whoami = require 'app/util/whoami'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
 ChangeTeamView = require 'app/changeteam'
-JCustomHTMLView  = require 'app/jcustomhtmlview'
 globals = require 'globals'
 intercomSupport = require 'app/util/intercomSupport'
 getCurrentGroup = require 'app/util/getGroup'
@@ -15,7 +14,7 @@ debug = (require 'debug') 'sidebar:dropdown'
 
 module.exports = class TeamName extends kd.CustomHTMLView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 
@@ -58,7 +57,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
     then '{{#(profile.nickname)}}'
     else "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-    profileName = new JCustomHTMLView
+    profileName = new kd.CustomHTMLView
       cssClass   : 'HomeAppView-Nav--fullname'
       pistachio  : pistachio
     , account

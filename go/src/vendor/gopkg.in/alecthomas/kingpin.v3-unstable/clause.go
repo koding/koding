@@ -1,7 +1,6 @@
 package kingpin
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 	"regexp"
@@ -24,18 +23,16 @@ type Clause struct {
 	actionMixin
 	completionsMixin
 
-	name               string
-	shorthand          rune
-	help               string
-	placeholder        string
-	hidden             bool
-	defaultValues      []string
-	value              Value
-	required           bool
-	envar              string
-	noEnvar            bool
-	hintActions        []HintAction
-	builtinHintActions []HintAction
+	name          string
+	shorthand     rune
+	help          string
+	placeholder   string
+	hidden        bool
+	defaultValues []string
+	value         Value
+	required      bool
+	envar         string
+	noEnvar       bool
 }
 
 func NewClause(name, help string) *Clause {
@@ -54,15 +51,29 @@ func (c *Clause) consumesRemainder() bool {
 
 func (c *Clause) init() error {
 	if c.required && len(c.defaultValues) > 0 {
-		return fmt.Errorf("required flag '--%s' with default value that will never be used", c.name)
+		return TError("required flag '--{{.Arg0}}' with default value that will never be used", V{"Arg0": c.name})
 	}
 	if c.value == nil {
-		return fmt.Errorf("no type defined for --%s (eg. .String())", c.name)
+		return TError("no type defined for --{{.Arg0}} (eg. .String())", V{"Arg0": c.name})
 	}
 	if v, ok := c.value.(cumulativeValue); (!ok || !v.IsCumulative()) && len(c.defaultValues) > 1 {
-		return fmt.Errorf("invalid default for '--%s', expecting single value", c.name)
+		return TError("invalid default for '--{{.Arg0}}', expecting single value", V{"Arg0": c.name})
 	}
 	return nil
+}
+
+// UsageAction adds a PreAction() that will display the given UsageContext.
+func (c *Clause) UsageAction(context *UsageContext) *Clause {
+	c.PreAction(func(a *Application, e *ParseElement, c *ParseContext) error {
+		a.UsageForContextWithTemplate(context, c)
+		a.terminate(0)
+		return nil
+	})
+	return c
+}
+
+func (c *Clause) UsageActionTemplate(template string) *Clause {
+	return c.UsageAction(&UsageContext{Template: template})
 }
 
 func (c *Clause) Action(action Action) *Clause {
@@ -80,15 +91,6 @@ func (c *Clause) PreAction(action Action) *Clause {
 func (c *Clause) HintAction(action HintAction) *Clause {
 	c.addHintAction(action)
 	return c
-}
-
-func (c *Clause) addHintAction(action HintAction) {
-	c.hintActions = append(c.hintActions, action)
-}
-
-// Allow adding of HintActions which are added internally, ie, EnumVar
-func (c *Clause) addHintActionBuiltin(action HintAction) {
-	c.builtinHintActions = append(c.builtinHintActions, action)
 }
 
 func (c *Clause) resolveCompletions() []string {
@@ -180,14 +182,13 @@ func (c *Clause) setDefault() error {
 		if v, ok := c.value.(cumulativeValue); !ok || !v.IsCumulative() {
 			// Use the value as-is
 			return c.value.Set(c.GetEnvarValue())
-		} else {
-			for _, value := range c.GetSplitEnvarValue() {
-				if err := c.value.Set(value); err != nil {
-					return err
-				}
-			}
-			return nil
 		}
+		for _, value := range c.GetSplitEnvarValue() {
+			if err := c.value.Set(value); err != nil {
+				return err
+			}
+		}
+		return nil
 	} else if len(c.defaultValues) > 0 {
 		c.reset()
 		for _, defaultValue := range c.defaultValues {
@@ -222,10 +223,7 @@ func (c *Clause) GetSplitEnvarValue() []string {
 
 	// Split by new line to extract multiple values, if any.
 	trimmed := envVarValuesTrimmer.ReplaceAllString(envarValue, "")
-	for _, value := range envVarValuesSplitter.Split(trimmed, -1) {
-		values = append(values, value)
-	}
-
+	values = append(values, envVarValuesSplitter.Split(trimmed, -1)...)
 	return values
 }
 

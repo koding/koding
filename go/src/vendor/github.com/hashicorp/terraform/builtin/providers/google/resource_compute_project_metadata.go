@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeProjectMetadata() *schema.Resource {
@@ -77,7 +76,7 @@ func resourceComputeProjectMetadataCreate(d *schema.ResourceData, meta interface
 
 		log.Printf("[DEBUG] SetCommonMetadata: %d (%s)", op.Id, op.SelfLink)
 
-		return computeOperationWaitGlobal(config, op, "SetCommonMetadata")
+		return computeOperationWaitGlobal(config, op, project.Name, "SetCommonMetadata")
 	}
 
 	err = MetadataRetryWrapper(createMD)
@@ -100,15 +99,7 @@ func resourceComputeProjectMetadataRead(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Loading project service: %s", projectID)
 	project, err := config.clientCompute.Projects.Get(projectID).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			log.Printf("[WARN] Removing Project Metadata because it's gone")
-			// The resource doesn't exist anymore
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error loading project '%s': %s", projectID, err)
+		return handleNotFoundError(err, d, fmt.Sprintf("Project metadata for project %q", projectID))
 	}
 
 	md := project.CommonInstanceMetadata
@@ -156,7 +147,7 @@ func resourceComputeProjectMetadataUpdate(d *schema.ResourceData, meta interface
 			// Optimistic locking requires the fingerprint received to match
 			// the fingerprint we send the server, if there is a mismatch then we
 			// are working on old data, and must retry
-			return computeOperationWaitGlobal(config, op, "SetCommonMetadata")
+			return computeOperationWaitGlobal(config, op, project.Name, "SetCommonMetadata")
 		}
 
 		err := MetadataRetryWrapper(updateMD)
@@ -192,9 +183,13 @@ func resourceComputeProjectMetadataDelete(d *schema.ResourceData, meta interface
 
 	op, err := config.clientCompute.Projects.SetCommonInstanceMetadata(projectID, md).Do()
 
+	if err != nil {
+		return fmt.Errorf("Error removing metadata from project %s: %s", projectID, err)
+	}
+
 	log.Printf("[DEBUG] SetCommonMetadata: %d (%s)", op.Id, op.SelfLink)
 
-	err = computeOperationWaitGlobal(config, op, "SetCommonMetadata")
+	err = computeOperationWaitGlobal(config, op, project.Name, "SetCommonMetadata")
 	if err != nil {
 		return err
 	}

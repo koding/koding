@@ -20,19 +20,23 @@ func TestResourceAzureRMCdnProfileSKU_validation(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    "Standard",
+			Value:    "Standard_Verizon",
 			ErrCount: 0,
 		},
 		{
-			Value:    "Premium",
+			Value:    "Premium_Verizon",
 			ErrCount: 0,
 		},
 		{
-			Value:    "STANDARD",
+			Value:    "Standard_Akamai",
 			ErrCount: 0,
 		},
 		{
-			Value:    "PREMIUM",
+			Value:    "STANDARD_AKAMAI",
+			ErrCount: 0,
+		},
+		{
+			Value:    "standard_akamai",
 			ErrCount: 0,
 		},
 	}
@@ -56,7 +60,7 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists("azurerm_cdn_profile.test"),
@@ -77,12 +81,12 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists("azurerm_cdn_profile.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_cdn_profile.test", "tags.#", "2"),
+						"azurerm_cdn_profile.test", "tags.%", "2"),
 					resource.TestCheckResourceAttr(
 						"azurerm_cdn_profile.test", "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(
@@ -90,15 +94,41 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists("azurerm_cdn_profile.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_cdn_profile.test", "tags.#", "1"),
+						"azurerm_cdn_profile.test", "tags.%", "1"),
 					resource.TestCheckResourceAttr(
 						"azurerm_cdn_profile.test", "tags.environment", "staging"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMCdnProfileNonStandardCasing(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists("azurerm_cdn_profile.test"),
+				),
+			},
+
+			resource.TestStep{
+				Config:             config,
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
@@ -120,7 +150,7 @@ func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient
 
-		resp, err := conn.Get(name, resourceGroup)
+		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnProfilesClient: %s", err)
 		}
@@ -144,14 +174,14 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(name, resourceGroup)
+		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("CDN Profile still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("CDN Profile still exists:\n%#v", resp.ProfileProperties)
 		}
 	}
 
@@ -160,27 +190,27 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 
 var testAccAzureRMCdnProfile_basic = `
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "West US"
 }
 resource "azurerm_cdn_profile" "test" {
     name = "acctestcdnprof%d"
     location = "West US"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+    sku = "Standard_Verizon"
 }
 `
 
 var testAccAzureRMCdnProfile_withTags = `
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "West US"
 }
 resource "azurerm_cdn_profile" "test" {
     name = "acctestcdnprof%d"
     location = "West US"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+    sku = "Standard_Verizon"
 
     tags {
 	environment = "Production"
@@ -191,17 +221,32 @@ resource "azurerm_cdn_profile" "test" {
 
 var testAccAzureRMCdnProfile_withTagsUpdate = `
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "West US"
 }
 resource "azurerm_cdn_profile" "test" {
     name = "acctestcdnprof%d"
     location = "West US"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+    sku = "Standard_Verizon"
 
     tags {
 	environment = "staging"
     }
 }
 `
+
+func testAccAzureRMCdnProfileNonStandardCasing(ri int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US"
+}
+resource "azurerm_cdn_profile" "test" {
+    name = "acctestcdnprof%d"
+    location = "West US"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "standard_verizon"
+}
+`, ri, ri)
+}

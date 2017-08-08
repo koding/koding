@@ -4,7 +4,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"log"
 	"socialapi/config"
-	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/channel"
@@ -63,8 +62,6 @@ func main() {
 	collaboration.AddHandlers(m, mgoCache)
 	paymentapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
-	algoliaapi.AddHandlers(m, r.Log)
-
 	account.AddHandlers(m)
 	channel.AddHandlers(m)
 	client.AddHandlers(m)

@@ -1,7 +1,7 @@
 kd              = require 'kd'
 utils           = require './../core/utils'
 MainHeaderView  = require './../core/mainheaderview'
-JView           = require './../core/jview'
+
 TeamsSignupForm = require './teamssignupform'
 
 track = (action, properties = {}) ->
@@ -11,8 +11,6 @@ track = (action, properties = {}) ->
   utils.analytics.track action, properties
 
 module.exports = class TeamsView extends kd.TabPaneView
-
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
