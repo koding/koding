@@ -251,7 +251,7 @@ func Umount(dir string) error {
 func getFuserMountVer() string {
 	const fm = "fusermount"
 
-	if runtime.GOOS == "linux" {
+	if runtime.GOOS != "linux" {
 		return "unsupported OS " + runtime.GOOS
 	}
 
