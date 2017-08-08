@@ -5,6 +5,8 @@ import (
 	"io"
 
 	"koding/klient/machine/index"
+
+	"github.com/koding/logging"
 )
 
 // BuildOpts represents the context that can be used by external notifiers to
@@ -18,6 +20,8 @@ type BuildOpts struct {
 	CacheDir string // absolute path to locally cached files.
 
 	Index *index.Index // known state of managed index.
+
+	Log logging.Logger
 }
 
 // Builder represents a factory method which external notifiers must implement
