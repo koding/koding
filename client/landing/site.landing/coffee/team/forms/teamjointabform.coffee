@@ -1,11 +1,11 @@
 kd = require 'kd'
-JView           = require './../../core/jview'
+
 LoginInputView  = require './../../login/logininputview'
 
 
 module.exports = class TeamJoinTabForm extends kd.FormView
 
-  JView.mixin @prototype
+
 
   constructor: (options = {}, data) ->
 

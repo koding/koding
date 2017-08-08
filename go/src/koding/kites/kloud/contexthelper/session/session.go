@@ -5,7 +5,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -16,6 +15,13 @@ import (
 type key int
 
 const sessionKey key = 0
+
+// TerraformerOptions are used to connect to a terraformer kite.
+type TerraformerOptions struct {
+	Endpoint  string
+	SecretKey string
+	Kite      *kite.Kite
+}
 
 type Session struct {
 	DB         *mongodb.MongoDB
@@ -31,7 +37,7 @@ type Session struct {
 	// TODO(rjeczalik): Connect to terraformer once and use
 	// single connection instead of connecting for each
 	// request.
-	Terraformer *terraformer.Options
+	Terraformer *TerraformerOptions
 }
 
 func FromContext(ctx context.Context) (*Session, bool) {

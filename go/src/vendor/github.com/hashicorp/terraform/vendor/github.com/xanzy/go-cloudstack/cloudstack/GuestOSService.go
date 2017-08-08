@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -113,11 +113,17 @@ func (s *GuestOSService) NewListOsTypesParams() *ListOsTypesParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *GuestOSService) GetOsTypeByID(id string) (*OsType, int, error) {
+func (s *GuestOSService) GetOsTypeByID(id string, opts ...OptionFunc) (*OsType, int, error) {
 	p := &ListOsTypesParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListOsTypes(p)
 	if err != nil {
@@ -150,6 +156,7 @@ func (s *GuestOSService) ListOsTypes(p *ListOsTypesParams) (*ListOsTypesResponse
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -243,43 +250,49 @@ func (s *GuestOSService) NewListOsCategoriesParams() *ListOsCategoriesParams {
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *GuestOSService) GetOsCategoryID(name string) (string, error) {
+func (s *GuestOSService) GetOsCategoryID(name string, opts ...OptionFunc) (string, int, error) {
 	p := &ListOsCategoriesParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
 
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
+		}
+	}
+
 	l, err := s.ListOsCategories(p)
 	if err != nil {
-		return "", err
+		return "", -1, err
 	}
 
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", name, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
 	if l.Count == 1 {
-		return l.OsCategories[0].Id, nil
+		return l.OsCategories[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.OsCategories {
 			if v.Name == name {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *GuestOSService) GetOsCategoryByName(name string) (*OsCategory, int, error) {
-	id, err := s.GetOsCategoryID(name)
+func (s *GuestOSService) GetOsCategoryByName(name string, opts ...OptionFunc) (*OsCategory, int, error) {
+	id, count, err := s.GetOsCategoryID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetOsCategoryByID(id)
+	r, count, err := s.GetOsCategoryByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -287,11 +300,17 @@ func (s *GuestOSService) GetOsCategoryByName(name string) (*OsCategory, int, err
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *GuestOSService) GetOsCategoryByID(id string) (*OsCategory, int, error) {
+func (s *GuestOSService) GetOsCategoryByID(id string, opts ...OptionFunc) (*OsCategory, int, error) {
 	p := &ListOsCategoriesParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListOsCategories(p)
 	if err != nil {
@@ -324,6 +343,7 @@ func (s *GuestOSService) ListOsCategories(p *ListOsCategoriesParams) (*ListOsCat
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -423,6 +443,7 @@ func (s *GuestOSService) AddGuestOs(p *AddGuestOsParams) (*AddGuestOsResponse, e
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -509,6 +530,7 @@ func (s *GuestOSService) UpdateGuestOs(p *UpdateGuestOsParams) (*UpdateGuestOsRe
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -578,6 +600,7 @@ func (s *GuestOSService) RemoveGuestOs(p *RemoveGuestOsParams) (*RemoveGuestOsRe
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -687,11 +710,17 @@ func (s *GuestOSService) NewListGuestOsMappingParams() *ListGuestOsMappingParams
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *GuestOSService) GetGuestOsMappingByID(id string) (*GuestOsMapping, int, error) {
+func (s *GuestOSService) GetGuestOsMappingByID(id string, opts ...OptionFunc) (*GuestOsMapping, int, error) {
 	p := &ListGuestOsMappingParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListGuestOsMapping(p)
 	if err != nil {
@@ -724,6 +753,7 @@ func (s *GuestOSService) ListGuestOsMapping(p *ListGuestOsMappingParams) (*ListG
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -851,6 +881,7 @@ func (s *GuestOSService) AddGuestOsMapping(p *AddGuestOsMappingParams) (*AddGues
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -940,6 +971,7 @@ func (s *GuestOSService) UpdateGuestOsMapping(p *UpdateGuestOsMappingParams) (*U
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -1012,6 +1044,7 @@ func (s *GuestOSService) RemoveGuestOsMapping(p *RemoveGuestOsMappingParams) (*R
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 

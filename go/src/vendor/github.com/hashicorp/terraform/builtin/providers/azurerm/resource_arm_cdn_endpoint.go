@@ -6,11 +6,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -20,73 +18,72 @@ func resourceArmCdnEndpoint() *schema.Resource {
 		Read:   resourceArmCdnEndpointRead,
 		Update: resourceArmCdnEndpointUpdate,
 		Delete: resourceArmCdnEndpointDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"location": &schema.Schema{
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
-			},
+			"location": locationSchema(),
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"profile_name": &schema.Schema{
+			"profile_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"origin_host_header": &schema.Schema{
+			"origin_host_header": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
-			"is_http_allowed": &schema.Schema{
+			"is_http_allowed": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"is_https_allowed": &schema.Schema{
+			"is_https_allowed": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"origin": &schema.Schema{
+			"origin": {
 				Type:     schema.TypeSet,
 				Required: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": &schema.Schema{
+						"name": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
 
-						"host_name": &schema.Schema{
+						"host_name": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
 
-						"http_port": &schema.Schema{
+						"http_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
-						"https_port": &schema.Schema{
+						"https_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
@@ -96,34 +93,36 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Set: resourceArmCdnEndpointOriginHash,
 			},
 
-			"origin_path": &schema.Schema{
+			"origin_path": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
-			"querystring_caching_behaviour": &schema.Schema{
+			"querystring_caching_behaviour": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "IgnoreQueryString",
 				ValidateFunc: validateCdnEndpointQuerystringCachingBehaviour,
 			},
 
-			"content_types_to_compress": &schema.Schema{
+			"content_types_to_compress": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Set: schema.HashString,
 			},
 
-			"is_compression_enabled": &schema.Schema{
+			"is_compression_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
-			"host_name": &schema.Schema{
+			"host_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -149,7 +148,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	caching_behaviour := d.Get("querystring_caching_behaviour").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	properties := cdn.EndpointPropertiesCreateUpdateParameters{
+	properties := cdn.EndpointProperties{
 		IsHTTPAllowed:              &http_allowed,
 		IsHTTPSAllowed:             &https_allowed,
 		IsCompressionEnabled:       &compression_enabled,
@@ -185,29 +184,27 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		properties.ContentTypesToCompress = &content_types
 	}
 
-	cdnEndpoint := cdn.EndpointCreateParameters{
-		Location:   &location,
-		Properties: &properties,
-		Tags:       expandTags(tags),
+	cdnEndpoint := cdn.Endpoint{
+		Location:           &location,
+		EndpointProperties: &properties,
+		Tags:               expandTags(tags),
 	}
 
-	resp, err := cdnEndpointsClient.Create(name, cdnEndpoint, profileName, resGroup)
+	_, error := cdnEndpointsClient.Create(resGroup, profileName, name, cdnEndpoint, make(<-chan struct{}))
+	err := <-error
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*resp.ID)
+	read, err := cdnEndpointsClient.Get(resGroup, profileName, name)
+	if err != nil {
+		return err
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read CND Endpoint %s/%s (resource group %s) ID", profileName, name, resGroup)
+	}
 
-	log.Printf("[DEBUG] Waiting for CDN Endpoint (%s) to become available", name)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating", "Creating"},
-		Target:  []string{"Succeeded"},
-		Refresh: cdnEndpointStateRefreshFunc(client, resGroup, profileName, name),
-		Timeout: 10 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for CDN Endpoint (%s) to become available: %s", name, err)
-	}
+	d.SetId(*read.ID)
 
 	return resourceArmCdnEndpointRead(d, meta)
 }
@@ -226,31 +223,34 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		profileName = id.Path["Profiles"]
 	}
 	log.Printf("[INFO] Trying to find the AzureRM CDN Endpoint %s (Profile: %s, RG: %s)", name, profileName, resGroup)
-	resp, err := cdnEndpointsClient.Get(name, profileName, resGroup)
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
+	resp, err := cdnEndpointsClient.Get(resGroup, profileName, name)
 	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure CDN Endpoint %s: %s", name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("host_name", resp.Properties.HostName)
-	d.Set("is_compression_enabled", resp.Properties.IsCompressionEnabled)
-	d.Set("is_http_allowed", resp.Properties.IsHTTPAllowed)
-	d.Set("is_https_allowed", resp.Properties.IsHTTPSAllowed)
-	d.Set("querystring_caching_behaviour", resp.Properties.QueryStringCachingBehavior)
-	if resp.Properties.OriginHostHeader != nil && *resp.Properties.OriginHostHeader != "" {
-		d.Set("origin_host_header", resp.Properties.OriginHostHeader)
+	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	d.Set("profile_name", profileName)
+	d.Set("host_name", resp.EndpointProperties.HostName)
+	d.Set("is_compression_enabled", resp.EndpointProperties.IsCompressionEnabled)
+	d.Set("is_http_allowed", resp.EndpointProperties.IsHTTPAllowed)
+	d.Set("is_https_allowed", resp.EndpointProperties.IsHTTPSAllowed)
+	d.Set("querystring_caching_behaviour", resp.EndpointProperties.QueryStringCachingBehavior)
+	if resp.EndpointProperties.OriginHostHeader != nil && *resp.EndpointProperties.OriginHostHeader != "" {
+		d.Set("origin_host_header", resp.EndpointProperties.OriginHostHeader)
 	}
-	if resp.Properties.OriginPath != nil && *resp.Properties.OriginPath != "" {
-		d.Set("origin_path", resp.Properties.OriginPath)
+	if resp.EndpointProperties.OriginPath != nil && *resp.EndpointProperties.OriginPath != "" {
+		d.Set("origin_path", resp.EndpointProperties.OriginPath)
 	}
-	if resp.Properties.ContentTypesToCompress != nil && len(*resp.Properties.ContentTypesToCompress) > 0 {
-		d.Set("content_types_to_compress", flattenAzureRMCdnEndpointContentTypes(resp.Properties.ContentTypesToCompress))
+	if resp.EndpointProperties.ContentTypesToCompress != nil {
+		d.Set("content_types_to_compress", flattenAzureRMCdnEndpointContentTypes(resp.EndpointProperties.ContentTypesToCompress))
 	}
-	d.Set("origin", flattenAzureRMCdnEndpointOrigin(resp.Properties.Origins))
+	d.Set("origin", flattenAzureRMCdnEndpointOrigin(resp.EndpointProperties.Origins))
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -273,21 +273,11 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	caching_behaviour := d.Get("querystring_caching_behaviour").(string)
 	newTags := d.Get("tags").(map[string]interface{})
 
-	properties := cdn.EndpointPropertiesCreateUpdateParameters{
+	properties := cdn.EndpointPropertiesUpdateParameters{
 		IsHTTPAllowed:              &http_allowed,
 		IsHTTPSAllowed:             &https_allowed,
 		IsCompressionEnabled:       &compression_enabled,
 		QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(caching_behaviour),
-	}
-
-	if d.HasChange("origin") {
-		origins, originsErr := expandAzureRmCdnEndpointOrigins(d)
-		if originsErr != nil {
-			return fmt.Errorf("Error Building list of CDN Endpoint Origins: %s", originsErr)
-		}
-		if len(origins) > 0 {
-			properties.Origins = &origins
-		}
 	}
 
 	if d.HasChange("origin_host_header") {
@@ -312,11 +302,12 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	updateProps := cdn.EndpointUpdateParameters{
-		Tags:       expandTags(newTags),
-		Properties: &properties,
+		Tags: expandTags(newTags),
+		EndpointPropertiesUpdateParameters: &properties,
 	}
 
-	_, err := cdnEndpointsClient.Update(name, updateProps, profileName, resGroup)
+	_, error := cdnEndpointsClient.Update(resGroup, profileName, name, updateProps, make(<-chan struct{}))
+	err := <-error
 	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Endpoint %q: %s", name, err)
 	}
@@ -338,29 +329,17 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 	name := id.Path["endpoints"]
 
-	accResp, err := client.DeleteIfExists(name, profileName, resGroup)
+	accResp, error := client.Delete(resGroup, profileName, name, make(<-chan struct{}))
+	resp := <-accResp
+	err = <-error
 	if err != nil {
-		if accResp.StatusCode == http.StatusNotFound {
+		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 		return fmt.Errorf("Error issuing AzureRM delete request for CDN Endpoint %q: %s", name, err)
 	}
-	_, err = pollIndefinitelyAsNeeded(client.Client, accResp.Response, http.StatusNotFound)
-	if err != nil {
-		return fmt.Errorf("Error polling for AzureRM delete request for CDN Endpoint %q: %s", name, err)
-	}
 
-	return err
-}
-
-func cdnEndpointStateRefreshFunc(client *ArmClient, resourceGroupName string, profileName string, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.cdnEndpointsClient.Get(name, profileName, resourceGroupName)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in cdnEndpointStateRefreshFunc to Azure ARM for CDN Endpoint '%s' (RG: '%s'): %s", name, resourceGroupName, err)
-		}
-		return res, string(res.Properties.ProvisioningState), nil
-	}
+	return nil
 }
 
 func validateCdnEndpointQuerystringCachingBehaviour(v interface{}, k string) (ws []string, errors []error) {
@@ -400,21 +379,21 @@ func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedO
 		}
 
 		if v, ok := data["https_port"]; ok {
-			https_port := v.(int)
+			https_port := int32(v.(int))
 			properties.HTTPSPort = &https_port
 
 		}
 
 		if v, ok := data["http_port"]; ok {
-			http_port := v.(int)
+			http_port := int32(v.(int))
 			properties.HTTPPort = &http_port
 		}
 
 		name := data["name"].(string)
 
 		origin := cdn.DeepCreatedOrigin{
-			Name:       &name,
-			Properties: &properties,
+			Name: &name,
+			DeepCreatedOriginProperties: &properties,
 		}
 
 		origins = append(origins, origin)
@@ -428,14 +407,14 @@ func flattenAzureRMCdnEndpointOrigin(list *[]cdn.DeepCreatedOrigin) []map[string
 	for _, i := range *list {
 		l := map[string]interface{}{
 			"name":      *i.Name,
-			"host_name": *i.Properties.HostName,
+			"host_name": *i.DeepCreatedOriginProperties.HostName,
 		}
 
-		if i.Properties.HTTPPort != nil {
-			l["http_port"] = *i.Properties.HTTPPort
+		if i.DeepCreatedOriginProperties.HTTPPort != nil {
+			l["http_port"] = *i.DeepCreatedOriginProperties.HTTPPort
 		}
-		if i.Properties.HTTPSPort != nil {
-			l["https_port"] = *i.Properties.HTTPSPort
+		if i.DeepCreatedOriginProperties.HTTPSPort != nil {
+			l["https_port"] = *i.DeepCreatedOriginProperties.HTTPSPort
 		}
 		result = append(result, l)
 	}

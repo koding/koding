@@ -19,7 +19,8 @@ import (
 
 const arnPrefix = "arn:aws:iam::"
 
-var p = &provider.Provider{
+// Provider is AWS kloud provider.
+var Provider = &provider.Provider{
 	Name:         "aws",
 	ResourceName: "instance",
 	Machine:      newMachine,
@@ -32,7 +33,7 @@ var p = &provider.Provider{
 }
 
 func init() {
-	provider.Register(p)
+	provider.Register(Provider)
 }
 
 func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {

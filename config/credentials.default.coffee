@@ -45,10 +45,6 @@ module.exports = (options) ->
     password: 'guest'
     heartbeat: 10
     vhost: '/'
-  algolia =
-    appId: ''
-    apiSecretKey: ''
-    apiSearchOnlyKey: ''
   postgres =
     host: "#{options.serviceHost}"
     port: '5432'
@@ -158,6 +154,8 @@ module.exports = (options) ->
   recaptcha =
     secret: ''
     public: ''
+    invisible_secret: ''
+    invisible_public: ''
   segment = ''
   kontrol =
     publicKey: '$KONFIG_PROJECTROOT/generated/private_keys/kontrol/kontrol.pub'
@@ -195,7 +193,6 @@ module.exports = (options) ->
     mongo
     redis
     rabbitmq
-    algolia
     postgres
     kontrolPostgres
     pubnub

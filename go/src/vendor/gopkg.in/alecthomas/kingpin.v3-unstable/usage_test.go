@@ -2,6 +2,7 @@ package kingpin
 
 import (
 	"bytes"
+	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -23,6 +24,72 @@ func TestFormatTwoColumns(t *testing.T) {
 	assert.Equal(t, expected, buf.String())
 }
 
+func TestRequiredSubcommandsUsage(t *testing.T) {
+	var buf bytes.Buffer
+
+	a := New("test", "Test").Writers(&buf, ioutil.Discard).Terminate(nil)
+	c0 := a.Command("c0", "c0info")
+	c0.Command("c1", "c1info")
+	_, err := a.Parse(nil)
+	assert.Error(t, err)
+
+	expectedStr := `
+usage: test [<flags>] <command>
+
+Test
+
+
+Flags:
+  --help  Show context-sensitive help.
+
+Commands:
+  help [<command> ...]
+    Show help.
+
+
+  c0 c1
+    c1info
+
+
+`
+	assert.Equal(t, expectedStr, buf.String())
+}
+
+func TestOptionalSubcommandsUsage(t *testing.T) {
+	var buf bytes.Buffer
+
+	a := New("test", "Test").Writers(&buf, ioutil.Discard).Terminate(nil)
+	c0 := a.Command("c0", "c0info").OptionalSubcommands()
+	c0.Command("c1", "c1info")
+	_, err := a.Parse(nil)
+	assert.Error(t, err)
+
+	expectedStr := `
+usage: test [<flags>] <command>
+
+Test
+
+
+Flags:
+  --help  Show context-sensitive help.
+
+Commands:
+  help [<command> ...]
+    Show help.
+
+
+  c0
+    c0info
+
+
+  c0 c1
+    c1info
+
+
+`
+	assert.Equal(t, expectedStr, buf.String())
+}
+
 func TestFormatTwoColumnsWide(t *testing.T) {
 	samples := [][2]string{
 		{strings.Repeat("x", 29), "29 chars"},
@@ -40,14 +107,12 @@ func TestHiddenCommand(t *testing.T) {
 	templates := []struct{ name, template string }{
 		{"default", DefaultUsageTemplate},
 		{"Compact", CompactUsageTemplate},
-		{"Long", LongHelpTemplate},
 		{"Man", ManPageTemplate},
 	}
 
 	var buf bytes.Buffer
-	t.Log("1")
 
-	a := New("test", "Test").Writer(&buf).Terminate(nil)
+	a := New("test", "Test").Writers(&buf, ioutil.Discard).Terminate(nil)
 	a.Command("visible", "visible")
 	a.Command("hidden", "hidden").Hidden()
 
@@ -62,4 +127,22 @@ func TestHiddenCommand(t *testing.T) {
 		assert.NotContains(t, usage, "hidden")
 		assert.Contains(t, usage, "visible")
 	}
+}
+
+func TestIssue169MultipleUsageCorruption(t *testing.T) {
+	buf := &bytes.Buffer{}
+	app := newTestApp()
+	cmd := app.Command("cmd", "")
+	cmd.Flag("flag", "").Default("false").Bool()
+	app.Writers(buf, ioutil.Discard)
+	_, err := app.Parse([]string{"help", "cmd"})
+	assert.NoError(t, err)
+	expected := buf.String()
+
+	buf.Reset()
+	_, err = app.Parse([]string{"help"})
+	assert.NoError(t, err)
+	actual := buf.String()
+
+	assert.NotEqual(t, expected, actual)
 }

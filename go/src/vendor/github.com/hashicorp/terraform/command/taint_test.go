@@ -2,6 +2,7 @@ package command
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/terraform"
@@ -42,6 +43,50 @@ func TestTaint(t *testing.T) {
 	}
 
 	testStateOutput(t, statePath, testTaintStr)
+}
+
+func TestTaint_lockedState(t *testing.T) {
+	state := &terraform.State{
+		Modules: []*terraform.ModuleState{
+			&terraform.ModuleState{
+				Path: []string{"root"},
+				Resources: map[string]*terraform.ResourceState{
+					"test_instance.foo": &terraform.ResourceState{
+						Type: "test_instance",
+						Primary: &terraform.InstanceState{
+							ID: "bar",
+						},
+					},
+				},
+			},
+		},
+	}
+	statePath := testStateFile(t, state)
+
+	unlock, err := testLockState("./testdata", statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer unlock()
+	ui := new(cli.MockUi)
+	c := &TaintCommand{
+		Meta: Meta{
+			Ui: ui,
+		},
+	}
+
+	args := []string{
+		"-state", statePath,
+		"test_instance.foo",
+	}
+	if code := c.Run(args); code == 0 {
+		t.Fatal("expected error")
+	}
+
+	output := ui.ErrorWriter.String()
+	if !strings.Contains(output, "lock") {
+		t.Fatal("command output does not look like a lock error:", output)
+	}
 }
 
 func TestTaint_backup(t *testing.T) {
@@ -347,9 +392,8 @@ func TestTaint_module(t *testing.T) {
 }
 
 const testTaintStr = `
-test_instance.foo: (1 tainted)
-  ID = <not created>
-  Tainted ID 1 = bar
+test_instance.foo: (tainted)
+  ID = bar
 `
 
 const testTaintDefaultStr = `
@@ -362,7 +406,6 @@ test_instance.foo:
   ID = bar
 
 module.child:
-  test_instance.blah: (1 tainted)
-    ID = <not created>
-    Tainted ID 1 = blah
+  test_instance.blah: (tainted)
+    ID = blah
 `

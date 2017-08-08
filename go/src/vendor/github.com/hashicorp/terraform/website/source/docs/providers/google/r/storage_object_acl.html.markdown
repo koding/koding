@@ -8,20 +8,23 @@ description: |-
 
 # google\_storage\_object\_acl
 
-Creates a new object ACL in Google cloud storage service (GCS)
+Creates a new object ACL in Google cloud storage service (GCS). For more information see 
+[the official documentation](https://cloud.google.com/storage/docs/access-control/lists) 
+and 
+[API](https://cloud.google.com/storage/docs/json_api/v1/objectAccessControls).
 
 ## Example Usage
 
 Create an object ACL with one owner and one reader.
 
-```js
+```hcl
 resource "google_storage_bucket" "image-store" {
   name     = "image-store-bucket"
   location = "EU"
 }
 
 resource "google_storage_bucket_object" "image" {
-  name  = "image1"
+  name   = "image1"
   bucket = "${google_storage_bucket.name}"
   source = "image1.jpg"
 }

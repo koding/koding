@@ -1,3 +1,5 @@
+encoder = require 'htmlencode'
+
 # Includes message, type pairs
 KnownErrors =
   'Access denied' : 'AccessDenied'
@@ -6,7 +8,7 @@ module.exports = class KodingError extends Error
 
   constructor: (message, name, errorObject) ->
 
-    return new KodingError message  unless this instanceof KodingError
+    return new KodingError encoder.XSSEncode message  unless this instanceof KodingError
 
     Error.call this
 

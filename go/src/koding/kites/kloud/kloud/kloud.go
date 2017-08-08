@@ -32,7 +32,6 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/team"
-	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	kitemetrics "koding/kites/metrics"
 	"koding/remoteapi"
@@ -482,7 +481,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 			TunnelURL: conf.TunnelURL,
 			Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
 		},
-		Terraformer: &terraformer.Options{
+		Terraformer: &session.TerraformerOptions{
 			Endpoint:  "http://127.0.0.1:2300/kite",
 			SecretKey: conf.TerraformerSecretKey,
 			Kite:      k,

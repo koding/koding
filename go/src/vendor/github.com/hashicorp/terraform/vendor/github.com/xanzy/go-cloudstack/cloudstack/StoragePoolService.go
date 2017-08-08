@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ func (p *ListStorageProvidersParams) SetType(v string) {
 	if p.p == nil {
 		p.p = make(map[string]interface{})
 	}
-	p.p["storagePoolType"] = v
+	p.p["type"] = v
 	return
 }
 
@@ -85,7 +85,7 @@ func (p *ListStorageProvidersParams) SetType(v string) {
 func (s *StoragePoolService) NewListStorageProvidersParams(storagePoolType string) *ListStorageProvidersParams {
 	p := &ListStorageProvidersParams{}
 	p.p = make(map[string]interface{})
-	p.p["storagePoolType"] = storagePoolType
+	p.p["type"] = storagePoolType
 	return p
 }
 
@@ -100,6 +100,7 @@ func (s *StoragePoolService) ListStorageProviders(p *ListStorageProvidersParams)
 	if err := json.Unmarshal(resp, &r); err != nil {
 		return nil, err
 	}
+
 	return &r, nil
 }
 
@@ -176,6 +177,7 @@ func (s *StoragePoolService) EnableStorageMaintenance(p *EnableStorageMaintenanc
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 
@@ -269,6 +271,7 @@ func (s *StoragePoolService) CancelStorageMaintenance(p *CancelStorageMaintenanc
 			return nil, err
 		}
 	}
+
 	return &r, nil
 }
 

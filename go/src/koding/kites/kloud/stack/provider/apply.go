@@ -21,7 +21,6 @@ import (
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/utils/object"
-	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
 )
@@ -70,7 +69,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	if arg.Destroy {
 		err = bs.destroy(ctx, arg)
 	} else {
-		err = bs.apply(ctx, arg)
+		go bs.apply(ctx, arg)
 	}
 
 	if err != nil {
@@ -82,7 +81,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	}, nil
 }
 
-func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) error {
+func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) {
 	log := bs.Log.New(req.StackID)
 
 	bs.Eventer.Push(&eventer.Event{
@@ -90,19 +89,28 @@ func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) error {
 		Status:  machinestate.Building,
 	})
 
-	go func() {
-		finalEvent := &eventer.Event{
-			Message:    bs.Req.Method + " finished",
-			Status:     machinestate.Running,
-			Percentage: 100,
+	finalEvent := &eventer.Event{
+		Message:    bs.Req.Method + " finished",
+		Status:     machinestate.Running,
+		Percentage: 100,
+	}
+
+	start := time.Now()
+
+	modelhelper.SetStackState(req.StackID, "Stack building started", stackstate.Building)
+	log.Info("======> %s started <======", strings.ToUpper(bs.Req.Method))
+
+	var err error
+	defer func() {
+		if v := recover(); v != nil {
+			if e, ok := v.(error); ok {
+				err = e
+			} else {
+				err = fmt.Errorf("%v", v)
+			}
 		}
 
-		start := time.Now()
-
-		modelhelper.SetStackState(req.StackID, "Stack building started", stackstate.Building)
-		log.Info("======> %s started <======", strings.ToUpper(bs.Req.Method))
-
-		if err := bs.applyAsync(ctx, req); err != nil {
+		if err != nil {
 			modelhelper.SetStackState(req.StackID, "Stack building failed", stackstate.NotInitialized)
 			finalEvent.Status = machinestate.NotInitialized
 
@@ -119,7 +127,7 @@ func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) error {
 		bs.Eventer.Push(finalEvent)
 	}()
 
-	return nil
+	err = bs.applyAsync(ctx, req)
 }
 
 func (bs *BaseStack) destroy(ctx context.Context, req *stack.ApplyRequest) error {
@@ -198,13 +206,15 @@ func (bs *BaseStack) destroyAsync(ctx context.Context, req *stack.ApplyRequest) 
 	if bs.Builder.Stack.Stack.State() != stackstate.NotInitialized {
 		bs.Log.Debug("Connection to Terraformer")
 
-		tfKite, err := terraformer.Connect(bs.Session.Terraformer)
+		opts := bs.Session.Terraformer
+
+		tfKite, err := terraformer.Connect(opts.Endpoint, opts.SecretKey, opts.Kite)
 		if err != nil {
 			return err
 		}
 		defer tfKite.Close()
 
-		tfReq := &tf.TerraformRequest{
+		tfReq := &terraformer.TerraformRequest{
 			ContentID: req.GroupName + "-" + req.StackID,
 			TraceID:   bs.TraceID,
 		}
@@ -256,7 +266,9 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 
-	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
+	opts := bs.Session.Terraformer
+
+	tfKite, err := terraformer.Connect(opts.Endpoint, opts.SecretKey, opts.Kite)
 	if err != nil {
 		return err
 	}
@@ -317,7 +329,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		}
 	}()
 
-	tfReq := &tf.TerraformRequest{
+	tfReq := &terraformer.TerraformRequest{
 		Content:   bs.Builder.Stack.Template,
 		ContentID: t.Key,
 		TraceID:   bs.TraceID,

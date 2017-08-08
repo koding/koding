@@ -1,9 +1,11 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -15,30 +17,38 @@ func resourceDigitalOceanSSHKey() *schema.Resource {
 		Read:   resourceDigitalOceanSSHKeyRead,
 		Update: resourceDigitalOceanSSHKeyUpdate,
 		Delete: resourceDigitalOceanSSHKeyDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"id": &schema.Schema{
+			"id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"public_key": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"public_key": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: resourceDigitalOceanSSHKeyPublicKeyDiffSuppress,
 			},
 
-			"fingerprint": &schema.Schema{
+			"fingerprint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
+}
+
+func resourceDigitalOceanSSHKeyPublicKeyDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	return strings.TrimSpace(old) == strings.TrimSpace(new)
 }
 
 func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) error {
@@ -51,7 +61,7 @@ func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	log.Printf("[DEBUG] SSH Key create configuration: %#v", opts)
-	key, _, err := client.Keys.Create(opts)
+	key, _, err := client.Keys.Create(context.Background(), opts)
 	if err != nil {
 		return fmt.Errorf("Error creating SSH Key: %s", err)
 	}
@@ -70,7 +80,7 @@ func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("invalid SSH key id: %v", err)
 	}
 
-	key, resp, err := client.Keys.GetByID(id)
+	key, resp, err := client.Keys.GetByID(context.Background(), id)
 	if err != nil {
 		// If the key is somehow already destroyed, mark as
 		// successfully gone
@@ -84,6 +94,7 @@ func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", key.Name)
 	d.Set("fingerprint", key.Fingerprint)
+	d.Set("public_key", key.PublicKey)
 
 	return nil
 }
@@ -105,7 +116,7 @@ func resourceDigitalOceanSSHKeyUpdate(d *schema.ResourceData, meta interface{}) 
 	opts := &godo.KeyUpdateRequest{
 		Name: newName,
 	}
-	_, _, err = client.Keys.UpdateByID(id, opts)
+	_, _, err = client.Keys.UpdateByID(context.Background(), id, opts)
 	if err != nil {
 		return fmt.Errorf("Failed to update SSH key: %s", err)
 	}
@@ -122,7 +133,7 @@ func resourceDigitalOceanSSHKeyDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	log.Printf("[INFO] Deleting SSH key: %d", id)
-	_, err = client.Keys.DeleteByID(id)
+	_, err = client.Keys.DeleteByID(context.Background(), id)
 	if err != nil {
 		return fmt.Errorf("Error deleting SSH key: %s", err)
 	}

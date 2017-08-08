@@ -20,13 +20,15 @@ func TestAccAWSElasticacheCluster_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSElasticacheClusterConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists("aws_elasticache_security_group.bar"),
 					testAccCheckAWSElasticacheClusterExists("aws_elasticache_cluster.bar", &ec),
 					resource.TestCheckResourceAttr(
 						"aws_elasticache_cluster.bar", "cache_nodes.0.id", "0001"),
+					resource.TestCheckResourceAttrSet("aws_elasticache_cluster.bar", "configuration_endpoint"),
+					resource.TestCheckResourceAttrSet("aws_elasticache_cluster.bar", "cluster_address"),
 				),
 			},
 		},
@@ -45,7 +47,7 @@ func TestAccAWSElasticacheCluster_snapshotsWithUpdates(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists("aws_elasticache_security_group.bar"),
@@ -57,7 +59,7 @@ func TestAccAWSElasticacheCluster_snapshotsWithUpdates(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists("aws_elasticache_security_group.bar"),
@@ -84,7 +86,7 @@ func TestAccAWSElasticacheCluster_decreasingCacheNodes(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists("aws_elasticache_security_group.bar"),
@@ -94,7 +96,7 @@ func TestAccAWSElasticacheCluster_decreasingCacheNodes(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSecurityGroupExists("aws_elasticache_security_group.bar"),
@@ -115,7 +117,7 @@ func TestAccAWSElasticacheCluster_vpc(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSElasticacheClusterInVPCConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSubnetGroupExists("aws_elasticache_subnet_group.bar", &csg),
@@ -137,7 +139,7 @@ func TestAccAWSElasticacheCluster_multiAZInVpc(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckAWSElasticacheClusterDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAWSElasticacheClusterMultiAZInVPCConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAWSElasticacheSubnetGroupExists("aws_elasticache_subnet_group.bar", &csg),
@@ -217,6 +219,23 @@ func testAccCheckAWSElasticacheClusterExists(n string, v *elasticache.CacheClust
 	}
 }
 
+func testAccAWSElasticacheClusterConfigBasic(clusterId string) string {
+	return fmt.Sprintf(`
+provider "aws" {
+	region = "us-east-1"
+}
+
+resource "aws_elasticache_cluster" "bar" {
+    cluster_id = "tf-%s"
+    engine = "memcached"
+    node_type = "cache.m1.small"
+    num_cache_nodes = 1
+    port = 11211
+    parameter_group_name = "default.memcached1.4"
+}
+`, clusterId)
+}
+
 var testAccAWSElasticacheClusterConfig = fmt.Sprintf(`
 provider "aws" {
 	region = "us-east-1"
@@ -276,7 +295,7 @@ resource "aws_elasticache_cluster" "bar" {
     node_type = "cache.m1.small"
     num_cache_nodes = 1
     port = 6379
-  	parameter_group_name = "default.redis2.8"
+  	parameter_group_name = "default.redis3.2"
     security_group_names = ["${aws_elasticache_security_group.bar.name}"]
     snapshot_window = "05:00-09:00"
     snapshot_retention_limit = 3
@@ -310,7 +329,7 @@ resource "aws_elasticache_cluster" "bar" {
     node_type = "cache.m1.small"
     num_cache_nodes = 1
     port = 6379
-  	parameter_group_name = "default.redis2.8"
+  	parameter_group_name = "default.redis3.2"
     security_group_names = ["${aws_elasticache_security_group.bar.name}"]
     snapshot_window = "07:00-09:00"
     snapshot_retention_limit = 7

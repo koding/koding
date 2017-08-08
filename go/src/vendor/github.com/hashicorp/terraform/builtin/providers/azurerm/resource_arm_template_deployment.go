@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,36 +22,36 @@ func resourceArmTemplateDeployment() *schema.Resource {
 		Delete: resourceArmTemplateDeploymentDelete,
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"template_body": &schema.Schema{
+			"template_body": {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
 				StateFunc: normalizeJson,
 			},
 
-			"parameters": &schema.Schema{
+			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
 			},
 
-			"outputs": &schema.Schema{
+			"outputs": {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
 
-			"deployment_mode": &schema.Schema{
+			"deployment_mode": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -98,19 +99,29 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 	deployment := resources.Deployment{
 		Properties: &properties,
 	}
-	resp, err := deployClient.CreateOrUpdate(resGroup, name, deployment)
+
+	_, error := deployClient.CreateOrUpdate(resGroup, name, deployment, make(chan struct{}))
+	err := <-error
 	if err != nil {
-		return nil
+		return fmt.Errorf("Error creating deployment: %s", err)
 	}
 
-	d.SetId(*resp.ID)
+	read, err := deployClient.Get(resGroup, name)
+	if err != nil {
+		return err
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Template Deployment %s (resource group %s) ID", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
 
 	log.Printf("[DEBUG] Waiting for Template Deployment (%s) to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"creating", "updating", "accepted", "running"},
 		Target:  []string{"succeeded"},
 		Refresh: templateDeploymentStateRefreshFunc(client, resGroup, name),
-		Timeout: 10 * time.Minute,
+		Timeout: 40 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Template Deployment (%s) to become available: %s", name, err)
@@ -134,31 +145,52 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	}
 
 	resp, err := deployClient.Get(resGroup, name)
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
 	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %s: %s", name, err)
 	}
+
 	var outputs map[string]string
 	if resp.Properties.Outputs != nil && len(*resp.Properties.Outputs) > 0 {
 		outputs = make(map[string]string)
 		for key, output := range *resp.Properties.Outputs {
+			log.Printf("[DEBUG] Processing deployment output %s", key)
 			outputMap := output.(map[string]interface{})
 			outputValue, ok := outputMap["value"]
 			if !ok {
-				// No value
+				log.Printf("[DEBUG] No value - skipping")
+				continue
+			}
+			outputType, ok := outputMap["type"]
+			if !ok {
+				log.Printf("[DEBUG] No type - skipping")
 				continue
 			}
 
-			outputs[key] = outputValue.(string)
+			var outputValueString string
+			switch strings.ToLower(outputType.(string)) {
+			case "bool":
+				outputValueString = strconv.FormatBool(outputValue.(bool))
+
+			case "string":
+				outputValueString = outputValue.(string)
+
+			case "int":
+				outputValueString = fmt.Sprint(outputValue)
+
+			default:
+				log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
+					key, outputType)
+				continue
+			}
+			outputs[key] = outputValueString
 		}
 	}
 
-	d.Set("outputs", outputs)
-
-	return nil
+	return d.Set("outputs", outputs)
 }
 
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
@@ -175,8 +207,10 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		name = id.Path["Deployments"]
 	}
 
-	_, err = deployClient.Delete(resGroup, name)
-	return nil
+	_, error := deployClient.Delete(resGroup, name, make(chan struct{}))
+	err = <-error
+
+	return err
 }
 
 func expandTemplateBody(template string) (map[string]interface{}, error) {

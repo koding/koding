@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -21,10 +22,11 @@ import (
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
+// Severity of linter message.
 type Severity string
 
 // Linter message severity levels.
-const (
+const ( // nolint
 	Warning Severity = "warning"
 	Error   Severity = "error"
 )
@@ -32,8 +34,8 @@ const (
 var (
 	// Locations to look for vendored linters.
 	vendoredSearchPaths = [][]string{
-		{"github.com", "alecthomas", "gometalinter", "vendor"},
-		{"gopkg.in", "alecthomas", "gometalinter.v1", "vendor"},
+		{"github.com", "alecthomas", "gometalinter", "_linters"},
+		{"gopkg.in", "alecthomas", "gometalinter.v1", "_linters"},
 	}
 )
 
@@ -88,6 +90,8 @@ type sortedIssues struct {
 
 func (s *sortedIssues) Len() int      { return len(s.issues) }
 func (s *sortedIssues) Swap(i, j int) { s.issues[i], s.issues[j] = s.issues[j], s.issues[i] }
+
+// nolint: gocyclo
 func (s *sortedIssues) Less(i, j int) bool {
 	l, r := s.issues[i], s.issues[j]
 	for _, key := range s.order {
@@ -138,7 +142,7 @@ func init() {
 	kingpin.Flag("force", "Pass -f to go tool when installing.").Short('f').BoolVar(&config.Force)
 	kingpin.Flag("download-only", "Pass -d to go tool when installing.").BoolVar(&config.DownloadOnly)
 	kingpin.Flag("debug", "Display messages for failed linters, etc.").Short('d').BoolVar(&config.Debug)
-	kingpin.Flag("concurrency", "Number of concurrent linters to run.").PlaceHolder("16").Short('j').IntVar(&config.Concurrency)
+	kingpin.Flag("concurrency", "Number of concurrent linters to run.").PlaceHolder(fmt.Sprintf("%d", runtime.NumCPU())).Short('j').IntVar(&config.Concurrency)
 	kingpin.Flag("exclude", "Exclude messages matching these regular expressions.").Short('e').PlaceHolder("REGEXP").StringsVar(&config.Exclude)
 	kingpin.Flag("include", "Include messages matching these regular expressions.").Short('I').PlaceHolder("REGEXP").StringsVar(&config.Include)
 	kingpin.Flag("skip", "Skip directories with this name when expanding '...'.").Short('s').PlaceHolder("DIR...").StringsVar(&config.Skip)
@@ -151,20 +155,21 @@ func init() {
 	kingpin.Flag("dupl-threshold", "Minimum token sequence as a clone for dupl.").PlaceHolder("50").IntVar(&config.DuplThreshold)
 	kingpin.Flag("sort", fmt.Sprintf("Sort output by any of %s.", strings.Join(sortKeys, ", "))).PlaceHolder("none").EnumsVar(&config.Sort, sortKeys...)
 	kingpin.Flag("tests", "Include test files for linters that support this option").Short('t').BoolVar(&config.Test)
-	kingpin.Flag("deadline", "Cancel linters if they have not completed within this duration.").PlaceHolder("5s").DurationVar(&config.Deadline)
+	kingpin.Flag("deadline", "Cancel linters if they have not completed within this duration.").PlaceHolder("30s").DurationVar(&config.Deadline)
 	kingpin.Flag("errors", "Only show errors.").BoolVar(&config.Errors)
 	kingpin.Flag("json", "Generate structured JSON rather than standard line-based output.").BoolVar(&config.JSON)
 	kingpin.Flag("checkstyle", "Generate checkstyle XML rather than standard line-based output.").BoolVar(&config.Checkstyle)
 	kingpin.Flag("enable-gc", "Enable GC for linters (useful on large repositories).").BoolVar(&config.EnableGC)
 	kingpin.Flag("aggregate", "Aggregate issues reported by several linters.").BoolVar(&config.Aggregate)
+	kingpin.CommandLine.GetFlag("help").Short('h')
 }
 
-func loadConfig(element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
+func loadConfig(app *kingpin.Application, element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
 	r, err := os.Open(*element.Value)
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer r.Close() // nolint: errcheck
 	err = json.NewDecoder(r).Decode(config)
 	if err != nil {
 		return err
@@ -183,26 +188,28 @@ func loadConfig(element *kingpin.ParseElement, ctx *kingpin.ParseContext) error 
 	return err
 }
 
-func disableAction(element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
-	for i, linter := range config.Enable {
-		if linter == *element.Value {
-			config.Enable = append(config.Enable[:i], config.Enable[i+1:]...)
+func disableAction(app *kingpin.Application, element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
+	out := []string{}
+	for _, linter := range config.Enable {
+		if linter != *element.Value {
+			out = append(out, linter)
 		}
 	}
+	config.Enable = out
 	return nil
 }
 
-func enableAction(element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
+func enableAction(app *kingpin.Application, element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
 	config.Enable = append(config.Enable, *element.Value)
 	return nil
 }
 
-func disableAllAction(element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
+func disableAllAction(app *kingpin.Application, element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
 	config.Enable = []string{}
 	return nil
 }
 
-func enableAllAction(element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
+func enableAllAction(app *kingpin.Application, element *kingpin.ParseElement, ctx *kingpin.ParseContext) error {
 	for linter := range linterDefinitions {
 		config.Enable = append(config.Enable, linter)
 	}
@@ -325,6 +332,7 @@ Severity override map (default is "warning"):
 	os.Exit(status)
 }
 
+// nolint: gocyclo
 func processConfig(config *Config) (include *regexp.Regexp, exclude *regexp.Regexp) {
 	// Move configured linters into linterDefinitions.
 	for name, definition := range config.Linters {
@@ -409,7 +417,8 @@ func runLinters(linters map[string]*Linter, paths, ellipsisPaths []string, concu
 	errch := make(chan error, len(linters)*(len(paths)+len(ellipsisPaths)))
 	concurrencych := make(chan bool, config.Concurrency)
 	incomingIssues := make(chan *Issue, 1000000)
-	processedIssues := maybeSortIssues(maybeAggregateIssues(incomingIssues))
+	directives := newDirectiveParser(paths)
+	processedIssues := filterIssuesViaDirectives(directives, maybeSortIssues(maybeAggregateIssues(incomingIssues)))
 	wg := &sync.WaitGroup{}
 	for _, linter := range linters {
 		// Recreated in each loop because it is mutated by executeLinter().
@@ -462,6 +471,7 @@ func runLinters(linters map[string]*Linter, paths, ellipsisPaths []string, concu
 	return processedIssues, errch
 }
 
+// nolint: gocyclo
 func expandPaths(paths, skip []string) []string {
 	if len(paths) == 0 {
 		paths = []string{"."}
@@ -531,7 +541,7 @@ func makeInstallCommand(linters ...string) []string {
 func installLintersWithOneCommand(targets []string) error {
 	cmd := makeInstallCommand(targets...)
 	debug("go %s", strings.Join(cmd, " "))
-	c := exec.Command("go", cmd...)
+	c := exec.Command("go", cmd...) // nolint: gas
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	return c.Run()
@@ -542,7 +552,7 @@ func installLintersIndividually(targets []string) {
 	for _, target := range targets {
 		cmd := makeInstallCommand(target)
 		debug("go %s", strings.Join(cmd, " "))
-		c := exec.Command("go", cmd...)
+		c := exec.Command("go", cmd...) // nolint: gas
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
 		if err := c.Run(); err != nil {
@@ -673,7 +683,7 @@ func executeLinter(state *linterState) error {
 	}
 	debug("executing %s %q", exe, args)
 	buf := bytes.NewBuffer(nil)
-	cmd := exec.Command(exe, args...)
+	cmd := exec.Command(exe, args...) // nolint: gas
 	if state.ShouldChdir() {
 		cmd.Dir = state.path
 	}
@@ -731,6 +741,9 @@ func lintersFromFlags() map[string]*Linter {
 	for _, linter := range config.Enable {
 		out[linter] = LinterFromName(linter)
 	}
+	for _, linter := range config.Disable {
+		delete(out, linter)
+	}
 	if config.Fast {
 		for _, linter := range slowLinters {
 			delete(out, linter)
@@ -739,6 +752,7 @@ func lintersFromFlags() map[string]*Linter {
 	return out
 }
 
+// nolint: gocyclo
 func processOutput(state *linterState, out []byte) {
 	re := state.regex
 	all := re.FindAllSubmatchIndex(out, -1)
@@ -803,7 +817,7 @@ func processOutput(state *linterState, out []byte) {
 }
 
 func findVendoredLinters() string {
-	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
+	gopaths := strings.Split(getGoPath(), string(os.PathListSeparator))
 	for _, home := range vendoredSearchPaths {
 		for _, p := range gopaths {
 			joined := append([]string{p, "src"}, home...)
@@ -817,16 +831,27 @@ func findVendoredLinters() string {
 
 }
 
+// Go 1.8 compatible GOPATH.
+func getGoPath() string {
+	path := os.Getenv("GOPATH")
+	if path == "" {
+		user, err := user.Current()
+		kingpin.FatalIfError(err, "")
+		path = filepath.Join(user.HomeDir, "go")
+	}
+	return path
+}
+
 // Add all "bin" directories from GOPATH to PATH, as well as GOBIN if set.
 func configureEnvironment() {
-	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
+	gopaths := strings.Split(getGoPath(), string(os.PathListSeparator))
 	paths := strings.Split(os.Getenv("PATH"), string(os.PathListSeparator))
 	gobin := os.Getenv("GOBIN")
 
 	if config.VendoredLinters && config.Install {
 		vendorRoot := findVendoredLinters()
 		if vendorRoot == "" {
-			kingpin.Fatalf("could not find vendored linters in %s", os.Getenv("GOPATH"))
+			kingpin.Fatalf("could not find vendored linters in GOPATH=%q", getGoPath())
 		}
 		debug("found vendored linters at %s, updating environment", vendorRoot)
 		if gobin == "" {

@@ -28,19 +28,20 @@ Usage
 
 ```go
 import "github.com/ajg/form"
+// or: "gopkg.in/ajg/form.v1"
 ```
 
 Given a type like the following...
 
 ```go
 type User struct {
-        Name         string            `form:"name"`
-        Email        string            `form:"email"`
-        Joined       time.Time         `form:"joined,omitempty"`
-        Posts        []int             `form:"posts"`
-        Preferences  map[string]string `form:"prefs"`
-        Avatar       []byte            `form:"avatar"`
-        PasswordHash int64             `form:"-"`
+	Name         string            `form:"name"`
+	Email        string            `form:"email"`
+	Joined       time.Time         `form:"joined,omitempty"`
+	Posts        []int             `form:"posts"`
+	Preferences  map[string]string `form:"prefs"`
+	Avatar       []byte            `form:"avatar"`
+	PasswordHash int64             `form:"-"`
 }
 ```
 
@@ -49,9 +50,9 @@ type User struct {
 
 ```go
 func PostUser(url string, u User) error {
-        var c http.Client
-        _, err := c.PostForm(url, form.EncodeToValues(u))
-        return err
+	var c http.Client
+	_, err := c.PostForm(url, form.EncodeToValues(u))
+	return err
 }
 ```
 
@@ -60,15 +61,15 @@ func PostUser(url string, u User) error {
 
 ```go
 func Handler(w http.ResponseWriter, r *http.Request) {
-        var u User
+	var u User
 
-        d := form.NewDecoder(r.Body)
-        if err := d.Decode(&u); err != nil {
-                http.Error(w, "Form could not be decoded", http.StatusBadRequest)
-                return
-        }
+	d := form.NewDecoder(r.Body)
+	if err := d.Decode(&u); err != nil {
+		http.Error(w, "Form could not be decoded", http.StatusBadRequest)
+		return
+	}
 
-        fmt.Fprintf(w, "Decoded: %#v", u)
+	fmt.Fprintf(w, "Decoded: %#v", u)
 }
 ```
 
@@ -126,6 +127,10 @@ While encouraged, it is not necessary to define a type (e.g. a `struct`) in orde
  - Composite values will be treated as a `map[string]interface{}`, itself able to contain nested values (both scalar and compound) ad infinitum.
  - However, if there is a value (of any supported type) already present in a map for a given key, then it will be used when possible, rather than being replaced with a generic value as specified above; this makes it possible to handle partially typed, dynamic or schema-less values.
 
+### Zero Values
+
+By default, and without custom marshaling, zero values (also known as empty/default values) are encoded as the empty string. To disable this behavior, meaning to keep zero values in their literal form (e.g. `0` for integral types), `Encoder` offers a `KeepZeros` setter method, which will do just that when set to `true`.
+
 ### Unsupported Values
 
 Values of the following kinds aren't supported and, if present, must be ignored.
@@ -149,20 +154,20 @@ import "encoding"
 type Binary []byte
 
 var (
-        _ encoding.TextMarshaler   = &Binary{}
-        _ encoding.TextUnmarshaler = &Binary{}
+	_ encoding.TextMarshaler   = &Binary{}
+	_ encoding.TextUnmarshaler = &Binary{}
 )
 
 func (b Binary) MarshalText() ([]byte, error) {
-        return []byte(base64.URLEncoding.EncodeToString([]byte(b))), nil
+	return []byte(base64.URLEncoding.EncodeToString([]byte(b))), nil
 }
 
 func (b *Binary) UnmarshalText(text []byte) error {
-        bs, err := base64.URLEncoding.DecodeString(string(text))
-        if err == nil {
-                *b = Binary(bs)
-        }
-        return err
+	bs, err := base64.URLEncoding.DecodeString(string(text))
+	if err == nil {
+		*b = Binary(bs)
+	}
+	return err
 }
 ```
 
@@ -171,9 +176,46 @@ Now any value with type `Binary` will automatically be encoded using the [URL](h
 Keys
 ----
 
-In theory any value can be a key as long as it has a string representation. However, periods have special meaning to `form`, and thus, under the hood (i.e. in encoded form) they are transparently escaped using a preceding backslash (`\`). Backslashes within keys, themselves, are also escaped in this manner (e.g. as `\\`) in order to permit representing `\.` itself (as `\\\.`).
+In theory any value can be a key as long as it has a string representation. However, by default, periods have special meaning to `form`, and thus, under the hood (i.e. in encoded form) they are transparently escaped using a preceding backslash (`\`). Backslashes within keys, themselves, are also escaped in this manner (e.g. as `\\`) in order to permit representing `\.` itself (as `\\\.`).
 
 (Note: it is normally unnecessary to deal with this issue unless keys are being constructed manually—e.g. literally embedded in HTML or in a URI.)
+
+The default delimiter and escape characters used for encoding and decoding composite keys can be changed using the `DelimitWith` and `EscapeWith` setter methods of `Encoder` and `Decoder`, respectively. For example...
+
+```go
+package main
+
+import (
+	"os"
+
+	"github.com/ajg/form"
+)
+
+func main() {
+	type B struct {
+		Qux string `form:"qux"`
+	}
+	type A struct {
+		FooBar B `form:"foo.bar"`
+	}
+	a := A{FooBar: B{"XYZ"}}
+	os.Stdout.WriteString("Default: ")
+	form.NewEncoder(os.Stdout).Encode(a)
+	os.Stdout.WriteString("\nCustom:  ")
+	form.NewEncoder(os.Stdout).DelimitWith('/').Encode(a)
+	os.Stdout.WriteString("\n")
+}
+
+```
+
+...will produce...
+
+```
+Default: foo%5C.bar.qux=XYZ
+Custom:  foo.bar%2Fqux=XYZ
+```
+
+(`%5C` and `%2F` represent `\` and `/`, respectively.)
 
 Limitations
 -----------

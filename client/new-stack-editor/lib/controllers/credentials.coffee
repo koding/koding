@@ -2,7 +2,7 @@ debug = (require 'debug') 'nse:controller:credentials'
 
 kd = require 'kd'
 _ = require 'lodash'
-JView = require 'app/jview'
+
 Events = require '../events'
 BaseController = require './base'
 

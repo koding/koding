@@ -2,12 +2,22 @@ package terraformer
 
 import (
 	"fmt"
-	"koding/kites/terraformer"
 	"time"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 )
+
+// TerraformRequest is a helper struct for terraformer kite requests.
+//
+// Copied from kites/terraformer/terraformer.go to avoid dependency
+// on the terraformer package.
+type TerraformRequest struct {
+	Content   string
+	Variables map[string]interface{}
+	ContentID string
+	TraceID   string
+}
 
 // Terraformer represents a remote terraformer instance.
 type Terraformer struct {
@@ -15,19 +25,12 @@ type Terraformer struct {
 	kite   *kite.Kite
 }
 
-// Options are used to connect to a terraformer kite.
-type Options struct {
-	Endpoint  string
-	SecretKey string
-	Kite      *kite.Kite
-}
-
 // Connect connects to a remote terraformer instance with the given kite instance.
-func Connect(opts *Options) (*Terraformer, error) {
-	tfKite := opts.Kite.NewClient(opts.Endpoint)
+func Connect(endpoint, secretKey string, k *kite.Kite) (*Terraformer, error) {
+	tfKite := k.NewClient(endpoint)
 	tfKite.Auth = &kite.Auth{
 		Type: "kloud",
-		Key:  opts.SecretKey,
+		Key:  secretKey,
 	}
 
 	connected, err := tfKite.DialForever()
@@ -39,7 +42,7 @@ func Connect(opts *Options) (*Terraformer, error) {
 	<-connected
 
 	return &Terraformer{
-		kite:   opts.Kite,
+		kite:   k,
 		Client: tfKite,
 	}, nil
 }
@@ -48,7 +51,7 @@ func (t *Terraformer) Close() {
 	t.Client.Close()
 }
 
-func (t *Terraformer) Plan(req *terraformer.TerraformRequest) (*terraform.Plan, error) {
+func (t *Terraformer) Plan(req *TerraformRequest) (*terraform.Plan, error) {
 	resp, err := t.Client.Tell("plan", req)
 	if err != nil {
 		return nil, err
@@ -62,7 +65,7 @@ func (t *Terraformer) Plan(req *terraformer.TerraformRequest) (*terraform.Plan, 
 	return plan, nil
 }
 
-func (t *Terraformer) Apply(req *terraformer.TerraformRequest) (*terraform.State, error) {
+func (t *Terraformer) Apply(req *TerraformRequest) (*terraform.State, error) {
 	resp, err := t.Client.Tell("apply", req)
 	if err != nil {
 		return nil, err
@@ -76,7 +79,7 @@ func (t *Terraformer) Apply(req *terraformer.TerraformRequest) (*terraform.State
 	return state, nil
 }
 
-func (t *Terraformer) Destroy(req *terraformer.TerraformRequest) (*terraform.State, error) {
+func (t *Terraformer) Destroy(req *TerraformRequest) (*terraform.State, error) {
 	resp, err := t.Client.Tell("destroy", req)
 	if err != nil {
 		return nil, err

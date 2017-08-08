@@ -1,5 +1,6 @@
 # Koding
 
+[![CircleCI](https://circleci.com/gh/koding/koding.svg?style=svg&circle-token=7a8477781494939c95d2e68de4ad917acd1b1728)](https://circleci.com/gh/koding/koding)
 [![Slack Status](http://cebeci.koding.com/slackin/badge.svg)](https://cebeci.koding.com/slackin/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/koding/koding.svg?maxAge=2592000)](https://hub.docker.com/r/koding/koding/)
 

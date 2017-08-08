@@ -1,7 +1,7 @@
 kd = require 'kd'
-JView = require './../core/jview'
 
-module.exports = class LoginInputView extends JView
+
+module.exports = class LoginInputView extends kd.View
 
 
   constructor: (options = {}, data) ->

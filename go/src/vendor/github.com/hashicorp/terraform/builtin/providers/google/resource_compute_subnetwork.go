@@ -8,13 +8,13 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeSubnetwork() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceComputeSubnetworkCreate,
 		Read:   resourceComputeSubnetworkRead,
+		Update: resourceComputeSubnetworkUpdate,
 		Delete: resourceComputeSubnetworkDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -59,6 +59,11 @@ func resourceComputeSubnetwork() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"private_ip_google_access": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"self_link": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -91,12 +96,18 @@ func resourceComputeSubnetworkCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
+	network, err := getNetworkLink(d, config, "network")
+	if err != nil {
+		return err
+	}
+
 	// Build the subnetwork parameters
 	subnetwork := &compute.Subnetwork{
-		Name:        d.Get("name").(string),
-		Description: d.Get("description").(string),
-		IpCidrRange: d.Get("ip_cidr_range").(string),
-		Network:     d.Get("network").(string),
+		Name:                  d.Get("name").(string),
+		Description:           d.Get("description").(string),
+		IpCidrRange:           d.Get("ip_cidr_range").(string),
+		PrivateIpGoogleAccess: d.Get("private_ip_google_access").(bool),
+		Network:               network,
 	}
 
 	log.Printf("[DEBUG] Subnetwork insert request: %#v", subnetwork)
@@ -115,7 +126,7 @@ func resourceComputeSubnetworkCreate(d *schema.ResourceData, meta interface{}) e
 	subnetwork.Region = region
 	d.SetId(createSubnetID(subnetwork))
 
-	err = computeOperationWaitRegion(config, op, region, "Creating Subnetwork")
+	err = computeOperationWaitRegion(config, op, project, region, "Creating Subnetwork")
 	if err != nil {
 		return err
 	}
@@ -141,21 +152,53 @@ func resourceComputeSubnetworkRead(d *schema.ResourceData, meta interface{}) err
 	subnetwork, err := config.clientCompute.Subnetworks.Get(
 		project, region, name).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			log.Printf("[WARN] Removing Subnetwork %q because it's gone", name)
-			// The resource doesn't exist anymore
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error reading subnetwork: %s", err)
+		return handleNotFoundError(err, d, fmt.Sprintf("Subnetwork %q", name))
 	}
 
 	d.Set("gateway_address", subnetwork.GatewayAddress)
 	d.Set("self_link", subnetwork.SelfLink)
 
 	return nil
+}
+
+func resourceComputeSubnetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+	config := meta.(*Config)
+
+	region, err := getRegion(d, config)
+	if err != nil {
+		return err
+	}
+
+	project, err := getProject(d, config)
+	if err != nil {
+		return err
+	}
+
+	d.Partial(true)
+
+	if d.HasChange("private_ip_google_access") {
+		subnetworksSetPrivateIpGoogleAccessRequest := &compute.SubnetworksSetPrivateIpGoogleAccessRequest{
+			PrivateIpGoogleAccess: d.Get("private_ip_google_access").(bool),
+		}
+
+		log.Printf("[DEBUG] Updating Subnetwork PrivateIpGoogleAccess %q: %#v", d.Id(), subnetworksSetPrivateIpGoogleAccessRequest)
+		op, err := config.clientCompute.Subnetworks.SetPrivateIpGoogleAccess(
+			project, region, d.Get("name").(string), subnetworksSetPrivateIpGoogleAccessRequest).Do()
+		if err != nil {
+			return fmt.Errorf("Error updating subnetwork PrivateIpGoogleAccess: %s", err)
+		}
+
+		err = computeOperationWaitRegion(config, op, project, region, "Updating Subnetwork PrivateIpGoogleAccess")
+		if err != nil {
+			return err
+		}
+
+		d.SetPartial("private_ip_google_access")
+	}
+
+	d.Partial(false)
+
+	return resourceComputeSubnetworkRead(d, meta)
 }
 
 func resourceComputeSubnetworkDelete(d *schema.ResourceData, meta interface{}) error {
@@ -178,7 +221,7 @@ func resourceComputeSubnetworkDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error deleting subnetwork: %s", err)
 	}
 
-	err = computeOperationWaitRegion(config, op, region, "Deleting Subnetwork")
+	err = computeOperationWaitRegion(config, op, project, region, "Deleting Subnetwork")
 	if err != nil {
 		return err
 	}

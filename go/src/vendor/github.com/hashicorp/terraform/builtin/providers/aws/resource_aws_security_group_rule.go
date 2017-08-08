@@ -6,11 +6,14 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -24,46 +27,67 @@ func resourceAwsSecurityGroupRule() *schema.Resource {
 		MigrateState:  resourceAwsSecurityGroupRuleMigrateState,
 
 		Schema: map[string]*schema.Schema{
-			"type": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "Type of rule, ingress (inbound) or egress (outbound).",
+			"type": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				Description:  "Type of rule, ingress (inbound) or egress (outbound).",
+				ValidateFunc: validateSecurityRuleType,
 			},
 
-			"from_port": &schema.Schema{
+			"from_port": {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"to_port": &schema.Schema{
+			"to_port": {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"protocol": &schema.Schema{
+			"protocol": {
 				Type:      schema.TypeString,
 				Required:  true,
 				ForceNew:  true,
 				StateFunc: protocolStateFunc,
 			},
 
-			"cidr_blocks": &schema.Schema{
+			"cidr_blocks": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateCIDRNetworkAddress,
+				},
+			},
+
+			"ipv6_cidr_blocks": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateCIDRNetworkAddress,
+				},
+			},
+
+			"prefix_list_ids": {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"security_group_id": &schema.Schema{
+			"security_group_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"source_security_group_id": &schema.Schema{
+			"source_security_group_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
@@ -71,7 +95,7 @@ func resourceAwsSecurityGroupRule() *schema.Resource {
 				ConflictsWith: []string{"cidr_blocks", "self"},
 			},
 
-			"self": &schema.Schema{
+			"self": {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Default:       false,
@@ -99,7 +123,16 @@ func resourceAwsSecurityGroupRuleCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
+	// Verify that either 'cidr_blocks', 'self', or 'source_security_group_id' is set
+	// If they are not set the AWS API will silently fail. This causes TF to hit a timeout
+	// at 5-minutes waiting for the security group rule to appear, when it was never actually
+	// created.
+	if err := validateAwsSecurityGroupRule(d); err != nil {
+		return err
+	}
+
 	ruleType := d.Get("type").(string)
+	isVPC := sg.VpcId != nil && *sg.VpcId != ""
 
 	var autherr error
 	switch ruleType {
@@ -112,7 +145,7 @@ func resourceAwsSecurityGroupRuleCreate(d *schema.ResourceData, meta interface{}
 			IpPermissions: []*ec2.IpPermission{perm},
 		}
 
-		if sg.VpcId == nil || *sg.VpcId == "" {
+		if !isVPC {
 			req.GroupId = nil
 			req.GroupName = sg.GroupName
 		}
@@ -137,11 +170,11 @@ func resourceAwsSecurityGroupRuleCreate(d *schema.ResourceData, meta interface{}
 	if autherr != nil {
 		if awsErr, ok := autherr.(awserr.Error); ok {
 			if awsErr.Code() == "InvalidPermission.Duplicate" {
-				return fmt.Errorf(`[WARN] A duplicate Security Group rule was found. This may be
+				return fmt.Errorf(`[WARN] A duplicate Security Group rule was found on (%s). This may be
 a side effect of a now-fixed Terraform issue causing two security groups with
 identical attributes but different source_security_group_ids to overwrite each
 other in the state. See https://github.com/hashicorp/terraform/pull/2376 for more
-information and instructions for recovery. Error message: %s`, awsErr.Message())
+information and instructions for recovery. Error message: %s`, sg_id, awsErr.Message())
 			}
 		}
 
@@ -151,20 +184,56 @@ information and instructions for recovery. Error message: %s`, awsErr.Message())
 	}
 
 	id := ipPermissionIDHash(sg_id, ruleType, perm)
-	d.SetId(id)
-	log.Printf("[DEBUG] Security group rule ID set to %s", id)
+	log.Printf("[DEBUG] Computed group rule ID %s", id)
 
-	return resourceAwsSecurityGroupRuleRead(d, meta)
+	retErr := resource.Retry(5*time.Minute, func() *resource.RetryError {
+		sg, err := findResourceSecurityGroup(conn, sg_id)
+
+		if err != nil {
+			log.Printf("[DEBUG] Error finding Security Group (%s) for Rule (%s): %s", sg_id, id, err)
+			return resource.NonRetryableError(err)
+		}
+
+		var rules []*ec2.IpPermission
+		switch ruleType {
+		case "ingress":
+			rules = sg.IpPermissions
+		default:
+			rules = sg.IpPermissionsEgress
+		}
+
+		rule := findRuleMatch(perm, rules, isVPC)
+
+		if rule == nil {
+			log.Printf("[DEBUG] Unable to find matching %s Security Group Rule (%s) for Group %s",
+				ruleType, id, sg_id)
+			return resource.RetryableError(fmt.Errorf("No match found"))
+		}
+
+		log.Printf("[DEBUG] Found rule for Security Group Rule (%s): %s", id, rule)
+		return nil
+	})
+
+	if retErr != nil {
+		return fmt.Errorf("Error finding matching %s Security Group Rule (%s) for Group %s",
+			ruleType, id, sg_id)
+	}
+
+	d.SetId(id)
+	return nil
 }
 
 func resourceAwsSecurityGroupRuleRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).ec2conn
 	sg_id := d.Get("security_group_id").(string)
 	sg, err := findResourceSecurityGroup(conn, sg_id)
-	if err != nil {
-		log.Printf("[DEBUG] Error finding Secuirty Group (%s) for Rule (%s): %s", sg_id, d.Id(), err)
+	if _, notFound := err.(securityGroupNotFound); notFound {
+		// The security group containing this rule no longer exists.
 		d.SetId("")
 		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("Error finding security group (%s) for rule (%s): %s", sg_id, d.Id(), err)
 	}
 
 	isVPC := sg.VpcId != nil && *sg.VpcId != ""
@@ -191,54 +260,7 @@ func resourceAwsSecurityGroupRuleRead(d *schema.ResourceData, meta interface{}) 
 		return nil
 	}
 
-	for _, r := range rules {
-		if r.ToPort != nil && *p.ToPort != *r.ToPort {
-			continue
-		}
-
-		if r.FromPort != nil && *p.FromPort != *r.FromPort {
-			continue
-		}
-
-		if r.IpProtocol != nil && *p.IpProtocol != *r.IpProtocol {
-			continue
-		}
-
-		remaining := len(p.IpRanges)
-		for _, ip := range p.IpRanges {
-			for _, rip := range r.IpRanges {
-				if *ip.CidrIp == *rip.CidrIp {
-					remaining--
-				}
-			}
-		}
-
-		if remaining > 0 {
-			continue
-		}
-
-		remaining = len(p.UserIdGroupPairs)
-		for _, ip := range p.UserIdGroupPairs {
-			for _, rip := range r.UserIdGroupPairs {
-				if isVPC {
-					if *ip.GroupId == *rip.GroupId {
-						remaining--
-					}
-				} else {
-					if *ip.GroupName == *rip.GroupName {
-						remaining--
-					}
-				}
-			}
-		}
-
-		if remaining > 0 {
-			continue
-		}
-
-		log.Printf("[DEBUG] Found rule for Security Group Rule (%s): %s", d.Id(), r)
-		rule = r
-	}
+	rule = findRuleMatch(p, rules, isVPC)
 
 	if rule == nil {
 		log.Printf("[DEBUG] Unable to find matching %s Security Group Rule (%s) for Group %s",
@@ -247,27 +269,12 @@ func resourceAwsSecurityGroupRuleRead(d *schema.ResourceData, meta interface{}) 
 		return nil
 	}
 
-	d.Set("from_port", rule.FromPort)
-	d.Set("to_port", rule.ToPort)
-	d.Set("protocol", rule.IpProtocol)
+	log.Printf("[DEBUG] Found rule for Security Group Rule (%s): %s", d.Id(), rule)
+
 	d.Set("type", ruleType)
-
-	var cb []string
-	for _, c := range p.IpRanges {
-		cb = append(cb, *c.CidrIp)
+	if err := setFromIPPerm(d, sg, p); err != nil {
+		return errwrap.Wrapf("Error setting IP Permission for Security Group Rule: {{err}}", err)
 	}
-
-	d.Set("cidr_blocks", cb)
-
-	if len(p.UserIdGroupPairs) > 0 {
-		s := p.UserIdGroupPairs[0]
-		if isVPC {
-			d.Set("source_security_group_id", *s.GroupId)
-		} else {
-			d.Set("source_security_group_id", *s.GroupName)
-		}
-	}
-
 	return nil
 }
 
@@ -332,17 +339,33 @@ func findResourceSecurityGroup(conn *ec2.EC2, id string) (*ec2.SecurityGroup, er
 		GroupIds: []*string{aws.String(id)},
 	}
 	resp, err := conn.DescribeSecurityGroups(req)
+	if err, ok := err.(awserr.Error); ok && err.Code() == "InvalidGroup.NotFound" {
+		return nil, securityGroupNotFound{id, nil}
+	}
 	if err != nil {
 		return nil, err
 	}
-
-	if resp == nil || len(resp.SecurityGroups) != 1 || resp.SecurityGroups[0] == nil {
-		return nil, fmt.Errorf(
-			"Expected to find one security group with ID %q, got: %#v",
-			id, resp.SecurityGroups)
+	if resp == nil {
+		return nil, securityGroupNotFound{id, nil}
+	}
+	if len(resp.SecurityGroups) != 1 || resp.SecurityGroups[0] == nil {
+		return nil, securityGroupNotFound{id, resp.SecurityGroups}
 	}
 
 	return resp.SecurityGroups[0], nil
+}
+
+type securityGroupNotFound struct {
+	id             string
+	securityGroups []*ec2.SecurityGroup
+}
+
+func (err securityGroupNotFound) Error() string {
+	if err.securityGroups == nil {
+		return fmt.Sprintf("No security group with ID %q", err.id)
+	}
+	return fmt.Sprintf("Expected to find one security group with ID %q, got: %#v",
+		err.id, err.securityGroups)
 }
 
 // ByGroupPair implements sort.Interface for []*ec2.UserIDGroupPairs based on
@@ -360,6 +383,84 @@ func (b ByGroupPair) Less(i, j int) bool {
 	}
 
 	panic("mismatched security group rules, may be a terraform bug")
+}
+
+func findRuleMatch(p *ec2.IpPermission, rules []*ec2.IpPermission, isVPC bool) *ec2.IpPermission {
+	var rule *ec2.IpPermission
+	for _, r := range rules {
+		if r.ToPort != nil && *p.ToPort != *r.ToPort {
+			continue
+		}
+
+		if r.FromPort != nil && *p.FromPort != *r.FromPort {
+			continue
+		}
+
+		if r.IpProtocol != nil && *p.IpProtocol != *r.IpProtocol {
+			continue
+		}
+
+		remaining := len(p.IpRanges)
+		for _, ip := range p.IpRanges {
+			for _, rip := range r.IpRanges {
+				if *ip.CidrIp == *rip.CidrIp {
+					remaining--
+				}
+			}
+		}
+
+		if remaining > 0 {
+			continue
+		}
+
+		remaining = len(p.Ipv6Ranges)
+		for _, ipv6 := range p.Ipv6Ranges {
+			for _, ipv6ip := range r.Ipv6Ranges {
+				if *ipv6.CidrIpv6 == *ipv6ip.CidrIpv6 {
+					remaining--
+				}
+			}
+		}
+
+		if remaining > 0 {
+			continue
+		}
+
+		remaining = len(p.PrefixListIds)
+		for _, pl := range p.PrefixListIds {
+			for _, rpl := range r.PrefixListIds {
+				if *pl.PrefixListId == *rpl.PrefixListId {
+					remaining--
+				}
+			}
+		}
+
+		if remaining > 0 {
+			continue
+		}
+
+		remaining = len(p.UserIdGroupPairs)
+		for _, ip := range p.UserIdGroupPairs {
+			for _, rip := range r.UserIdGroupPairs {
+				if isVPC {
+					if *ip.GroupId == *rip.GroupId {
+						remaining--
+					}
+				} else {
+					if *ip.GroupName == *rip.GroupName {
+						remaining--
+					}
+				}
+			}
+		}
+
+		if remaining > 0 {
+			continue
+		}
+
+		rule = r
+	}
+	return rule
 }
 
 func ipPermissionIDHash(sg_id, ruleType string, ip *ec2.IpPermission) string {
@@ -380,6 +481,30 @@ func ipPermissionIDHash(sg_id, ruleType string, ip *ec2.IpPermission) string {
 		s := make([]string, len(ip.IpRanges))
 		for i, r := range ip.IpRanges {
 			s[i] = *r.CidrIp
+		}
+		sort.Strings(s)
+
+		for _, v := range s {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+	}
+
+	if len(ip.Ipv6Ranges) > 0 {
+		s := make([]string, len(ip.Ipv6Ranges))
+		for i, r := range ip.Ipv6Ranges {
+			s[i] = *r.CidrIpv6
+		}
+		sort.Strings(s)
+
+		for _, v := range s {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+	}
+
+	if len(ip.PrefixListIds) > 0 {
+		s := make([]string, len(ip.PrefixListIds))
+		for i, pl := range ip.PrefixListIds {
+			s[i] = *pl.PrefixListId
 		}
 		sort.Strings(s)
 
@@ -422,7 +547,6 @@ func expandIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup) (*ec2.IpPermiss
 	}
 
 	if v, ok := d.GetOk("self"); ok && v.(bool) {
-		// if sg.GroupId != nil {
 		if sg.VpcId != nil && *sg.VpcId != "" {
 			groups[*sg.GroupId] = true
 		} else {
@@ -469,5 +593,82 @@ func expandIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup) (*ec2.IpPermiss
 		}
 	}
 
+	if raw, ok := d.GetOk("ipv6_cidr_blocks"); ok {
+		list := raw.([]interface{})
+		perm.Ipv6Ranges = make([]*ec2.Ipv6Range, len(list))
+		for i, v := range list {
+			cidrIP, ok := v.(string)
+			if !ok {
+				return nil, fmt.Errorf("empty element found in ipv6_cidr_blocks - consider using the compact function")
+			}
+			perm.Ipv6Ranges[i] = &ec2.Ipv6Range{CidrIpv6: aws.String(cidrIP)}
+		}
+	}
+
+	if raw, ok := d.GetOk("prefix_list_ids"); ok {
+		list := raw.([]interface{})
+		perm.PrefixListIds = make([]*ec2.PrefixListId, len(list))
+		for i, v := range list {
+			prefixListID, ok := v.(string)
+			if !ok {
+				return nil, fmt.Errorf("empty element found in prefix_list_ids - consider using the compact function")
+			}
+			perm.PrefixListIds[i] = &ec2.PrefixListId{PrefixListId: aws.String(prefixListID)}
+		}
+	}
+
 	return &perm, nil
+}
+
+func setFromIPPerm(d *schema.ResourceData, sg *ec2.SecurityGroup, rule *ec2.IpPermission) error {
+	isVPC := sg.VpcId != nil && *sg.VpcId != ""
+
+	d.Set("from_port", rule.FromPort)
+	d.Set("to_port", rule.ToPort)
+	d.Set("protocol", rule.IpProtocol)
+
+	var cb []string
+	for _, c := range rule.IpRanges {
+		cb = append(cb, *c.CidrIp)
+	}
+
+	d.Set("cidr_blocks", cb)
+
+	var ipv6 []string
+	for _, ip := range rule.Ipv6Ranges {
+		ipv6 = append(ipv6, *ip.CidrIpv6)
+	}
+	d.Set("ipv6_cidr_blocks", ipv6)
+
+	var pl []string
+	for _, p := range rule.PrefixListIds {
+		pl = append(pl, *p.PrefixListId)
+	}
+	d.Set("prefix_list_ids", pl)
+
+	if len(rule.UserIdGroupPairs) > 0 {
+		s := rule.UserIdGroupPairs[0]
+
+		if isVPC {
+			d.Set("source_security_group_id", *s.GroupId)
+		} else {
+			d.Set("source_security_group_id", *s.GroupName)
+		}
+	}
+
+	return nil
+}
+
+// Validates that either 'cidr_blocks', 'ipv6_cidr_blocks', 'self', or 'source_security_group_id' is set
+func validateAwsSecurityGroupRule(d *schema.ResourceData) error {
+	_, blocksOk := d.GetOk("cidr_blocks")
+	_, ipv6Ok := d.GetOk("ipv6_cidr_blocks")
+	_, sourceOk := d.GetOk("source_security_group_id")
+	_, selfOk := d.GetOk("self")
+	_, prefixOk := d.GetOk("prefix_list_ids")
+	if !blocksOk && !sourceOk && !selfOk && !prefixOk && !ipv6Ok {
+		return fmt.Errorf(
+			"One of ['cidr_blocks', 'ipv6_cidr_blocks', 'self', 'source_security_group_id', 'prefix_list_ids'] must be set to create an AWS Security Group Rule")
+	}
+	return nil
 }

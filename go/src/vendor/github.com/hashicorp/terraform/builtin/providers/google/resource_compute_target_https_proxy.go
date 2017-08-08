@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/googleapi"
 )
 
 func resourceComputeTargetHttpsProxy() *schema.Resource {
@@ -92,7 +91,7 @@ func resourceComputeTargetHttpsProxyCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating TargetHttpsProxy: %s", err)
 	}
 
-	err = computeOperationWaitGlobal(config, op, "Creating Target Https Proxy")
+	err = computeOperationWaitGlobal(config, op, project, "Creating Target Https Proxy")
 	if err != nil {
 		return err
 	}
@@ -121,7 +120,7 @@ func resourceComputeTargetHttpsProxyUpdate(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("Error updating Target HTTPS proxy URL map: %s", err)
 		}
 
-		err = computeOperationWaitGlobal(config, op, "Updating Target Https Proxy URL Map")
+		err = computeOperationWaitGlobal(config, op, project, "Updating Target Https Proxy URL Map")
 		if err != nil {
 			return err
 		}
@@ -182,7 +181,7 @@ func resourceComputeTargetHttpsProxyUpdate(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("Error updating Target Https Proxy SSL Certificates: %s", err)
 		}
 
-		err = computeOperationWaitGlobal(config, op, "Updating Target Https Proxy SSL certificates")
+		err = computeOperationWaitGlobal(config, op, project, "Updating Target Https Proxy SSL certificates")
 		if err != nil {
 			return err
 		}
@@ -206,15 +205,7 @@ func resourceComputeTargetHttpsProxyRead(d *schema.ResourceData, meta interface{
 	proxy, err := config.clientCompute.TargetHttpsProxies.Get(
 		project, d.Id()).Do()
 	if err != nil {
-		if gerr, ok := err.(*googleapi.Error); ok && gerr.Code == 404 {
-			log.Printf("[WARN] Removing Target HTTPS Proxy %q because it's gone", d.Get("name").(string))
-			// The resource doesn't exist anymore
-			d.SetId("")
-
-			return nil
-		}
-
-		return fmt.Errorf("Error reading TargetHttpsProxy: %s", err)
+		return handleNotFoundError(err, d, fmt.Sprintf("Target HTTPS proxy %q", d.Get("name").(string)))
 	}
 
 	_certs := d.Get("ssl_certificates").([]interface{})
@@ -257,7 +248,7 @@ func resourceComputeTargetHttpsProxyDelete(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error deleting TargetHttpsProxy: %s", err)
 	}
 
-	err = computeOperationWaitGlobal(config, op, "Deleting Target Https Proxy")
+	err = computeOperationWaitGlobal(config, op, project, "Deleting Target Https Proxy")
 	if err != nil {
 		return err
 	}

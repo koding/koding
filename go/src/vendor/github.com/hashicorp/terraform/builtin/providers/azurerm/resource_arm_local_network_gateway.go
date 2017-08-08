@@ -2,9 +2,9 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/Azure/azure-sdk-for-go/core/http"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -14,33 +14,31 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 		Read:   resourceArmLocalNetworkGatewayRead,
 		Update: resourceArmLocalNetworkGatewayCreate,
 		Delete: resourceArmLocalNetworkGatewayDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"location": &schema.Schema{
-				Type:      schema.TypeString,
-				Optional:  true,
-				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
-			},
+			"location": locationSchema(),
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
 
-			"gateway_address": &schema.Schema{
+			"gateway_address": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"address_space": &schema.Schema{
+			"address_space": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
@@ -65,21 +63,32 @@ func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface
 		prefixes = append(prefixes, pref.(string))
 	}
 
-	resp, err := lnetClient.CreateOrUpdate(resGroup, name, network.LocalNetworkGateway{
+	gateway := network.LocalNetworkGateway{
 		Name:     &name,
 		Location: &location,
-		Properties: &network.LocalNetworkGatewayPropertiesFormat{
+		LocalNetworkGatewayPropertiesFormat: &network.LocalNetworkGatewayPropertiesFormat{
 			LocalNetworkAddressSpace: &network.AddressSpace{
 				AddressPrefixes: &prefixes,
 			},
 			GatewayIPAddress: &ipAddress,
 		},
-	})
+	}
+
+	_, error := lnetClient.CreateOrUpdate(resGroup, name, gateway, make(chan struct{}))
+	err := <-error
 	if err != nil {
 		return fmt.Errorf("Error creating Azure ARM Local Network Gateway '%s': %s", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	read, err := lnetClient.Get(resGroup, name)
+	if err != nil {
+		return err
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Virtual Network %s (resource group %s) ID", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceArmLocalNetworkGatewayRead(d, meta)
 }
@@ -93,6 +102,9 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	name := id.Path["localNetworkGateways"]
+	if name == "" {
+		return fmt.Errorf("Cannot find 'localNetworkGateways' in '%s', make sure it is specified in the ID parameter", d.Id())
+	}
 	resGroup := id.ResourceGroup
 
 	resp, err := lnetClient.Get(resGroup, name)
@@ -101,14 +113,16 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-
 		return fmt.Errorf("Error reading the state of Azure ARM local network gateway '%s': %s", name, err)
 	}
 
-	d.Set("gateway_address", resp.Properties.GatewayIPAddress)
+	d.Set("resource_group_name", resGroup)
+	d.Set("name", resp.Name)
+	d.Set("location", resp.Location)
+	d.Set("gateway_address", resp.LocalNetworkGatewayPropertiesFormat.GatewayIPAddress)
 
 	prefs := []string{}
-	if ps := *resp.Properties.LocalNetworkAddressSpace.AddressPrefixes; ps != nil {
+	if ps := *resp.LocalNetworkGatewayPropertiesFormat.LocalNetworkAddressSpace.AddressPrefixes; ps != nil {
 		prefs = ps
 	}
 	d.Set("address_space", prefs)
@@ -127,7 +141,14 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 	name := id.Path["localNetworkGateways"]
 	resGroup := id.ResourceGroup
 
-	_, err = lnetClient.Delete(resGroup, name)
+	deleteResp, error := lnetClient.Delete(resGroup, name, make(chan struct{}))
+	resp := <-deleteResp
+	err = <-error
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of local network gateway '%s': %s", name, err)
 	}

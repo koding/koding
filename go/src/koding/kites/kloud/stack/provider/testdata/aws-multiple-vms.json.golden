@@ -1,0 +1,38 @@
+{
+	"provider": {
+		"aws": {
+			"access_key": "${var.aws_access_key}",
+			"region": "eu-central-1",
+			"secret_key": "${var.aws_secret_key}"
+		}
+	},
+	"resource": {
+		"aws_instance": {
+			"aws-instance": {
+				"ami": "ami-123456",
+				"count": 3,
+				"instance_type": "t2.nano",
+				"key_name": "koding-kp",
+				"security_groups": [
+					"koding-sg"
+				],
+				"subnet_id": "koding-subnet",
+				"tags": [
+					{
+						"Name": "${var.koding_user_username}-${var.koding_group_slug}"
+					}
+				],
+				"user_data": "***"
+			}
+		}
+	},
+	"variable": {
+		"kitekeys_aws-instance": {
+			"default": {
+				"0": "***",
+				"1": "***",
+				"2": "***"
+			}
+		}
+	}
+}

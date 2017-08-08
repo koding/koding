@@ -246,6 +246,7 @@ module.exports.create = (KONFIG, environment) ->
   worker_processes #{if inDevEnvironment then 1 else 16};
   master_process #{if inDevEnvironment then 'off' else 'on'};
 
+  daemon off;
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
@@ -366,22 +367,24 @@ module.exports.create = (KONFIG, environment) ->
   return config
 
 
-createRedirections = (KONFIG) ->
+createRedirections = (KONFIG, environment) ->
   return '' if isProxy KONFIG.ebEnvName
 
-  return '''
+  return """
   \t\t\t
     # redirect www to non-www
     server {
+       #{createListenDirective(KONFIG, environment)}
        server_name "~^www.(.*)$" ;
        return 301 $scheme://$1$request_uri ;
     }
 
     # redirect old.koding.com to koding.com
     server {
+       #{createListenDirective(KONFIG, environment)}
        server_name "~^old.koding.com" ;
        return 301 $scheme://koding.com$request_uri ;
-    }'''
+    }"""
 
 createHealthcheck = (KONFIG) ->
   return '' if not isProxy KONFIG.ebEnvName

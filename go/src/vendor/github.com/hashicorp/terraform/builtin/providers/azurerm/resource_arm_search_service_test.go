@@ -24,7 +24,7 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.#", "2"),
+						"azurerm_search_service.test", "tags.%", "2"),
 				),
 			},
 		},
@@ -46,7 +46,7 @@ func TestAccAzureRMSearchService_updateReplicaCountAndTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.#", "2"),
+						"azurerm_search_service.test", "tags.%", "2"),
 					resource.TestCheckResourceAttr(
 						"azurerm_search_service.test", "replica_count", "1"),
 				),
@@ -57,7 +57,7 @@ func TestAccAzureRMSearchService_updateReplicaCountAndTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.#", "1"),
+						"azurerm_search_service.test", "tags.%", "1"),
 					resource.TestCheckResourceAttr(
 						"azurerm_search_service.test", "replica_count", "2"),
 				),
@@ -117,7 +117,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 
 var testAccAzureRMSearchService_basic = `
 resource "azurerm_resource_group" "test" {
-    name = "acctest_rg_%d"
+    name = "acctestRG_%d"
     location = "West US"
 }
 resource "azurerm_search_service" "test" {
@@ -135,7 +135,7 @@ resource "azurerm_search_service" "test" {
 
 var testAccAzureRMSearchService_updated = `
 resource "azurerm_resource_group" "test" {
-    name = "acctest_rg_%d"
+    name = "acctestRG_%d"
     location = "West US"
 }
 resource "azurerm_search_service" "test" {

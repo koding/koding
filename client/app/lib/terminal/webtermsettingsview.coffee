@@ -1,11 +1,11 @@
 kd = require 'kd'
 KDSelectBox = kd.SelectBox
-JView = require '../jview'
+
 KodingSwitch = require '../commonviews/kodingswitch'
 settings = require './settings'
 
 
-module.exports = class WebtermSettingsView extends JView
+module.exports = class WebtermSettingsView extends kd.View
 
   constructor: (options = {}, data) ->
     super options, data

@@ -123,6 +123,17 @@ module.exports = class AccountCredentialListController extends KodingListControl
     provider = credential.provider
     identifiers = [ credential.identifier ]
 
+    moreHelp = ''
+    moreHelp = "
+      <br/>
+      You can either visit
+      <a href='http://console.aws.amazon.com/' target=_blank>
+      console.aws.amazon.com
+      </a> to clear the EC2 instances and try this again, or go ahead
+      and delete this credential here but you will need to destroy your
+      resources manually from AWS console later.
+    "  if provider is 'aws'
+
     kd.singletons.computeController.getKloud()
       .bootstrap { identifiers, provider, destroy: yes }
       .then -> callback null
@@ -132,13 +143,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
           message : "
             Some errors occurred while destroying resources that are created
             with this credential.
-            <br/>
-            You can either visit
-            <a href='http://console.aws.amazon.com/' target=_blank>
-            console.aws.amazon.com
-            </a> to clear the EC2 instances and try this again, or go ahead
-            and delete this credential here but you will need to destroy your
-            resources manually from AWS console later.
+            #{moreHelp}
           "
           errorMessage : err?.message ? err
 

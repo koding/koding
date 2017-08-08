@@ -11,7 +11,13 @@ import (
 )
 
 func TestAccComputeSubnetwork_basic(t *testing.T) {
-	var subnetwork compute.Subnetwork
+	var subnetwork1 compute.Subnetwork
+	var subnetwork2 compute.Subnetwork
+
+	cnName := fmt.Sprintf("tf-test-%s", acctest.RandString(10))
+	subnetwork1Name := fmt.Sprintf("tf-test-%s", acctest.RandString(10))
+	subnetwork2Name := fmt.Sprintf("tf-test-%s", acctest.RandString(10))
+	subnetwork3Name := fmt.Sprintf("tf-test-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -19,14 +25,49 @@ func TestAccComputeSubnetwork_basic(t *testing.T) {
 		CheckDestroy: testAccCheckComputeSubnetworkDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccComputeSubnetwork_basic,
+				Config: testAccComputeSubnetwork_basic(cnName, subnetwork1Name, subnetwork2Name, subnetwork3Name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckComputeSubnetworkExists(
-						"google_compute_subnetwork.foobar", &subnetwork),
+						"google_compute_subnetwork.network-ref-by-url", &subnetwork1),
+					testAccCheckComputeSubnetworkExists(
+						"google_compute_subnetwork.network-ref-by-name", &subnetwork2),
 				),
 			},
 		},
 	})
+}
+
+func TestAccComputeSubnetwork_update(t *testing.T) {
+	var subnetwork compute.Subnetwork
+
+	cnName := fmt.Sprintf("tf-test-%s", acctest.RandString(10))
+	subnetworkName := fmt.Sprintf("tf-test-%s", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckComputeSubnetworkDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccComputeSubnetwork_update1(cnName, subnetworkName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckComputeSubnetworkExists(
+						"google_compute_subnetwork.network-with-private-google-access", &subnetwork),
+				),
+			},
+			resource.TestStep{
+				Config: testAccComputeSubnetwork_update2(cnName, subnetworkName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckComputeSubnetworkExists(
+						"google_compute_subnetwork.network-with-private-google-access", &subnetwork),
+				),
+			},
+		},
+	})
+
+	if subnetwork.PrivateIpGoogleAccess {
+		t.Errorf("Expected PrivateIpGoogleAccess to be false, got %v", subnetwork.PrivateIpGoogleAccess)
+	}
 }
 
 func testAccCheckComputeSubnetworkDestroy(s *terraform.State) error {
@@ -78,15 +119,67 @@ func testAccCheckComputeSubnetworkExists(n string, subnetwork *compute.Subnetwor
 	}
 }
 
-var testAccComputeSubnetwork_basic = fmt.Sprintf(`
+func testAccComputeSubnetwork_basic(cnName, subnetwork1Name, subnetwork2Name, subnetwork3Name string) string {
+	return fmt.Sprintf(`
 resource "google_compute_network" "custom-test" {
-	name = "network-test-%s"
+	name = "%s"
 	auto_create_subnetworks = false
 }
 
-resource "google_compute_subnetwork" "foobar" {
-	name = "subnetwork-test-%s"
+resource "google_compute_subnetwork" "network-ref-by-url" {
+	name = "%s"
 	ip_cidr_range = "10.0.0.0/16"
 	region = "us-central1"
 	network = "${google_compute_network.custom-test.self_link}"
-}`, acctest.RandString(10), acctest.RandString(10))
+}
+
+
+resource "google_compute_subnetwork" "network-ref-by-name" {
+	name = "%s"
+	ip_cidr_range = "10.1.0.0/16"
+	region = "us-central1"
+	network = "${google_compute_network.custom-test.name}"
+}
+
+resource "google_compute_subnetwork" "network-with-private-google-access" {
+	name = "%s"
+	ip_cidr_range = "10.2.0.0/16"
+	region = "us-central1"
+	network = "${google_compute_network.custom-test.self_link}"
+	private_ip_google_access = true
+}
+`, cnName, subnetwork1Name, subnetwork2Name, subnetwork3Name)
+}
+
+func testAccComputeSubnetwork_update1(cnName, subnetworkName string) string {
+	return fmt.Sprintf(`
+resource "google_compute_network" "custom-test" {
+	name = "%s"
+	auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "network-with-private-google-access" {
+	name = "%s"
+	ip_cidr_range = "10.2.0.0/16"
+	region = "us-central1"
+	network = "${google_compute_network.custom-test.self_link}"
+	private_ip_google_access = true
+}
+`, cnName, subnetworkName)
+}
+
+func testAccComputeSubnetwork_update2(cnName, subnetworkName string) string {
+	return fmt.Sprintf(`
+resource "google_compute_network" "custom-test" {
+	name = "%s"
+	auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "network-with-private-google-access" {
+	name = "%s"
+	ip_cidr_range = "10.2.0.0/16"
+	region = "us-central1"
+	network = "${google_compute_network.custom-test.self_link}"
+}
+`, cnName, subnetworkName)
+}

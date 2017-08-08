@@ -1,28 +1,17 @@
 package kingpin
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParserExpandFromFile(t *testing.T) {
-	f, err := ioutil.TempFile("", "")
-	assert.NoError(t, err)
-	defer os.Remove(f.Name())
-	f.WriteString("hello\nworld\n")
-	f.Close()
-
-	app := newTestApp()
-	arg0 := app.Arg("arg0", "").String()
-	arg1 := app.Arg("arg1", "").String()
-
-	_, err = app.Parse([]string{"@" + f.Name()})
-	assert.NoError(t, err)
-	assert.Equal(t, "hello", *arg0)
-	assert.Equal(t, "world", *arg1)
+func cmdElem() *ParseElement {
+	return &ParseElement{
+		OneOf: OneOfClause{
+			Cmd: &CmdClause{},
+		},
+	}
 }
 
 func TestParseContextPush(t *testing.T) {
@@ -37,4 +26,22 @@ func TestParseContextPush(t *testing.T) {
 	assert.Equal(t, "foo", a.Value)
 	b = c.Next()
 	assert.Equal(t, "bar", b.Value)
+}
+
+func TestLastCmd(t *testing.T) {
+	e := cmdElem()
+	pc := &ParseContext{
+		Elements: []*ParseElement{e, cmdElem(), cmdElem()},
+	}
+	assert.Equal(t, false, pc.LastCmd(e))
+
+	pc = &ParseContext{
+		Elements: []*ParseElement{cmdElem(), e, cmdElem()},
+	}
+	assert.Equal(t, false, pc.LastCmd(e))
+
+	pc = &ParseContext{
+		Elements: []*ParseElement{cmdElem(), cmdElem(), e},
+	}
+	assert.Equal(t, true, pc.LastCmd(e))
 }

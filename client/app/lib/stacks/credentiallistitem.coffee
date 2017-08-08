@@ -1,14 +1,13 @@
 kd      = require 'kd'
 globals = require 'globals'
 
-JView   = require 'app/jview'
+
 Tracker = require 'app/util/tracker'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
 
 module.exports = class CredentialListItem extends kd.ListItemView
 
-  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
@@ -102,6 +101,9 @@ module.exports = class CredentialListItem extends kd.ListItemView
         @setVerified no, err.message
 
       .finally @verifyButton.bound 'hideLoader'
+
+
+  viewAppended: kd.View::viewAppended
 
 
   pistachio: ->
