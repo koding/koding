@@ -42,7 +42,9 @@ Configuration = (options = {}) ->
   options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
-  options.proxySubdomain or= 'dev-p'
+  options.userProxyHost or= options.hostname
+  options.userProxyUri or= "#{options.userProxyHost}/-/devproxy"
+  options.userTunnelUri or= "#{options.userProxyHost}/-/devtunnel"
 
   _port = if options.publicPort is '80' then '' else ":#{options.publicPort}"
   options.host or= "#{options.hostname}#{_port}"

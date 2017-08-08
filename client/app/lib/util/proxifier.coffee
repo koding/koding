@@ -14,48 +14,26 @@ module.exports = class Proxifier
     parser.href = url
 
     # if url is already proxyfied return it as is
-    baseDomain = "#{globals.config.domains.main}".replace '.', '\\.'
-    return callback url  if ///p\.#{baseDomain}///.test url
+    proxyHost = "#{globals.config.userProxyHost}".replace '.', '\\.'
+    return callback url  if ///#{proxyHost}///.test url
     return callback url  if parser.hostname in ['127.0.0.1', 'dev.kodi.ng']
-
-    # check if running under production environment
-    isInProduction = @isInProduction()
-
-    # get the current protocol
-    protocol = @getProtocol()
-
-    # build our new url, example:
-    # old: http://54.164.174.218:3000/kite
-    # new: https://p.koding.com/-/prodproxy/54.164.243.111/kite
-    #           or
-    #      http://localhost:8090/-/prodproxy/54.164.243.111/kite
-
-    # subdomain is for different proxy environments
-    # one for development the other for production
-    subdomain = if isInProduction then 'p' else 'dev-p'
-
-    # create the base url
-    baseURL = "#{protocol}//#{subdomain}.#{globals.config.domains.main}/-"
-
-    if @isInDevelopment()
-      baseURL = "#{protocol}//dev-p.koding.com/-"
 
     # if it's a tunnel given domain we need to do one more check
     # for tunnels since production tunnel proxy is different
     if (/\.koding\.me$/.test host = parser.hostname)
 
-      # for tunneled connections default tunnel is `devtunnel`
-      proxy    = if isInProduction then 'prodtunnel' else 'devtunnel'
-      baseURL  = "#{baseURL}/#{proxy}/#{host}"
-      current  = "#{baseURL}#{parser.pathname}"
+      baseURL = "#{globals.config.userTunnelUri}/#{host}"
+      current = "//#{baseURL}#{parser.pathname}"
 
       return callback current  unless checkAlternatives
 
-      Proxifier.checkAlternative protocol, baseURL, (err, res) ->
+      Proxifier.checkAlternative baseURL, (err, res) ->
 
         if err
           console.warn '[tunnel] failed to look for alternatives:', err
           return callback current
+
+        { protocol } = global.document.location
 
         # walk over alternatives for local and send
         # it back if found a match with the protocol
@@ -65,31 +43,14 @@ module.exports = class Proxifier
 
         callback current
 
-    # proxy support for not tunneled direct connections for each environment
     else
-
-      proxy = if isInProduction then 'prodproxy' else 'devproxy'
-
-      # generated proxyfied url for connecting to kite
-      callback "#{baseURL}/#{proxy}/#{host}#{parser.pathname}"
+      callback "//#{globals.config.userProxyUri}/#{host}#{parser.pathname}"
 
 
-  @checkAlternative = (protocol, baseURL, callback) ->
+  @checkAlternative = (baseURL, callback) ->
 
     endPoint = "#{baseURL}/-/discover/kite"
     type     = 'GET'
     timeout  = 2000
 
     doXhrRequest { endPoint, type, timeout }, callback
-
-
-  @getProtocol = ->
-    { protocol } = global.document.location
-    return protocol
-
-
-  @isInProduction = ->
-    return globals.config.environment is 'production'
-
-  @isInDevelopment = ->
-    return globals.config.environment is 'dev'
