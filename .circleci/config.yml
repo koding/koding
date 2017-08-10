@@ -32,7 +32,7 @@ workflows:
       - integration-tests:
           requires:
             - configure
-      - deploy:
+      - deploy-workflow:
           requires:
             - dependencies
           filters:
@@ -286,7 +286,7 @@ jobs:
             [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
             [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
 
-  deploy:
+  deploy-workflow:
     <<: *defaults
     steps:
       - restore_cache:
