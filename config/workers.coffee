@@ -7,12 +7,24 @@ module.exports = (KONFIG, options, credentials) ->
 
   nodeProgram = if options.watchNode then './watch-node' else 'node'
 
+  KONFIG.k8s_mounts =
+    workingTree:
+      { mountPath: '/opt/koding', name: 'koding-working-tree' }
+    nginxAssets:
+      { mountPath: '/usr/share/nginx/html', name: 'assets' }
+
   workers =
-    nginx:
-      group: 'external'
-      supervisord:
-        command: 'nginx -c %(ENV_KONFIG_PROJECTROOT)s/nginx.conf'
-        stopsignal: 'QUIT'
+    nginx               :
+      group             : 'external'
+      ports             :
+        incoming        : "#{KONFIG.domains.port}"
+      supervisord       :
+        command         : 'nginx -c %(ENV_KONFIG_PROJECTROOT)s/nginx.conf'
+        stopsignal      : 'QUIT'
+      kubernetes        :
+        image           : 'nginx'
+        command         : [ 'nginx', '-c', '/opt/koding/nginx.conf' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree, KONFIG.k8s_mounts.nginxAssets ]
 
     bucketproxies       :
       group             : 'bucket'
@@ -83,6 +95,10 @@ module.exports = (KONFIG, options, credentials) ->
         ]
       healthCheckURLs   : [ "http://localhost:#{KONFIG.kontrol.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/kontrol' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     countly             :
       group             : 'webserver'
@@ -116,6 +132,10 @@ module.exports = (KONFIG, options, credentials) ->
         ]
       healthCheckURLs   : [ "http://localhost:#{KONFIG.kloud.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/kloud' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     terraformer         :
       group             : 'environment'
@@ -123,6 +143,10 @@ module.exports = (KONFIG, options, credentials) ->
         command         : "#{GOBIN}/terraformer"
       healthCheckURLs   : [ "http://localhost:#{KONFIG.terraformer.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/terraformer' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     webserver           :
       group             : 'webserver'
@@ -154,6 +178,10 @@ module.exports = (KONFIG, options, credentials) ->
             auth        : if options.environment is 'sandbox' then yes else no
           }
         ]
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', nodeProgram, 'servers/index.js' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     socialworker        :
       group             : 'webserver'
@@ -169,6 +197,10 @@ module.exports = (KONFIG, options, credentials) ->
         ]
       healthCheckURLs   : [ "http://localhost:#{KONFIG.social.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', nodeProgram, 'workers/social/index.js' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     emailer             :
       group             : 'webserver'
@@ -176,6 +208,10 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         :
           run           : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer'
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', nodeProgram, 'workers/emailer' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     notification        :
       group             : 'webserver'
@@ -195,6 +231,10 @@ module.exports = (KONFIG, options, credentials) ->
             internalOnly: yes
           }
         ]
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', nodeProgram, 'workers/notification', '-p', '4560' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
       # if it's required to have more than 1 instance of notification worker
       # sticky sessions should be enabled on the load balancer if it's willing
       # to use long polling (xhr-polling/stream) ~ GG
@@ -268,6 +308,10 @@ module.exports = (KONFIG, options, credentials) ->
             internalOnly: yes
           }
         ]
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/api', '-port=7000' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     realtime            :
       group             : 'socialapi'
@@ -275,6 +319,10 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/realtime"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/realtime' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     presence            :
       group             : 'socialapi'
@@ -282,6 +330,10 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/presence"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/presence -watch socialapi/workers/presence"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/presence' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     collaboration       :
       group             : 'socialapi'
@@ -289,6 +341,10 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/collaboration -kite-init=true"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -kite-init=true"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/collaboration', '-kite-init=true' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     gatekeeper          :
       group             : 'socialapi'
@@ -305,6 +361,10 @@ module.exports = (KONFIG, options, credentials) ->
           location      : '~ /api/gatekeeper/(.*)'
           proxyPass     : 'http://gatekeeper/$1$is_args$args'
         ]
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/gatekeeper' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     dispatcher          :
       group             : 'socialapi'
@@ -312,6 +372,10 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/dispatcher"
           watch         : 'make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi dispatcherdev'
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/dispatcher' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     mailsender          :
       group             : 'socialapi'
@@ -319,6 +383,10 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/emailsender"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/emailsender"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/emailsender' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     team                :
       group             : 'socialapi'
@@ -326,11 +394,19 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/team"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/team' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     tunnelproxymanager  :
       group             : 'proxy'
       supervisord       :
         command         : "#{GOBIN}/tunnelproxymanager"
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/tunnelproxymanager' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     tunnelserver        :
       group             : 'proxy'
@@ -348,6 +424,10 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : 'http://tunnelserver/$1'
           }
         ]
+      kubernetes        :
+        image           : 'koding/base'
+        command         : [ './run', 'exec', 'go/bin/tunnelserver' ]
+        mounts          : [ KONFIG.k8s_mounts.workingTree ]
 
     userproxies         :
       group             : if options.environment is 'default' then 'webserver' else 'proxy'
