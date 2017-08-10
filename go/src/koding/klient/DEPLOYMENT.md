@@ -81,8 +81,6 @@ copy: s3://koding-klient/development/215/klient_0.1.215_development_amd64.deb to
 copy: s3://koding-klient/development/latest/klient-0.1.215.gz to s3://koding-klient/development/latest/klient.gz
 copy: s3://koding-klient/development/latest/klient-0.1.215.darwin_amd64.gz to s3://koding-klient/development/latest/klient.darwin_amd64.gz
 copy: s3://koding-klient/development/latest/klient_0.1.215_development_amd64.deb to s3://koding-klient/development/latest/klient.deb
-delete: s3://koding-klient/install.sh
-upload: ./install.sh to s3://koding-klient/install.sh
 # updating latest-version.txt to 215
 delete: s3://koding-klient/development/latest-version.txt
 upload: ./latest-version.txt to s3://koding-klient/development/latest-version.txt
