@@ -457,105 +457,59 @@ generateDev = (KONFIG, options) ->
       command -v kubectl          >/dev/null 2>&1 || { echo >&2 "I require kubectl. To install kubectl: \
               (curl -L -O https://storage.googleapis.com/kubernetes-release/release/v1.6.4/bin/$(uname | awk '{print tolower($0)}')/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/)"; exit 1;}
 
-      # for local development, minikube must be deleted and recreated if a disk resize is needed
       export CHANGE_MINIKUBE_NONE_USER=true
       sudo -E minikube start --vm-driver=none
 
-      sleep 60
+      sleep 90
 
       export NAMESPACE_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/namespace.yaml"
-      export BACKEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/backend-pod/containers.yaml"
       export FRONTEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/frontend-pod/client-containers.yaml"
+      export BACKEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/backend-pod/containers.yaml"
+      export BUILD_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/build-pod.yaml"
 
-      envsubst < deployment/kubernetes/backend-pod/containers.yaml.template > deployment/kubernetes/backend-pod/containers.yaml
-      envsubst < deployment/kubernetes/frontend-pod/client-containers.yaml.template > deployment/kubernetes/frontend-pod/client-containers.yaml
+      cp $BACKEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files/
+      cp $BUILD_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files/
+      cp $FRONTEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files/
 
-      cp $BACKEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
-      cp $FRONTEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource $NAMESPACE_DIR
 
-      kubectl apply -f $NAMESPACE_DIR || kubectl create -f $NAMESPACE_DIR || exit 1
-      kubectl apply -f $BACKEND_DIR || kubectl create -f $BACKEND_DIR || exit 1
-      kubectl apply -f $FRONTEND_DIR || kubectl create -f $FRONTEND_DIR || exit 1
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource ${KONFIG_PROJECTROOT}/deployment/kubernetes/external-services/mongo
+      export MONGO_POD_NAME=$(kubectl get pods --namespace koding -l "app=mongo-ext-service" -o jsonpath="{.items[0].metadata.name}")
+      $KONFIG_PROJECTROOT/scripts/k8s-utilities.sh check_pod_state $MONGO_POD_NAME Pending
 
-      sleep 5
-      echo "checking if backend pod is ready"
-      check_pod_ready
-      export BACKEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[0].metadata.name}" || exit 1)"
-      export FRONTEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[1].metadata.name}" || exit 1)"
-      sleep 10
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource ${KONFIG_PROJECTROOT}/deployment/kubernetes/external-services/countly
+      export COUNTLY_POD_NAME=$(kubectl get pods --namespace koding -l "app=countly-ext-service" -o jsonpath="{.items[0].metadata.name}")
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $COUNTLY_POD_NAME Pending
 
-      k8s_health_check $BACKEND_POD_NAME koding 5 120 backend
-      k8s_health_check $FRONTEND_POD_NAME koding 5 120 landing
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource ${KONFIG_PROJECTROOT}/deployment/kubernetes/external-services/postgres
+      export POSTGRES_POD_NAME=$(kubectl get pods --namespace koding -l "app=postgres-ext-service" -o jsonpath="{.items[0].metadata.name}")
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $POSTGRES_POD_NAME Pending
 
-      # guest user can only connect via localhost, a test user equivalent to guest will be created to check connectivity via POD IP.
-      # more info on guest user update: https://www.rabbitmq.com/blog/2014/04/02/breaking-things-with-rabbitmq-3-3/
-      k8s_health_check $BACKEND_POD_NAME koding 5 120 rabbitmq
-      sleep 25
-      kubectl exec -n koding $BACKEND_POD_NAME -c rabbitmq -- bash -c "rabbitmqctl add_user test test && rabbitmqctl set_user_tags test administrator && rabbitmqctl set_permissions -p / test '.*' '.*' '.*'" || exit 1
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource ${KONFIG_PROJECTROOT}/deployment/kubernetes/external-services/redis
+      export REDIS_POD_NAME=$(kubectl get pods --namespace koding -l "app=redis-ext-service" -o jsonpath="{.items[0].metadata.name}")
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $REDIS_POD_NAME Pending
 
-      k8s_connectivity_check $BACKEND_POD_NAME koding backend
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource ${KONFIG_PROJECTROOT}/deployment/kubernetes/external-services/rabbitmq
+      export RABBITMQ_POD_NAME=$(kubectl get pods --namespace koding -l "app=rabbitmq-ext-service" -o jsonpath="{.items[0].metadata.name}")
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $RABBITMQ_POD_NAME Pending
 
-      echo "all services are ready"
-    }
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource $FRONTEND_DIR
+      export FRONTEND_POD_NAME="frontend"
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $FRONTEND_POD_NAME Pending
 
-    function k8s_connectivity_check () {
-      # args: $1: POD NAME, $2: NAMESPACE, $3: container name
-      kubectl exec -n $2 $1 -c $3 -- bash -c "./run is_ready" || exit 1
-    }
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource $BUILD_DIR
+      export BUILD_POD_NAME="workers-build"
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $BUILD_POD_NAME Pending
 
-    function k8s_health_check () {
-      # args: $1: POD NAME, $2: NAMESPACE, $3: health check interval (recommended 5 seconds), $4: timeout duration
-      declare interval=$3
-      declare timeout=$4
-      declare duration=0
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_rmq_test_user
 
-      sleep $interval
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $BUILD_POD_NAME Running Succeeded
 
-      declare response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive' || exit 1)
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh create_k8s_resource $BACKEND_DIR
+      export BACKEND_POD_NAME="backend"
+      ${KONFIG_PROJECTROOT}/scripts/k8s-utilities.sh check_pod_state $BACKEND_POD_NAME Pending
 
-      echo -n $5 : 'health-check : '
-
-      until [[ $response_code != *"error"* ]]; do
-        if [ $duration -eq $timeout ]; then
-          echo ' timed out!'
-          exit 255
-        fi
-
-        echo -n '.'
-
-        sleep $interval
-        duration=$((duration + interval))
-
-        response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive' || exit 1)
-      done
-
-      echo ' succeeded!'
-    }
-
-    function check_pod_ready () {
-      remaining_time=600
-
-      until eval "check_pod_response"; do
-        sleep 30
-        let remaining_time--
-        if [ $remaining_time == 0 ]; then
-          echo "time out!"
-          exit 1
-        fi
-        echo -n '.'
-      done
-
-      echo "backend pod is ready and running..."
-    }
-
-    function check_pod_response () {
-      declare response_code=$(kubectl get pods --namespace koding -o jsonpath="{.items[0].status.phase}" || exit 1)
-
-      if [[ $response_code == *"Pending"* ]]; then
-        return 1
-      fi
-
-      return 0
+      echo "all services are ready..."
     }
 
     function switch_client_version () {
