@@ -23,7 +23,6 @@ client/app/lib/terminal/terminal.coffee
 client/app/lib/util/expandReactivityUsernames.coffee
 client/app/lib/util/expandUsernames.coffee
 client/app/lib/util/nicetime.coffee
-client/app/lib/util/pistachio.coffee
 client/app/lib/util/showError.coffee
 client/component-lab
 client/home/lib/billing/components
