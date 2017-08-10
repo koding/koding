@@ -286,6 +286,31 @@ jobs:
             [[ $status -eq 0 ]] && ./run exec scripts/test-instance/cleanup INSTANCE_DATA || :
             [[ -f TEST_SUITE_TIMELINE ]] && cat TEST_SUITE_TIMELINE || :
 
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - node_modules-{{ checksum "package.json" }}
+      - restore_cache:
+          keys:
+            - client-node_modules-{{ checksum "client/package.json" }}
+      - restore_cache:
+          keys:
+            - landing-node_modules-{{ checksum "client/landing/package.json" }}
+      - run:
+          name: npm install
+          command: npm install --unsafe-perm
+      - run:
+          name: deploy
+          command: |
+            case "$CIRCLE_BRANCH" in
+              sandbox | latest | production) BRANCH=$CIRCLE_BRANCH ;;
+              *) BRANCH=sandbox ;;
+            esac
+            env BRANCH=$BRANCH scripts/ci/deploy
+
   deploy-workflow:
     <<: *defaults
     steps:
