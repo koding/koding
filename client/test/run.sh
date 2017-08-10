@@ -25,8 +25,8 @@ function start_selenium_server() {
   RUN_SELENIUM_OUTPUT_HOST="$LOG_DIR/selenium-host.log"
   RUN_SELENIUM_OUTPUT_PARTICIPANT="$LOG_DIR/selenium-participant.log"
 
-  java -jar vendor/selenium-server-standalone.jar \
-       -host 0.0.0.0 \
+  java -Dwebdriver.gecko.driver=vendor/geckodriver/linux64/geckodriver \
+       -jar vendor/selenium-server-standalone.jar \
        -port 42420 \
        > $RUN_SELENIUM_OUTPUT_HOST 2>&1 &
 
@@ -34,8 +34,8 @@ function start_selenium_server() {
 
   echo "selenium-server (host): pid: $RUN_SELENIUM_SERVER_PID_HOST out: $RUN_SELENIUM_OUTPUT_HOST"
 
-  java -jar vendor/selenium-server-standalone.jar \
-       -host 0.0.0.0 \
+  java -Dwebdriver.gecko.driver=vendor/geckodriver/linux64/geckodriver \
+       -jar vendor/selenium-server-standalone.jar \
        -port 42421 \
        > $RUN_SELENIUM_OUTPUT_PARTICIPANT 2>&1 &
 
