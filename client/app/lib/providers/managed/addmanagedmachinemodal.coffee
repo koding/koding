@@ -87,7 +87,7 @@ module.exports = class AddManagedMachineModal extends ContentModal
       then "export KONTROLURL=#{KodingKontrol.getKontrolUrl()} CHANNEL=devmanaged; "
       else ''
 
-    cmd = "#{kontrolUrl}curl -sL https://kodi.ng/s | bash -s #{token}"
+    cmd = "#{kontrolUrl}curl -sL https://kodi.ng/c/p/kd | bash -s #{token}"
 
     @loader.destroy()
 
