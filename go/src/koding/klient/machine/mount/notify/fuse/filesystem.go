@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -19,6 +20,7 @@ import (
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseutil"
+	"github.com/koding/logging"
 	"golang.org/x/net/context"
 )
 
@@ -50,6 +52,7 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		// intentionally separate env to not enable fuse logging
 		// for regular kd debug
 		Debug: konfig.Konfig.Mount.Debug >= 9,
+		Log:   opts.Log,
 	}
 
 	if err := o.Valid(); err != nil {
@@ -61,14 +64,15 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 
 // Options configures FUSE filesystem.
 type Options struct {
-	Index    *index.Index // metadata index
-	Disk     *fs.DiskInfo // filesystem information
-	Cache    notify.Cache // used to request cache updates
-	CacheDir string       // path of the cache directory of the mount
-	Mount    string       // name of the mount
-	MountDir string       // path of the mount directory
-	User     *config.User // owner of the mount; if nil, config.CurrentUser is used
-	Debug    bool         // turns on fuse debug logging
+	Index    *index.Index   // metadata index
+	Disk     *fs.DiskInfo   // filesystem information
+	Cache    notify.Cache   // used to request cache updates
+	CacheDir string         // path of the cache directory of the mount
+	Mount    string         // name of the mount
+	MountDir string         // path of the mount directory
+	User     *config.User   // owner of the mount; if nil, config.CurrentUser is used
+	Debug    bool           // turns on fuse debug logging
+	Log      logging.Logger // log mount specific info
 }
 
 // Valid checks if provided options are valid.
@@ -164,7 +168,23 @@ func NewFilesystem(opts *Options, wraps ...FSWrapFunc) (*Filesystem, error) {
 		fuseFS = wrap(fuseFS)
 	}
 
-	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fuseFS), fs.Config())
+	cfg := fs.Config()
+
+	// Debug information about filesystem.
+	if opts.Log != nil {
+		// User information.
+		var userInfo string
+		if u, err := user.Current(); err == nil {
+			userInfo = fmt.Sprintf("%s, home: %s", u.Username, u.HomeDir)
+		} else {
+			userInfo = "cannot obtain user info: " + err.Error()
+		}
+
+		opts.Log.Info("Dir: %s; CacheDir: %s; Mounter: %s; Opts: %s; Usr: %s",
+			opts.MountDir, opts.CacheDir, getFuserMountVer(), toOptionsString(cfg), userInfo)
+	}
+
+	m, err := fuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fuseFS), cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -226,4 +246,94 @@ func Umount(dir string) error {
 	// Under Darwin fuse.Umount uses syscall.Umount without syscall.MNT_FORCE flag,
 	// so we replace that implementation with diskutil.
 	return umountCmd("diskutil", "unmount", "force", dir)
+}
+
+func getFuserMountVer() string {
+	const fm = "fusermount"
+
+	if runtime.GOOS != "linux" {
+		return "unsupported OS " + runtime.GOOS
+	}
+
+	if _, err := exec.LookPath(fm); err != nil {
+		return "cannot find " + fm + " executable in PATH"
+	}
+
+	p, err := exec.Command(fm, "--version").CombinedOutput()
+	if err != nil {
+		return "unknown " + fm + "version: " + err.Error()
+	}
+
+	return strings.TrimSpace(string(p))
+}
+
+// Create a map containing all of the key=value mount options to be given to
+// the mount helper.
+//
+// This function is copied from jacobsa/fuse and is meant to provide exact
+// command arguments passed to fusermount.
+func toMap(c *fuse.MountConfig) (opts map[string]string) {
+	isDarwin := runtime.GOOS == "darwin"
+	opts = make(map[string]string)
+
+	opts["default_permissions"] = ""
+	fsname := c.FSName
+	if runtime.GOOS == "linux" && fsname == "" {
+		fsname = "some_fuse_file_system"
+	}
+
+	// Special file system name?
+	if fsname != "" {
+		opts["fsname"] = fsname
+	}
+
+	// Read only?
+	if c.ReadOnly {
+		opts["ro"] = ""
+	}
+
+	// Handle OS X options.
+	if isDarwin {
+		if !c.EnableVnodeCaching {
+			opts["novncache"] = ""
+		}
+
+		if c.VolumeName != "" {
+			opts["volname"] = c.VolumeName
+		}
+	}
+
+	if isDarwin {
+		opts["noappledouble"] = ""
+	}
+
+	for k, v := range c.Options {
+		opts[k] = v
+	}
+
+	return
+}
+
+func escapeOptionsKey(s string) (res string) {
+	res = s
+	res = strings.Replace(res, `\`, `\\`, -1)
+	res = strings.Replace(res, `,`, `\,`, -1)
+	return
+}
+
+// Create an options string suitable for passing to the mount helper.
+func toOptionsString(c *fuse.MountConfig) string {
+	var components []string
+	for k, v := range toMap(c) {
+		k = escapeOptionsKey(k)
+
+		component := k
+		if v != "" {
+			component = fmt.Sprintf("%s=%s", k, v)
+		}
+
+		components = append(components, component)
+	}
+
+	return strings.Join(components, ",")
 }

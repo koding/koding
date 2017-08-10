@@ -191,6 +191,7 @@ func NewSync(mountID ID, m Mount, opts Options) (*Sync, error) {
 		Cache:      s.a,
 		CacheDir:   s.CacheDir(),
 		Index:      s.idx,
+		Log:        s.log,
 	})
 	if err != nil {
 		return nil, nonil(err, s.a.Close(), s.iu.Close())
