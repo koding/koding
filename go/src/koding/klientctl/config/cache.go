@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 
 	"koding/kites/config"
@@ -35,10 +36,10 @@ func Open() (*Cache, error) {
 	if _, err := os.Stat(opts.File); os.IsNotExist(err) {
 		db, err := config.NewBoltCache(opts)
 		if err != nil {
-			return nil, err
+			return nil, errors.New("error creating new config: " + err.Error())
 		}
 		if err := db.Close(); err != nil {
-			return nil, err
+			return nil, errors.New("error closing new config: " + err.Error())
 		}
 	}
 

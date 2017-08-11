@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -89,7 +90,7 @@ func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
 	_ = util.Chown(o.File, o.owner().User)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.New("error opening config: " + err.Error())
 	}
 
 	return db, nil
