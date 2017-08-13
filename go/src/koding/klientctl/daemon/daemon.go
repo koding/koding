@@ -188,7 +188,7 @@ func wget(url, output string, mode os.FileMode) error {
 		return err
 	}
 
-	f, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
+	f, err := ioutil.TempFile(filepath.Split(output))
 	if err != nil {
 		return err
 	}
@@ -234,7 +234,11 @@ func wget(url, output string, mode os.FileMode) error {
 	}
 
 	_, err = io.Copy(f, body)
-	return nonil(err, f.Chmod(mode), f.Close())
+	if err = nonil(err, f.Chmod(mode), f.Close()); err != nil {
+		return err
+	}
+
+	return os.Rename(f.Name(), output)
 }
 
 // wgetTemp is a convenience wrapper over wget, that
