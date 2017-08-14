@@ -443,44 +443,52 @@ generateDev = (KONFIG, options) ->
       esac
 
       if [ "$param" == "start" ]; then
-        # Dependency on a hypervisor will be dropped off in the future
-        command -v docker           >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
-        command -v minikube         >/dev/null 2>&1 || { echo >&2 "I require a Kubernetes cluster. To install minikube: \
-                (curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-$(uname | awk '{print tolower($0)}')-amd64 && chmod +x minikube && mv minikube /usr/local/bin/)"; exit 1;}
-        command -v kubectl          >/dev/null 2>&1 || { echo >&2 "I require kubectl. To install kubectl: \
-                (curl -L -O https://storage.googleapis.com/kubernetes-release/release/v1.6.4/bin/$(uname | awk '{print tolower($0)}')/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/)"; exit 1;}
-
-        # for local development, minikube must be deleted and recreated if a disk resize is needed
-        sudo -E minikube start --vm-driver=none # for local development: minikube start --disk-size 50g --cpus 2 --memory 5120
-
-        sleep 25
-
-        sudo sed --in-place --expression 's@path: \/opt\/koding@path: '"$(pwd)"'@g' deployment/kubernetes/services-pod/containers.yaml
-        kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/namespace.yaml
-        kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/services-pod/containers.yaml
-
-        sleep 25
-        echo "checking if pod is ready"
-        check_pod_ready
-        export BACKEND_POD_NAME=$(kubectl get pods --namespace service-dev -o jsonpath="{.items[0].metadata.name}")
-        sleep 10
-
-        k8s_health_check $BACKEND_POD_NAME service-dev 5 120 backend-services
-
-        # guest user can only connect via localhost, a test user equivalent to guest will be created to check connectivity via POD IP.
-        # more info on guest user update: https://www.rabbitmq.com/blog/2014/04/02/breaking-things-with-rabbitmq-3-3/
-        k8s_health_check $BACKEND_POD_NAME service-dev 5 120 rabbitmq
-        sleep 25
-        kubectl exec -n service-dev $BACKEND_POD_NAME -c rabbitmq -- bash -c "rabbitmqctl add_user test test && rabbitmqctl set_user_tags test administrator && rabbitmqctl set_permissions -p / test '.*' '.*' '.*'"
-
-        k8s_connectivity_check $BACKEND_POD_NAME service-dev backend-services
-
-        echo "all services are ready"
+        k8s_start
 
       else
-        # TODO: stop the cluster, maybe even have an option to kill the cluster?
         minikube stop
       fi
+    }
+
+    function k8s_start () {
+      command -v docker           >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
+      command -v minikube         >/dev/null 2>&1 || { echo >&2 "I require a Kubernetes cluster. To install minikube: \
+              (curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-$(uname | awk '{print tolower($0)}')-amd64 && chmod +x minikube && mv minikube /usr/local/bin/)"; exit 1;}
+      command -v kubectl          >/dev/null 2>&1 || { echo >&2 "I require kubectl. To install kubectl: \
+              (curl -L -O https://storage.googleapis.com/kubernetes-release/release/v1.6.4/bin/$(uname | awk '{print tolower($0)}')/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/)"; exit 1;}
+
+      # for local development, minikube must be deleted and recreated if a disk resize is needed
+      export CHANGE_MINIKUBE_NONE_USER=true
+      sudo -E minikube start --vm-driver=none
+
+      sleep 25
+
+      export HOSTNAME=$(hostname)
+      envsubst < deployment/kubernetes/backend-pod/containers.yaml.template > deployment/kubernetes/backend-pod/containers.yaml
+      envsubst < deployment/kubernetes/frontend-pod/client-containers.yaml.template > deployment/kubernetes/frontend-pod/client-containers.yaml
+      kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/namespace.yaml
+      kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/backend-pod/containers.yaml
+      kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/frontend-pod/client-containers.yaml
+
+      sleep 5
+      echo "checking if backend pod is ready"
+      check_pod_ready
+      export BACKEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[0].metadata.name}")"
+      export FRONTEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[1].metadata.name}")"
+      sleep 10
+
+      k8s_health_check $BACKEND_POD_NAME koding 5 120 backend-services
+      k8s_health_check $FRONTEND_POD_NAME koding 5 120 landing
+
+      # guest user can only connect via localhost, a test user equivalent to guest will be created to check connectivity via POD IP.
+      # more info on guest user update: https://www.rabbitmq.com/blog/2014/04/02/breaking-things-with-rabbitmq-3-3/
+      k8s_health_check $BACKEND_POD_NAME koding 5 120 rabbitmq
+      sleep 25
+      kubectl exec -n koding $BACKEND_POD_NAME -c rabbitmq -- bash -c "rabbitmqctl add_user test test && rabbitmqctl set_user_tags test administrator && rabbitmqctl set_permissions -p / test '.*' '.*' '.*'"
+
+      k8s_connectivity_check $BACKEND_POD_NAME koding backend-services
+
+      echo "all services are ready"
     }
 
     function k8s_connectivity_check () {
@@ -511,33 +519,36 @@ generateDev = (KONFIG, options) ->
         sleep $interval
         duration=$((duration + interval))
 
-        declare response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive')
+        response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive')
       done
 
       echo ' succeeded!'
     }
 
     function check_pod_ready () {
-      declare interval=5
-      declare timeout=600
-      declare duration=0
-      declare response_code=$(kubectl get pods --namespace service-dev -o jsonpath="{.items[0].status.phase}")
+      remaining_time=600
 
-      until [[ $response_code != *"Pending"* ]]; do
-        if [ $duration -eq $timeout ]; then
-          echo ' timed out!'
-          exit 255
+      until eval "check_pod_response"; do
+        sleep 1
+        let remaining_time--
+        if [ $remaining_time == 0 ]; then
+          echo "time out!"
+          exit 1
         fi
-
         echo -n '.'
-
-        sleep $interval
-        duration=$((duration + interval))
-
-        declare response_code=$(kubectl get pods --namespace service-dev -o jsonpath="{.items[0].status.phase}")
       done
 
-      echo 'pod is in the ready state'
+      echo "backend pod is ready and running..."
+    }
+
+    function check_pod_response () {
+      declare response_code=$(kubectl get pods --namespace koding -o jsonpath="{.items[0].status.phase}")
+
+      if [[ $response_code == *"Pending"* ]]; then
+        return 1
+      fi
+
+      return 0
     }
 
     function switch_client_version () {
@@ -776,7 +787,8 @@ generateDev = (KONFIG, options) ->
       switch_client_version $2
 
     elif [ "$1" == "k8s" ]; then
-      k8s $2
+      shift
+      k8s "$@"
 
     else
       echo "Unknown command: $1"
