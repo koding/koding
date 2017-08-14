@@ -169,9 +169,9 @@ type Konfig struct {
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
-	LockTimeout    time.Duration `json:"lockTimeout,omitempty"`
-	DisableMetrics bool          `json:"disableMetrics,string,omitempty"`
-	Debug          bool          `json:"debug,string,omitempty"`
+	LockTimeout    int  `json:"lockTimeout,omitempty,string"`
+	DisableMetrics bool `json:"disableMetrics,string,omitempty"`
+	Debug          bool `json:"debug,string,omitempty"`
 }
 
 // KiteHome gives directory of the kite.key file.
@@ -385,7 +385,7 @@ func NewKonfig(e *Environments) *Konfig {
 		},
 		PublicBucketName:   Builtin.Buckets.PublicLogs.Name,
 		PublicBucketRegion: Builtin.Buckets.PublicLogs.Region,
-		LockTimeout:        3 * time.Second,
+		LockTimeout:        3,
 	}
 }
 

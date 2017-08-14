@@ -17,7 +17,7 @@ have no hanging kd processes. Alternatively, if you execute a number of kd
 processes concurrently and a number of them fail, you may want to increase
 database lock timeout with:
 
-   kd config lockTimeout 10s`
+   kd config set lockTimeout 10`
 
 // WithInitializedCache ensures that config cache is accessible and attached to
 // config default cache client.

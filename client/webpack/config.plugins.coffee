@@ -24,7 +24,7 @@ module.exports = (options) ->
 
     new HappyPack {
       id: 'coffee'
-      loaders: [ 'pistachio-loader', 'coffee-loader', 'cjsx-loader' ]
+      loaders: [ 'coffee-loader', 'cjsx-loader' ]
     }
 
     new webpack.LoaderOptionsPlugin {
