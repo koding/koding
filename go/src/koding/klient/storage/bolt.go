@@ -35,7 +35,7 @@ func NewBoltStorageBucket(db *bolt.DB, bucketName []byte) (*boltdb, error) {
 			_, err := tx.CreateBucketIfNotExists(b.bucket())
 			return err
 		}); err != nil {
-			return nil, err
+			return nil, errors.New("error ensuring bucket exists: " + err.Error())
 		}
 	}
 

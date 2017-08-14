@@ -749,7 +749,7 @@ var Script = []InstallStep{{
 		fmt.Fprintf(os.Stderr, "\tCurrent version: %s\n", formatVersion(version))
 		fmt.Fprintf(os.Stderr, "\tLatest version: %s\n\n", formatVersion(newVersion))
 
-		if version != 0 && version < config.VersionNum() {
+		if version != 0 && version < config.VersionNum() && os.Args[0] != c.d.Files["kd"] {
 			if err := copyFile(os.Args[0], c.d.Files["kd"], 0755); err != nil {
 				return "", err
 			}

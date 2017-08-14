@@ -54,9 +54,6 @@ s3cp "s3://${BUCKET}/${CHANNEL}/latest/klient-0.1.${VERSION}.gz" "s3://${BUCKET}
 s3cp "s3://${BUCKET}/${CHANNEL}/latest/klient-0.1.${VERSION}.darwin_amd64.gz" "s3://${BUCKET}/${CHANNEL}/latest/klient.darwin_amd64.gz"
 s3cp "s3://${BUCKET}/${CHANNEL}/latest/klient_0.1.${VERSION}_${CHANNEL}_amd64.deb" "s3://${BUCKET}/${CHANNEL}/latest/klient.deb"
 
-s3rm "s3://${BUCKET}/install.sh"
-s3cp "${REPO_PATH}/go/src/koding/klient/install.sh" "s3://${BUCKET}/install.sh"
-
 echo "# updating latest-version.txt to $VERSION"
 
 echo $VERSION > latest-version.txt
