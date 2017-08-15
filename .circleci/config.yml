@@ -35,9 +35,6 @@ workflows:
       - deploy-workflow:
           requires:
             - dependencies
-          filters:
-            branches:
-              only: /(sandbox|latest|production)/
 
 jobs:
   dependencies:
