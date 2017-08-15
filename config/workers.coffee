@@ -9,7 +9,7 @@ module.exports = (KONFIG, options, credentials) ->
 
   workers =
     nginx:
-      group: 'webserver'
+      group: 'external'
       supervisord:
         command: 'nginx -c %(ENV_KONFIG_PROJECTROOT)s/nginx.conf'
         stopsignal: 'QUIT'
