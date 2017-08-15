@@ -42,6 +42,9 @@ Configuration = (options = {}) ->
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
   options.proxySubdomain or= 'dev-p'
+  options.userProxyHost or= "#{options.proxySubdomain}.koding.com"
+  options.userProxyUri or= "#{options.userProxyHost}/-/devproxy"
+  options.userTunnelUri or= "#{options.userProxyHost}/-/devtunnel"
 
 
   try fs.lstatSync options.credentialPath
