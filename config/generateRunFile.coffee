@@ -461,41 +461,48 @@ generateDev = (KONFIG, options) ->
       export CHANGE_MINIKUBE_NONE_USER=true
       sudo -E minikube start --vm-driver=none
 
-      sleep 25
-
-      export HOSTNAME=$(hostname)
+      sleep 60
+      
+      export NAMESPACE_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/namespace.yaml"
+      export BACKEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/backend-pod/containers.yaml"
+      export FRONTEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/frontend-pod/client-containers.yaml"
+      
       envsubst < deployment/kubernetes/backend-pod/containers.yaml.template > deployment/kubernetes/backend-pod/containers.yaml
       envsubst < deployment/kubernetes/frontend-pod/client-containers.yaml.template > deployment/kubernetes/frontend-pod/client-containers.yaml
-      kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/namespace.yaml
-      kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/backend-pod/containers.yaml
-      kubectl create -f $KONFIG_PROJECTROOT/deployment/kubernetes/frontend-pod/client-containers.yaml
+      
+      cp $BACKEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
+      cp $FRONTEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
+      
+      kubectl apply -f $NAMESPACE_DIR || kubectl create -f $NAMESPACE_DIR || exit 1
+      kubectl apply -f $BACKEND_DIR || kubectl create -f $BACKEND_DIR || exit 1
+      kubectl apply -f $FRONTEND_DIR || kubectl create -f $FRONTEND_DIR || exit 1
 
       sleep 5
       echo "checking if backend pod is ready"
       check_pod_ready
-      export BACKEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[0].metadata.name}")"
-      export FRONTEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[1].metadata.name}")"
+      export BACKEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[0].metadata.name}" || exit 1)"
+      export FRONTEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[1].metadata.name}" || exit 1)"
       sleep 10
 
-      k8s_health_check $BACKEND_POD_NAME koding 5 120 backend-services
+      k8s_health_check $BACKEND_POD_NAME koding 5 120 backend
       k8s_health_check $FRONTEND_POD_NAME koding 5 120 landing
 
       # guest user can only connect via localhost, a test user equivalent to guest will be created to check connectivity via POD IP.
       # more info on guest user update: https://www.rabbitmq.com/blog/2014/04/02/breaking-things-with-rabbitmq-3-3/
       k8s_health_check $BACKEND_POD_NAME koding 5 120 rabbitmq
       sleep 25
-      kubectl exec -n koding $BACKEND_POD_NAME -c rabbitmq -- bash -c "rabbitmqctl add_user test test && rabbitmqctl set_user_tags test administrator && rabbitmqctl set_permissions -p / test '.*' '.*' '.*'"
+      kubectl exec -n koding $BACKEND_POD_NAME -c rabbitmq -- bash -c "rabbitmqctl add_user test test && rabbitmqctl set_user_tags test administrator && rabbitmqctl set_permissions -p / test '.*' '.*' '.*'" || exit 1
 
-      k8s_connectivity_check $BACKEND_POD_NAME koding backend-services
+      k8s_connectivity_check $BACKEND_POD_NAME koding backend
 
       echo "all services are ready"
     }
 
     function k8s_connectivity_check () {
       # args: $1: POD NAME, $2: NAMESPACE, $3: container name
-      kubectl exec -n $2 $1 -c $3 -- bash -c "./run is_ready"
+      kubectl exec -n $2 $1 -c $3 -- bash -c "./run is_ready" || exit 1
     }
-
+    
     function k8s_health_check () {
       # args: $1: POD NAME, $2: NAMESPACE, $3: health check interval (recommended 5 seconds), $4: timeout duration
       declare interval=$3
@@ -504,7 +511,7 @@ generateDev = (KONFIG, options) ->
 
       sleep $interval
 
-      declare response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive')
+      declare response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive' || exit 1)
 
       echo -n $5 : 'health-check : '
 
@@ -519,7 +526,7 @@ generateDev = (KONFIG, options) ->
         sleep $interval
         duration=$((duration + interval))
 
-        response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive')
+        response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive' || exit 1)
       done
 
       echo ' succeeded!'
@@ -529,7 +536,7 @@ generateDev = (KONFIG, options) ->
       remaining_time=600
 
       until eval "check_pod_response"; do
-        sleep 1
+        sleep 30
         let remaining_time--
         if [ $remaining_time == 0 ]; then
           echo "time out!"
@@ -542,7 +549,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function check_pod_response () {
-      declare response_code=$(kubectl get pods --namespace koding -o jsonpath="{.items[0].status.phase}")
+      declare response_code=$(kubectl get pods --namespace koding -o jsonpath="{.items[0].status.phase}" || exit 1)
 
       if [[ $response_code == *"Pending"* ]]; then
         return 1
