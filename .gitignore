@@ -1,6 +1,8 @@
 selenium-debug.log
 nginx.conf
 nginx.pid
+containers.yaml
+client-containers.yaml
 *.test
 *.dump
 *.orig
