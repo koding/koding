@@ -462,17 +462,17 @@ generateDev = (KONFIG, options) ->
       sudo -E minikube start --vm-driver=none
 
       sleep 60
-      
+
       export NAMESPACE_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/namespace.yaml"
       export BACKEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/backend-pod/containers.yaml"
       export FRONTEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/frontend-pod/client-containers.yaml"
-      
+
       envsubst < deployment/kubernetes/backend-pod/containers.yaml.template > deployment/kubernetes/backend-pod/containers.yaml
       envsubst < deployment/kubernetes/frontend-pod/client-containers.yaml.template > deployment/kubernetes/frontend-pod/client-containers.yaml
-      
+
       cp $BACKEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
       cp $FRONTEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
-      
+
       kubectl apply -f $NAMESPACE_DIR || kubectl create -f $NAMESPACE_DIR || exit 1
       kubectl apply -f $BACKEND_DIR || kubectl create -f $BACKEND_DIR || exit 1
       kubectl apply -f $FRONTEND_DIR || kubectl create -f $FRONTEND_DIR || exit 1
@@ -502,7 +502,7 @@ generateDev = (KONFIG, options) ->
       # args: $1: POD NAME, $2: NAMESPACE, $3: container name
       kubectl exec -n $2 $1 -c $3 -- bash -c "./run is_ready" || exit 1
     }
-    
+
     function k8s_health_check () {
       # args: $1: POD NAME, $2: NAMESPACE, $3: health check interval (recommended 5 seconds), $4: timeout duration
       declare interval=$3
