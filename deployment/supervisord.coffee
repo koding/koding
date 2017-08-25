@@ -1,4 +1,6 @@
-fs            = require 'fs'
+_  = require 'lodash'
+fs = require 'fs'
+
 { isAllowed } = require './grouptoenvmapping'
 { generateCountlySupervisord } = require './countly/generateConfig'
 
@@ -42,8 +44,9 @@ generateMainConf = ->
 # becareful while editing this function, any change will affect every worker
 generateWorkerSection = (app, options = {}) ->
 
-  section =
-    command                 : 'command'
+  { supervisord: section } = options
+
+  _.defaults section, {
     numprocs                : options.instances or 1
     numprocs_start          : 0
     directory               : '%(ENV_KONFIG_PROJECTROOT)s'
@@ -51,7 +54,7 @@ generateWorkerSection = (app, options = {}) ->
     autorestart             : yes
     startsecs               : 10
     startretries            : 5
-    stopsignal              : options.stopsignal or 'TERM'
+    stopsignal              : 'TERM'
     stopwaitsecs            : 10
     stopasgroup             : yes
     killasgroup             : yes
@@ -61,9 +64,7 @@ generateWorkerSection = (app, options = {}) ->
     stdout_logfile_backups  : 10
     stdout_capture_maxbytes : '1MB'
     stderr_logfile          : "%(ENV_KONFIG_SUPERVISORD_LOGDIR)s/#{app}.log"
-
-  for key, opt of options.supervisord
-    section[key] = opt
+  }
 
   if section.numprocs > 1 and options.ports?
     for key, port of options.ports
