@@ -156,10 +156,11 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       .then (token) =>
         @button.hideLoader()
         @options.onSubmitSuccess token
+        grecaptcha?.reset()
       .catch (err) =>
         @button.hideLoader()
         @options.onSubmitError err
-
+        grecaptcha?.reset()
 
 
   getResetFormLink: ->
