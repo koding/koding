@@ -52,8 +52,13 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
       return  unless token = utils.getPayment().token
 
-      @resetFormLink.show()
-      @forEachInputView (input) -> input.hide()
+      @showReset()
+
+
+  showReset: ->
+
+    @forEachInputView (input) -> input.hide()
+    @resetFormLink.show()
 
 
   forEachInputView: (callback) ->
