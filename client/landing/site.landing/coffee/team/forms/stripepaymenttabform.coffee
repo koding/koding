@@ -45,6 +45,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     @backLink = @getButtonLink 'BACK', '/Team/Domain'
     @resetFormLink = @getResetFormLink()
+    @errorView = @getErrorView()
 
     @on [ 'FormSubmitFailed', 'FormValidationFailed' ], @button.bound 'hideLoader'
 
@@ -59,6 +60,21 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     @forEachInputView (input) -> input.hide()
     @resetFormLink.show()
+
+
+  showFatalError: ({ message, nextStep }) ->
+
+    @showReset()
+    @errorView.show()
+
+    @errorView.destroySubViews()
+    @errorView.addSubView new kd.CustomHTMLView
+      tagName: 'h4'
+      partial: message
+
+    @errorView.addSubView new kd.CustomHTMLView
+      tagName: 'h5'
+      partial: nextStep
 
 
   forEachInputView: (callback) ->
@@ -188,9 +204,16 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       click    : callback
 
 
+  getErrorView: ->
+
+    new kd.CustomHTMLView
+      cssClass: 'hidden cc-form-errorView'
+
+
   pistachio: ->
 
     """
+    {{> @errorView }}
     <div class='cc-form-resetLink'>
       {{> @resetFormLink}}
     </div>
