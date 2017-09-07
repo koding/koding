@@ -11,6 +11,9 @@ import (
 type CreateRequest struct {
 	// Addresses represents machines and their known network addresses.
 	Addresses map[machine.ID][]machine.Addr `json:"addresses"`
+
+	// Metadata stores additional information about the machine.
+	Metadata map[machine.ID]*machine.Metadata `json:"metadata"`
 }
 
 // CreateResponse defines machine group create response.
@@ -61,6 +64,13 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 		g.log.Debug("Successfully added %s with alias %s", id, alias)
 	}
 
+	for id, meta := range req.Metadata {
+		// Add machine metadata.
+		if err := g.meta.Add(id, meta); err != nil {
+			g.log.Error("Cannot add metadata for %s machine: %s", id, err)
+		}
+	}
+
 	// Update cache asynchronously.
 	go func() {
 		if cache, ok := g.address.(machine.Cacher); ok {
@@ -71,6 +81,11 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 		if cache, ok := g.alias.(machine.Cacher); ok {
 			if err := cache.Cache(); err != nil {
 				g.log.Warning("Cannot cache machine aliases: %v", err)
+			}
+		}
+		if cache, ok := g.meta.(machine.Cacher); ok {
+			if err := cache.Cache(); err != nil {
+				g.log.Warning("Cannot cache machine metadata: %v", err)
 			}
 		}
 
@@ -100,12 +115,13 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 func (g *Group) balance(ids machine.IDSlice) {
 	var (
 		regAlias   = g.alias.Registered()
+		regMeta    = g.meta.Registered()
 		regAddress = g.address.Registered()
 		regClient  = g.client.Registered()
 		regMount   = g.mount.Registered()
 	)
 
-	union := idset.Union(idset.Union(regAlias, regAddress), regClient)
+	union := idset.Union(idset.Union(regAlias, regAddress), idset.Union(regClient, regMeta))
 
 	// Remove machines that are no longer available. Leave these with mounts
 	// untouched.
@@ -116,6 +132,12 @@ func (g *Group) balance(ids machine.IDSlice) {
 		if err := g.alias.Drop(id); err != nil {
 			errored = true
 			g.log.Warning("Alias of machine %s cannot be removed: %v", id, err)
+		}
+
+		// Drop machine metadata.
+		if err := g.meta.Drop(id); err != nil {
+			errored = true
+			g.log.Warning("Metadata of machine %s cannot be removed: %v", id, err)
 		}
 
 		// Drop machine client.

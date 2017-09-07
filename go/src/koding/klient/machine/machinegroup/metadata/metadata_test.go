@@ -9,24 +9,24 @@ import (
 )
 
 func TestMetadataMachineID(t *testing.T) {
-	m := map[machine.ID]*metadata.Entry{
-		"ID_1": &metadata.Entry{
+	m := map[machine.ID]*machine.Metadata{
+		"ID_1": &machine.Metadata{
 			Owner: "",
 			Label: "machineA",
 		},
-		"ID_2": &metadata.Entry{
+		"ID_2": &machine.Metadata{
 			Owner: "user",
 			Label: "machineA",
 		},
-		"ID_3": &metadata.Entry{
+		"ID_3": &machine.Metadata{
 			Owner: "",
 			Label: "machineA",
 		},
-		"ID_4": &metadata.Entry{
+		"ID_4": &machine.Metadata{
 			Owner: "",
 			Label: "machineB",
 		},
-		"ID_5": &metadata.Entry{
+		"ID_5": &machine.Metadata{
 			Owner: "",
 			Label: "machineC",
 		},

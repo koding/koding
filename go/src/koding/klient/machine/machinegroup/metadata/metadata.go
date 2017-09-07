@@ -10,26 +10,26 @@ import (
 // Metadata stores metadata of a group of unique machines.
 type Metadata struct {
 	mu sync.RWMutex
-	m  map[machine.ID]*Entry
+	m  map[machine.ID]*machine.Metadata
 }
 
 // New creates an empty Metadata object.
 func New() *Metadata {
 	return &Metadata{
-		m: make(map[machine.ID]*Entry),
+		m: make(map[machine.ID]*machine.Metadata),
 	}
 }
 
 // Add binds metadata to provided machine.
-func (m *Metadata) Add(id machine.ID, entry *Entry) error {
-	if entry == nil {
+func (m *Metadata) Add(id machine.ID, meta *machine.Metadata) error {
+	if meta == nil {
 		return errors.New("nil metadata is not allowed")
 	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.m[id] = entry
+	m.m[id] = meta
 
 	return nil
 }
@@ -52,12 +52,12 @@ func (m *Metadata) MachineID(owner, label string) (machine.IDSlice, error) {
 	defer m.mu.RUnlock()
 
 	ids := make(machine.IDSlice, 0)
-	for id, entry := range m.m {
-		if entry == nil {
+	for id, meta := range m.m {
+		if meta == nil {
 			continue
 		}
 
-		if entry.Owner == owner && entry.Label == label {
+		if meta.Owner == owner && meta.Label == label {
 			ids = append(ids, id)
 		}
 	}
@@ -83,15 +83,15 @@ func (m *Metadata) Registered() machine.IDSlice {
 	return registered
 }
 
-// all returns all stored entry objects.
-func (m *Metadata) all() map[machine.ID]*Entry {
-	all := make(map[machine.ID]*Entry)
+// all returns all stored metadata objects.
+func (m *Metadata) all() map[machine.ID]*machine.Metadata {
+	all := make(map[machine.ID]*machine.Metadata)
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	for id, entry := range m.m {
-		all[id] = entry
+	for id, meta := range m.m {
+		all[id] = meta
 	}
 
 	return all

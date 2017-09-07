@@ -30,9 +30,9 @@ func NewCached(st storage.ValueInterface) (*Cached, error) {
 	}
 
 	// Drop inconsistent data.
-	empty := Entry{}
-	for id, entry := range c.metadata.m {
-		if entry == nil || *entry == empty {
+	empty := machine.Metadata{}
+	for id, meta := range c.metadata.m {
+		if meta == nil || *meta == empty {
 			delete(c.metadata.m, id)
 		}
 	}
@@ -41,8 +41,8 @@ func NewCached(st storage.ValueInterface) (*Cached, error) {
 }
 
 // Add binds metadata to provided machine
-func (c *Cached) Add(id machine.ID, entry *Entry) error {
-	return c.metadata.Add(id, entry)
+func (c *Cached) Add(id machine.ID, meta *machine.Metadata) error {
+	return c.metadata.Add(id, meta)
 }
 
 // Drop removes metadata bound to provided machine ID.

@@ -46,3 +46,9 @@ func (ids IDSlice) String() string {
 
 	return strings.Join(strs, ", ")
 }
+
+// Metadata stores additional information about single machine.
+type Metadata struct {
+	Owner string `json:"owner"`
+	Label string `json:"label"`
+}

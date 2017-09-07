@@ -11,7 +11,7 @@ type Entry struct {
 // Metadater is an interface used to manage machines' metadata.
 type Metadater interface {
 	// Add binds custom alias to provided machine.
-	Add(machine.ID, *Entry) error
+	Add(machine.ID, *machine.Metadata) error
 
 	// Drop removes machine metadata.
 	Drop(machine.ID) error
