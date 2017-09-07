@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"errors"
+	"sort"
 	"sync"
 
 	"koding/klient/machine"
@@ -81,7 +82,7 @@ func (m *Metadata) MachineID(owner, label string) (machine.IDSlice, error) {
 		return nil, machine.ErrMachineNotFound
 	}
 
-	ids.Sort()
+	sort.Slice(ids, ids.Less)
 	return ids, nil
 }
 

@@ -2,7 +2,6 @@ package machine
 
 import (
 	"errors"
-	"sort"
 	"strings"
 
 	"koding/klient/config"
@@ -30,11 +29,9 @@ type ID string
 // IDSlice represents a set of machine IDs.
 type IDSlice []ID
 
-// Sort sorts machine IDs in lexicographical order.
-func (ids IDSlice) Sort() {
-	sort.Slice(ids, func(i, j int) bool {
-		return string(ids[i]) < string(ids[j])
-	})
+// Less provides a comparator for lexicographical ordering.
+func (ids IDSlice) Less(i, j int) bool {
+	return string(ids[i]) < string(ids[j])
 }
 
 // String implements fmt.Stringer interface. It pretty prints machine IDs.
