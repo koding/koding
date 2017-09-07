@@ -50,13 +50,13 @@ func (c *Cached) Create(id machine.ID) (string, error) {
 	return c.aliases.Create(id)
 }
 
-// Drop removes alias which is binded to provided machine ID and updates
+// Drop removes alias which is bound to provided machine ID and updates
 // the cache.
 func (c *Cached) Drop(id machine.ID) error {
 	return c.aliases.Drop(id)
 }
 
-// MachineID checks if there is a machine ID that is binded to provided alias.
+// MachineID checks if there is a machine ID that is bound to provided alias.
 // If yes, the machine ID is returned. ErrAliasNotFound is be returned if there
 // is no machine ID with provided alias.
 func (c *Cached) MachineID(alias string) (machine.ID, error) {
