@@ -60,6 +60,11 @@ func TestID(t *testing.T) {
 			ID:         idA,
 			Found:      true,
 		},
+		"by (at) ID": {
+			Identifier: "@" + string(idA),
+			ID:         idA,
+			Found:      true,
+		},
 		"by alias": {
 			Identifier: res.Aliases[idB],
 			ID:         idB,
@@ -75,7 +80,7 @@ func TestID(t *testing.T) {
 			ID:         idA,
 			Found:      true,
 		},
-		"by at with label": {
+		"by (at) label": {
 			Identifier: "@" + metaA.Label,
 			ID:         idA,
 			Found:      true,
