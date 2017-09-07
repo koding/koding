@@ -40,9 +40,14 @@ func NewCached(st storage.ValueInterface) (*Cached, error) {
 	return c, nil
 }
 
-// Add binds metadata to provided machine
+// Add binds metadata to provided machine.
 func (c *Cached) Add(id machine.ID, meta *machine.Metadata) error {
 	return c.metadata.Add(id, meta)
+}
+
+// Get gets metadata for provided machine.
+func (c *Cached) Get(id machine.ID) (*machine.Metadata, error) {
+	return c.metadata.Get(id)
 }
 
 // Drop removes metadata bound to provided machine ID.

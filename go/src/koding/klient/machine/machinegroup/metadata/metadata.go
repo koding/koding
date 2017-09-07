@@ -34,6 +34,21 @@ func (m *Metadata) Add(id machine.ID, meta *machine.Metadata) error {
 	return nil
 }
 
+// Get gets metadata for provided machine.
+func (m *Metadata) Get(id machine.ID) (*machine.Metadata, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	meta, ok := m.m[id]
+	if !ok || meta == nil {
+		return nil, machine.ErrMachineNotFound
+	}
+
+	metaCopy := *meta
+
+	return &metaCopy, nil
+}
+
 // Drop removes metadata entry bound to provided machine ID.
 func (m *Metadata) Drop(id machine.ID) error {
 	m.mu.Lock()

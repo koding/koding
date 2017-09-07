@@ -2,16 +2,13 @@ package metadata
 
 import "koding/klient/machine"
 
-// Entry stores additional information about single machine.
-type Entry struct {
-	Owner string `json:"owner"`
-	Label string `json:"label"`
-}
-
 // Metadater is an interface used to manage machines' metadata.
 type Metadater interface {
 	// Add binds custom alias to provided machine.
 	Add(machine.ID, *machine.Metadata) error
+
+	// Get gets metadata for provided machine.
+	Get(machine.ID) (*machine.Metadata, error)
 
 	// Drop removes machine metadata.
 	Drop(machine.ID) error

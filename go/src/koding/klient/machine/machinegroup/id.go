@@ -2,7 +2,9 @@ package machinegroup
 
 import (
 	"errors"
+	"fmt"
 	"sort"
+	"strings"
 
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup/idset"
@@ -24,14 +26,28 @@ type IDResponse struct {
 // aliases and machine IP addresses. Supported identifiers are:
 //  - machine full ID string.
 //  - machine alias.
+//  - machine label in form [owner@]label.
 //  - machine IP address.
 func (g *Group) ID(req *IDRequest) (*IDResponse, error) {
 	if req == nil {
 		return nil, errors.New("invalid nil request")
 	}
 
+	owner, identifier := "", req.Identifier
+	if toks := strings.SplitN(identifier, "@", 2); len(toks) > 1 {
+		owner, identifier = toks[0], toks[1]
+	}
+
+	// If machine label, look up machine metadata.
+	if ids, err := g.meta.MachineID(owner, identifier); err == nil {
+		if len(ids) > 1 {
+			return nil, fmt.Errorf("identifier %q is ambiguous (matches: %s)", req.Identifier, ids)
+		}
+		return &IDResponse{ID: ids[0]}, nil
+	}
+
 	// If machine ID or machine alias, Aliases will have it.
-	if id, err := g.alias.MachineID(req.Identifier); err == nil {
+	if id, err := g.alias.MachineID(identifier); err == nil {
 		return &IDResponse{ID: id}, nil
 	}
 
@@ -39,7 +55,7 @@ func (g *Group) ID(req *IDRequest) (*IDResponse, error) {
 	// deleted in the meantime.
 	if id, err := g.address.MachineID(machine.Addr{
 		Network: "ip",
-		Value:   req.Identifier,
+		Value:   identifier,
 	}); err == nil {
 		return &IDResponse{ID: id}, nil
 	}
@@ -58,6 +74,9 @@ type IdentifierListRequest struct {
 
 	// Return cached machine IPs.
 	IPs bool `josn:"ips"`
+
+	// Return cached machine labels.
+	Labels bool `json:"labels"`
 }
 
 // IdentifierListResponse defines machine group IdentifierList response.
@@ -73,6 +92,7 @@ func (g *Group) IdentifierList(req *IdentifierListRequest) (*IdentifierListRespo
 
 	var (
 		regAlias   = g.alias.Registered()
+		reqMeta    = g.meta.Registered()
 		regAddress = g.address.Registered()
 		regClient  = g.client.Registered()
 		regMount   = g.mount.Registered()
@@ -105,7 +125,21 @@ func (g *Group) IdentifierList(req *IdentifierListRequest) (*IdentifierListRespo
 		}
 	}
 
+	if req.Labels {
+		for _, id := range reqMeta {
+			if meta, err := g.meta.Get(id); err == nil {
+				switch {
+				case meta.Owner != "" && meta.Label != "":
+					identifiers = append(identifiers, meta.Owner+"@"+meta.Label)
+				case meta.Label != "":
+					identifiers = append(identifiers, meta.Label)
+				}
+			}
+		}
+	}
+
 	sort.Strings(identifiers)
+
 	return &IdentifierListResponse{
 		Identifiers: identifiers,
 	}, nil

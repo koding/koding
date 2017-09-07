@@ -17,6 +17,9 @@ func TestID(t *testing.T) {
 
 		ipA = machine.Addr{Network: "ip", Value: "52.24.123.32", UpdatedAt: time.Now()}
 		ipB = machine.Addr{Network: "ip", Value: "10.0.1.16", UpdatedAt: time.Now()}
+
+		metaA = machine.Metadata{Owner: "", Label: "machineA.0"}
+		metaB = machine.Metadata{Owner: "root", Label: "machineB.1"}
 	)
 
 	wd, err := ioutil.TempDir("", "id")
@@ -35,6 +38,10 @@ func TestID(t *testing.T) {
 		Addresses: map[machine.ID][]machine.Addr{
 			idA: {ipA},
 			idB: {ipB},
+		},
+		Metadata: map[machine.ID]*machine.Metadata{
+			idA: &metaA,
+			idB: &metaB,
 		},
 	}
 
@@ -61,6 +68,21 @@ func TestID(t *testing.T) {
 		"by IP": {
 			Identifier: ipA.Value,
 			ID:         idA,
+			Found:      true,
+		},
+		"by label": {
+			Identifier: metaA.Label,
+			ID:         idA,
+			Found:      true,
+		},
+		"by at with label": {
+			Identifier: "@" + metaA.Label,
+			ID:         idA,
+			Found:      true,
+		},
+		"by userlabel": {
+			Identifier: metaB.Owner + "@" + metaB.Label,
+			ID:         idB,
 			Found:      true,
 		},
 		"not found alias": {
