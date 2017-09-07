@@ -62,11 +62,12 @@ func (m *Metadata) MachineID(owner, label string) (machine.IDSlice, error) {
 		}
 	}
 
-	if len(ids) != 0 {
-		return ids, nil
+	if len(ids) == 0 {
+		return nil, machine.ErrMachineNotFound
 	}
 
-	return nil, machine.ErrMachineNotFound
+	ids.Sort()
+	return ids, nil
 }
 
 // Registered returns all machines that are stored in this object.
