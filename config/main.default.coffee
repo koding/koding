@@ -82,6 +82,7 @@ Configuration = (options = {}) ->
   ]
 
   KONFIG = require('./generateKonfig')(options, credentials)
+  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
@@ -106,8 +107,6 @@ Configuration = (options = {}) ->
 
   KONFIG.supervisord.unix_http_server =
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
-
-  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
 
   envFiles =
     sh: (require './generateShellEnv').create KONFIG, options
