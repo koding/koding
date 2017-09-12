@@ -81,6 +81,8 @@ Configuration = (options = {}) ->
 
   KONFIG = require('./generateKonfig')(options, credentials)
 
+  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
+
   workers = require('./workers')(KONFIG, options, credentials)
 
   KONFIG.workers = require('./customextend') workers,
@@ -115,8 +117,6 @@ Configuration = (options = {}) ->
   KONFIG.supervisord.memmon =
     limit: '1536MB'
     email: 'sysops+supervisord-sandbox@koding.com'
-
-  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
 
   envFiles =
     sh: (require './generateShellEnv').create KONFIG, options
