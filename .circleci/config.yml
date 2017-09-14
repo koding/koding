@@ -73,7 +73,7 @@ jobs:
           name: credentials
           command: env BRANCH=$CIRCLE_BRANCH scripts/copy-deployment-credentials.sh
       - save_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}-{{ epoch }}
           paths:
             - .
 
@@ -81,12 +81,12 @@ jobs:
     <<: *defaults
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: configure
           command: ./configure --config dev --version $(git rev-parse --short HEAD) --host dev.koding.com:8090 --hostname dev.koding.com --countlyApiPort "80"
       - save_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}-{{ epoch }}
           paths:
             - .
 
@@ -94,7 +94,7 @@ jobs:
     <<: *defaults
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: coffeelint
           command: $(npm bin)/coffeelint --quiet .
@@ -103,7 +103,7 @@ jobs:
     <<: *defaults
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: check client code quality
           command: scripts/check_client_code_quality.sh
@@ -136,7 +136,7 @@ jobs:
     <<: *defaults
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Go Meta Linter
           command: scripts/gometalinter.sh
@@ -171,7 +171,7 @@ jobs:
             - go/bin
             - go/pkg
       - save_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}-{{ epoch }}
           paths:
             - .
 
@@ -179,7 +179,7 @@ jobs:
     <<: *defaults
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: check kite configuration
           command: ./run exec scripts/gotests.sh kites koding/kites/config
@@ -210,7 +210,7 @@ jobs:
               bash <(curl --silent https://codecov.io/bash) -X gcov -X fix || \
               exit 0
       - save_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ epoch }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}-{{ epoch }}
           paths:
             - .
 
@@ -232,7 +232,7 @@ jobs:
     working_directory: /koding
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: check remote API consistency
           command: ./run exec scripts/api-generator.coffee --check
@@ -267,7 +267,7 @@ jobs:
     <<: *defaults
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: launch test hosts
           command: |
@@ -318,7 +318,7 @@ jobs:
     <<: *defaults
     steps:
       - restore_cache:
-          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: workspace-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: deploy
           command: |
