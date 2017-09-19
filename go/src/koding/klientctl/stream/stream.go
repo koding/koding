@@ -40,5 +40,5 @@ func (s *compatStreamer) SetLog(log logging.Logger) {
 }
 
 // DefaultStreams implement Streamer interface. This is a fallback variable
-// used in codegangsta/cli and is going to be removed once the old CLI is deleted.
+// that stores default streams.
 var DefaultStreams = &compatStreamer{}
