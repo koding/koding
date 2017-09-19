@@ -1,5 +1,3 @@
-// +build !urfavecli
-
 package main
 
 import (
