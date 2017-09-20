@@ -267,7 +267,9 @@ import:
 - package: github.com/Sirupsen/logrus
 - package: github.com/opencontainers/runc
 - package: github.com/kardianos/osext
-- package: gopkg.in/urfave/cli.v1
+- package: golang.org/x/sync
+  subpackages:
+  - errgroup
 - package: github.com/martint17r/osin-mongo-storage
   subpackages:
   - mgostore
