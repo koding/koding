@@ -189,7 +189,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
     new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'hidden'
-      partial  : 'Use different card'
+      partial  : 'Use a different card'
       click    : ->
         Cookies.remove 'clientId'
         location.reload()

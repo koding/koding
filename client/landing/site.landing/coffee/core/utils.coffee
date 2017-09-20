@@ -522,7 +522,10 @@ module.exports = utils = {
       data: JSON.stringify { source: { token }, email }
       success: resolve
       error: (err) ->
-        reject JSON.parse err.responseJSON?.description
+        try
+          reject JSON.parse err.responseJSON?.description
+        catch err
+          reject err
 
     $.ajax options
 
