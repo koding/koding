@@ -18,8 +18,34 @@ type IDRequest struct {
 
 // IDResponse defines machine group ID response.
 type IDResponse struct {
-	// ID is a unique identifier for the remote machine.
-	ID machine.ID `json:"id"`
+	// IDs contains all machine IDs found for provided identifier along with
+	// their metadata information.
+	IDs map[machine.ID]machine.Metadata `json:"ids"`
+}
+
+// IDSlice returns machine IDs as a string slice.
+func (res *IDResponse) IDSlice() (ids machine.IDSlice) {
+	for id := range res.IDs {
+		ids = append(ids, id)
+	}
+
+	return ids
+}
+
+// ItemDesc returns description string for each item stored in response.
+func (res *IDResponse) ItemDesc() (ds []string) {
+	for id, meta := range res.IDs {
+		d := fmt.Sprintf("%s(%s) - stack: %q, team: %q",
+			string(id), meta.Label, meta.Stack, meta.Team)
+
+		if meta.Owner != "" {
+			d += fmt.Sprintf(", owner: %q", meta.Owner)
+		}
+
+		ds = append(ds, d)
+	}
+
+	return ds
 }
 
 // ID gets machine ID from provided identifier. This method looks up machine
@@ -33,6 +59,19 @@ func (g *Group) ID(req *IDRequest) (*IDResponse, error) {
 		return nil, errors.New("invalid nil request")
 	}
 
+	getMeta := func(id machine.ID) machine.Metadata {
+		meta, err := g.meta.Get(id)
+		if err != nil {
+			return machine.Metadata{}
+		}
+
+		return *meta
+	}
+
+	res := &IDResponse{
+		IDs: make(map[machine.ID]machine.Metadata),
+	}
+
 	owner, identifier := "", req.Identifier
 	if toks := strings.SplitN(identifier, "@", 2); len(toks) > 1 {
 		owner, identifier = toks[0], toks[1]
@@ -40,15 +79,16 @@ func (g *Group) ID(req *IDRequest) (*IDResponse, error) {
 
 	// If machine label, look up machine metadata.
 	if ids, err := g.meta.MachineID(owner, identifier); err == nil {
-		if len(ids) > 1 {
-			return nil, fmt.Errorf("identifier %q is ambiguous (matches: %s)", req.Identifier, ids)
+		for i := range ids {
+			res.IDs[ids[i]] = getMeta(ids[i])
 		}
-		return &IDResponse{ID: ids[0]}, nil
+		return res, nil
 	}
 
 	// If machine ID or machine alias, Aliases will have it.
 	if id, err := g.alias.MachineID(identifier); err == nil {
-		return &IDResponse{ID: id}, nil
+		res.IDs[id] = getMeta(id)
+		return res, nil
 	}
 
 	// Look up for machine IP. This have races, since machine can be added or
@@ -57,10 +97,12 @@ func (g *Group) ID(req *IDRequest) (*IDResponse, error) {
 		Network: "ip",
 		Value:   identifier,
 	}); err == nil {
-		return &IDResponse{ID: id}, nil
+		res.IDs[id] = getMeta(id)
+		return res, nil
 	}
 
 	g.log.Error("Cannot find machine with identifier: %s", req.Identifier)
+
 	return nil, machine.ErrMachineNotFound
 }
 

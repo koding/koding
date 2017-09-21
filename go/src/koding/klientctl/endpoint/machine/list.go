@@ -84,6 +84,8 @@ func (c *Client) List(options *ListOptions) ([]*Info, error) {
 		createReq.Metadata[kmachine.ID(m.ID)] = &kmachine.Metadata{
 			Owner: ownerFromUsers(m.Users),
 			Label: m.Label,
+			Stack: m.Stack,
+			Team:  m.Team,
 		}
 	}
 

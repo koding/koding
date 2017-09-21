@@ -34,18 +34,25 @@ func (ids IDSlice) Less(i, j int) bool {
 	return string(ids[i]) < string(ids[j])
 }
 
-// String implements fmt.Stringer interface. It pretty prints machine IDs.
-func (ids IDSlice) String() string {
-	strs := make([]string, len(ids))
+// StringSlice converts ID to string slice.
+func (ids IDSlice) StringSlice() []string {
+	ss := make([]string, len(ids))
 	for i := range ids {
-		strs[i] = string(ids[i])
+		ss[i] = string(ids[i])
 	}
 
-	return strings.Join(strs, ", ")
+	return ss
+}
+
+// String implements fmt.Stringer interface. It pretty prints machine IDs.
+func (ids IDSlice) String() string {
+	return strings.Join(ids.StringSlice(), ", ")
 }
 
 // Metadata stores additional information about single machine.
 type Metadata struct {
 	Owner string `json:"owner"`
 	Label string `json:"label"`
+	Stack string `json:"stack"`
+	Team  string `json:"team"`
 }
