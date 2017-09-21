@@ -52,6 +52,7 @@ func cpCommand(c *cli.CLI, opts *cpOptions) cli.CobraFuncE {
 			Identifier:      ident,
 			SourcePath:      source,
 			DestinationPath: dest,
+			AskList:         cli.AskList(c, cmd),
 		}
 
 		return machine.Cp(cpOpts)

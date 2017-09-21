@@ -62,15 +62,12 @@ func command(c *cli.CLI, opts *options) cli.CobraFuncE {
 			Identifier: ident,
 			Path:       path,
 			RemotePath: remotePath,
+			AskList:    cli.AskList(c, cmd),
 		}
 
 		if err := machine.Mount(opts); err != nil {
 			return err
 		}
-
-		// Best-effort attempt of making the remote vm do not
-		// turn off after 1h.
-		_ = machine.Set(ident, "alwaysOn", "true")
 
 		return nil
 	}
