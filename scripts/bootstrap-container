@@ -6,7 +6,7 @@ pushd $(dirname $0)/..
 
 function configure() {
 	[ ! -d node_modules ] && npm install --unsafe-perm
-	./configure $*
+	./configure "$@"
 }
 
 function build() {
@@ -44,20 +44,20 @@ function run() {
 if [[ -z "$*" ]]; then
 	run_backend
 elif [[ "${1:0:1}" == '-' ]]; then
-	configure $*
+	configure "$@"
 	run_backend
 elif [ "$1" = "configure" ]; then
 	shift
-	configure $*
+	configure "$@"
 elif [ "$1" = "build" ]; then
 	shift
-	configure $*
+	configure "$@"
 	build
 	run_backend
 elif [ "$1" = "run" ]; then
 	shift
 	is_ready
-	run $*
+	run "$@"
 elif [ "$1" = "is_ready" ]; then
 	shift
 	is_ready
