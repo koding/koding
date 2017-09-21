@@ -29,12 +29,17 @@ func (res *IDResponse) IDSlice() (ids machine.IDSlice) {
 		ids = append(ids, id)
 	}
 
+	sort.Slice(ids, ids.Less)
+
 	return ids
 }
 
 // ItemDesc returns description string for each item stored in response.
 func (res *IDResponse) ItemDesc() (ds []string) {
-	for id, meta := range res.IDs {
+	ids := res.IDSlice()
+	for _, id := range ids {
+		meta := res.IDs[id]
+
 		d := fmt.Sprintf("%s(%s) - stack: %q, team: %q",
 			string(id), meta.Label, meta.Stack, meta.Team)
 

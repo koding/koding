@@ -2,13 +2,17 @@ package cli
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"sort"
+	"strconv"
+	"strings"
 
 	"koding/kites/metrics"
 	"koding/klientctl/config"
+	"koding/klientctl/helper"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -21,6 +25,54 @@ func PrintJSON(w io.Writer, v interface{}) {
 	enc.SetEscapeHTML(false)
 	enc.SetIndent("", "\t")
 	enc.Encode(v)
+}
+
+// AskList returns a function which either asks to select one of provided items
+// or returns error when interactive mode is disabled. This function is no-op
+// when there is only one provided item.
+func AskList(c *CLI, cmd *cobra.Command) func([]string, []string) (string, error) {
+	noninteractive, _ := cmd.Flags().GetBool("force")
+	if _, ok := os.LookupEnv("KD_NONINTERACTIVE"); ok {
+		noninteractive = true
+	}
+
+	return func(items, descriptions []string) (string, error) {
+		if len(items) == 0 {
+			return "", fmt.Errorf("no items provided")
+		}
+
+		if len(items) == 1 {
+			return items[0], nil
+		}
+
+		if noninteractive {
+			return "", fmt.Errorf("ambiguous identifier (matches: %s)", strings.Join(items, ","))
+		}
+
+		if len(items) != len(descriptions) {
+			return "", fmt.Errorf("invalid number of item descriptions")
+		}
+
+		for i, desc := range descriptions {
+			fmt.Fprintf(c.Out(), "[%d] %s\n", i+1, desc)
+		}
+
+		value, err := helper.Fask(c.In(), c.Out(),
+			"More than one items match provided identifier. Which one did you mean? [1-%d]: ", len(items))
+		if err != nil {
+			return "", err
+		}
+
+		idx, err := strconv.Atoi(value)
+		if err != nil {
+			return "", fmt.Errorf("invalid option provided %q", value)
+		}
+		if idx < 0 || idx >= len(items) {
+			return "", fmt.Errorf("value %d not in provided range", idx)
+		}
+
+		return items[idx], nil
+	}
 }
 
 // CLI represents the kd command line client that stores data streams and basic
