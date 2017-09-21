@@ -31,13 +31,13 @@ function is_ready() {
 
 function run() {
 	case "$1" in
-		backend)
-			run_backend
-			;;
-		*)
-			echo 'error: unknown service'
-			exit 1
-			;;
+	backend)
+		run_backend
+		;;
+	*)
+		echo 'error: unknown service'
+		exit 1
+		;;
 	esac
 }
 
