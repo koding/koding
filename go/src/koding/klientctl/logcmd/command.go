@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+
 	"koding/klient/logfetcher"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
-	"os"
 
 	"github.com/koding/logging"
 )
