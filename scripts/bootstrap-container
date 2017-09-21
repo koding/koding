@@ -12,6 +12,7 @@ function configure() {
 function build() {
 	go/build.sh
 	make -C client dist
+	./run exec make klient
 }
 
 function run_backend() {
