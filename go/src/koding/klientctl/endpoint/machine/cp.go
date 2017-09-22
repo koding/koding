@@ -16,6 +16,8 @@ type CpOptions struct {
 	Identifier      string // Machine identifier.
 	SourcePath      string // Data source.
 	DestinationPath string // Data destination.
+
+	AskList func(is, ds []string) (string, error) // Ask for multiple choices.
 }
 
 // Cp transfers file(s) between remote and local machine.
@@ -25,18 +27,14 @@ func (c *Client) Cp(options *CpOptions) (err error) {
 	}
 
 	// Translate identifier to machine ID.
-	idReq := &machinegroup.IDRequest{
-		Identifier: options.Identifier,
-	}
-	var idRes machinegroup.IDResponse
-
-	if err := c.klient().Call("machine.id", idReq, &idRes); err != nil {
+	id, err := c.getMachineID(options.Identifier, options.AskList)
+	if err != nil {
 		return err
 	}
 
 	// Ensure connection to remote machine.
 	cpReq := &machinegroup.CpRequest{
-		ID:              idRes.ID,
+		ID:              id,
 		Download:        options.Download,
 		SourcePath:      options.SourcePath,
 		DestinationPath: options.DestinationPath,

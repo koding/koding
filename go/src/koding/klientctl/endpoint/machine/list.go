@@ -59,6 +59,7 @@ func (c *Client) List(options *ListOptions) ([]*Info, error) {
 	// Register machines to klient and get aliases.
 	createReq := &machinegroup.CreateRequest{
 		Addresses: make(map[kmachine.ID][]kmachine.Addr),
+		Metadata:  make(map[kmachine.ID]*kmachine.Metadata),
 	}
 	var createRes machinegroup.CreateResponse
 
@@ -79,6 +80,12 @@ func (c *Client) List(options *ListOptions) ([]*Info, error) {
 				Value:     m.RegisterURL,
 				UpdatedAt: time.Now(),
 			},
+		}
+		createReq.Metadata[kmachine.ID(m.ID)] = &kmachine.Metadata{
+			Owner: ownerFromUsers(m.Users),
+			Label: m.Label,
+			Stack: m.Stack,
+			Team:  m.Team,
 		}
 	}
 

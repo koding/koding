@@ -15,6 +15,8 @@ import (
 type SSHOptions struct {
 	Identifier string // Machine identifier.
 	Username   string // Remote machine user to log as.
+
+	AskList func(is, ds []string) (string, error) // Ask for multiple choices.
 }
 
 // SSH connects to remote machine using SSH protocol.
@@ -24,12 +26,8 @@ func (c *Client) SSH(options *SSHOptions) error {
 	}
 
 	// Translate identifier to machine ID.
-	idReq := &machinegroup.IDRequest{
-		Identifier: options.Identifier,
-	}
-	var idRes machinegroup.IDResponse
-
-	if err := c.klient().Call("machine.id", idReq, &idRes); err != nil {
+	id, err := c.getMachineID(options.Identifier, options.AskList)
+	if err != nil {
 		return err
 	}
 
@@ -40,7 +38,7 @@ func (c *Client) SSH(options *SSHOptions) error {
 
 	// Add created key to authorized hosts on remote machine.
 	sshReq := &machinegroup.SSHRequest{
-		ID:        idRes.ID,
+		ID:        id,
 		Username:  options.Username,
 		PublicKey: pubKey,
 	}

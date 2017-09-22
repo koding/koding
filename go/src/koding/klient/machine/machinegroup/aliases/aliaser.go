@@ -10,7 +10,7 @@ type Aliaser interface {
 	// Create generates a new alias for provided machine ID.
 	Create(machine.ID) (string, error)
 
-	// Drop removes alias which is binded to provided machine ID.
+	// Drop removes alias which is bound to provided machine ID.
 	Drop(machine.ID) error
 
 	// MachineID gets machine ID from provided alias.

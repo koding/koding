@@ -76,16 +76,15 @@ func tabListFormatter(w io.Writer, infos []*machine.Info) {
 	now := time.Now()
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
-	fmt.Fprintf(tw, "ID\tALIAS\tTEAM\tSTACK\tPROVIDER\tLABEL\tOWNER\tAGE\tIP\tSTATUS\n")
+	fmt.Fprintf(tw, "ID\tLABEL\tOWNER\tTEAM\tSTACK\tPROVIDER\tAGE\tIP\tSTATUS\n")
 	for _, info := range infos {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			info.ID,
-			info.Alias,
+			info.Label,
+			info.Owner,
 			dashIfEmpty(info.Team),
 			dashIfEmpty(info.Stack),
 			dashIfEmpty(info.Provider),
-			info.Label,
-			info.Owner,
 			machine.ShortDuration(info.CreatedAt, now),
 			info.IP,
 			machine.PrettyStatus(info.Status, now),

@@ -109,7 +109,7 @@ func (a *Aliases) Create(id machine.ID) (string, error) {
 	}
 }
 
-// Drop removes alias which is binded to provided machine ID.
+// Drop removes alias which is bound to provided machine ID.
 func (a *Aliases) Drop(id machine.ID) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -118,7 +118,7 @@ func (a *Aliases) Drop(id machine.ID) error {
 	return nil
 }
 
-// MachineID checks if there is a machine ID that is binded to provided alias.
+// MachineID checks if there is a machine ID that is bound to provided alias.
 // If yes, the machine ID is returned. machine.ErrMachineNotFound is returned
 // if there is no machine ID with provided alias.
 //
