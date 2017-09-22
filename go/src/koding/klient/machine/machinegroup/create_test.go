@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -37,6 +38,10 @@ func TestCreate(t *testing.T) {
 		Addresses: map[machine.ID][]machine.Addr{
 			idA: {clienttest.TurnOffAddr()},
 			idB: {clienttest.TurnOnAddr()},
+		},
+		Metadata: map[machine.ID]*machine.Metadata{
+			idA: &machine.Metadata{Label: string(idA)},
+			idB: &machine.Metadata{Label: string(idB)},
 		},
 	}
 
@@ -170,11 +175,15 @@ func TestCreateBalanceStaleMount(t *testing.T) {
 func testCreateOn(g *Group, builder *clienttest.Builder, ids ...machine.ID) (aliases map[machine.ID]string, err error) {
 	req := &CreateRequest{
 		Addresses: make(map[machine.ID][]machine.Addr),
+		Metadata:  make(map[machine.ID]*machine.Metadata),
 	}
 
-	for _, id := range ids {
+	for n, id := range ids {
 		req.Addresses[id] = []machine.Addr{
 			clienttest.TurnOnAddr(),
+		}
+		req.Metadata[id] = &machine.Metadata{
+			Label: "ID_" + strconv.Itoa(n+1),
 		}
 	}
 

@@ -38,7 +38,10 @@ func NewStopCommand(c *cli.CLI) *cobra.Command {
 
 func stopCommand(c *cli.CLI, opts *stopOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		event, err := machine.Stop(args[0])
+		event, err := machine.Stop(&machine.StopOptions{
+			Identifier: args[0],
+			AskList:    cli.AskList(c, cmd),
+		})
 		if err != nil {
 			return err
 		}

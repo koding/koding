@@ -4,10 +4,9 @@ kd = require 'kd'
 MainHeaderView = require '../../core/mainheaderview'
 StripePaymentTabForm = require '../forms/stripepaymenttabform'
 utils = require '../../core/utils'
+StripeDeclineErrors = require '../../core/stripeerrors'
 
 module.exports = class StripePaymentTab extends kd.TabPaneView
-
-
 
   constructor: (options = {}, data) ->
 
@@ -35,6 +34,8 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
       @form.cvc.decorateValidation error.message
     else if /expiry/.test error?.code
       @form.expiration.decorateValidation error.message
+    else if error?.decline_code and StripeDeclineErrors[error.decline_code]
+      @form.showFatalError StripeDeclineErrors[error.decline_code]
     else
       @form.number.decorateValidation error.message
 
@@ -51,7 +52,7 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
     {{> @header }}
     <div class="TeamsModal TeamsModal--groupCreation">
       <h4>Billing Information</h4>
-      <h5>We <strong>never charge you</strong> without asking first.</h5>
+      <h5 class="bordered">We <strong>never charge you</strong> without asking first.</h5>
       {{> @form}}
     </div>
     '''

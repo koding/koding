@@ -45,7 +45,6 @@ type Client struct {
 	k        kloud.Transport
 	once     sync.Once // for c.init()
 	machines map[machine.ID]*models.JMachine
-	idents   map[string]machine.ID
 }
 
 // ExecOptions represents available parameters for the Exec method.
@@ -123,25 +122,64 @@ func (c *Client) Kill(opts *KillOptions) error {
 	return c.klient().Call("machine.kill", req, nil)
 }
 
+// StartOptions represents available parameters for the Start method.
+type StartOptions struct {
+	Identifier string // Machine identifier.
+
+	AskList func(is, ds []string) (string, error) // Ask for multiple choices.
+}
+
 // Start turns a vm on given by the identifier.
-func (c *Client) Start(ident string) (string, error) {
+func (c *Client) Start(options *StartOptions) (string, error) {
 	c.init()
 
-	return c.machineCall(ident, "start")
+	// Translate identifier to machine ID.
+	id, err := c.getMachineID(options.Identifier, options.AskList)
+	if err != nil {
+		return "", err
+	}
+
+	return c.machineCall(id, "start")
+}
+
+// StopOptions represents available parameters for the Stop method.
+type StopOptions struct {
+	Identifier string // Machine identifier.
+
+	AskList func(is, ds []string) (string, error) // Ask for multiple choices.
 }
 
 // Stop turns a vm off given by the identifier.
-func (c *Client) Stop(ident string) (string, error) {
+func (c *Client) Stop(options *StopOptions) (string, error) {
 	c.init()
 
-	return c.machineCall(ident, "stop")
+	// Translate identifier to machine ID.
+	id, err := c.getMachineID(options.Identifier, options.AskList)
+	if err != nil {
+		return "", err
+	}
+
+	return c.machineCall(id, "stop")
+}
+
+// ShowOptions represents available parameters for the Show method.
+type ShowOptions struct {
+	Identifier string // Machine identifier.
+
+	AskList func(is, ds []string) (string, error) // Ask for multiple choices.
 }
 
 // Show gets JMachine.meta value of a vm given by the identifier.
-func (c *Client) Show(ident string) (map[string]interface{}, error) {
+func (c *Client) Show(options *ShowOptions) (map[string]interface{}, error) {
 	c.init()
 
-	m, err := c.machine(ident)
+	// Translate identifier to machine ID.
+	id, err := c.getMachineID(options.Identifier, options.AskList)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := c.machine(id)
 	if err != nil {
 		return nil, err
 	}
@@ -153,25 +191,40 @@ func (c *Client) Show(ident string) (map[string]interface{}, error) {
 	return nil, errors.New("no configuration found")
 }
 
+// SetOptions represents available parameters for the Set method.
+type SetOptions struct {
+	Identifier string // Machine identifier.
+	Key        string // Key which value will be set.
+	Value      string // New key value.
+
+	AskList func(is, ds []string) (string, error) // Ask for multiple choices.
+}
+
 // Set sets JMachine.meta.key=value for a vm given by the identifier.
-func (c *Client) Set(ident string, key, value string) error {
+func (c *Client) Set(options *SetOptions) error {
 	c.init()
 
-	switch key {
+	// Translate identifier to machine ID.
+	id, err := c.getMachineID(options.Identifier, options.AskList)
+	if err != nil {
+		return err
+	}
+
+	switch options.Key {
 	case "alwaysOn":
-		return c.setAlwaysOn(ident, value)
+		return c.setAlwaysOn(id, options.Value)
 	default:
-		return fmt.Errorf(`unsupported %q key; supported ones: "alwaysOn"`, key)
+		return fmt.Errorf(`unsupported %q key; supported ones: "alwaysOn"`, options.Value)
 	}
 }
 
-func (c *Client) setAlwaysOn(ident, key string) error {
+func (c *Client) setAlwaysOn(id machine.ID, key string) error {
 	on, err := strconv.ParseBool(key)
 	if err != nil {
 		return err
 	}
 
-	m, err := c.machine(ident)
+	m, err := c.machine(id)
 	if err != nil {
 		return err
 	}
@@ -179,8 +232,8 @@ func (c *Client) setAlwaysOn(ident, key string) error {
 	return c.koding().UpdateMachineAlwaysOn(m, on)
 }
 
-func (c *Client) machineCall(ident, method string) (string, error) {
-	m, err := c.machine(ident)
+func (c *Client) machineCall(id machine.ID, method string) (string, error) {
+	m, err := c.machine(id)
 	if err != nil {
 		return "", err
 	}
@@ -207,26 +260,13 @@ type machineResp struct {
 	EventId string
 }
 
-func (c *Client) machine(ident string) (*models.JMachine, error) {
-	if id, ok := c.idents[ident]; ok {
-		return c.machines[id], nil
+func (c *Client) machine(id machine.ID) (*models.JMachine, error) {
+	if jm, ok := c.machines[id]; ok {
+		return jm, nil
 	}
 
 	f := &koding.Filter{
-		ID: ident,
-	}
-	req := &machinegroup.IDRequest{
-		Identifier: ident,
-	}
-	var resp machinegroup.IDResponse
-
-	if err := c.klient().Call("machine.id", req, &resp); err == nil {
-		if m, ok := c.machines[resp.ID]; ok {
-			c.idents[ident] = resp.ID
-			return m, nil
-		}
-
-		f.ID = string(resp.ID)
+		ID: string(id),
 	}
 
 	m, err := c.koding().ListMachines(f)
@@ -239,8 +279,6 @@ func (c *Client) machine(ident string) (*models.JMachine, error) {
 	}
 
 	c.machines[machine.ID(m[0].ID)] = m[0]
-	c.idents[ident] = machine.ID(m[0].ID)
-	c.idents[m[0].ID] = machine.ID(m[0].ID)
 
 	return m[0], nil
 }
@@ -262,12 +300,6 @@ func (c *Client) readCache() {
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
 	_ = c.kloud().Cache().ReadOnly().GetValue("machine", &c.machines)
-
-	c.idents = make(map[string]machine.ID, len(c.machines))
-
-	for id := range c.machines {
-		c.idents[string(id)] = id
-	}
 }
 
 func (c *Client) konfig() *config.Konfig {
@@ -312,6 +344,24 @@ func (c *Client) stream() stream.Streamer {
 	return stream.DefaultStreams
 }
 
+func (c *Client) getMachineID(str string, askList func(is, ds []string) (string, error)) (machine.ID, error) {
+	idReq := &machinegroup.IDRequest{
+		Identifier: str,
+	}
+	var idRes machinegroup.IDResponse
+
+	if err := c.klient().Call("machine.id", idReq, &idRes); err != nil {
+		return "", err
+	}
+
+	strID, err := askList(idRes.IDSlice().StringSlice(), idRes.ItemDesc())
+	if err != nil {
+		return "", err
+	}
+
+	return machine.ID(strID), nil
+}
+
 // Exec runs the given command in a remote machine using DefaultClient.
 func Exec(opts *ExecOptions) (int, error) { return DefaultClient.Exec(opts) }
 
@@ -320,10 +370,10 @@ func Exec(opts *ExecOptions) (int, error) { return DefaultClient.Exec(opts) }
 func Kill(opts *KillOptions) error { return DefaultClient.Kill(opts) }
 
 // Start starts a remove vm given by the id.
-func Start(id string) (string, error) { return DefaultClient.Start(id) }
+func Start(opts *StartOptions) (string, error) { return DefaultClient.Start(opts) }
 
 // Stop stops a remove vm given by the id.
-func Stop(id string) (string, error) { return DefaultClient.Stop(id) }
+func Stop(opts *StopOptions) (string, error) { return DefaultClient.Stop(opts) }
 
 // Wait polls on event stream given by the event identifier.
 //
@@ -334,11 +384,11 @@ func Wait(event string) <-chan *stack.EventResponse {
 }
 
 // Show gets JMachine.meta value of a vm given by the identifier.
-func Show(ident string) (map[string]interface{}, error) {
-	return DefaultClient.Show(ident)
+func Show(opts *ShowOptions) (map[string]interface{}, error) {
+	return DefaultClient.Show(opts)
 }
 
 // Set sets JMachine.meta.key=value for a vm given by the identifier.
-func Set(ident string, key, value string) error {
-	return DefaultClient.Set(ident, key, value)
+func Set(opts *SetOptions) error {
+	return DefaultClient.Set(opts)
 }
