@@ -170,8 +170,7 @@ func kd2klient(kdEnv string) string {
 	if klientEnv, ok := environments[kdEnv]; ok {
 		return klientEnv
 	}
-
-	return ""
+	return kdEnv
 }
 
 func (u *Updater) endpointVersion(env string) string {
