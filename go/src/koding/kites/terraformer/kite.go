@@ -2,13 +2,14 @@ package terraformer
 
 import (
 	"errors"
+
 	"koding/artifact"
 	"koding/kites/config"
 	"koding/kites/metrics"
 
-	"github.com/koding/kite"
-
 	dogstatsd "github.com/DataDog/datadog-go/statsd"
+	"github.com/koding/kite"
+	kitecfg "github.com/koding/kite/config"
 )
 
 // NewKite creates a new kite for serving terraformer
@@ -18,7 +19,12 @@ func NewKite(t *Terraformer, conf *Config) (*kite.Kite, error) {
 		return nil, err
 	}
 
-	k := setupKite(kite.NewWithConfig(Name, Version, cfg), conf)
+	setupKite(cfg, conf)
+
+	k := kite.NewWithConfig(Name, Version, cfg)
+	if conf.Debug {
+		k.SetLogLevel(kite.DEBUG)
+	}
 
 	// handle current status of terraformer
 	k.PostHandleFunc(t.handleState)
@@ -49,25 +55,22 @@ func wrapHandler(dd *dogstatsd.Client, metricName string, handler kite.HandlerFu
 	return metricName, metrics.WrapKiteHandler(dd, metricName, handler)
 }
 
-func setupKite(k *kite.Kite, conf *Config) *kite.Kite {
-
-	k.Config.Port = conf.Port
+func setupKite(cfg *kitecfg.Config, conf *Config) {
+	cfg.Port = conf.Port
 
 	if conf.Region != "" {
-		k.Config.Region = conf.Region
+		cfg.Region = conf.Region
 	}
 
 	if conf.Environment != "" {
-		k.Config.Environment = conf.Environment
-	}
-
-	if conf.Debug {
-		k.SetLogLevel(kite.DEBUG)
+		cfg.Environment = conf.Environment
 	}
 
 	if conf.Test {
-		k.Config.DisableAuthentication = true
+		cfg.DisableAuthentication = true
 	}
 
-	return k
+	if conf.KontrolURL != "" {
+		cfg.KontrolURL = conf.KontrolURL
+	}
 }
