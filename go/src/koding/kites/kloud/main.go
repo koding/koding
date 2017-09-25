@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/stack"
 	"koding/kites/metrics"
+	"koding/tools/util"
 
 	"github.com/koding/multiconfig"
 )
@@ -52,6 +53,8 @@ func main() {
 		fmt.Println(stack.VERSION)
 		os.Exit(0)
 	}
+
+	fmt.Println("KLOUD CONFIG:", util.LazyJSON(&cfg))
 
 	k, err := kloud.New(&cfg)
 	if err != nil {

@@ -166,6 +166,10 @@ func New(conf *Config) (*Kloud, error) {
 		return nil, err
 	}
 
+	if conf.KontrolURL != "" {
+		cfg.KontrolURL = conf.KontrolURL
+	}
+
 	k := kite.NewWithConfig(stack.NAME, stack.VERSION, cfg)
 	k.Config.Port = conf.Port
 
