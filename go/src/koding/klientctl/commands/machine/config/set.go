@@ -30,10 +30,11 @@ func NewSetCommand(c *cli.CLI) *cobra.Command {
 
 func setCommand(c *cli.CLI, opts *setOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		ident := args[0]
-		key := args[1]
-		value := args[2]
-
-		return machine.Set(ident, key, value)
+		return machine.Set(&machine.SetOptions{
+			Identifier: args[0],
+			Key:        args[1],
+			Value:      args[2],
+			AskList:    cli.AskList(c, cmd),
+		})
 	}
 }

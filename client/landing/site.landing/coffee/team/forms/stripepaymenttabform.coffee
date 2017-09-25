@@ -45,6 +45,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     @backLink = @getButtonLink 'BACK', '/Team/Domain'
     @resetFormLink = @getResetFormLink()
+    @errorView = @getErrorView()
 
     @on [ 'FormSubmitFailed', 'FormValidationFailed' ], @button.bound 'hideLoader'
 
@@ -52,8 +53,28 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
       return  unless token = utils.getPayment().token
 
-      @resetFormLink.show()
-      @forEachInputView (input) -> input.hide()
+      @showReset()
+
+
+  showReset: ->
+
+    @forEachInputView (input) -> input.hide()
+    @resetFormLink.show()
+
+
+  showFatalError: ({ message, nextStep }) ->
+
+    @showReset()
+    @errorView.show()
+
+    @errorView.destroySubViews()
+    @errorView.addSubView new kd.CustomHTMLView
+      tagName: 'h4'
+      partial: message
+
+    @errorView.addSubView new kd.CustomHTMLView
+      tagName: 'h5'
+      partial: nextStep
 
 
   forEachInputView: (callback) ->
@@ -156,10 +177,11 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       .then (token) =>
         @button.hideLoader()
         @options.onSubmitSuccess token
+        grecaptcha?.reset()
       .catch (err) =>
         @button.hideLoader()
         @options.onSubmitError err
-
+        grecaptcha?.reset()
 
 
   getResetFormLink: ->
@@ -167,7 +189,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
     new kd.CustomHTMLView
       tagName  : 'a'
       cssClass : 'hidden'
-      partial  : 'Use different card'
+      partial  : 'Use a different card'
       click    : ->
         Cookies.remove 'clientId'
         location.reload()
@@ -182,9 +204,16 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       click    : callback
 
 
+  getErrorView: ->
+
+    new kd.CustomHTMLView
+      cssClass: 'hidden cc-form-errorView'
+
+
   pistachio: ->
 
     """
+    {{> @errorView }}
     <div class='cc-form-resetLink'>
       {{> @resetFormLink}}
     </div>

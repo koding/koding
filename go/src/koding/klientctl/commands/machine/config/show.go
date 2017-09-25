@@ -40,7 +40,10 @@ func NewShowCommand(c *cli.CLI) *cobra.Command {
 
 func showCommand(c *cli.CLI, opts *showOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		conf, err := machine.Show(args[0])
+		conf, err := machine.Show(&machine.ShowOptions{
+			Identifier: args[0],
+			AskList:    cli.AskList(c, cmd),
+		})
 		if err != nil {
 			return err
 		}

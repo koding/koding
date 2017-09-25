@@ -26,10 +26,12 @@ type MountOptions struct {
 	Identifier string // Machine identifier.
 	Path       string // Machine local path - absolute and cleaned.
 	RemotePath string // Remote machine path - raw format.
+
+	AskList func(is, ds []string) (string, error) // Ask for multiple choices.
 }
 
-func (c *Client) mountPoint(ident string) (string, error) {
-	m, err := c.machine(ident)
+func (c *Client) mountPoint(id machine.ID) (string, error) {
+	m, err := c.machine(id)
 	if err != nil {
 		return "", err
 	}
@@ -45,8 +47,14 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		return errors.New("invalid nil options")
 	}
 
+	// Translate identifier to machine ID.
+	id, err := c.getMachineID(options.Identifier, options.AskList)
+	if err != nil {
+		return err
+	}
+
 	if options.Path == "" {
-		if options.Path, err = c.mountPoint(options.Identifier); err != nil {
+		if options.Path, err = c.mountPoint(id); err != nil {
 			return err
 		}
 	}
@@ -62,16 +70,6 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 		}
 	}()
 
-	// Translate identifier to machine ID.
-	idReq := &machinegroup.IDRequest{
-		Identifier: options.Identifier,
-	}
-	var idRes machinegroup.IDResponse
-
-	if err = c.klient().Call("machine.id", idReq, &idRes); err != nil {
-		return err
-	}
-
 	fmt.Fprintf(c.stream().Out(), "Mounting to %s directory.\nChecking remote path...\n", options.Path)
 
 	m := mount.Mount{
@@ -82,7 +80,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	// First head the remote machine directory in order to get basic mount info.
 	headMountReq := &machinegroup.HeadMountRequest{
 		MountRequest: machinegroup.MountRequest{
-			ID:    idRes.ID,
+			ID:    id,
 			Mount: m,
 		},
 	}
@@ -114,7 +112,7 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	// Create mount.
 	addMountReq := &machinegroup.AddMountRequest{
 		MountRequest: machinegroup.MountRequest{
-			ID:    idRes.ID,
+			ID:    id,
 			Mount: m,
 		},
 		Strategies: prefetch.DefaultStrategy.Available(),
@@ -158,6 +156,11 @@ func (c *Client) Mount(options *MountOptions) (err error) {
 	}
 
 	fmt.Fprintf(c.stream().Out(), "Created mount with ID: %s\n", addMountRes.MountID)
+
+	// Best-effort attempt of making the remote vm do not
+	// turn off after 1h.
+	_ = c.setAlwaysOn(id, "true")
+
 	return nil
 }
 
