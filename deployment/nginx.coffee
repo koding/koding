@@ -40,6 +40,11 @@ allowInternal = '''
         deny                  all;
 '''
 
+real_ip_options =
+  from: '0.0.0.0/0'
+  header: 'X-Forwarded-For'
+  recursive: 'on'
+
 createWebLocation = ({ name, locationConf, cors }) ->
   { location, proxyPass, internalOnly, auth, extraParams } = locationConf
     # 3 tabs are just for style
