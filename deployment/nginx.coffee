@@ -247,6 +247,13 @@ module.exports.create = (KONFIG, environment) ->
     mime_types = "include #{path};"
     break
 
+  if isProxy KONFIG.ebEnvName
+    KONFIG.nginx =
+      real_ip:
+        from: '10.0.0.0/16'
+        header: 'proxy_protocol'
+        recursive: 'off'
+
   config = """
   worker_processes #{if inDevEnvironment then 1 else 16};
   master_process #{if inDevEnvironment then 'off' else 'on'};
@@ -439,13 +446,10 @@ createIPRoutes = (KONFIG) ->
    '''
 
 createListenDirective = (KONFIG, env) ->
-  return "listen #{KONFIG.publicPort};" if not isProxy KONFIG.ebEnvName
-
-  return '''
-    listen 79 proxy_protocol;
-    real_ip_header proxy_protocol;
-    set_real_ip_from 10.0.0.0/16;
-  '''
+  if isProxy KONFIG.ebEnvName
+    return 'listen 79 proxy_protocol;'
+  else
+    return "listen #{KONFIG.publicPort};"
 
 createHttpsRedirector = (KONFIG) ->
   return '' if isProxy KONFIG.ebEnvName
