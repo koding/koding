@@ -324,6 +324,8 @@ module.exports.create = (KONFIG, environment) ->
     proxy_cache_path /tmp/nginx levels=1:2 keys_zone=asset_cache:10m max_size=10g inactive=60m;
     proxy_cache_key "$scheme$request_method$host$request_uri";
 
+    #{createRealIpDirectives(KONFIG)}
+
     # start server
     server {
       # we should not timeout on proxy connections
@@ -469,3 +471,15 @@ createHttpsRedirector = (KONFIG) ->
       # use generic names, do not hardcode values
       return 301 https://$host$request_uri;
     }"""
+
+createRealIpDirectives = (KONFIG) ->
+  return ''  unless KONFIG.nginx?.real_ip
+
+  options = _.assign real_ip_options, KONFIG.nginx.real_ip
+
+  return """
+  \t\t\t
+    set_real_ip_from #{options.from};
+    real_ip_header #{options.header};
+    real_ip_recursive #{options.recursive};
+  """
