@@ -6,12 +6,13 @@ pushd $(dirname $0)/..
 
 function configure() {
 	[ ! -d node_modules ] && npm install --unsafe-perm
-	./configure $*
+	./configure "$@"
 }
 
 function build() {
 	go/build.sh
 	make -C client dist
+	./run exec make klient
 }
 
 function run_backend() {
@@ -31,33 +32,26 @@ function is_ready() {
 
 function run() {
 	case "$1" in
-		backend)
-			run_backend
-			;;
-		*)
-			echo 'error: unknown service'
-			exit 1
-			;;
+	backend)
+		run_backend
+		;;
+	*)
+		echo 'error: unknown service'
+		exit 1
+		;;
 	esac
 }
 
 if [[ -z "$*" ]]; then
 	run_backend
 elif [[ "${1:0:1}" == '-' ]]; then
-	configure $*
-	run_backend
-elif [ "$1" = "configure" ]; then
-	shift
-	configure $*
-elif [ "$1" = "build" ]; then
-	shift
-	configure $*
+	configure "$@"
 	build
 	run_backend
 elif [ "$1" = "run" ]; then
 	shift
 	is_ready
-	run $*
+	run "$@"
 elif [ "$1" = "is_ready" ]; then
 	shift
 	is_ready
