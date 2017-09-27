@@ -263,6 +263,8 @@ module.exports = (options, credentials) ->
     collaboration                 : { timeout: 1 * 60 * 1000 }
     client                        : { watch: yes, version: options.version, includesPath:'client' , indexMaster: 'index-master.html' , index: 'default.html' , useStaticFileServer: no , staticFilesBaseUrl: "#{options.customDomain.public}:#{options.customDomain.port}" }
 
+    nginx: options.nginx
+
     ci  : credentials.ci
     test: credentials.test
 

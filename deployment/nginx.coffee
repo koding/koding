@@ -40,6 +40,11 @@ allowInternal = '''
         deny                  all;
 '''
 
+real_ip_options =
+  from: '0.0.0.0/0'
+  header: 'X-Forwarded-For'
+  recursive: 'on'
+
 createWebLocation = ({ name, locationConf, cors }) ->
   { location, proxyPass, internalOnly, auth, extraParams } = locationConf
     # 3 tabs are just for style
@@ -242,6 +247,13 @@ module.exports.create = (KONFIG, environment) ->
     mime_types = "include #{path};"
     break
 
+  if isProxy KONFIG.ebEnvName
+    KONFIG.nginx =
+      real_ip:
+        from: '10.0.0.0/16'
+        header: 'proxy_protocol'
+        recursive: 'off'
+
   config = """
   worker_processes #{if inDevEnvironment then 1 else 16};
   master_process #{if inDevEnvironment then 'off' else 'on'};
@@ -311,6 +323,8 @@ module.exports.create = (KONFIG, environment) ->
     # this keys are used for internal caching purposes.
     proxy_cache_path /tmp/nginx levels=1:2 keys_zone=asset_cache:10m max_size=10g inactive=60m;
     proxy_cache_key "$scheme$request_method$host$request_uri";
+
+    #{createRealIpDirectives(KONFIG)}
 
     # start server
     server {
@@ -434,13 +448,10 @@ createIPRoutes = (KONFIG) ->
    '''
 
 createListenDirective = (KONFIG, env) ->
-  return "listen #{KONFIG.publicPort};" if not isProxy KONFIG.ebEnvName
-
-  return '''
-    listen 79 proxy_protocol;
-    real_ip_header proxy_protocol;
-    set_real_ip_from 10.0.0.0/16;
-  '''
+  if isProxy KONFIG.ebEnvName
+    return 'listen 79 proxy_protocol;'
+  else
+    return "listen #{KONFIG.publicPort};"
 
 createHttpsRedirector = (KONFIG) ->
   return '' if isProxy KONFIG.ebEnvName
@@ -460,3 +471,15 @@ createHttpsRedirector = (KONFIG) ->
       # use generic names, do not hardcode values
       return 301 https://$host$request_uri;
     }"""
+
+createRealIpDirectives = (KONFIG) ->
+  return ''  unless KONFIG.nginx?.real_ip
+
+  options = _.assign real_ip_options, KONFIG.nginx.real_ip
+
+  return """
+  \t\t\t
+    set_real_ip_from #{options.from};
+    real_ip_header #{options.header};
+    real_ip_recursive #{options.recursive};
+  """
