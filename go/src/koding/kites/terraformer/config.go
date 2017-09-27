@@ -23,6 +23,8 @@ type Config struct {
 
 	// SecretKey is used for kite-to-kite communication.
 	SecretKey string
+
+	KontrolURL string // if empty, default is used: "127.0.0.1:3000"
 }
 
 // AWS holds config variables for remote AWS
