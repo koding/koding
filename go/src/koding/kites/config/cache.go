@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -85,23 +86,27 @@ func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
 	_ = os.MkdirAll(dir, 0755)
 	_ = util.Chown(dir, o.owner().User)
 
-	db, err := bolt.Open(o.File, 0644, o.BoltDB)
-
-	_ = util.Chown(o.File, o.owner().User)
-
 	// Opening may fail with "bad file descriptor" coming from mmap,
 	// when file exists and is 0 in size. Best-effort retry - remove
 	// the file and open it again.
 	//
 	// Reproduced on Fedora 25.
-	if e, ok := err.(*os.PathError); ok && e.Op == "write" {
-		if fi, e := os.Stat(o.File); e == nil {
-			if fi.Size() == 0 {
-				_ = os.Remove(o.File)
-				db, err = bolt.Open(o.File, 0644, o.BoltDB)
-			}
+	if fi, err := os.Stat(o.File); (err != nil || fi.Size() == 0) && o.BoltDB.ReadOnly {
+		optsCopy := *o.BoltDB
+		optsCopy.ReadOnly = false
+
+		db, err := bolt.Open(o.File, 0644, &optsCopy)
+		if err == nil {
+			err = db.Close()
+		}
+		if err != nil {
+			return nil, fmt.Errorf("error creating BoltDB: %s", err)
 		}
 	}
+
+	db, err := bolt.Open(o.File, 0644, o.BoltDB)
+
+	_ = util.Chown(o.File, o.owner().User)
 
 	if err != nil {
 		return nil, errors.New("error opening config: " + err.Error())

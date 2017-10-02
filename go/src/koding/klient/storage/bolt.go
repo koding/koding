@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/boltdb/bolt"
 )
@@ -62,8 +63,11 @@ func (b *boltdb) Set(key, value string) error {
 func (b *boltdb) Get(key string) (string, error) {
 	var res string
 	if err := b.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(b.bucket())
-		v := b.Get([]byte(key))
+		bkt := tx.Bucket(b.bucket())
+		if bkt == nil {
+			return fmt.Errorf("bucket %q does not exist", b.bucket())
+		}
+		v := bkt.Get([]byte(key))
 		res = string(v)
 		return nil
 	}); err != nil {
