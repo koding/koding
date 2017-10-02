@@ -27,27 +27,28 @@ var (
 	ErrKeysNotSet        = errors.New("keys are not set")
 )
 
-func NewRedisSession(conf *RedisConf) (*RedisSession, error) {
+// NewRedisSession creates a new Redis Pool with optional Redis Dial configurations.
+func NewRedisSession(conf *RedisConf, options ...redis.DialOption) (*RedisSession, error) {
 	s := &RedisSession{}
+	if len(options) == 0 {
+		options = []redis.DialOption{
+			redis.DialReadTimeout(5 * time.Second),
+			redis.DialWriteTimeout(time.Second),
+			redis.DialConnectTimeout(time.Second),
+		}
+	}
+
+	options = append(options, redis.DialDatabase(conf.DB))
 
 	pool := &redis.Pool{
 		MaxIdle:     3,
 		MaxActive:   1000,
 		IdleTimeout: 30 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", conf.Server)
+			c, err := redis.Dial("tcp", conf.Server, options...)
 			if err != nil {
 				return nil, err
 			}
-
-			// default is 0 for redis
-			if conf.DB != 0 {
-				if _, err := c.Do("SELECT", conf.DB); err != nil {
-					c.Close()
-					return nil, err
-				}
-			}
-
 			return c, err
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
