@@ -586,7 +586,7 @@ imports:
 - name: github.com/koding/rabbitmq
   version: 85d8cac01c9bf45a9ad3c2c1a53640143e3f632a
 - name: github.com/koding/redis
-  version: 91ff95c82279304d541403ee6b2ddccedb3933d4
+  version: cee969b1405e3dbe3ee5794c10f0129267440941
 - name: github.com/koding/runner
   version: 4731344e1a09114928a27d9b34e7d546f334d366
 - name: github.com/koding/service
