@@ -142,9 +142,9 @@ jobs:
           command: scripts/gometalinter.sh
       - restore_cache:
           keys:
-            - go-{{ .Branch }}-{{ .Revision }}
-            - go-{{ .Branch }}
-            - go-master
+            - go-{{ arch }}-{{ .Branch }}-{{ .Revision }}
+            - go-{{ arch }}-{{ .Branch }}
+            - go-{{ arch }}-master
       - run:
           name: touch files restored from cache
           command: |
@@ -161,12 +161,12 @@ jobs:
 
       - run: env GOGC=10 go/build.sh
       - save_cache:
-          key: go-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
+          key: go-{{ arch }}-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
           paths:
             - go/bin
             - go/pkg
       - save_cache:
-          key: go-{{ .Branch }}-{{ epoch }}
+          key: go-{{ arch }}-{{ .Branch }}-{{ epoch }}
           paths:
             - go/bin
             - go/pkg
