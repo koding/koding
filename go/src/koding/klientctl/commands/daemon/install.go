@@ -33,7 +33,7 @@ func NewInstallCommand(c *cli.CLI) *cobra.Command {
 	flags.StringVar(&opts.prefix, "prefix", "", "overwrite installation directory")
 	flags.StringVar(&opts.baseURL, "baseurl", config.Konfig.Endpoints.Koding.Public.String(), "service login endpoint")
 	flags.StringVar(&opts.token, "token", "", "temporary authorization token")
-	flags.StringVar(&opts.team, "team", "kd.io", "team to login")
+	flags.StringVar(&opts.team, "team", "", "team to login")
 	flags.StringSliceVar(&opts.skip, "skip", nil, "steps to skip during installation")
 	flags.BoolVarP(&opts.force, "force", "f", false, "execute all install steps")
 
