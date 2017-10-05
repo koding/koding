@@ -3,7 +3,7 @@ version: 2
 defaults: &defaults
   resource_class: medium
   docker:
-    - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
+    - image: koding/circle@sha256:16eb972fda89007f9e058da4330ec3486964e79b5f8143ca9e0c5019047b98a9
   working_directory: /koding
 
 workflows:
@@ -217,7 +217,7 @@ jobs:
   backend:
     resource_class: xlarge
     docker:
-      - image: koding/circle@sha256:33519ba755fd1a436e7891782a65b1d99b02fafebc104bd0e8ed9bc5e83d3e71
+      - image: koding/circle@sha256:16eb972fda89007f9e058da4330ec3486964e79b5f8143ca9e0c5019047b98a9
       - image: mongo:3.2.8
         cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
       - image: koding/postgres
