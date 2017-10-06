@@ -85,12 +85,11 @@ rest = ->
     log "------------------"
     log "MAC INSTALL INSTRUCTIONS"
     log "------------------"
-    log "1) install Docker, do `boot2docker init`, `boot2docker up`"
-    log "2) export DOCKER_HOST as tcp://192.168.59.103:2375"
-    log "3) brew install mongodb nginx"
-    log "4) do './run install' "
-    log "5) do './run buildservices' to create backend service containers after installing docker."
-    log "6) you can then type './run' to run Koding and see it on #{options.hostname}"
+    log "1) install Docker"
+    log "2) brew install mongodb nginx"
+    log "3) do './run install' "
+    log "4) do './run buildservices' to create backend service containers after installing docker."
+    log "5) you can then type './run' to run Koding and see it on #{options.hostname}"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
     (require "./deployment/mongomigrationconfig.coffee").create KONFIG

@@ -47,13 +47,8 @@ $ brew install homebrew/versions/node010
 ```
 
 ```
-$ brew install boot2docker docker graphicsmagick mongodb nginx postgresql
+$ brew install docker graphicsmagick mongodb nginx postgresql
 $ npm i coffee-script@1.12.2 gulp -g
-$ boot2docker init && boot2docker up
-$ cat >>~/.bash_profile <<EOF
-eval $(boot2docker shellinit)
-EOF
-$ . ~/.bash_profile
 ```
 
 ### Deploy Koding locally
