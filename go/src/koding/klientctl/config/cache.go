@@ -62,7 +62,6 @@ func (c *Cache) ReadOnly() *config.Cache {
 	if c.rw != nil {
 		return c.rw
 	}
-
 	if c.ro == nil {
 		opts := configstore.CacheOptions("kd")
 		opts.BoltDB.Timeout = time.Duration(Konfig.LockTimeout) * time.Second
