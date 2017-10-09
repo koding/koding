@@ -355,10 +355,7 @@ if [ -n "$KONTROLURL" ]; then
   kontrolFlag="--baseurl=${KONTROLURL%/kontrol/kite}"
 fi
 
-# No need to print Creating foo... because kd install handles that.
-
-# Install klient, piping stdin (the tty) to kd
-if ! sudo /usr/local/bin/kd install $kontrolFlag --token "$1" < /dev/tty; then
+if ! sudo /usr/local/bin/kd install $kontrolFlag --token "$1"; then
   exit $err
 fi
 

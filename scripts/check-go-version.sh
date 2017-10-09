@@ -7,7 +7,7 @@ MINOR=$(echo $VERSION | cut -d. -f2)
 
 if [[ $MAJOR -lt 1 ]]; then
 	MISMATCH=1
-elif [[ $MAJOR -eq 1 && $MINOR -lt 8 ]]; then
+elif [[ $MAJOR -eq 1 && $MINOR -lt 1 ]]; then
 	MISMATCH=1
 fi
 

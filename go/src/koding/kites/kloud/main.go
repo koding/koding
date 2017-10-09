@@ -58,6 +58,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go k.Kite.Run()
+
 	stack.Konfig = konfig.NewKonfig(&konfig.Environments{
 		Env: k.Kite.Config.Environment,
 	})
@@ -88,7 +90,6 @@ func main() {
 			k.Close()
 			return
 		}
-		k.Kite.Run()
 	}()
 
 	if os.Getenv("GENERATE_DATADOG_DASHBOARD") != "" {

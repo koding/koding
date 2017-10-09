@@ -238,13 +238,6 @@ generateDev = (KONFIG, options) ->
       check_api_consistency
       check_service_dependencies
 
-      if [[ `uname` == 'Darwin' ]]; then
-        if [ -z "$DOCKER_HOST" ]; then
-          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions. (or run 'eval $(docker-machine env default)')"
-          exit 1
-        fi
-      fi
-
       mongo $KONFIG_MONGO --eval "db.stats()" > /dev/null  # do a simple harmless command of some sort
 
       RESULT=$?   # returns 0 if mongo eval succeeds
@@ -282,7 +275,6 @@ generateDev = (KONFIG, options) ->
 
       if [[ `uname` == 'Darwin' ]]; then
         brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
-        command -v boot2docker >/dev/null 2>&1 || command -v docker-machine >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
       elif [[ `uname` == 'Linux' ]]; then
         command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
       fi
@@ -415,13 +407,6 @@ generateDev = (KONFIG, options) ->
     function dexec () {
 	    local id=`docker ps -all --quiet --filter name=$1`
 	    docker exec -i -t $id bash -l -c $2
-    }
-
-    function run_docker_wrapper () {
-      if [[ `uname` == 'Darwin' ]]; then
-        command -v boot2docker >/dev/null 2>&1 && boot2docker up
-        command -v docker-machine >/dev/null 2>&1 && docker-machine start default || echo 1
-      fi
     }
 
     function k8s () {
@@ -568,7 +553,6 @@ generateDev = (KONFIG, options) ->
     }
 
     function build_services () {
-      run_docker_wrapper
 
       # Build postgres
       pushd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
@@ -592,8 +576,6 @@ generateDev = (KONFIG, options) ->
     }
 
     function services () {
-
-      run_docker_wrapper
 
       EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
       if [ $? -eq 1 ]; then
