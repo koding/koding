@@ -105,8 +105,10 @@ func (s *Stack) injectBootstrap(b *Bootstrap, guest map[string]interface{}) erro
 	}
 	guest["ssh_keys"] = keys
 
-	if image, ok := guest["image"].(string); !ok || image == "" {
-		guest["image"] = "UBUNTU_14_64"
+	if gid, ok := guest["block_device_template_group_gid"]; !ok || gid == "" {
+		if image, ok := guest["image"].(string); !ok || image == "" {
+			guest["image"] = "UBUNTU_14_64"
+		}
 	}
 
 	return nil
