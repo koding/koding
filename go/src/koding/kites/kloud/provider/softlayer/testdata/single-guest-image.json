@@ -1,0 +1,17 @@
+{
+  "resource": {
+    "softlayer_virtual_guest": {
+      "test": {
+        "cpu": 1,
+        "domain": "koding.com",
+        "hourly_billing": true,
+		"image": "CUSTOM_19_10",
+        "local_disk": true,
+        "name": "test",
+        "public_network_speed": 10,
+        "ram": 1024,
+        "region": "dal09"
+      }
+    }
+  }
+}
