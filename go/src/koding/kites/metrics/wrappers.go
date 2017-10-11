@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	dogstatsd "github.com/DataDog/datadog-go/statsd"
 	"github.com/koding/kite"
-	cli "gopkg.in/urfave/cli.v1"
+
+	dogstatsd "github.com/DataDog/datadog-go/statsd"
 )
 
 // WrapKiteHandler wraps the kite handlers adds metrics middlewares.
@@ -71,51 +71,6 @@ func RegisterCLICommand(m *Metrics, args ...string) {
 	}
 
 	register(m.Datadog.Namespace, strings.Join(args, "_"))
-}
-
-// WrapCLIActions injects the metrics as middlewares into cli.Commands Actions.
-//
-// TODO: Remove after codegangsta/cli is removed.
-func WrapCLIActions(dd *dogstatsd.Client, commands []cli.Command, parentName string, tagsFn func(string) []string) []cli.Command {
-	for i, command := range commands {
-		name := strings.TrimSpace(parentName + " " + command.Name)
-		register(dd.Namespace, strings.Replace(name, " ", "_", -1))
-		if command.Action != nil {
-			commands[i].Action = WrapCLIAction(dd, command.Action.(cli.ActionFunc), name, tagsFn)
-		}
-		commands[i].Subcommands = WrapCLIActions(dd, command.Subcommands, name, tagsFn)
-	}
-
-	return commands
-}
-
-// WrapCLIAction wraps the actions of cli commands and adds metrics middlewares.
-//
-// TODO: Remove after codegangsta/cli is removed.
-func WrapCLIAction(dd *dogstatsd.Client, action cli.ActionFunc, fullName string, tagsFn func(string) []string) cli.ActionFunc {
-	return func(c *cli.Context) error {
-		metricName := strings.Replace(fullName, " ", "_", -1)
-
-		start := time.Now()
-		err := action(c)
-		dur := time.Since(start)
-
-		tags := tagsFn(fullName)
-		tags = AppendTag(tags, "success", err == nil)
-		tags = AppendTag(tags, "request_type", "cli")
-
-		if err != nil {
-			msg := err.Error()
-			if len(msg) > 20 {
-				msg = msg[:20]
-			}
-			tags = AppendTag(tags, "err_message", msg)
-		}
-
-		dd.Count(metricName+"_call_count", 1, tags, 1)
-		dd.Timing(metricName+"_timing", dur, tags, 1)
-		return err
-	}
 }
 
 // AppendTag appends DD tags with formatting.

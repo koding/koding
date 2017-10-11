@@ -24,6 +24,7 @@ groupToEnv =
   'default'     : [ 'default' ]
   'bucket'      : envs
   'static'      : envs
+  'external'    : envs.concat proxies
 
 module.exports.isAllowed = (group, env) ->
   # if group name is not in groupToEnv

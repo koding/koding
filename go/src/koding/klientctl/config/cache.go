@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"os"
+	"time"
 
 	"koding/kites/config"
 	"koding/kites/config/configstore"
@@ -29,16 +31,16 @@ type Cache struct {
 // Open tries to open new kd storage file.
 func Open() (*Cache, error) {
 	opts := configstore.CacheOptions("kd")
-	opts.BoltDB.Timeout = Konfig.LockTimeout
+	opts.BoltDB.Timeout = time.Duration(Konfig.LockTimeout) * time.Second
 
 	// Ensure the database file exists.
 	if _, err := os.Stat(opts.File); os.IsNotExist(err) {
 		db, err := config.NewBoltCache(opts)
 		if err != nil {
-			return nil, err
+			return nil, errors.New("error creating new config: " + err.Error())
 		}
 		if err := db.Close(); err != nil {
-			return nil, err
+			return nil, errors.New("error closing new config: " + err.Error())
 		}
 	}
 
@@ -60,10 +62,9 @@ func (c *Cache) ReadOnly() *config.Cache {
 	if c.rw != nil {
 		return c.rw
 	}
-
 	if c.ro == nil {
 		opts := configstore.CacheOptions("kd")
-		opts.BoltDB.Timeout = Konfig.LockTimeout
+		opts.BoltDB.Timeout = time.Duration(Konfig.LockTimeout) * time.Second
 		opts.BoltDB.ReadOnly = true
 
 		c.ro = config.NewCache(opts)
@@ -81,7 +82,7 @@ func (c *Cache) ReadWrite() *config.Cache {
 		_ = c.CloseRead()
 
 		opts := configstore.CacheOptions("kd")
-		opts.BoltDB.Timeout = Konfig.LockTimeout
+		opts.BoltDB.Timeout = time.Duration(Konfig.LockTimeout) * time.Second
 
 		c.rw = config.NewCache(opts)
 	}

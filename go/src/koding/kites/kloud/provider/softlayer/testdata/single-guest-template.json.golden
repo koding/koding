@@ -1,0 +1,28 @@
+{
+  "resource": {
+    "softlayer_virtual_guest": {
+      "test": {
+        "cpu": 1,
+        "domain": "koding.com",
+        "hourly_billing": true,
+        "local_disk": true,
+        "name": "test",
+        "public_network_speed": 10,
+        "ram": 1024,
+        "region": "dal09",
+		"block_device_template_group_gid": "588d5da2-aced-11e7-abc4-cec278b6b50a",
+        "ssh_keys": [
+          12345
+        ],
+        "user_data": "***"
+      }
+    }
+  },
+  "variable": {
+    "kitekeys_test": {
+      "default": {
+        "0": "***"
+      }
+    }
+  }
+}

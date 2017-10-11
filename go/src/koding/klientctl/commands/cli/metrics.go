@@ -75,8 +75,6 @@ func WithMetrics(cli *CLI, rootCmd *cobra.Command) {
 }
 
 // CommandPathTags generates metrics tags for a given command.
-//
-// TODO: Make private after codegangsta/cli is removed.
 func CommandPathTags(args ...string) []string {
 	if len(args) == 0 {
 		return nil
@@ -106,7 +104,6 @@ var objBuilder = &object.Builder{
 // returned to the caller.
 //
 // TODO: Add guest OS info.
-// TODO: Make private after codegangsta CLI is removed.
 func ApplicationInfoTags() (tags []string) {
 	// Add current config.
 	if configs, err := epcfg.Used(); err == nil {

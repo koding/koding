@@ -14,6 +14,9 @@ module.exports = (KONFIG, credentials, options) ->
     socialApiUri         : '/xhr'
     apiUri               : '/'
     mainUri              : '/'
+    userProxyHost        : options.userProxyHost
+    userProxyUri         : options.userProxyUri
+    userTunnelUri        : options.userTunnelUri
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.

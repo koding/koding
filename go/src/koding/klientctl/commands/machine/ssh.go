@@ -40,6 +40,7 @@ func sshCommand(c *cli.CLI, opts *sshOptions) cli.CobraFuncE {
 		sshOpts := &machine.SSHOptions{
 			Identifier: args[0],
 			Username:   opts.username,
+			AskList:    cli.AskList(c, cmd),
 		}
 
 		return machine.SSH(sshOpts)

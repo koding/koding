@@ -13,8 +13,7 @@ Configuration = (options = {}) ->
     main: options.host ? 'dev.koding.com'
     port: '8090'
 
-  options.boot2dockerbox or= if os.type() is 'Darwin' then '192.168.59.103' else '127.0.0.1'
-  options.serviceHost or= options.boot2dockerbox
+  options.serviceHost or= '127.0.0.1'
   options.publicPort or= '8090'
   options.hostname or= 'dev.koding.com'
   options.protocol or= 'http:'
@@ -44,6 +43,9 @@ Configuration = (options = {}) ->
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
   options.proxySubdomain or= 'dev-p'
+  options.userProxyHost or= "#{options.proxySubdomain}.koding.com"
+  options.userProxyUri or= "#{options.userProxyHost}/-/devproxy"
+  options.userTunnelUri or= "#{options.userProxyHost}/-/devtunnel"
   options.watchNode = yes
 
   try fs.lstatSync options.credentialPath
@@ -80,6 +82,7 @@ Configuration = (options = {}) ->
     gitlab     : no
 
   KONFIG = require('./generateKonfig')(options, credentials)
+  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
@@ -95,8 +98,6 @@ Configuration = (options = {}) ->
 
   KONFIG.supervisord.unix_http_server =
     file : "#{KONFIG.supervisord.rundir}/supervisor.sock"
-
-  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
 
   envFiles =
     sh: (require './generateShellEnv').create KONFIG, options

@@ -12,6 +12,7 @@ import (
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/machinegroup/addresses"
 	"koding/klient/machine/machinegroup/aliases"
+	"koding/klient/machine/machinegroup/metadata"
 	"koding/klient/machine/machinegroup/mounts"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
@@ -58,6 +59,15 @@ func TestMachineGroupFreshStart(t *testing.T) {
 	}
 	if len(alias.Registered()) != 0 {
 		t.Errorf("want no registered machines; got %v", alias.Registered())
+	}
+
+	// Nothing should be added to metadata storage.
+	meta, err := metadata.NewCached(st)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if len(meta.Registered()) != 0 {
+		t.Errorf("want no registered machines; got %v", meta.Registered())
 	}
 
 	// Nothing should be added to mounts storage.

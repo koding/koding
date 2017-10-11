@@ -13,6 +13,7 @@ import (
 	"koding/klient/machine/machinegroup/aliases"
 	"koding/klient/machine/machinegroup/clients"
 	"koding/klient/machine/machinegroup/idset"
+	"koding/klient/machine/machinegroup/metadata"
 	"koding/klient/machine/machinegroup/mounts"
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
@@ -93,6 +94,7 @@ type Group struct {
 	client  *clients.Clients
 	address addresses.Addresser
 	alias   aliases.Aliaser
+	meta    metadata.Metadater
 	mount   mounts.Mounter
 
 	sync     *syncs.Syncs
@@ -152,6 +154,7 @@ func New(opts *Options) (*Group, error) {
 	// Add default components.
 	g.address = addresses.New()
 	g.alias = aliases.New()
+	g.meta = metadata.New()
 	g.mount = mounts.New()
 	if opts.Storage == nil {
 		return g, nil
@@ -169,6 +172,13 @@ func New(opts *Options) (*Group, error) {
 		g.log.Warning("Cannot load aliases cache: %s", err)
 	} else {
 		g.alias = alias
+	}
+
+	// Try to add storage for Metadata.
+	if meta, err := metadata.NewCached(opts.Storage); err != nil {
+		g.log.Warning("Cannot load metadata cache: %s", err)
+	} else {
+		g.meta = meta
 	}
 
 	// Try to add storage for Mounts
@@ -194,6 +204,7 @@ func (g *Group) Close() error {
 func (g *Group) bootstrap() {
 	var (
 		aliasIDs   = g.alias.Registered()
+		metaIDs    = g.meta.Registered()
 		addressIDs = g.address.Registered()
 		mountsIDs  = g.mount.Registered()
 	)
@@ -232,7 +243,7 @@ func (g *Group) bootstrap() {
 	}
 
 	clientsIDs := g.client.Registered()
-	allIds := idset.Union(idset.Union(aliasIDs, addressIDs), mountsIDs)
+	allIds := idset.Union(idset.Union(aliasIDs, addressIDs), idset.Union(metaIDs, mountsIDs))
 
 	g.log.Info("Detected %d machines, started %d clients.", len(allIds), len(clientsIDs))
 

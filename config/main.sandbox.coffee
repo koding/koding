@@ -42,6 +42,9 @@ Configuration = (options = {}) ->
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
   options.proxySubdomain or= 'dev-p'
+  options.userProxyHost or= "#{options.proxySubdomain}.koding.com"
+  options.userProxyUri or= "#{options.userProxyHost}/-/devproxy"
+  options.userTunnelUri or= "#{options.userProxyHost}/-/devtunnel"
 
 
   try fs.lstatSync options.credentialPath
@@ -78,6 +81,8 @@ Configuration = (options = {}) ->
 
   KONFIG = require('./generateKonfig')(options, credentials)
 
+  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
+
   workers = require('./workers')(KONFIG, options, credentials)
 
   KONFIG.workers = require('./customextend') workers,
@@ -112,8 +117,6 @@ Configuration = (options = {}) ->
   KONFIG.supervisord.memmon =
     limit: '1536MB'
     email: 'sysops+supervisord-sandbox@koding.com'
-
-  (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
 
   envFiles =
     sh: (require './generateShellEnv').create KONFIG, options

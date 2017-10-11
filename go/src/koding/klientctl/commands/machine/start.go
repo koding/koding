@@ -38,7 +38,10 @@ func NewStartCommand(c *cli.CLI) *cobra.Command {
 
 func startCommand(c *cli.CLI, opts *startOptions) cli.CobraFuncE {
 	return func(cmd *cobra.Command, args []string) error {
-		event, err := machine.Start(args[0])
+		event, err := machine.Start(&machine.StartOptions{
+			Identifier: args[0],
+			AskList:    cli.AskList(c, cmd),
+		})
 		if err != nil {
 			return err
 		}

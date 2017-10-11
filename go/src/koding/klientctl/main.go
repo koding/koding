@@ -1,24 +1,33 @@
-// +build !urfavecli
-
 package main
 
 import (
-	"io"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 
 	"koding/klientctl/commands"
 	"koding/klientctl/commands/cli"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/machine"
 )
 
 func main() {
+	// Backward-compatibility with install scripts.
+	// "kd -version" is expected to return just one line of kite version.
+	//
+	// TODO(rjeczalik): If this requirement is dropped, remove -version
+	// flag.
+	if len(os.Args) == 2 && os.Args[1] == "-version" {
+		fmt.Println(config.KiteVersion)
+		return
+	}
+
 	// Initialize log handler.
-	var logHandler io.Writer = ioutil.Discard
-	if f, err := os.OpenFile(LogFilePath, os.O_WRONLY|os.O_APPEND, 0666); err == nil {
+	var logHandler = ioutil.Discard
+	if f, err := os.OpenFile(config.GetKdLogPath(), os.O_WRONLY|os.O_APPEND, 0666); err == nil {
 		logHandler = f
 		ctlcli.CloseOnExit(f)
 	}

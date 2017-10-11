@@ -238,13 +238,6 @@ generateDev = (KONFIG, options) ->
       check_api_consistency
       check_service_dependencies
 
-      if [[ `uname` == 'Darwin' ]]; then
-        if [ -z "$DOCKER_HOST" ]; then
-          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions. (or run 'eval $(docker-machine env default)')"
-          exit 1
-        fi
-      fi
-
       mongo $KONFIG_MONGO --eval "db.stats()" > /dev/null  # do a simple harmless command of some sort
 
       RESULT=$?   # returns 0 if mongo eval succeeds
@@ -282,7 +275,6 @@ generateDev = (KONFIG, options) ->
 
       if [[ `uname` == 'Darwin' ]]; then
         brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
-        command -v boot2docker >/dev/null 2>&1 || command -v docker-machine >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
       elif [[ `uname` == 'Linux' ]]; then
         command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
       fi
@@ -417,11 +409,138 @@ generateDev = (KONFIG, options) ->
 	    docker exec -i -t $id bash -l -c $2
     }
 
-    function run_docker_wrapper () {
-      if [[ `uname` == 'Darwin' ]]; then
-        command -v boot2docker >/dev/null 2>&1 && boot2docker up
-        command -v docker-machine >/dev/null 2>&1 && docker-machine start default || echo 1
+    function k8s () {
+      params=(start stop)
+      param=$1
+      case "${params[@]}" in  *"$param"*)
+        ;;
+      *)
+        echo "Error: Command not found: $param"
+        echo "Usage: ./run k8s COMMAND"
+        echo ""
+        echo "Commands:  "
+        echo "  start : install the services in Kubernetes pods"
+        echo "  stop  : stop the currently running Kubernetes cluster"
+
+        echo ""
+        exit 1
+      ;;
+      esac
+
+      if [ "$param" == "start" ]; then
+        k8s_start
+
+      else
+        minikube stop
       fi
+    }
+
+    function k8s_start () {
+      command -v docker           >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
+      command -v minikube         >/dev/null 2>&1 || { echo >&2 "I require a Kubernetes cluster. To install minikube: \
+              (curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-$(uname | awk '{print tolower($0)}')-amd64 && chmod +x minikube && mv minikube /usr/local/bin/)"; exit 1;}
+      command -v kubectl          >/dev/null 2>&1 || { echo >&2 "I require kubectl. To install kubectl: \
+              (curl -L -O https://storage.googleapis.com/kubernetes-release/release/v1.6.4/bin/$(uname | awk '{print tolower($0)}')/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/)"; exit 1;}
+
+      # for local development, minikube must be deleted and recreated if a disk resize is needed
+      export CHANGE_MINIKUBE_NONE_USER=true
+      sudo -E minikube start --vm-driver=none
+
+      sleep 60
+
+      export NAMESPACE_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/namespace.yaml"
+      export BACKEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/backend-pod/containers.yaml"
+      export FRONTEND_DIR="${KONFIG_PROJECTROOT}/deployment/kubernetes/frontend-pod/client-containers.yaml"
+
+      envsubst < deployment/kubernetes/backend-pod/containers.yaml.template > deployment/kubernetes/backend-pod/containers.yaml
+      envsubst < deployment/kubernetes/frontend-pod/client-containers.yaml.template > deployment/kubernetes/frontend-pod/client-containers.yaml
+
+      cp $BACKEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
+      cp $FRONTEND_DIR ${KONFIG_PROJECTROOT}/deployment/generated_files
+
+      kubectl apply -f $NAMESPACE_DIR || kubectl create -f $NAMESPACE_DIR || exit 1
+      kubectl apply -f $BACKEND_DIR || kubectl create -f $BACKEND_DIR || exit 1
+      kubectl apply -f $FRONTEND_DIR || kubectl create -f $FRONTEND_DIR || exit 1
+
+      sleep 5
+      echo "checking if backend pod is ready"
+      check_pod_ready
+      export BACKEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[0].metadata.name}" || exit 1)"
+      export FRONTEND_POD_NAME="$(kubectl get pods --namespace koding -o jsonpath="{.items[1].metadata.name}" || exit 1)"
+      sleep 10
+
+      k8s_health_check $BACKEND_POD_NAME koding 5 120 backend
+      k8s_health_check $FRONTEND_POD_NAME koding 5 120 landing
+
+      # guest user can only connect via localhost, a test user equivalent to guest will be created to check connectivity via POD IP.
+      # more info on guest user update: https://www.rabbitmq.com/blog/2014/04/02/breaking-things-with-rabbitmq-3-3/
+      k8s_health_check $BACKEND_POD_NAME koding 5 120 rabbitmq
+      sleep 25
+      kubectl exec -n koding $BACKEND_POD_NAME -c rabbitmq -- bash -c "rabbitmqctl add_user test test && rabbitmqctl set_user_tags test administrator && rabbitmqctl set_permissions -p / test '.*' '.*' '.*'" || exit 1
+
+      k8s_connectivity_check $BACKEND_POD_NAME koding backend
+
+      echo "all services are ready"
+    }
+
+    function k8s_connectivity_check () {
+      # args: $1: POD NAME, $2: NAMESPACE, $3: container name
+      kubectl exec -n $2 $1 -c $3 -- bash -c "./run is_ready" || exit 1
+    }
+
+    function k8s_health_check () {
+      # args: $1: POD NAME, $2: NAMESPACE, $3: health check interval (recommended 5 seconds), $4: timeout duration
+      declare interval=$3
+      declare timeout=$4
+      declare duration=0
+
+      sleep $interval
+
+      declare response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive' || exit 1)
+
+      echo -n $5 : 'health-check : '
+
+      until [[ $response_code != *"error"* ]]; do
+        if [ $duration -eq $timeout ]; then
+          echo ' timed out!'
+          exit 255
+        fi
+
+        echo -n '.'
+
+        sleep $interval
+        duration=$((duration + interval))
+
+        response_code=$(kubectl exec -n $2 $1 -c $5 -- echo 'i am alive' || exit 1)
+      done
+
+      echo ' succeeded!'
+    }
+
+    function check_pod_ready () {
+      remaining_time=600
+
+      until eval "check_pod_response"; do
+        sleep 30
+        let remaining_time--
+        if [ $remaining_time == 0 ]; then
+          echo "time out!"
+          exit 1
+        fi
+        echo -n '.'
+      done
+
+      echo "backend pod is ready and running..."
+    }
+
+    function check_pod_response () {
+      declare response_code=$(kubectl get pods --namespace koding -o jsonpath="{.items[0].status.phase}" || exit 1)
+
+      if [[ $response_code == *"Pending"* ]]; then
+        return 1
+      fi
+
+      return 0
     }
 
     function switch_client_version () {
@@ -434,7 +553,6 @@ generateDev = (KONFIG, options) ->
     }
 
     function build_services () {
-      run_docker_wrapper
 
       # Build postgres
       pushd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
@@ -458,8 +576,6 @@ generateDev = (KONFIG, options) ->
     }
 
     function services () {
-
-      run_docker_wrapper
 
       EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
       if [ $? -eq 1 ]; then
@@ -658,6 +774,10 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "switchclient" ]; then
       switch_client_version $2
+
+    elif [ "$1" == "k8s" ]; then
+      shift
+      k8s "$@"
 
     else
       echo "Unknown command: $1"

@@ -143,6 +143,14 @@ func TestApplyTemplate(t *testing.T) {
 			"testdata/single-guest.json",
 			"testdata/single-guest.json.golden",
 		},
+		"single guest stack with custom image": {
+			"testdata/single-guest-image.json",
+			"testdata/single-guest-image.json.golden",
+		},
+		"single guest stack with custom template": {
+			"testdata/single-guest-template.json",
+			"testdata/single-guest-template.json.golden",
+		},
 	}
 
 	c := &stack.Credential{
