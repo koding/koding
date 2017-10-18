@@ -6,19 +6,20 @@ import (
 )
 
 const (
-	EndpointSubscriptionCancel = "/payment/subscription/delete"
-	EndpointSubscriptionGet    = "/payment/subscription/get"
-	EndpointSubscriptionCreate = "/payment/subscription/create"
-	EndpointCustomerCreate     = "/payment/customer/create"
-	EndpointCustomerGet        = "/payment/customer/get"
-	EndpointCustomerUpdate     = "/payment/customer/update"
-	EndpointCustomerDelete     = "/payment/customer/delete"
-	EndpointCreditCardDelete   = "/payment/creditcard/delete"
-	EndpointCreditCardHas      = "/payment/creditcard/has"
-	EndpointCreditCardAuth     = "/payment/creditcard/auth"
-	EndpointWebhook            = "/payment/webhook"
-	EndpointInvoiceList        = "/payment/invoice/list"
-	EndpointInfo               = "/payment/info"
+	EndpointSubscriptionCancel   = "/payment/subscription/delete"
+	EndpointSubscriptionGet      = "/payment/subscription/get"
+	EndpointSubscriptionCreate   = "/payment/subscription/create"
+	EndpointCustomerCreate       = "/payment/customer/create"
+	EndpointCustomerGet          = "/payment/customer/get"
+	EndpointCustomerUpdate       = "/payment/customer/update"
+	EndpointCustomerDelete       = "/payment/customer/delete"
+	EndpointCreditCardDelete     = "/payment/creditcard/delete"
+	EndpointCreditCardHas        = "/payment/creditcard/has"
+	EndpointCreditCardAuth       = "/payment/creditcard/auth"
+	EndpointWebhook              = "/payment/webhook"
+	EndpointInvoiceList          = "/payment/invoice/list"
+	EndpointInfo                 = "/payment/info"
+	EndpointCustomCustomerCreate = "/payment/custom-customer/create"
 )
 
 // AddHandlers injects handlers for payment system
@@ -85,6 +86,15 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-create-customer",
 			Type:     handler.PostRequest,
 			Endpoint: EndpointCustomerCreate,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  CreateCustomCustomer,
+			Name:     "payment-create-custom-customer",
+			Type:     handler.PostRequest,
+			Endpoint: EndpointCustomCustomerCreate,
 		},
 	)
 

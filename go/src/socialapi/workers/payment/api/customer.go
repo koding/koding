@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
@@ -9,6 +10,7 @@ import (
 	"socialapi/workers/payment"
 
 	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/customer"
 )
 
 // DeleteCustomer deletes customer for a group. Here for symmetry.
@@ -66,6 +68,43 @@ func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, conte
 			req,
 		),
 	)
+}
+
+// CreateCustomCustomer creates a custom customer for a group
+func CreateCustomCustomer(u *url.URL, h http.Header, initial *stripe.CustomerParams) (int, http.Header, interface{}, error) {
+	if initial.Email == "" {
+		return response.NewBadRequest(errors.New("email is not set"))
+	}
+
+	if len(initial.Params.Meta) == 0 {
+		return response.NewBadRequest(errors.New("meta data not set"))
+	}
+
+	if _, ok := initial.Params.Meta["phone"]; !ok {
+		return response.NewBadRequest(errors.New("phone not set"))
+	}
+
+	// whitelisted parameters
+	req := &stripe.CustomerParams{
+		Token:  initial.Token,
+		Coupon: initial.Coupon,
+		Source: initial.Source,
+		Desc:   initial.Desc,
+		Email:  initial.Email,
+		Params: initial.Params,
+		// plan can not be updated by hand, do not add it to whilelist. It
+		// should only be updated automatically on invoice applications
+		// Plan: initial.Plan,
+	}
+
+	if req.Desc == "" {
+		req.Desc = "koding team"
+	}
+
+	req.Params.Meta["groupName"] = "koding"
+	req.Params.Meta["username"] = "username"
+
+	return response.HandleResultAndError(customer.New(req))
 }
 
 // Info return usage info for a group
