@@ -31,7 +31,8 @@ var (
 )
 
 // GetKeyPath returns default SSH keys directory for a given user. If user is
-// nil, the current user will be used.
+// nil, the current user will be used. It the directory does not exist, this
+// function will attempt to create it.
 func GetKeyPath(u *user.User) (path string, err error) {
 	if u == nil {
 		if u, err = user.Current(); err != nil {
@@ -41,6 +42,8 @@ func GetKeyPath(u *user.User) (path string, err error) {
 
 	path = filepath.Join(u.HomeDir, DefaultKeyDir)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
+		_ = os.MkdirAll(path, 0700)
+	} else if err != nil {
 		return "", err
 	}
 
