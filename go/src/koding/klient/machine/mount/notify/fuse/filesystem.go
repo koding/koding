@@ -242,6 +242,12 @@ func (fs *Filesystem) fuseOptions() map[string]string {
 		}
 	}
 
+	if err := scanner.Err(); err != nil {
+		if fs.Log != nil {
+			fs.Log.Warning("Cannot parse FUSE configuration: %v", err)
+		}
+	}
+
 	return map[string]string{}
 }
 
