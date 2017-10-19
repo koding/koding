@@ -197,3 +197,37 @@ func TestInfoPlan(t *testing.T) {
 		})
 	})
 }
+
+func TestCreateCustomCustomer(t *testing.T) {
+	Convey("Given a user", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withTestCreditCardToken(func(token string) {
+				Convey("We should be able to create a custom user", func() {
+					cp := &stripe.CustomerParams{
+						Token: token,
+						Email: "test@koding.com",
+						Params: stripe.Params{
+							Meta: map[string]string{
+								"phone": "5555555",
+							},
+						},
+					}
+
+					req, err := json.Marshal(cp)
+					So(err, ShouldBeNil)
+					So(req, ShouldNotBeNil)
+
+					customURL := endpoint + EndpointCustomCustomerCreate
+					res, err := rest.DoRequest("POST", customURL, req)
+					tests.ResultedWithNoErrorCheck(res, err)
+
+					v := &stripe.Customer{}
+					err = json.Unmarshal(res, v)
+					So(err, ShouldBeNil)
+					So(v, ShouldNotBeNil)
+					So(len(v.Meta), ShouldBeGreaterThan, 0)
+				})
+			})
+		})
+	})
+}

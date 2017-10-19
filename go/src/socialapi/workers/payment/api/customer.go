@@ -84,6 +84,10 @@ func CreateCustomCustomer(u *url.URL, h http.Header, initial *stripe.CustomerPar
 		return response.NewBadRequest(errors.New("phone not set"))
 	}
 
+	if initial.Token == "" {
+		return response.NewBadRequest(errors.New("token not set"))
+	}
+
 	// whitelisted parameters
 	req := &stripe.CustomerParams{
 		Token:  initial.Token,
