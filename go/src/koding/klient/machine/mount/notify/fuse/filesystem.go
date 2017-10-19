@@ -1,6 +1,7 @@
 package fuse
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -207,14 +208,41 @@ func (fs *Filesystem) Config() *fuse.MountConfig {
 		VolumeName:              filepath.Base(fs.MountDir),
 		DisableWritebackCaching: true,
 		EnableVnodeCaching:      false,
-		Options: map[string]string{
-			"allow_other": "",
-			"local":       "",
-			"auto_xattr":  "",
-		},
-		DebugLogger: logger,
-		ErrorLogger: logger,
+		Options:                 fs.fuseOptions(),
+		DebugLogger:             logger,
+		ErrorLogger:             logger,
 	}
+}
+
+func (fs *Filesystem) fuseOptions() map[string]string {
+	if runtime.GOOS == "darwin" {
+		return map[string]string{
+			"local":       "",
+			"allow_other": "",
+			"auto_xattr":  "",
+		}
+	}
+
+	// Try to determinate if user_allow_other option is enabled.
+	file, err := os.Open("/etc/fuse.conf")
+	if err != nil {
+		if fs.Log != nil {
+			fs.Log.Warning("Cannot read FUSE configuration: %v", err)
+		}
+		return map[string]string{}
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.TrimSpace(scanner.Text()) == "user_allow_other" {
+			return map[string]string{
+				"allow_other": "",
+			}
+		}
+	}
+
+	return map[string]string{}
 }
 
 // Close implements the notify.Notifier interface. It cleans up filesystem
