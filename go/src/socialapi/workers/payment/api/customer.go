@@ -73,19 +73,19 @@ func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, conte
 // CreateCustomCustomer creates a custom customer for a group
 func CreateCustomCustomer(u *url.URL, h http.Header, initial *stripe.CustomerParams) (int, http.Header, interface{}, error) {
 	if initial.Email == "" {
-		return response.NewBadRequest(errors.New("email is not set"))
+		return response.NewBadRequest(errors.New("not set: email"))
 	}
 
 	if len(initial.Params.Meta) == 0 {
-		return response.NewBadRequest(errors.New("meta data not set"))
+		return response.NewBadRequest(errors.New("not set: meta"))
 	}
 
 	if _, ok := initial.Params.Meta["phone"]; !ok {
-		return response.NewBadRequest(errors.New("phone not set"))
+		return response.NewBadRequest(errors.New("not set: meta.phone"))
 	}
 
 	if initial.Token == "" {
-		return response.NewBadRequest(errors.New("token not set"))
+		return response.NewBadRequest(errors.New("not set: token"))
 	}
 
 	// whitelisted parameters
