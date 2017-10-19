@@ -81,6 +81,7 @@ Configuration = (options = {}) ->
     botchannel : yes
     gitlab     : no
 
+  (require './inheritOptionFlags') credentials, options
   KONFIG = require('./generateKonfig')(options, credentials)
   (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
