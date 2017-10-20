@@ -178,11 +178,7 @@ createLocations = (KONFIG) ->
       if KONFIG.configName is 'dev'
         cors = "add_header 'Access-Control-Allow-Origin' '*' always;"
       else if location.cors
-        cors = """
-        if ($http_origin ~* (.*\\.)*#{_.escapeRegExp KONFIG.domains.main}) {
-                add_header Access-Control-Allow-Origin $http_origin always;
-              }
-        """
+        cors = 'add_header Access-Control-Allow-Origin $custom_cors_control always;'
       else
         cors = ''
 
@@ -303,6 +299,11 @@ module.exports.create = (KONFIG, environment) ->
     map $http_upgrade $connection_upgrade {
       default upgrade;
       ''      close;
+    }
+
+    map $http_origin $custom_cors_control {
+      "~*\.koding\.com"   $http_origin;
+      default             "koding.com";
     }
 
     gzip on;
