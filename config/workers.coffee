@@ -252,6 +252,7 @@ module.exports = (KONFIG, options, credentials) ->
           {
             location    : '~ /api/social/payment/(.*)'
             proxyPass   : 'http://socialapi/payment/$1$is_args$args'
+            cors        : on
           }
           {
             location    : '~ /api/social/presence/(.*)'
