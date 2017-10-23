@@ -134,7 +134,7 @@ func PrivateKey(privPath string) (privKey interface{}, err error) {
 	return key, nil
 }
 
-// Keypaths generates a public and private keys paths from a given argument. If
+// KeyPaths generates a public and private keys paths from a given argument. If
 // argument path is a directory, paths will be created from DefaultKeyName.
 // If path point to either private or public key, its name will be used to
 // generate corresponding path.
