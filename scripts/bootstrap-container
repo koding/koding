@@ -17,8 +17,7 @@ function build() {
 
 function run_backend() {
 	go/build.sh
-	./run is_ready || exit 255
-	./run migrations up
+	migrations_up
 	./run exec supervisord -c supervisord.conf
 	sleep 2
 	tail --follow --lines +0 --quiet .logs/*.log
@@ -42,6 +41,11 @@ function run() {
 	esac
 }
 
+function migrations_up() {
+	./run is_ready || exit 255
+	./run migrations up
+}
+
 if [[ -z "$*" ]]; then
 	run_backend
 elif [[ "${1:0:1}" == '-' ]]; then
@@ -52,6 +56,12 @@ elif [ "$1" = "run" ]; then
 	shift
 	is_ready
 	run "$@"
+elif [ "$1" = "k8s_build" ]; then
+	shift
+	source .env-kubernetes
+	configure "$@"
+	build
+	migrations_up
 elif [ "$1" = "is_ready" ]; then
 	shift
 	is_ready
