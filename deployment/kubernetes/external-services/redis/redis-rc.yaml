@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    service: redis
+  name: redis
+  namespace: koding
+spec:
+  replicas: 1
+  selector:
+    service: redis
+  template:
+    metadata:
+      labels:
+        service: redis
+        app: redis-ext-service
+    spec:
+      containers:
+        - name: redis
+          image: redis
+          workingDir: /opt/koding
+          ports:
+            - containerPort: 6379
+              hostPort: 6379

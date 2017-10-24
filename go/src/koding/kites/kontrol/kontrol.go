@@ -19,7 +19,6 @@ var Name = "kontrol"
 func main() {
 	loader := multiconfig.MultiLoader(
 		&multiconfig.TagLoader{},
-		&multiconfig.EnvironmentLoader{Prefix: "kontrol"},
 		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_KONTROL"},
 		&multiconfig.FlagLoader{EnvPrefix: "kontrol"},
 	)
