@@ -1,7 +1,6 @@
 debug = (require 'debug') 'nse:stackeditor'
 
 kd = require 'kd'
-bowser = require 'bowser'
 Encoder = require 'htmlencode'
 
 Events = require '../events'
@@ -299,5 +298,4 @@ module.exports = class StackEditor extends kd.View
           ]
       ]
 
-    contentView.setClass 'safari-flex-fix'  if bowser.safari
     contentView.addSubView @sideView
