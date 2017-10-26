@@ -81,6 +81,7 @@ Configuration = (options = {}) ->
     botchannel : yes
     gitlab     : no
 
+  (require './inheritOptionFlags') credentials, options
   KONFIG = require('./generateKonfig')(options, credentials)
   (require './inheritEnvVars') KONFIG  if options.inheritEnvVars
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
@@ -104,6 +105,10 @@ Configuration = (options = {}) ->
     json: JSON.stringify KONFIG, null, 2
 
   KONFIG.supervisorConf = (require '../deployment/supervisord.coffee').create KONFIG
+  if options.kubernetes
+    KONFIG.kubernetesConf = (require '../deployment/kubernetes.coffee').create KONFIG, options
+    KONFIG.buildPodConf = (require '../deployment/kubernetes.coffee').createBuildPod KONFIG, options
+    KONFIG.clientPodConf = (require '../deployment/kubernetes.coffee').createClientPod KONFIG, options
   KONFIG.nginxConf = (require '../deployment/nginx.coffee').create KONFIG, options.environment
   KONFIG.runFile = (require './generateRunFile').dev KONFIG, options
   KONFIG.configCheckExempt = []

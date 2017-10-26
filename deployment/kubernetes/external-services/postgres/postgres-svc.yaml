@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: koding
+spec:
+  type: NodePort
+  ports:
+  - name: "postgres-port"
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    service: postgres

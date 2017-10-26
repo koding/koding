@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    service: rabbitmq
+  name: rabbitmq
+  namespace: koding
+spec:
+  replicas: 1
+  selector:
+    service: rabbitmq
+  template:
+    metadata:
+      labels:
+        service: rabbitmq
+        app: rabbitmq-ext-service
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          workingDir: /opt/koding
+          ports:
+            - containerPort: 5672
+              hostPort: 5672

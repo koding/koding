@@ -1,8 +1,6 @@
 selenium-debug.log
 nginx.conf
 nginx.pid
-containers.yaml
-client-containers.yaml
 *.test
 *.dump
 *.orig
@@ -109,3 +107,5 @@ website/apidocs/lang
 credential
 
 website/a/klient
+
+deployment/kubernetes/
