@@ -257,6 +257,9 @@ jobs:
           name: test social worker
           command: ./run exec scripts/node-testing/mocha-runner workers/social/lib/social
       - run:
+          name: test config
+          command: ./run exec scripts/node-testing/mocha-runner config
+      - run:
           name: codecov
           command: |
             [[ -n "$CODECOV_TOKEN" ]] && \
