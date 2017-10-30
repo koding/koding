@@ -8,6 +8,7 @@
 make configure
 
 ```
+
 ## run the workers
 
 ``` sh
@@ -17,7 +18,7 @@ make develop
 
 ## api tests are here
 
-```
+```sh
 make testapi
 
 ```
