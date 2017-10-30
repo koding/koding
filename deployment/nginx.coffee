@@ -315,6 +315,7 @@ module.exports.create = (KONFIG, environment) ->
       "~*\.koding\.com(:[0-9]+)?"   $http_origin;
       "~*\.koding\.team(:[0-9]+)?"  $http_origin;
       "~*\.koding\.me(:[0-9]+)?"    $http_origin;
+      "~*\.oud\.cc(:[0-9]+)?"       $http_origin;
       default                       "koding.com";
     }
 
