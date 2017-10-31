@@ -176,9 +176,19 @@ createLocations = (KONFIG) ->
         auth = options.nginx.auth
 
       if KONFIG.configName is 'dev'
-        cors = "add_header 'Access-Control-Allow-Origin' '*' always;"
+        cors = '''\n
+              add_header 'Access-Control-Allow-Origin' '*' always;
+              add_header 'Access-Control-Allow-Credentials' 'true';
+              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+              add_header 'Access-Control-Allow-Headers' 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        \n'''
       else if location.cors
-        cors = 'add_header Access-Control-Allow-Origin $custom_cors_control always;'
+        cors = '''\n
+              add_header 'Access-Control-Allow-Origin' $custom_cors_control always;
+              add_header 'Access-Control-Allow-Credentials' 'true';
+              add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+              add_header 'Access-Control-Allow-Headers' 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+        \n'''
       else
         cors = ''
 
@@ -302,8 +312,11 @@ module.exports.create = (KONFIG, environment) ->
     }
 
     map $http_origin $custom_cors_control {
-      "~*\.koding\.com"   $http_origin;
-      default             "koding.com";
+      "~*\.koding\.com(:[0-9]+)?"   $http_origin;
+      "~*\.koding\.team(:[0-9]+)?"  $http_origin;
+      "~*\.koding\.me(:[0-9]+)?"    $http_origin;
+      "~*\.oud\.cc(:[0-9]+)?"       $http_origin;
+      default                       "koding.com";
     }
 
     gzip on;
