@@ -260,7 +260,7 @@ func Wrapper(r Request) http.Handler {
 	}
 
 	// create the final handler
-	return cors.Build(hHandler)
+	return hHandler
 }
 
 // add request time tracking
