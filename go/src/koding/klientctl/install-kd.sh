@@ -355,6 +355,9 @@ if [ -n "$KONTROLURL" ]; then
   kontrolFlag="--baseurl=${KONTROLURL%/kontrol/kite}"
 fi
 
+# Ignore false negative.
+#
+# shellcheck disable=SC2024
 if ! sudo /usr/local/bin/kd install $kontrolFlag --token "$1" < /dev/tty; then
   exit $err
 fi
