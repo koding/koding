@@ -355,7 +355,7 @@ if [ -n "$KONTROLURL" ]; then
   kontrolFlag="--baseurl=${KONTROLURL%/kontrol/kite}"
 fi
 
-if ! sudo /usr/local/bin/kd install $kontrolFlag --token "$1"; then
+if ! sudo /usr/local/bin/kd install $kontrolFlag --token "$1" < /dev/tty; then
   exit $err
 fi
 
