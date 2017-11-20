@@ -16,11 +16,7 @@ $command &
 pid=$!
 while [[ true ]]; do
 
-	if [[ $(uname) == "Darwin" ]]; then
-		files=$(find -L $watchfolder -type f -mtime -2s | grep -v "\.test\." | grep -v "models\.json")
-	else
-		files=$(find -L $watchfolder -type f -mmin $(echo 2/60 | bc -l) | grep -v "\.test\." | grep -v "models\.json")
-	fi
+	files=$(find -L $watchfolder -type f -newermt '2 seconds ago' | grep -v "\.test\." | grep -v "models\.json")
 
 	if [[ $files != "" ]]; then
 		echo [watch-node $$] files changed [$files] killing $pid $command
