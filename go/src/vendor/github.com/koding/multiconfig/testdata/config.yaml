@@ -1,0 +1,28 @@
+# server configure
+
+name: koding
+
+enabled: true
+
+users:
+   - ankara
+   - istanbul
+
+interval: 10000000000
+
+id: 1234567890
+
+labels:
+    - 123
+    - 456
+
+# postgres configure
+postgres:
+    enabled: true
+    port:  5432
+    hosts:
+        - 192.168.2.1
+        - 192.168.2.2
+        - 192.168.2.3
+    availabilityratio:  8.23
+

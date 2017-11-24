@@ -92,7 +92,7 @@ func filterArgs(args []string) []string {
 	r := []string{}
 	for i := 0; i < len(args); i++ {
 		if strings.Index(args[i], "test.") >= 0 {
-			if i+1 < len(args) && strings.Index(args[i+1], "-") == -1 {
+			if i + 1 < len(args) && strings.Index(args[i + 1], "-") == -1 {
 				i++
 			}
 			i++
