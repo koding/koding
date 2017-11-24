@@ -578,7 +578,7 @@ imports:
 - name: github.com/koding/metrics
   version: f0a635a6f6b95045c3e183c86e49ff00ab640af2
 - name: github.com/koding/multiconfig
-  version: 58dd6d6a05babfd20a5982e8d9e5f0bfb232618b
+  version: 69c27309b2d751c576b59ea9c3726597c2375da3
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
 - name: github.com/koding/pubnub
@@ -928,11 +928,11 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/sync
-  version: f52d1811a62927559de87708c8913c1650ce4f26
+  version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
   subpackages:
   - errgroup
 - name: golang.org/x/oauth2
-  version: f047394b6d14284165300fd82dad67edb3a4d7f6
+  version: f95fa95eaa936d9d87489b15d1d18b97c1ba9c28
   subpackages:
   - google
   - internal
