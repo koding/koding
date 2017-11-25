@@ -164,6 +164,25 @@ func TestFlagValueSupport(t *testing.T) {
 		t.Fatalf("got %q, want %q", e.Public, m.Args[3])
 	}
 }
+func TestCustomUsageTag(t *testing.T) {
+	const usageMsg = "foobar help"
+	strt := struct {
+		Foobar string `flagUsage:"foobar help"`
+	}{}
+	m := FlagLoader{}
+	err := m.Load(&strt)
+
+	if err != nil {
+		t.Fatalf("Unable to load struct: %s", err)
+	}
+	f := m.flagSet.Lookup("foobar")
+	if f == nil {
+		t.Fatalf("Flag foobar is not set")
+	}
+	if f.Usage != usageMsg {
+		t.Fatalf("usage message was %q, expected %q", f.Usage, usageMsg)
+	}
+}
 
 // getFlags returns a slice of arguments that can be passed to flag.Parse()
 func getFlags(t *testing.T, structName, prefix string) []string {

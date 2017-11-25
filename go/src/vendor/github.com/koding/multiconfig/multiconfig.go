@@ -13,7 +13,7 @@ import (
 )
 
 // Loader loads the configuration from a source. The implementer of Loader is
-// responsible of setting the default values of the struct.
+// responsible for setting the default values of the struct.
 type Loader interface {
 	// Load loads the source into the config defined by struct s
 	Load(s interface{}) error
@@ -45,6 +45,10 @@ func NewWithPath(path string) *DefaultLoader {
 
 	if strings.HasSuffix(path, "json") {
 		loaders = append(loaders, &JSONLoader{Path: path})
+	}
+
+	if strings.HasSuffix(path, "yml") || strings.HasSuffix(path, "yaml") {
+		loaders = append(loaders, &YAMLLoader{Path: path})
 	}
 
 	e := &EnvironmentLoader{}

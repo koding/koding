@@ -48,6 +48,7 @@ type CamelCaseServer struct {
 var (
 	testTOML = "testdata/config.toml"
 	testJSON = "testdata/config.json"
+	testYAML = "testdata/config.yaml"
 )
 
 func getDefaultServer() *Server {

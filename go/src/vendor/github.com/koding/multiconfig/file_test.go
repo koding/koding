@@ -5,6 +5,32 @@ import (
 	"testing"
 )
 
+func TestYAML(t *testing.T) {
+	m := NewWithPath(testYAML)
+
+	s := &Server{}
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	testStruct(t, s, getDefaultServer())
+}
+
+func TestYAML_Reader(t *testing.T) {
+	f, err := os.Open(testYAML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	l := MultiLoader(&TagLoader{}, &YAMLLoader{Reader: f})
+	s := &Server{}
+	if err := l.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	testStruct(t, s, getDefaultServer())
+}
 func TestToml(t *testing.T) {
 	m := NewWithPath(testTOML)
 
