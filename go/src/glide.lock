@@ -578,7 +578,7 @@ imports:
 - name: github.com/koding/metrics
   version: f0a635a6f6b95045c3e183c86e49ff00ab640af2
 - name: github.com/koding/multiconfig
-  version: 58dd6d6a05babfd20a5982e8d9e5f0bfb232618b
+  version: 69c27309b2d751c576b59ea9c3726597c2375da3
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
 - name: github.com/koding/pubnub
@@ -907,7 +907,7 @@ imports:
 - name: github.com/zorkian/go-datadog-api
   version: 178291ca485aa5eeea1299d6eedc9d0729d79ff9
 - name: golang.org/x/crypto
-  version: 9419663f5a44be8b34ca85f08abc5fe1be11f8a3
+  version: b080dc9a8c480b08e698fb1219160d598526310f
   subpackages:
   - curve25519
   - ed25519
@@ -918,7 +918,7 @@ imports:
   - ssh/agent
   - ssh/terminal
 - name: golang.org/x/net
-  version: 8351a756f30f1297fe94bbf4b767ec589c6ea6d0
+  version: c7086645de248775cbf2373cf5ca4d2fa664b8c1
   subpackages:
   - context
   - context/ctxhttp
@@ -928,18 +928,18 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/sync
-  version: f52d1811a62927559de87708c8913c1650ce4f26
+  version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
   subpackages:
   - errgroup
 - name: golang.org/x/oauth2
-  version: f047394b6d14284165300fd82dad67edb3a4d7f6
+  version: f95fa95eaa936d9d87489b15d1d18b97c1ba9c28
   subpackages:
   - google
   - internal
   - jws
   - jwt
 - name: golang.org/x/sys
-  version: 314a259e304ff91bd6985da2a7149bbf91237993
+  version: 4ff8c001ce4cc464e644b922325097228fce14d8
   subpackages:
   - unix
   - windows
@@ -948,14 +948,14 @@ imports:
   - windows/svc/eventlog
   - windows/svc/mgr
 - name: golang.org/x/text
-  version: d82c1812e304abfeeabd31e995a115a2855bf642
+  version: 88f656faf3f37f690df1a32515b479415e1a6769
   subpackages:
   - transform
   - unicode/norm
 - name: golang.org/x/arch
   version: 077ac972c2e48fdb75168a5ba36a387f0c72d8aa
 - name: golang.org/x/tools
-  version: e531a2a1c15f94033f6fa87666caeb19a688175f
+  version: 6d70fb2e85323e81c89374331d3d2b93304faa36
   subpackages:
   - go/loader
   - go/types

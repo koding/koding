@@ -78,8 +78,9 @@ import (
 )
 
 var (
-	typeNames = flag.String("type", "", "comma-separated list of type names; must be set")
-	output    = flag.String("output", "", "output file name; default srcdir/<type>_string.go")
+	typeNames  = flag.String("type", "", "comma-separated list of type names; must be set")
+	output     = flag.String("output", "", "output file name; default srcdir/<type>_string.go")
+	trimprefix = flag.String("trimprefix", "", "trim the `prefix` from the generated constant names")
 )
 
 // Usage is a replacement usage function for the flags package.
@@ -112,10 +113,8 @@ func main() {
 	}
 
 	// Parse the package once.
-	var (
-		dir string
-		g   Generator
-	)
+	var dir string
+	g := Generator{trimPrefix: *trimprefix}
 	if len(args) == 1 && isDirectory(args[0]) {
 		dir = args[0]
 		g.parsePackageDir(args[0])
@@ -129,7 +128,7 @@ func main() {
 	g.Printf("\n")
 	g.Printf("package %s", g.pkg.name)
 	g.Printf("\n")
-	g.Printf("import \"fmt\"\n") // Used by all methods.
+	g.Printf("import \"strconv\"\n") // Used by all methods.
 
 	// Run generate for each type.
 	for _, typeName := range types {
@@ -165,6 +164,8 @@ func isDirectory(name string) bool {
 type Generator struct {
 	buf bytes.Buffer // Accumulated output.
 	pkg *Package     // Package we are scanning.
+
+	trimPrefix string
 }
 
 func (g *Generator) Printf(format string, args ...interface{}) {
@@ -178,6 +179,8 @@ type File struct {
 	// These fields are reset for each type being generated.
 	typeName string  // Name of the constant type.
 	values   []Value // Accumulator for constant values of that type.
+
+	trimPrefix string
 }
 
 type Package struct {
@@ -240,8 +243,9 @@ func (g *Generator) parsePackage(directory string, names []string, text interfac
 		}
 		astFiles = append(astFiles, parsedFile)
 		files = append(files, &File{
-			file: parsedFile,
-			pkg:  g.pkg,
+			file:       parsedFile,
+			pkg:        g.pkg,
+			trimPrefix: g.trimPrefix,
 		})
 	}
 	if len(astFiles) == 0 {
@@ -453,6 +457,7 @@ func (f *File) genDecl(node ast.Node) bool {
 				signed: info&types.IsUnsigned == 0,
 				str:    value.String(),
 			}
+			v.name = strings.TrimPrefix(v.name, f.trimPrefix)
 			f.values = append(f.values, v)
 		}
 	}
@@ -560,7 +565,7 @@ func (g *Generator) buildOneRun(runs [][]Value, typeName string) {
 //	[3]: less than zero check (for signed types)
 const stringOneRun = `func (i %[1]s) String() string {
 	if %[3]si >= %[1]s(len(_%[1]s_index)-1) {
-		return fmt.Sprintf("%[1]s(%%d)", i)
+		return "%[1]s(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _%[1]s_name[_%[1]s_index[i]:_%[1]s_index[i+1]]
 }
@@ -576,7 +581,7 @@ const stringOneRun = `func (i %[1]s) String() string {
 const stringOneRunWithOffset = `func (i %[1]s) String() string {
 	i -= %[2]s
 	if %[4]si >= %[1]s(len(_%[1]s_index)-1) {
-		return fmt.Sprintf("%[1]s(%%d)", i + %[2]s)
+		return "%[1]s(" + strconv.FormatInt(int64(i + %[2]s), 10) + ")"
 	}
 	return _%[1]s_name[_%[1]s_index[i] : _%[1]s_index[i+1]]
 }
@@ -603,7 +608,7 @@ func (g *Generator) buildMultipleRuns(runs [][]Value, typeName string) {
 			typeName, i, typeName, i, typeName, i)
 	}
 	g.Printf("\tdefault:\n")
-	g.Printf("\t\treturn fmt.Sprintf(\"%s(%%d)\", i)\n", typeName)
+	g.Printf("\t\treturn \"%s(\" + strconv.FormatInt(int64(i), 10) + \")\"\n", typeName)
 	g.Printf("\t}\n")
 	g.Printf("}\n")
 }
@@ -630,6 +635,6 @@ const stringMap = `func (i %[1]s) String() string {
 	if str, ok := _%[1]s_map[i]; ok {
 		return str
 	}
-	return fmt.Sprintf("%[1]s(%%d)", i)
+	return "%[1]s(" + strconv.FormatInt(int64(i), 10) + ")"
 }
 `

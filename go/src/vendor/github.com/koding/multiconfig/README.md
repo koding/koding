@@ -13,6 +13,7 @@ Multiconfig is able to read configuration automatically based on the given struc
 * Struct tags
 * TOML file
 * JSON file
+* YAML file
 * Environment variables
 * Flags
 
@@ -41,7 +42,7 @@ Load the configuration into multiconfig:
 ```go
 // Create a new DefaultLoader without or with an initial config file
 m := multiconfig.New()
-m := multiconfig.NewWithPath("config.toml") // supports TOML and JSON
+m := multiconfig.NewWithPath("config.toml") // supports TOML, JSON and YAML
 
 // Get an empty struct for your configuration
 serverConf := new(Server)

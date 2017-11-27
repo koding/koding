@@ -9,13 +9,13 @@ import (
 
 // Validator validates the config against any predefined rules, those predefined
 // rules should be given to this package. The implementer will be responsible
-// about the logic
+// for the logic.
 type Validator interface {
 	// Validate validates the config struct
 	Validate(s interface{}) error
 }
 
-// RequiredValidator validates the struct against zero values
+// RequiredValidator validates the struct against zero values.
 type RequiredValidator struct {
 	//  TagName holds the validator tag name. The default is "required"
 	TagName string

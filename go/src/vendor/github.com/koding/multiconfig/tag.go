@@ -7,7 +7,7 @@ import (
 )
 
 // TagLoader satisfies the loader interface. It parses a struct's field tags
-// and populated the each field with that given tag.
+// and populates the each field with that given tag.
 type TagLoader struct {
 	// DefaultTagName is the default tag name for struct fields to define
 	// default values for a field. Example:

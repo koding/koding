@@ -21,7 +21,7 @@ func ExampleDefaultLoader() {
 
 	// It first sets the default values for each field with tag values defined
 	// with "default", next it reads from config.toml, from environment
-	// variables and finally from command line flags. It panic's if loading fails.
+	// variables and finally from command line flags. It panics if loading fails.
 	d.MustLoad(s)
 
 	fmt.Println("Host-->", s.Name)
@@ -137,6 +137,33 @@ func ExampleJSONLoader() {
 
 	// Instantiate loader
 	l := &JSONLoader{Path: testJSON}
+
+	s := &ServerConfig{}
+	err := l.Load(s)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Host-->", s.Name)
+	fmt.Println("Users-->", s.Users)
+
+	// Output:
+	// Host--> koding
+	// Users--> [ankara istanbul]
+}
+
+func ExampleYAMLLoader() {
+	// Our struct which is used for configuration
+	type ServerConfig struct {
+		Name     string
+		Port     int
+		Enabled  bool
+		Users    []string
+		Postgres Postgres
+	}
+
+	// Instantiate loader
+	l := &YAMLLoader{Path: testYAML}
 
 	s := &ServerConfig{}
 	err := l.Load(s)
