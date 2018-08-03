@@ -84,10 +84,9 @@ permalink: /about
   </div>
   <div>
   <style>{% include css/about-newmember.css %}</style>
-  {% for department in site.data.members %}
-    <h3 class="DepartmentTitle"><span>{{ department.title }}</span></h3>
+    <h3 class="DepartmentTitle"><span>Founders</span></h3>
     <div class="AboutUs-TeamMemberWrapper">
-    {% for member in department.members %}
+    {% for member in site.data.founders %}
       <div class="AboutUs-TeamMember {{ member.cssClass }}">
         <img class="profile" src="{{ site.url }}/{% if member.img %}{{ member.img }}{% else %}assets/img/landing/team/{{ member.name | downcase | replace: ' ', '_'}}.png{% endif %}" alt="{{ member.name }}">
         <h3 class="team-member-name">{{ member.name }}</h3>
@@ -119,7 +118,6 @@ permalink: /about
       </div>
     {% endif %}
     </div>
-  {% endfor %}
   </div>
   <div class="clearfix"></div>
 </div>
