@@ -84,10 +84,9 @@ permalink: /about
   </div>
   <div>
   <style>{% include css/about-newmember.css %}</style>
-  {% for department in site.data.members %}
-    <h3 class="DepartmentTitle"><span>{{ department.title }}</span></h3>
+    <h3 class="DepartmentTitle"><span>Management</span></h3>
     <div class="AboutUs-TeamMemberWrapper">
-    {% for member in department.members %}
+    {% for member in site.data.founders %}
       <div class="AboutUs-TeamMember {{ member.cssClass }}">
         <img class="profile" src="{{ site.url }}/{% if member.img %}{{ member.img }}{% else %}assets/img/landing/team/{{ member.name | downcase | replace: ' ', '_'}}.png{% endif %}" alt="{{ member.name }}">
         <h3 class="team-member-name">{{ member.name }}</h3>
@@ -119,10 +118,56 @@ permalink: /about
       </div>
     {% endif %}
     </div>
-  {% endfor %}
+
+    <h3 class="DepartmentTitle"><span>Board Members</span></h3>
+    <div class="AboutUs-TeamMemberWrapper">
+    {% for member in site.data.board %}
+      <div class="AboutUs-TeamMember {{ member.cssClass }}">
+        <img class="profile" src="{{ site.url }}/{% if member.img %}{{ member.img }}{% else %}assets/img/landing/team/{{ member.name | downcase | replace: ' ', '_'}}.png{% endif %}" alt="{{ member.name }}">
+        <h3 class="team-member-name">{{ member.name }}</h3>
+        <p>
+        {{ member.title }}
+        <br />
+        {{ member.role }}
+        </p>
+        <p class="AboutUs-TeamMember--Social">
+            {% if member.twitter %}
+            <a href="http://twitter.com/{{ member.twitter }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-twitter.png" width="24" /></a>
+            {% endif %}
+            {% if member.linkedin %}
+            <a href="http://linkedin.com/in/{{ member.linkedin }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-linkedin.png" width="24" /></a>
+            {% endif %}
+            {% if member.github %}
+            <a href="http://github.com/{{ member.github }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-github.png" width="24" /></a>
+            {% endif %}
+        </p>
+      </div>
+    {% endfor %}
+    </div>
   </div>
+
   <div class="clearfix"></div>
 </div>
+
+<div class="Homepage--container AboutUs-Team">
+  <div class="AboutUs-TeamHeader">
+    <h2 style="padding-top: 0">Join Koding</h2>
+    <p>Help us build the best development automation infrastructure of the internet.</p>
+  </div>
+  <div>
+    <h3 class="DepartmentTitle"><span>Positions</span></h3>
+    <div class="AboutUs-TeamMemberWrapper">
+      <div class="AboutUs-TeamMember AboutUs-NewTeamMember">
+        <div class="AboutUs-NewTeamMember--Number">3</div>
+        <img class="profile" src="{{ site.url }}/assets/img/landing/misc/Bitmap.png">
+        <h3 class="team-member-name">You</h3>
+        <p>Awesome Person</p>
+        <a href="https://koding.breezy.hr" class="AboutUs-NewTeamMember--Button">SEE OPEN POSITIONS</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <style>{% include css/about-contact.css %}</style>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUb3-qBWxs-4mHARQ_hQYTauPYUQtoRok&callback=initMap"  async defer></script>
