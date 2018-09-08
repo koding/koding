@@ -12,14 +12,14 @@ function configure() {
 function build() {
 	go/build.sh
 	make -C client dist
-	./run exec make klient
+	./run eval make klient
 }
 
 function run_backend() {
 	go/build.sh
 	./run is_ready || exit 255
 	./run migrations up
-	./run exec supervisord -c supervisord.conf
+	./run eval supervisord -c supervisord.conf
 	sleep 2
 	tail --follow --lines +0 --quiet .logs/*.log
 }
@@ -55,7 +55,7 @@ elif [ "$1" = "run" ]; then
 elif [ "$1" = "is_ready" ]; then
 	shift
 	is_ready
-	exec "$@"
+	eval "$@"
 else
-	exec "$@"
+	eval "$@"
 fi
