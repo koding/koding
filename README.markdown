@@ -24,6 +24,9 @@ git clone https://github.com/koding/docker-compose.git koding-docker-compose
 cd koding-docker-compose
 # Requires docker-compose version >= 1.6
 docker-compose up -d
+
+# Requires kubectl, minikube and kompose for kuburnetes
+kompose up
 ```
 
 Now you are able to access Koding via port `8090` (e.g. [localhost:8090](http://localhost:8090)) on your host.
@@ -50,8 +53,13 @@ You are now ready to run Koding.
 ```bash
 git clone https://github.com/koding/koding.git
 cd koding
+
+# With Docker Compose
 docker-compose -f docker-compose-init.yml run init
 docker-compose up
+
+# With Kuburnetes Kompose
+kompose up
 ```
 
 If you don't have a powerful computer, this may take a while at first, slow computers may take up to 15 minutes before they build the entire system. Please be patient. Once it is up and running, everything will be smooth and very fast.
