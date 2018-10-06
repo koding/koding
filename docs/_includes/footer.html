@@ -1,6 +1,5 @@
 <style>{% include css/footer.css %}</style>
 
-<a class='Homepage--mobile-cta' href='{{ site.url }}/demo'>REQUEST A DEMO</a>
 <footer class="Homepage-Footer">
   <figure class="Homepage-Footer--logo"></figure>
   <div class="container">
@@ -8,11 +7,7 @@
       <h3>For Teams</h3>
       <ul>
         <li><a href="{{ site.url }}/verticals/training">Platform for Training</a></li>
-        <!-- <li><a href="{{ site.url }}/verticals/hackathons">Hackathons</a></li> -->
         <li><a href="{{ site.url }}/verticals/trial">Pre-Sales Automation</a></li>
-        <!-- <li><a href="{{ site.url }}/verticals/digital-agency">Digital Agency</a></li> -->
-        <!-- <li><a href="{{ site.url }}/verticals/classrooms">Classrooms</a></li> -->
-        <!-- <li><a href="{{ site.url }}/verticals/api-sdk">API integrations</a></li> -->
       </ul>
     </div>
     <div class="Footer--col">
@@ -27,42 +22,23 @@
       <h3>About</h3>
       <ul>
         <li><a href="{{ site.url }}/about">About Us</a></li>
-        <li><a href="https://koding.breezy.hr" target='_blank'>Careers</a></li>
         <li><a href="https://github.com/koding" target='_blank'>Open Source</a></li>
       </ul>
     </div>
     <div class="Footer--col">
       <h3>Contact</h3>
       <ul>
-        <li><a href="mailto:support@koding.com" class='contact'>Support</a></li>
         <li><a href="http://facebook.com/koding" target='_blank'>Facebook</a></li>
         <li><a href="http://twitter.com/koding" target='_blank'>Twitter</a></li>
         <li><a href="http://linkedin.com/company/koding" target='_blank'>LinkedIn</a></li>
         <li><a href="mailto:support@koding.com">Email Us</a></li>
       </ul>
     </div>
-    <div class="Footer--col large">
-      <h3>Subscribe to our newsletter</h3>
-      <ul class="hidden subscribe-to-newsletter-success">
-        <li><p>Thanks for subscribing!</p></li>
-      </ul>
-      <form id="subscribe-to-newsletter">
-        <input type="email" name="Field1" placeholder="Your email...">
-        <input type="hidden" name="Field3">
-        <button formnovalidate type="submit">Subscribe</button>
-      </form>
-    </div>
   </div>
 </footer>
 
 <script type="text/javascript" src="{{ site.url }}/js/form-submission.js" /></script>
 <script type="text/javascript">
-  KODING_UTILS.bindFormSubmission({
-    referrerSelector: '#subscribe-to-newsletter input[name=Field3]',
-    formSelector: '#subscribe-to-newsletter',
-    resultSelector: 'ul.subscribe-to-newsletter-success',
-    formHash: 'z5z2m7x0ln3g44'
-  });
   // footer mobile menu expand/collaps
   $('.Footer--col h3').on('click', function(){
     var wasActive = $(this).parent().hasClass('active');
@@ -72,7 +48,4 @@
   });
 </script>
 <script type="text/javascript" src="{{ site.url }}/js/requests.js" /></script>
-<script type="text/javascript">
-  {% include js/intercomLauncher.js %}
-</script>
 {% include analytics.html %}
