@@ -1,0 +1,38 @@
+---
+layout: default
+title: Home
+---
+
+<!-- HEADER -->
+{% include header.html has_sticky_navigation='true' exclude_main_nav='true' %}
+<style>{% include css/micropage.css %}</style>
+<style>{% include css/signup.css %}</style>
+<link rel="stylesheet" href="{{ site.url }}/css/custom-radio.css">
+
+<main class="Micropage">
+  <div class="Micropage--container">
+
+    <h1>Registrations Disabled</h1>
+
+    <form action="{{ site.repository }}">
+
+      <div class="SignupFieldset">
+        <h3 style="text-align: left; margin-top: 20px;">Hosted version of Koding is no longer available.</h3>
+        <h3 style="text-align: left; margin-top: 20px;">Koding is now only available as a self-managed installation. If you'd like to use Koding, follow these steps <a style="font-size: inherit;" target="_blank" href="{{ site.repository }}#koding"><strong>here</strong></a> to setup your own instance.</h3>
+      </div>
+
+      <div class="SignupFieldset">
+        <div class="submit">
+          <button type="submit">GO TO GITHUB</button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+  <figure class="Micropage--UFO"></figure>
+  <figure class="Micropage--Ground"></figure>
+</main>
+
+{% include analytics.html %}
+
+<script>{% include js/garlic.min.js %}</script>
