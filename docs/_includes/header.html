@@ -25,7 +25,7 @@
   {% if include.exclude_main_nav %}
   {% else %}
   <a class="item{% if '/features' == page.url or '/features' contains page.parent %} active{% endif %}" href="{{ site.url }}/features">FEATURES</a>
-  <a class="item{% if '/pricing' == page.url or '/pricing' contains page.parent %} active{% endif %}" href="{{ site.url }}/pricing">PRICING</a>
+  <a class="item" style="white-space: nowrap"  href="{{ site.repository }}">OPEN SOURCE</a>
   <a class="item{% if '/about' == page.url or '/about' contains page.parent %} active{% endif %}" href="{{ site.url }}/about">ABOUT</a>
   <a class="item{% if '/docs/home' == page.url or '/docs' contains page.parent %} active{% endif %}" href="{{ site.url }}/docs/home">DOCS</a>
   <!-- <a class="item{% if '/store/home' == page.url or '/store' contains page.parent %} active{% endif %}" href="{{ site.url }}/store/home">HUB</a> -->
@@ -39,8 +39,8 @@
   {% endif %}
 
   {% if include.with_signup_form %}
-  <a class="item" href="https://koding.com/Teams/Select">LOGIN</a>
-  <a class="signup" href="/demo"><span>Request a Demo</span></a>
+  <a class="item" href="{{ site.url }}/login">LOGIN</a>
+  <a class="item" href="{{ site.url }}/register">REGISTER</a>
   {% endif %}
 
   {% if include.exclude_main_nav %}
