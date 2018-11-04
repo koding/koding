@@ -14,24 +14,20 @@ title: Home
 
     <h1>PLEASE READ</h1>
 
-    {% if jekyll.environment == 'production' %}
-      {% assign login_path = 'https://koding.com/Teams/Select' %}
-    {% else %}
-      {% assign login_path = 'http://dev.koding.com:8090/Teams/Select' %}
-    {% endif %}
-
-    <form action="{{ login_path }}">
+    <form action="/">
 
       <div class="SignupFieldset">
         <h3 style="text-align: left; margin-top: 20px;">Dear User,</h3>
-        <h3 style="text-align: left; margin-top: 20px;">Hosted version of Koding will discontinue on <strong>October 31st, 2018</strong>. After that date, Koding is going to be available only as a self-managed installation.</h3>
-        <h3 style="text-align: left; margin-top: 20px;">Please back up your stack scripts before October 31st, 2018. You will not be able to login after that date.</h3>
+        <h3 style="text-align: left; margin-top: 20px; text-decoration: line-through;">Hosted version of Koding will discontinue on <strong>October 31st, 2018</strong>. After that date, Koding is going to be available only as a self-managed installation.</h3>
+        <h3 style="text-align: left; margin-top: 20px;">Koding is now available only as a self-managed installation.</h3>
+        <h3 style="text-align: left; margin-top: 20px;">If you need a hosted solution, you can check out <a style="font-size: inherit;" href="https://codeanywhere.com"><strong>codeanywhere.com</strong></a>.</h3>
+        <!-- <h3 style="text-align: left; margin-top: 20px;">Please back up your stack scripts before October 31st, 2018. You will not be able to login after that date.</h3> -->
         <h3 style="text-align: left; margin-top: 20px;">If you'd like to continue using Koding, follow these steps <a style="font-size: inherit;" target="_blank" href="{{ site.repository }}#koding"><strong>here</strong></a> to setup your own instance.</h3>
       </div>
 
       <div class="SignupFieldset">
         <div class="submit">
-          <button type="submit">CONTINUE TO LOGIN</button>
+          <button type="submit">BACK</button>
         </div>
       </div>
 
