@@ -5,7 +5,7 @@ ruby RUBY_VERSION
 
 # If you want to use GitHub Pages, remove the "gem "jekyll"" above and
 # uncomment the line below. To upgrade, run `bundle update github-pages`.
-gem "github-pages", group: :jekyll_plugins
+gem "github-pages", "~> 227", group: :jekyll_plugins
 
 # Markdown
 gem 'redcarpet'
@@ -20,3 +20,7 @@ group :jekyll_plugins do
   gem "jekyll-paginate"
   gem 'jekyll-coffeescript'
 end
+
+gem "webrick", "~> 1.7"
+
+gem "faraday-retry", "~> 2.0"
