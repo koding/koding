@@ -118,32 +118,6 @@ permalink: /about
       </div>
     {% endif %}
     </div>
-
-    <h3 class="DepartmentTitle"><span>Board</span></h3>
-    <div class="AboutUs-TeamMemberWrapper">
-    {% for member in site.data.board %}
-      <div class="AboutUs-TeamMember {{ member.cssClass }}">
-        <img class="profile" src="{{ site.url }}/{% if member.img %}{{ member.img }}{% else %}assets/img/landing/team/{{ member.name | downcase | replace: ' ', '_'}}.png{% endif %}" alt="{{ member.name }}">
-        <h3 class="team-member-name">{{ member.name }}</h3>
-        <p>
-        {{ member.title }}
-        <br />
-        {{ member.role }}
-        </p>
-        <p class="AboutUs-TeamMember--Social">
-            {% if member.twitter %}
-            <a href="http://twitter.com/{{ member.twitter }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-twitter.png" width="24" /></a>
-            {% endif %}
-            {% if member.linkedin %}
-            <a href="http://linkedin.com/in/{{ member.linkedin }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-linkedin.png" width="24" /></a>
-            {% endif %}
-            {% if member.github %}
-            <a href="http://github.com/{{ member.github }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-github.png" width="24" /></a>
-            {% endif %}
-        </p>
-      </div>
-    {% endfor %}
-    </div>
   </div>
 
   <div class="clearfix"></div>
@@ -168,18 +142,12 @@ permalink: /about
   <div class="AboutUs-Contact--col" id="map"></div>
   <div class="AboutUs-Contact--col">
     <h2>Koding HQ</h2>
-    <p><span>358 Brannan Street, San Francisco, CA 94107</span></p>
-    <div><a href="https://goo.gl/maps/uHm3ei11Br22" target="_blank">View on Google Maps</a></div>
+    <p><span>San Francisco, CA 94107</span></p>
     <div class="AboutUs-Contact--numbers">
       <div>
         <h2>Media Inquiries</h2>
         <p><a href="mailto:press@koding.com" target="_blank">press@koding.com</a></p>
         <p><a href="http://brandfolder.com/koding" target="_blank">Media resources</a></p>
-      </div>
-      <div>
-        <h2>Connect</h2>
-        <p><a href="mailto:business@koding.com" target="_blank">business@koding.com</a></p>
-        <p><a href="mailto:support@koding.com" target="_blank">support@koding.com</a></p>
       </div>
     </div>
     <div class="AboutUs-Contact--numbers">
