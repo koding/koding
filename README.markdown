@@ -13,7 +13,7 @@ You can try Koding now on [koding.com](https://www.koding.com)
 
 ## Quick Start with Docker-Compose
 
-Easiest way to run Koding is to install `docker-compose` which
+The easiest way to run Koding is to install `docker-compose` which
 can be found [here](https://docs.docker.com/compose/install/). For the
 rest you can follow these steps:
 
@@ -119,13 +119,13 @@ make # this will run a client watcher for you
 
 Right now you should have 2 different watchers for (1) your backend files,
 (2)for your frontend client files.
-Now you can navigate to [](http://localhost:8090) to see your local Koding
+Now you can navigate [here](http://localhost:8090) to see your local Koding
 instance. Enjoy!
 
 ## License
 
 This repository is licensed under [GNU AGPL V3](https://github.com/koding/koding/blob/master/LICENSE)
-Koding Community Edition is licensed under [Apache 2.0](https://github.com/koding-ce/koding)
+Koding Community Edition is licensed under [Apache 2.0](https://github.com/koding-ce/koding).
 
 ## Contribute
 
