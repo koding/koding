@@ -65,7 +65,7 @@ elif [ "$1" = "k8s_build" ]; then
 elif [ "$1" = "is_ready" ]; then
 	shift
 	is_ready
-	exec "$@"
+	"$@"
 else
-	exec "$@"
+	"$@"
 fi
